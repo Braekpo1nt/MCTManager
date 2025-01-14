@@ -70,7 +70,7 @@ public class DescriptionState implements SurvivalGamesState {
     }
     
     @Override
-    public void initializeParticipant(Player participant) {
+    public void initializeParticipant(Participant participant) {
         context.getParticipants().add(participant);
         context.getLivingPlayers().add(participant.getUniqueId());
         String teamId = context.getGameManager().getTeamId(participant.getUniqueId());

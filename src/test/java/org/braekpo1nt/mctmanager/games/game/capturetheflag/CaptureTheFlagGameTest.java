@@ -8,9 +8,6 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfigController;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states.ClassSelectionState;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states.MatchActiveState;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states.MatchOverState;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.GameOverState;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.PreRoundState;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.RoundActiveState;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.RoundOverState;
@@ -61,13 +58,13 @@ public class CaptureTheFlagGameTest {
     MyPlayerMock createParticipant(String name, String teamId) {
         MyPlayerMock player = new MyPlayerMock(server, name, UUID.nameUUIDFromBytes(name.getBytes(StandardCharsets.UTF_8)));
         server.addPlayer(player);
-        gameManager.joinPlayerToTeam(sender, player, teamId);
+        gameManager.joinParticipantToTeam(sender, player, teamId);
         Assertions.assertTrue(gameManager.isParticipant(player.getUniqueId()));
         return player;
     }
     
     void removeParticipant(OfflinePlayer player, @NotNull String playerName) {
-        gameManager.leavePlayer(sender, player, playerName);
+        gameManager.leaveParticipant(sender, player, playerName);
     }
     
     void addTeam(String teamId, String teamDisplayName, String teamColor) {

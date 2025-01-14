@@ -82,7 +82,7 @@ public class SpleefRound implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
         placeLayers(true);
-        for (Player participant : newParticipants) {
+        for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
         initializeSidebar();
@@ -100,7 +100,7 @@ public class SpleefRound implements Listener {
         Main.logger().info("Starting Spleef round");
     }
     
-    private void initializeParticipant(Player participant) {
+    private void initializeParticipant(Participant participant) {
         UUID participantUniqueId = participant.getUniqueId();
         participants.add(participant);
         participantsAlive.put(participantUniqueId, true);

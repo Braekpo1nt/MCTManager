@@ -17,6 +17,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -104,7 +105,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public void start(List<Player> newParticipants, List<Player> newAdmins) {
+    public void start(Collection<Participant> newParticipants, List<Player> newAdmins) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
         participants = new ArrayList<>(newParticipants.size());
@@ -114,7 +115,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         roundManager = new RoundManager(teamIds, config.getArenas().size());
         killCount = new HashMap<>(newParticipants.size());
         deathCount = new HashMap<>(newParticipants.size());
-        for (Player participant : newParticipants) {
+        for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
         initializeSidebar();
@@ -124,7 +125,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         Main.logger().info("Starting Capture the Flag");
     }
     
-    public void initializeParticipant(Player participant) {
+    public void initializeParticipant(Participant participant) {
         participants.add(participant);
         sidebar.addPlayer(participant);
         topbar.showPlayer(participant);
@@ -187,7 +188,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         if (state == null) {
             return;
         }
@@ -198,7 +199,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(Participant participant) {
         if (state == null) {
             return;
         }

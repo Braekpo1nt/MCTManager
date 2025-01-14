@@ -41,7 +41,7 @@ public class LeaveSubCommand extends TabSubCommand {
                 gameManager.leaveOfflineIGN(sender, playerName);
             }
         } else {
-            gameManager.leavePlayer(sender, playerToLeave, playerName);
+            gameManager.leaveParticipant(sender, playerToLeave, playerName);
         }
         return CommandResult.success();
     }

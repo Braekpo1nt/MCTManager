@@ -17,6 +17,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.utils.EntityUtils;
@@ -105,7 +106,7 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
     }
     
     @Override
-    public void start(List<Player> newParticipants) {
+    public void start(Collection<Participant> newParticipants) {
         participants = new ArrayList<>(newParticipants.size());
         currentCheckpoints = new HashMap<>(newParticipants.size());
         displays = new HashMap<>(newParticipants.size());
@@ -122,7 +123,7 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
         Main.logger().info("Starting Foot Race editor");
     }
     
-    private void initializeParticipant(Player participant) {
+    private void initializeParticipant(Participant participant) {
         participants.add(participant);
         currentCheckpoints.put(participant.getUniqueId(), 0);
         displays.put(participant.getUniqueId(), new Display(plugin));

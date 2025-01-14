@@ -57,7 +57,7 @@ public class GameOverState implements SurvivalGamesState {
     }
     
     @Override
-    public void initializeParticipant(Player participant) {
+    public void initializeParticipant(Participant participant) {
         // not used
     }
     

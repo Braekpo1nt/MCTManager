@@ -93,7 +93,7 @@ public class ClockworkRound implements Listener {
         roundActive = true;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
-        for (Player participant : newParticipants) {
+        for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
         chimeInterval = config.getInitialChimeInterval();
@@ -104,7 +104,7 @@ public class ClockworkRound implements Listener {
         Main.logger().info("Starting Clockwork Round " + roundNumber);
     }
     
-    private void initializeParticipant(Player participant) {
+    private void initializeParticipant(Participant participant) {
         participants.add(participant);
         participantsAreAlive.put(participant.getUniqueId(), true);
         String team = gameManager.getTeamId(participant.getUniqueId());

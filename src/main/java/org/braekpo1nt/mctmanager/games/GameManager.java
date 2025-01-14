@@ -327,7 +327,7 @@ public class GameManager implements Listener {
     private void onParticipantQuit(@NotNull Participant participant) {
         onlineParticipants.remove(participant.getUniqueId());
         if (gameIsRunning()) {
-            activeGame.onParticipantQuit(participant.getPlayer());
+            activeGame.onParticipantQuit(participant);
         } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
             eventManager.onParticipantQuit(participant);
         } else if (voteManager.isVoting()) {
@@ -399,7 +399,7 @@ public class GameManager implements Listener {
         hubManager.onParticipantJoin(participant);
         if (gameIsRunning()) {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
-            activeGame.onParticipantJoin(participant.getPlayer());
+            activeGame.onParticipantJoin(participant);
         } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
             eventManager.onParticipantJoin(participant);
@@ -710,7 +710,7 @@ public class GameManager implements Listener {
         }
         
         hubManager.removeParticipantsFromHub(onlineParticipants.values());
-        selectedGame.start(Participant.toPlayersList(onlineParticipants.values()), onlineAdmins);
+        selectedGame.start(onlineParticipants.values(), onlineAdmins);
         activeGame = selectedGame;
         updatePersonalScores(onlineParticipants.values());
         updateTeamScores(onlineTeams);

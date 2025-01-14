@@ -14,6 +14,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -39,6 +40,7 @@ import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class ClockworkGame implements Listener, MCTGame, Configurable, Headerable {
@@ -99,13 +101,13 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     @Override
-    public void start(List<Player> newParticipants, List<Player> newAdmins) {
+    public void start(Collection<Participant> newParticipants, List<Player> newAdmins) {
         participants = new ArrayList<>(newParticipants.size());
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
-        for (Player participant : newParticipants) {
+        for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
         initializeSidebar();
@@ -126,7 +128,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         messageAllParticipants(config.getDescription());
     }
     
-    private void initializeParticipant(Player participant) {
+    private void initializeParticipant(Participant participant) {
         participants.add(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         sidebar.addPlayer(participant);
@@ -241,7 +243,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         if (!gameActive) {
             return;
         }
@@ -262,7 +264,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(Participant participant) {
         if (!gameActive) {
             return;
         }

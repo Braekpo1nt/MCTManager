@@ -16,6 +16,7 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.CheckPoint;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
@@ -132,7 +133,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public void start(List<Player> newParticipants, List<Player> newAdmins) {
+    public void start(Collection<Participant> newParticipants, List<Player> newAdmins) {
         participants = new ArrayList<>(newParticipants.size());
         currentPuzzles = new HashMap<>(newParticipants.size());
         quitParticipantsSkips = new HashMap<>();
@@ -147,7 +148,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         parkourHasStarted = false;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
-        for (Player participant : newParticipants) {
+        for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
         initializeSidebar();
@@ -164,7 +165,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         messageAllParticipants(config.getDescription());
     }
     
-    private void initializeParticipant(Player participant) {
+    private void initializeParticipant(Participant participant) {
         participants.add(participant);
         currentPuzzles.put(participant.getUniqueId(), 0);
         currentPuzzleCheckpoints.put(participant.getUniqueId(), 0);
@@ -253,7 +254,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         participants.add(participant);
         UUID uniqueId = participant.getUniqueId();
         currentPuzzles.putIfAbsent(uniqueId, 0);
@@ -330,7 +331,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(Participant participant) {
         if (parkourHasStarted) {
             int unusedSkips = calculateUnusedSkips(participant);
             quitParticipantsSkips.put(participant.getUniqueId(), unusedSkips);

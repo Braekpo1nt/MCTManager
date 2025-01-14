@@ -101,7 +101,7 @@ public class CaptureTheFlagMatch {
     public void start(List<Player> newParticipants) {
         placeFlags();
         closeGlassBarriers();
-        for (Player participant : newParticipants) {
+        for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
         initializeSidebar();
@@ -110,7 +110,7 @@ public class CaptureTheFlagMatch {
         Main.logger().info(String.format("Starting capture the flag match %s", matchPairing));
     }
     
-    public void initializeParticipant(Player participant) {
+    public void initializeParticipant(Participant participant) {
         String teamId = gameManager.getTeamId(participant.getUniqueId());
         allParticipants.add(participant);
         UUID participantUniqueId = participant.getUniqueId();

@@ -105,13 +105,13 @@ public class PowerupManager implements Listener {
         participants = new ArrayList<>(newParticipants.size());
         lastPowerupTimestamps = new HashMap<>(newParticipants.size());
         setUpPowerups();
-        for (Player participant : newParticipants) {
+        for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
         startPowerupTimer();
     }
     
-    private void initializeParticipant(Player participant) {
+    private void initializeParticipant(Participant participant) {
         participants.add(participant);
         for (Map.Entry<Powerup.Type, Integer> entry : config.getInitialLoadout().entrySet()) {
             Powerup.Type type = entry.getKey();

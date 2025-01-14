@@ -48,7 +48,7 @@ public class DescriptionState implements CaptureTheFlagState {
         context.updateRoundLine();
     }
     
-    private void initializeParticipant(Player participant) {
+    private void initializeParticipant(Participant participant) {
         context.initializeParticipant(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         participant.teleport(context.getConfig().getSpawnObservatory());

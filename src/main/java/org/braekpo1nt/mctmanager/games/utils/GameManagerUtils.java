@@ -5,7 +5,6 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
@@ -311,7 +310,7 @@ public class GameManagerUtils {
                         .append(teamDisplayName));
             }
         }
-        gameManager.joinPlayerToTeam(sender, playerToJoin, teamId);
+        gameManager.joinParticipantToTeam(sender, playerToJoin, teamId);
         return CommandResult.success();
     }
     

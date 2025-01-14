@@ -14,6 +14,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfigController;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -33,6 +34,7 @@ import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
@@ -94,13 +96,13 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     }
     
     @Override
-    public void start(List<Player> newParticipants, List<Player> newAdmins) {
+    public void start(Collection<Participant> newParticipants, List<Player> newAdmins) {
         participants = new ArrayList<>(newParticipants.size());
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
-        for (Player participant : newParticipants) {
+        for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
         initializeSidebar();
@@ -123,7 +125,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         messageAllParticipants(config.getDescription());
     }
     
-    private void initializeParticipant(Player participant) {
+    private void initializeParticipant(Participant participant) {
         participants.add(participant);
         sidebar.addPlayer(participant);
         teleportParticipantToRandomStartingPosition(participant);
@@ -300,7 +302,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         if (!gameActive) {
             return;
         }
@@ -318,7 +320,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(Participant participant) {
         if (!gameActive) {
             return;
         }

@@ -166,7 +166,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     }
     
     @Override
-    public void start(List<Player> newParticipants, List<Player> newAdmins) {
+    public void start(Collection<org.braekpo1nt.mctmanager.participant.Participant> newParticipants, List<Player> newAdmins) {
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -181,7 +181,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             teams.put(teamId, new Team(teamId, gameManager.getFormattedTeamDisplayName(teamId), arena));
         }
         placeArenas(arenas);
-        for (Player participant : newParticipants) {
+        for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
         startAdmins(newAdmins);
@@ -369,7 +369,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         placeArenas(Collections.singletonList(arena));
     }
     
-    public void initializeParticipant(Player player) {
+    public void initializeParticipant(Participant player) {
         String teamId = gameManager.getTeamId(player.getUniqueId());
         Participant participant = new Participant(player, teamId);
         participants.put(player.getUniqueId(), participant);
@@ -455,7 +455,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(org.braekpo1nt.mctmanager.participant.Participant participant) {
         if (state == null) {
             return;
         }
@@ -463,7 +463,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     }
     
     @Override
-    public void onParticipantQuit(Player player) {
+    public void onParticipantQuit(org.braekpo1nt.mctmanager.participant.Participant player) {
         if (state == null) {
             return;
         }

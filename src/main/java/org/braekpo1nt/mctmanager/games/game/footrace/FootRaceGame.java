@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.games.game.footrace;
 
-import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import lombok.Data;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -18,6 +17,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -127,7 +127,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     @Override
-    public void start(List<Player> newParticipants, List<Player> newAdmins) {
+    public void start(Collection<Participant> newParticipants, List<Player> newAdmins) {
         this.participants = new ArrayList<>(newParticipants.size());
         lapCooldowns = new HashMap<>(newParticipants.size());
         laps = new HashMap<>(newParticipants.size());
@@ -140,7 +140,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
         closeGlassBarrier();
-        for (Player participant : newParticipants) {
+        for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
         startAdmins(newAdmins);
@@ -283,7 +283,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         }
     }
     
-    public void initializeParticipant(Player participant) {
+    public void initializeParticipant(Participant participant) {
         UUID participantUUID = participant.getUniqueId();
         participants.add(participant);
         lapCooldowns.put(participantUUID, System.currentTimeMillis());
@@ -344,14 +344,14 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         if (state != null) {
             state.onParticipantJoin(participant);
         }
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(Participant participant) {
         if (state != null) {
             state.onParticipantQuit(participant);
         }

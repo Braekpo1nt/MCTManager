@@ -147,7 +147,7 @@ public class ActiveState implements FootRaceState {
     }
     
     @Override
-    public void initializeParticipant(Player participant) {
+    public void initializeParticipant(Participant participant) {
         context.initializeParticipant(participant);
     }
     

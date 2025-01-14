@@ -16,6 +16,7 @@ import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesCo
 import org.braekpo1nt.mctmanager.games.game.survivalgames.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.states.SurvivalGamesState;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.glow.GlowManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -122,7 +123,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     }
     
     @Override
-    public void start(List<Player> newParticipants, List<Player> newAdmins) {
+    public void start(Collection<Participant> newParticipants, List<Player> newAdmins) {
         this.participants = new ArrayList<>(newParticipants.size());
         livingPlayers = new ArrayList<>(newParticipants.size());
         deadPlayers = new ArrayList<>();
@@ -138,7 +139,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         glowManager.registerListeners();
         gameManager.getTimerManager().register(timerManager);
         fillAllChests();
-        for (Player participant : newParticipants) {
+        for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
         createPlatformsAndTeleportTeams();
@@ -192,7 +193,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         }
     }
     
-    public void initializeParticipant(Player participant) {
+    public void initializeParticipant(Participant participant) {
         participants.add(participant);
         livingPlayers.add(participant.getUniqueId());
         String teamId = gameManager.getTeamId(participant.getUniqueId());
@@ -259,14 +260,14 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         if (state != null) {
             state.onParticipantJoin(participant);
         }
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(Participant participant) {
         if (state != null) {
             state.onParticipantQuit(participant);
         }
