@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.participant;
 
+import io.papermc.paper.entity.LookAnchor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.kyori.adventure.audience.Audience;
@@ -138,5 +139,12 @@ public class Participant extends AudienceDelegate {
      */
     public void displayName(final @Nullable Component displayName) {
         player.displayName(displayName);
+    }
+    
+    /**
+     * Delegate for {@link Player#lookAt(double, double, double, LookAnchor)}
+     */
+    public void lookAt(double x, double y, double z, @NotNull LookAnchor lookAnchor) {
+        player.lookAt(x, y, z, lookAnchor);
     }
 }

@@ -61,7 +61,7 @@ public class DescriptionState implements FootRaceState {
     }
     
     @Override
-    public void resetParticipant(Player participant) {
+    public void resetParticipant(Participant participant) {
         context.resetParticipant(participant);
     }
     

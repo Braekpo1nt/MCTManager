@@ -62,7 +62,7 @@ public class GameOverState implements SurvivalGamesState {
     }
     
     @Override
-    public void resetParticipant(Player participant) {
+    public void resetParticipant(Participant participant) {
         context.resetParticipant(participant);
     }
     

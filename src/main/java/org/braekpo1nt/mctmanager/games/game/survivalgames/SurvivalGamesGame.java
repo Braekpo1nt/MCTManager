@@ -212,7 +212,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         ParticipantInitializer.clearStatusEffects(participant);
     }
     
-    public void resetParticipant(Player participant) {
+    public void resetParticipant(Participant participant) {
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);

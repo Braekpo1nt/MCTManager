@@ -90,7 +90,7 @@ public class DescriptionState implements SurvivalGamesState {
     }
     
     @Override
-    public void resetParticipant(Player participant) {
+    public void resetParticipant(Participant participant) {
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
