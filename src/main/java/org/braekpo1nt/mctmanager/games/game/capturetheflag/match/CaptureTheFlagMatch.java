@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlag
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states.CaptureTheFlagMatchState;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states.ClassSelectionState;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
@@ -33,7 +34,6 @@ import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 @Data
 public class CaptureTheFlagMatch {
@@ -54,9 +54,9 @@ public class CaptureTheFlagMatch {
     private final Sidebar adminSidebar;
     private final ClassPicker northClassPicker;
     private final ClassPicker southClassPicker;
-    private final List<Player> northParticipants = new ArrayList<>();
-    private final List<Player> southParticipants = new ArrayList<>();
-    private final List<Player> allParticipants = new ArrayList<>();
+    private final Map<UUID, Participant> northParticipants = new HashMap<>();
+    private final Map<UUID, Participant> southParticipants = new HashMap<>();
+    private final Map<UUID, Participant> allParticipants = new HashMap<>();
     private final Map<UUID, Boolean> participantsAreAlive = new HashMap<>();
     /**
      * The position of the north flag, if it has been dropped and can be picked up. Null if not
@@ -98,7 +98,7 @@ public class CaptureTheFlagMatch {
         state.nextState();
     }
     
-    public void start(List<Player> newParticipants) {
+    public void start(Collection<Participant> newParticipants) {
         placeFlags();
         closeGlassBarriers();
         for (Participant participant : newParticipants) {
@@ -112,13 +112,13 @@ public class CaptureTheFlagMatch {
     
     public void initializeParticipant(Participant participant) {
         String teamId = gameManager.getTeamId(participant.getUniqueId());
-        allParticipants.add(participant);
+        allParticipants.put(participant.getUniqueId(), participant);
         UUID participantUniqueId = participant.getUniqueId();
         participantsAreAlive.putIfAbsent(participantUniqueId, true);
         int alive;
         int dead;
         if (matchPairing.northTeam().equals(teamId)) {
-            northParticipants.add(participant);
+            northParticipants.put(participant.getUniqueId(), participant);
             participant.teleport(arena.northSpawn());
             participant.setRespawnLocation(arena.northSpawn(), true);
             participant.lookAt(
@@ -126,10 +126,10 @@ public class CaptureTheFlagMatch {
                     arena.southSpawn().getY(), 
                     arena.southSpawn().getZ(), 
                     LookAnchor.EYES);
-            alive = countAlive(northParticipants);
+            alive = countAlive(northParticipants.values());
             dead = northParticipants.size() - alive;
         } else {
-            southParticipants.add(participant);
+            southParticipants.put(participant.getUniqueId(), participant);
             participant.teleport(arena.southSpawn());
             participant.setRespawnLocation(arena.southSpawn(), true);
             participant.lookAt(
@@ -137,7 +137,7 @@ public class CaptureTheFlagMatch {
                     arena.northSpawn().getY(), 
                     arena.northSpawn().getZ(), 
                     LookAnchor.EYES);
-            alive = countAlive(southParticipants);
+            alive = countAlive(southParticipants.values());
             dead = southParticipants.size() - alive;
         }
         topbar.setMembers(teamId, alive, dead);
@@ -158,15 +158,15 @@ public class CaptureTheFlagMatch {
         if (state == null) {
             return;
         }
-        if (!allParticipants.contains(participant)) {
+        if (!allParticipants.containsKey(participant.getUniqueId())) {
             return;
         }
         state.onParticipantQuit(participant);
     }
     
-    public int countAlive(List<Player> participants) {
+    public int countAlive(Collection<Participant> participants) {
         int living = 0;
-        for (Player participant : participants) {
+        for (Participant participant : participants) {
             if (participantsAreAlive.get(participant.getUniqueId())) {
                 living++;
             }
@@ -232,7 +232,7 @@ public class CaptureTheFlagMatch {
         hasNorthFlag = null;
         hasSouthFlag = null;
         resetArena();
-        for (Player participant : allParticipants) {
+        for (Participant participant : allParticipants.values()) {
             resetParticipant(participant);
         }
         allParticipants.clear();
@@ -266,7 +266,7 @@ public class CaptureTheFlagMatch {
         }
     }
     
-    public void resetParticipant(Player participant) {
+    public void resetParticipant(Participant participant) {
         ParticipantInitializer.clearInventory(participant);
         participant.closeInventory();
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -280,7 +280,7 @@ public class CaptureTheFlagMatch {
         if (!(event.getEntity() instanceof Player participant)) {
             return;
         }
-        if (!allParticipants.contains(participant)) {
+        if (!allParticipants.containsKey(participant.getUniqueId())) {
             return;
         }
         state.onPlayerDamage(event);
@@ -291,7 +291,7 @@ public class CaptureTheFlagMatch {
             return;
         }
         Player participant = (Player) event.getEntity();
-        if (!allParticipants.contains(participant)) {
+        if (!allParticipants.containsKey(participant.getUniqueId())) {
             return;
         }
         state.onPlayerLoseHunger(event);
@@ -302,7 +302,7 @@ public class CaptureTheFlagMatch {
             return;
         }
         Player participant = event.getPlayer();
-        if (!allParticipants.contains(participant)) {
+        if (!allParticipants.containsKey(participant.getUniqueId())) {
             return;
         }
         state.onPlayerMove(event);
@@ -313,7 +313,7 @@ public class CaptureTheFlagMatch {
             return;
         }
         Player participant = (Player) event.getWhoClicked();
-        if (!allParticipants.contains(participant)) {
+        if (!allParticipants.containsKey(participant.getUniqueId())) {
             return;
         }
         state.onClickInventory(event);
@@ -324,7 +324,7 @@ public class CaptureTheFlagMatch {
             return;
         }
         Player participant = event.getPlayer();
-        if (!allParticipants.contains(participant)) {
+        if (!allParticipants.containsKey(participant.getUniqueId())) {
             return;
         }
         state.onPlayerDeath(event);
@@ -333,24 +333,24 @@ public class CaptureTheFlagMatch {
     public void messageAllParticipants(Component message) {
         gameManager.messageAdmins(message);
         Audience.audience(
-                allParticipants
+                allParticipants.values()
         ).sendMessage(message);
     }
     
     public void messageNorthParticipants(Component message) {
-        Audience.audience(northParticipants).sendMessage(message);
+        Audience.audience(northParticipants.values()).sendMessage(message);
     }
     
     public void titleNorthParticipants(Title title) {
-        Audience.audience(northParticipants).showTitle(title);
+        Audience.audience(northParticipants.values()).showTitle(title);
     }
     
     public void messageSouthParticipants(Component message) {
-        Audience.audience(southParticipants).sendMessage(message);
+        Audience.audience(southParticipants.values()).sendMessage(message);
     }
     
     public void titleSouthParticipants(Title title) {
-        Audience.audience(southParticipants).showTitle(title);
+        Audience.audience(southParticipants.values()).showTitle(title);
     }
     
 }
