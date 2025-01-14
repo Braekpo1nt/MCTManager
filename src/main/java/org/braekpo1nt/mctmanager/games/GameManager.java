@@ -322,7 +322,7 @@ public class GameManager implements Listener {
      * (see {@link GameManager#playerQuitEvent(PlayerQuitEvent)}),
      * or when they are removed from the participants list
      * @param participant The participant who left the event
-     * @see GameManager#leavePlayer(CommandSender, OfflinePlayer, String) 
+     * @see GameManager#leaveParticipant(CommandSender, OfflinePlayer, String) 
      */
     private void onParticipantQuit(@NotNull Participant participant) {
         onlineParticipants.remove(participant.getUniqueId());
@@ -427,7 +427,7 @@ public class GameManager implements Listener {
             return;
         }
         leaveOfflineIGN(Bukkit.getConsoleSender(), participant.getName());
-        joinPlayerToTeam(Bukkit.getConsoleSender(), participant, team);
+        joinParticipantToTeam(Bukkit.getConsoleSender(), participant, team);
         messageAdmins(Component.empty()
                 .append(participant.displayName())
                 .append(Component.text(" was joined to "))
@@ -535,7 +535,7 @@ public class GameManager implements Listener {
             }
         }
         // TabList stop
-        for (Player player : Bukkit.getOnlinePlayers()) {
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
             if (isAdmin(player.getUniqueId())) {
                 onAdminJoin(player);
             }
@@ -1043,7 +1043,7 @@ public class GameManager implements Listener {
         for (UUID playerUniqueId : playerUniqueIds) {
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerUniqueId);
             String name = offlinePlayer.getName() != null ? offlinePlayer.getName() : "unknown";
-            leavePlayer(sender, offlinePlayer, name);
+            leaveParticipant(sender, offlinePlayer, name);
         }
         List<String> offlineIGNs = gameStateStorageUtil.getOfflineIGNsOnTeam(teamId);
         for (String offlineIGN : offlineIGNs) {
@@ -1163,7 +1163,7 @@ public class GameManager implements Listener {
      *                 This method assumes the team exists, and will throw a 
      *                 null pointer exception if it doesn't.
      */
-    public void joinPlayerToTeam(CommandSender sender, Player participant, String teamId) {
+    public void joinParticipantToTeam(CommandSender sender, Player participant, String teamId) {
         UUID playerUniqueId = participant.getUniqueId();
         if (isAdmin(playerUniqueId)) {
             removeAdmin(sender, participant, participant.getName());
@@ -1179,10 +1179,10 @@ public class GameManager implements Listener {
                         .append(Component.text(". Nothing happened.")));
                 return;
             }
-            leavePlayer(sender, participant, participant.getName());
+            leaveParticipant(sender, participant, participant.getName());
         }
         tabList.joinParticipant(participant.getUniqueId(), participant.getName(), teamId, false);
-        addNewPlayer(sender, playerUniqueId, teamId);
+        addNewParticipant(sender, playerUniqueId, teamId);
         hubManager.updateLeaderboards();
         NamedTextColor teamIddTextColor = getTeamColor(teamId);
         Component displayName = Component.text(participant.getName(), teamIddTextColor);
@@ -1221,7 +1221,7 @@ public class GameManager implements Listener {
                 return;
             }
             OfflinePlayer offlineParticipant = Bukkit.getOfflinePlayer(offlineUniqueId);
-            leavePlayer(sender, offlineParticipant, ign);
+            leaveParticipant(sender, offlineParticipant, ign);
         }
         if (isOfflineIGN(ign)) {
             String originalTeamId = getOfflineIGNTeamId(ign);
@@ -1257,13 +1257,13 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Adds the new player to the game state and joins them the given team. 
+     * Adds the new participant to the {@link GameStateStorageUtil} and joins them the given team. 
      * If a game is running, and the player is online, joins the player to that game.  
      * @param sender the sender of the command, who will receive success/error messages
      * @param playerUniqueId The UUID of the player to add
      * @param teamId The name of the team to join the new player to
      */
-    private void addNewPlayer(CommandSender sender, UUID playerUniqueId, String teamId) {
+    private void addNewParticipant(CommandSender sender, UUID playerUniqueId, String teamId) {
         try {
             gameStateStorageUtil.addNewPlayer(playerUniqueId, teamId);
         } catch (ConfigIOException e) {
@@ -1338,7 +1338,7 @@ public class GameManager implements Listener {
      * @param sender the sender of the command, who will receive success/error messages
      * @param offlinePlayer The player to remove from the team
      */
-    public void leavePlayer(CommandSender sender, @NotNull OfflinePlayer offlinePlayer, @NotNull String playerName) {
+    public void leaveParticipant(CommandSender sender, @NotNull OfflinePlayer offlinePlayer, @NotNull String playerName) {
         UUID playerUniqueId = offlinePlayer.getUniqueId();
         String teamId = gameStateStorageUtil.getPlayerTeamId(playerUniqueId);
         if (teamId == null) {
@@ -1914,7 +1914,7 @@ public class GameManager implements Listener {
             return;
         }
         if (gameStateStorageUtil.containsPlayer(uniqueId)) {
-            leavePlayer(sender, newAdmin, newAdmin.getName());
+            leaveParticipant(sender, newAdmin, newAdmin.getName());
         }
         try {
             gameStateStorageUtil.addAdmin(uniqueId);
