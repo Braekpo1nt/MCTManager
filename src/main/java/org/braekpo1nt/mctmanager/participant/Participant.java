@@ -8,6 +8,7 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.utils.AudienceDelegate;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -15,6 +16,7 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -193,5 +195,33 @@ public class Participant extends AudienceDelegate {
      */
     public @NotNull BlockFace getFacing() {
         return player.getFacing();
+    }
+    
+    /**
+     * Delegate for {@link Player#setArrowsInBody(int)}
+     */
+    public void setArrowsInBody(final int count) {
+        player.setArrowsInBody(count);
+    }
+    
+    /**
+     * Delegate for {@link Player#playSound(Location, String, float, float)} )}
+     */
+    public void playSound(@NotNull Location location, @NotNull String sound, float volume, float pitch) {
+        player.playSound(location, sound, volume, pitch);
+    }
+    
+    /**
+     * Delegate for {@link Player#addPotionEffect(PotionEffect)} )}
+     */
+    public void addPotionEffect(PotionEffect potionEffect) {
+        player.addPotionEffect(potionEffect);
+    }
+    
+    /**
+     * Delegate for {@link Player#setFoodLevel(int)} )}
+     */
+    public void setFoodLevel(int value) {
+        player.setFoodLevel(value);
     }
 }
