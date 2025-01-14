@@ -1089,6 +1089,7 @@ public class GameManager implements Listener {
      * @return A list of all unique team names which the given participants belong to.
      * @deprecated as of v1.3.0 in favor of {@link Participant#getTeamIds(Collection)}
      */
+    @Deprecated
     public List<String> getTeamIds(Collection<Participant> participants) {
         // TODO: resolve teamIds list using Participant class
         List<String> teamIds = new ArrayList<>();
