@@ -7,6 +7,7 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.io.IOUtils;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.maps.ImageMapRenderer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -107,6 +108,15 @@ public class UIUtils {
                 .append(middle)
                 .append(paddingRight)
                 .append(right);
+    }
+    
+    /**
+     * Shows a subtitle to the killer indicating that they killed the given player
+     * @param killer the one who killed
+     * @param killed the one who was killed (the one who died)
+     */
+    public static void showKillTitle(Participant killer, Participant killed) {
+        showKillTitle(killer.getPlayer(), killed.getPlayer());
     }
     
     /**

@@ -69,11 +69,11 @@ public class CaptureTheFlagMatch {
     /**
      * The player who has the north flag, if it is picked up. Null if not.
      */
-    private Player hasNorthFlag;
+    private Participant hasNorthFlag;
     /**
      * The player who has the south flag, if it is picked up. Null if not.
      */
-    private Player hasSouthFlag;
+    private Participant hasSouthFlag;
     private Material northBanner;
     private Material southBanner;
     

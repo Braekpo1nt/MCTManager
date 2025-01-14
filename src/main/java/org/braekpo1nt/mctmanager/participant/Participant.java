@@ -8,7 +8,10 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.utils.AudienceDelegate;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.PlayerInventory;
@@ -146,5 +149,40 @@ public class Participant extends AudienceDelegate {
      */
     public void lookAt(double x, double y, double z, @NotNull LookAnchor lookAnchor) {
         player.lookAt(x, y, z, lookAnchor);
+    }
+    
+    /**
+     * Delegate for {@link Player#getWorld()}
+     */
+    public @NotNull World getWorld() {
+        return player.getWorld();
+    }
+    
+    /**
+     * Delegate for {@link Player#getLocation()}
+     */
+    public @NotNull Location getLocation() {
+        return player.getLocation();
+    }
+    
+    /**
+     * Delegate for {@link Player#getKiller()}
+     */
+    public @Nullable Player getKiller() {
+        return player.getKiller();
+    }
+    
+    /**
+     * Delegate for {@link Player#getEquipment()}
+     */
+    public @NotNull EntityEquipment getEquipment() {
+        return player.getEquipment();
+    }
+    
+    /**
+     * Delegate for {@link Player#getFacing()}
+     */
+    public @NotNull BlockFace getFacing() {
+        return player.getFacing();
     }
 }

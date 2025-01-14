@@ -8,7 +8,6 @@ import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -21,7 +20,7 @@ public class MatchOverState implements CaptureTheFlagMatchState {
     
     public MatchOverState(CaptureTheFlagMatch context) {
         this.context = context;
-        for (Player participant : context.getAllParticipants()) {
+        for (Participant participant : context.getAllParticipants().values()) {
             if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {
                 participant.teleport(context.getConfig().getSpawnObservatory());
                 participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
@@ -58,11 +57,11 @@ public class MatchOverState implements CaptureTheFlagMatchState {
         participant.setGameMode(GameMode.ADVENTURE);
         String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
         if (context.getMatchPairing().northTeam().equals(teamId)) {
-            context.getNorthParticipants().remove(participant);
+            context.getNorthParticipants().remove(participant.getUniqueId());
         } else if (context.getMatchPairing().southTeam().equals(teamId)) {
-            context.getSouthParticipants().remove(participant);
+            context.getSouthParticipants().remove(participant.getUniqueId());
         }
-        context.getAllParticipants().remove(participant);
+        context.getAllParticipants().remove(participant.getUniqueId());
     }
     
     @Override
