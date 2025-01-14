@@ -13,6 +13,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.ReadyUpManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.topbar.ReadyUpTopbar;
@@ -82,7 +83,7 @@ public class ReadyUpState implements EventState {
                 topbar.setReadyCount(teamId, 0);
             }
         }
-        for (Player participant : context.getParticipants()) {
+        for (Participant participant : context.getParticipants().values()) {
             topbar.showPlayer(participant);
             topbar.setReady(participant.getUniqueId(), false);
         }
@@ -90,13 +91,13 @@ public class ReadyUpState implements EventState {
             topbar.showPlayer(admin);
         }
         
-        promptToReadyUp(Audience.audience(context.getParticipants()));
+        promptToReadyUp(Audience.audience(context.getParticipants().values()));
         context.messageAllAdmins(Component.text("Ready Up has begun"));
         
         readyUpPromptTaskId = new BukkitRunnable() {
             @Override
             public void run() {
-                for (Player participant : context.getParticipants()) {
+                for (Participant participant : context.getParticipants().values()) {
                     String teamId = gameManager.getTeamId(participant.getUniqueId());
                     boolean ready = readyUpManager.participantIsReady(participant.getUniqueId(), teamId);
                     if (!ready) {
@@ -118,8 +119,8 @@ public class ReadyUpState implements EventState {
     }
     
     @Override
-    public void readyUpParticipant(Player participant) {
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
+    public void readyUpParticipant(@NotNull Participant participant) {
+        String teamId = participant.getTeamId();
         List<OfflinePlayer> teamMembers = gameManager.getOfflineParticipants(teamId);
         boolean wasReady = readyUpManager.readyUpParticipant(participant.getUniqueId(), teamId);
         if (!wasReady) {
@@ -176,7 +177,7 @@ public class ReadyUpState implements EventState {
     }
     
     @Override
-    public void unReadyParticipant(Player participant) {
+    public void unReadyParticipant(@NotNull Participant participant) {
         String teamId = gameManager.getTeamId(participant.getUniqueId());
         List<OfflinePlayer> teamMembers = gameManager.getOfflineParticipants(teamId);
         boolean teamWasReady = readyUpManager.teamIsReady(teamId);
@@ -211,9 +212,9 @@ public class ReadyUpState implements EventState {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         gameManager.returnParticipantToHubInstantly(participant);
-        context.getParticipants().add(participant);
+        context.getParticipants().put(participant.getUniqueId(), participant);
         if (sidebar != null) {
             sidebar.addPlayer(participant);
             context.updateTeamScores();
@@ -229,8 +230,8 @@ public class ReadyUpState implements EventState {
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
-        context.getParticipants().remove(participant);
+    public void onParticipantQuit(Participant participant) {
+        context.getParticipants().remove(participant.getUniqueId());
         if (sidebar != null) {
             sidebar.removePlayer(participant);
         }
@@ -271,14 +272,14 @@ public class ReadyUpState implements EventState {
                 .append(Component.text(" games.")));
         Audience.audience(
                 Audience.audience(context.getAdmins()),
-                Audience.audience(context.getParticipants())
+                Audience.audience(context.getParticipants().values())
         ).showTitle(UIUtils.defaultTitle(
                 Component.empty(),
                 Component.empty()
                         .append(Component.text("Event Starting"))
                         .color(NamedTextColor.GOLD)
         ));
-        gameManager.removeParticipantsFromHub(context.getParticipants());
+        gameManager.removeParticipantsFromHub(context.getParticipants().values());
         context.setState(new WaitingInHubState(context));
     }
     

@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.states.delay.ToPodiumDelayState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -18,6 +19,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 public class PlayingColossalCombatState extends PlayingGameState {
     
@@ -38,8 +40,7 @@ public class PlayingColossalCombatState extends PlayingGameState {
         try {
             context.getColossalCombatGame().loadConfig();
         } catch (ConfigException e) {
-            Main.logger().severe(e.getMessage());
-            e.printStackTrace();
+            Main.logger().log(Level.SEVERE, "Error trying to start Colossal Combat", e);
             context.messageAllAdmins(Component.text("Can't start ")
                     .append(Component.text("Colossal Combat")
                             .decorate(TextDecoration.BOLD))
@@ -51,14 +52,14 @@ public class PlayingColossalCombatState extends PlayingGameState {
         List<Player> firstPlaceParticipants = new ArrayList<>();
         List<Player> secondPlaceParticipants = new ArrayList<>();
         List<Player> spectators = new ArrayList<>();
-        for (Player participant : context.getParticipants()) {
+        for (Participant participant : context.getParticipants().values()) {
             String teamId = gameManager.getTeamId(participant.getUniqueId());
             if (teamId.equals(firstTeamId)) {
-                firstPlaceParticipants.add(participant);
+                firstPlaceParticipants.add(participant.getPlayer());
             } else if (teamId.equals(secondTeamId)) {
-                secondPlaceParticipants.add(participant);
+                secondPlaceParticipants.add(participant.getPlayer());
             } else {
-                spectators.add(participant);
+                spectators.add(participant.getPlayer());
             }
         }
         
@@ -83,7 +84,7 @@ public class PlayingColossalCombatState extends PlayingGameState {
                     .color(NamedTextColor.RED));
             return false;
         }
-        context.getSidebar().removePlayers(context.getParticipants());
+        context.getSidebar().removePlayers(context.getParticipants().values());
         context.getAdminSidebar().removePlayers(context.getAdmins());
         gameManager.removeParticipantsFromHub(context.getParticipants());
         context.getColossalCombatGame().start(firstPlaceParticipants, secondPlaceParticipants, spectators, context.getAdmins());
@@ -135,13 +136,13 @@ public class PlayingColossalCombatState extends PlayingGameState {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
-        context.getColossalCombatGame().onParticipantJoin(participant);
+    public void onParticipantJoin(Participant participant) {
+        context.getColossalCombatGame().onParticipantJoin(participant.getPlayer());
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
-        context.getColossalCombatGame().onParticipantQuit(participant);
+    public void onParticipantQuit(Participant participant) {
+        context.getColossalCombatGame().onParticipantQuit(participant.getPlayer());
     }
     
     @Override

@@ -3,12 +3,14 @@ package org.braekpo1nt.mctmanager.participant;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.utils.AudienceDelegate;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
+import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -117,7 +119,24 @@ public class Participant extends AudienceDelegate {
         player.closeInventory();
     }
     
-    public @NotNull Inventory getInventory() {
+    /**
+     * Delegate for {@link Player#getInventory()}
+     */
+    public @NotNull PlayerInventory getInventory() {
         return player.getInventory();
+    }
+    
+    /**
+     * Delegate for {@link Player#displayName()}
+     */
+    public @NotNull Component displayName() {
+        return player.displayName();
+    }
+    
+    /**
+     * Delegate for {@link Player#displayName(Component)}
+     */
+    public void displayName(final @Nullable Component displayName) {
+        player.displayName(displayName);
     }
 }

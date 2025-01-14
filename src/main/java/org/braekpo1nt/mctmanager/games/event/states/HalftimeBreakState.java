@@ -18,10 +18,10 @@ public class HalftimeBreakState extends WaitingInHubState {
                 .withSidebar(sidebar, "timer")
                 .withSidebar(adminSidebar, "timer")
                 .titleThreshold(20)
-                .titleAudience(Audience.audience(context.getParticipants()))
+                .titleAudience(Audience.audience(context.getParticipants().values()))
                 .sidebarPrefix(Component.text("Break: ").color(NamedTextColor.YELLOW))
                 .onCompletion(() -> {
-                    gameManager.removeParticipantsFromHub(context.getParticipants());
+                    gameManager.removeParticipantsFromHub(context.getParticipants().values());
                     context.setState(new WaitingInHubState(context));
                 })
                 .build());

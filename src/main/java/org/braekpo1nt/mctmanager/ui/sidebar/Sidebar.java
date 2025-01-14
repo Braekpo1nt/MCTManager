@@ -111,6 +111,12 @@ public class Sidebar {
         }
     }
     
+    public synchronized void removePlayers(@NotNull Collection<@NotNull Participant> participants) {
+        for (Participant player : participants) {
+            removePlayer(player);
+        }
+    }
+    
     public synchronized void removePlayers(@NotNull List<@NotNull Player> players) {
         for (Player player : players) {
             removePlayer(player);

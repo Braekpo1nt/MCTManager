@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.states.EventState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -25,8 +26,8 @@ public abstract class DelayState implements EventState {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
-        context.getParticipants().add(participant);
+    public void onParticipantJoin(Participant participant) {
+        context.getParticipants().put(participant.getUniqueId(), participant);
         if (context.getSidebar() != null) {
             context.getSidebar().addPlayer(participant);
             context.updateTeamScores();
@@ -35,8 +36,8 @@ public abstract class DelayState implements EventState {
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
-        context.getParticipants().remove(participant);
+    public void onParticipantQuit(Participant participant) {
+        context.getParticipants().remove(participant.getUniqueId());
         if (context.getSidebar() != null) {
             context.getSidebar().removePlayer(participant);
         }

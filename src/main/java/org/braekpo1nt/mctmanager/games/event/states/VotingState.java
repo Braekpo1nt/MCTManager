@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.states.delay.StartingGameDelayState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -35,11 +36,10 @@ public class VotingState implements EventState {
         votingPool.removeAll(context.getPlayedGames());
         context.getSidebar().removeAllPlayers();
         context.getAdminSidebar().removeAllPlayers();
-        List<Player> participantsCopy = new ArrayList<>(context.getParticipants());
         List<Player> adminCopy = new ArrayList<>(context.getAdmins());
         context.getParticipants().clear();
         context.getAdmins().clear();
-        voteManager.startVote(participantsCopy, votingPool, context.getConfig().getVotingDuration(), 
+        voteManager.startVote(context.getParticipants().values(), votingPool, context.getConfig().getVotingDuration(), 
                 this::startingGameDelay, adminCopy);
     }
     
@@ -48,13 +48,13 @@ public class VotingState implements EventState {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         gameManager.returnParticipantToHubInstantly(participant);
         voteManager.onParticipantJoin(participant);
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(Participant participant) {
         voteManager.onParticipantQuit(participant);
     }
     

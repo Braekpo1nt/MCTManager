@@ -1,7 +1,7 @@
 package org.braekpo1nt.mctmanager.games.event.states;
 
-import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -11,8 +11,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface EventState {
-    void onParticipantJoin(Player participant);
-    void onParticipantQuit(Player participant);
+    void onParticipantJoin(Participant participant);
+    void onParticipantQuit(Participant participant);
     void onAdminJoin(Player admin);
     void onAdminQuit(Player admin);
     void startEvent(@NotNull CommandSender sender, int numberOfGames, int currentGameNumber);
@@ -27,10 +27,10 @@ public interface EventState {
     default void cancelAllTasks() {
         // do nothing
     }
-    default void readyUpParticipant(@NotNull Player participant) {
+    default void readyUpParticipant(@NotNull Participant participant) {
         // do nothing
     }
-    default void unReadyParticipant(@NotNull Player participant) {
+    default void unReadyParticipant(@NotNull Participant participant) {
         // do nothing
     }
     default void listReady(@NotNull CommandSender sender, @Nullable String teamId) {

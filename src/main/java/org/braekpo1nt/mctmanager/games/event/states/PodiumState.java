@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.command.CommandSender;
@@ -43,7 +44,7 @@ public class PodiumState implements EventState {
         sidebar.updateLine("currentGame", context.getCurrentGameLine());
         adminSidebar.updateLine("currentGame", context.getCurrentGameLine());
         gameManager.returnAllParticipantsToPodium(context.getWinningTeam());
-        for (Player participant : context.getParticipants()) {
+        for (Participant participant : context.getParticipants().values()) {
             String team = gameManager.getTeamId(participant.getUniqueId());
             if (team.equals(context.getWinningTeam())) {
                 context.giveCrown(participant);
@@ -52,7 +53,7 @@ public class PodiumState implements EventState {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         if (context.getWinningTeam() != null) {
             String team = gameManager.getTeamId(participant.getUniqueId());
             boolean winner = team.equals(context.getWinningTeam());
@@ -63,7 +64,7 @@ public class PodiumState implements EventState {
         } else {
             gameManager.returnParticipantToPodium(participant, false);
         }
-        context.getParticipants().add(participant);
+        context.getParticipants().put(participant.getUniqueId(), participant);
         if (sidebar != null) {
             sidebar.addPlayer(participant);
             context.updateTeamScores();
@@ -78,8 +79,8 @@ public class PodiumState implements EventState {
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
-        context.getParticipants().remove(participant);
+    public void onParticipantQuit(Participant participant) {
+        context.getParticipants().remove(participant.getUniqueId());
         if (sidebar != null) {
             sidebar.removePlayer(participant);
         }

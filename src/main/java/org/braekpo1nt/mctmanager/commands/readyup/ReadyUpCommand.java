@@ -32,7 +32,7 @@ public class ReadyUpCommand extends MasterCommandManager {
                 !gameManager.isParticipant(participant.getUniqueId())) {
             return CommandResult.failure("Only participants can run this command");
         }
-        gameManager.getEventManager().readyUpParticipant(participant);
+        gameManager.getEventManager().readyUpParticipant(participant.getUniqueId());
         return CommandResult.success();
     }
 }

@@ -9,8 +9,8 @@ import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.states.PlayingColossalCombatState;
 import org.braekpo1nt.mctmanager.games.event.states.WaitingInHubState;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
-import org.bukkit.entity.Player;
 
 import java.util.*;
 
@@ -91,7 +91,7 @@ public class ToColossalCombatDelay extends DelayState {
         String secondPlace = secondPlaces[0];
         int onlineFirsts = 0;
         int onlineSeconds = 0;
-        for (Player participant : context.getParticipants()) {
+        for (Participant participant : context.getParticipants().values()) {
             String teamId = gameManager.getTeamId(participant.getUniqueId());
             if (teamId.equals(firstPlace)) {
                 onlineFirsts++;

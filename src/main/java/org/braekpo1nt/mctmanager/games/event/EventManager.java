@@ -14,6 +14,7 @@ import org.braekpo1nt.mctmanager.games.event.states.*;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
@@ -63,7 +64,7 @@ public class EventManager implements Listener {
     private EventConfig config;
     private int maxGames = 6;
     private int currentGameNumber = 0;
-    private List<Player> participants = new ArrayList<>();
+    private Map<UUID, Participant> participants = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     private @Nullable String winningTeam;
     private final ReadyUpManager readyUpManager = new ReadyUpManager();
@@ -84,8 +85,8 @@ public class EventManager implements Listener {
      * Add the participants back to the {@link EventManager#participants} list and the {@link EventManager#sidebar}, add the admins back to the {@link EventManager#admins} list and the {@link EventManager#adminSidebar}, and update the scores on all sidebars.
      */
     public void initializeParticipantsAndAdmins() {
-        for (Player participant : gameManager.getOnlineParticipants()) {
-            participants.add(participant);
+        for (Participant participant : gameManager.getOnlineParticipantsKeep()) {
+            participants.put(participant.getUniqueId(), participant);
             sidebar.addPlayer(participant);
         }
         for (Player admin : gameManager.getOnlineAdmins()) {
@@ -99,7 +100,7 @@ public class EventManager implements Listener {
     }
     
     public void updatePersonalScores() {
-        for (Player participant : participants) {
+        for (Participant participant : participants.values()) {
             int score = gameManager.getScore(participant.getUniqueId());
             updatePersonalScore(participant, Component.empty()
                     .append(Component.text("Personal: "))
@@ -131,11 +132,11 @@ public class EventManager implements Listener {
         return colossalCombatGame.isActive();
     }
     
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         state.onParticipantJoin(participant);
     }
     
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(Participant participant) {
         state.onParticipantQuit(participant);
     }
     
@@ -172,7 +173,7 @@ public class EventManager implements Listener {
             colossalCombatGame.stop(null);
         }
         if (winningTeam != null) {
-            for (Player participant : participants) {
+            for (Participant participant : participants.values()) {
                 String team = gameManager.getTeamId(participant.getUniqueId());
                 if (team.equals(winningTeam)) {
                     removeCrown(participant);
@@ -397,11 +398,19 @@ public class EventManager implements Listener {
         return reportBuilder.build();
     }
     
-    public void readyUpParticipant(@NotNull Player participant) {
+    public void readyUpParticipant(@NotNull UUID uuid) {
+        Participant participant = participants.get(uuid);
+        if (participant == null) {
+            return;
+        }
         state.readyUpParticipant(participant);
     }
     
-    public void unReadyParticipant(@NotNull Player participant) {
+    public void unReadyParticipant(@NotNull UUID uuid) {
+        Participant participant = participants.get(uuid);
+        if (participant == null) {
+            return;
+        }
         state.unReadyParticipant(participant);
     }
     
@@ -417,7 +426,7 @@ public class EventManager implements Listener {
         if (!(event.getEntity() instanceof Player participant)) {
             return;
         }
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(participant.getUniqueId())) {
             return;
         }
         state.onPlayerDamage(event);
@@ -426,7 +435,7 @@ public class EventManager implements Listener {
     @EventHandler
     public void onClickInventory(InventoryClickEvent event) {
         Player participant = ((Player) event.getWhoClicked());
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(participant.getUniqueId())) {
             return;
         }
         state.onClickInventory(event);
@@ -435,7 +444,7 @@ public class EventManager implements Listener {
     @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
         Player participant = event.getPlayer();
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(participant.getUniqueId())) {
             return;
         }
         state.onDropItem(event);
@@ -484,11 +493,11 @@ public class EventManager implements Listener {
         }
     }
     
-    public void giveCrown(Player participant) {
+    public void giveCrown(Participant participant) {
         participant.getInventory().setHelmet(crown);
     }
     
-    public void removeCrown(Player participant) {
+    public void removeCrown(Participant participant) {
         ItemStack helmet = participant.getInventory().getHelmet();
         if (helmet != null && helmet.equals(crown)) {
             participant.getInventory().setHelmet(null);
@@ -615,11 +624,11 @@ public class EventManager implements Listener {
         adminSidebar.addLines(0, teamLines);
     }
     
-    public void updatePersonalScore(Player participant, Component contents) {
+    public void updatePersonalScore(Participant participant, Component contents) {
         if (sidebar == null) {
             return;
         }
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(participant.getUniqueId())) {
             return;
         }
         sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);

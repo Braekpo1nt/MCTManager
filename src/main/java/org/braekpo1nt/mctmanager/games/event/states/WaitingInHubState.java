@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.states.delay.ToColossalCombatDelay;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
@@ -63,9 +64,9 @@ public class WaitingInHubState implements EventState {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         gameManager.returnParticipantToHubInstantly(participant);
-        context.getParticipants().add(participant);
+        context.getParticipants().put(participant.getUniqueId(), participant);
         if (sidebar != null) {
             sidebar.addPlayer(participant);
             context.updateTeamScores();
@@ -74,8 +75,8 @@ public class WaitingInHubState implements EventState {
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
-        context.getParticipants().remove(participant);
+    public void onParticipantQuit(Participant participant) {
+        context.getParticipants().remove(participant.getUniqueId());
         if (sidebar != null) {
             sidebar.removePlayer(participant);
         }

@@ -329,7 +329,7 @@ public class GameManager implements Listener {
         if (gameIsRunning()) {
             activeGame.onParticipantQuit(participant.getPlayer());
         } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
-            eventManager.onParticipantQuit(participant.getPlayer());
+            eventManager.onParticipantQuit(participant);
         } else if (voteManager.isVoting()) {
             voteManager.onParticipantQuit(participant);
         }
@@ -402,7 +402,7 @@ public class GameManager implements Listener {
             activeGame.onParticipantJoin(participant.getPlayer());
         } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
-            eventManager.onParticipantJoin(participant.getPlayer());
+            eventManager.onParticipantJoin(participant);
         } else if (voteManager.isVoting()) {
             voteManager.onParticipantJoin(participant);
         }
@@ -614,6 +614,10 @@ public class GameManager implements Listener {
             }
         }
         hubManager.removeParticipantsFromHub(participantsToRemove);
+    }
+    
+    public void removeParticipantsFromHub(Map<UUID, Participant> participantsToRemove) {
+        removeParticipantsFromHub(participantsToRemove.values());
     }
     
     public void removeParticipantsFromHub(Collection<Participant> participantsToRemove) {
@@ -2126,7 +2130,7 @@ public class GameManager implements Listener {
                 headerable.updatePersonalScore(participant.getPlayer(), contents);
             }
             if (eventManager.eventIsActive()) {
-                eventManager.updatePersonalScore(participant.getPlayer(), contents);
+                eventManager.updatePersonalScore(participant, contents);
             }
         }
         hubManager.updateLeaderboards();
@@ -2145,10 +2149,10 @@ public class GameManager implements Listener {
                 .append(Component.text(score))
                 .color(NamedTextColor.GOLD);
         if (activeGame != null && activeGame instanceof Headerable headerable) {
-            headerable.updatePersonalScore(participant.getPlayer(), contents);
+            headerable.updatePersonalScore(participant, contents);
         }
         if (eventManager.eventIsActive()) {
-            eventManager.updatePersonalScore(participant.getPlayer(), contents);
+            eventManager.updatePersonalScore(participant, contents);
         }
         hubManager.updateLeaderboards();
     }

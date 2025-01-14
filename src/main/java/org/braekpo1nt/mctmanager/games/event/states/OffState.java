@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.bukkit.command.CommandSender;
@@ -22,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -36,12 +38,12 @@ public class OffState implements EventState {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         // do nothing
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(Participant participant) {
         // do nothing
     }
     
@@ -85,14 +87,14 @@ public class OffState implements EventState {
         context.setCurrentGameNumber(currentGameNumber);
         context.getPlayedGames().clear();
         context.getScoreKeepers().clear();
-        context.setParticipants(new ArrayList<>());
+        context.setParticipants(new HashMap<>());
         context.setSidebar(context.getGameManager().createSidebar());
         context.setAdmins(new ArrayList<>());
         context.setAdminSidebar(context.getGameManager().createSidebar());
         initializeSidebar();
         initializeAdminSidebar();
         context.initializeParticipantsAndAdmins();
-        context.getGameManager().removeParticipantsFromHub(context.getParticipants());
+        context.getGameManager().removeParticipantsFromHub(context.getParticipants().values());
         context.setState(new ReadyUpState(context));
     }
     
@@ -180,7 +182,7 @@ public class OffState implements EventState {
         gameManager.messageOnlineParticipants(message);
         Audience.audience(
                 Audience.audience(context.getAdmins()),
-                Audience.audience(gameManager.getOnlineParticipants())
+                Audience.audience(gameManager.getOnlineParticipantsKeep())
         ).showTitle(Title.title(formattedTeamDisplayName, Component.text("wins!")
                 .color(teamColor), UIUtils.DEFAULT_TIMES));
     }
@@ -230,18 +232,17 @@ public class OffState implements EventState {
         List<Player> firstPlaceParticipants = new ArrayList<>();
         List<Player> secondPlaceParticipants = new ArrayList<>();
         List<Player> spectators = new ArrayList<>();
-        List<Player> participantPool;
+        List<Participant> participantPool = new ArrayList<>(gameManager.getOnlineParticipantsKeep());
         List<Player> adminPool;
-        participantPool = new ArrayList<>(gameManager.getOnlineParticipants());
         adminPool = new ArrayList<>(gameManager.getOnlineAdmins());
-        for (Player participant : participantPool) {
+        for (Participant participant : participantPool) {
             String teamId = gameManager.getTeamId(participant.getUniqueId());
             if (teamId.equals(firstTeamId)) {
-                firstPlaceParticipants.add(participant);
+                firstPlaceParticipants.add(participant.getPlayer());
             } else if (teamId.equals(secondTeamId)) {
-                secondPlaceParticipants.add(participant);
+                secondPlaceParticipants.add(participant.getPlayer());
             } else {
-                spectators.add(participant);
+                spectators.add(participant.getPlayer());
             }
         }
         
@@ -272,12 +273,12 @@ public class OffState implements EventState {
     }
     
     @Override
-    public void readyUpParticipant(@NotNull Player participant) {
+    public void readyUpParticipant(@NotNull Participant participant) {
         participant.sendMessage(Component.text("There is no event going on right now"));
     }
     
     @Override
-    public void unReadyParticipant(@NotNull Player participant) {
+    public void unReadyParticipant(@NotNull Participant participant) {
         participant.sendMessage(Component.text("There is no event going on right now"));
     }
     
