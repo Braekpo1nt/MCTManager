@@ -7,12 +7,12 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.MatchPairing;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.RoundManager;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
-import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -34,7 +34,7 @@ public class PreRoundState implements CaptureTheFlagState {
         this.roundManager = context.getRoundManager();
         
         context.updateRoundLine();
-        for (Player participant : context.getParticipants()) {
+        for (Participant participant : context.getParticipants().values()) {
             announceMatchToParticipant(participant);
         }
         setUpTopbarForRound();
@@ -49,7 +49,7 @@ public class PreRoundState implements CaptureTheFlagState {
                 .build());
     }
     
-    private void announceMatchToParticipant(Player participant) {
+    private void announceMatchToParticipant(Participant participant) {
         String teamId = gameManager.getTeamId(participant.getUniqueId());
         Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
         List<MatchPairing> currentRound = roundManager.getCurrentRound();
@@ -97,7 +97,7 @@ public class PreRoundState implements CaptureTheFlagState {
             topbar.linkTeamPair(mp.northTeam(), mp.southTeam());
             int northAlive = 0;
             int southAlive = 0;
-            for (Player participant : context.getParticipants()) {
+            for (Participant participant : context.getParticipants().values()) {
                 String teamId = gameManager.getTeamId(participant.getUniqueId());
                 if (mp.northTeam().equals(teamId)) {
                     topbar.linkToTeam(participant.getUniqueId(), teamId);
@@ -113,11 +113,11 @@ public class PreRoundState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         context.initializeParticipant(participant);
         String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
         if (!context.getRoundManager().containsTeamId(teamId)) {
-            List<String> teamIds = context.getGameManager().getTeamIds(context.getParticipants());
+            List<String> teamIds = Participant.getTeamIds(context.getParticipants());
             context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
         }
         context.updateRoundLine();
@@ -128,11 +128,11 @@ public class PreRoundState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(Participant participant) {
         context.resetParticipant(participant);
-        context.getParticipants().remove(participant);
+        context.getParticipants().remove(participant.getUniqueId());
         String quitTeamId = context.getGameManager().getTeamId(participant.getUniqueId());
-        List<String> teamIds = context.getGameManager().getTeamIds(context.getParticipants());
+        List<String> teamIds = Participant.getTeamIds(context.getParticipants());
         if (!teamIds.contains(quitTeamId)) {
             context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
             context.updateRoundLine();

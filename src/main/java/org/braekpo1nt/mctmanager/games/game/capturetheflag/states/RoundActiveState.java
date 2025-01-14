@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.MatchPairing;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.RoundManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
@@ -44,7 +45,7 @@ public class RoundActiveState implements CaptureTheFlagState {
         
         List<MatchPairing> currentRound = roundManger.getCurrentRound();
         matches = new HashMap<>(currentRound.size());
-        Map<MatchPairing, List<Player>> matchParticipants = new HashMap<>();
+        Map<MatchPairing, List<Participant>> matchParticipants = new HashMap<>();
         for (int i = 0; i < currentRound.size(); i++) {
             MatchPairing matchPairing = currentRound.get(i);
             CaptureTheFlagMatch match = new CaptureTheFlagMatch(
@@ -57,7 +58,7 @@ public class RoundActiveState implements CaptureTheFlagState {
         }
         
         
-        for (Player participant : context.getParticipants()) {
+        for (Participant participant : context.getParticipants().values()) {
             String teamId = gameManager.getTeamId(participant.getUniqueId());
             MatchPairing matchPairing = RoundManager.getMatchPairing(teamId, currentRound);
             if (matchPairing == null) {
@@ -69,7 +70,7 @@ public class RoundActiveState implements CaptureTheFlagState {
         
         for (MatchPairing matchPairing : currentRound) {
             CaptureTheFlagMatch match = matches.get(matchPairing);
-            List<Player> newParticipants = matchParticipants.get(matchPairing);
+            List<Participant> newParticipants = matchParticipants.get(matchPairing);
             match.start(newParticipants);
         }
         
@@ -79,7 +80,7 @@ public class RoundActiveState implements CaptureTheFlagState {
                 .withTopbar(context.getTopbar())
                 .topbarPrefix(Component.text("Class selection: "))
                 .sidebarPrefix(Component.text("Class selection: "))
-                .titleAudience(Audience.audience(context.getParticipants()))
+                .titleAudience(Audience.audience(context.getParticipants().values()))
                 .onCompletion(() -> {
                     startRoundTimer();
                     for (CaptureTheFlagMatch match : matches.values()) {
@@ -103,7 +104,7 @@ public class RoundActiveState implements CaptureTheFlagState {
                 .build());
     }
     
-    private void initializeOnDeckParticipant(Player participant) {
+    private void initializeOnDeckParticipant(Participant participant) {
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
         ParticipantInitializer.clearInventory(participant);
@@ -141,7 +142,7 @@ public class RoundActiveState implements CaptureTheFlagState {
             match.stop();
         }
         matches.clear();
-        for (Player participant : context.getParticipants()) {
+        for (Participant participant : context.getParticipants().values()) {
             resetParticipant(participant);
         }
     }
@@ -156,11 +157,11 @@ public class RoundActiveState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         context.initializeParticipant(participant);
         String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
         if (!context.getRoundManager().containsTeamId(teamId)) {
-            List<String> teamIds = context.getGameManager().getTeamIds(context.getParticipants());
+            List<String> teamIds = Participant.getTeamIds(context.getParticipants().values());
             context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
         }
         context.updateRoundLine();
@@ -196,7 +197,7 @@ public class RoundActiveState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(Participant participant) {
         String teamId = gameManager.getTeamId(participant.getUniqueId());
         CaptureTheFlagMatch match = getMatch(teamId);
         if (match == null) {
@@ -205,16 +206,16 @@ public class RoundActiveState implements CaptureTheFlagState {
             match.onParticipantQuit(participant);
         }
         context.resetParticipant(participant);
-        context.getParticipants().remove(participant);
+        context.getParticipants().remove(participant.getUniqueId());
         String quitTeamId = context.getGameManager().getTeamId(participant.getUniqueId());
-        List<String> teamIds = context.getGameManager().getTeamIds(context.getParticipants());
+        List<String> teamIds = Participant.getTeamIds(context.getParticipants());
         if (!teamIds.contains(quitTeamId)) {
             context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
             context.updateRoundLine();
         }
     }
     
-    public void resetParticipant(Player participant) {
+    public void resetParticipant(Participant participant) {
         ParticipantInitializer.clearInventory(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);

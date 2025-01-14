@@ -20,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -35,6 +36,14 @@ public class Participant extends AudienceDelegate {
      */
     public static List<Player> toPlayersList(Collection<Participant> participants) {
         return participants.stream().map(Participant::getPlayer).toList();
+    }
+    
+    /**
+     * @param participants the participants map to get the list of teamIds from the values
+     * @return the teamIds
+     */
+    public static List<String> getTeamIds(Map<UUID, Participant> participants) {
+        return getTeamIds(participants.values());
     }
     
     /**
