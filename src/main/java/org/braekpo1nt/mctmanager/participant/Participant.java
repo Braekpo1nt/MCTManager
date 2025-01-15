@@ -204,44 +204,58 @@ public class Participant extends AudienceDelegate {
     }
     
     /**
-     * Delegate for {@link Player#playSound(Location, String, float, float)} )}
+     * Delegate for {@link Player#playSound(Location, String, float, float)}
      */
     public void playSound(@NotNull Location location, @NotNull String sound, float volume, float pitch) {
         player.playSound(location, sound, volume, pitch);
     }
     
     /**
-     * Delegate for {@link Player#addPotionEffect(PotionEffect)} )}
+     * Delegate for {@link Player#addPotionEffect(PotionEffect)}
      */
     public void addPotionEffect(PotionEffect potionEffect) {
         player.addPotionEffect(potionEffect);
     }
     
     /**
-     * Delegate for {@link Player#setFoodLevel(int)} )}
+     * Delegate for {@link Player#setFoodLevel(int)}
      */
     public void setFoodLevel(int value) {
         player.setFoodLevel(value);
     }
     
     /**
-     * Delegate for {@link Player#getName()} )}
+     * Delegate for {@link Player#getName()}
      */
     public @NotNull String getName() {
         return player.getName();
     }
     
     /**
-     * Delegate for {@link Player#getGameMode()} )}
+     * Delegate for {@link Player#getGameMode()}
      */
     public @NotNull GameMode getGameMode() {
         return player.getGameMode();
     }
     
     /**
-     * Delegate for {@link Player#getLevel()} )}
+     * Delegate for {@link Player#getLevel()}
      */
     public int getLevel() {
         return player.getLevel();
+    }
+    
+    /**
+     * Delegate for {@link Player#playerListName(Component)}
+     */
+    public void playerListName(net.kyori.adventure.text.@Nullable Component name) {
+        player.playerListName(name);
+    }
+    
+    /**
+     * Delegate for {@link Player#sendMessage(String)}
+     */
+    public void sendMessage(@NotNull String message) {
+        player.sendMessage(message);
     }
 }
