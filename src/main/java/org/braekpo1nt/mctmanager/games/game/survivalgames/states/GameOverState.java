@@ -5,10 +5,10 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
-import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +20,7 @@ public class GameOverState implements SurvivalGamesState {
     
     public GameOverState(@NotNull SurvivalGamesGame context) {
         this.context = context;
-        Audience.audience(context.getParticipants()).showTitle(UIUtils.gameOverTitle());
+        Audience.audience(context.getParticipants().values()).showTitle(UIUtils.gameOverTitle());
         context.getAdminSidebar().addLine("over", "");
         context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getEndDuration())
@@ -35,13 +35,13 @@ public class GameOverState implements SurvivalGamesState {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         context.initializeGlowing(participant);
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
-        context.getParticipants().remove(participant);
+    public void onParticipantQuit(Participant participant) {
+        context.getParticipants().remove(participant.getUniqueId());
         UUID participantUUID = participant.getUniqueId();
         String teamId = context.getGameManager().getTeamId(participantUUID);
         Integer oldLivingMembers = context.getLivingMembers().get(teamId);
@@ -76,7 +76,7 @@ public class GameOverState implements SurvivalGamesState {
     }
     
     @Override
-    public void onPlayerDeath(PlayerDeathEvent event) {
+    public void onParticipantDeath(PlayerDeathEvent event) {
         Main.debugLog(LogType.CANCEL_PLAYER_DEATH_EVENT, "SurvivalGamesGame.GameOverState.onPlayerDeath() cancelled");
         event.setCancelled(true);
     }

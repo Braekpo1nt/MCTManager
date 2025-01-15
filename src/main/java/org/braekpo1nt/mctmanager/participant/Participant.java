@@ -237,4 +237,11 @@ public class Participant extends AudienceDelegate {
     public @NotNull GameMode getGameMode() {
         return player.getGameMode();
     }
+    
+    /**
+     * Delegate for {@link Player#getLevel()} )}
+     */
+    public int getLevel() {
+        return player.getLevel();
+    }
 }

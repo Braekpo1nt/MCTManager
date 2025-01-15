@@ -6,10 +6,10 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
-import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.jetbrains.annotations.NotNull;
@@ -32,14 +32,12 @@ public class DescriptionState implements SurvivalGamesState {
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .withTopbar(context.getTopbar())
                 .sidebarPrefix(Component.text("Starting soon: "))
-                .onCompletion(() -> {
-                    context.setState(new StartingState(context));
-                })
+                .onCompletion(() -> context.setState(new StartingState(context)))
                 .build());
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         context.getDeadPlayers().remove(participant.getUniqueId());
         String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
         if (!context.getLivingMembers().containsKey(teamId)) {
@@ -53,8 +51,8 @@ public class DescriptionState implements SurvivalGamesState {
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
-        context.getParticipants().remove(participant);
+    public void onParticipantQuit(Participant participant) {
+        context.getParticipants().remove(participant.getUniqueId());
         UUID participantUUID = participant.getUniqueId();
         String teamId = context.getGameManager().getTeamId(participantUUID);
         Integer oldLivingMembers = context.getLivingMembers().get(teamId);
@@ -71,7 +69,7 @@ public class DescriptionState implements SurvivalGamesState {
     
     @Override
     public void initializeParticipant(Participant participant) {
-        context.getParticipants().add(participant);
+        context.getParticipants().put(participant.getUniqueId(), participant);
         context.getLivingPlayers().add(participant.getUniqueId());
         String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
         context.getLivingMembers().putIfAbsent(teamId, 0);
@@ -109,7 +107,7 @@ public class DescriptionState implements SurvivalGamesState {
     }
     
     @Override
-    public void onPlayerDeath(PlayerDeathEvent event) {
+    public void onParticipantDeath(PlayerDeathEvent event) {
         Main.debugLog(LogType.CANCEL_PLAYER_DEATH_EVENT, "SurvivalGamesGame.DescriptionState.onPlayerDeath() cancelled");
         event.setCancelled(true);
     }
