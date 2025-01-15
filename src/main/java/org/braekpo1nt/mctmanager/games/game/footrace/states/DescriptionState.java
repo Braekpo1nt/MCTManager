@@ -2,8 +2,8 @@ package org.braekpo1nt.mctmanager.games.game.footrace.states;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 public class DescriptionState implements FootRaceState {
@@ -22,14 +22,12 @@ public class DescriptionState implements FootRaceState {
                 .withSidebar(context.getSidebar(), "timer")
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .sidebarPrefix(Component.text("Starting soon: "))
-                .onCompletion(() -> {
-                    context.setState(new StartingState(context));
-                })
+                .onCompletion(() -> context.setState(new StartingState(context)))
                 .build());
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         initializeParticipant(participant);
         context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
         Integer currentLap = context.getLaps().get(participant.getUniqueId());
@@ -44,9 +42,9 @@ public class DescriptionState implements FootRaceState {
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(Participant participant) {
         resetParticipant(participant);
-        context.getParticipants().remove(participant);
+        context.getParticipants().remove(participant.getUniqueId());
         context.getLapCooldowns().remove(participant.getUniqueId());
         context.getLaps().remove(participant.getUniqueId());
         context.getCurrentCheckpoints().remove(participant.getUniqueId());
@@ -66,7 +64,7 @@ public class DescriptionState implements FootRaceState {
     }
     
     @Override
-    public void onParticipantMove(Player participant) {
+    public void onParticipantMove(Participant participant) {
         // do nothing
     }
 }

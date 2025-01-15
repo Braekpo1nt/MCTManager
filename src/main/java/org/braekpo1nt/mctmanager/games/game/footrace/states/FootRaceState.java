@@ -1,12 +1,12 @@
 package org.braekpo1nt.mctmanager.games.game.footrace.states;
 
-import org.bukkit.entity.Player;
+import org.braekpo1nt.mctmanager.participant.Participant;
 
 public interface FootRaceState {
-    void onParticipantJoin(Player participant);
-    void onParticipantQuit(Player participant);
+    void onParticipantJoin(Participant participant);
+    void onParticipantQuit(Participant participant);
     void initializeParticipant(Participant participant);
-    void resetParticipant(Player participant);
+    void resetParticipant(Participant participant);
     // listener handlers
-    void onParticipantMove(Player participant);
+    void onParticipantMove(Participant participant);
 }

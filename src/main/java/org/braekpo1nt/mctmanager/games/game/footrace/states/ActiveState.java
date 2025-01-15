@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -55,7 +56,7 @@ public class ActiveState implements FootRaceState {
             public void run() {
                 long elapsedTime = System.currentTimeMillis() - context.getRaceStartTime();
                 Component timeComponent = TimeStringUtils.getTimeComponentMillis(elapsedTime);
-                for (Player participant : context.getParticipants()) {
+                for (Participant participant : context.getParticipants().values()) {
                     if (!completedRace(participant)) {
                         sidebar.updateLine(
                                 participant.getUniqueId(),
@@ -76,7 +77,7 @@ public class ActiveState implements FootRaceState {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         if (participantShouldRejoin(participant)) {
             rejoinParticipant(participant);
         } else {
@@ -100,13 +101,13 @@ public class ActiveState implements FootRaceState {
      * @return True if the participant was in the game before, and should rejoin. False
      * if the participant wasn't in the game before. 
      */
-    private boolean participantShouldRejoin(Player participant) {
+    private boolean participantShouldRejoin(Participant participant) {
         return completedRace(participant) 
                 || context.getLaps().containsKey(participant.getUniqueId());
     }
     
-    private void rejoinParticipant(Player participant) {
-        context.getParticipants().add(participant);
+    private void rejoinParticipant(Participant participant) {
+        context.getParticipants().put(participant.getUniqueId(), participant);
         sidebar.addPlayer(participant);
         context.getStandings().add(participant);
         if (completedRace(participant)) {
@@ -119,7 +120,7 @@ public class ActiveState implements FootRaceState {
      * @param participant the participant
      * @return true if the given participant has already completed the race
      */
-    private boolean completedRace(Player participant) {
+    private boolean completedRace(Participant participant) {
         return context.getFinishedParticipants().contains(participant.getUniqueId());
     }
     
@@ -138,9 +139,9 @@ public class ActiveState implements FootRaceState {
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(Participant participant) {
         resetParticipant(participant);
-        context.getParticipants().remove(participant);
+        context.getParticipants().remove(participant.getUniqueId());
         context.getStandings().remove(participant);
         context.updateStandings();
         context.displayStandings();
@@ -167,7 +168,7 @@ public class ActiveState implements FootRaceState {
     }
     
     @Override
-    public void onParticipantMove(Player participant) {
+    public void onParticipantMove(Participant participant) {
         UUID uuid = participant.getUniqueId();
         if (context.getFinishedParticipants().contains(uuid)) {
             return;
@@ -180,7 +181,7 @@ public class ActiveState implements FootRaceState {
         }
     }
     
-    private void onParticipantReachCheckpoint(Player participant, int reachedCheckpointIndex) {
+    private void onParticipantReachCheckpoint(Participant participant, int reachedCheckpointIndex) {
         UUID uuid = participant.getUniqueId();
         context.getCurrentCheckpoints().put(uuid, reachedCheckpointIndex);
         if (reachedCheckpointIndex == config.getCheckpoints().size() - 1) {
@@ -188,7 +189,7 @@ public class ActiveState implements FootRaceState {
         }
     }
     
-    private void onParticipantCrossFinishLine(Player participant) {
+    private void onParticipantCrossFinishLine(Participant participant) {
         UUID uuid = participant.getUniqueId();
         int currentLap = context.getLaps().get(uuid);
         int newLap = currentLap + 1;
@@ -226,7 +227,7 @@ public class ActiveState implements FootRaceState {
      * Code to run when a single participant crosses the finish line for the last time
      * @param participant The participant who crossed the finish line
      */
-    private void onPlayerFinishedRace(Player participant) {
+    private void onPlayerFinishedRace(Participant participant) {
         long elapsedTime = System.currentTimeMillis() - context.getRaceStartTime();
         context.getFinishedParticipants().add(participant.getUniqueId());
         showRaceCompleteFastBoard(participant.getUniqueId());
@@ -256,7 +257,7 @@ public class ActiveState implements FootRaceState {
                             .append(Component.text(" remain!"))
                             .color(NamedTextColor.RED))
                     .color(NamedTextColor.GREEN));
-            Audience.audience(context.getParticipants().stream()
+            Audience.audience(context.getParticipants().values().stream()
                             .filter(p -> !p.equals(participant)).toList())
                     .showTitle(UIUtils.defaultTitle(
                             Component.empty(),
@@ -282,7 +283,7 @@ public class ActiveState implements FootRaceState {
     }
     
     private boolean allParticipantsHaveFinished() {
-        for (Player participant : context.getParticipants()) {
+        for (Participant participant : context.getParticipants().values()) {
             if (!context.getFinishedParticipants().contains(participant.getUniqueId())) {
                 return false;
             }
@@ -314,9 +315,7 @@ public class ActiveState implements FootRaceState {
                 .withSidebar(sidebar, "timer")
                 .withSidebar(adminSidebar, "timer")
                 .sidebarPrefix(Component.text("Ending: "))
-                .onCompletion(() -> {
-                    context.setState(new GameOverState(context));
-                })
+                .onCompletion(() -> context.setState(new GameOverState(context)))
                 .build());
     }
 }

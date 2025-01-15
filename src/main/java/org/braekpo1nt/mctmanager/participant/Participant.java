@@ -8,7 +8,6 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.utils.AudienceDelegate;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -223,5 +222,19 @@ public class Participant extends AudienceDelegate {
      */
     public void setFoodLevel(int value) {
         player.setFoodLevel(value);
+    }
+    
+    /**
+     * Delegate for {@link Player#getName()} )}
+     */
+    public @NotNull String getName() {
+        return player.getName();
+    }
+    
+    /**
+     * Delegate for {@link Player#getGameMode()} )}
+     */
+    public @NotNull GameMode getGameMode() {
+        return player.getGameMode();
     }
 }

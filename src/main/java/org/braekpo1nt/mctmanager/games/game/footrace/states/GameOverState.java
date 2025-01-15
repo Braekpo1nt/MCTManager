@@ -3,9 +3,9 @@ package org.braekpo1nt.mctmanager.games.game.footrace.states;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 public class GameOverState implements FootRaceState {
@@ -14,7 +14,7 @@ public class GameOverState implements FootRaceState {
     
     public GameOverState(@NotNull FootRaceGame context) {
         this.context = context;
-        Audience.audience(context.getParticipants()).showTitle(UIUtils.gameOverTitle());
+        Audience.audience(context.getParticipants().values()).showTitle(UIUtils.gameOverTitle());
         context.getSidebar().addLine("over", Component.empty());
         context.getAdminSidebar().addLine("over", Component.empty());
         context.getTimerManager().start(Timer.builder()
@@ -30,14 +30,14 @@ public class GameOverState implements FootRaceState {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         // do nothing
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(Participant participant) {
         resetParticipant(participant);
-        context.getParticipants().remove(participant);
+        context.getParticipants().remove(participant.getUniqueId());
     }
     
     @Override
@@ -51,7 +51,7 @@ public class GameOverState implements FootRaceState {
     }
     
     @Override
-    public void onParticipantMove(Player participant) {
+    public void onParticipantMove(Participant participant) {
         // do nothing
     }
 }

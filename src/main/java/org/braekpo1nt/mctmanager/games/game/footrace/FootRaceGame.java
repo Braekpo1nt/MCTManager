@@ -71,8 +71,8 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private Sidebar sidebar;
     private Sidebar adminSidebar;
     private int timerRefreshTaskId;
-    private List<Player> participants;
-    private List<Player> admins;
+    private Map<UUID, Participant> participants = new HashMap<>();
+    private List<Player> admins = new ArrayList<>();
     private Map<UUID, Long> lapCooldowns;
     private Map<UUID, Integer> laps;
     /**
@@ -87,7 +87,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     /**
      * what place every participant is in at any given moment in the race
      */
-    private List<Player> standings;
+    private List<Participant> standings;
     private long raceStartTime;
     private int statusEffectsTaskId;
     private int standingsDisplayTaskId;
@@ -128,7 +128,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     @Override
     public void start(Collection<Participant> newParticipants, List<Player> newAdmins) {
-        this.participants = new ArrayList<>(newParticipants.size());
+        this.participants = new HashMap<>(newParticipants.size());
         lapCooldowns = new HashMap<>(newParticipants.size());
         laps = new HashMap<>(newParticipants.size());
         currentCheckpoints = new HashMap<>(newParticipants.size());
@@ -201,10 +201,9 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     public void displayStandings() {
         for (int i = 0; i < standings.size(); i++) {
-            Player participant = standings.get(i);
-            UUID uuid = participant.getUniqueId();
+            Participant participant = standings.get(i);
             List<KeyLine> standingLines = createStandingLines(i);
-            sidebar.updateLines(uuid, standingLines);
+            sidebar.updateLines(participant.getUniqueId(), standingLines);
         }
         adminSidebar.updateLines(createStandingLines(0));
     }
@@ -264,7 +263,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         this.statusEffectsTaskId = new BukkitRunnable(){
             @Override
             public void run() {
-                for (Player participant : participants) {
+                for (Participant participant : participants.values()) {
                     participant.addPotionEffect(SPEED);
                     participant.addPotionEffect(INVISIBILITY);
                 }
@@ -285,7 +284,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     public void initializeParticipant(Participant participant) {
         UUID participantUUID = participant.getUniqueId();
-        participants.add(participant);
+        participants.put(participant.getUniqueId(), participant);
         lapCooldowns.put(participantUUID, System.currentTimeMillis());
         laps.put(participantUUID, 1);
         currentCheckpoints.put(participantUUID, config.getCheckpoints().size() - 1);
@@ -300,7 +299,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
-    public void giveBoots(Player participant) {
+    public void giveBoots(Participant participant) {
         Color teamColor = gameManager.getTeamColor(participant.getUniqueId());
         ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
         LeatherArmorMeta meta = (LeatherArmorMeta) boots.getItemMeta();
@@ -315,7 +314,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         closeGlassBarrier();
         cancelAllTasks();
         stopAdmins();
-        for (Player participant : participants) {
+        for (Participant participant : participants.values()) {
             resetParticipant(participant);
         }
         clearSidebar();
@@ -414,7 +413,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         if (sidebar == null) {
             return;
         }
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(participant.getUniqueId())) {
             return;
         }
         sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
@@ -425,7 +424,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         if (sidebar == null) {
             return;
         }
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(participant.getUniqueId())) {
             return;
         }
         sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
@@ -464,7 +463,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         if (config.getSpectatorArea() == null){
             return;
         }
-        if (!participants.contains(event.getPlayer())) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
@@ -489,8 +488,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         if (event.getCurrentItem() == null) {
             return;
         }
-        Player participant = ((Player) event.getWhoClicked());
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(event.getWhoClicked().getUniqueId())) {
             return;
         }
         event.setCancelled(true);
@@ -501,8 +499,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
      */
     @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
-        Player participant = event.getPlayer();
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         event.setCancelled(true);
@@ -513,10 +510,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
-        if (!(event.getEntity() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(event.getEntity().getUniqueId())) {
             return;
         }
         Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "FootraceGame.onPlayerDamage() cancelled");
@@ -525,10 +519,8 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     @EventHandler
     public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        if (!(event.getEntity() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
+        Participant participant = participants.get(event.getEntity().getUniqueId());
+        if (participant == null) {
             return;
         }
         participant.setFoodLevel(20);
@@ -541,7 +533,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         if (clickedBlock == null) {
             return;
         }
-        if (!participants.contains(event.getPlayer())) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         Material blockType = clickedBlock.getType();
@@ -555,8 +547,8 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
-        Player participant = event.getPlayer();
-        if (!participants.contains(participant)) {
+        Participant participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
             return;
         }
         if (state != null) {
@@ -572,7 +564,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
      * @param participant the participant (assumed to be a valid participant of this game in the SPECTATOR gamemode
      * @param event the event which may be cancelled in order to keep the given participant in the spectator area
      */
-    private void keepSpectatorsInArea(@NotNull Player participant, PlayerMoveEvent event) {
+    private void keepSpectatorsInArea(@NotNull Participant participant, PlayerMoveEvent event) {
         if (config.getSpectatorArea() == null){
             return;
         }
@@ -587,6 +579,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     public void messageAllParticipants(Component message) {
         gameManager.messageAdmins(message);
-        Audience.audience(participants).sendMessage(message);
+        Audience.audience(participants.values()).sendMessage(message);
     }
 }

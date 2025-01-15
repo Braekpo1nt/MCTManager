@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -55,7 +56,7 @@ public class ActiveStateLegacy implements FootRaceState {
             public void run() {
                 long elapsedTime = System.currentTimeMillis() - context.getRaceStartTime();
                 Component timeComponent = TimeStringUtils.getTimeComponentMillis(elapsedTime);
-                for (Player participant : context.getParticipants()) {
+                for (Participant participant : context.getParticipants().values()) {
                     if (!finishedRace(participant)) {
                         sidebar.updateLine(
                                 participant.getUniqueId(),
@@ -76,7 +77,7 @@ public class ActiveStateLegacy implements FootRaceState {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         if (participantShouldRejoin(participant)) {
             rejoinParticipant(participant);
         } else {
@@ -98,13 +99,13 @@ public class ActiveStateLegacy implements FootRaceState {
      * @return True if the participant was in the game before, and should rejoin. False
      * if the participant wasn't in the game before. 
      */
-    private boolean participantShouldRejoin(Player participant) {
+    private boolean participantShouldRejoin(Participant participant) {
         return finishedRace(participant) 
                 || context.getLaps().containsKey(participant.getUniqueId());
     }
     
-    private void rejoinParticipant(Player participant) {
-        context.getParticipants().add(participant);
+    private void rejoinParticipant(Participant participant) {
+        context.getParticipants().put(participant.getUniqueId(), participant);
         sidebar.addPlayer(participant);
         if (finishedRace(participant)) {
             showRaceCompleteFastBoard(participant.getUniqueId());
@@ -116,7 +117,7 @@ public class ActiveStateLegacy implements FootRaceState {
      * @param participant the participant
      * @return true if the given participant has already completed the race
      */
-    private boolean finishedRace(Player participant) {
+    private boolean finishedRace(Participant participant) {
         return context.getFinishedParticipants().contains(participant.getUniqueId());
     }
     
@@ -133,9 +134,9 @@ public class ActiveStateLegacy implements FootRaceState {
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(Participant participant) {
         resetParticipant(participant);
-        context.getParticipants().remove(participant);
+        context.getParticipants().remove(participant.getUniqueId());
     }
     
     @Override
@@ -149,7 +150,7 @@ public class ActiveStateLegacy implements FootRaceState {
     }
     
     @Override
-    public void onParticipantMove(Player participant) {
+    public void onParticipantMove(Participant participant) {
         UUID uuid = participant.getUniqueId();
         if (!participant.getWorld().equals(config.getWorld())) {
             return;
@@ -196,7 +197,10 @@ public class ActiveStateLegacy implements FootRaceState {
         }
     }
     
-    private boolean isInFinishLineBoundingBox(Player player) {
+    private boolean isInFinishLineBoundingBox(Participant player) {
+        if (config.getFinishLine() == null) {
+            return false;
+        }
         return config.getFinishLine().contains(player.getLocation().toVector());
     }
     
@@ -204,7 +208,7 @@ public class ActiveStateLegacy implements FootRaceState {
      * Code to run when a single participant crosses the finish line for the last time
      * @param participant The participant who crossed the finish line
      */
-    private void onPlayerFinishedRace(Player participant) {
+    private void onPlayerFinishedRace(Participant participant) {
         long elapsedTime = System.currentTimeMillis() - context.getRaceStartTime();
         context.getFinishedParticipants().add(participant.getUniqueId());
         showRaceCompleteFastBoard(participant.getUniqueId());
@@ -234,7 +238,7 @@ public class ActiveStateLegacy implements FootRaceState {
                             .append(Component.text(" remain!"))
                             .color(NamedTextColor.RED))
                     .color(NamedTextColor.GREEN));
-            Audience.audience(context.getParticipants().stream()
+            Audience.audience(context.getParticipants().values().stream()
                             .filter(p -> !p.equals(participant)).toList())
                     .showTitle(UIUtils.defaultTitle(
                             Component.empty(),
