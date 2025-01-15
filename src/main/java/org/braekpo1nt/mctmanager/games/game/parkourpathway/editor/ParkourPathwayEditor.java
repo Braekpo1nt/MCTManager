@@ -20,7 +20,6 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.CheckPoint;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.utils.EntityUtils;
@@ -230,7 +229,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     }
     
     @Override
-    public void start(Collection<Participant> newParticipants) {
+    public void start(Collection<Player> newParticipants) {
         participants = new ArrayList<>(newParticipants.size());
         currentPuzzles = new HashMap<>(newParticipants.size());
         currentInBounds = new HashMap<>(newParticipants.size());
@@ -240,18 +239,18 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         sidebar = gameManager.createSidebar();
         displayWalls = true;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        for (Participant participant : newParticipants) {
+        for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
         initializeSidebar();
-        for (Participant participant : newParticipants) {
+        for (Player participant : newParticipants) {
             selectPuzzle(participant, 0, false);
         }
         editorStarted = true;
         Main.logger().info("Starting Parkour Pathway editor");
     }
     
-    public void initializeParticipant(Participant participant) {
+    public void initializeParticipant(Player participant) {
         participants.add(participant);
         currentPuzzles.put(participant.getUniqueId(), 0);
         currentInBounds.put(participant.getUniqueId(), 0);
