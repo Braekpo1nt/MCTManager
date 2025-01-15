@@ -26,6 +26,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -115,24 +116,6 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     
     @Data
     @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-    public static class Participant {
-        /**
-         * The player object that this participant represents
-         */
-        @EqualsAndHashCode.Include
-        private final @NotNull Player player;
-        private final @NotNull String teamId;
-        
-        /**
-         * @return the UUID of the player this Participant represents
-         */
-        public UUID getUniqueId() {
-            return player.getUniqueId();
-        }
-    }
-    
-    @Data
-    @EqualsAndHashCode(onlyExplicitlyIncluded = true)
     public static class Team {
         @EqualsAndHashCode.Include
         private final @NotNull String teamId;
@@ -166,12 +149,12 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     }
     
     @Override
-    public void start(Collection<org.braekpo1nt.mctmanager.participant.Participant> newParticipants, List<Player> newAdmins) {
+    public void start(Collection<Participant> newParticipants, List<Player> newAdmins) {
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
-        List<String> teamIds = gameManager.getTeamIds(newParticipants);
+        List<String> teamIds = Participant.getTeamIds(newParticipants);
         arenas = createArenas(teamIds);
         materialBook = createMaterialBook();
         addRecipes();
@@ -351,7 +334,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     }
     
     /**
-     * Meant to be called by {@link FarmRushState#onParticipantJoin(Player)}, not externally called
+     * Meant to be called by {@link FarmRushState#onParticipantJoin(Participant)}, not externally called
      * Call to create a new {@link Team}, and a new {@link Arena} for that team.
      * @param teamId the team who joined
      */
@@ -369,23 +352,21 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         placeArenas(Collections.singletonList(arena));
     }
     
-    public void initializeParticipant(Participant player) {
-        String teamId = gameManager.getTeamId(player.getUniqueId());
-        Participant participant = new Participant(player, teamId);
-        participants.put(player.getUniqueId(), participant);
-        Team team = teams.get(teamId);
-        team.getMembers().add(player.getUniqueId());
-        player.setGameMode(GameMode.ADVENTURE);
-        sidebar.addPlayer(player);
-        ParticipantInitializer.clearInventory(player);
-        ParticipantInitializer.clearStatusEffects(player);
-        ParticipantInitializer.resetHealthAndHunger(player);
-        player.getInventory().setContents(config.getLoadout());
+    public void initializeParticipant(Participant participant) {
+        participants.put(participant.getUniqueId(), participant);
+        Team team = teams.get(participant.getTeamId());
+        team.getMembers().add(participant.getUniqueId());
+        participant.setGameMode(GameMode.ADVENTURE);
+        sidebar.addPlayer(participant);
+        ParticipantInitializer.clearInventory(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        participant.getInventory().setContents(config.getLoadout());
         if (materialBook != null) {
-            player.getInventory().addItem(materialBook);
+            participant.getInventory().addItem(materialBook);
         }
-        player.teleport(team.getArena().getSpawn());
-        player.setRespawnLocation(team.getArena().getSpawn(), true);
+        participant.teleport(team.getArena().getSpawn());
+        participant.setRespawnLocation(team.getArena().getSpawn(), true);
     }
     
     private void startAdmins(List<Player> newAdmins) {

@@ -3,13 +3,11 @@ package org.braekpo1nt.mctmanager.games.game.farmrush.states;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
-import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 public class DescriptionState implements FarmRushState {
@@ -42,7 +40,7 @@ public class DescriptionState implements FarmRushState {
     }
     
     @Override
-    public void onParticipantJoin(Player player) {
+    public void onParticipantJoin(Participant player) {
         String teamId = context.getGameManager().getTeamId(player.getUniqueId());
         boolean brandNewTeam = !context.getTeams().containsKey(teamId);
         if (brandNewTeam) {
@@ -54,14 +52,14 @@ public class DescriptionState implements FarmRushState {
     }
     
     @Override
-    public void onParticipantQuit(FarmRushGame.Participant participant) {
+    public void onParticipantQuit(Participant participant) {
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
         context.getTeams().get(participant.getTeamId()).getMembers().remove(participant.getUniqueId());
     }
     
     @Override
-    public void onPlayerMove(PlayerMoveEvent event, FarmRushGame.Participant participant) {
+    public void onPlayerMove(PlayerMoveEvent event, Participant participant) {
         Arena arena = context.getTeams().get(participant.getTeamId()).getArena();
         if (!arena.getBarn().contains(event.getFrom().toVector())) {
             participant.getPlayer().teleport(arena.getSpawn());

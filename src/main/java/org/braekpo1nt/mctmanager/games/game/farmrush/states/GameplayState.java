@@ -4,13 +4,13 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.games.game.farmrush.ItemSale;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Barrel;
 import org.bukkit.block.Block;
 import org.bukkit.entity.HumanEntity;
-import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -38,7 +38,7 @@ public abstract class GameplayState implements FarmRushState {
     
     
     @Override
-    public void onParticipantJoin(Player player) {
+    public void onParticipantJoin(Participant player) {
         String teamId = context.getGameManager().getTeamId(player.getUniqueId());
         boolean brandNewTeam = !context.getTeams().containsKey(teamId);
         if (brandNewTeam) {
@@ -51,7 +51,7 @@ public abstract class GameplayState implements FarmRushState {
     }
     
     @Override
-    public void onParticipantQuit(FarmRushGame.Participant participant) {
+    public void onParticipantQuit(Participant participant) {
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
         context.getTeams().get(participant.getTeamId()).getMembers().remove(participant.getUniqueId());
@@ -62,7 +62,7 @@ public abstract class GameplayState implements FarmRushState {
         // do nothing
     }
     
-    protected void sellItemsOnCloseInventory(InventoryCloseEvent event, FarmRushGame.Participant participant) {
+    protected void sellItemsOnCloseInventory(InventoryCloseEvent event, Participant participant) {
         if (!event.getInventory().getType().equals(InventoryType.BARREL)) {
             return;
         }
@@ -164,7 +164,7 @@ public abstract class GameplayState implements FarmRushState {
     }
     
     @Override
-    public void onPlaceBlock(BlockPlaceEvent event, FarmRushGame.Participant participant) {
+    public void onPlaceBlock(BlockPlaceEvent event, Participant participant) {
         context.getPowerupManager().onPlaceBlock(event);
     }
     

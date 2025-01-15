@@ -6,6 +6,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
@@ -43,7 +44,7 @@ public class ActiveState extends GameplayState {
                     context.setState(new GracePeriodState(context));
                 })
                 .build());
-        for (FarmRushGame.Participant participant : context.getParticipants().values()) {
+        for (Participant participant : context.getParticipants().values()) {
             participant.getPlayer().setGameMode(GameMode.SURVIVAL);
         }
         
@@ -54,7 +55,7 @@ public class ActiveState extends GameplayState {
     }
     
     @Override
-    public void onCloseInventory(InventoryCloseEvent event, FarmRushGame.Participant participant) {
+    public void onCloseInventory(InventoryCloseEvent event, Participant participant) {
         FarmRushGame.Team team = context.getTeams().get(participant.getTeamId());
         int oldScore = team.getTotalScore();
         sellItemsOnCloseInventory(event, participant);
