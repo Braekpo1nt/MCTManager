@@ -8,6 +8,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
@@ -15,6 +16,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Contract;
@@ -338,7 +340,7 @@ public class GameManagerUtils {
      * @param gameManager the game manager in which the given participant should be contained
      * @param participant the participant whose armor slots may or may not contain leather armor, but for whom any existing leather armor slots should be colored their team color. If this participant is not a participiant in the given gameManager, then nothing happens. 
      */
-    public static void colorLeatherArmor(@NotNull GameManager gameManager, @NotNull Player participant) {
+    public static void colorLeatherArmor(@NotNull GameManager gameManager, @NotNull Participant participant) {
         if (!gameManager.isParticipant(participant.getUniqueId())) {
             return;
         }
@@ -402,14 +404,14 @@ public class GameManagerUtils {
     
     /**
      * Removes the color from any and all leather armor items in the given player's armor slots. Uses {@link GameManagerUtils#deColorLeatherArmor(ItemStack)} on each armor item.
-     * @param player the player wearing the armor
+     * @param inventory the inventory of the player wearing the armor
      * @see GameManagerUtils#deColorLeatherArmor(ItemStack)
      */
-    public static void deColorLeatherArmor(@NotNull Player player) {
-        deColorLeatherArmor(player.getInventory().getHelmet());
-        deColorLeatherArmor(player.getInventory().getChestplate());
-        deColorLeatherArmor(player.getInventory().getLeggings());
-        deColorLeatherArmor(player.getInventory().getBoots());
+    public static void deColorLeatherArmor(@NotNull PlayerInventory inventory) {
+        deColorLeatherArmor(inventory.getHelmet());
+        deColorLeatherArmor(inventory.getChestplate());
+        deColorLeatherArmor(inventory.getLeggings());
+        deColorLeatherArmor(inventory.getBoots());
     }
     
     public static int calculateExpPoints(int level) {

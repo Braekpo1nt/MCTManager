@@ -334,11 +334,11 @@ public class GameManager implements Listener {
             voteManager.onParticipantQuit(participant);
         }
         hubManager.onParticipantQuit(participant);
-        Component displayName = Component.text(participant.getPlayer().getName(), 
+        Component displayName = Component.text(participant.getName(), 
                 NamedTextColor.WHITE);
-        participant.getPlayer().displayName(displayName);
-        participant.getPlayer().playerListName(displayName);
-        GameManagerUtils.deColorLeatherArmor(participant.getPlayer());
+        participant.displayName(displayName);
+        participant.playerListName(displayName);
+        GameManagerUtils.deColorLeatherArmor(participant.getInventory());
         tabList.hidePlayer(participant.getUniqueId());
         tabList.setParticipantGrey(participant.getUniqueId(), true);
     }
@@ -402,11 +402,11 @@ public class GameManager implements Listener {
     private void onParticipantJoin(@NotNull Participant participant) {
         onlineParticipants.put(participant.getUniqueId(), participant);
         participant.getPlayer().setScoreboard(mctScoreboard);
-        participant.getPlayer().addPotionEffect(Main.NIGHT_VISION);
+        participant.addPotionEffect(Main.NIGHT_VISION);
         NamedTextColor color = getTeamColor(participant.getTeamId());
         Component displayName = Component.text(participant.getName(), color);
-        participant.getPlayer().displayName(displayName);
-        participant.getPlayer().playerListName(displayName);
+        participant.displayName(displayName);
+        participant.playerListName(displayName);
         hubManager.onParticipantJoin(participant);
         if (gameIsRunning()) {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
@@ -417,8 +417,8 @@ public class GameManager implements Listener {
         } else if (voteManager.isVoting()) {
             voteManager.onParticipantJoin(participant);
         }
-        GameManagerUtils.colorLeatherArmor(this, participant.getPlayer());
-        tabList.showPlayer(participant.getPlayer());
+        GameManagerUtils.colorLeatherArmor(this, participant);
+        tabList.showPlayer(participant);
         tabList.setParticipantGrey(participant.getUniqueId(), false);
         updatePersonalScore(participant);
         updateTeamScore(participant.getTeamId());

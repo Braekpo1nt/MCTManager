@@ -62,7 +62,7 @@ public class DescriptionState implements FarmRushState {
     public void onPlayerMove(PlayerMoveEvent event, Participant participant) {
         Arena arena = context.getTeams().get(participant.getTeamId()).getArena();
         if (!arena.getBarn().contains(event.getFrom().toVector())) {
-            participant.getPlayer().teleport(arena.getSpawn());
+            participant.teleport(arena.getSpawn());
             return;
         }
         if (!arena.getBarn().contains(event.getTo().toVector())) {

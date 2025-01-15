@@ -416,11 +416,11 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     }
     
     public void resetParticipant(Participant participant) {
-        ParticipantInitializer.clearInventory(participant.getPlayer());
-        ParticipantInitializer.clearStatusEffects(participant.getPlayer());
-        ParticipantInitializer.resetHealthAndHunger(participant.getPlayer());
-        sidebar.removePlayer(participant.getPlayer());
-        participant.getPlayer().setGameMode(GameMode.SPECTATOR);
+        ParticipantInitializer.clearInventory(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        sidebar.removePlayer(participant);
+        participant.setGameMode(GameMode.SPECTATOR);
     }
     
     private void stopAdmins() {
@@ -523,7 +523,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         }
         Arena arena = teams.get(participant.getTeamId()).getArena();
         if (!arena.getBounds().contains(event.getFrom().toVector())) {
-            participant.getPlayer().teleport(arena.getSpawn());
+            participant.teleport(arena.getSpawn());
             return;
         }
         if (!arena.getBounds().contains(event.getTo().toVector())) {
@@ -837,18 +837,16 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     }
     
     public void messageAllParticipants(Component message) {
-        Audience.audience(admins
+        Audience.audience(
+                Audience.audience(admins),
+                Audience.audience(participants.values())
         ).sendMessage(message);
-        for (Participant participant : participants.values()) {
-            participant.getPlayer().sendMessage(message);
-        }
     }
     
     public void titleAllParticipants(Title title) {
-        Audience.audience(admins
+        Audience.audience(
+                Audience.audience(admins),
+                Audience.audience(participants.values())
         ).showTitle(title);
-        for (Participant participant : participants.values()) {
-            participant.getPlayer().showTitle(title);
-        }
     }
 }

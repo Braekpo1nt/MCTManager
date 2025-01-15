@@ -229,20 +229,20 @@ public class OffState implements EventState {
                     .color(NamedTextColor.RED));
             return;
         }
-        List<Player> firstPlaceParticipants = new ArrayList<>();
-        List<Player> secondPlaceParticipants = new ArrayList<>();
-        List<Player> spectators = new ArrayList<>();
+        List<Participant> firstPlaceParticipants = new ArrayList<>();
+        List<Participant> secondPlaceParticipants = new ArrayList<>();
+        List<Participant> spectators = new ArrayList<>();
         List<Participant> participantPool = new ArrayList<>(gameManager.getOnlineParticipantsKeep());
         List<Player> adminPool;
         adminPool = new ArrayList<>(gameManager.getOnlineAdmins());
         for (Participant participant : participantPool) {
             String teamId = gameManager.getTeamId(participant.getUniqueId());
             if (teamId.equals(firstTeamId)) {
-                firstPlaceParticipants.add(participant.getPlayer());
+                firstPlaceParticipants.add(participant);
             } else if (teamId.equals(secondTeamId)) {
-                secondPlaceParticipants.add(participant.getPlayer());
+                secondPlaceParticipants.add(participant);
             } else {
-                spectators.add(participant.getPlayer());
+                spectators.add(participant);
             }
         }
         

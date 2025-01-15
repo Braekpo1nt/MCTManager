@@ -45,7 +45,7 @@ public class ActiveState extends GameplayState {
                 })
                 .build());
         for (Participant participant : context.getParticipants().values()) {
-            participant.getPlayer().setGameMode(GameMode.SURVIVAL);
+            participant.setGameMode(GameMode.SURVIVAL);
         }
         
         for (FarmRushGame.Team team : context.getTeams().values()) {

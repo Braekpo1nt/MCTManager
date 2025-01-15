@@ -7,6 +7,7 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.UIException;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -353,6 +354,14 @@ public class TabList {
         }
         participantData.setGrey(grey);
         update();
+    }
+    
+    /**
+     * Show the given participant this TabList
+     * @param participant the participant to view the TabList. Must not already be a viewer.
+     */
+    public void showPlayer(@NotNull Participant participant) {
+        showPlayer(participant.getPlayer());
     }
     
     /**

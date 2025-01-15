@@ -49,17 +49,17 @@ public class PlayingColossalCombatState extends PlayingGameState {
                     .color(NamedTextColor.RED));
             return false;
         }
-        List<Player> firstPlaceParticipants = new ArrayList<>();
-        List<Player> secondPlaceParticipants = new ArrayList<>();
-        List<Player> spectators = new ArrayList<>();
+        List<Participant> firstPlaceParticipants = new ArrayList<>();
+        List<Participant> secondPlaceParticipants = new ArrayList<>();
+        List<Participant> spectators = new ArrayList<>();
         for (Participant participant : context.getParticipants().values()) {
             String teamId = gameManager.getTeamId(participant.getUniqueId());
             if (teamId.equals(firstTeamId)) {
-                firstPlaceParticipants.add(participant.getPlayer());
+                firstPlaceParticipants.add(participant);
             } else if (teamId.equals(secondTeamId)) {
-                secondPlaceParticipants.add(participant.getPlayer());
+                secondPlaceParticipants.add(participant);
             } else {
-                spectators.add(participant.getPlayer());
+                spectators.add(participant);
             }
         }
         
@@ -137,12 +137,12 @@ public class PlayingColossalCombatState extends PlayingGameState {
     
     @Override
     public void onParticipantJoin(Participant participant) {
-        context.getColossalCombatGame().onParticipantJoin(participant.getPlayer());
+        context.getColossalCombatGame().onParticipantJoin(participant);
     }
     
     @Override
     public void onParticipantQuit(Participant participant) {
-        context.getColossalCombatGame().onParticipantQuit(participant.getPlayer());
+        context.getColossalCombatGame().onParticipantQuit(participant);
     }
     
     @Override
