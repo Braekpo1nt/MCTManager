@@ -599,23 +599,6 @@ public class GameManager implements Listener {
         return eventManager;
     }
     
-    /**
-     * @param playersToRemove the list of players to remove
-     * @deprecated in favor of {@link #removeParticipantsFromHub(Collection)}
-     */
-    @Deprecated
-    public void removeParticipantsFromHub(List<Player> playersToRemove) {
-        // TODO: Participant remove this method
-        List<Participant> participantsToRemove = new ArrayList<>(playersToRemove.size());
-        for (Player player : playersToRemove) {
-            Participant participant = onlineParticipants.get(player.getUniqueId());
-            if (participant != null) {
-                participantsToRemove.add(participant);
-            }
-        }
-        hubManager.removeParticipantsFromHub(participantsToRemove);
-    }
-    
     public void removeParticipantsFromHub(Map<UUID, Participant> participantsToRemove) {
         removeParticipantsFromHub(participantsToRemove.values());
     }
