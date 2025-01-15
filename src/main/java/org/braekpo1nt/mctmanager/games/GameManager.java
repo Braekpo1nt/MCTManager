@@ -1303,29 +1303,7 @@ public class GameManager implements Listener {
      * @return a list of the online participants who are on the given team
      */
     public List<Participant> getOnlineParticipantsOnTeam(String teamId) {
-        // TODO: Participant this should be replaced with a call to a Team's members
         return Participant.getParticipantsOnTeam(onlineParticipants.values(), teamId);
-    }
-    
-    /**
-     * Gets the online players who are on the given team. 
-     * @param teamId The internal name of the team
-     * @return A list of all online players on that team, 
-     * or empty list if there are no players on that team or the team doesn't exist.
-     * @deprecated in favor of {@link #getOnlineParticipantsOnTeam(String)}
-     */
-    @Deprecated
-    public List<Player> getOnlinePlayersOnTeam(String teamId) {
-        // TODO: Participant this should be replaced according to its deprecation
-        List<UUID> playerUniqueIds = gameStateStorageUtil.getParticipantUUIDsOnTeam(teamId);
-        List<Player> onlinePlayersOnTeam = new ArrayList<>();
-        for (UUID playerUniqueId : playerUniqueIds) {
-            Player player = Bukkit.getPlayer(playerUniqueId);
-            if (player != null && player.isOnline()) {
-                onlinePlayersOnTeam.add(player);
-            }
-        }
-        return onlinePlayersOnTeam;
     }
     
     public List<UUID> getParticipantUUIDsOnTeam(String teamId) {
@@ -1546,7 +1524,7 @@ public class GameManager implements Listener {
         }
         for (String teamId : teamIds) {
             Component displayName = getFormattedTeamDisplayName(teamId);
-            List<Player> playersOnTeam = getOnlinePlayersOnTeam(teamId);
+            List<Participant> playersOnTeam = getOnlineParticipantsOnTeam(teamId);
             Audience.audience(playersOnTeam).sendMessage(Component.text("+")
                     .append(Component.text(multipliedPoints))
                     .append(Component.text(" points for "))
@@ -1574,7 +1552,7 @@ public class GameManager implements Listener {
         }
         
         Component displayName = getFormattedTeamDisplayName(teamId);
-        List<Player> playersOnTeam = getOnlinePlayersOnTeam(teamId);
+        List<Participant> playersOnTeam = getOnlineParticipantsOnTeam(teamId);
         Audience.audience(playersOnTeam).sendMessage(Component.text("+")
                     .append(Component.text(multipliedPoints))
                     .append(Component.text(" points for "))
@@ -2069,8 +2047,8 @@ public class GameManager implements Listener {
             int teamScore = getScore(teamId);
             teamIdsToScores.put(teamId, teamScore);
             if (headerable != null) {
-                for (Player participant : getOnlinePlayersOnTeam(teamId)) {
-                    headerable.updateTeamScore(participant, Component.empty()
+                for (Participant participant : getOnlineParticipantsOnTeam(teamId)) {
+                    headerable.updateTeamScore(participant.getPlayer(), Component.empty()
                             .append(teamDisplayName)
                             .append(Component.text(": "))
                             .append(Component.text(teamScore)
@@ -2097,8 +2075,8 @@ public class GameManager implements Listener {
         Component teamDisplayName = getFormattedTeamDisplayName(teamId);
         int teamScore = getScore(teamId);
         if (activeGame != null && activeGame instanceof Headerable headerable) {
-            for (Player participant : getOnlinePlayersOnTeam(teamId)) {
-                headerable.updateTeamScore(participant, Component.empty()
+            for (Participant participant : getOnlineParticipantsOnTeam(teamId)) {
+                headerable.updateTeamScore(participant.getPlayer(), Component.empty()
                         .append(teamDisplayName)
                         .append(Component.text(": "))
                         .append(Component.text(teamScore)
