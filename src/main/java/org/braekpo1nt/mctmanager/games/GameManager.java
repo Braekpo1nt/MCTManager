@@ -1084,24 +1084,6 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Gets a list of all unique team names which the given participants belong to.
-     * @param participants The list of participants to get the team names of
-     * @return A list of all unique team names which the given participants belong to.
-     * @deprecated as of v1.3.0 in favor of {@link org.braekpo1nt.mctmanager.participant.Team}
-     */
-    @Deprecated
-    public List<String> getTeamIds(List<Player> participants) {
-        List<String> teamIds = new ArrayList<>();
-        for (Player participant : participants) {
-            String teamId = getTeamId(participant.getUniqueId());
-            if (!teamIds.contains(teamId)){
-                teamIds.add(teamId);
-            }
-        }
-        return teamIds;
-    }
-    
-    /**
      * Checks if the team exists in the game state
      * @param teamId The team to look for
      * @return true if the team with the given teamId exists, false otherwise.
