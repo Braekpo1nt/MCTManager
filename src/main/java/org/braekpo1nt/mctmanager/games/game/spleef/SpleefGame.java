@@ -33,10 +33,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     private final Main plugin;
@@ -50,7 +47,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
             .append(Component.text("Spleef"))
             .color(NamedTextColor.BLUE);
     private Component title = baseTitle;
-    private List<Player> participants = new ArrayList<>();
+    private Map<UUID, Participant> participants = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     private List<SpleefRound> rounds = new ArrayList<>();
     private int currentRoundIndex = 0;
@@ -97,7 +94,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     
     @Override
     public void start(Collection<Participant> newParticipants, List<Player> newAdmins) {
-        participants = new ArrayList<>(newParticipants.size());
+        participants = new HashMap<>(newParticipants.size());
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -110,7 +107,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         for (int i = 0; i < config.getRounds(); i++) {
             rounds.add(new SpleefRound(plugin, gameManager, this, config, sidebar, adminSidebar));
         }
-        rounds.get(0).setFirstRound(true);
+        rounds.getFirst().setFirstRound(true);
         plugin.getLogger().info(String.format("rounds.size() = %d", rounds.size()));
         currentRoundIndex = 0;
         setupTeamOptions();
@@ -126,14 +123,14 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     }
     
     private void initializeParticipant(Participant participant) {
-        participants.add(participant);
+        participants.put(participant.getUniqueId(), participant);
         sidebar.addPlayer(participant);
         teleportParticipantToRandomStartingPosition(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
     }
     
-    private void teleportParticipantToRandomStartingPosition(Player participant) {
+    private void teleportParticipantToRandomStartingPosition(Participant participant) {
         int index = random.nextInt(config.getStartingLocations().size());
         participant.teleport(config.getStartingLocations().get(index));
         participant.setRespawnLocation(config.getStartingLocations().get(index), true);
@@ -166,7 +163,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         admins.add(admin);
         adminSidebar.addPlayer(admin);
         admin.setGameMode(GameMode.SPECTATOR);
-        admin.teleport(config.getStartingLocations().get(0));
+        admin.teleport(config.getStartingLocations().getFirst());
     }
     
     @Override
@@ -181,7 +178,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         }
         rounds.clear();
         gameActive = false;
-        for (Player participant : participants) {
+        for (Participant participant : participants.values()) {
             resetParticipant(participant);
         }
         clearSidebar();
@@ -191,7 +188,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         Main.logger().info("Stopping Spleef");
     }
     
-    private void resetParticipant(Player participant) {
+    private void resetParticipant(Participant participant) {
         ParticipantInitializer.clearInventory(participant);
         sidebar.removePlayer(participant.getUniqueId());
     }
@@ -210,10 +207,8 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     
     @EventHandler
     public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        if (!(event.getEntity() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
+        Participant participant = participants.get(event.getEntity().getUniqueId());
+        if (participant == null) {
             return;
         }
         participant.setFoodLevel(20);
@@ -234,8 +229,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         if (event.getCurrentItem() == null) {
             return;
         }
-        Player participant = ((Player) event.getWhoClicked());
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(event.getWhoClicked().getUniqueId())) {
             return;
         }
         event.setCancelled(true);
@@ -249,8 +243,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         if (!gameActive) {
             return;
         }
-        Player participant = event.getPlayer();
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         event.setCancelled(true);
@@ -264,14 +257,14 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         if (config.getSpectatorArea() == null){
             return;
         }
-        if (!participants.contains(event.getPlayer())) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
             return;
         }
         if (!config.getSpectatorArea().contains(event.getFrom().toVector())) {
-            event.getPlayer().teleport(config.getStartingLocations().get(0));
+            event.getPlayer().teleport(config.getStartingLocations().getFirst());
             return;
         }
         if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
@@ -287,7 +280,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         if (config.getSpectatorArea() == null){
             return;
         }
-        if (!participants.contains(event.getPlayer())) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
@@ -325,7 +318,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
             return;
         }
         resetParticipant(participant);
-        participants.remove(participant);
+        participants.remove(participant.getUniqueId());
         if (currentRoundIndex < rounds.size()) {
             SpleefRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
@@ -346,7 +339,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     
     public void startNextRound() {
         SpleefRound nextRound = rounds.get(currentRoundIndex);
-        nextRound.start(participants);
+        nextRound.start(participants.values());
         String round = String.format("Round %d/%d", currentRoundIndex + 1, rounds.size());
         sidebar.updateLine("round", round);
         adminSidebar.updateLine("round", round);
@@ -389,7 +382,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         if (sidebar == null) {
             return;
         }
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(participant.getUniqueId())) {
             return;
         }
         sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
@@ -400,7 +393,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         if (sidebar == null) {
             return;
         }
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(participant.getUniqueId())) {
             return;
         }
         sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
@@ -418,16 +411,16 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     }
     
     private void messageAllParticipants(Component message) {
-        gameManager.messageAdmins(message);
-        for (Player participant : participants) {
-            participant.sendMessage(message);
-        }
+        Audience.audience(
+                Audience.audience(admins),
+                Audience.audience(participants.values())
+        ).sendMessage(message);
     }
     
     public void showTitle(@NotNull Title title) {
         Audience.audience(
                 Audience.audience(admins),
-                Audience.audience(participants)
+                Audience.audience(participants.values())
         ).showTitle(title);
     }
 }
