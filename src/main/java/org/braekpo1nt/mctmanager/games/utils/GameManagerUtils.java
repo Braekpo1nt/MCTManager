@@ -5,6 +5,7 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
@@ -269,7 +270,7 @@ public class GameManagerUtils {
         return CommandResult.success();
     }
     
-    public static CommandResult joinParticipant(@NotNull CommandSender sender, @NotNull GameManager gameManager, @NotNull String ign, @NotNull String teamId) {
+    public static CommandResult joinParticipant(@NotNull CommandSender sender, Main plugin, @NotNull GameManager gameManager, @NotNull String ign, @NotNull String teamId) {
         if (teamId.isEmpty()) {
             return CommandResult.failure("teamId must not be blank");
         }
@@ -283,7 +284,7 @@ public class GameManagerUtils {
                     .append(Component.text(" does not exist.")));
         }
         
-        Player playerToJoin = Bukkit.getPlayer(ign);
+        Player playerToJoin = plugin.getServer().getPlayer(ign);
         Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
         if (playerToJoin == null) {
             if (gameManager.isOfflineIGN(ign)) {
@@ -297,7 +298,7 @@ public class GameManagerUtils {
                             .append(teamDisplayName));
                 }
             }
-            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(ign);
+            OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(ign);
             gameManager.joinOfflineIGNToTeam(sender, ign, offlinePlayer.getUniqueId(), teamId);
             return CommandResult.success();
         }

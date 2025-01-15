@@ -27,10 +27,12 @@ import java.util.stream.Collectors;
 public class PresetApplySubCommand extends TabSubCommand {
     
     private final PresetStorageUtil storageUtil;
+    private final Main plugin;
     private final GameManager gameManager;
     
-    public PresetApplySubCommand(GameManager gameManager, PresetStorageUtil storageUtil, @NotNull String name) {
+    public PresetApplySubCommand(Main plugin, GameManager gameManager, PresetStorageUtil storageUtil, @NotNull String name) {
         super(name);
+        this.plugin = plugin;
         this.gameManager = gameManager;
         this.storageUtil = storageUtil;
     }
@@ -138,7 +140,7 @@ public class PresetApplySubCommand extends TabSubCommand {
         // join all the participants
         for (Preset.PresetTeam team : preset.getTeams()) {
             for (String ign : team.getMembers()) {
-                CommandResult commandResult = GameManagerUtils.joinParticipant(sender, gameManager, ign, team.getTeamId());
+                CommandResult commandResult = GameManagerUtils.joinParticipant(sender, plugin, gameManager, ign, team.getTeamId());
                 results.add(commandResult);
             }
         }
