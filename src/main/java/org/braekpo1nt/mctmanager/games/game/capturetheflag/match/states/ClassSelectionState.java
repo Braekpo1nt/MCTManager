@@ -23,11 +23,11 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
         this.southClassPicker = context.getSouthClassPicker();
         northClassPicker.start(
                 context.getPlugin(), 
-                Participant.toPlayersList(context.getNorthParticipants().values()), 
+                context.getNorthParticipants().values(), 
                 context.getConfig().getLoadouts());
         southClassPicker.start(
                 context.getPlugin(),
-                Participant.toPlayersList(context.getSouthParticipants().values()), 
+                context.getSouthParticipants().values(), 
                 context.getConfig().getLoadouts());
     }
     
@@ -50,9 +50,9 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
         String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
         context.getTopbar().linkToTeam(participant.getUniqueId(), teamId);
         if (context.getMatchPairing().northTeam().equals(teamId)) {
-            northClassPicker.addTeamMate(participant.getPlayer());
+            northClassPicker.addTeamMate(participant);
         } else {
-            southClassPicker.addTeamMate(participant.getPlayer());
+            southClassPicker.addTeamMate(participant);
         }
     }
     
@@ -65,12 +65,12 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
         int dead;
         if (context.getMatchPairing().northTeam().equals(teamId)) {
             context.getNorthParticipants().remove(participant.getUniqueId());
-            context.getNorthClassPicker().removeTeamMate(participant.getPlayer());
+            context.getNorthClassPicker().removeTeamMate(participant);
             alive = context.countAlive(context.getNorthParticipants().values());
             dead = context.getNorthParticipants().size() - alive;
         } else {
             context.getSouthParticipants().remove(participant.getUniqueId());
-            context.getSouthClassPicker().removeTeamMate(participant.getPlayer());
+            context.getSouthClassPicker().removeTeamMate(participant);
             alive = context.countAlive(context.getSouthParticipants().values());
             dead = context.getSouthParticipants().size() - alive;
         }
