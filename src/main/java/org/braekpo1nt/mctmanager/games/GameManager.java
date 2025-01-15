@@ -352,7 +352,8 @@ public class GameManager implements Listener {
             return;
         }
         if (isParticipant(player.getUniqueId())) {
-            onParticipantJoin(player);
+            Participant participant = createNewParticipant(player);
+            onParticipantJoin(participant);
             event.joinMessage(GameManagerUtils.replaceWithDisplayName(player, event.joinMessage()));
             return;
         }
@@ -360,6 +361,17 @@ public class GameManager implements Listener {
             onOfflineIGNJoin(player);
             event.joinMessage(GameManagerUtils.replaceWithDisplayName(player, event.joinMessage()));
         }
+    }
+    
+    /**
+     * @param player a player whose UUID is in the {@link GameStateStorageUtil} as a participant
+     * @return a new {@link Participant} from the given {@link Player} object
+     * @throws IllegalStateException if the given player's UUID is not a participant in the
+     * {@link GameStateStorageUtil} (see {@link GameStateStorageUtil#containsPlayer(UUID)})
+     */
+    private @NotNull Participant createNewParticipant(@NotNull Player player) {
+        String teamId = getTeamId(player.getUniqueId());
+        return new Participant(player, teamId);
     }
     
     private void onAdminJoin(@NotNull Player admin) {
@@ -385,19 +397,14 @@ public class GameManager implements Listener {
     
     /**
      * Handles when a participant joins
-     * @param player a player (who is an official participant) who joined
+     * @param participant the participant who joined
      */
-    private void onParticipantJoin(@NotNull Player player) {
-        String teamId = getTeamId(player.getUniqueId());
-        if (teamId == null) {
-            Main.logger().severe(String.format("Could not join player \"%s\" because they are not a participant", player.getName()));
-            return;
-        }
-        Participant participant = new Participant(player, teamId);
+    private void onParticipantJoin(@NotNull Participant participant) {
         onlineParticipants.put(participant.getUniqueId(), participant);
         participant.getPlayer().setScoreboard(mctScoreboard);
         participant.getPlayer().addPotionEffect(Main.NIGHT_VISION);
-        Component displayName = getParticipantDisplayName(participant);
+        NamedTextColor color = getTeamColor(participant.getTeamId());
+        Component displayName = Component.text(participant.getName(), color);
         participant.getPlayer().displayName(displayName);
         participant.getPlayer().playerListName(displayName);
         hubManager.onParticipantJoin(participant);
@@ -414,7 +421,7 @@ public class GameManager implements Listener {
         tabList.showPlayer(participant.getPlayer());
         tabList.setParticipantGrey(participant.getUniqueId(), false);
         updatePersonalScore(participant);
-        updateTeamScore(teamId);
+        updateTeamScore(participant.getTeamId());
     }
     
     /**
@@ -523,7 +530,7 @@ public class GameManager implements Listener {
         }
         for (UUID uuid : gameStateStorageUtil.getPlayerUniqueIds()) {
             OfflinePlayer offlinePlayer = Bukkit.getServer().getOfflinePlayer(uuid);
-            String name = getParticipantName(offlinePlayer);
+            String name = getOfflineParticipantIGN(offlinePlayer);
             String teamId = gameStateStorageUtil.getPlayerTeamId(uuid);
             boolean grey = !offlinePlayer.isOnline();
             if (teamId != null) { // this will not be null, formality
@@ -532,7 +539,7 @@ public class GameManager implements Listener {
         }
         for (UUID uuid : gameStateStorageUtil.getOfflinePlayerUniqueIds()) {
             OfflinePlayer offlinePlayer = Bukkit.getServer().getOfflinePlayer(uuid);
-            String name = getParticipantName(offlinePlayer);
+            String name = getOfflineParticipantIGN(offlinePlayer);
             String teamId = gameStateStorageUtil.getPlayerTeamId(uuid);
             if (teamId != null) { // this will not be null, formality
                 tabList.joinParticipant(uuid, name, teamId, true);
@@ -544,7 +551,8 @@ public class GameManager implements Listener {
                 onAdminJoin(player);
             }
             if (isParticipant(player.getUniqueId())) {
-                onParticipantJoin(player);
+                Participant participant = createNewParticipant(player);
+                onParticipantJoin(participant);
             }
         }
         return true;
@@ -1215,7 +1223,8 @@ public class GameManager implements Listener {
         team.addPlayer(newPlayer);
         Player onlineNewPlayer = newPlayer.getPlayer();
         if (onlineNewPlayer != null) {
-            onParticipantJoin(onlineNewPlayer);
+            Participant participant = createNewParticipant(onlineNewPlayer);
+            onParticipantJoin(participant);
         }
     }
     
@@ -1340,10 +1349,16 @@ public class GameManager implements Listener {
      * Gets the teamId of the participant with the given UUID
      * @param participantUUID The UUID of the participant to find the team of
      * @return The teamId of the player with the given UUID
-     * @throws NullPointerException if the game state doesn't contain the player's UUID
+     * @throws IllegalStateException if the {@link GameStateStorageUtil} doesn't contain the given UUID
      */
-    public @Nullable String getTeamId(UUID participantUUID) {
-        return gameStateStorageUtil.getPlayerTeamId(participantUUID);
+    @Contract("null -> null")
+    public String getTeamId(UUID participantUUID) {
+        String teamId = gameStateStorageUtil.getPlayerTeamId(participantUUID);
+        if (teamId == null) {
+            throw new IllegalStateException(
+                    String.format("Can't get teamId for non-participant UUID %s", participantUUID));
+        }
+        return teamId;
     }
     
     /**
@@ -1492,40 +1507,12 @@ public class GameManager implements Listener {
     }
     
     /**
-     * @param participant the participant
-     * @return the participant's display name
-     */
-    public Component getParticipantDisplayName(@NotNull Participant participant) {
-        return getParticipantDisplayName(participant.getPlayer());
-    }
-    
-    /**
-     * @param participant must be a valid participant in the GameState
-     * @return the display name of the given participant
-     */
-    public Component getParticipantDisplayName(@NotNull Player participant) {
-        return createParticipantDisplayName(participant.getUniqueId(), participant.getName());
-    }
-    
-    /**
-     * @param offlineParticipant an OfflinePlayer with the UUID of a valid participant. 
-     *                           If the OfflinePlayer's name is null, then the
-     *                           UUID will be used as the name.
-     * @return the displayName of the participant represented by the given offline participant
-     */
-    public Component getParticipantDisplayName(@NotNull OfflinePlayer offlineParticipant) {
-        String name = getParticipantName(offlineParticipant);
-        UUID uuid = offlineParticipant.getUniqueId();
-        return createParticipantDisplayName(uuid, name);
-    }
-    
-    /**
      * @param offlineParticipant the OfflinePlayer with the UUID of a valid participant.
      *                           If the OfflinePlayer's name is null, then the
      *                           UUID will be used as the name. 
      * @return the name of the participant represented by the given offline participant
      */
-    public String getParticipantName(@NotNull OfflinePlayer offlineParticipant) {
+    public String getOfflineParticipantIGN(@NotNull OfflinePlayer offlineParticipant) {
         String name = offlineParticipant.getName();
         UUID uuid = offlineParticipant.getUniqueId();
         if (name == null) {
@@ -1536,18 +1523,6 @@ public class GameManager implements Listener {
             return uuid.toString();
         }
         return name;
-    }
-    
-    /**
-     * Get the display name of the given participant's UUID. Throws an error if this is not a valid participant UUID.
-     * @param participantUUID a valid participant's UUID in the GameState
-     * @param name the name of the player
-     * @return the display name of the given participant's UUID
-     */
-    public Component createParticipantDisplayName(@NotNull UUID participantUUID, @NotNull String name) {
-        String teamId = getTeamId(participantUUID);
-        NamedTextColor teamNamedTextColor = getTeamColor(teamId);
-        return Component.text(name, teamNamedTextColor);
     }
     
     /**
