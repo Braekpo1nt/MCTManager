@@ -951,19 +951,6 @@ public class GameManager implements Listener {
     }
     
     /**
-     * @param player the player who is a participant
-     * @deprecated in favor of {@link #returnParticipantToHubInstantly(Participant)}
-     */
-    @Deprecated
-    public void returnParticipantToHubInstantly(Player player) {
-        // TODO: Participant remove this method
-        Participant participant = onlineParticipants.get(player.getUniqueId());
-        if (participant != null) {
-            returnParticipantToHubInstantly(participant);
-        }
-    }
-    
-    /**
      * Instantly returns the given participant to the hub
      * @param participant the participant to be returned to the hub
      */
