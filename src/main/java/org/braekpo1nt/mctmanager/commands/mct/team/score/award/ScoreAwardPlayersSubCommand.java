@@ -2,27 +2,27 @@ package org.braekpo1nt.mctmanager.commands.mct.team.score.award;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.bukkit.Bukkit;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class ScoreAwardPlayersSubCommand extends TabSubCommand {
+    private final Main plugin;
     private final GameManager gameManager;
     
-    public ScoreAwardPlayersSubCommand(GameManager gameManager) {
+    public ScoreAwardPlayersSubCommand(Main plugin, GameManager gameManager) {
         super("players");
+        this.plugin = plugin;
         this.gameManager = gameManager;
     }
     
@@ -33,27 +33,28 @@ public class ScoreAwardPlayersSubCommand extends TabSubCommand {
         }
         
         // loop through all the names
-        Set<Player> participants = new HashSet<>(args.length - 1);
+        Map<UUID, Participant> participants = new HashMap<>(args.length - 1);
         for (int i = 0; i < args.length - 1; i++) {
             String playerName = args[i];
-            Player participant = Bukkit.getPlayer(playerName);
-            if (participant == null) {
+            Player player = plugin.getServer().getPlayer(playerName);
+            if (player == null) {
                 return CommandResult.failure(Component.empty()
                         .append(Component.text(playerName))
                         .append(Component.text(" is not online.")));
             }
-            if (!gameManager.isParticipant(participant.getUniqueId())) {
+            Participant participant = gameManager.getOnlineParticipant(player.getUniqueId());
+            if (participant == null) {
                 return CommandResult.failure(Component.empty()
                         .append(Component.text(playerName)
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(" is not a participant")));
             }
-            if (participants.contains(participant)) {
+            if (participants.containsKey(player.getUniqueId())) {
                 return CommandResult.failure(Component.empty()
                         .append(Component.text(playerName))
                         .append(Component.text(" is listed more than once")));
             }
-            participants.add(participant);
+            participants.put(player.getUniqueId(), participant);
         }
         
         // the last arg should be the score
@@ -66,9 +67,9 @@ public class ScoreAwardPlayersSubCommand extends TabSubCommand {
             return CommandResult.failure(Component.text("Score value must be positive"));
         }
         if (participants.size() == 1) {
-            gameManager.awardPointsToParticipant(participants.stream().findFirst().get(), score);
+            gameManager.awardPointsToParticipant(participants.values().stream().findFirst().get(), score);
         } else {
-            gameManager.awardPointsToPlayers(participants, score);
+            gameManager.awardPointsToParticipants(participants.values(), score);
         }
         return CommandResult.success(Component.empty()
                 .append(Component.text(score))

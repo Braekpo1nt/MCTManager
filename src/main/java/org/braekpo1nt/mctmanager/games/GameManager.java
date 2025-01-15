@@ -1425,22 +1425,11 @@ public class GameManager implements Listener {
     }
     
     /**
-     * @param players the players (must all be valid, online participants)
-     * @param points the points
-     * @deprecated in favor of {@link #awardPointsToParticipants(Collection, int)}
-     */
-    @Deprecated
-    public void awardPointsToPlayers(Collection<Player> players, int points) {
-        // TODO: Participant remove this method
-        awardPointsToParticipants(players.stream().map(player -> onlineParticipants.get(player.getUniqueId())).toList(), points);
-    }
-    
-    /**
      * Awards the same number of points to each participant in the collection and their respective teams.
      * Also announces to the participants how many points they received.
      * <br>
      * This is used in replacement of looping through each participant and calling 
-     * {@link #awardPointsToParticipant(Player, int)} to reduce the number of changes to the {@link TabList}
+     * {@link #awardPointsToParticipant(Participant, int)} to reduce the number of changes to the {@link TabList}
      * and file writes to the {@link org.braekpo1nt.mctmanager.games.gamestate.GameState} at once.
      * @param participants must be a list of valid, online participants. For performance reasons, this is not
      *                     checked. You are relied upon to provide only valid participants.
@@ -1461,19 +1450,6 @@ public class GameManager implements Listener {
                 .append(Component.text(" points"))
                 .decorate(TextDecoration.BOLD)
                 .color(NamedTextColor.GOLD));
-    }
-    
-    /**
-     * Awards points to the participant and their team and announces to that participant how many points they received. 
-     * If the participant does not exist, nothing happens.
-     * @param player The participant to award points to
-     * @param points The points to award to the participant
-     * @deprecated in favor of {@link #awardPointsToParticipant(Participant, int)}
-     */
-    @Deprecated
-    public void awardPointsToParticipant(Player player, int points) {
-        // TODO: Participant remove this method
-        awardPointsToParticipant(onlineParticipants.get(player.getUniqueId()), points);
     }
     
     /**
@@ -1650,8 +1626,16 @@ public class GameManager implements Listener {
      * @return a copy of the list of online participants. Modifying this will not change
      *      * the online participants
      */
-    public Collection<Participant> getOnlineParticipantsKeep() {
+    public @NotNull Collection<Participant> getOnlineParticipantsKeep() {
         return onlineParticipants.values();
+    }
+    
+    /**
+     * @param uuid the UUID of the participant to get
+     * @return the Participant with the given UUID, if they are online
+     */
+    public @Nullable Participant getOnlineParticipant(UUID uuid) {
+        return onlineParticipants.get(uuid);
     }
     
     /**
