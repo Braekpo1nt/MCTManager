@@ -681,7 +681,7 @@ public class GameManager implements Listener {
             }
         }
         
-        List<String> onlineTeams = getTeamIds(onlineParticipants.values());
+        List<String> onlineTeams = Participant.getTeamIds(onlineParticipants.values());
         // make sure the player and team count requirements are met
         switch (gameType) {
             case SURVIVAL_GAMES -> {
@@ -1087,25 +1087,6 @@ public class GameManager implements Listener {
      * Gets a list of all unique team names which the given participants belong to.
      * @param participants The list of participants to get the team names of
      * @return A list of all unique team names which the given participants belong to.
-     * @deprecated as of v1.3.0 in favor of {@link Participant#getTeamIds(Collection)}
-     */
-    @Deprecated
-    public List<String> getTeamIds(Collection<Participant> participants) {
-        // TODO: resolve teamIds list using Participant class
-        List<String> teamIds = new ArrayList<>();
-        for (Participant participant : participants) {
-            String teamId = getTeamId(participant.getUniqueId());
-            if (!teamIds.contains(teamId)){
-                teamIds.add(teamId);
-            }
-        }
-        return teamIds;
-    }
-    
-    /**
-     * Gets a list of all unique team names which the given participants belong to.
-     * @param participants The list of participants to get the team names of
-     * @return A list of all unique team names which the given participants belong to.
      * @deprecated as of v1.3.0 in favor of {@link org.braekpo1nt.mctmanager.participant.Team}
      */
     @Deprecated
@@ -1437,7 +1418,7 @@ public class GameManager implements Listener {
      */
     public void awardPointsToParticipants(Collection<Participant> participants, int points) {
         int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
-        List<String> teamIds = getTeamIds(participants);
+        List<String> teamIds = Participant.getTeamIds(participants);
         if (activeGame != null) {
             eventManager.trackPointsParticipants(Participant.toPlayersList(participants), points, activeGame.getType());
             eventManager.trackPointsTeams(teamIds, multipliedPoints, activeGame.getType());
