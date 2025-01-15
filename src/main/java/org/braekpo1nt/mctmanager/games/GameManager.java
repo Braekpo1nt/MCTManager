@@ -841,7 +841,7 @@ public class GameManager implements Listener {
             return;
         }
         
-        selectedEditor.start(onlineParticipants.values());
+        selectedEditor.start(Participant.toPlayersList(onlineParticipants.values()));
         activeEditor = selectedEditor;
     }
     
