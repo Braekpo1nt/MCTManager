@@ -1075,6 +1075,7 @@ public class GameManager implements Listener {
      * @param offlineUUID the UUID of the offline player which may be in the GameState
      * @return true if the given UUID matches one of the offline players in the GameState, false otherwise
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isOfflineParticipant(UUID offlineUUID) {
         return gameStateStorageUtil.containsOfflinePlayer(offlineUUID);
     }
@@ -1965,7 +1966,7 @@ public class GameManager implements Listener {
             teamIdsToScores.put(teamId, teamScore);
             if (headerable != null) {
                 for (Participant participant : getOnlineParticipantsOnTeam(teamId)) {
-                    headerable.updateTeamScore(participant.getPlayer(), Component.empty()
+                    headerable.updateTeamScore(participant, Component.empty()
                             .append(teamDisplayName)
                             .append(Component.text(": "))
                             .append(Component.text(teamScore)
@@ -1993,7 +1994,7 @@ public class GameManager implements Listener {
         int teamScore = getScore(teamId);
         if (activeGame != null && activeGame instanceof Headerable headerable) {
             for (Participant participant : getOnlineParticipantsOnTeam(teamId)) {
-                headerable.updateTeamScore(participant.getPlayer(), Component.empty()
+                headerable.updateTeamScore(participant, Component.empty()
                         .append(teamDisplayName)
                         .append(Component.text(": "))
                         .append(Component.text(teamScore)
@@ -2022,8 +2023,9 @@ public class GameManager implements Listener {
                     .append(Component.text("Personal: "))
                     .append(Component.text(score))
                     .color(NamedTextColor.GOLD);
+            // TODO: replace this loop with bulk operation update methods
             if (headerable != null) {
-                headerable.updatePersonalScore(participant.getPlayer(), contents);
+                headerable.updatePersonalScore(participant, contents);
             }
             if (eventManager.eventIsActive()) {
                 eventManager.updatePersonalScore(participant, contents);

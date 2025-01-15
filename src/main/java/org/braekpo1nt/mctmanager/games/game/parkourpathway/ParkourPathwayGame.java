@@ -1065,7 +1065,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public void updateTeamScore(Player participant, Component contents) {
+    public void updateTeamScore(Participant participant, Component contents) {
         if (sidebar == null) {
             return;
         }
@@ -1076,7 +1076,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public void updatePersonalScore(Player participant, Component contents) {
+    public void updatePersonalScore(Participant participant, Component contents) {
         if (sidebar == null) {
             return;
         }
