@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -22,9 +23,9 @@ public class Team {
     @EqualsAndHashCode.Include
     protected final @NotNull String teamId;
     /**
-     * The display name of the team for chat messages
+     * The display name of the team
      */
-    protected final @NotNull Component displayName;
+    protected final @NotNull String displayName;
     /**
      * The color associated with the team
      */
@@ -33,4 +34,16 @@ public class Team {
      * The UUIDs of the {@link Participant}s on this team
      */
     protected final @NotNull Set<UUID> members = new HashSet<>();
+    /**
+     * The formatted display name of the team for use in chat messages.
+     * The {@link #displayName} in {@link #color} and bold.
+     */
+    protected final @NotNull Component formattedDisplayName;
+    
+    public Team(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color) {
+        this.teamId = teamId;
+        this.displayName = displayName;
+        this.color = color;
+        this.formattedDisplayName = Component.text(displayName, color, TextDecoration.BOLD);
+    }
 }
