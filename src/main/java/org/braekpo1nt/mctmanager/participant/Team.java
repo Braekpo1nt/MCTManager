@@ -42,7 +42,7 @@ public class Team extends AudienceDelegate {
     /**
      * The UUIDs of the {@link Participant}s on this team, both on and offline
      */
-    protected final @NotNull Set<UUID> members = new HashSet<>();
+    protected final @NotNull Set<UUID> members;
     /**
      * The Participants who are members of this team and are online
      */
@@ -54,12 +54,35 @@ public class Team extends AudienceDelegate {
      * @param teamId the unique id of the team
      * @param displayName the pretty display name of the team in text form
      * @param color the team's assigned color
+     * @param members a set of the UUIDs of the members of this team
      */
-    public Team(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color) {
+    public Team(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull Set<UUID> members) {
         this.teamId = teamId;
         this.displayName = displayName;
         this.color = color;
         this.formattedDisplayName = Component.text(displayName, color, TextDecoration.BOLD);
+        this.members = members;
+    }
+    
+    /**
+     * Create a new Team with the given initial members
+     * @param teamId the unique id of the team
+     * @param displayName the pretty display name of the team in text form
+     * @param color the team's assigned color
+     * @param members a collection of the UUIDs of the members of this team
+     */
+    public Team(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull Collection<UUID> members) {
+        this(teamId, displayName, color, new HashSet<>(members));
+    }
+    
+    /**
+     * Create a new Team with no initial members
+     * @param teamId the unique id of the team
+     * @param displayName the pretty display name of the team in text form
+     * @param color the team's assigned color
+     */
+    public Team(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color) {
+        this(teamId, displayName, color, new HashSet<>());
     }
     
     /**
@@ -88,22 +111,33 @@ public class Team extends AudienceDelegate {
     }
     
     /**
-     * Remove an old member of this team
+     * Remove an old member of this team. If the member was also an online member, then it quits them
+     * using {@link #quitOnlineMember(UUID)}.
      * @param uuid the UUID of the old member
      * @return true if the given UUID was previously a member of this team 
      * (see {@link #isMember(UUID)}), false otherwise
      */
     public boolean removeMember(@NotNull UUID uuid) {
-        return members.remove(uuid);
+        boolean removed = members.remove(uuid);
+        if (removed) {
+            quitOnlineMember(uuid);
+        }
+        return removed;
     }
     
     /**
      * Remove multiple old members of this team
      * @param uuids the UUIDs of the members to remove from this team
-     * @return true if any members were removed
+     * @return true if any members were removed, false otherwise
      */
     public boolean removeMembers(@NotNull Collection<UUID> uuids) {
-        return members.removeAll(uuids);
+        boolean changed = members.removeAll(uuids);
+        if (changed) {
+            for (UUID uuid : uuids) {
+                quitOnlineMember(uuid);
+            }
+        }
+        return changed;
     }
     
     /**
@@ -120,6 +154,11 @@ public class Team extends AudienceDelegate {
      */
     public boolean isMember(@NotNull UUID uuid) {
         return members.contains(uuid);
+    }
+    
+    
+    public Set<UUID> getMemberUUIDs() {
+        return new HashSet<>(members);
     }
     
     /**
@@ -146,10 +185,14 @@ public class Team extends AudienceDelegate {
      * For when a Participant logs off/quits/is removed who was previously online.
      * 
      * @param uuid the UUID of the previously online member
+     * @return true if the given UUID was that of a previously online member of this team, false otherwise
      */
-    public void quitOnlineMember(@NotNull UUID uuid) {
-        onlineMembers.remove(uuid);
-        audience = Audience.audience(onlineMembers.values());
+    public boolean quitOnlineMember(@NotNull UUID uuid) {
+        boolean removed = onlineMembers.remove(uuid) != null;
+        if (removed) {
+            audience = Audience.audience(onlineMembers.values());
+        }
+        return removed;
     }
     
     /**
