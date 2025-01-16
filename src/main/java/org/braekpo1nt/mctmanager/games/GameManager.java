@@ -89,6 +89,7 @@ public class GameManager implements Listener {
     private final VoteManager voteManager;
     private final EventManager eventManager;
     private final TimerManager timerManager;
+    
     /**
      * Contains the list of online participants. Updated when participants are added/removed or quit/join
      */
@@ -1481,6 +1482,10 @@ public class GameManager implements Listener {
                     .color(NamedTextColor.GOLD));
     }
     
+    /**
+     * @deprecated in favor of {@link Team#getColor()}
+     */
+    @Deprecated
     public Color getTeamColor(UUID playerUniqueId) {
         return gameStateStorageUtil.getTeamColor(playerUniqueId);
     }
