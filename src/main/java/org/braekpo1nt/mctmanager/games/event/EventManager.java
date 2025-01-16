@@ -174,8 +174,7 @@ public class EventManager implements Listener {
         }
         if (winningTeam != null) {
             for (Participant participant : participants.values()) {
-                String team = gameManager.getTeamId(participant.getUniqueId());
-                if (team.equals(winningTeam)) {
+                if (participant.getTeamId().equals(winningTeam)) {
                     removeCrown(participant);
                 }
             }

@@ -236,10 +236,9 @@ public class OffState implements EventState {
         List<Player> adminPool;
         adminPool = new ArrayList<>(gameManager.getOnlineAdmins());
         for (Participant participant : participantPool) {
-            String teamId = gameManager.getTeamId(participant.getUniqueId());
-            if (teamId.equals(firstTeamId)) {
+            if (participant.getTeamId().equals(firstTeamId)) {
                 firstPlaceParticipants.add(participant);
-            } else if (teamId.equals(secondTeamId)) {
+            } else if (participant.getTeamId().equals(secondTeamId)) {
                 secondPlaceParticipants.add(participant);
             } else {
                 spectators.add(participant);

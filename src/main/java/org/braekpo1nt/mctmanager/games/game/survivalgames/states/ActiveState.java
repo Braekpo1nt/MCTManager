@@ -187,7 +187,7 @@ public class ActiveState implements SurvivalGamesState {
             rejoinParticipant(participant);
         } else {
             context.getDeadPlayers().remove(participant.getUniqueId());
-            String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
+            String teamId = participant.getTeamId();
             if (!context.getLivingMembers().containsKey(teamId)) {
                 NamedTextColor color = context.getGameManager().getTeamColor(teamId);
                 context.getTopbar().addTeam(teamId, color);
@@ -201,8 +201,7 @@ public class ActiveState implements SurvivalGamesState {
     }
     
     private boolean participantShouldRejoin(Participant participant) {
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
-        return context.getLivingMembers().containsKey(teamId) && 
+        return context.getLivingMembers().containsKey(participant.getTeamId()) && 
                 context.getDeadPlayers().contains(participant.getUniqueId());
     }
     
@@ -212,8 +211,7 @@ public class ActiveState implements SurvivalGamesState {
         sidebar.addPlayer(participant);
         topbar.showPlayer(participant);
         context.initializeKillCount(participant);
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
-        topbar.linkToTeam(participant.getUniqueId(), teamId);
+        topbar.linkToTeam(participant.getUniqueId(), participant.getTeamId());
         context.getGlowManager().addPlayer(participant);
     }
     
@@ -239,7 +237,7 @@ public class ActiveState implements SurvivalGamesState {
     public void initializeParticipant(Participant participant) {
         context.getParticipants().put(participant.getUniqueId(), participant);
         context.getLivingPlayers().add(participant.getUniqueId());
-        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
+        String teamId = participant.getTeamId();
         context.getLivingMembers().putIfAbsent(teamId, 0);
         int oldAliveCount = context.getLivingMembers().get(teamId);
         context.getLivingMembers().put(teamId, oldAliveCount + 1);

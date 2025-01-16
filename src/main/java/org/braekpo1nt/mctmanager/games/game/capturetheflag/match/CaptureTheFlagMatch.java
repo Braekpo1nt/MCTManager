@@ -111,13 +111,12 @@ public class CaptureTheFlagMatch {
     }
     
     public void initializeParticipant(Participant participant) {
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
         allParticipants.put(participant.getUniqueId(), participant);
         UUID participantUniqueId = participant.getUniqueId();
         participantsAreAlive.putIfAbsent(participantUniqueId, true);
         int alive;
         int dead;
-        if (matchPairing.northTeam().equals(teamId)) {
+        if (matchPairing.northTeam().equals(participant.getTeamId())) {
             northParticipants.put(participant.getUniqueId(), participant);
             participant.teleport(arena.northSpawn());
             participant.setRespawnLocation(arena.northSpawn(), true);
@@ -140,7 +139,7 @@ public class CaptureTheFlagMatch {
             alive = countAlive(southParticipants.values());
             dead = southParticipants.size() - alive;
         }
-        topbar.setMembers(teamId, alive, dead);
+        topbar.setMembers(participant.getTeamId(), alive, dead);
         ParticipantInitializer.clearInventory(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);

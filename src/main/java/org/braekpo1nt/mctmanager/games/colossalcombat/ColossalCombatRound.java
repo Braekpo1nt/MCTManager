@@ -61,7 +61,7 @@ public class ColossalCombatRound implements Listener {
     private boolean roundHasStarted = false;
     private boolean captureTheFlagStarted = false;
     private Location flagPosition = null;
-    private Player hasFlag = null;
+    private Participant hasFlag = null;
     
     public ColossalCombatRound(Main plugin, GameManager gameManager, ColossalCombatGame colossalCombatGame, ColossalCombatConfig config, Sidebar sidebar, Sidebar adminSidebar, @NotNull BattleTopbar topbar) {
         this.plugin = plugin;
@@ -231,10 +231,9 @@ public class ColossalCombatRound implements Listener {
         if (!roundActive) {
             return;
         }
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
-        if (firstTeamId.equals(teamId)) {
+        if (firstTeamId.equals(participant.getTeamId())) {
             onFirstPlaceParticipantJoin(participant);
-        } else if (secondTeamId.equals(teamId)) {
+        } else if (secondTeamId.equals(participant.getTeamId())) {
             onSecondPlaceParticipantJoin(participant);
         } else {
             initializeSpectator(participant);
@@ -277,8 +276,7 @@ public class ColossalCombatRound implements Listener {
         if (!roundActive) {
             return;
         }
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
-        if (firstTeamId.equals(teamId)) {
+        if (firstTeamId.equals(participant.getTeamId())) {
             if (roundHasStarted) {
                 killParticipant(participant);
             } else {
@@ -287,7 +285,7 @@ public class ColossalCombatRound implements Listener {
             }
             resetParticipant(participant);
             firstPlaceParticipants.remove(participant.getUniqueId());
-        } else if (secondTeamId.equals(teamId)) {
+        } else if (secondTeamId.equals(participant.getTeamId())) {
             if (roundHasStarted) {
                 killParticipant(participant);
             } else {
@@ -330,11 +328,15 @@ public class ColossalCombatRound implements Listener {
     
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
-        Player killed = event.getPlayer();
-        if (!firstPlaceParticipants.containsKey(killed.getUniqueId()) 
-                && !secondPlaceParticipants.containsKey(killed.getUniqueId())) {
+        Participant killed;
+        if (firstPlaceParticipants.containsKey(event.getPlayer().getUniqueId())) {
+            killed = firstPlaceParticipants.get(event.getPlayer().getUniqueId());
+        } else if (secondPlaceParticipants.containsKey(event.getPlayer().getUniqueId())) {
+            killed = secondPlaceParticipants.get(event.getPlayer().getUniqueId());
+        } else {
             return;
         }
+        
         Main.debugLog(LogType.CANCEL_PLAYER_DEATH_EVENT, "ColossalCombatRound.onPlayerDeath() cancelled");
         event.setCancelled(true);
         if (event.getDeathSound() != null && event.getDeathSoundCategory() != null) {
@@ -344,14 +346,22 @@ public class ColossalCombatRound implements Listener {
         if (deathMessage != null) {
             Bukkit.getServer().sendMessage(deathMessage);
         }
-        Player killer = killed.getKiller();
-        if (killer != null) {
+        Player killerPlayer = killed.getKiller();
+        if (killerPlayer != null) {
+            Participant killer;
+            if (firstPlaceParticipants.containsKey(killerPlayer.getUniqueId())) {
+                killer = firstPlaceParticipants.get(killerPlayer.getUniqueId());
+            } else if (secondPlaceParticipants.containsKey(killerPlayer.getUniqueId())) {
+                killer = secondPlaceParticipants.get(killerPlayer.getUniqueId());
+            } else {
+                return;
+            }
             onParticipantGetKill(killer, killed);
         }
         onParticipantDeath(killed);
     }
     
-    private void onParticipantDeath(Player killed) {
+    private void onParticipantDeath(Participant killed) {
         killed.setGameMode(GameMode.SPECTATOR);
         killed.getInventory().clear();
         ParticipantInitializer.resetHealthAndHunger(killed);
@@ -383,7 +393,7 @@ public class ColossalCombatRound implements Listener {
         }
     }
     
-    private void onParticipantGetKill(@NotNull Player killer, @NotNull Player killed) {
+    private void onParticipantGetKill(@NotNull Participant killer, @NotNull Participant killed) {
         if (!firstPlaceParticipants.containsKey(killer.getUniqueId()) 
                 && !secondPlaceParticipants.containsKey(killer.getUniqueId())) {
             return;
@@ -438,7 +448,7 @@ public class ColossalCombatRound implements Listener {
      * @return true if this participant has the flag
      */
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean hasFlag(Player participant) {
+    private boolean hasFlag(Participant participant) {
         return Objects.equals(participant, hasFlag);
     }
     
@@ -521,15 +531,18 @@ public class ColossalCombatRound implements Listener {
         if (!roundActive) {
             return;
         }
-        Player participant = event.getPlayer();
-        if (firstPlaceParticipants.containsKey(participant.getUniqueId())) {
-            onFirstPlaceParticipantMove(participant, event);
-        } else if (secondPlaceParticipants.containsKey(participant.getUniqueId())) {
-            onSecondPlaceParticipantMove(participant, event);
+        Participant participant1 = firstPlaceParticipants.get(event.getPlayer().getUniqueId());
+        if (participant1 != null) {
+            onFirstPlaceParticipantMove(participant1, event);
+            return;
+        }
+        Participant participant2 = secondPlaceParticipants.get(event.getPlayer().getUniqueId());
+        if (participant2 != null) {
+            onSecondPlaceParticipantMove(participant2, event);
         }
     }
     
-    private void onFirstPlaceParticipantMove(Player participant, PlayerMoveEvent event) {
+    private void onFirstPlaceParticipantMove(Participant participant, PlayerMoveEvent event) {
         if (antiSuffocation) {
             Location to = event.getTo();
             if (config.getFirstPlaceAntiSuffocationArea().contains(to.toVector())) {
@@ -553,7 +566,7 @@ public class ColossalCombatRound implements Listener {
         }
     }
     
-    private void onSecondPlaceParticipantMove(Player participant, PlayerMoveEvent event) {
+    private void onSecondPlaceParticipantMove(Participant participant, PlayerMoveEvent event) {
         if (antiSuffocation) {
             Location to = event.getTo();
             if (config.getSecondPlaceAntiSuffocationArea().contains(to.toVector())) {
@@ -588,9 +601,8 @@ public class ColossalCombatRound implements Listener {
         return flagPosition.getBlockX() == location.getBlockX() && flagPosition.getBlockY() == location.getBlockY() && flagPosition.getBlockZ() == location.getBlockZ();
     }
     
-    private void pickupFlag(Player participant) {
-        String team = gameManager.getTeamId(participant.getUniqueId());
-        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(team);
+    private void pickupFlag(Participant participant) {
+        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(participant.getTeamId());
         messageAllParticipants(Component.empty()
                 .append(formattedTeamDisplayName)
                 .append(Component.text(" has the flag")));
@@ -600,9 +612,8 @@ public class ColossalCombatRound implements Listener {
         hasFlag = participant;
     }
     
-    private void dropFlag(Player participant) {
-        String team = gameManager.getTeamId(participant.getUniqueId());
-        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(team);
+    private void dropFlag(Participant participant) {
+        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(participant.getTeamId());
         messageAllParticipants(Component.empty()
                 .append(formattedTeamDisplayName)
                 .append(Component.text(" dropped the flag")));
@@ -612,7 +623,7 @@ public class ColossalCombatRound implements Listener {
         hasFlag = null;
     }
     
-    private boolean canDeliverFlagToFirst(Player first) {
+    private boolean canDeliverFlagToFirst(Participant first) {
         if (!hasFlag(first)) {
             return false;
         }
@@ -620,7 +631,7 @@ public class ColossalCombatRound implements Listener {
         return config.getFirstPlaceFlagGoal().contains(location.toVector());
     }
     
-    private boolean canDeliverFlagToSecond(Player second) {
+    private boolean canDeliverFlagToSecond(Participant second) {
         if (!hasFlag(second)) {
             return false;
         }
@@ -628,7 +639,7 @@ public class ColossalCombatRound implements Listener {
         return config.getSecondPlaceFlagGoal().contains(location.toVector());
     }
     
-    private void deliverFlagToFirst(Player first) {
+    private void deliverFlagToFirst(Participant first) {
         String team = gameManager.getTeamId(first.getUniqueId());
         Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(team);
         messageAllParticipants(Component.empty()
@@ -637,7 +648,7 @@ public class ColossalCombatRound implements Listener {
         onFirstPlaceTeamWin();
     }
     
-    private void deliverFlagToSecond(Player second) {
+    private void deliverFlagToSecond(Participant second) {
         String team = gameManager.getTeamId(second.getUniqueId());
         Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(team);
         messageAllParticipants(Component.empty()

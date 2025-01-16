@@ -33,7 +33,7 @@ public class ScoreTeamSubCommand extends TabSubCommand {
         if (args.length > 1) {
             return CommandResult.failure(getUsage().of("[<teamId>]"));
         }
-        String team;
+        String teamId;
         if (args.length == 0) {
             if (!(sender instanceof Player participant)) {
                 return CommandResult.failure(getUsage().of("<teamId>"));
@@ -41,22 +41,22 @@ public class ScoreTeamSubCommand extends TabSubCommand {
             if (!gameManager.isParticipant(participant.getUniqueId())) {
                 return CommandResult.failure(Component.text("You are not a participant"));
             }
-            team = gameManager.getTeamId(participant.getUniqueId());
+            teamId = gameManager.getTeamId(participant.getUniqueId());
         } else {
-            team = args[0];
-            if (team.equals("all")) {
+            teamId = args[0];
+            if (teamId.equals("all")) {
                 return CommandResult.success(getAllTeamScores());
             }
-            if (!gameManager.hasTeam(team)) {
+            if (!gameManager.hasTeam(teamId)) {
                 return CommandResult.failure(Component.empty()
-                        .append(Component.text(team)
+                        .append(Component.text(teamId)
                                 .decorate(TextDecoration.BOLD))
-                        .append(Component.text(" is not a valid team ID")));
+                        .append(Component.text(" is not a valid teamId ID")));
             }
         }
         
-        Component displayName = gameManager.getFormattedTeamDisplayName(team);
-        int score = gameManager.getScore(team);
+        Component displayName = gameManager.getFormattedTeamDisplayName(teamId);
+        int score = gameManager.getScore(teamId);
         return CommandResult.success(Component.empty()
                 .append(displayName)
                 .append(Component.text(": "))

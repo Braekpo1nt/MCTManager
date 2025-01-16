@@ -173,8 +173,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         if (teamSpawns == null) {
             participant.teleport(config.getStartingLocation());
         } else {
-            String team = gameManager.getTeamId(participant.getUniqueId());
-            teamSpawns.get(team).teleport(participant);
+            teamSpawns.get(participant.getTeamId()).teleport(participant);
         }
         participant.setRespawnLocation(config.getStartingLocation(), true);
         ParticipantInitializer.clearInventory(participant);
@@ -282,8 +281,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                 Main.logger().info(String.format("teleported %s to %s", participant.getName(), config.getStartingLocation().toString()));
                 participant.teleport(config.getStartingLocation());
             } else {
-                String team = gameManager.getTeamId(participant.getUniqueId());
-                TeamSpawn teamSpawn = teamSpawns.get(team);
+                TeamSpawn teamSpawn = teamSpawns.get(participant.getTeamId());
                 if (teamSpawn == null) {
                     Main.logger().info("re-setup team-spawns");
                     reSetUpTeamSpawns();
@@ -310,8 +308,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         }
         closeTeamSpawns();
         for (Participant participant : participants.values()) {
-            String team = gameManager.getTeamId(participant.getUniqueId());
-            TeamSpawn teamSpawn = teamSpawns.get(team);
+            TeamSpawn teamSpawn = teamSpawns.get(participant.getTeamId());
             Main.logger().info(String.format("teleported %s to %s", participant.getName(), teamSpawn.getSpawnLocation().toString()));
             teamSpawn.teleport(participant);
         }

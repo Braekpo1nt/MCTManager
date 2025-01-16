@@ -335,8 +335,7 @@ public class ColossalCombatGame implements Listener, Configurable {
         if (!gameActive) {
             return;
         }
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
-        if (firstTeamId.equals(teamId)) {
+        if (firstTeamId.equals(participant.getTeamId())) {
             if (descriptionShowing) {
                 initializeFirstPlaceParticipant(participant);
             } else {
@@ -349,7 +348,7 @@ public class ColossalCombatGame implements Listener, Configurable {
                 topbar.linkToTeam(participant.getUniqueId(), firstTeamId);
                 initializeKillCount(participant);
             }
-        } else if (secondTeamId.equals(teamId)) {
+        } else if (secondTeamId.equals(participant.getTeamId())) {
             if (descriptionShowing) {
                 initializeSecondPlaceParticipant(participant);
             } else {
@@ -398,10 +397,9 @@ public class ColossalCombatGame implements Listener, Configurable {
             }
         }
         resetParticipant(participant);
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
-        if (firstTeamId.equals(teamId)) {
+        if (firstTeamId.equals(participant.getTeamId())) {
             firstPlaceParticipants.remove(participant.getUniqueId());
-        } else if (secondTeamId.equals(teamId)) {
+        } else if (secondTeamId.equals(participant.getTeamId())) {
             secondPlaceParticipants.remove(participant.getUniqueId());
         } else {
             spectators.remove(participant.getUniqueId());

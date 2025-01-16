@@ -92,11 +92,10 @@ public class ToColossalCombatDelay extends DelayState {
         int onlineFirsts = 0;
         int onlineSeconds = 0;
         for (Participant participant : context.getParticipants().values()) {
-            String teamId = gameManager.getTeamId(participant.getUniqueId());
-            if (teamId.equals(firstPlace)) {
+            if (participant.getTeamId().equals(firstPlace)) {
                 onlineFirsts++;
             }
-            if (teamId.equals(secondPlace)) {
+            if (participant.getTeamId().equals(secondPlace)) {
                 onlineSeconds++;
             }
         }

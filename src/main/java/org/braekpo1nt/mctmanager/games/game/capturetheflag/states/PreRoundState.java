@@ -50,7 +50,7 @@ public class PreRoundState implements CaptureTheFlagState {
     }
     
     private void announceMatchToParticipant(Participant participant) {
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
+        String teamId = participant.getTeamId();
         Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
         List<MatchPairing> currentRound = roundManager.getCurrentRound();
         String oppositeTeamId = RoundManager.getOppositeTeam(teamId, currentRound);
@@ -98,7 +98,7 @@ public class PreRoundState implements CaptureTheFlagState {
             int northAlive = 0;
             int southAlive = 0;
             for (Participant participant : context.getParticipants().values()) {
-                String teamId = gameManager.getTeamId(participant.getUniqueId());
+                String teamId = participant.getTeamId();
                 if (mp.northTeam().equals(teamId)) {
                     topbar.linkToTeam(participant.getUniqueId(), teamId);
                     northAlive++;
@@ -115,8 +115,7 @@ public class PreRoundState implements CaptureTheFlagState {
     @Override
     public void onParticipantJoin(Participant participant) {
         context.initializeParticipant(participant);
-        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
-        if (!context.getRoundManager().containsTeamId(teamId)) {
+        if (!context.getRoundManager().containsTeamId(participant.getTeamId())) {
             List<String> teamIds = Participant.getTeamIds(context.getParticipants());
             context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
         }
@@ -131,9 +130,8 @@ public class PreRoundState implements CaptureTheFlagState {
     public void onParticipantQuit(Participant participant) {
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
-        String quitTeamId = context.getGameManager().getTeamId(participant.getUniqueId());
         List<String> teamIds = Participant.getTeamIds(context.getParticipants());
-        if (!teamIds.contains(quitTeamId)) {
+        if (!teamIds.contains(participant.getTeamId())) {
             context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
             context.updateRoundLine();
         }

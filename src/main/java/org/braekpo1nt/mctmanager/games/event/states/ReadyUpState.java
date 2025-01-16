@@ -98,8 +98,7 @@ public class ReadyUpState implements EventState {
             @Override
             public void run() {
                 for (Participant participant : context.getParticipants().values()) {
-                    String teamId = gameManager.getTeamId(participant.getUniqueId());
-                    boolean ready = readyUpManager.participantIsReady(participant.getUniqueId(), teamId);
+                    boolean ready = readyUpManager.participantIsReady(participant.getUniqueId(), participant.getTeamId());
                     if (!ready) {
                         participant.showTitle(READYUP_TITLE);
                     }
@@ -178,7 +177,7 @@ public class ReadyUpState implements EventState {
     
     @Override
     public void unReadyParticipant(@NotNull Participant participant) {
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
+        String teamId = participant.getTeamId();
         List<OfflinePlayer> teamMembers = gameManager.getOfflineParticipants(teamId);
         boolean teamWasReady = readyUpManager.teamIsReady(teamId);
         boolean wasReady = readyUpManager.unReadyParticipant(participant.getUniqueId(), teamId);
@@ -220,7 +219,7 @@ public class ReadyUpState implements EventState {
             context.updateTeamScores();
             sidebar.updateLine(participant.getUniqueId(), "currentGame", context.getCurrentGameLine());
         }
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
+        String teamId = participant.getTeamId();
         if (!readyUpManager.containsTeam(teamId)) {
             readyUpManager.addTeam(teamId);
             topbar.addTeam(teamId, gameManager.getTeamColor(teamId));

@@ -39,7 +39,7 @@ public class DescriptionState implements SurvivalGamesState {
     @Override
     public void onParticipantJoin(Participant participant) {
         context.getDeadPlayers().remove(participant.getUniqueId());
-        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
+        String teamId = participant.getTeamId();
         if (!context.getLivingMembers().containsKey(teamId)) {
             NamedTextColor color = context.getGameManager().getTeamColor(teamId);
             context.getTopbar().addTeam(teamId, color);
@@ -71,7 +71,7 @@ public class DescriptionState implements SurvivalGamesState {
     public void initializeParticipant(Participant participant) {
         context.getParticipants().put(participant.getUniqueId(), participant);
         context.getLivingPlayers().add(participant.getUniqueId());
-        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
+        String teamId = participant.getTeamId();
         context.getLivingMembers().putIfAbsent(teamId, 0);
         int oldAliveCount = context.getLivingMembers().get(teamId);
         context.getLivingMembers().put(teamId, oldAliveCount + 1);

@@ -59,8 +59,7 @@ public class RoundActiveState implements CaptureTheFlagState {
         
         
         for (Participant participant : context.getParticipants().values()) {
-            String teamId = gameManager.getTeamId(participant.getUniqueId());
-            MatchPairing matchPairing = RoundManager.getMatchPairing(teamId, currentRound);
+            MatchPairing matchPairing = RoundManager.getMatchPairing(participant.getTeamId(), currentRound);
             if (matchPairing == null) {
                 initializeOnDeckParticipant(participant);
             } else {
@@ -159,7 +158,7 @@ public class RoundActiveState implements CaptureTheFlagState {
     @Override
     public void onParticipantJoin(Participant participant) {
         context.initializeParticipant(participant);
-        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
+        String teamId = participant.getTeamId();
         if (!context.getRoundManager().containsTeamId(teamId)) {
             List<String> teamIds = Participant.getTeamIds(context.getParticipants().values());
             context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
@@ -198,8 +197,7 @@ public class RoundActiveState implements CaptureTheFlagState {
     
     @Override
     public void onParticipantQuit(Participant participant) {
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
-        CaptureTheFlagMatch match = getMatch(teamId);
+        CaptureTheFlagMatch match = getMatch(participant.getTeamId());
         if (match == null) {
             participant.setGameMode(GameMode.ADVENTURE);
         } else {
@@ -207,9 +205,8 @@ public class RoundActiveState implements CaptureTheFlagState {
         }
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
-        String quitTeamId = context.getGameManager().getTeamId(participant.getUniqueId());
         List<String> teamIds = Participant.getTeamIds(context.getParticipants());
-        if (!teamIds.contains(quitTeamId)) {
+        if (!teamIds.contains(participant.getTeamId())) {
             context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
             context.updateRoundLine();
         }
@@ -224,11 +221,11 @@ public class RoundActiveState implements CaptureTheFlagState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
-        if (!(event.getEntity() instanceof Player participant)) {
+        Participant participant = context.getParticipants().get(event.getEntity().getUniqueId());
+        if (participant == null) {
             return;
         }
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
-        CaptureTheFlagMatch match = getMatch(teamId);
+        CaptureTheFlagMatch match = getMatch(participant.getTeamId());
         if (match == null) {
             Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "CTF.RoundActiveState.onPlayerDamage() -> isOnDeck cancelled");
             event.setCancelled(true);
@@ -239,11 +236,11 @@ public class RoundActiveState implements CaptureTheFlagState {
     
     @Override
     public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        if (!(event.getEntity() instanceof Player participant)) {
+        Participant participant = context.getParticipants().get(event.getEntity().getUniqueId());
+        if (participant == null) {
             return;
         }
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
-        CaptureTheFlagMatch match = getMatch(teamId);
+        CaptureTheFlagMatch match = getMatch(participant.getTeamId());
         if (match == null) {
             event.setCancelled(true);
         } else {
@@ -253,9 +250,11 @@ public class RoundActiveState implements CaptureTheFlagState {
     
     @Override
     public void onPlayerMove(PlayerMoveEvent event) {
-        Player participant = event.getPlayer();
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
-        CaptureTheFlagMatch match = getMatch(teamId);
+        Participant participant = context.getParticipants().get(event.getPlayer().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        CaptureTheFlagMatch match = getMatch(participant.getTeamId());
         if (match != null) {
             match.onPlayerMove(event);
         }
@@ -263,9 +262,11 @@ public class RoundActiveState implements CaptureTheFlagState {
     
     @Override
     public void onClickInventory(InventoryClickEvent event) {
-        Player participant = ((Player) event.getWhoClicked());
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
-        CaptureTheFlagMatch match = getMatch(teamId);
+        Participant participant = context.getParticipants().get(event.getWhoClicked().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        CaptureTheFlagMatch match = getMatch(participant.getTeamId());
         if (match != null) {
             match.onClickInventory(event);
         }
@@ -273,9 +274,11 @@ public class RoundActiveState implements CaptureTheFlagState {
     
     @Override
     public void onPlayerDeath(PlayerDeathEvent event) {
-        Player participant = event.getPlayer();
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
-        CaptureTheFlagMatch match = getMatch(teamId);
+        Participant participant = context.getParticipants().get(event.getPlayer().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        CaptureTheFlagMatch match = getMatch(participant.getTeamId());
         if (match != null) {
             match.onPlayerDeath(event);
         }

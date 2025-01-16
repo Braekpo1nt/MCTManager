@@ -45,8 +45,7 @@ public class PodiumState implements EventState {
         adminSidebar.updateLine("currentGame", context.getCurrentGameLine());
         gameManager.returnAllParticipantsToPodium(context.getWinningTeam());
         for (Participant participant : context.getParticipants().values()) {
-            String team = gameManager.getTeamId(participant.getUniqueId());
-            if (team.equals(context.getWinningTeam())) {
+            if (participant.getTeamId().equals(context.getWinningTeam())) {
                 context.giveCrown(participant);
             }
         }
@@ -55,8 +54,7 @@ public class PodiumState implements EventState {
     @Override
     public void onParticipantJoin(Participant participant) {
         if (context.getWinningTeam() != null) {
-            String team = gameManager.getTeamId(participant.getUniqueId());
-            boolean winner = team.equals(context.getWinningTeam());
+            boolean winner = participant.getTeamId().equals(context.getWinningTeam());
             gameManager.returnParticipantToPodium(participant, winner);
             if (winner) {
                 context.giveCrown(participant);
@@ -85,8 +83,7 @@ public class PodiumState implements EventState {
             sidebar.removePlayer(participant);
         }
         if (context.getWinningTeam() != null) {
-            String team = gameManager.getTeamId(participant.getUniqueId());
-            if (team.equals(context.getWinningTeam())) {
+            if (participant.getTeamId().equals(context.getWinningTeam())) {
                 context.removeCrown(participant);
             }
         }
@@ -140,9 +137,11 @@ public class PodiumState implements EventState {
         if (context.getWinningTeam() == null) {
             return;
         }
-        Player participant = ((Player) event.getWhoClicked());
-        String team = gameManager.getTeamId(participant.getUniqueId());
-        if (!team.equals(context.getWinningTeam())) {
+        Participant participant = context.getParticipants().get(event.getWhoClicked().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        if (!participant.getTeamId().equals(context.getWinningTeam())) {
             return;
         }
         if (!currentItem.equals(context.getCrown())) {
@@ -153,12 +152,14 @@ public class PodiumState implements EventState {
     
     @Override
     public void onDropItem(PlayerDropItemEvent event) {
-        Player participant = event.getPlayer();
+        Participant participant = context.getParticipants().get(event.getPlayer().getUniqueId());
+        if (participant == null) {
+            return;
+        }
         if (context.getWinningTeam() == null) {
             return;
         }
-        String team = gameManager.getTeamId(participant.getUniqueId());
-        if (!team.equals(context.getWinningTeam())) {
+        if (!participant.getTeamId().equals(context.getWinningTeam())) {
             return;
         }
         if (!event.getItemDrop().getItemStack().equals(context.getCrown())) {

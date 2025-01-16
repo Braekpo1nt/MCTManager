@@ -47,9 +47,8 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
     @Override
     public void onParticipantJoin(Participant participant) {
         context.initializeParticipant(participant);
-        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
-        context.getTopbar().linkToTeam(participant.getUniqueId(), teamId);
-        if (context.getMatchPairing().northTeam().equals(teamId)) {
+        context.getTopbar().linkToTeam(participant.getUniqueId(), participant.getTeamId());
+        if (context.getMatchPairing().northTeam().equals(participant.getTeamId())) {
             northClassPicker.addTeamMate(participant);
         } else {
             southClassPicker.addTeamMate(participant);
@@ -60,10 +59,9 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
     public void onParticipantQuit(Participant participant) {
         context.resetParticipant(participant);
         context.getAllParticipants().remove(participant.getUniqueId());
-        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
         int alive;
         int dead;
-        if (context.getMatchPairing().northTeam().equals(teamId)) {
+        if (context.getMatchPairing().northTeam().equals(participant.getTeamId())) {
             context.getNorthParticipants().remove(participant.getUniqueId());
             context.getNorthClassPicker().removeTeamMate(participant);
             alive = context.countAlive(context.getNorthParticipants().values());
@@ -74,7 +72,7 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
             alive = context.countAlive(context.getSouthParticipants().values());
             dead = context.getSouthParticipants().size() - alive;
         }
-        context.getTopbar().setMembers(teamId, alive, dead);
+        context.getTopbar().setMembers(participant.getTeamId(), alive, dead);
     }
     
     @Override

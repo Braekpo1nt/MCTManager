@@ -38,12 +38,11 @@ public class MatchOverState implements CaptureTheFlagMatchState {
         context.getParticipantsAreAlive().put(participant.getUniqueId(), false);
         context.initializeParticipant(participant);
         participant.setGameMode(GameMode.ADVENTURE);
-        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
-        context.getTopbar().linkToTeam(participant.getUniqueId(), teamId);
+        context.getTopbar().linkToTeam(participant.getUniqueId(), participant.getTeamId());
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
         Location lookLocation;
-        if (context.getMatchPairing().northTeam().equals(teamId)) {
+        if (context.getMatchPairing().northTeam().equals(participant.getTeamId())) {
             lookLocation = context.getArena().northFlag();
         } else {
             lookLocation = context.getArena().southFlag();
@@ -55,10 +54,9 @@ public class MatchOverState implements CaptureTheFlagMatchState {
     public void onParticipantQuit(Participant participant) {
         context.resetParticipant(participant);
         participant.setGameMode(GameMode.ADVENTURE);
-        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
-        if (context.getMatchPairing().northTeam().equals(teamId)) {
+        if (context.getMatchPairing().northTeam().equals(participant.getTeamId())) {
             context.getNorthParticipants().remove(participant.getUniqueId());
-        } else if (context.getMatchPairing().southTeam().equals(teamId)) {
+        } else if (context.getMatchPairing().southTeam().equals(participant.getTeamId())) {
             context.getSouthParticipants().remove(participant.getUniqueId());
         }
         context.getAllParticipants().remove(participant.getUniqueId());

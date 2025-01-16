@@ -159,9 +159,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         for (Participant participant : participants.values()) {
             for (Participant target : participants.values()) {
                 if (!participant.equals(target)) {
-                    String teamId = gameManager.getTeamId(participant.getUniqueId());
-                    String targetTeamId = gameManager.getTeamId(target.getUniqueId());
-                    if (teamId.equals(targetTeamId)) {
+                    if (participant.getTeamId().equals(target.getTeamId())) {
                         glowManager.showGlowing(participant, target);
                     }
                 }
@@ -178,11 +176,10 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
      * @param participant the participant to show their teammates to
      */
     public void initializeGlowing(Participant participant) {
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
         for (Participant other : participants.values()) {
             if (!other.equals(participant)) {
                 String otherTeamId = gameManager.getTeamId(other.getUniqueId());
-                if (teamId.equals(otherTeamId)) {
+                if (participant.getTeamId().equals(otherTeamId)) {
                     glowManager.showGlowing(participant, other);
                     glowManager.showGlowing(other, participant);
                 }
@@ -196,7 +193,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     public void initializeParticipant(Participant participant) {
         participants.put(participant.getUniqueId(), participant);
         livingPlayers.add(participant.getUniqueId());
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
+        String teamId = participant.getTeamId();
         livingMembers.putIfAbsent(teamId, 0);
         int oldAliveCount = livingMembers.get(teamId);
         livingMembers.put(teamId, oldAliveCount + 1);
@@ -408,8 +405,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
             teamSpawnLocations.put(team, platformSpawn);
         }
         for (Participant participant : participants.values()) {
-            String team = gameManager.getTeamId(participant.getUniqueId());
-            Location spawn = teamSpawnLocations.get(team);
+            Location spawn = teamSpawnLocations.get(participant.getTeamId());
             participant.teleport(spawn);
             participant.setRespawnLocation(spawn, true);
         }
@@ -469,8 +465,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         int count = 0;
         for (Participant participant : participants.values()) {
             if (deadPlayers.contains(participant.getUniqueId())) {
-                String participantTeamId = gameManager.getTeamId(participant.getUniqueId());
-                if (teamId.equals(participantTeamId)) {
+                if (teamId.equals(participant.getTeamId())) {
                     count++;
                 }
             }

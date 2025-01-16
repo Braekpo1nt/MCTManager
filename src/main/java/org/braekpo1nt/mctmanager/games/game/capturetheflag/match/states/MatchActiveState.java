@@ -110,8 +110,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     
     private void showWinLoseTitles(String winningTeam) {
         for (Participant participant : context.getAllParticipants().values()) {
-            String teamId = gameManager.getTeamId(participant.getUniqueId());
-            if (winningTeam.equals(teamId)) {
+            if (winningTeam.equals(participant.getTeamId())) {
                 participant.showTitle(
                     Title.title(
                         Component.empty()
@@ -152,12 +151,11 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     public void onParticipantJoin(Participant participant) {
         context.getParticipantsAreAlive().put(participant.getUniqueId(), false);
         context.initializeParticipant(participant);
-        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
-        context.getTopbar().linkToTeam(participant.getUniqueId(), teamId);
+        context.getTopbar().linkToTeam(participant.getUniqueId(), participant.getTeamId());
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
         Location lookLocation;
-        if (matchPairing.northTeam().equals(teamId)) {
+        if (matchPairing.northTeam().equals(participant.getTeamId())) {
             lookLocation = arena.northFlag();
         } else {
             lookLocation = arena.southFlag();
@@ -167,7 +165,6 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     
     @Override
     public void onParticipantQuit(Participant participant) {
-        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
         if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {
             Component deathMessage = Component.empty()
                     .append(participant.displayName())
@@ -178,7 +175,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         }
         context.resetParticipant(participant);
         context.getAllParticipants().remove(participant.getUniqueId());
-        if (matchPairing.northTeam().equals(teamId)) {
+        if (matchPairing.northTeam().equals(participant.getTeamId())) {
             context.getNorthParticipants().remove(participant.getUniqueId());
         } else {
             context.getSouthParticipants().remove(participant.getUniqueId());
