@@ -182,7 +182,7 @@ public class OffState implements EventState {
         gameManager.messageOnlineParticipants(message);
         Audience.audience(
                 Audience.audience(context.getAdmins()),
-                Audience.audience(gameManager.getOnlineParticipantsKeep())
+                Audience.audience(gameManager.getOnlineParticipants())
         ).showTitle(Title.title(formattedTeamDisplayName, Component.text("wins!")
                 .color(teamColor), UIUtils.DEFAULT_TIMES));
     }
@@ -232,7 +232,7 @@ public class OffState implements EventState {
         List<Participant> firstPlaceParticipants = new ArrayList<>();
         List<Participant> secondPlaceParticipants = new ArrayList<>();
         List<Participant> spectators = new ArrayList<>();
-        List<Participant> participantPool = new ArrayList<>(gameManager.getOnlineParticipantsKeep());
+        List<Participant> participantPool = new ArrayList<>(gameManager.getOnlineParticipants());
         List<Player> adminPool;
         adminPool = new ArrayList<>(gameManager.getOnlineAdmins());
         for (Participant participant : participantPool) {

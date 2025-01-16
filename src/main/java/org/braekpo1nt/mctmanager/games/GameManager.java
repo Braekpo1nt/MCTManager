@@ -514,7 +514,7 @@ public class GameManager implements Listener {
             return false;
         }
         gameStateStorageUtil.setupScoreboard(mctScoreboard);
-        for (Player player : Bukkit.getOnlinePlayers()) {
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
             player.setScoreboard(mctScoreboard); // TODO: this might be redundant because participants and admins are added to the scoreboard in their respective join methods
         }
         onlineParticipants.clear();
@@ -965,18 +965,9 @@ public class GameManager implements Listener {
     }
     
     /**
-     * @param player the player
+     * @param participant the participant
      * @param winner whether they are a winner
-     * @deprecated in favor of {@link #returnParticipantToPodium(Participant,boolean)}
      */
-    @Deprecated
-    public void returnParticipantToPodium(Player player, boolean winner) {
-        Participant participant = onlineParticipants.get(player.getUniqueId());
-        if (participant != null) {
-            returnParticipantToPodium(participant, winner);
-        }
-    }
-    
     public void returnParticipantToPodium(Participant participant, boolean winner) {
         hubManager.sendParticipantToPodium(participant, winner);
     }
@@ -1392,7 +1383,7 @@ public class GameManager implements Listener {
         int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
         List<String> teamIds = Participant.getTeamIds(participants);
         if (activeGame != null) {
-            eventManager.trackPointsParticipants(Participant.toPlayersList(participants), points, activeGame.getType());
+            eventManager.trackPointsParticipants(participants, points, activeGame.getType());
             eventManager.trackPointsTeams(teamIds, multipliedPoints, activeGame.getType());
         }
         addScoreParticipants(participants, points);
@@ -1527,19 +1518,9 @@ public class GameManager implements Listener {
     
     /**
      * @return a copy of the list of online participants. Modifying this will not change
-     * the online participants
-     * @deprecated in favor of {@link #getOnlineParticipantsKeep()}
-     */
-    @Deprecated
-    public List<Player> getOnlineParticipants() {
-        return Participant.toPlayersList(onlineParticipants.values());
-    }
-    
-    /**
-     * @return a copy of the list of online participants. Modifying this will not change
      *      * the online participants
      */
-    public @NotNull Collection<Participant> getOnlineParticipantsKeep() {
+    public @NotNull Collection<Participant> getOnlineParticipants() {
         return onlineParticipants.values();
     }
     
@@ -2020,7 +2001,6 @@ public class GameManager implements Listener {
      * @param participant the participant to update
      */
     private void updatePersonalScore(Participant participant) {
-        // TODO: Participant replace arguments with the Participant class for all related score methods
         int score = getScore(participant.getUniqueId());
         Component contents = Component.empty()
                 .append(Component.text("Personal: "))

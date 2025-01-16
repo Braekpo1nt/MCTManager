@@ -85,7 +85,7 @@ public class EventManager implements Listener {
      * Add the participants back to the {@link EventManager#participants} list and the {@link EventManager#sidebar}, add the admins back to the {@link EventManager#admins} list and the {@link EventManager#adminSidebar}, and update the scores on all sidebars.
      */
     public void initializeParticipantsAndAdmins() {
-        for (Participant participant : gameManager.getOnlineParticipantsKeep()) {
+        for (Participant participant : gameManager.getOnlineParticipants()) {
             participants.put(participant.getUniqueId(), participant);
             sidebar.addPlayer(participant);
         }
@@ -690,14 +690,13 @@ public class EventManager implements Listener {
      * @param points the points to add 
      * @param gameType the game that the points came from
      */
-    public void trackPointsParticipants(Collection<Player> participants, int points, GameType gameType) {
-        // TODO: Participant change the type from Player to Participant in argument
+    public void trackPointsParticipants(Collection<Participant> participants, int points, GameType gameType) {
         if (state instanceof OffState) {
             return;
         }
         List<ScoreKeeper> iterationScoreKeepers = scoreKeepers.get(gameType);
         ScoreKeeper iteration = iterationScoreKeepers.getLast();
-        for (Player participant : participants) {
+        for (Participant participant : participants) {
             iteration.addPoints(participant.getUniqueId(), points);
         }
     }

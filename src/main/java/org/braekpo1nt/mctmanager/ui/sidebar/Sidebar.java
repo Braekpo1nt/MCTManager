@@ -58,6 +58,12 @@ public class Sidebar {
         }
     }
     
+    public synchronized void addPlayers(@NotNull Collection<@NotNull Participant> participants) {
+        for (Participant participant : participants) {
+            addPlayer(participant);
+        }
+    }
+    
     public synchronized void addPlayers(@NotNull List<@NotNull Player> players) {
         for (Player player : players) {
             addPlayer(player);

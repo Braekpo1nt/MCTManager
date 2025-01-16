@@ -88,19 +88,19 @@ public class HubManager implements Listener, Configurable {
      */
     public void returnParticipantsToHub(Collection<Participant> newParticipants, List<Player> newAdmins, boolean delay) {
         if (delay) {
-            returnParticipantsToHub(new ArrayList<>(newParticipants), new ArrayList<>(newAdmins), config.getTpToHubDuration());
+            returnParticipantsToHub(newParticipants, new ArrayList<>(newAdmins), config.getTpToHubDuration());
         } else {
-            returnParticipantsToHubInstantly(new ArrayList<>(newParticipants), new ArrayList<>(newAdmins));
+            returnParticipantsToHubInstantly(newParticipants, new ArrayList<>(newAdmins));
         }
     }
     
-    private void returnParticipantsToHub(List<Participant> newParticipants, List<Player> newAdmins, int duration) {
+    private void returnParticipantsToHub(Collection<Participant> newParticipants, List<Player> newAdmins, int duration) {
         for (Participant participant : newParticipants) {
             headingToHub.put(participant.getUniqueId(), participant);
         }
         final List<Player> adminsHeadingToHub = new ArrayList<>(newAdmins);
         final Sidebar sidebar = gameManager.createSidebar();
-        sidebar.addPlayers(Participant.toPlayersList(newParticipants));
+        sidebar.addPlayers(newParticipants);
         sidebar.addPlayers(newAdmins);
         sidebar.addLine("backToHub", String.format("Back to Hub: %s", duration));
         timerManager.start(Timer.builder()
@@ -117,7 +117,7 @@ public class HubManager implements Listener, Configurable {
                 .build());
     }
     
-    private void returnParticipantsToHubInstantly(List<Participant> newParticipants, List<Player> newAdmins) {
+    private void returnParticipantsToHubInstantly(Collection<Participant> newParticipants, List<Player> newAdmins) {
         for (Participant participant : newParticipants) {
             returnParticipantToHub(participant);
         }

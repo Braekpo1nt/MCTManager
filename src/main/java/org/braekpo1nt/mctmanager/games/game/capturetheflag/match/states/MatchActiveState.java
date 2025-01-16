@@ -283,7 +283,6 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
      */
     @Deprecated
     private int countAlive(Collection<Participant> participants) {
-        // TODO: Participant remove this method
         int living = 0;
         for (Participant participant : participants) {
             if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {
