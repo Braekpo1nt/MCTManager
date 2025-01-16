@@ -1874,7 +1874,7 @@ public class GameManager implements Listener {
                 .append(Component.text(adminName)
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text(" is no longer an admin")));
-        Team adminTeam = mctScoreboard.getTeam(ADMIN_TEAM);
+        org.bukkit.scoreboard.Team adminTeam = mctScoreboard.getTeam(ADMIN_TEAM);
         Preconditions.checkState(adminTeam != null, "mctScoreboard could not find team \"%s\"", ADMIN_TEAM);
         adminTeam.removePlayer(offlineAdmin);
     }
