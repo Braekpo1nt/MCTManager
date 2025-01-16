@@ -314,13 +314,13 @@ public class ReadyUpState implements EventState {
      * @return the players sorted by readiness
      */
     public List<OfflinePlayer> getSortedOfflineParticipants(@Nullable String teamId) {
-        List<OfflinePlayer> sortedOfflinePlayers;
+        List<OfflinePlayer> sortedOfflineParticipants;
         if (teamId == null) {
-            sortedOfflinePlayers = gameManager.getOfflineParticipants();
+            sortedOfflineParticipants = gameManager.getOfflineParticipants();
         } else {
-            sortedOfflinePlayers = gameManager.getOfflineParticipants(teamId);
+            sortedOfflineParticipants = gameManager.getOfflineParticipants(teamId);
         }
-        sortedOfflinePlayers.sort((p1, p2) -> {
+        sortedOfflineParticipants.sort((p1, p2) -> {
             String teamId1 = gameManager.getTeamId(p1.getUniqueId());
             String teamId2 = gameManager.getTeamId(p2.getUniqueId());
             int readyComparison = Boolean.compare(
@@ -346,7 +346,7 @@ public class ReadyUpState implements EventState {
             }
             return p1Name.compareToIgnoreCase(p2Name);
         });
-        return sortedOfflinePlayers;
+        return sortedOfflineParticipants;
     }
     
     @Override

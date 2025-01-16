@@ -364,6 +364,7 @@ public class GameStateStorageUtil {
     }
     
     /**
+     * Not to be confused with {@link #getOfflinePlayerUniqueIds()}
      * @return the UUIDs of the players
      */
     public List<UUID> getPlayerUniqueIds() {
@@ -371,6 +372,7 @@ public class GameStateStorageUtil {
     }
     
     /**
+     * Not to be confused with {@link #getPlayerUniqueIds()}
      * @return the UUIDs of the offline players 
      */
     public List<UUID> getOfflinePlayerUniqueIds() {

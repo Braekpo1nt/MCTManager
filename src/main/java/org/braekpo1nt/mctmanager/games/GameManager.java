@@ -1583,19 +1583,19 @@ public class GameManager implements Listener {
     }
     
     /**
-     * @return A list of all OfflinePlayers in the game state. These players could
-     * be offline or online, have names or not
+     * @return A list {@link OfflinePlayer}s representing all participants in the {@link GameStateStorageUtil}. 
+     * These players could be offline or online, have logged in at least once or not
      */
     public List<OfflinePlayer> getOfflineParticipants() {
         List<UUID> uniqueIds = gameStateStorageUtil.getPlayerUniqueIds();
         List<OfflinePlayer> offlineParticipants = new ArrayList<>();
         for (UUID uniqueId : uniqueIds) {
-            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uniqueId);
+            OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(uniqueId);
             offlineParticipants.add(offlinePlayer);
         }
         List<UUID> offlineUniqueIds = gameStateStorageUtil.getOfflinePlayerUniqueIds();
         for (UUID offlineUniqueId : offlineUniqueIds) {
-            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(offlineUniqueId);
+            OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(offlineUniqueId);
             offlineParticipants.add(offlinePlayer);
         }
         return offlineParticipants;
@@ -1603,8 +1603,9 @@ public class GameManager implements Listener {
     
     /**
      * @param teamId the teamId to get the members of
-     * @return A list of all OfflinePlayers in the game state whose team is the given teamId. These players could
-     * be offline or online, have names or not.
+     * @return A list {@link OfflinePlayer}s representing all participants in the {@link GameStateStorageUtil}
+     * who are on the given team. 
+     * These players could be offline or online, have logged in at least once or not
      */
     public List<OfflinePlayer> getOfflineParticipants(@NotNull String teamId) {
         List<OfflinePlayer> offlineParticipants = getOfflineParticipants();
