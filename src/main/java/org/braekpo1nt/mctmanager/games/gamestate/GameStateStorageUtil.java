@@ -332,17 +332,6 @@ public class GameStateStorageUtil {
     }
     
     /**
-     * @return a map of each participant's UUID to its score
-     */
-    public @NotNull Map<UUID, Integer> getParticipantScores() {
-        Map<UUID, Integer> participantScores = new HashMap<>(gameState.getPlayers().size());
-        for (MCTPlayer mctPlayer : gameState.getPlayers().values()) {
-            participantScores.put(mctPlayer.getUniqueId(), mctPlayer.getScore());
-        }
-        return participantScores;
-    }
-    
-    /**
      * Gets the team color in org.bukkit.Color form for the player with the given UUID
      * @param playerUniqueId The UUID of the player to find the team color for
      * @return The color of the player's team

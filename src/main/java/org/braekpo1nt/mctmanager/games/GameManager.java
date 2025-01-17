@@ -523,6 +523,7 @@ public class GameManager implements Listener {
         teams.clear();
         onlineParticipants.clear();
         onlineAdmins.clear();
+        // TODO: see if you can move this tab list initialization to after the team and player creation so as to make use of them in the creation of the tab list
         // TabList start
         tabList.clear();
         for (String teamId : gameStateStorageUtil.getTeamIds()) {
@@ -1532,8 +1533,11 @@ public class GameManager implements Listener {
      * and in bold
      * @param teamId The internal name of the team
      * @return A Component with the formatted team dislay name
+     * @deprecated in favor of {@link Team#getFormattedDisplayName()}
      */
+    @Deprecated
     public @NotNull Component getFormattedTeamDisplayName(@NotNull String teamId) {
+        // TODO: Team delete this method
         String displayName = gameStateStorageUtil.getTeamDisplayName(teamId);
         NamedTextColor teamColor = gameStateStorageUtil.getTeamColor(teamId);
         return Component.text(displayName).color(teamColor).decorate(TextDecoration.BOLD);
