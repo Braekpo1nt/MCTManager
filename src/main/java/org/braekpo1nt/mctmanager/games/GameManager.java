@@ -413,7 +413,7 @@ public class GameManager implements Listener {
         hubManager.onParticipantJoin(participant);
         if (gameIsRunning()) {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
-            activeGame.onParticipantJoin(participant);
+            activeGame.onParticipantJoin(team, participant);
         } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
             eventManager.onParticipantJoin(participant);
@@ -424,7 +424,7 @@ public class GameManager implements Listener {
         tabList.showPlayer(participant);
         tabList.setParticipantGrey(participant.getUniqueId(), false);
         updatePersonalScore(participant);
-        updateTeamScore(participant.getTeamId());
+        updateTeamScore(team);
     }
     
     /**
@@ -688,7 +688,7 @@ public class GameManager implements Listener {
             }
         }
         
-        List<String> onlineTeams = Participant.getTeamIds(onlineParticipants.values());
+        Collection<Team> onlineTeams = getParticipantTeams(onlineParticipants.values());
         // make sure the player and team count requirements are met
         switch (gameType) {
             case SURVIVAL_GAMES -> {
@@ -717,11 +717,35 @@ public class GameManager implements Listener {
         }
         
         hubManager.removeParticipantsFromHub(onlineParticipants.values());
-        selectedGame.start(onlineParticipants.values(), onlineAdmins);
+        selectedGame.start(onlineTeams, onlineParticipants.values(), onlineAdmins);
         activeGame = selectedGame;
         updatePersonalScores(onlineParticipants.values());
         updateTeamScores(onlineTeams);
         return true;
+    }
+    
+    /**
+     * @param participants the participants whose teams to retrieve
+     * @return a set of the teams which the collective participants are members of
+     */
+    public @NotNull Collection<Team> getParticipantTeams(@NotNull Collection<@NotNull Participant> participants) {
+        return getTeams(Participant.getTeamIds(participants));
+    }
+    
+    /**
+     * @param teamIds the teamIds of the teams to get. Ignores any invalid teamIds.
+     * @return a collection of the {@link Team}s represented by the given teamIds
+     */
+    public @NotNull Collection<Team> getTeams(@NotNull Collection<@NotNull String> teamIds) {
+        return teamIds.stream().map(teams::get).filter(Objects::nonNull).toList();
+    }
+    
+    /**
+     * @param teamId the teamId to get the {@link Team} for
+     * @return the team with the given teamId, if one exists, null otherwise
+     */
+    public @Nullable Team getTeam(@NotNull String teamId) {
+        return teams.get(teamId);
     }
     
     private @NotNull Component createNewTitle(MCTGame game) {
@@ -1061,7 +1085,7 @@ public class GameManager implements Listener {
         newTeam.displayName(Component.text(teamDisplayName));
         newTeam.color(color);
         tabList.addTeam(teamId, teamDisplayName, color);
-        updateTeamScore(teamId);
+        updateTeamScore(team);
     }
     
     /**
@@ -1077,8 +1101,11 @@ public class GameManager implements Listener {
      * Checks if the team exists in the game state
      * @param teamId The team to look for
      * @return true if the team with the given teamId exists, false otherwise.
+     * @deprecated in favor of checking if {@link #getTeam(String)} is non-null
      */
+    @Deprecated
     public boolean hasTeam(String teamId) {
+        // TODO: Team consider making this check the teams map
         return gameStateStorageUtil.containsTeam(teamId);
     }
     
@@ -1272,8 +1299,11 @@ public class GameManager implements Listener {
     /**
      * @param teamId the teamId 
      * @return a list of the online participants who are on the given team
+     * @deprecated in favor of {@link Team#getOnlineMembers()}
      */
+    @Deprecated
     public List<Participant> getOnlineParticipantsOnTeam(String teamId) {
+        // TODO: Team remove this method
         return Participant.getParticipantsOnTeam(onlineParticipants.values(), teamId);
     }
     
@@ -1420,13 +1450,13 @@ public class GameManager implements Listener {
      */
     public void awardPointsToParticipants(Collection<Participant> participants, int points) {
         int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
-        List<String> teamIds = Participant.getTeamIds(participants);
+        Collection<Team> awardedTeams = getParticipantTeams(participants);
         if (activeGame != null) {
             eventManager.trackPointsParticipants(participants, points, activeGame.getType());
-            eventManager.trackPointsTeams(teamIds, multipliedPoints, activeGame.getType());
+            eventManager.trackPointsTeams(Team.toTeamIds(awardedTeams), multipliedPoints, activeGame.getType());
         }
         addScoreParticipants(participants, points);
-        addScoreTeams(teamIds, multipliedPoints);
+        addScoreTeams(awardedTeams, multipliedPoints);
         
         Audience.audience(participants).sendMessage(Component.text("+")
                 .append(Component.text(multipliedPoints))
@@ -1467,27 +1497,25 @@ public class GameManager implements Listener {
      * points they earned. 
      * <br>
      * This is to be used instead of looping through each team and calling
-     * {@link #awardPointsToTeam(String, int)} to reduce the number of modifications to the
+     * {@link #awardPointsToTeam(Team, int)} to reduce the number of modifications to the
      * {@link TabList} and file writes to the {@link org.braekpo1nt.mctmanager.games.gamestate.GameState} at once.
-     * @param teamIds the teamIds of the teams to give the points to. If this is empty, nothing happens.
+     * @param awardedTeams the teamIds of the teams to give the points to. If this is empty, nothing happens.
      * @param points the points to give to each team
      */
-    public void awardPointsToTeams(@NotNull Collection<@NotNull String> teamIds, int points) {
-        if (teamIds.isEmpty()) {
+    public void awardPointsToTeams(@NotNull Collection<@NotNull Team> awardedTeams, int points) {
+        if (awardedTeams.isEmpty()) {
             return;
         }
         int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
-        addScoreTeams(teamIds, multipliedPoints);
+        addScoreTeams(awardedTeams, multipliedPoints);
         if (activeGame != null) {
-            eventManager.trackPointsTeams(teamIds, multipliedPoints, activeGame.getType());
+            eventManager.trackPointsTeams(Team.toTeamIds(awardedTeams), multipliedPoints, activeGame.getType());
         }
-        for (String teamId : teamIds) {
-            Component displayName = getFormattedTeamDisplayName(teamId);
-            List<Participant> playersOnTeam = getOnlineParticipantsOnTeam(teamId);
-            Audience.audience(playersOnTeam).sendMessage(Component.text("+")
+        for (Team team : awardedTeams) {
+            team.sendMessage(Component.text("+")
                     .append(Component.text(multipliedPoints))
                     .append(Component.text(" points for "))
-                    .append(displayName)
+                    .append(team.getFormattedDisplayName())
                     .decorate(TextDecoration.BOLD)
                     .color(NamedTextColor.GOLD));
         }
@@ -1497,25 +1525,23 @@ public class GameManager implements Listener {
      * Adds the given points to the given team, and announces to all online members of that 
      * team how many points the team earned.
      * If the team doesn't exist, nothing happens. 
-     * @param teamId The team to add points to
+     * @param team The team to add points to
      * @param points The points to add
      */
-    public void awardPointsToTeam(String teamId, int points) {
-        if (!gameStateStorageUtil.containsTeam(teamId)) {
+    public void awardPointsToTeam(Team team, int points) {
+        if (!gameStateStorageUtil.containsTeam(team.getTeamId())) {
             return;
         }
         int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
-        addScore(teamId, multipliedPoints);
+        addScore(team, multipliedPoints);
         if (activeGame != null) {
-            eventManager.trackPoints(teamId, multipliedPoints, activeGame.getType());
+            eventManager.trackPoints(team.getTeamId(), multipliedPoints, activeGame.getType());
         }
         
-        Component displayName = getFormattedTeamDisplayName(teamId);
-        List<Participant> playersOnTeam = getOnlineParticipantsOnTeam(teamId);
-        Audience.audience(playersOnTeam).sendMessage(Component.text("+")
+        team.sendMessage(Component.text("+")
                     .append(Component.text(multipliedPoints))
                     .append(Component.text(" points for "))
-                    .append(displayName)
+                    .append(team.getFormattedDisplayName())
                     .decorate(TextDecoration.BOLD)
                     .color(NamedTextColor.GOLD));
     }
@@ -1681,15 +1707,16 @@ public class GameManager implements Listener {
      * <br>
      * Use this instead of calling {@link #addScore(String, int)} for each teamId because this is more
      * efficient in that it only writes to the {@link org.braekpo1nt.mctmanager.games.gamestate.GameState} once
-     * @param teamIds the teamIds to add the score to
+     * @param updateTeams the teamIds to add the score to. Must all be valid teamIds.
      * @param score the score to add. Could be positive or negative.
      */
-    public void addScoreTeams(Collection<String> teamIds, int score) {
+    private void addScoreTeams(Collection<Team> updateTeams, int score) {
+        List<String> teamIds = Team.toTeamIds(updateTeams);
         try {
             gameStateStorageUtil.addScoreTeams(teamIds, score);
             plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
                     gameStateStorageUtil.saveGameState());
-            updateTeamScores(teamIds);
+            updateTeamScores(updateTeams);
         } catch (ConfigIOException e) {
             reportGameStateException("adding score to teams", e);
         }
@@ -1699,13 +1726,29 @@ public class GameManager implements Listener {
      * Adds the given score to the given team
      * @param teamId The team to add the score to
      * @param score The score to add. Could be positive or negative.
+     * @deprecated in favor of {@link #addScore(Team, int)}
      */
-    public void addScore(String teamId, int score) {
+    @Deprecated
+    public void addScore(@NotNull String teamId, int score) {
+        // TODO: Team remove this method
+        Team team = teams.get(teamId);
+        if (team == null) {
+            return;
+        }
+        addScore(team, score);
+    }
+    
+    /**
+     * Adds the given score to the given team
+     * @param team The team to add the score to
+     * @param score The score to add. Could be positive or negative.
+     */
+    public void addScore(@NotNull Team team, int score) {
         try {
-            gameStateStorageUtil.addScore(teamId, score);
+            gameStateStorageUtil.addScore(team.getTeamId(), score);
             plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
                     gameStateStorageUtil.saveGameState());
-            updateTeamScore(teamId);
+            updateTeamScore(team);
         } catch (ConfigIOException e) {
             reportGameStateException("adding score to team", e);
         }
@@ -1717,6 +1760,11 @@ public class GameManager implements Listener {
      * @param score The score to set to. If the score is negative, the score will be set to 0.
      */
     public void setScore(UUID participantUUID, int score) {
+        // TODO: OfflineParticipant great place for using the OfflineParticipant.getTeamId()
+        Team team = teams.get(getTeamId(participantUUID));
+        if (team == null) {
+            return;
+        }
         try {
             if (score < 0) {
                 gameStateStorageUtil.setScore(participantUUID, 0);
@@ -1729,7 +1777,7 @@ public class GameManager implements Listener {
             if (participant != null) {
                 updatePersonalScore(participant);
             }
-            updateTeamScore(getTeamId(participantUUID));
+            updateTeamScore(team);
         } catch (ConfigIOException e) {
             reportGameStateException("setting a player's score", e);
         }
@@ -1741,6 +1789,10 @@ public class GameManager implements Listener {
      * @param score The score to set to. If the score is negative, the score will be set to 0.
      */
     public void setScore(String teamId, int score) {
+        Team team = teams.get(teamId);
+        if (team == null) {
+            return;
+        }
         try {
             if (score < 0) {
                 gameStateStorageUtil.setScore(teamId, 0);
@@ -1749,7 +1801,7 @@ public class GameManager implements Listener {
             gameStateStorageUtil.setScore(teamId, score);
             plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
                     gameStateStorageUtil.saveGameState());
-            updateTeamScore(teamId);
+            updateTeamScore(team);
         } catch (ConfigIOException e) {
             reportGameStateException("adding score to team", e);
         }
@@ -1769,7 +1821,7 @@ public class GameManager implements Listener {
             plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
                     gameStateStorageUtil.saveGameState());
             updatePersonalScores(onlineParticipants.values());
-            updateTeamScores(getTeamIds());
+            updateTeamScores(teams.values());
         } catch (ConfigIOException e) {
             reportGameStateException("setting all scores", e);
         }
@@ -1964,20 +2016,19 @@ public class GameManager implements Listener {
      * {@link org.braekpo1nt.mctmanager.games.gamestate.GameState}
      * <br>
      * This includes the header of the current active game, the event sidebar in the hub, and the {@link TabList}
-     * @param teamIds the teamIds to update all displays for
+     * @param updateTeams the teamIds to update all displays for
      */
-    private void updateTeamScores(Collection<String> teamIds) {
-        Map<String, Integer> teamIdsToScores = new HashMap<>(teamIds.size());
+    private void updateTeamScores(Collection<Team> updateTeams) {
+        Map<String, Integer> teamIdsToScores = new HashMap<>(updateTeams.size());
         // perform this check and cast one time instead of for each teamId
         Headerable headerable = activeGame instanceof Headerable ? (Headerable) activeGame : null;
-        for (String teamId : teamIds) {
-            Component teamDisplayName = getFormattedTeamDisplayName(teamId);
-            int teamScore = getScore(teamId);
-            teamIdsToScores.put(teamId, teamScore);
+        for (Team team : updateTeams) {
+            int teamScore = getScore(team.getTeamId());
+            teamIdsToScores.put(team.getTeamId(), teamScore);
             if (headerable != null) {
-                for (Participant participant : getOnlineParticipantsOnTeam(teamId)) {
+                for (Participant participant : team.getOnlineMembers()) {
                     headerable.updateTeamScore(participant, Component.empty()
-                            .append(teamDisplayName)
+                            .append(team.getFormattedDisplayName())
                             .append(Component.text(": "))
                             .append(Component.text(teamScore)
                                     .color(NamedTextColor.GOLD))
@@ -1997,15 +2048,14 @@ public class GameManager implements Listener {
      * Update the displays of the given team to reflect the current score.
      * <br>
      * This includes the header of the current active game, the event sidebar in the hub, and the {@link TabList} 
-     * @param teamId the teamId to update in all displays
+     * @param team the teamId to update in all displays
      */
-    private void updateTeamScore(String teamId) {
-        Component teamDisplayName = getFormattedTeamDisplayName(teamId);
-        int teamScore = getScore(teamId);
+    private void updateTeamScore(@NotNull Team team) {
+        int teamScore = getScore(team.getTeamId());
         if (activeGame != null && activeGame instanceof Headerable headerable) {
-            for (Participant participant : getOnlineParticipantsOnTeam(teamId)) {
+            for (Participant participant : team.getOnlineMembers()) {
                 headerable.updateTeamScore(participant, Component.empty()
-                        .append(teamDisplayName)
+                        .append(team.getFormattedDisplayName())
                         .append(Component.text(": "))
                         .append(Component.text(teamScore)
                                 .color(NamedTextColor.GOLD))
@@ -2016,7 +2066,7 @@ public class GameManager implements Listener {
             eventManager.updateTeamScores();
         }
         hubManager.updateLeaderboards();
-        tabList.setScore(teamId, teamScore);
+        tabList.setScore(team.getTeamId(), teamScore);
     }
     
     /**

@@ -99,7 +99,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     @Override
-    public void start(Collection<Participant> newParticipants, List<Player> newAdmins) {
+    public void start(Collection<org.braekpo1nt.mctmanager.participant.Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
         participants = new HashMap<>(newParticipants.size());
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
@@ -241,7 +241,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(org.braekpo1nt.mctmanager.participant.Team team, Participant participant) {
         if (!gameActive) {
             return;
         }

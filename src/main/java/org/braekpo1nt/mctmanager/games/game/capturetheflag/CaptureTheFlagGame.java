@@ -18,6 +18,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -105,7 +106,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public void start(Collection<Participant> newParticipants, List<Player> newAdmins) {
+    public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
         participants = new HashMap<>(newParticipants.size());
@@ -188,7 +189,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(Team team, Participant participant) {
         if (state == null) {
             return;
         }

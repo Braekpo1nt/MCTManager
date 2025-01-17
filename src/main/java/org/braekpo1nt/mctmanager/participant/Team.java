@@ -93,6 +93,14 @@ public class Team extends AudienceDelegate {
     }
     
     /**
+     * @param teams the Teams to get the teamIds of
+     * @return a list of all the teamIds of the given teams
+     */
+    public static List<String> toTeamIds(Collection<Team> teams) {
+        return teams.stream().map(Team::getTeamId).toList();
+    }
+    
+    /**
      * @return the audience including all online members
      * @see #onlineMembers
      */
@@ -203,6 +211,13 @@ public class Team extends AudienceDelegate {
     }
     
     /**
+     * @return a collection of the online members of this team
+     */
+    public Collection<Participant> getOnlineMembers() {
+        return onlineMembers.values();
+    }
+    
+    /**
      * Sends the given message to every online member of the team except for the given participant
      * @param participant the participant who sent the message, and therefore should not receive the message
      *                    (doesn't have to be a member of the team)
@@ -213,5 +228,4 @@ public class Team extends AudienceDelegate {
                 .filter(member -> !member.getUniqueId().equals(participant.getUniqueId())).toList())
                 .sendMessage(message);
     }
-    
 }

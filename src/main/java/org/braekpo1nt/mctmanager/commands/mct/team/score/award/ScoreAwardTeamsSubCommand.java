@@ -6,15 +6,13 @@ import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class ScoreAwardTeamsSubCommand extends TabSubCommand {
     
@@ -47,6 +45,7 @@ public class ScoreAwardTeamsSubCommand extends TabSubCommand {
             }
             teamIds.add(teamId);
         }
+        Collection<Team> teams = gameManager.getTeams(teamIds);
         
         // the last arg should be the score
         String scoreString = args[args.length - 1];
@@ -58,9 +57,9 @@ public class ScoreAwardTeamsSubCommand extends TabSubCommand {
             return CommandResult.failure(Component.text("Score value must be positive"));
         }
         if (teamIds.size() == 1) {
-            gameManager.awardPointsToTeam(teamIds.stream().findFirst().get(), score);
+            gameManager.awardPointsToTeam(teams.stream().findFirst().get(), score);
         } else {
-            gameManager.awardPointsToTeams(teamIds, score);
+            gameManager.awardPointsToTeams(teams, score);
         }
         return CommandResult.success(Component.empty()
                 .append(Component.text(score))

@@ -149,7 +149,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     }
     
     @Override
-    public void start(Collection<Participant> newParticipants, List<Player> newAdmins) {
+    public void start(Collection<org.braekpo1nt.mctmanager.participant.Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -436,7 +436,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     }
     
     @Override
-    public void onParticipantJoin(org.braekpo1nt.mctmanager.participant.Participant participant) {
+    public void onParticipantJoin(org.braekpo1nt.mctmanager.participant.Team team, Participant participant) {
         if (state == null) {
             return;
         }

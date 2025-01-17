@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.interfaces;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,9 +15,9 @@ import java.util.List;
  */
 public interface MCTGame {
     GameType getType();
-    void start(Collection<Participant> newParticipants, List<Player> newAdmins);
+    void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins);
     void stop();
-    void onParticipantJoin(Participant participant);
+    void onParticipantJoin(Team team, Participant participant);
     void onParticipantQuit(Participant participant);
     
     void onAdminJoin(Player admin);
