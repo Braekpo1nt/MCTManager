@@ -8,6 +8,7 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
@@ -187,13 +188,13 @@ public class GameManager implements Listener {
     
     @EventHandler
     public void onPlayerChangeArmor(PlayerArmorChangeEvent event) {
-        Player participant = event.getPlayer();
-        if (!isParticipant(participant.getUniqueId())) {
+        Participant participant = onlineParticipants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
             return;
         }
         ItemStack newItem = event.getNewItem();
         if (isLeatherArmor(newItem)) {
-            colorLeatherArmor(newItem, participant.getUniqueId());
+            GameManagerUtils.colorLeatherArmor(newItem, teams.get(participant.getTeamId()).getBukkitColor());
             participant.getEquipment().setItem(toEquipmentSlot(event.getSlotType()), newItem);
         }
         ItemStack oldItem = event.getOldItem();
@@ -283,11 +284,6 @@ public class GameManager implements Listener {
             return false;
         }
         return item.getItemMeta() instanceof LeatherArmorMeta;
-    }
-    
-    private void colorLeatherArmor(@NotNull ItemStack leatherArmor, @NotNull UUID participantUUID) {
-        Color teamColor = getTeamColor(participantUUID);
-        GameManagerUtils.colorLeatherArmor(leatherArmor, teamColor);
     }
     
     @EventHandler
@@ -406,12 +402,12 @@ public class GameManager implements Listener {
      * @param participant the participant who joined
      */
     private void onParticipantJoin(@NotNull Participant participant) {
-        teams.get(participant.getTeamId()).joinOnlineMember(participant);
+        Team team = teams.get(participant.getTeamId());
+        team.joinOnlineMember(participant);
         onlineParticipants.put(participant.getUniqueId(), participant);
         participant.getPlayer().setScoreboard(mctScoreboard);
         participant.addPotionEffect(Main.NIGHT_VISION);
-        NamedTextColor color = getTeamColor(participant.getTeamId());
-        Component displayName = Component.text(participant.getName(), color);
+        Component displayName = Component.text(participant.getName(), team.getColor());
         participant.displayName(displayName);
         participant.playerListName(displayName);
         hubManager.onParticipantJoin(participant);
@@ -1148,8 +1144,7 @@ public class GameManager implements Listener {
         tabList.joinParticipant(participant.getUniqueId(), participant.getName(), teamId, false);
         addNewParticipant(sender, uuid, team);
         hubManager.updateLeaderboards();
-        NamedTextColor teamIddTextColor = getTeamColor(teamId);
-        Component displayName = Component.text(participant.getName(), teamIddTextColor);
+        Component displayName = Component.text(participant.getName(), team.getColor());
         participant.displayName(displayName);
         participant.playerListName(displayName);
         participant.sendMessage(Component.text("You've been joined to team ")
@@ -1210,9 +1205,8 @@ public class GameManager implements Listener {
         hubManager.updateLeaderboards();
         tabList.joinParticipant(offlineUUID, ign, teamId, true);
         Component teamDisplayName = getFormattedTeamDisplayName(teamId);
-        NamedTextColor teamIddTextColor = getTeamColor(teamId);
         TextComponent displayName = Component.text(ign)
-                .color(teamIddTextColor)
+                .color(team.getColor())
                 .decorate(TextDecoration.BOLD);
         sender.sendMessage(Component.text("Joined ")
                 .append(displayName)
@@ -1894,9 +1888,12 @@ public class GameManager implements Listener {
         return ColorMap.getStainedGlassColor(colorString);
     }
     
-    public @NotNull NamedTextColor getTeamColor(@NotNull String teamId) {
-        String colorString = gameStateStorageUtil.getTeamColorString(teamId);
-        return ColorMap.getNamedTextColor(colorString);
+    public @NotNull TextColor getTeamColor(@NotNull String teamId) {
+        Team team = teams.get(teamId);
+        if (team == null) {
+            return NamedTextColor.WHITE;
+        }
+        return team.getColor();
     }
     
     public Material getTeamBannerColor(@NotNull String teamId) {
@@ -1909,10 +1906,10 @@ public class GameManager implements Listener {
     }
     
     public void messageAdmins(Component message) {
-        Bukkit.getConsoleSender().sendMessage(message);
-        for (Player admin : onlineAdmins) {
-            admin.sendMessage(message);
-        }
+        Audience.audience(
+                Audience.audience(onlineAdmins),
+                plugin.getServer().getConsoleSender()
+        ).sendMessage(message);
     }
     
     public void playSoundForAdmins(@NotNull String sound, float volume, float pitch) {

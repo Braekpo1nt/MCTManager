@@ -4,6 +4,7 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
@@ -171,7 +172,7 @@ public class OffState implements EventState {
             gameManager.returnAllParticipantsToHub();
             return;
         }
-        NamedTextColor teamColor = gameManager.getTeamColor(winningTeam);
+        TextColor teamColor = gameManager.getTeamColor(winningTeam);
         Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(winningTeam);
         Component message = Component.empty()
                 .append(formattedTeamDisplayName)

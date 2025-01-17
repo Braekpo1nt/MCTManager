@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.commands.mct.team.score.add;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
@@ -44,7 +45,7 @@ public class ScoreAddPlayerSubCommand extends TabSubCommand {
                         .append(Component.text(" is not a participant")));
             } else {
                 String teamId = gameManager.getOfflineIGNTeamId(playerName);
-                NamedTextColor teamColor = gameManager.getTeamColor(teamId);
+                TextColor teamColor = gameManager.getTeamColor(teamId);
                 return CommandResult.failure(Component.empty()
                         .append(Component.text("Can't change the score of "))
                         .append(Component.text(playerName)

@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.event.states;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
@@ -103,7 +104,7 @@ public class PlayingColossalCombatState extends PlayingGameState {
             context.setState(new ToPodiumDelayState(context));
             return;
         }
-        NamedTextColor teamColor = gameManager.getTeamColor(winningTeam);
+        TextColor teamColor = gameManager.getTeamColor(winningTeam);
         Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(winningTeam);
         Component message = Component.empty()
                 .append(formattedTeamDisplayName)

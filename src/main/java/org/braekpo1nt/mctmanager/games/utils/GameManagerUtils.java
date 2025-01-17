@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
@@ -111,7 +112,7 @@ public class GameManagerUtils {
         
         for (String team : sortedTeams) {
             int teamScore = gameManager.getScore(team);
-            NamedTextColor teamNamedTextColor = gameManager.getTeamColor(team);
+            TextColor teamNamedTextColor = gameManager.getTeamColor(team);
             messageBuilder.append(Component.empty()
                             .append(gameManager.getFormattedTeamDisplayName(team))
                             .append(Component.text(" - "))
@@ -292,7 +293,7 @@ public class GameManagerUtils {
             if (gameManager.isOfflineIGN(ign)) {
                 String oldTeamId = gameManager.getOfflineIGNTeamId(ign);
                 if (oldTeamId != null && oldTeamId.equals(teamId)) {
-                    NamedTextColor teamColor = gameManager.getTeamColor(teamId);
+                    TextColor teamColor = gameManager.getTeamColor(teamId);
                     return CommandResult.success(Component.empty()
                             .append(Component.text(ign)
                                     .color(teamColor))

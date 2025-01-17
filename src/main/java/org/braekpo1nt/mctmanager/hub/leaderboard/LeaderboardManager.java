@@ -5,6 +5,7 @@ import eu.decentsoftware.holograms.api.holograms.Hologram;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -114,7 +115,7 @@ public class LeaderboardManager {
                 }
             }
             String teamId = gameManager.getTeamId(uuid);
-            NamedTextColor teamColor = gameManager.getTeamColor(teamId);
+            TextColor teamColor = gameManager.getTeamColor(teamId);
             int score = gameManager.getScore(uuid);
             standings.add(new Standing(uuid, placement, teamColor, name, score));
         }
@@ -145,7 +146,7 @@ public class LeaderboardManager {
     static class Standing {
         private final @NotNull UUID uuid;
         private final int placement;
-        private final NamedTextColor teamColor;
+        private final TextColor teamColor;
         private final @NotNull String ign;
         private final int score;
         

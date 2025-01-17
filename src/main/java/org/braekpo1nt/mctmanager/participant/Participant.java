@@ -258,4 +258,11 @@ public class Participant extends AudienceDelegate {
     public void sendMessage(@NotNull String message) {
         player.sendMessage(message);
     }
+    
+    /**
+     * Delegate for {@link Player#getOpenInventory()}
+     */
+    public @NotNull InventoryView getOpenInventory() {
+        return player.getOpenInventory();
+    }
 }

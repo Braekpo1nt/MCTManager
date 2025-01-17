@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.survivalgames.states;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
@@ -41,7 +42,7 @@ public class DescriptionState implements SurvivalGamesState {
         context.getDeadPlayers().remove(participant.getUniqueId());
         String teamId = participant.getTeamId();
         if (!context.getLivingMembers().containsKey(teamId)) {
-            NamedTextColor color = context.getGameManager().getTeamColor(teamId);
+            TextColor color = context.getGameManager().getTeamColor(teamId);
             context.getTopbar().addTeam(teamId, color);
         }
         initializeParticipant(participant);

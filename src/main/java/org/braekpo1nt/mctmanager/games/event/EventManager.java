@@ -4,6 +4,7 @@ import lombok.Data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -368,7 +369,7 @@ public class EventManager implements Listener {
                 .color(NamedTextColor.YELLOW);
         for (String teamId : teamIds) {
             int teamScoreToSubtract = scoreKeeper.getScore(teamId);
-            NamedTextColor teamColor = gameManager.getTeamColor(teamId);
+            TextColor teamColor = gameManager.getTeamColor(teamId);
             Component displayName = gameManager.getFormattedTeamDisplayName(teamId);
             reportBuilder.append(Component.text("|  - "))
                     .append(displayName)

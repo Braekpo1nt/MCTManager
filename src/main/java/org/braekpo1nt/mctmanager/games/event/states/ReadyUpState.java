@@ -6,6 +6,7 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
@@ -75,7 +76,7 @@ public class ReadyUpState implements EventState {
         }
     
         for (String teamId : teamIds) {
-            NamedTextColor teamColor = gameManager.getTeamColor(teamId);
+            TextColor teamColor = gameManager.getTeamColor(teamId);
             topbar.addTeam(teamId, teamColor);
             if (readyUpManager.teamIsReady(teamId)) {
                 topbar.setReadyCount(teamId, -1);
@@ -294,7 +295,7 @@ public class ReadyUpState implements EventState {
             if (teamId == null) {
                 displayName = Component.text(ign);
             } else {
-                NamedTextColor color = gameManager.getTeamColor(teamId);
+                TextColor color = gameManager.getTeamColor(teamId);
                 displayName = Component.text(ign, color);
             }
             

@@ -4,6 +4,7 @@ import lombok.Data;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
@@ -220,7 +221,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     
     private void setUpTopbarTeams(List<String> newTeamIds) {
         for (String teamId : newTeamIds) {
-            NamedTextColor color = gameManager.getTeamColor(teamId);
+            TextColor color = gameManager.getTeamColor(teamId);
             topbar.addTeam(teamId, color);
         }
     }

@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.commands.mct.score.player;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
@@ -67,7 +68,7 @@ public class ScorePlayerSubCommand extends TabSubCommand {
             displayName = player.displayName();
         } else {
             String team = gameManager.getTeamId(uuid);
-            NamedTextColor teamColor = gameManager.getTeamColor(team);
+            TextColor teamColor = gameManager.getTeamColor(team);
             displayName = Component.text(playerName).color(teamColor);
         }
         return CommandResult.success(Component.empty()
@@ -88,7 +89,7 @@ public class ScorePlayerSubCommand extends TabSubCommand {
         for (OfflinePlayer participant : sortedOfflinePlayers) {
             String ign = gameManager.getOfflineParticipantIGN(participant);
             String teamId = gameManager.getTeamId(participant.getUniqueId());
-            NamedTextColor color = gameManager.getTeamColor(teamId);
+            TextColor color = gameManager.getTeamColor(teamId);
             Component displayName = Component.text(ign, color);
             int score = gameManager.getScore(participant.getUniqueId());
             builder.append(Component.empty()

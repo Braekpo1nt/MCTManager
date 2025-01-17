@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag.states;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
@@ -90,8 +91,8 @@ public class PreRoundState implements CaptureTheFlagState {
         List<MatchPairing> roundMatchPairings = roundManager.getCurrentRound();
         topbar.removeAllTeamPairs();
         for (MatchPairing mp : roundMatchPairings) {
-            NamedTextColor northColor = gameManager.getTeamColor(mp.northTeam());
-            NamedTextColor southColor = gameManager.getTeamColor(mp.southTeam());
+            TextColor northColor = gameManager.getTeamColor(mp.northTeam());
+            TextColor southColor = gameManager.getTeamColor(mp.southTeam());
             topbar.addTeam(mp.northTeam(), northColor);
             topbar.addTeam(mp.southTeam(), southColor);
             topbar.linkTeamPair(mp.northTeam(), mp.southTeam());

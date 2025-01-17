@@ -7,6 +7,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.utils.AudienceDelegate;
+import org.bukkit.Color;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -28,10 +29,15 @@ public class Team extends AudienceDelegate {
     @Getter
     protected final @NotNull String displayName;
     /**
-     * The color associated with the team
+     * The {@link TextColor} color associated with the team
      */
     @Getter
     protected final @NotNull TextColor color;
+    /**
+     * The {@link Color} associated with the team
+     */
+    @Getter
+    protected final @NotNull Color bukkitColor;
     /**
      * The formatted display name of the team for use in chat messages.
      * The {@link #displayName} in {@link #color} and bold.
@@ -60,6 +66,7 @@ public class Team extends AudienceDelegate {
         this.teamId = teamId;
         this.displayName = displayName;
         this.color = color;
+        this.bukkitColor = Color.fromARGB(255, color.red(), color.green(), color.blue());
         this.formattedDisplayName = Component.text(displayName, color, TextDecoration.BOLD);
         this.members = members;
     }
