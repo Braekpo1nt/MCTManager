@@ -13,6 +13,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states.CaptureT
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states.ClassSelectionState;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
@@ -29,7 +30,6 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,6 +54,9 @@ public class CaptureTheFlagMatch {
     private final Sidebar adminSidebar;
     private final ClassPicker northClassPicker;
     private final ClassPicker southClassPicker;
+    // TODO: Use teams more completely
+    private Team northTeam;
+    private Team southTeam;
     private final Map<UUID, Participant> northParticipants = new HashMap<>();
     private final Map<UUID, Participant> southParticipants = new HashMap<>();
     private final Map<UUID, Participant> allParticipants = new HashMap<>();
@@ -98,9 +101,11 @@ public class CaptureTheFlagMatch {
         state.nextState();
     }
     
-    public void start(Collection<Participant> newParticipants) {
+    public void start(Team northTeam, Team southTeam, Collection<Participant> newParticipants) {
         placeFlags();
         closeGlassBarriers();
+        this.northTeam = northTeam;
+        this.southTeam = southTeam;
         for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -213,13 +218,13 @@ public class CaptureTheFlagMatch {
      */
     private void setupTeamOptions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
-        for (Team team : mctScoreboard.getTeams()) {
+        for (org.bukkit.scoreboard.Team team : mctScoreboard.getTeams()) {
             if (team.getName().matches(matchPairing.northTeam()) || team.getName().matches(matchPairing.southTeam())) {
                 team.setAllowFriendlyFire(false);
                 team.setCanSeeFriendlyInvisibles(true);
-                team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
-                team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
-                team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
+                team.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+                team.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+                team.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.NEVER);
             }
         }
     }
@@ -234,6 +239,8 @@ public class CaptureTheFlagMatch {
         for (Participant participant : allParticipants.values()) {
             resetParticipant(participant);
         }
+        northTeam = null;
+        southTeam = null;
         allParticipants.clear();
         northParticipants.clear();
         southParticipants.clear();

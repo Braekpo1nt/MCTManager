@@ -93,6 +93,14 @@ public class Team extends AudienceDelegate {
     }
     
     /**
+     * @param teams the map of Teams to get the teamIds of
+     * @return a list of all the teamIds of the given map's values
+     */
+    public static List<String> toTeamIds(Map<String, Team> teams) {
+        return toTeamIds(teams.values());
+    }
+    
+    /**
      * @param teams the Teams to get the teamIds of
      * @return a list of all the teamIds of the given teams
      */

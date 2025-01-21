@@ -4,18 +4,17 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.MatchPairing;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.RoundManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
-import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -31,7 +30,6 @@ import java.util.Map;
 public class RoundActiveState implements CaptureTheFlagState {
     
     private final CaptureTheFlagGame context;
-    private final GameManager gameManager;
     private final RoundManager roundManger;
     private final Map<MatchPairing, CaptureTheFlagMatch> matches;
     private final Timer classSelectionTimer;
@@ -40,7 +38,6 @@ public class RoundActiveState implements CaptureTheFlagState {
     
     public RoundActiveState(CaptureTheFlagGame context) {
         this.context = context;
-        this.gameManager = context.getGameManager();
         this.roundManger = context.getRoundManager();
         
         List<MatchPairing> currentRound = roundManger.getCurrentRound();
@@ -70,7 +67,9 @@ public class RoundActiveState implements CaptureTheFlagState {
         for (MatchPairing matchPairing : currentRound) {
             CaptureTheFlagMatch match = matches.get(matchPairing);
             List<Participant> newParticipants = matchParticipants.get(matchPairing);
-            match.start(newParticipants);
+            Team northTeam = context.getTeams().get(matchPairing.northTeam());
+            Team southTeam = context.getTeams().get(matchPairing.southTeam());
+            match.start(northTeam, southTeam, newParticipants);
         }
         
         classSelectionTimer = context.getTimerManager().start(Timer.builder()
@@ -156,23 +155,27 @@ public class RoundActiveState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
-        context.initializeParticipant(participant);
-        String teamId = participant.getTeamId();
-        if (!context.getRoundManager().containsTeamId(teamId)) {
-            List<String> teamIds = Participant.getTeamIds(context.getParticipants().values());
-            context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
+    public void onTeamJoin(Team team) {
+        if (!context.getTeams().containsKey(team.getTeamId())) {
+            context.getRoundManager().regenerateRounds(Team.toTeamIds(context.getTeams()),
+                    context.getConfig().getArenas().size());
         }
         context.updateRoundLine();
+        context.getTeams().put(team.getTeamId(), team);
+    }
+    
+    @Override
+    public void onParticipantJoin(Participant participant) {
+        context.initializeParticipant(participant);
+        Team team = context.getTeams().get(participant.getTeamId());
         participant.setGameMode(GameMode.ADVENTURE);
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
-        CaptureTheFlagMatch match = getMatch(teamId);
+        CaptureTheFlagMatch match = getMatch(team.getTeamId());
         if (match == null) {
-            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
             initializeOnDeckParticipant(participant);
             participant.sendMessage(Component.empty()
-                    .append(teamDisplayName)
+                    .append(team.getFormattedDisplayName())
                     .append(Component.text(" is on-deck this round."))
                     .color(NamedTextColor.YELLOW));
             Component roundDisplay = Component.empty()
@@ -182,7 +185,7 @@ public class RoundActiveState implements CaptureTheFlagState {
             participant.showTitle(UIUtils.defaultTitle(
                     roundDisplay,
                     Component.empty()
-                            .append(teamDisplayName)
+                            .append(team.getFormattedDisplayName())
                             .append(Component.text(" is on-deck"))));
         } else {
             match.onParticipantJoin(participant);

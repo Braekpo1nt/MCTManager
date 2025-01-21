@@ -133,7 +133,9 @@ public class RoundManager {
     /**
      * @param teamId the teamId to check for
      * @return true if the given teamId is contained in this {@link RoundManager}, false otherwise
+     * @deprecated in favor of checking if the team exists in the {@link CaptureTheFlagGame#getTeams()}
      */
+    @Deprecated
     public boolean containsTeamId(String teamId) {
         return containedTeamIds.contains(teamId);
     }

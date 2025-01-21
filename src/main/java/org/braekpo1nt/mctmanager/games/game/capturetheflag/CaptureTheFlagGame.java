@@ -62,6 +62,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private Sidebar adminSidebar;
     private CaptureTheFlagConfigController configController;
     private CaptureTheFlagConfig config;
+    private Map<String, Team> teams = new HashMap<>();
     private Map<UUID, Participant> participants = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     private Map<UUID, Integer> killCount = new HashMap<>();
@@ -109,6 +110,10 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
+        teams = new HashMap<>(newTeams.size());
+        for (Team team : newTeams) {
+            teams.put(team.getTeamId(), team);
+        }
         participants = new HashMap<>(newParticipants.size());
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
@@ -181,6 +186,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             resetParticipant(participant);
         }
         participants.clear();
+        teams.clear();
         stopAdmins();
         clearSidebar();
         state = null;
@@ -189,7 +195,15 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public void onParticipantJoin(Team team, Participant participant) {
+    public void onTeamJoin(Team team) {
+        if (state == null) {
+            return;
+        }
+        state.onTeamJoin(team);
+    }
+    
+    @Override
+    public void onParticipantJoin(Participant participant) {
         if (state == null) {
             return;
         }

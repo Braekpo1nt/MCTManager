@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
@@ -38,13 +39,18 @@ public class DescriptionState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
-        initializeParticipant(participant);
-        if (!context.getRoundManager().containsTeamId(participant.getTeamId())) {
-            List<String> teamIds = Participant.getTeamIds(context.getParticipants().values());
-            context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
+    public void onTeamJoin(Team team) {
+        if (!context.getTeams().containsKey(team.getTeamId())) {
+            context.getRoundManager().regenerateRounds(Team.toTeamIds(context.getTeams()), 
+                    context.getConfig().getArenas().size());
         }
         context.updateRoundLine();
+        context.getTeams().put(team.getTeamId(), team);
+    }
+    
+    @Override
+    public void onParticipantJoin(Participant participant) {
+        initializeParticipant(participant);
     }
     
     private void initializeParticipant(Participant participant) {

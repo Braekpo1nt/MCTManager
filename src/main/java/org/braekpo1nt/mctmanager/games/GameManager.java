@@ -413,7 +413,8 @@ public class GameManager implements Listener {
         hubManager.onParticipantJoin(participant);
         if (gameIsRunning()) {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
-            activeGame.onParticipantJoin(team, participant);
+            activeGame.onTeamJoin(team);
+            activeGame.onParticipantJoin(participant);
         } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
             eventManager.onParticipantJoin(participant);
@@ -1307,6 +1308,12 @@ public class GameManager implements Listener {
         return Participant.getParticipantsOnTeam(onlineParticipants.values(), teamId);
     }
     
+    /**
+     * @param teamId the team to get the members of
+     * @return the UUIDs of the players on that team
+     * @deprecated in favor of {@link Team#getMemberUUIDs()}
+     */
+    @Deprecated
     public List<UUID> getParticipantUUIDsOnTeam(String teamId) {
         return gameStateStorageUtil.getParticipantUUIDsOnTeam(teamId);
     }
@@ -1410,8 +1417,10 @@ public class GameManager implements Listener {
      * @param participantUUID The UUID of the participant to find the team of
      * @return The teamId of the player with the given UUID
      * @throws IllegalStateException if the {@link GameStateStorageUtil} doesn't contain the given UUID
+     * @deprecated in favor of {@link Participant#getTeamId()}
      */
     @Contract("null -> null")
+    @Deprecated
     public String getTeamId(UUID participantUUID) {
         String teamId = gameStateStorageUtil.getPlayerTeamId(participantUUID);
         if (teamId == null) {

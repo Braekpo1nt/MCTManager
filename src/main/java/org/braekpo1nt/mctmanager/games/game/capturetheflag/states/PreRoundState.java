@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.MatchPairing;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.RoundManager;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
@@ -114,13 +115,18 @@ public class PreRoundState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
-        context.initializeParticipant(participant);
-        if (!context.getRoundManager().containsTeamId(participant.getTeamId())) {
-            List<String> teamIds = Participant.getTeamIds(context.getParticipants());
-            context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
+    public void onTeamJoin(Team team) {
+        if (!context.getTeams().containsKey(team.getTeamId())) {
+            context.getRoundManager().regenerateRounds(Team.toTeamIds(context.getTeams()),
+                    context.getConfig().getArenas().size());
         }
         context.updateRoundLine();
+        context.getTeams().put(team.getTeamId(), team);
+    }
+    
+    @Override
+    public void onParticipantJoin(Participant participant) {
+        context.initializeParticipant(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
