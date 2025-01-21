@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
@@ -17,7 +18,6 @@ import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -27,7 +27,6 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,6 +43,7 @@ public class ClockworkRound implements Listener {
     private ClockworkConfig config;
     private final ChaosManager chaosManager;
     private final int roundNumber;
+    private Map<String, Team> teams = new HashMap<>();
     private Map<UUID, Participant> participants = new HashMap<>();
     private Map<UUID, Boolean> participantsAreAlive = new HashMap<>();
     private Map<String, Integer> teamsLivingMembers = new HashMap<>();
@@ -85,7 +85,11 @@ public class ClockworkRound implements Listener {
         return roundActive;
     }
     
-    public void start(Collection<Participant> newParticipants) {
+    public void start(Collection<Team> newTeams, Collection<Participant> newParticipants) {
+        this.teams = new HashMap<>(newTeams.size());
+        for (Team team : newTeams) {
+            teams.put(team.getTeamId(), team);
+        }
         this.participants = new HashMap<>(newParticipants.size());
         this.participantsAreAlive = new HashMap<>(newParticipants.size());
         this.teamsLivingMembers = new HashMap<>();
@@ -189,6 +193,10 @@ public class ClockworkRound implements Listener {
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
+    public void onTeamJoin(Team team) {
+        teams.put(team.getTeamId(), team);
+    }
+    
     public void onParticipantJoin(Participant participant) {
         if (participantShouldRejoin(participant)) {
             rejoinParticipant(participant);
@@ -286,8 +294,8 @@ public class ClockworkRound implements Listener {
                     mustStayOnWedge = false;
                     List<String> livingTeams = getLivingTeams();
                     if (livingTeams.size() == 1) {
-                        String winningTeam = livingTeams.getFirst();
-                        onTeamWinsRound(winningTeam);
+                        String winningTeamId = livingTeams.getFirst();
+                        onTeamWinsRound(teams.get(winningTeamId));
                     } else {
                         incrementChaos();
                         startBreatherDelay();
@@ -432,13 +440,13 @@ public class ClockworkRound implements Listener {
                             .color(NamedTextColor.GREEN));
                 }
             }
-            List<String> livingTeamIds = new ArrayList<>();
+            List<Team> livingTeams = new ArrayList<>();
             for (String teamId : allTeamIds) {
                 if (teamsLivingMembers.get(teamId) > 0 && !newlyKilledTeams.contains(teamId)) {
-                    livingTeamIds.add(teamId);
+                    livingTeams.add(teams.get(teamId));
                 }
             }
-            gameManager.awardPointsToTeams(livingTeamIds, config.getTeamEliminationScore());
+            gameManager.awardPointsToTeams(livingTeams, config.getTeamEliminationScore());
         }
         List<String> livingTeams = getLivingTeams();
         if (livingTeams.isEmpty()) {
@@ -447,6 +455,7 @@ public class ClockworkRound implements Listener {
     }
     
     private @NotNull List<String> getLivingTeams() {
+        // TODO: Teams replace this with a team attribute
         List<String> livingTeams = new ArrayList<>();
         for (Map.Entry<String, Integer> entry : teamsLivingMembers.entrySet()) {
             String team = entry.getKey();
@@ -464,18 +473,17 @@ public class ClockworkRound implements Listener {
         roundIsOver();
     }
     
-    private void onTeamWinsRound(String winningTeam) {
-        gameManager.awardPointsToTeam(winningTeam, config.getWinRoundScore());
-        Component teamDisplayName = gameManager.getFormattedTeamDisplayName(winningTeam);
+    private void onTeamWinsRound(Team winner) {
+        gameManager.awardPointsToTeam(winner, config.getWinRoundScore());
         for (Participant participant : participants.values()) {
-            if (participant.getTeamId().equals(winningTeam)) {
+            if (participant.getTeamId().equals(winner.getTeamId())) {
                 participant.sendMessage(Component.empty()
-                        .append(teamDisplayName)
+                        .append(winner.getFormattedDisplayName())
                         .append(Component.text(" wins this round!"))
                         .color(NamedTextColor.GREEN));
             } else {
                 participant.sendMessage(Component.empty()
-                        .append(teamDisplayName)
+                        .append(winner.getFormattedDisplayName())
                         .append(Component.text(" wins this round"))
                         .color(NamedTextColor.DARK_RED));
             }
@@ -485,19 +493,19 @@ public class ClockworkRound implements Listener {
     
     private void setupTeamOptions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
-        for (Team team : mctScoreboard.getTeams()) {
+        for (org.bukkit.scoreboard.Team team : mctScoreboard.getTeams()) {
             team.setAllowFriendlyFire(false);
             team.setCanSeeFriendlyInvisibles(true);
-            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.COLLISION_RULE, config.getCollisionRule());
+            team.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+            team.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+            team.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, config.getCollisionRule());
         }
     }
     
     private void turnOffCollisions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
-        for (Team team : mctScoreboard.getTeams()) {
-            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
+        for (org.bukkit.scoreboard.Team team : mctScoreboard.getTeams()) {
+            team.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.NEVER);
         }
     }
     
@@ -506,8 +514,8 @@ public class ClockworkRound implements Listener {
      */
     private void turnOnCollisions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
-        for (Team team : mctScoreboard.getTeams()) {
-            team.setOption(Team.Option.COLLISION_RULE, config.getCollisionRule());
+        for (org.bukkit.scoreboard.Team team : mctScoreboard.getTeams()) {
+            team.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, config.getCollisionRule());
         }
     }
     
