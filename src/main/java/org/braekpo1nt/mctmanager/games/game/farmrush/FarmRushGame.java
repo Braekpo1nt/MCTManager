@@ -4,7 +4,6 @@ import com.destroystokyo.paper.event.block.BlockDestroyEvent;
 import com.destroystokyo.paper.event.inventory.PrepareResultEvent;
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -106,31 +105,9 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     private final List<Player> admins = new ArrayList<>();
     private Sidebar sidebar;
     private Sidebar adminSidebar;
-    /**
-     * This list is maintained separately from the teams list, to maintain
-     * placement order when new teams join the game.
-     */
-    private @NotNull List<Arena> arenas = new ArrayList<>();
     private final Map<UUID, Participant> participants = new HashMap<>();
     private final Map<String, FarmRushTeam> teams = new HashMap<>();
     private @Nullable ItemStack materialBook;
-    
-    @Data
-    @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-    public static class FarmRushTeam {
-        @EqualsAndHashCode.Include
-        private final @NotNull String teamId;
-        private final @NotNull Component displayName;
-        private final @NotNull List<UUID> members = new ArrayList<>();
-        private final Arena arena;
-        private final List<Location> cropGrowers = new ArrayList<>();
-        /**
-         * keeps track of the total score accrued during this game. Used
-         * for checking if the players have surpassed the configured maxScore
-         * ({@link FarmRushConfig#getMaxScore()})
-         */
-        private int totalScore = 0;
-    }
     
     public FarmRushGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -155,16 +132,18 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         adminSidebar = gameManager.createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
-        List<String> teamIds = Participant.getTeamIds(newParticipants);
-        arenas = createArenas(teamIds);
+        List<String> teamIds = Team.getTeamIds(newTeams);
+        Map<String, Arena> arenas = createArenas(teamIds);
         materialBook = createMaterialBook();
         addRecipes();
-        for (int i = 0; i < teamIds.size(); i++) {
-            String teamId = teamIds.get(i);
-            Arena arena = arenas.get(i);
-            teams.put(teamId, new FarmRushTeam(teamId, gameManager.getFormattedTeamDisplayName(teamId), arena));
+        int arenaOrder = 0;
+        for (Team team : newTeams) {
+            Arena arena = arenas.get(team.getTeamId());
+            FarmRushTeam farmRushTeam = new FarmRushTeam(team, arena, arenaOrder);
+            arenaOrder++;
+            teams.put(farmRushTeam.getTeamId(), farmRushTeam);
         }
-        placeArenas(arenas);
+        placeArenas(arenas.values());
         for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -262,7 +241,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
      * such as the barrel for delivery
      * @param arenas the arenas to place copies of the schematic file on
      */
-    private void placeArenas(@NotNull List<Arena> arenas) {
+    private void placeArenas(@NotNull Collection<Arena> arenas) {
         if (config.shouldBuildArenas()) {
             File schematicFile = new File(plugin.getDataFolder(), config.getArenaFile());
             List<Vector> origins = arenas.stream().map(arena -> arena.getBounds().getMin()).toList();
@@ -321,12 +300,12 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         }
     }
     
-    private @NotNull List<Arena> createArenas(List<String> teamIds) {
-        List<Arena> arenas = new ArrayList<>(teamIds.size());
+    private @NotNull Map<String, Arena> createArenas(List<String> teamIds) {
+        Map<String, Arena> arenas = new HashMap<>(teamIds.size());
         Arena arena = config.getFirstArena();
         Vector offset = new Vector(arena.getBounds().getWidthX() + 1, 0, 0);
         for (int i = 0; i < teamIds.size(); i++) {
-            arenas.add(arena);
+            arenas.put(teamIds.get(i), arena);
             if (i < teamIds.size() - 1) {
                 arena = arena.offset(offset);
             }
@@ -334,29 +313,41 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         return arenas;
     }
     
-    /**
-     * Meant to be called by {@link FarmRushState#onParticipantJoin(Participant)}, not externally called
-     * Call to create a new {@link FarmRushTeam}, and a new {@link Arena} for that team.
-     * @param teamId the team who joined
-     */
-    public void onNewTeamJoin(String teamId) {
-        Arena arena;
-        if (arenas.isEmpty()) {
-            arena = config.getFirstArena();
+    @Override
+    public void onTeamJoin(Team team) {
+        if (teams.containsKey(team.getTeamId())) {
+            return;
+        }
+        Arena newArena;
+        FarmRushTeam lastInLine = getLastTeamInLine();
+        int newOrder;
+        if (lastInLine == null) {
+            newArena = config.getFirstArena();
+            newOrder = 0;
         } else {
             Vector offset = new Vector(config.getFirstArena().getBounds().getWidthX() + 1, 0, 0);
-            arena = arenas.getLast().offset(offset);
+            newArena = lastInLine.getArena().offset(offset);
+            newOrder = lastInLine.getArenaOrder() + 1;
         }
-        arenas.add(arena);
-        FarmRushTeam team = new FarmRushTeam(teamId, gameManager.getFormattedTeamDisplayName(teamId), arena);
-        teams.put(teamId, team);
-        placeArenas(Collections.singletonList(arena));
+        FarmRushTeam farmRushTeam = new FarmRushTeam(team, newArena, newOrder);
+        teams.put(farmRushTeam.getTeamId(), farmRushTeam);
+        placeArenas(Collections.singletonList(newArena));
+    }
+    
+    /**
+     * @return the team who is the last arena in the physical lineup of arenas
+     */
+    private @Nullable FarmRushTeam getLastTeamInLine() {
+        return teams.values().stream()
+                .max(Comparator.comparingInt(FarmRushTeam::getArenaOrder))
+                .orElse(null);
     }
     
     public void initializeParticipant(Participant participant) {
         participants.put(participant.getUniqueId(), participant);
         FarmRushTeam team = teams.get(participant.getTeamId());
-        team.getMembers().add(participant.getUniqueId());
+        team.addMember(participant.getUniqueId());
+        team.joinOnlineMember(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         sidebar.addPlayer(participant);
         ParticipantInitializer.clearInventory(participant);
@@ -409,7 +400,6 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         removeArenas(teams.values().stream().map(FarmRushTeam::getArena).toList());
         teams.clear();
         participants.clear();
-        arenas.clear();
         TopCommand.setEnabled(false);
         gameManager.gameIsOver();
         powerupManager.stop();

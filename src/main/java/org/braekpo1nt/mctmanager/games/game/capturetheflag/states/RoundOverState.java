@@ -40,7 +40,7 @@ public class RoundOverState implements CaptureTheFlagState {
     @Override
     public void onTeamJoin(Team team) {
         if (!context.getTeams().containsKey(team.getTeamId())) {
-            context.getRoundManager().regenerateRounds(Team.toTeamIds(context.getTeams()),
+            context.getRoundManager().regenerateRounds(Team.getTeamIds(context.getTeams()),
                     context.getConfig().getArenas().size());
         }
         context.updateRoundLine();

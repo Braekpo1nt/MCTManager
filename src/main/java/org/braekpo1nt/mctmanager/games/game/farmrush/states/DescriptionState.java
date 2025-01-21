@@ -41,11 +41,6 @@ public class DescriptionState implements FarmRushState {
     
     @Override
     public void onParticipantJoin(Participant player) {
-        String teamId = context.getGameManager().getTeamId(player.getUniqueId());
-        boolean brandNewTeam = !context.getTeams().containsKey(teamId);
-        if (brandNewTeam) {
-            context.onNewTeamJoin(teamId);
-        }
         context.initializeParticipant(player);
         context.getSidebar().updateLine(player.getUniqueId(), "title", context.getTitle());
         player.sendMessage(context.getConfig().getDescription());
@@ -55,7 +50,7 @@ public class DescriptionState implements FarmRushState {
     public void onParticipantQuit(Participant participant) {
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
-        context.getTeams().get(participant.getTeamId()).getMembers().remove(participant.getUniqueId());
+        context.getTeams().get(participant.getTeamId()).removeMember(participant.getUniqueId());
     }
     
     @Override

@@ -52,7 +52,7 @@ public class Team extends AudienceDelegate {
     /**
      * The Participants who are members of this team and are online
      */
-    protected final @NotNull Map<UUID, Participant> onlineMembers = new HashMap<>();
+    protected final @NotNull Map<UUID, Participant> onlineMembers;
     protected @NotNull Audience audience = Audience.empty();
     
     /**
@@ -69,6 +69,7 @@ public class Team extends AudienceDelegate {
         this.bukkitColor = Color.fromARGB(255, color.red(), color.green(), color.blue());
         this.formattedDisplayName = Component.text(displayName, color, TextDecoration.BOLD);
         this.members = members;
+        this.onlineMembers = new HashMap<>();
     }
     
     /**
@@ -92,19 +93,30 @@ public class Team extends AudienceDelegate {
         this(teamId, displayName, color, new HashSet<>());
     }
     
+    public Team(@NotNull Team team) {
+        this.teamId = team.teamId;
+        this.displayName = team.displayName;
+        this.color = team.color;
+        this.bukkitColor = team.bukkitColor;
+        this.formattedDisplayName = team.formattedDisplayName;
+        this.members = team.members;
+        this.onlineMembers = team.onlineMembers;
+        this.audience = team.audience;
+    }
+    
     /**
      * @param teams the map of Teams to get the teamIds of
      * @return a list of all the teamIds of the given map's values
      */
-    public static List<String> toTeamIds(Map<String, Team> teams) {
-        return toTeamIds(teams.values());
+    public static List<String> getTeamIds(Map<String, Team> teams) {
+        return getTeamIds(teams.values());
     }
     
     /**
      * @param teams the Teams to get the teamIds of
      * @return a list of all the teamIds of the given teams
      */
-    public static List<String> toTeamIds(Collection<Team> teams) {
+    public static List<String> getTeamIds(Collection<Team> teams) {
         return teams.stream().map(Team::getTeamId).toList();
     }
     

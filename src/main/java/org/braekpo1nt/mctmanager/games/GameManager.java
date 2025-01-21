@@ -1462,7 +1462,7 @@ public class GameManager implements Listener {
         Collection<Team> awardedTeams = getParticipantTeams(participants);
         if (activeGame != null) {
             eventManager.trackPointsParticipants(participants, points, activeGame.getType());
-            eventManager.trackPointsTeams(Team.toTeamIds(awardedTeams), multipliedPoints, activeGame.getType());
+            eventManager.trackPointsTeams(Team.getTeamIds(awardedTeams), multipliedPoints, activeGame.getType());
         }
         addScoreParticipants(participants, points);
         addScoreTeams(awardedTeams, multipliedPoints);
@@ -1518,7 +1518,7 @@ public class GameManager implements Listener {
         int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
         addScoreTeams(awardedTeams, multipliedPoints);
         if (activeGame != null) {
-            eventManager.trackPointsTeams(Team.toTeamIds(awardedTeams), multipliedPoints, activeGame.getType());
+            eventManager.trackPointsTeams(Team.getTeamIds(awardedTeams), multipliedPoints, activeGame.getType());
         }
         for (Team team : awardedTeams) {
             team.sendMessage(Component.text("+")
@@ -1720,7 +1720,7 @@ public class GameManager implements Listener {
      * @param score the score to add. Could be positive or negative.
      */
     private void addScoreTeams(Collection<Team> updateTeams, int score) {
-        List<String> teamIds = Team.toTeamIds(updateTeams);
+        List<String> teamIds = Team.getTeamIds(updateTeams);
         try {
             gameStateStorageUtil.addScoreTeams(teamIds, score);
             plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
