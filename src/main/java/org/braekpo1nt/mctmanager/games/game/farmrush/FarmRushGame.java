@@ -27,6 +27,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -111,12 +112,12 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
      */
     private @NotNull List<Arena> arenas = new ArrayList<>();
     private final Map<UUID, Participant> participants = new HashMap<>();
-    private final Map<String, Team> teams = new HashMap<>();
+    private final Map<String, FarmRushTeam> teams = new HashMap<>();
     private @Nullable ItemStack materialBook;
     
     @Data
     @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-    public static class Team {
+    public static class FarmRushTeam {
         @EqualsAndHashCode.Include
         private final @NotNull String teamId;
         private final @NotNull Component displayName;
@@ -149,7 +150,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     }
     
     @Override
-    public void start(Collection<org.braekpo1nt.mctmanager.participant.Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
+    public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -161,7 +162,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         for (int i = 0; i < teamIds.size(); i++) {
             String teamId = teamIds.get(i);
             Arena arena = arenas.get(i);
-            teams.put(teamId, new Team(teamId, gameManager.getFormattedTeamDisplayName(teamId), arena));
+            teams.put(teamId, new FarmRushTeam(teamId, gameManager.getFormattedTeamDisplayName(teamId), arena));
         }
         placeArenas(arenas);
         for (Participant participant : newParticipants) {
@@ -335,7 +336,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     
     /**
      * Meant to be called by {@link FarmRushState#onParticipantJoin(Participant)}, not externally called
-     * Call to create a new {@link Team}, and a new {@link Arena} for that team.
+     * Call to create a new {@link FarmRushTeam}, and a new {@link Arena} for that team.
      * @param teamId the team who joined
      */
     public void onNewTeamJoin(String teamId) {
@@ -347,14 +348,14 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             arena = arenas.getLast().offset(offset);
         }
         arenas.add(arena);
-        Team team = new Team(teamId, gameManager.getFormattedTeamDisplayName(teamId), arena);
+        FarmRushTeam team = new FarmRushTeam(teamId, gameManager.getFormattedTeamDisplayName(teamId), arena);
         teams.put(teamId, team);
         placeArenas(Collections.singletonList(arena));
     }
     
     public void initializeParticipant(Participant participant) {
         participants.put(participant.getUniqueId(), participant);
-        Team team = teams.get(participant.getTeamId());
+        FarmRushTeam team = teams.get(participant.getTeamId());
         team.getMembers().add(participant.getUniqueId());
         participant.setGameMode(GameMode.ADVENTURE);
         sidebar.addPlayer(participant);
@@ -405,7 +406,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             resetParticipant(participant);
         }
         clearSidebar();
-        removeArenas(teams.values().stream().map(Team::getArena).toList());
+        removeArenas(teams.values().stream().map(FarmRushTeam::getArena).toList());
         teams.clear();
         participants.clear();
         arenas.clear();
@@ -436,7 +437,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     }
     
     @Override
-    public void onParticipantJoin(org.braekpo1nt.mctmanager.participant.Team team, Participant participant) {
+    public void onParticipantJoin(Participant participant) {
         if (state == null) {
             return;
         }
@@ -554,7 +555,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     @EventHandler
     public void blockExplodeEvent(BlockExplodeEvent event) {
         event.blockList().removeIf(block -> {
-            for (Team team : teams.values()) {
+            for (FarmRushTeam team : teams.values()) {
                 Location delivery = team.getArena().getDelivery();
                 if (block.getLocation().equals(delivery)) {
                     return true;
@@ -568,7 +569,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     @EventHandler
     public void entityExplodeEvent(EntityExplodeEvent event) {
         event.blockList().removeIf(block -> {
-            for (Team team : teams.values()) {
+            for (FarmRushTeam team : teams.values()) {
                 Location delivery = team.getArena().getDelivery();
                 if (block.getLocation().equals(delivery)) {
                     return true;
@@ -591,7 +592,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         if (state == null) {
             return;
         }
-        for (Team team : teams.values()) {
+        for (FarmRushTeam team : teams.values()) {
             Location delivery = team.getArena().getDelivery();
             if (block.getLocation().equals(delivery)) {
                 event.setCancelled(true);
