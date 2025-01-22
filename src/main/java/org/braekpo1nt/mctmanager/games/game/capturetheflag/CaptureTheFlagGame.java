@@ -203,7 +203,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
         if (state == null) {
             return;
         }
@@ -214,7 +214,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantQuit(Participant participant, Team team) {
         if (state == null) {
             return;
         }

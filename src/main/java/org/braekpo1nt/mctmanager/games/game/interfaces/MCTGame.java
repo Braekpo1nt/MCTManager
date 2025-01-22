@@ -17,11 +17,8 @@ public interface MCTGame {
     GameType getType();
     void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins);
     void stop();
-    default void onTeamJoin(Team team) {
-        // do nothing
-    }
-    void onParticipantJoin(Participant participant);
-    void onParticipantQuit(Participant participant);
+    void onParticipantJoin(Participant participant, Team team);
+    void onParticipantQuit(Participant participant, Team team);
     
     void onAdminJoin(Player admin);
     void onAdminQuit(Player admin);

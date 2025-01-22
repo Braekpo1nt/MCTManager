@@ -295,7 +295,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
         if (!gameActive) {
             return;
         }
@@ -313,7 +313,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     }
     
     @Override
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantQuit(Participant participant, Team team) {
         if (!gameActive) {
             return;
         }

@@ -257,7 +257,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
         if (!gameActive) {
             return;
         }
@@ -278,7 +278,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     @Override
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantQuit(Participant participant, Team team) {
         if (!gameActive) {
             return;
         }
