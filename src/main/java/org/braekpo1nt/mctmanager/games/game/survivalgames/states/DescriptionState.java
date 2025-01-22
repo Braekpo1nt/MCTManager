@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
@@ -38,13 +39,17 @@ public class DescriptionState implements SurvivalGamesState {
     }
     
     @Override
+    public void onTeamJoin(Team team) {
+        if (!context.getTeams().containsKey(team.getTeamId())) {
+            context.createPlatformsAndTeleportTeams();
+            context.getTopbar().addTeam(team.getTeamId(), team.getColor());
+        }
+        context.getTeams().put(team.getTeamId(), team);
+    }
+    
+    @Override
     public void onParticipantJoin(Participant participant) {
         context.getDeadPlayers().remove(participant.getUniqueId());
-        String teamId = participant.getTeamId();
-        if (!context.getLivingMembers().containsKey(teamId)) {
-            TextColor color = context.getGameManager().getTeamColor(teamId);
-            context.getTopbar().addTeam(teamId, color);
-        }
         initializeParticipant(participant);
         context.createPlatformsAndTeleportTeams();
         context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
@@ -55,7 +60,7 @@ public class DescriptionState implements SurvivalGamesState {
     public void onParticipantQuit(Participant participant) {
         context.getParticipants().remove(participant.getUniqueId());
         UUID participantUUID = participant.getUniqueId();
-        String teamId = context.getGameManager().getTeamId(participantUUID);
+        String teamId = participant.getTeamId();
         Integer oldLivingMembers = context.getLivingMembers().get(teamId);
         if (oldLivingMembers != null) {
             context.getLivingMembers().put(teamId, Math.max(0, oldLivingMembers - 1));

@@ -1953,6 +1953,10 @@ public class GameManager implements Listener {
         return ColorMap.getStainedGlassColor(colorString);
     }
     
+    /**
+     * @deprecated in favor of {@link Team#getColor()}
+     */
+    @Deprecated
     public @NotNull TextColor getTeamColor(@NotNull String teamId) {
         Team team = teams.get(teamId);
         if (team == null) {

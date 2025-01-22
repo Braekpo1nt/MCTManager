@@ -1,10 +1,12 @@
 package org.braekpo1nt.mctmanager.games.game.survivalgames.states;
 
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
 public interface SurvivalGamesState {
+    void onTeamJoin(Team team);
     void onParticipantJoin(Participant participant);
     void onParticipantQuit(Participant participant);
     void initializeParticipant(Participant participant);

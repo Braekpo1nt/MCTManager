@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesCo
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -183,6 +184,11 @@ public class ActiveState implements SurvivalGamesState {
     }
     
     @Override
+    public void onTeamJoin(Team team) {
+        context.getTeams().put(team.getTeamId(), team);
+    }
+    
+    @Override
     public void onParticipantJoin(Participant participant) {
         if (participantShouldRejoin(participant)) {
             rejoinParticipant(participant);
@@ -339,13 +345,13 @@ public class ActiveState implements SurvivalGamesState {
         UUID killedUUID = killed.getUniqueId();
         killed.getInventory().clear();
         switchPlayerFromLivingToDead(killedUUID);
-        String teamId = gameManager.getTeamId(killedUUID);
+        String teamId = killed.getTeamId();
         int oldLivingMembers = context.getLivingMembers().get(teamId);
         context.getLivingMembers().put(teamId, oldLivingMembers - 1);
         addDeath(killedUUID);
         context.updateAliveCount(teamId);
         if (context.getLivingMembers().get(teamId) <= 0) {
-            onTeamDeath(teamId);
+            onTeamDeath(context.getTeams().get(teamId));
         }
     }
     
@@ -358,24 +364,22 @@ public class ActiveState implements SurvivalGamesState {
      * Call when all of a team's members are dead. 
      * @param deadTeam the team who just died
      */
-    private void onTeamDeath(String deadTeam) {
-        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(deadTeam);
+    private void onTeamDeath(Team deadTeam) {
         context.messageAllParticipants(Component.empty()
-                .append(formattedTeamDisplayName)
+                .append(deadTeam.getFormattedDisplayName())
                 .append(Component.text(" has been eliminated.")));
-        Component displayName = gameManager.getFormattedTeamDisplayName(deadTeam);
-        List<String> livingTeams = getLivingTeamIds();
+        List<Team> livingTeams = getLivingTeamIds();
         gameManager.awardPointsToTeams(livingTeams, config.getSurviveTeamScore());
         switch (livingTeams.size()) {
             case 2 -> {
                 plugin.getServer().sendMessage(Component.empty()
-                        .append(displayName)
+                        .append(deadTeam.getFormattedDisplayName())
                         .append(Component.text(" got third place!")));
                 gameManager.awardPointsToTeam(deadTeam, config.getThirdPlaceScore());
             }
             case 1 -> {
                 plugin.getServer().sendMessage(Component.empty()
-                        .append(displayName)
+                        .append(deadTeam.getFormattedDisplayName())
                         .append(Component.text(" got second place!")));
                 gameManager.awardPointsToTeam(deadTeam, config.getSecondPlaceScore());
                 onTeamWin(livingTeams.getFirst());
@@ -390,15 +394,17 @@ public class ActiveState implements SurvivalGamesState {
     /**
      * @return a list of the teamIds of the teams which are still alive (have at least 1 living member)
      */
-    private @NotNull List<String> getLivingTeamIds() {
+    private @NotNull List<Team> getLivingTeamIds() {
+        // TODO: Teams remove this in favor of teams storing their living members
         return context.getLivingMembers().entrySet().stream()
-                .filter(entry -> entry.getValue() > 0).map(Map.Entry::getKey).toList();
+                .filter(entry -> entry.getValue() > 0)
+                .map(Map.Entry::getKey)
+                .map(context.getTeams()::get).toList();
     }
     
-    private void onTeamWin(String winningTeam) {
-        Component displayName = gameManager.getFormattedTeamDisplayName(winningTeam);
+    private void onTeamWin(Team winningTeam) {
         plugin.getServer().sendMessage(Component.text("Team ")
-                .append(displayName)
+                .append(winningTeam.getFormattedDisplayName())
                 .append(Component.text(" wins!")));
         gameManager.awardPointsToTeam(winningTeam, config.getFirstPlaceScore());
         if (borderDelay != null) {

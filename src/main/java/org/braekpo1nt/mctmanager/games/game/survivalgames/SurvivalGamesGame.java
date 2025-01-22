@@ -75,6 +75,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     private Sidebar sidebar;
     private Sidebar adminSidebar;
     private SurvivalGamesConfig config;
+    public Map<String, Team> teams = new HashMap<>();
     public Map<UUID, Participant> participants = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     private WorldBorder worldBorder;
@@ -125,6 +126,10 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     
     @Override
     public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
+        this.teams = new HashMap<>(newTeams.size());
+        for (Team team : newTeams) {
+            teams.put(team.getTeamId(), team);
+        }
         this.participants = new HashMap<>(newParticipants.size());
         livingPlayers = new ArrayList<>(newParticipants.size());
         deadPlayers = new ArrayList<>();
@@ -179,8 +184,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     public void initializeGlowing(Participant participant) {
         for (Participant other : participants.values()) {
             if (!other.equals(participant)) {
-                String otherTeamId = gameManager.getTeamId(other.getUniqueId());
-                if (participant.getTeamId().equals(otherTeamId)) {
+                if (participant.getTeamId().equals(other.getTeamId())) {
                     glowManager.showGlowing(participant, other);
                     glowManager.showGlowing(other, participant);
                 }
@@ -246,6 +250,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         }
         clearSidebar();
         glowManager.clear();
+        teams.clear();
         participants.clear();
         livingPlayers.clear();
         deadPlayers.clear();
@@ -255,6 +260,13 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         gameManager.gameIsOver();
         state = null;
         Main.logger().info("Stopped Survival Games");
+    }
+    
+    @Override
+    public void onTeamJoin(Team team) {
+        if (state != null) {
+            state.onTeamJoin(team);
+        }
     }
     
     @Override
