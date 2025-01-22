@@ -9,9 +9,8 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
 public interface CaptureTheFlagState {
-    void onTeamJoin(Team team);
-    void onParticipantJoin(Participant participant);
-    void onParticipantQuit(Participant participant);
+    void onParticipantJoin(Participant participant, Team team);
+    void onParticipantQuit(Participant participant, Team team);
     default void stop() {
         // do nothing
     }

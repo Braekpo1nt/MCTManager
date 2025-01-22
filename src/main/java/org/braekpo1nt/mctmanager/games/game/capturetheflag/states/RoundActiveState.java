@@ -155,19 +155,14 @@ public class RoundActiveState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onTeamJoin(Team team) {
-        if (!context.getTeams().containsKey(team.getTeamId())) {
+    public void onParticipantJoin(Participant participant, Team team) {
+        boolean isBrandNew = context.getTeams().put(team.getTeamId(), team) == null;
+        if (isBrandNew) {
             context.getRoundManager().regenerateRounds(Team.getTeamIds(context.getTeams()),
                     context.getConfig().getArenas().size());
         }
         context.updateRoundLine();
-        context.getTeams().put(team.getTeamId(), team);
-    }
-    
-    @Override
-    public void onParticipantJoin(Participant participant) {
         context.initializeParticipant(participant);
-        Team team = context.getTeams().get(participant.getTeamId());
         participant.setGameMode(GameMode.ADVENTURE);
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
@@ -199,7 +194,7 @@ public class RoundActiveState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantQuit(Participant participant, Team team) {
         CaptureTheFlagMatch match = getMatch(participant.getTeamId());
         if (match == null) {
             participant.setGameMode(GameMode.ADVENTURE);
@@ -208,10 +203,12 @@ public class RoundActiveState implements CaptureTheFlagState {
         }
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
-        List<String> teamIds = Participant.getTeamIds(context.getParticipants());
-        if (!teamIds.contains(participant.getTeamId())) {
-            context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
+        if (team.getOnlineMembers().isEmpty()) {
+            context.getTeams().remove(team.getTeamId());
+            context.getRoundManager().regenerateRounds(Team.getTeamIds(context.getTeams()), context.getConfig().getArenas().size());
             context.updateRoundLine();
+        } else {
+            context.getTeams().put(team.getTeamId(), team);
         }
     }
     

@@ -39,19 +39,19 @@ public class GameOverState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onTeamJoin(Team team) {
+    public void onParticipantJoin(Participant participant, Team team) {
         // do nothing
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
-        // do nothing
-    }
-    
-    @Override
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantQuit(Participant participant, Team team) {
+        if (team.getOnlineMembers().isEmpty()) {
+            context.getTeams().remove(team.getTeamId());
+        } else {
+            context.getTeams().put(team.getTeamId(), team);
+        }
         context.resetParticipant(participant);
-        context.getParticipants().remove(participant);
+        context.getParticipants().remove(participant.getUniqueId());
     }
     
     @Override

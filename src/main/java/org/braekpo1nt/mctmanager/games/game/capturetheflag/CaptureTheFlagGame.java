@@ -195,19 +195,11 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public void onTeamJoin(Team team) {
-        if (state == null) {
-            return;
-        }
-        state.onTeamJoin(team);
-    }
-    
-    @Override
     public void onParticipantJoin(Participant participant, Team team) {
         if (state == null) {
             return;
         }
-        state.onParticipantJoin(participant);
+        state.onParticipantJoin(participant, team);
         if (sidebar != null) {
             sidebar.updateLine(participant.getUniqueId(), "title", title);
         }
@@ -221,7 +213,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (!participants.containsKey(participant.getUniqueId())) {
             return;
         }
-        state.onParticipantQuit(participant);
+        state.onParticipantQuit(participant, team);
     }
     
     @Override
