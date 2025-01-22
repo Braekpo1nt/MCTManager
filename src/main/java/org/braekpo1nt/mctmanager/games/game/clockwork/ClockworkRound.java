@@ -193,11 +193,8 @@ public class ClockworkRound implements Listener {
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
-    public void onTeamJoin(Team team) {
+    public void onParticipantJoin(Participant participant, Team team) {
         teams.put(team.getTeamId(), team);
-    }
-    
-    public void onParticipantJoin(Participant participant) {
         if (participantShouldRejoin(participant)) {
             rejoinParticipant(participant);
         } else {
@@ -205,12 +202,16 @@ public class ClockworkRound implements Listener {
         }
     }
     
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantQuit(Participant participant, Team team) {
         if (participantsAreAlive.get(participant.getUniqueId())) {
             killParticipants(Collections.singletonList(participant));
         }
         resetParticipant(participant);
         participants.remove(participant.getUniqueId());
+        // onTeamQuit
+        if (team.getOnlineMembers().isEmpty()) {
+            teams.remove(team.getTeamId());
+        }
     }
     
     private void cancelAllTasks() {

@@ -246,21 +246,11 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     @Override
-    public void onTeamJoin(Team team) {
-        teams.put(team.getTeamId(), team);
-        if (currentRoundIndex < rounds.size()) {
-            ClockworkRound currentRound = rounds.get(currentRoundIndex);
-            if (currentRound.isActive()) {
-                currentRound.onTeamJoin(team);
-            }
-        }
-    }
-    
-    @Override
     public void onParticipantJoin(Participant participant, Team team) {
         if (!gameActive) {
             return;
         }
+        teams.put(team.getTeamId(), team);
         initializeParticipant(participant);
         sidebar.updateLines(participant.getUniqueId(), 
                 new KeyLine("title", title),
@@ -272,7 +262,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         if (currentRoundIndex < rounds.size()) {
             ClockworkRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
-                currentRound.onParticipantJoin(participant);
+                currentRound.onParticipantJoin(participant, team);
             }
         }
     }
@@ -290,8 +280,12 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         if (currentRoundIndex < rounds.size()) {
             ClockworkRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
-                currentRound.onParticipantQuit(participant);
+                currentRound.onParticipantQuit(participant, team);
             }
+        }
+        // onTeamQuit
+        if (team.getOnlineMembers().isEmpty()) {
+            teams.remove(team.getTeamId());
         }
     }
     
