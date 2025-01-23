@@ -9,16 +9,19 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
 public interface CaptureTheFlagState {
-    void onParticipantJoin(Participant participant, Team team);
-    void onParticipantQuit(Participant participant, Team team);
+    void onTeamJoin(Team team);
+    void onParticipantJoin(Participant participant);
+    void onParticipantQuit(Participant participant);
+    void onTeamQuit(Team team);
+    
     default void stop() {
         // do nothing
     }
-    
     // event handlers
     void onPlayerDamage(EntityDamageEvent event);
     void onPlayerLoseHunger(FoodLevelChangeEvent event);
     void onClickInventory(InventoryClickEvent event);
+    
     default void onPlayerDeath(PlayerDeathEvent event) {
         // do nothing
     }

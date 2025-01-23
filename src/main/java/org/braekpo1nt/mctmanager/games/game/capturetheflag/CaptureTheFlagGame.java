@@ -133,6 +133,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     
     public void initializeParticipant(Participant participant) {
         participants.put(participant.getUniqueId(), participant);
+        teams.get(participant.getTeamId()).joinOnlineMember(participant);
         sidebar.addPlayer(participant);
         topbar.showPlayer(participant);
         killCount.putIfAbsent(participant.getUniqueId(), 0);
@@ -147,6 +148,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     public void resetParticipant(Participant participant) {
+        teams.get(participant.getTeamId()).quitOnlineMember(participant.getUniqueId());
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -195,11 +197,19 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
+    public void onTeamJoin(Team team) {
+        if (state == null) {
+            return;
+        }
+        state.onTeamJoin(team);
+    }
+    
+    @Override
     public void onParticipantJoin(Participant participant) {
         if (state == null) {
             return;
         }
-        state.onParticipantJoin(participant, team);
+        state.onParticipantJoin(participant);
         if (sidebar != null) {
             sidebar.updateLine(participant.getUniqueId(), "title", title);
         }
@@ -213,7 +223,15 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (!participants.containsKey(participant.getUniqueId())) {
             return;
         }
-        state.onParticipantQuit(participant, team);
+        state.onParticipantQuit(participant);
+    }
+    
+    @Override
+    public void onTeamQuit(Team team) {
+        if (state == null) {
+            return;
+        }
+        state.onTeamQuit(team);
     }
     
     @Override

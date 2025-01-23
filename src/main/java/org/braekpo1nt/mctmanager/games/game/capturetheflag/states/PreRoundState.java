@@ -115,13 +115,15 @@ public class PreRoundState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantJoin(Participant participant, Team team) {
-        boolean isBrandNew = context.getTeams().put(team.getTeamId(), team) == null;
-        if (isBrandNew) {
-            context.getRoundManager().regenerateRounds(Team.getTeamIds(context.getTeams()),
-                    context.getConfig().getArenas().size());
-        }
+    public void onTeamJoin(Team team) {
+        context.getTeams().put(team.getTeamId(), team);
+        context.getRoundManager().regenerateRounds(Team.getTeamIds(context.getTeams()),
+                context.getConfig().getArenas().size());
         context.updateRoundLine();
+    }
+    
+    @Override
+    public void onParticipantJoin(Participant participant) {
         context.initializeParticipant(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         participant.teleport(context.getConfig().getSpawnObservatory());
@@ -130,16 +132,16 @@ public class PreRoundState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantQuit(Participant participant, Team team) {
+    public void onParticipantQuit(Participant participant) {
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
-        if (team.getOnlineMembers().isEmpty()) {
-            context.getTeams().remove(team.getTeamId());
-            context.getRoundManager().regenerateRounds(Team.getTeamIds(context.getTeams()), context.getConfig().getArenas().size());
-            context.updateRoundLine();
-        } else {
-            context.getTeams().put(team.getTeamId(), team);
-        }
+    }
+    
+    @Override
+    public void onTeamQuit(Team team) {
+        context.getTeams().remove(team.getTeamId());
+        context.getRoundManager().regenerateRounds(Team.getTeamIds(context.getTeams()), context.getConfig().getArenas().size());
+        context.updateRoundLine();
     }
     
     @Override
