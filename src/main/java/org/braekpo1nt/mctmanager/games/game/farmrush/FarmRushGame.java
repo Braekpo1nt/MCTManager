@@ -427,7 +427,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     }
     
     @Override
-    public void onParticipantJoin(Participant participant, Team team) {
+    public void onParticipantJoin(Participant participant) {
         if (state == null) {
             return;
         }
@@ -435,7 +435,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     }
     
     @Override
-    public void onParticipantQuit(Participant player, Team team) {
+    public void onParticipantQuit(Participant player) {
         if (state == null) {
             return;
         }

@@ -330,7 +330,10 @@ public class GameManager implements Listener {
         team.quitOnlineMember(participant.getUniqueId());
         onlineParticipants.remove(participant.getUniqueId());
         if (gameIsRunning()) {
-            activeGame.onParticipantQuit(participant, team);
+            activeGame.onParticipantQuit(participant);
+            if (team.getOnlineMembers().isEmpty()) { // if there are no more online members of this team
+                activeGame.onTeamQuit(new Team(team));
+            }
         } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
             eventManager.onParticipantQuit(participant);
         } else if (voteManager.isVoting()) {
@@ -414,7 +417,10 @@ public class GameManager implements Listener {
         hubManager.onParticipantJoin(participant);
         if (gameIsRunning()) {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
-            activeGame.onParticipantJoin(participant, team);
+            if (team.getOnlineMembers().size() == 1) { // if this is the first participant of this team to be online
+                activeGame.onTeamJoin(new Team(team));
+            }
+            activeGame.onParticipantJoin(participant);
         } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
             eventManager.onParticipantJoin(participant);
