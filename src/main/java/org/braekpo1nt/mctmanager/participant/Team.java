@@ -176,9 +176,7 @@ public class Team extends AudienceDelegate {
     public boolean removeMembers(@NotNull Collection<UUID> uuids) {
         boolean changed = members.removeAll(uuids);
         if (changed) {
-            for (UUID uuid : uuids) {
-                quitOnlineMember(uuid);
-            }
+            quitOnlineMembers(uuids);
         }
         return changed;
     }
@@ -233,7 +231,24 @@ public class Team extends AudienceDelegate {
     public boolean quitOnlineMember(@NotNull UUID uuid) {
         boolean removed = onlineMembers.remove(uuid) != null;
         if (removed) {
-            audience = Audience.audience(onlineMembers.values());
+            audience = onlineMembers.isEmpty() ? Audience.empty() : Audience.audience(onlineMembers.values());
+        }
+        return removed;
+    }
+    
+    /**
+     * For when multiple Participants log off/quit/are removed who were previously online.
+     * 
+     * @param uuids the UUIDs of the previously online members
+     * @return true if any of the given UUIDs were those of previously online members of this team, false otherwise
+     */
+    public boolean quitOnlineMembers(@NotNull Collection<UUID> uuids) {
+        boolean removed = false;
+        for (UUID uuid : uuids) {
+            removed = removed || (onlineMembers.remove(uuid) != null);
+        }
+        if (removed) {
+            audience = onlineMembers.isEmpty() ? Audience.empty() : Audience.audience(onlineMembers.values());
         }
         return removed;
     }

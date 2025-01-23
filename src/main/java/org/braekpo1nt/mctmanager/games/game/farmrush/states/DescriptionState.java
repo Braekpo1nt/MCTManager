@@ -5,10 +5,15 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
+import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushTeam;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collections;
 
 public class DescriptionState implements FarmRushState {
     
@@ -37,6 +42,27 @@ public class DescriptionState implements FarmRushState {
                 .sidebarPrefix(Component.text("Starting soon: "))
                 .onCompletion(() -> context.setState(new StartingState(context)))
                 .build());
+    }
+    
+    @Override
+    public void onTeamJoin(Team team) {
+        if (context.getTeams().containsKey(team.getTeamId())) {
+            return;
+        }
+        Arena newArena;
+        FarmRushTeam lastInLine = context.getLastTeamInLine();
+        int newOrder;
+        if (lastInLine == null) {
+            newArena = context.getConfig().getFirstArena();
+            newOrder = 0;
+        } else {
+            Vector offset = new Vector(context.getConfig().getFirstArena().getBounds().getWidthX() + 1, 0, 0);
+            newArena = lastInLine.getArena().offset(offset);
+            newOrder = lastInLine.getArenaOrder() + 1;
+        }
+        FarmRushTeam farmRushTeam = new FarmRushTeam(team, newArena, newOrder);
+        context.getTeams().put(farmRushTeam.getTeamId(), farmRushTeam);
+        context.placeArenas(Collections.singletonList(newArena));
     }
     
     @Override

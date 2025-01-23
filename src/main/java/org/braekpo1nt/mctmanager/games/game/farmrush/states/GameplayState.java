@@ -2,10 +2,12 @@ package org.braekpo1nt.mctmanager.games.game.farmrush.states;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushTeam;
 import org.braekpo1nt.mctmanager.games.game.farmrush.ItemSale;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -19,6 +21,7 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -35,6 +38,27 @@ public abstract class GameplayState implements FarmRushState {
     public GameplayState(@NotNull FarmRushGame context) {
         this.context = context;
         this.gameManager = context.getGameManager();
+    }
+    
+    @Override
+    public void onTeamJoin(Team team) {
+        if (context.getTeams().containsKey(team.getTeamId())) {
+            return;
+        }
+        Arena newArena;
+        FarmRushTeam lastInLine = context.getLastTeamInLine();
+        int newOrder;
+        if (lastInLine == null) {
+            newArena = context.getConfig().getFirstArena();
+            newOrder = 0;
+        } else {
+            Vector offset = new Vector(context.getConfig().getFirstArena().getBounds().getWidthX() + 1, 0, 0);
+            newArena = lastInLine.getArena().offset(offset);
+            newOrder = lastInLine.getArenaOrder() + 1;
+        }
+        FarmRushTeam farmRushTeam = new FarmRushTeam(team, newArena, newOrder);
+        context.getTeams().put(farmRushTeam.getTeamId(), farmRushTeam);
+        context.placeArenas(Collections.singletonList(newArena));
     }
     
     @Override

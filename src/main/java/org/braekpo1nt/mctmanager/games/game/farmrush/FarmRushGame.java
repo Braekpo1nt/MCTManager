@@ -106,6 +106,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     private Sidebar sidebar;
     private Sidebar adminSidebar;
     private final Map<UUID, Participant> participants = new HashMap<>();
+    // TODO: Teams right now, we don't remove teams whose participants have left. Instead, we leave them in this list with no participants. When the team rejoins, we just use this existing one. Evaluate whether this is the best action for this task.
     private final Map<String, FarmRushTeam> teams = new HashMap<>();
     private @Nullable ItemStack materialBook;
     
@@ -241,7 +242,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
      * such as the barrel for delivery
      * @param arenas the arenas to place copies of the schematic file on
      */
-    private void placeArenas(@NotNull Collection<Arena> arenas) {
+    public void placeArenas(@NotNull Collection<Arena> arenas) {
         if (config.shouldBuildArenas()) {
             File schematicFile = new File(plugin.getDataFolder(), config.getArenaFile());
             List<Vector> origins = arenas.stream().map(arena -> arena.getBounds().getMin()).toList();
@@ -313,31 +314,10 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         return arenas;
     }
     
-    @Override
-    public void onTeamJoin(Team team) {
-        if (teams.containsKey(team.getTeamId())) {
-            return;
-        }
-        Arena newArena;
-        FarmRushTeam lastInLine = getLastTeamInLine();
-        int newOrder;
-        if (lastInLine == null) {
-            newArena = config.getFirstArena();
-            newOrder = 0;
-        } else {
-            Vector offset = new Vector(config.getFirstArena().getBounds().getWidthX() + 1, 0, 0);
-            newArena = lastInLine.getArena().offset(offset);
-            newOrder = lastInLine.getArenaOrder() + 1;
-        }
-        FarmRushTeam farmRushTeam = new FarmRushTeam(team, newArena, newOrder);
-        teams.put(farmRushTeam.getTeamId(), farmRushTeam);
-        placeArenas(Collections.singletonList(newArena));
-    }
-    
     /**
      * @return the team who is the last arena in the physical lineup of arenas
      */
-    private @Nullable FarmRushTeam getLastTeamInLine() {
+    public @Nullable FarmRushTeam getLastTeamInLine() {
         return teams.values().stream()
                 .max(Comparator.comparingInt(FarmRushTeam::getArenaOrder))
                 .orElse(null);
@@ -424,6 +404,14 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     
     private void cancelAllTasks() {
         timerManager.cancel();
+    }
+    
+    @Override
+    public void onTeamJoin(Team team) {
+        if (state == null) {
+            return;
+        }
+        state.onTeamJoin(team);
     }
     
     @Override
