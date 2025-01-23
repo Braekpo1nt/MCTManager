@@ -121,6 +121,14 @@ public class Team extends AudienceDelegate {
     }
     
     /**
+     * @param teams the collection of teams to deep copy
+     * @return a new collection containing a copie of each team in the given collection
+     */
+    public static Collection<Team> deepCopy(Collection<Team> teams) {
+        return teams.stream().map(Team::new).toList();
+    }
+    
+    /**
      * @return the audience including all online members
      * @see #onlineMembers
      */

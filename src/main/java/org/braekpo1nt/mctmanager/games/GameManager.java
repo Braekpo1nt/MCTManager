@@ -695,6 +695,7 @@ public class GameManager implements Listener {
             }
         }
         
+        // TODO: Team change this to get teams with online members
         Collection<Team> onlineTeams = getParticipantTeams(onlineParticipants.values());
         // make sure the player and team count requirements are met
         switch (gameType) {
@@ -724,7 +725,7 @@ public class GameManager implements Listener {
         }
         
         hubManager.removeParticipantsFromHub(onlineParticipants.values());
-        selectedGame.start(onlineTeams, onlineParticipants.values(), onlineAdmins);
+        selectedGame.start(Team.deepCopy(onlineTeams), onlineParticipants.values(), onlineAdmins);
         activeGame = selectedGame;
         updatePersonalScores(onlineParticipants.values());
         updateTeamScores(onlineTeams);

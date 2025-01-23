@@ -110,6 +110,7 @@ public class ClockworkRound implements Listener {
     }
     
     private void initializeParticipant(Participant participant) {
+        teams.get(participant.getTeamId()).joinOnlineMember(participant);
         participants.put(participant.getUniqueId(), participant);
         participantsAreAlive.put(participant.getUniqueId(), true);
         String team = participant.getTeamId();
@@ -188,13 +189,17 @@ public class ClockworkRound implements Listener {
     }
     
     private void resetParticipant(Participant participant) {
+        teams.get(participant.getTeamId()).quitOnlineMember(participant.getUniqueId());
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
-    public void onParticipantJoin(Participant participant, Team team) {
+    public void onTeamJoin(Team team) {
         teams.put(team.getTeamId(), team);
+    }
+    
+    public void onParticipantJoin(Participant participant) {
         if (participantShouldRejoin(participant)) {
             rejoinParticipant(participant);
         } else {
@@ -202,16 +207,16 @@ public class ClockworkRound implements Listener {
         }
     }
     
-    public void onParticipantQuit(Participant participant, Team team) {
+    public void onParticipantQuit(Participant participant) {
         if (participantsAreAlive.get(participant.getUniqueId())) {
             killParticipants(Collections.singletonList(participant));
         }
         resetParticipant(participant);
         participants.remove(participant.getUniqueId());
-        // onTeamQuit
-        if (team.getOnlineMembers().isEmpty()) {
-            teams.remove(team.getTeamId());
-        }
+    }
+    
+    public void onTeamQuit(Team team) {
+        teams.remove(team.getTeamId());
     }
     
     private void cancelAllTasks() {
