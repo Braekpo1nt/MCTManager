@@ -407,8 +407,8 @@ public class GameManager implements Listener {
      * @param participant the participant who joined
      */
     private void onParticipantJoin(@NotNull Participant participant) {
-        Main.logger().info(String.format("GameManager.onParticipantJoin %s, team %s, teams.size()=%d, onlineParticipants.size()=%d", 
-                participant.getName(), participant.getTeamId(), teams.size(), onlineParticipants.size()));
+        Main.logger().info(String.format("GameManager.onParticipantJoin %s, team %s, teams.size()=%d", 
+                participant.getName(), participant.getTeamId(), teams.size()));
         Team team = teams.get(participant.getTeamId());
         team.joinOnlineMember(participant);
         onlineParticipants.put(participant.getUniqueId(), participant);

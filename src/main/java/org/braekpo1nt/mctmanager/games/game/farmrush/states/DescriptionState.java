@@ -76,7 +76,7 @@ public class DescriptionState implements FarmRushState {
     public void onParticipantQuit(Participant participant) {
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
-        context.getTeams().get(participant.getTeamId()).removeMember(participant.getUniqueId());
+        context.getTeams().get(participant.getTeamId()).quitOnlineMember(participant.getUniqueId());
     }
     
     @Override

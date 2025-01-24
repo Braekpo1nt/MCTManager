@@ -6,6 +6,7 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.utils.AudienceDelegate;
 import org.bukkit.Color;
 import org.jetbrains.annotations.NotNull;
@@ -101,7 +102,7 @@ public class Team extends AudienceDelegate {
         this.bukkitColor = team.bukkitColor;
         this.formattedDisplayName = team.formattedDisplayName;
         this.members = team.members;
-        this.onlineMembers = team.onlineMembers;
+        this.onlineMembers = new HashMap<>(team.onlineMembers);
         this.audience = team.audience;
     }
     
@@ -214,10 +215,14 @@ public class Team extends AudienceDelegate {
      * (i.e. their UUID is already in this team and their teamId matches this team's)
      */
     public void joinOnlineMember(@NotNull Participant participant) {
-        if (!members.contains(participant.getUniqueId()) 
-                || !teamId.equals(participant.getTeamId())) {
-            throw new IllegalStateException(String.format("Can't join participant \"%s\" with UUID \"%s\" and teamId \"%s\" because they are not a member of this team",
-                    participant.getName(), participant.getUniqueId(), participant.getTeamId()));
+        if (!members.contains(participant.getUniqueId())) {
+            Main.logger().info(String.format("Members: size=%d, values=%s", members.size(), members));
+            throw new IllegalStateException(String.format("Can't join participant \"%s\" with UUID \"%s\" and teamId \"%s\" to team \"%s\" because they are not a member of this team",
+                    participant.getName(), participant.getUniqueId(), this.getTeamId(), participant.getTeamId()));
+        }
+        if (!teamId.equals(participant.getTeamId())) {
+            throw new IllegalStateException(String.format("Can't join participant \"%s\" with UUID \"%s\" and teamId \"%s\" to team \"%s\" because their teamId doesn't match",
+                    participant.getName(), participant.getUniqueId(), this.getTeamId(), participant.getTeamId()));
         }
         onlineMembers.put(participant.getUniqueId(), participant);
         audience = Audience.audience(onlineMembers.values());
