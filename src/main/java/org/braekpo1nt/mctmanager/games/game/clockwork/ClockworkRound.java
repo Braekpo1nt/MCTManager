@@ -430,7 +430,7 @@ public class ClockworkRound implements Listener {
         if (newlyKilledTeams.isEmpty()) {
             return;
         }
-        List<String> allTeamIds = Participant.getTeamIds(participants);
+        Set<String> allTeamIds = Participant.getTeamIds(participants);
         for (String newlyKilledTeam : newlyKilledTeams) {
             Component teamDisplayName = gameManager.getFormattedTeamDisplayName(newlyKilledTeam);
             for (Participant participant : participants.values()) {

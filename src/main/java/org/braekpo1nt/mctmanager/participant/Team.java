@@ -11,6 +11,7 @@ import org.bukkit.Color;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Represents a team of {@link Participant}s
@@ -106,18 +107,18 @@ public class Team extends AudienceDelegate {
     
     /**
      * @param teams the map of Teams to get the teamIds of
-     * @return a list of all the teamIds of the given map's values
+     * @return a set of all the teamIds of the given map's values
      */
-    public static List<String> getTeamIds(Map<String, Team> teams) {
+    public static Set<String> getTeamIds(Map<String, Team> teams) {
         return getTeamIds(teams.values());
     }
     
     /**
      * @param teams the Teams to get the teamIds of
-     * @return a list of all the teamIds of the given teams
+     * @return a set of all the teamIds of the given teams
      */
-    public static List<String> getTeamIds(Collection<Team> teams) {
-        return teams.stream().map(Team::getTeamId).toList();
+    public static Set<String> getTeamIds(Collection<Team> teams) {
+        return teams.stream().map(Team::getTeamId).collect(Collectors.toSet());
     }
     
     /**

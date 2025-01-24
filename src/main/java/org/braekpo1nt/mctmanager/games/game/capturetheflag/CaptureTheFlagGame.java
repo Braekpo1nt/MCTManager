@@ -117,7 +117,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         participants = new HashMap<>(newParticipants.size());
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
-        List<String> teamIds = Participant.getTeamIds(newParticipants);
+        Set<String> teamIds = Participant.getTeamIds(newParticipants);
         roundManager = new RoundManager(teamIds, config.getArenas().size());
         killCount = new HashMap<>(newParticipants.size());
         deathCount = new HashMap<>(newParticipants.size());
@@ -198,6 +198,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     
     @Override
     public void onTeamJoin(Team team) {
+        Main.logger().info("onTeamJoin " + team.getTeamId() + " - " + team.getOnlineMembers().size());
         if (state == null) {
             return;
         }
@@ -206,6 +207,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     
     @Override
     public void onParticipantJoin(Participant participant) {
+        Main.logger().info("onParticipantJoin " + participant.getName());
         if (state == null) {
             return;
         }
@@ -218,6 +220,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     
     @Override
     public void onParticipantQuit(Participant participant) {
+        Main.logger().info("onParticipantQuit " + participant.getName());
         if (state == null) {
             return;
         }
@@ -229,6 +232,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     
     @Override
     public void onTeamQuit(Team team) {
+        Main.logger().info("onTeamQuit " + team.getTeamId() + " - " + team.getOnlineMembers().size());
         if (state == null) {
             return;
         }

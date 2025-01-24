@@ -19,10 +19,8 @@ import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Represents a Participant. A participant is always a member of a {@link Team}.
@@ -43,7 +41,7 @@ public class Participant extends AudienceDelegate {
      * @param participants the participants map to get the list of teamIds from the values
      * @return the teamIds
      */
-    public static List<String> getTeamIds(Map<UUID, Participant> participants) {
+    public static Set<String> getTeamIds(Map<UUID, Participant> participants) {
         return getTeamIds(participants.values());
     }
     
@@ -51,8 +49,8 @@ public class Participant extends AudienceDelegate {
      * @param participants the participants list to get the list of teamIds from
      * @return the teamIds
      */
-    public static List<String> getTeamIds(Collection<Participant> participants) {
-        return participants.stream().map(Participant::getTeamId).toList();
+    public static Set<String> getTeamIds(Collection<Participant> participants) {
+        return participants.stream().map(Participant::getTeamId).collect(Collectors.toSet());
     }
     
     /**

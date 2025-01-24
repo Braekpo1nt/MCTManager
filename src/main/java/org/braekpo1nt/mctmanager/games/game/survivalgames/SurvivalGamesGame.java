@@ -139,7 +139,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         worldBorder = config.getWorld().getWorldBorder();
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
-        List<String> teams = Participant.getTeamIds(newParticipants);
+        Set<String> teams = Participant.getTeamIds(newParticipants);
         setUpTopbarTeams(teams);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         glowManager.registerListeners();
@@ -223,7 +223,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         glowManager.removePlayer(participant);
     }
     
-    private void setUpTopbarTeams(List<String> newTeamIds) {
+    private void setUpTopbarTeams(Set<String> newTeamIds) {
         for (String teamId : newTeamIds) {
             TextColor color = gameManager.getTeamColor(teamId);
             topbar.addTeam(teamId, color);
@@ -371,23 +371,23 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     }
     
     public void createPlatformsAndTeleportTeams() {
-        List<String> teams = Participant.getTeamIds(participants);
+        Set<String> teams = Participant.getTeamIds(participants);
         createPlatforms(teams);
         teleportTeams(teams);
     }
     
     /**
-     * Creates platforms for teams to spawn on made of a hollow rectangle of Barrier blocks where the bottom layer is Concrete that matches the color of the team
+     * Creates platforms for teamIds to spawn on made of a hollow rectangle of Barrier blocks where the bottom layer is Concrete that matches the color of the team
      * <br>
-     * For n teams and m platforms in storageUtil.getPlatformBarriers():<br>
+     * For n teamIds and m platforms in storageUtil.getPlatformBarriers():<br>
      * - place n platforms, but no more than m platforms
-     * @param teams the teams that will be teleported
+     * @param teamIds the teamIds that will be teleported
      */
-    private void createPlatforms(List<String> teams) {
+    private void createPlatforms(Set<String> teamIds) {
         List<BoundingBox> platformBarriers = config.getPlatformBarriers();
         World world = config.getWorld();
-        for (int i = 0; i < teams.size(); i++) {
-            String team = teams.get(i);
+        int i = 0;
+        for (String teamId : teamIds) {
             int platformIndex = MathUtils.wrapIndex(i, platformBarriers.size());
             BoundingBox barrierArea = platformBarriers.get(platformIndex);
             BoundingBox concreteArea = new BoundingBox(
@@ -397,25 +397,27 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
                     barrierArea.getMaxX()-1,
                     barrierArea.getMinY(),
                     barrierArea.getMaxZ()-1);
-            Material concreteColor = gameManager.getTeamConcreteColor(team);
+            Material concreteColor = gameManager.getTeamConcreteColor(teamId);
             BlockPlacementUtils.createHollowCube(world, barrierArea, Material.BARRIER);
             BlockPlacementUtils.createCube(world, concreteArea, concreteColor);
+            i++;
         }
     }
     
     /**
      * For n teams and m platforms in storageUtil.getPlatformBarriers():<br>
      * - teleport teams to their designated platforms. If n is greater than m, then it will start wrapping around and teleporting different teams to the same platforms, until all teams have a platform. 
-     * @param teams the teams to teleport (players will be selected from the participants list)
+     * @param teamIds the teams to teleport (players will be selected from the participants list)
      */
-    private void teleportTeams(List<String> teams) {
+    private void teleportTeams(Set<String> teamIds) {
         List<Location> platformSpawns = config.getPlatformSpawns();
-        Map<String, Location> teamSpawnLocations = new HashMap<>(teams.size());
-        for (int i = 0; i < teams.size(); i++) {
-            String team = teams.get(i);
+        Map<String, Location> teamSpawnLocations = new HashMap<>(teamIds.size());
+        int i = 0;
+        for (String teamId : teamIds) {
             int platformIndex = MathUtils.wrapIndex(i, platformSpawns.size());
             Location platformSpawn = platformSpawns.get(platformIndex);
-            teamSpawnLocations.put(team, platformSpawn);
+            teamSpawnLocations.put(teamId, platformSpawn);
+            i++;
         }
         for (Participant participant : participants.values()) {
             Location spawn = teamSpawnLocations.get(participant.getTeamId());

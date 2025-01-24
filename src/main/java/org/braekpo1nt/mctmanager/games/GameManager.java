@@ -64,6 +64,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Responsible for overall game management. 
@@ -406,6 +407,8 @@ public class GameManager implements Listener {
      * @param participant the participant who joined
      */
     private void onParticipantJoin(@NotNull Participant participant) {
+        Main.logger().info(String.format("GameManager.onParticipantJoin %s, team %s, teams.size()=%d, onlineParticipants.size()=%d", 
+                participant.getName(), participant.getTeamId(), teams.size(), onlineParticipants.size()));
         Team team = teams.get(participant.getTeamId());
         team.joinOnlineMember(participant);
         onlineParticipants.put(participant.getUniqueId(), participant);
@@ -697,6 +700,7 @@ public class GameManager implements Listener {
         
         // TODO: Team change this to get teams with online members
         Collection<Team> onlineTeams = getParticipantTeams(onlineParticipants.values());
+        Main.logger().info(String.format("GameManager.startGame(): onlineTeams.size()=%d, onlineParticipants.size()=%d", onlineTeams.size(), onlineParticipants.size()));
         // make sure the player and team count requirements are met
         switch (gameType) {
             case SURVIVAL_GAMES -> {
@@ -736,7 +740,7 @@ public class GameManager implements Listener {
      * @param participants the participants whose teams to retrieve
      * @return a set of the teams which the collective participants are members of
      */
-    public @NotNull Collection<Team> getParticipantTeams(@NotNull Collection<@NotNull Participant> participants) {
+    public @NotNull Set<Team> getParticipantTeams(@NotNull Collection<@NotNull Participant> participants) {
         return getTeams(Participant.getTeamIds(participants));
     }
     
@@ -744,8 +748,8 @@ public class GameManager implements Listener {
      * @param teamIds the teamIds of the teams to get. Ignores any invalid teamIds.
      * @return a collection of the {@link Team}s represented by the given teamIds
      */
-    public @NotNull Collection<Team> getTeams(@NotNull Collection<@NotNull String> teamIds) {
-        return teamIds.stream().map(teams::get).filter(Objects::nonNull).toList();
+    public @NotNull Set<Team> getTeams(@NotNull Collection<@NotNull String> teamIds) {
+        return teamIds.stream().map(teams::get).filter(Objects::nonNull).collect(Collectors.toSet());
     }
     
     /**
@@ -1335,6 +1339,7 @@ public class GameManager implements Listener {
         // TODO: Participant this is a good place to replace for OfflineParticipant, because you would have a reference to the teamId
         UUID playerUniqueId = offlinePlayer.getUniqueId();
         String teamId = gameStateStorageUtil.getPlayerTeamId(playerUniqueId);
+        Main.logger().info(String.format("leaveParticipant(%s) from %s", playerName, teamId));
         if (teamId == null) {
             sender.sendMessage(Component.empty()
                     .append(Component.text("Could not find team for UUID "))
@@ -1347,6 +1352,7 @@ public class GameManager implements Listener {
             return;
         }
         Team team = teams.get(teamId);
+        team.removeMember(offlinePlayer.getUniqueId());
         if (offlinePlayer.isOnline()) { // TODO: Team replace this check with `isOnlineMember()` or something
             Participant participant = onlineParticipants.get(offlinePlayer.getUniqueId());
             if (participant != null) {
@@ -1362,7 +1368,6 @@ public class GameManager implements Listener {
             sender.sendMessage(Component.text("error occurred leaving player, see console for details.")
                     .color(NamedTextColor.RED));
         }
-        team.removeMember(offlinePlayer.getUniqueId());
         hubManager.updateLeaderboards();
         tabList.leaveParticipant(playerUniqueId);
         sender.sendMessage(Component.text("Removed ")

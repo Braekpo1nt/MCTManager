@@ -139,7 +139,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         quitParticipantsSkips = new HashMap<>();
         currentPuzzleCheckpoints = new HashMap<>(newParticipants.size());
         finishedParticipants = new ArrayList<>();
-        List<String> teams = Participant.getTeamIds(newParticipants);
+        Set<String> teams = Participant.getTeamIds(newParticipants);
         teamSpawns = getTeamSpawns(teams);
         closeTeamSpawns();
         closeGlassBarrier();
@@ -301,7 +301,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
      * countdown is still going on
      */
     private void reSetUpTeamSpawns() {
-        List<String> teams = Participant.getTeamIds(participants);
+        Set<String> teams = Participant.getTeamIds(participants);
         teamSpawns = getTeamSpawns(teams);
         if (teamSpawns == null) {
             return;
@@ -451,21 +451,22 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     }
     
     /**
-     * @param teams the teams to get the spawns for. If there are more teams than spawns in the config, some teams will be in the same spawn.
+     * @param teamIds the teamIds to get the spawns for. If there are more teamIds than spawns in the config, some teamIds will be in the same spawn.
      * @return a map of teamIds to their {@link TeamSpawn}s. Null if the config never specified a list of {@link TeamSpawn}s.
      */
-    private @Nullable Map<String, @NotNull TeamSpawn> getTeamSpawns(@NotNull List<String> teams) {
+    private @Nullable Map<String, @NotNull TeamSpawn> getTeamSpawns(@NotNull Set<String> teamIds) {
         List<TeamSpawn> teamSpawns = config.getTeamSpawns();
         if (teamSpawns == null) {
             return null;
         }
-        Map<String, TeamSpawn> result = new HashMap<>(teams.size());
-        for (int i = 0; i < teams.size(); i++) {
-            String team = teams.get(i);
+        Map<String, TeamSpawn> result = new HashMap<>(teamIds.size());
+        int i = 0;
+        for (String teamId : teamIds) {
             int teamSpawnIndex = MathUtils.wrapIndex(i, teamSpawns.size());
             TeamSpawn teamSpawn = teamSpawns.get(teamSpawnIndex);
-            teamSpawn.setBarrierMaterial(gameManager.getTeamStainedGlassColor(team));
-            result.put(team, teamSpawn);
+            teamSpawn.setBarrierMaterial(gameManager.getTeamStainedGlassColor(teamId));
+            result.put(teamId, teamSpawn);
+            i++;
         }
         return result;
     }
