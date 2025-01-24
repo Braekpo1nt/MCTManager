@@ -49,6 +49,11 @@ public class GameOverState implements CaptureTheFlagState {
     }
     
     @Override
+    public void updateSidebar(Participant participant, CaptureTheFlagGame context) {
+        // do nothing
+    }
+    
+    @Override
     public void onParticipantQuit(Participant participant) {
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());

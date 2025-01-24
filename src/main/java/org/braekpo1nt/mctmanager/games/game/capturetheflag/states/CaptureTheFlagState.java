@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.states;
 
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -27,4 +28,9 @@ public interface CaptureTheFlagState {
     }
     
     void onPlayerMove(PlayerMoveEvent event);
+    
+    default void updateSidebar(Participant participant, CaptureTheFlagGame context) {
+        context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
+        context.updateRoundLine(participant.getUniqueId());
+    }
 }

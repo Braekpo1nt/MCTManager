@@ -212,10 +212,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             return;
         }
         state.onParticipantJoin(participant);
-        if (sidebar != null) {
-            sidebar.updateLine(participant.getUniqueId(), "title", title);
-            updateRoundLine(participant.getUniqueId());
-        }
+        state.updateSidebar(participant, this);
     }
     
     @Override
