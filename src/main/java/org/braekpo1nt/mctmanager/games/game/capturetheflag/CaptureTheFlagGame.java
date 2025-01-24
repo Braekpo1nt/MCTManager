@@ -212,6 +212,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         state.onParticipantJoin(participant);
         if (sidebar != null) {
             sidebar.updateLine(participant.getUniqueId(), "title", title);
+            updateRoundLine(participant.getUniqueId());
         }
     }
     
@@ -288,6 +289,16 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
                 new KeyLine("title", title),
                 new KeyLine("round", "")
         );
+    }
+    
+    public void updateRoundLine(UUID participantUUID) {
+        Component roundLine = Component.empty()
+                .append(Component.text("Round "))
+                .append(Component.text(roundManager.getPlayedRounds() + 1))
+                .append(Component.text("/"))
+                .append(Component.text(roundManager.getMaxRounds()))
+                ;
+        sidebar.updateLine(participantUUID, "round", roundLine);
     }
     
     public void updateRoundLine() {
