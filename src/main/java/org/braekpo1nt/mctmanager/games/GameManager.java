@@ -1732,7 +1732,7 @@ public class GameManager implements Listener {
      * @param score the score to add. Could be positive or negative.
      */
     private void addScoreTeams(Collection<Team> updateTeams, int score) {
-        List<String> teamIds = Team.getTeamIds(updateTeams);
+        Set<String> teamIds = Team.getTeamIds(updateTeams);
         try {
             gameStateStorageUtil.addScoreTeams(teamIds, score);
             plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->

@@ -133,7 +133,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         adminSidebar = gameManager.createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
-        List<String> teamIds = Team.getTeamIds(newTeams);
+        Set<String> teamIds = Team.getTeamIds(newTeams);
         Map<String, Arena> arenas = createArenas(teamIds);
         materialBook = createMaterialBook();
         addRecipes();
@@ -301,15 +301,17 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         }
     }
     
-    private @NotNull Map<String, Arena> createArenas(List<String> teamIds) {
+    private @NotNull Map<String, Arena> createArenas(Set<String> teamIds) {
         Map<String, Arena> arenas = new HashMap<>(teamIds.size());
         Arena arena = config.getFirstArena();
         Vector offset = new Vector(arena.getBounds().getWidthX() + 1, 0, 0);
-        for (int i = 0; i < teamIds.size(); i++) {
-            arenas.put(teamIds.get(i), arena);
+        int i = 0;
+        for (String teamId : teamIds) {
+            arenas.put(teamId, arena);
             if (i < teamIds.size() - 1) {
                 arena = arena.offset(offset);
             }
+            i++;
         }
         return arenas;
     }
