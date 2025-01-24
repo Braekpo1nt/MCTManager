@@ -143,7 +143,7 @@ public class Team extends AudienceDelegate {
      * Add a new member of this team
      * @param uuid the UUID of the new member
      */
-    public void addMember(@NotNull UUID uuid) {
+    public void joinMember(@NotNull UUID uuid) {
         members.add(uuid);
     }
     
@@ -151,18 +151,21 @@ public class Team extends AudienceDelegate {
      * Add multiple new members of this team
      * @param uuids the UUIDs of the new members
      */
-    public void addMembers(@NotNull Collection<UUID> uuids) {
+    public void joinMembers(@NotNull Collection<UUID> uuids) {
         members.addAll(uuids);
     }
     
     /**
      * Remove an old member of this team. If the member was also an online member, then it quits them
      * using {@link #quitOnlineMember(UUID)}.
+     * <br>
+     * Warning, this should not be used inside of games, only the GameManager.
+     * TODO: prevent users from accidentally leaving players from teams outside the GameManager
      * @param uuid the UUID of the old member
      * @return true if the given UUID was previously a member of this team 
      * (see {@link #isMember(UUID)}), false otherwise
      */
-    public boolean removeMember(@NotNull UUID uuid) {
+    public boolean leaveMember(@NotNull UUID uuid) {
         boolean removed = members.remove(uuid);
         if (removed) {
             quitOnlineMember(uuid);
@@ -172,10 +175,13 @@ public class Team extends AudienceDelegate {
     
     /**
      * Remove multiple old members of this team
+     * <br>
+     * Warning, this should not be used inside of games, only the GameManager.
+     * TODO: prevent users from accidentally leaving players from teams outside the GameManager
      * @param uuids the UUIDs of the members to remove from this team
      * @return true if any members were removed, false otherwise
      */
-    public boolean removeMembers(@NotNull Collection<UUID> uuids) {
+    public boolean leaveMembers(@NotNull Collection<UUID> uuids) {
         boolean changed = members.removeAll(uuids);
         if (changed) {
             quitOnlineMembers(uuids);
@@ -209,7 +215,7 @@ public class Team extends AudienceDelegate {
      * 
      * @param participant the participant who is an online member of this team. 
      *                    Their {@link Participant#getUniqueId()} must be in this team already 
-     *                    (see {@link #addMember(UUID)}) and their {@link Participant#getTeamId()} 
+     *                    (see {@link #joinMember(UUID)}) and their {@link Participant#getTeamId()} 
      *                    must match this team's {@link #getTeamId()}.
      * @throws IllegalStateException if the given participant is not a member of this team 
      * (i.e. their UUID is already in this team and their teamId matches this team's)

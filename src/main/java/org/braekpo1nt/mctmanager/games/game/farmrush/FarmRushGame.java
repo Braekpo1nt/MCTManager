@@ -328,7 +328,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     public void initializeParticipant(Participant participant) {
         participants.put(participant.getUniqueId(), participant);
         FarmRushTeam team = teams.get(participant.getTeamId());
-        team.addMember(participant.getUniqueId());
+        team.joinMember(participant.getUniqueId());
         team.joinOnlineMember(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         sidebar.addPlayer(participant);

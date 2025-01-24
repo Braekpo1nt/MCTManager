@@ -1282,7 +1282,7 @@ public class GameManager implements Listener {
         } else {
             Main.logger().warning(String.format("Something is wrong with the team Scoreboard. Could not find team with name %s\"", team.getTeamId()));
         }
-        team.addMember(uuid);
+        team.joinMember(uuid);
         Player onlineNewPlayer = newPlayer.getPlayer();
         if (onlineNewPlayer != null) {
             Participant participant = createNewParticipant(onlineNewPlayer);
@@ -1305,7 +1305,7 @@ public class GameManager implements Listener {
             sender.sendMessage(Component.text("error occurred adding new offline IGN, see console for details.")
                     .color(NamedTextColor.RED));
         }
-        team.addMember(offlineUUID);
+        team.joinMember(offlineUUID);
     }
     
     /**
@@ -1352,7 +1352,7 @@ public class GameManager implements Listener {
             return;
         }
         Team team = teams.get(teamId);
-        team.removeMember(offlinePlayer.getUniqueId());
+        team.leaveMember(offlinePlayer.getUniqueId());
         if (offlinePlayer.isOnline()) { // TODO: Team replace this check with `isOnlineMember()` or something
             Participant participant = onlineParticipants.get(offlinePlayer.getUniqueId());
             if (participant != null) {
@@ -1406,7 +1406,7 @@ public class GameManager implements Listener {
         if (team == null) {
             return;
         }
-        team.removeMember(uuid);
+        team.leaveMember(uuid);
         hubManager.updateLeaderboards();
         tabList.leaveParticipant(uuid);
         TextComponent displayName = Component.text(ign)
