@@ -165,6 +165,7 @@ public class Team extends AudienceDelegate {
      * @return true if the given UUID was previously a member of this team 
      * (see {@link #isMember(UUID)}), false otherwise
      */
+    @SuppressWarnings("UnusedReturnValue")
     public boolean leaveMember(@NotNull UUID uuid) {
         boolean removed = members.remove(uuid);
         if (removed) {
@@ -254,6 +255,7 @@ public class Team extends AudienceDelegate {
      * @param uuids the UUIDs of the previously online members
      * @return true if any of the given UUIDs were those of previously online members of this team, false otherwise
      */
+    @SuppressWarnings("UnusedReturnValue")
     public boolean quitOnlineMembers(@NotNull Collection<UUID> uuids) {
         boolean removed = false;
         for (UUID uuid : uuids) {
