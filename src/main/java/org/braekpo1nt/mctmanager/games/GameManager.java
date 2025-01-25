@@ -753,6 +753,13 @@ public class GameManager implements Listener {
     }
     
     /**
+     * @return all teams
+     */
+    public @NotNull Collection<Team> getTeams() {
+        return teams.values();
+    }
+    
+    /**
      * @param teamId the teamId to get the {@link Team} for
      * @return the team with the given teamId, if one exists, null otherwise
      */

@@ -143,6 +143,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             FarmRushTeam farmRushTeam = new FarmRushTeam(team, arena, arenaOrder);
             arenaOrder++;
             teams.put(farmRushTeam.getTeamId(), farmRushTeam);
+            Main.logger().info(String.format("FarmRush.start(): Team %s size is %d", farmRushTeam.getTeamId(), farmRushTeam.getMemberUUIDs().size()));
         }
         placeArenas(arenas.values());
         for (Participant participant : newParticipants) {
@@ -328,7 +329,6 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     public void initializeParticipant(Participant participant) {
         participants.put(participant.getUniqueId(), participant);
         FarmRushTeam team = teams.get(participant.getTeamId());
-        team.joinMember(participant.getUniqueId());
         team.joinOnlineMember(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         sidebar.addPlayer(participant);

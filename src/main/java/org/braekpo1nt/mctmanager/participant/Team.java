@@ -101,8 +101,12 @@ public class Team extends AudienceDelegate {
         this.color = team.color;
         this.bukkitColor = team.bukkitColor;
         this.formattedDisplayName = team.formattedDisplayName;
-        this.members = team.members;
-        this.onlineMembers = new HashMap<>(team.onlineMembers);
+        this.members = new HashSet<>(team.members.size());
+        this.members.addAll(team.members);
+        this.onlineMembers = new HashMap<>(team.onlineMembers.size());
+        for (Participant participant : team.onlineMembers.values()) {
+            this.onlineMembers.put(participant.getUniqueId(), participant);
+        }
         this.audience = team.audience;
     }
     
@@ -215,24 +219,20 @@ public class Team extends AudienceDelegate {
      * For when a Participant logs on/joins/is added who was previously offline
      * 
      * @param participant the participant who is an online member of this team. 
-     *                    Their {@link Participant#getUniqueId()} must be in this team already 
-     *                    (see {@link #joinMember(UUID)}) and their {@link Participant#getTeamId()} 
+     *                    Their {@link Participant#getTeamId()} 
      *                    must match this team's {@link #getTeamId()}.
      * @throws IllegalStateException if the given participant is not a member of this team 
-     * (i.e. their UUID is already in this team and their teamId matches this team's)
+     * (i.e. their teamId matches this team's)
      */
     public void joinOnlineMember(@NotNull Participant participant) {
-        if (!members.contains(participant.getUniqueId())) {
-            Main.logger().info(String.format("Members: size=%d, values=%s", members.size(), members));
-            throw new IllegalStateException(String.format("Can't join participant \"%s\" with UUID \"%s\" and teamId \"%s\" to team \"%s\" because they are not a member of this team",
-                    participant.getName(), participant.getUniqueId(), this.getTeamId(), participant.getTeamId()));
-        }
         if (!teamId.equals(participant.getTeamId())) {
             throw new IllegalStateException(String.format("Can't join participant \"%s\" with UUID \"%s\" and teamId \"%s\" to team \"%s\" because their teamId doesn't match",
                     participant.getName(), participant.getUniqueId(), this.getTeamId(), participant.getTeamId()));
         }
+        joinMember(participant.getUniqueId());
         onlineMembers.put(participant.getUniqueId(), participant);
         audience = Audience.audience(onlineMembers.values());
+        Main.logger().info(String.format("joinOnlineMember(): %s %s; members.size=%d, onlineMembers.size=%d", participant.getName(), participant.getTeamId(), members.size(), onlineMembers.size()));
     }
     
     /**
