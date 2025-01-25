@@ -345,7 +345,7 @@ public class GameManagerUtils {
         if (!gameManager.isParticipant(participant.getUniqueId())) {
             return;
         }
-        Color teamColor = gameManager.getTeamColor(participant.getUniqueId());
+        Color teamColor = gameManager.getTeam(participant).getBukkitColor();
         colorLeatherArmor(participant.getInventory().getHelmet(), teamColor);
         colorLeatherArmor(participant.getInventory().getChestplate(), teamColor);
         colorLeatherArmor(participant.getInventory().getLeggings(), teamColor);

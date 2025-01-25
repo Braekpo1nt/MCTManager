@@ -1000,7 +1000,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     }
     
     private void giveBoots(Participant participant) {
-        Color teamColor = gameManager.getTeamColor(participant.getUniqueId());
+        Color teamColor = gameManager.getTeam(participant).getBukkitColor();
         ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
         LeatherArmorMeta meta = (LeatherArmorMeta) boots.getItemMeta();
         meta.setColor(teamColor);

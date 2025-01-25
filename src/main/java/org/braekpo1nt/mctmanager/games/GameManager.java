@@ -760,6 +760,15 @@ public class GameManager implements Listener {
     }
     
     /**
+     * @param participant the participant to get the team of
+     * @return the team that the given participant belongs to. If the Participant is not in the GameManager,
+     * the team may not exist
+     */
+    public Team getTeam(@NotNull Participant participant) {
+        return teams.get(participant.getTeamId());
+    }
+    
+    /**
      * @param teamId the teamId to get the {@link Team} for
      * @return the team with the given teamId, if one exists, null otherwise
      */
@@ -1575,14 +1584,6 @@ public class GameManager implements Listener {
     }
     
     /**
-     * @deprecated in favor of {@link org.bukkit.scoreboard.Team#getColor()}
-     */
-    @Deprecated
-    public Color getTeamColor(UUID playerUniqueId) {
-        return gameStateStorageUtil.getTeamColor(playerUniqueId);
-    }
-    
-    /**
      * Gets the team's display name as a Component with the team's text color
      * and in bold
      * @param teamId The internal name of the team
@@ -1957,16 +1958,19 @@ public class GameManager implements Listener {
         adminTeam.removePlayer(offlineAdmin);
     }
     
+    @Deprecated
     public Material getTeamPowderColor(@NotNull String teamId) {
         String colorString = gameStateStorageUtil.getTeamColorString(teamId);
         return ColorMap.getConcretePowderColor(colorString);
     }
     
+    @Deprecated
     public Material getTeamConcreteColor(@NotNull String teamId) {
         String colorString = gameStateStorageUtil.getTeamColorString(teamId);
         return ColorMap.getConcreteColor(colorString);
     }
     
+    @Deprecated
     public Material getTeamStainedGlassColor(@NotNull String teamId) {
         String colorString = gameStateStorageUtil.getTeamColorString(teamId);
         return ColorMap.getStainedGlassColor(colorString);
@@ -1984,6 +1988,7 @@ public class GameManager implements Listener {
         return team.getColor();
     }
     
+    @Deprecated
     public Material getTeamBannerColor(@NotNull String teamId) {
         String colorString = gameStateStorageUtil.getTeamColorString(teamId);
         return ColorMap.getBannerColor(colorString);
