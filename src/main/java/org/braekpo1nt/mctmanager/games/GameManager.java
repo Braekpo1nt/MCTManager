@@ -698,8 +698,7 @@ public class GameManager implements Listener {
             }
         }
         
-        // TODO: Team change this to get teams with online members
-        Collection<Team> onlineTeams = getParticipantTeams(onlineParticipants.values());
+        Collection<Team> onlineTeams = Team.getOnlineTeams(teams);
         Main.logger().info(String.format("GameManager.startGame(): onlineTeams.size()=%d, onlineParticipants.size()=%d", onlineTeams.size(), onlineParticipants.size()));
         // make sure the player and team count requirements are met
         switch (gameType) {
@@ -1133,7 +1132,6 @@ public class GameManager implements Listener {
      */
     @Deprecated
     public boolean hasTeam(String teamId) {
-        // TODO: Team consider making this check the teams map
         return gameStateStorageUtil.containsTeam(teamId);
     }
     
@@ -1513,14 +1511,17 @@ public class GameManager implements Listener {
         if (!gameStateStorageUtil.containsPlayer(uuid)) {
             return;
         }
-        String teamId = gameStateStorageUtil.getPlayerTeamId(uuid);
+        Team team = getTeam(participant);
+        if (team == null) {
+            return;
+        }
         double multiplier = eventManager.matchProgressPointMultiplier();
         int multipliedPoints = (int) (points * multiplier);
         addScore(uuid, points);
-        addScore(teamId, multipliedPoints);
+        addScore(team, multipliedPoints);
         if (activeGame != null) {
             eventManager.trackPoints(uuid, points, activeGame.getType());
-            eventManager.trackPoints(teamId, multipliedPoints, activeGame.getType());
+            eventManager.trackPoints(participant.getTeamId(), multipliedPoints, activeGame.getType());
         }
         participant.sendMessage(Component.text("+")
                 .append(Component.text(multipliedPoints))
@@ -1734,7 +1735,7 @@ public class GameManager implements Listener {
     /**
      * Adds the given score to each of the given teams
      * <br>
-     * Use this instead of calling {@link #addScore(String, int)} for each teamId because this is more
+     * Use this instead of calling {@link #addScore(Team, int)} for each teamId because this is more
      * efficient in that it only writes to the {@link org.braekpo1nt.mctmanager.games.gamestate.GameState} once
      * @param updateTeams the teamIds to add the score to. Must all be valid teamIds.
      * @param score the score to add. Could be positive or negative.
@@ -1749,22 +1750,6 @@ public class GameManager implements Listener {
         } catch (ConfigIOException e) {
             reportGameStateException("adding score to teams", e);
         }
-    }
-    
-    /**
-     * Adds the given score to the given team
-     * @param teamId The team to add the score to
-     * @param score The score to add. Could be positive or negative.
-     * @deprecated in favor of {@link #addScore(Team, int)}
-     */
-    @Deprecated
-    public void addScore(@NotNull String teamId, int score) {
-        // TODO: Team remove this method
-        Team team = teams.get(teamId);
-        if (team == null) {
-            return;
-        }
-        addScore(team, score);
     }
     
     /**
