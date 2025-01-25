@@ -13,6 +13,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.bukkit.command.CommandSender;
@@ -100,15 +101,14 @@ public class OffState implements EventState {
     }
     
     private void initializeSidebar() {
-        List<String> sortedTeamIds = context.sortTeamIds(gameManager.getTeamIds());
-        context.setNumberOfTeams(sortedTeamIds.size());
+        List<Team> sortedTeams = context.sortTeams(gameManager.getTeams());
+        context.setNumberOfTeams(sortedTeams.size());
         KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
         for (int i = 0; i < context.getNumberOfTeams(); i++) {
-            String teamId = sortedTeamIds.get(i);
-            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
-            int teamScore = gameManager.getScore(teamId);
+            Team team = sortedTeams.get(i);
+            int teamScore = gameManager.getScore(team.getTeamId());
             teamLines[i] = new KeyLine("team"+i, Component.empty()
-                    .append(teamDisplayName)
+                    .append(team.getFormattedDisplayName())
                     .append(Component.text(": "))
                     .append(Component.text(teamScore)
                             .color(NamedTextColor.GOLD))
@@ -123,15 +123,14 @@ public class OffState implements EventState {
     }
     
     private void initializeAdminSidebar() {
-        List<String> sortedTeamIds = context.sortTeamIds(gameManager.getTeamIds());
-        context.setNumberOfTeams(sortedTeamIds.size());
+        List<Team> sortedTeams = context.sortTeams(gameManager.getTeams());
+        context.setNumberOfTeams(sortedTeams.size());
         KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
         for (int i = 0; i < context.getNumberOfTeams(); i++) {
-            String teamId = sortedTeamIds.get(i);
-            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
-            int teamScore = gameManager.getScore(teamId);
+            Team team = sortedTeams.get(i);
+            int teamScore = gameManager.getScore(team.getTeamId());
             teamLines[i] = new KeyLine("team"+i, Component.empty()
-                    .append(teamDisplayName)
+                    .append(team.getFormattedDisplayName())
                     .append(Component.text(": "))
                     .append(Component.text(teamScore)
                             .color(NamedTextColor.GOLD))
