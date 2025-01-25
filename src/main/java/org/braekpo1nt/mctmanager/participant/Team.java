@@ -111,6 +111,23 @@ public class Team extends AudienceDelegate {
     }
     
     /**
+     * @param teams the teams to filter for online
+     * @return the set of teams from the given collection who has at least one online member
+     */
+    public static Set<Team> getOnlineTeams(Map<String, Team> teams) {
+        return getOnlineTeams(teams.values());
+    }
+    
+    /**
+     * // TODO: Teams consider a better way to label that a team is online or not
+     * @param teams the teams to filter for online
+     * @return the set of teams from the given collection who has at least one online member
+     */
+    public static Set<Team> getOnlineTeams(Collection<Team> teams) {
+        return teams.stream().filter(team -> !team.getOnlineMembers().isEmpty()).collect(Collectors.toSet());
+    }
+    
+    /**
      * @param teams the map of Teams to get the teamIds of
      * @return a set of all the teamIds of the given map's values
      */

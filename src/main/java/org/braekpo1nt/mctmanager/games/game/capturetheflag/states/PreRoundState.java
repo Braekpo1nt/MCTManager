@@ -117,7 +117,7 @@ public class PreRoundState implements CaptureTheFlagState {
     @Override
     public void onTeamJoin(Team team) {
         context.getTeams().put(team.getTeamId(), team);
-        context.getRoundManager().regenerateRounds(Team.getTeamIds(context.getTeams()),
+        context.getRoundManager().regenerateRounds(Team.getTeamIds(Team.getOnlineTeams(context.getTeams())),
                 context.getConfig().getArenas().size());
         context.updateRoundLine();
     }
@@ -139,8 +139,8 @@ public class PreRoundState implements CaptureTheFlagState {
     
     @Override
     public void onTeamQuit(Team team) {
-        context.getTeams().remove(team.getTeamId());
-        context.getRoundManager().regenerateRounds(Team.getTeamIds(context.getTeams()), context.getConfig().getArenas().size());
+        context.getRoundManager().regenerateRounds(Team.getTeamIds(Team.getOnlineTeams(context.getTeams())), 
+                context.getConfig().getArenas().size());
         context.updateRoundLine();
     }
     

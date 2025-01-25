@@ -61,7 +61,7 @@ public class GameOverState implements CaptureTheFlagState {
     
     @Override
     public void onTeamQuit(Team team) {
-        context.getTeams().remove(team.getTeamId());
+        // do nothing
     }
     
     @Override
