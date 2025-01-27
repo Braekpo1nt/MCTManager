@@ -1,8 +1,8 @@
 package org.braekpo1nt.mctmanager.participant;
 
 import io.papermc.paper.entity.LookAnchor;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.utils.AudienceDelegate;
@@ -25,9 +25,9 @@ import java.util.stream.Collectors;
 /**
  * Represents a Participant. A participant is always a member of a {@link Team}.
  */
-@Data
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Participant implements AudienceDelegate {
+@Getter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
+public class Participant extends OfflineParticipant implements AudienceDelegate {
     
     /**
      * @param participants the participants list to get the list of players from
@@ -67,16 +67,9 @@ public class Participant implements AudienceDelegate {
     @EqualsAndHashCode.Include
     protected final @NotNull Player player;
     
-    /**
-     * The teamId of the team this Participant belongs to
-     */
-    protected final @NotNull String teamId;
-    
-    /**
-     * @return the UUID of the player this Participant represents
-     */
-    public UUID getUniqueId() {
-        return player.getUniqueId();
+    public Participant(@NotNull Player player, @NotNull String teamId) {
+        super(player.getUniqueId(), player.getName(), player.displayName(), teamId);
+        this.player = player;
     }
     
     /**
@@ -86,6 +79,21 @@ public class Participant implements AudienceDelegate {
     @Override
     public @NotNull Audience getAudience() {
         return player;
+    }
+    
+    /**
+     * @return the Player associated with this participant
+     */
+    @Override
+    public @NotNull Player getPlayer() {
+        return player;
+    }
+    
+    /**
+     * Delegate for {@link Player#getName()}
+     */
+    public @NotNull String getName() {
+        return player.getName();
     }
     
     /**
@@ -143,13 +151,6 @@ public class Participant implements AudienceDelegate {
      */
     public @NotNull Component displayName() {
         return player.displayName();
-    }
-    
-    /**
-     * Delegate for {@link Player#displayName(Component)}
-     */
-    public void displayName(final @Nullable Component displayName) {
-        player.displayName(displayName);
     }
     
     /**
@@ -220,13 +221,6 @@ public class Participant implements AudienceDelegate {
      */
     public void setFoodLevel(int value) {
         player.setFoodLevel(value);
-    }
-    
-    /**
-     * Delegate for {@link Player#getName()}
-     */
-    public @NotNull String getName() {
-        return player.getName();
     }
     
     /**

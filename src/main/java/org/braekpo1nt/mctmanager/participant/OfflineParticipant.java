@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.participant;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.kyori.adventure.audience.Audience;
@@ -25,17 +24,33 @@ public class OfflineParticipant implements AudienceDelegate {
      */
     @Getter
     protected final @NotNull String teamId;
+    /**
+     * the IGN of the player this represents
+     */
+    protected final @NotNull String name;
     protected final @NotNull Component displayName;
     
     /**
      * Create a new OfflineParticipant 
      * @param uniqueId the UUID of the player this participant represents
+     * @param name the IGN of the player this represents
+     * @param displayName the display name (usually the color of their team) of this participant
      * @param teamId the teamId of the participant
      */
-    public OfflineParticipant(@NotNull UUID uniqueId, @NotNull Component displayName, @NotNull String teamId) {
+    public OfflineParticipant(@NotNull UUID uniqueId, @NotNull String name, @NotNull Component displayName, @NotNull String teamId) {
         this.uniqueId = uniqueId;
+        this.name = name;
         this.displayName = displayName;
         this.teamId = teamId;
+    }
+    
+    /**
+     * Create a new OfflineParticipant
+     * @param player the player this participant represents. The UUID, the name, the display name
+     * @param teamId the teamId of the participant
+     */
+    public OfflineParticipant(@NotNull Player player, @NotNull String teamId) {
+        this(player.getUniqueId(), player.getName(), player.displayName(), teamId);
     }
     
     @Override
@@ -55,6 +70,13 @@ public class OfflineParticipant implements AudienceDelegate {
      */
     public @Nullable Player getPlayer() {
         return null;
+    }
+    
+    /**
+     * @return the IGN of the player this represents
+     */
+    public @NotNull String getName() {
+        return name;
     }
     
     /**
