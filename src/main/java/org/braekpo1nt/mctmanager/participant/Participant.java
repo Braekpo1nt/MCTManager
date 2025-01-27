@@ -26,8 +26,8 @@ import java.util.stream.Collectors;
  * Represents a Participant. A participant is always a member of a {@link Team}.
  */
 @Data
-@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
-public class Participant extends AudienceDelegate {
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class Participant implements AudienceDelegate {
     
     /**
      * @param participants the participants list to get the list of players from

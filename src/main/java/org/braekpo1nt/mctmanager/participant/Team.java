@@ -17,8 +17,8 @@ import java.util.stream.Collectors;
 /**
  * Represents a team of {@link Participant}s
  */
-@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
-public class Team extends AudienceDelegate {
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class Team implements AudienceDelegate {
     /**
      * The unique ID of the team
      */
