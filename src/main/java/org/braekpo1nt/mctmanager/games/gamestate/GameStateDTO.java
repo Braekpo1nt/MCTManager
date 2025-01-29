@@ -64,7 +64,7 @@ class GameStateDTO implements Validatable {
                         ? OfflineMCTPlayerDTO.toOfflineMCTPlayers(this.offlinePlayers) 
                         : new HashMap<>())
                 .teams(this.teams != null 
-                        ? MCTTeamDTO.toMCTTeams(this.teams) 
+                        ? MCTTeamDTO.toTeams(this.teams) 
                         : new HashMap<>())
                 .admins(this.admins != null 
                         ? this.admins 
@@ -76,7 +76,7 @@ class GameStateDTO implements Validatable {
         return new GameStateDTO(
                 MCTPlayerDTO.fromMCTPlayers(gameState.getPlayers()),
                 OfflineMCTPlayerDTO.fromOfflineMCTPlayers(gameState.getOfflinePlayers()),
-                MCTTeamDTO.fromMCTTeams(gameState.getTeams()),
+                MCTTeamDTO.fromTeams(gameState.getTeams()),
                 gameState.getAdmins()
         );
     }

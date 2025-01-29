@@ -13,7 +13,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states.CaptureT
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states.ClassSelectionState;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
-import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
@@ -55,8 +55,8 @@ public class CaptureTheFlagMatch {
     private final ClassPicker northClassPicker;
     private final ClassPicker southClassPicker;
     // TODO: Use teams more completely
-    private Team northTeam;
-    private Team southTeam;
+    private TeamData<Participant> northTeam;
+    private TeamData<Participant> southTeam;
     private final Map<UUID, Participant> northParticipants = new HashMap<>();
     private final Map<UUID, Participant> southParticipants = new HashMap<>();
     private final Map<UUID, Participant> allParticipants = new HashMap<>();
@@ -101,7 +101,7 @@ public class CaptureTheFlagMatch {
         state.nextState();
     }
     // TODO: just have teams not be removed when they have no players, and if a team has no online players then they forfeight. YOu must make sure that you only use online teams for round generation, however
-    public void start(Team northTeam, Team southTeam, Collection<Participant> newParticipants) {
+    public void start(TeamData<Participant> northTeam, TeamData<Participant> southTeam, Collection<Participant> newParticipants) {
         placeFlags();
         closeGlassBarriers();
         this.northTeam = northTeam;

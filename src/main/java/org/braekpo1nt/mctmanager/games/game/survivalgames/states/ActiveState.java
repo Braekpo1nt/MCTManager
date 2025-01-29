@@ -368,8 +368,9 @@ public class ActiveState implements SurvivalGamesState {
         context.messageAllParticipants(Component.empty()
                 .append(deadTeam.getFormattedDisplayName())
                 .append(Component.text(" has been eliminated.")));
-        List<Team> livingTeams = getLivingTeamIds();
-        gameManager.awardPointsToTeams(livingTeams, config.getSurviveTeamScore());
+        // TODO: does getLivingTeams need to return teams, or just ids?
+        List<Team> livingTeams = getLivingTeams();
+        gameManager.awardPointsToTeams(Team.getTeamIds(livingTeams), config.getSurviveTeamScore());
         switch (livingTeams.size()) {
             case 2 -> {
                 plugin.getServer().sendMessage(Component.empty()
@@ -394,7 +395,7 @@ public class ActiveState implements SurvivalGamesState {
     /**
      * @return a list of the teamIds of the teams which are still alive (have at least 1 living member)
      */
-    private @NotNull List<Team> getLivingTeamIds() {
+    private @NotNull List<Team> getLivingTeams() {
         // TODO: Teams remove this in favor of teams storing their living members
         return context.getLivingMembers().entrySet().stream()
                 .filter(entry -> entry.getValue() > 0)

@@ -19,6 +19,7 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -62,7 +63,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private Sidebar adminSidebar;
     private CaptureTheFlagConfigController configController;
     private CaptureTheFlagConfig config;
-    private Map<String, Team> teams = new HashMap<>();
+    private Map<String, TeamData<Participant>> teams = new HashMap<>();
     private Map<UUID, Participant> participants = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     private Map<UUID, Integer> killCount = new HashMap<>();
@@ -111,7 +112,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
         teams = new HashMap<>(newTeams.size());
-        for (Team team : newTeams) {
+        for (Team newTeam : newTeams) {
+            TeamData<Participant> team = new TeamData<>(newTeam);
             teams.put(team.getTeamId(), team);
         }
         participants = new HashMap<>(newParticipants.size());
@@ -133,7 +135,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     
     public void initializeParticipant(Participant participant) {
         participants.put(participant.getUniqueId(), participant);
-        teams.get(participant.getTeamId()).joinOnlineMember(participant);
+        teams.get(participant.getTeamId()).addParticipant(participant);
         sidebar.addPlayer(participant);
         topbar.showPlayer(participant);
         killCount.putIfAbsent(participant.getUniqueId(), 0);
@@ -148,7 +150,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     public void resetParticipant(Participant participant) {
-        teams.get(participant.getTeamId()).quitOnlineMember(participant.getUniqueId());
+        teams.get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -198,7 +200,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     
     @Override
     public void onTeamJoin(Team team) {
-        Main.logger().info("onTeamJoin " + team.getTeamId() + " - " + team.getOnlineMembers().size());
         if (state == null) {
             return;
         }
@@ -229,7 +230,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     
     @Override
     public void onTeamQuit(Team team) {
-        Main.logger().info("onTeamQuit " + team.getTeamId() + " - " + team.getOnlineMembers().size());
         if (state == null) {
             return;
         }

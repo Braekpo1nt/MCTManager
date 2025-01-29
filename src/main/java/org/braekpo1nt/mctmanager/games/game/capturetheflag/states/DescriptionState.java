@@ -5,6 +5,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
@@ -38,8 +39,8 @@ public class DescriptionState implements CaptureTheFlagState {
     
     @Override
     public void onTeamJoin(Team team) {
-        context.getTeams().put(team.getTeamId(), team);
-        context.getRoundManager().regenerateRounds(Team.getTeamIds(Team.getOnlineTeams(context.getTeams())),
+        context.getTeams().put(team.getTeamId(), new TeamData<>(team));
+        context.getRoundManager().regenerateRounds(Team.getTeamIds(context.getTeams()),
                 context.getConfig().getArenas().size());
         context.updateRoundLine();
     }
@@ -64,7 +65,7 @@ public class DescriptionState implements CaptureTheFlagState {
     
     @Override
     public void onTeamQuit(Team team) {
-        context.getRoundManager().regenerateRounds(Team.getTeamIds(Team.getOnlineTeams(context.getTeams())), 
+        context.getRoundManager().regenerateRounds(Team.getTeamIds(context.getTeams()), 
                 context.getConfig().getArenas().size());
         context.updateRoundLine();
     }

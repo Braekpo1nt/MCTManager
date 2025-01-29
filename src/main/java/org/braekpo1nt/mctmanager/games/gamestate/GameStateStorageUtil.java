@@ -286,7 +286,9 @@ public class GameStateStorageUtil {
      * Gets the offline in-game-names of the participants on the given team
      * @param teamId the team id
      * @return The in-game-names on the team. Empty list if the team doesn't exist.
+     * @deprecated in favor of {@link #getParticipantUUIDsOnTeam(String)}
      */
+    @Deprecated
     public @NotNull List<String> getOfflineIGNsOnTeam(@NotNull String teamId) {
         if (!gameState.containsTeam(teamId)) {
             return Collections.emptyList();

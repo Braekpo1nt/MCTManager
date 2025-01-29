@@ -23,7 +23,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Represents a Participant. A participant is always a member of a {@link Team}.
+ * Represents a Participant. A participant is always a member of a {@link MCTTeam}.
  */
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
@@ -69,6 +69,11 @@ public class Participant extends OfflineParticipant implements AudienceDelegate 
     
     public Participant(@NotNull Player player, @NotNull String teamId) {
         super(player.getUniqueId(), player.getName(), player.displayName(), teamId);
+        this.player = player;
+    }
+    
+    public Participant(@NotNull OfflineParticipant offlineParticipant, @NotNull Player player) {
+        super(offlineParticipant);
         this.player = player;
     }
     
@@ -235,13 +240,6 @@ public class Participant extends OfflineParticipant implements AudienceDelegate 
      */
     public int getLevel() {
         return player.getLevel();
-    }
-    
-    /**
-     * Delegate for {@link Player#playerListName(Component)}
-     */
-    public void playerListName(net.kyori.adventure.text.@Nullable Component name) {
-        player.playerListName(name);
     }
     
     /**

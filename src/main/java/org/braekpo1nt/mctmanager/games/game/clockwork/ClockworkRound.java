@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
@@ -43,7 +44,7 @@ public class ClockworkRound implements Listener {
     private ClockworkConfig config;
     private final ChaosManager chaosManager;
     private final int roundNumber;
-    private Map<String, Team> teams = new HashMap<>();
+    private Map<String, TeamData<Participant>> teams = new HashMap<>();
     private Map<UUID, Participant> participants = new HashMap<>();
     private Map<UUID, Boolean> participantsAreAlive = new HashMap<>();
     private Map<String, Integer> teamsLivingMembers = new HashMap<>();
@@ -85,10 +86,10 @@ public class ClockworkRound implements Listener {
         return roundActive;
     }
     
-    public void start(Collection<Team> newTeams, Collection<Participant> newParticipants) {
+    public void start(Collection<TeamData<Participant>> newTeams, Collection<Participant> newParticipants) {
         this.teams = new HashMap<>(newTeams.size());
         for (Team team : newTeams) {
-            teams.put(team.getTeamId(), team);
+            teams.put(team.getTeamId(), new TeamData<>(team));
         }
         this.participants = new HashMap<>(newParticipants.size());
         this.participantsAreAlive = new HashMap<>(newParticipants.size());
@@ -110,7 +111,7 @@ public class ClockworkRound implements Listener {
     }
     
     private void initializeParticipant(Participant participant) {
-        teams.get(participant.getTeamId()).joinOnlineMember(participant);
+        teams.get(participant.getTeamId()).addParticipant(participant);
         participants.put(participant.getUniqueId(), participant);
         participantsAreAlive.put(participant.getUniqueId(), true);
         String team = participant.getTeamId();
@@ -189,14 +190,14 @@ public class ClockworkRound implements Listener {
     }
     
     private void resetParticipant(Participant participant) {
-        teams.get(participant.getTeamId()).quitOnlineMember(participant.getUniqueId());
+        teams.get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
     public void onTeamJoin(Team team) {
-        teams.put(team.getTeamId(), team);
+        teams.put(team.getTeamId(), new TeamData<>(team));
     }
     
     public void onParticipantJoin(Participant participant) {
@@ -396,7 +397,7 @@ public class ClockworkRound implements Listener {
                     .append(killed.displayName())
                     .append(Component.text(" was claimed by time")));
             participantsAreAlive.put(killed.getUniqueId(), false);
-            String killedTeamId = gameManager.getTeamId(killed.getUniqueId());
+            String killedTeamId = killed.getTeamId();
             
             List<Participant> awardedParticipants = new ArrayList<>();
             for (Participant participant : participants.values()) {
@@ -414,45 +415,44 @@ public class ClockworkRound implements Listener {
                 teamsKilledMembers.put(killedTeamId, teamsKilledMembers.get(killedTeamId) + 1);
             }
         }
-        List<String> newlyKilledTeams = new ArrayList<>();
+        List<Team> newlyKilledTeams = new ArrayList<>();
         for (Map.Entry<String, Integer> entry : teamsKilledMembers.entrySet()) {
-            String team = entry.getKey();
+            String teamId = entry.getKey();
             int killedMembers = entry.getValue();
-            int livingMembers = teamsLivingMembers.get(team);
+            int livingMembers = teamsLivingMembers.get(teamId);
             int newLivingMembers = livingMembers - killedMembers;
             if (newLivingMembers <= 0) {
-                teamsLivingMembers.put(team, 0);
-                newlyKilledTeams.add(team);
+                teamsLivingMembers.put(teamId, 0);
+                newlyKilledTeams.add(teams.get(teamId));
             } else {
-                teamsLivingMembers.put(team, newLivingMembers);
+                teamsLivingMembers.put(teamId, newLivingMembers);
             }
         }
         if (newlyKilledTeams.isEmpty()) {
             return;
         }
-        Set<String> allTeamIds = Participant.getTeamIds(participants);
-        for (String newlyKilledTeam : newlyKilledTeams) {
-            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(newlyKilledTeam);
+        for (Team newlyKilledTeam : newlyKilledTeams) {
             for (Participant participant : participants.values()) {
-                if (participant.getTeamId().equals(newlyKilledTeam)) {
+                if (participant.getTeamId().equals(newlyKilledTeam.getTeamId())) {
                     participant.sendMessage(Component.empty()
-                            .append(teamDisplayName)
+                            .append(newlyKilledTeam.getFormattedDisplayName())
                             .append(Component.text(" has been eliminated"))
                             .color(NamedTextColor.DARK_RED));
                 } else {
                     participant.sendMessage(Component.empty()
-                            .append(teamDisplayName)
+                            .append(newlyKilledTeam.getFormattedDisplayName())
                             .append(Component.text(" has been eliminated"))
                             .color(NamedTextColor.GREEN));
                 }
             }
             List<Team> livingTeams = new ArrayList<>();
-            for (String teamId : allTeamIds) {
-                if (teamsLivingMembers.get(teamId) > 0 && !newlyKilledTeams.contains(teamId)) {
-                    livingTeams.add(teams.get(teamId));
+            for (Team team : teams.values()) {
+                if (teamsLivingMembers.get(team.getTeamId()) > 0 && !newlyKilledTeams.contains(team)) {
+                    livingTeams.add(teams.get(team.getTeamId()));
                 }
             }
-            gameManager.awardPointsToTeams(livingTeams, config.getTeamEliminationScore());
+            // TODO: does livingTeams need to be a list of actual teams?
+            gameManager.awardPointsToTeams(Team.getTeamIds(livingTeams), config.getTeamEliminationScore());
         }
         List<String> livingTeams = getLivingTeams();
         if (livingTeams.isEmpty()) {

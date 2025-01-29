@@ -7,7 +7,7 @@ import lombok.Data;
 @Data
 @Builder
 @AllArgsConstructor
-public class MCTTeam {
+class MCTTeam {
     private String name;
     private String displayName;
     private int score;

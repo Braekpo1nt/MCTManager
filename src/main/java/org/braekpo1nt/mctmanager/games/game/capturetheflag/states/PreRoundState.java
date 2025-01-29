@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.MatchPairing;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.RoundManager;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
@@ -116,8 +117,8 @@ public class PreRoundState implements CaptureTheFlagState {
     
     @Override
     public void onTeamJoin(Team team) {
-        context.getTeams().put(team.getTeamId(), team);
-        context.getRoundManager().regenerateRounds(Team.getTeamIds(Team.getOnlineTeams(context.getTeams())),
+        context.getTeams().put(team.getTeamId(), new TeamData<>(team));
+        context.getRoundManager().regenerateRounds(Team.getTeamIds(context.getTeams()),
                 context.getConfig().getArenas().size());
         context.updateRoundLine();
     }
@@ -139,7 +140,7 @@ public class PreRoundState implements CaptureTheFlagState {
     
     @Override
     public void onTeamQuit(Team team) {
-        context.getRoundManager().regenerateRounds(Team.getTeamIds(Team.getOnlineTeams(context.getTeams())), 
+        context.getRoundManager().regenerateRounds(Team.getTeamIds(context.getTeams()), 
                 context.getConfig().getArenas().size());
         context.updateRoundLine();
     }

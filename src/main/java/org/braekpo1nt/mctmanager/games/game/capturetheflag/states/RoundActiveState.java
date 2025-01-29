@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagM
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
@@ -67,8 +68,8 @@ public class RoundActiveState implements CaptureTheFlagState {
         for (MatchPairing matchPairing : currentRound) {
             CaptureTheFlagMatch match = matches.get(matchPairing);
             List<Participant> newParticipants = matchParticipants.get(matchPairing);
-            Team northTeam = context.getTeams().get(matchPairing.northTeam());
-            Team southTeam = context.getTeams().get(matchPairing.southTeam());
+            TeamData<Participant> northTeam = context.getTeams().get(matchPairing.northTeam());
+            TeamData<Participant> southTeam = context.getTeams().get(matchPairing.southTeam());
             match.start(northTeam, southTeam, newParticipants);
         }
         
@@ -156,8 +157,8 @@ public class RoundActiveState implements CaptureTheFlagState {
     
     @Override
     public void onTeamJoin(Team team) {
-        context.getTeams().put(team.getTeamId(), team);
-        context.getRoundManager().regenerateRounds(Team.getTeamIds(Team.getOnlineTeams(context.getTeams())),
+        context.getTeams().put(team.getTeamId(), new TeamData<>(team));
+        context.getRoundManager().regenerateRounds(Team.getTeamIds(context.getTeams()),
                 context.getConfig().getArenas().size());
         context.updateRoundLine();
     }
@@ -210,7 +211,7 @@ public class RoundActiveState implements CaptureTheFlagState {
     
     @Override
     public void onTeamQuit(Team team) {
-        context.getRoundManager().regenerateRounds(Team.getTeamIds(Team.getOnlineTeams(context.getTeams())), 
+        context.getRoundManager().regenerateRounds(Team.getTeamIds(context.getTeams()), 
                 context.getConfig().getArenas().size());
         context.updateRoundLine();
     }

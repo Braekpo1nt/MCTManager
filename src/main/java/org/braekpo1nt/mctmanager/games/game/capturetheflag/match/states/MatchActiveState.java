@@ -14,6 +14,7 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.LogType;
@@ -89,7 +90,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         context.setState(new MatchOverState(context));
     }
     
-    private void onTeamWin(Team winner, Team loser) {
+    private void onTeamWin(TeamData<Participant> winner, TeamData<Participant> loser) {
         context.getParentContext().messageAllParticipants(Component.empty()
                 .append(winner.getFormattedDisplayName())
                 .append(Component.text(" captured "))
@@ -102,7 +103,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         context.setState(new MatchOverState(context));
     }
     
-    private void showWinLoseTitles(Team winner, Team loser) {
+    private void showWinLoseTitles(TeamData<Participant> winner, TeamData<Participant> loser) {
         winner.showTitle(
                 Title.title(
                         Component.empty()

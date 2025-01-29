@@ -14,6 +14,7 @@ import org.braekpo1nt.mctmanager.games.event.states.*;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
+import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -338,16 +339,16 @@ public class EventManager implements Listener {
             if (teamCurrentScore - teamScoreToSubtract < 0) {
                 teamScoreToSubtract = teamCurrentScore;
             }
-            gameManager.addScore(team, -teamScoreToSubtract);
+            gameManager.addScore(team.getTeamId(), -teamScoreToSubtract);
             
-            Collection<UUID> participantUUIDs = team.getMemberUUIDs();
-            for (UUID participantUUID : participantUUIDs) {
-                int participantScoreToSubtract = scoreKeeper.getScore(participantUUID);
-                int participantCurrentScore = gameManager.getScore(participantUUID);
+            Collection<OfflineParticipant> participantsOnTeam = gameManager.getParticipantsOnTeam(team.getTeamId());
+            for (OfflineParticipant participant : participantsOnTeam) {
+                int participantScoreToSubtract = scoreKeeper.getScore(participant.getUniqueId());
+                int participantCurrentScore = gameManager.getScore(participant.getUniqueId());
                 if (participantCurrentScore - participantScoreToSubtract < 0) {
                     participantScoreToSubtract = participantCurrentScore;
                 }
-                gameManager.addScore(participantUUID, -participantScoreToSubtract);
+                gameManager.addScore(participant.getUniqueId(), -participantScoreToSubtract);
             }
         }
     }
@@ -377,20 +378,16 @@ public class EventManager implements Listener {
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text("\n"));
             
-            Collection<UUID> participantUUIDs = team.getMemberUUIDs();
-            for (UUID participantUUID : participantUUIDs) {
-                Player participant = Bukkit.getPlayer(participantUUID);
-                if (participant != null) {
-                    int participantScoreToSubtract = scoreKeeper.getScore(participantUUID);
-                    reportBuilder.append(Component.text("|    - "))
-                            .append(Component.text(participant.getName())
-                                    .color(team.getColor()))
-                            .append(Component.text(": "))
-                            .append(Component.text(participantScoreToSubtract)
-                                    .color(NamedTextColor.GOLD)
-                                    .decorate(TextDecoration.BOLD))
-                            .append(Component.text("\n"));
-                }
+            Collection<OfflineParticipant> participantsOnTeam = gameManager.getParticipantsOnTeam(team.getTeamId());
+            for (OfflineParticipant participant : participantsOnTeam) {
+                int participantScoreToSubtract = scoreKeeper.getScore(participant.getUniqueId());
+                reportBuilder.append(Component.text("|    - "))
+                        .append(participant.displayName())
+                        .append(Component.text(": "))
+                        .append(Component.text(participantScoreToSubtract)
+                                .color(NamedTextColor.GOLD)
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text("\n"));
             }
         }
         return reportBuilder.build();

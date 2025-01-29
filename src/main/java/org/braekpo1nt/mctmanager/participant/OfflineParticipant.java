@@ -28,6 +28,7 @@ public class OfflineParticipant implements AudienceDelegate {
      * the IGN of the player this represents
      */
     protected final @NotNull String name;
+    
     protected final @NotNull Component displayName;
     
     /**
@@ -51,6 +52,13 @@ public class OfflineParticipant implements AudienceDelegate {
      */
     public OfflineParticipant(@NotNull Player player, @NotNull String teamId) {
         this(player.getUniqueId(), player.getName(), player.displayName(), teamId);
+    }
+    
+    /**
+     * @param offlineParticipant the OfflineParticipant to copy the info from
+     */
+    public OfflineParticipant(@NotNull OfflineParticipant offlineParticipant) {
+        this(offlineParticipant.getUniqueId(), offlineParticipant.getName(), offlineParticipant.displayName(), offlineParticipant.getTeamId());
     }
     
     @Override

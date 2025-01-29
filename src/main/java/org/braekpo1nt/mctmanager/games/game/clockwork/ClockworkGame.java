@@ -16,6 +16,7 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -52,7 +53,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
             .append(Component.text("Clockwork"))
             .color(NamedTextColor.BLUE);
     private Component title = baseTitle;
-    private Map<String, Team> teams = new HashMap<>();
+    private Map<String, TeamData<Participant>> teams = new HashMap<>();
     private Map<UUID, Participant> participants = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     private List<ClockworkRound> rounds;
@@ -103,7 +104,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
         teams = new HashMap<>(newTeams.size());
         for (Team team : newTeams) {
-            teams.put(team.getTeamId(), team);
+            teams.put(team.getTeamId(), new TeamData<>(team));
         }
         participants = new HashMap<>(newParticipants.size());
         sidebar = gameManager.createSidebar();
@@ -132,7 +133,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     private void initializeParticipant(Participant participant) {
-        teams.get(participant.getTeamId()).joinOnlineMember(participant);
+        teams.get(participant.getTeamId()).addParticipant(participant);
         participants.put(participant.getUniqueId(), participant);
         participant.setGameMode(GameMode.ADVENTURE);
         sidebar.addPlayer(participant);
@@ -197,7 +198,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     private void resetParticipant(Participant participant) {
-        teams.get(participant.getTeamId()).quitOnlineMember(participant.getUniqueId());
+        teams.get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
         ParticipantInitializer.clearInventory(participant);
         sidebar.removePlayer(participant.getUniqueId());
         ParticipantInitializer.clearStatusEffects(participant);
@@ -249,7 +250,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     
     @Override
     public void onTeamJoin(Team team) {
-        teams.put(team.getTeamId(), team);
+        teams.put(team.getTeamId(), new TeamData<>(team));
         if (currentRoundIndex < rounds.size()) {
             ClockworkRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {

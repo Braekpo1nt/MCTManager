@@ -4,7 +4,9 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfig;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,7 +16,7 @@ import java.util.List;
 @Getter
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
-public class FarmRushTeam extends Team {
+public class FarmRushTeam extends TeamData<Participant> {
     private final Arena arena;
     /**
      * Used to keep track of the physical lineup of arenas, so that

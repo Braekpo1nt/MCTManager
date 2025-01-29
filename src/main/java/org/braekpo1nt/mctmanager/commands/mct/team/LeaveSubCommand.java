@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -42,18 +43,14 @@ public class LeaveSubCommand extends TabSubCommand {
             playerName = args[0];
         }
         OfflinePlayer playerToLeave = plugin.getServer().getOfflinePlayer(playerName);
-        if (!gameManager.isParticipant(playerToLeave.getUniqueId())) {
-            if (!gameManager.isOfflineParticipant(playerToLeave.getUniqueId())) {
-                return CommandResult.failure(Component.text("Player ")
-                        .append(Component.text(playerName)
-                                .decorate(TextDecoration.BOLD))
-                        .append(Component.text(" is not on a team.")));
-            } else {
-                gameManager.leaveOfflineIGN(sender, playerName);
-            }
-        } else {
-            gameManager.leaveParticipant(sender, playerToLeave, playerName);
+        OfflineParticipant offlineParticipant = gameManager.getOfflineParticipant(playerToLeave.getUniqueId());
+        if (offlineParticipant == null) {
+            return CommandResult.failure(Component.text("Player ")
+                    .append(Component.text(playerName)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" is not on a team.")));
         }
+        gameManager.leaveParticipant(sender, offlineParticipant);
         return CommandResult.success();
     }
     

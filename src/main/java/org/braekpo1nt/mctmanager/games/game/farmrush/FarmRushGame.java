@@ -327,9 +327,9 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     }
     
     public void initializeParticipant(Participant participant) {
-        participants.put(participant.getUniqueId(), participant);
         FarmRushTeam team = teams.get(participant.getTeamId());
-        team.joinOnlineMember(participant);
+        team.addParticipant(participant);
+        participants.put(participant.getUniqueId(), participant);
         participant.setGameMode(GameMode.ADVENTURE);
         sidebar.addPlayer(participant);
         ParticipantInitializer.clearInventory(participant);
@@ -389,6 +389,8 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     }
     
     public void resetParticipant(Participant participant) {
+        FarmRushTeam team = teams.get(participant.getTeamId());
+        team.removeParticipant(participant.getUniqueId());
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);

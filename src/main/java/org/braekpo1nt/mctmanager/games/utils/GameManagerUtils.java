@@ -9,7 +9,9 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
@@ -280,41 +282,16 @@ public class GameManagerUtils {
         if (ign.isEmpty()) {
             return CommandResult.failure("player name must not be blank");
         }
-        if (!gameManager.hasTeam(teamId)) {
+        Team team = gameManager.getTeam(teamId);
+        if (team == null) {
             return CommandResult.failure(Component.text("Team ")
                     .append(Component.text(teamId)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" does not exist.")));
         }
         
-        Player playerToJoin = plugin.getServer().getPlayer(ign);
-        Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
-        if (playerToJoin == null) {
-            if (gameManager.isOfflineIGN(ign)) {
-                String oldTeamId = gameManager.getOfflineIGNTeamId(ign);
-                if (oldTeamId != null && oldTeamId.equals(teamId)) {
-                    TextColor teamColor = gameManager.getTeamColor(teamId);
-                    return CommandResult.success(Component.empty()
-                            .append(Component.text(ign)
-                                    .color(teamColor))
-                            .append(Component.text(" is already on team "))
-                            .append(teamDisplayName));
-                }
-            }
-            OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(ign);
-            gameManager.joinOfflineIGNToTeam(sender, ign, offlinePlayer.getUniqueId(), teamId);
-            return CommandResult.success();
-        }
-        if (gameManager.isParticipant(playerToJoin.getUniqueId())) {
-            String oldTeamId = gameManager.getTeamId(playerToJoin.getUniqueId());
-            if (oldTeamId.equals(teamId)) {
-                return CommandResult.success(Component.empty()
-                        .append(playerToJoin.displayName())
-                        .append(Component.text(" is already on team "))
-                        .append(teamDisplayName));
-            }
-        }
-        gameManager.joinParticipantToTeam(sender, playerToJoin, teamId);
+        OfflinePlayer playerToJoin = plugin.getServer().getOfflinePlayer(ign);
+        gameManager.joinParticipantToTeam(sender, playerToJoin, ign, teamId);
         return CommandResult.success();
     }
     
