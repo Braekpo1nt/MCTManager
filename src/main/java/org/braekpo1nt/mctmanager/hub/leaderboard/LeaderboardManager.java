@@ -5,13 +5,12 @@ import eu.decentsoftware.holograms.api.holograms.Hologram;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.bukkit.Location;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -101,23 +100,13 @@ public class LeaderboardManager {
     }
     
     public void updateScores() {
-        List<OfflinePlayer> sortedOfflineParticipants = GameManagerUtils.getSortedOfflineParticipants(gameManager);
+        @NotNull List<OfflineParticipant> sortedOfflineParticipants = GameManagerUtils.getSortedOfflineParticipants(gameManager);
         List<Standing> standings = new ArrayList<>(sortedOfflineParticipants.size());
         for (int i = 0; i < sortedOfflineParticipants.size(); i++) {
-            OfflinePlayer participant = sortedOfflineParticipants.get(i);
+            OfflineParticipant participant = sortedOfflineParticipants.get(i);
             int placement = i+1;
-            UUID uuid = participant.getUniqueId();
-            String name = participant.getName(); 
-            if (name == null) {
-                name = gameManager.getOfflineIGN(uuid);
-                if (name == null) {
-                    name = uuid.toString();
-                }
-            }
-            String teamId = gameManager.getTeamId(uuid);
-            TextColor teamColor = gameManager.getTeamColor(teamId);
-            int score = gameManager.getScore(uuid);
-            standings.add(new Standing(uuid, placement, teamColor, name, score));
+            int score = gameManager.getScore(participant.getUniqueId());
+            standings.add(new Standing(participant.getUniqueId(), placement, participant.displayName(), score));
         }
         List<String> lines = new ArrayList<>(Math.min(topPlayers, standings.size())+(title != null ? 1 : 2));
         if (title != null) {
@@ -146,16 +135,14 @@ public class LeaderboardManager {
     static class Standing {
         private final @NotNull UUID uuid;
         private final int placement;
-        private final TextColor teamColor;
-        private final @NotNull String ign;
+        private final @NotNull Component displayName;
         private final int score;
         
         public String toBoldLine() {
             return LegacyComponentSerializer.legacyAmpersand().serialize(Component.empty()
                     .append(Component.text(placement))
                     .append(Component.text(". "))
-                    .append(Component.text(ign)
-                            .color(teamColor))
+                    .append(displayName)
                     .append(Component.text(" - "))
                     .append(Component.text(score))
                     .color(NamedTextColor.GOLD)
@@ -167,8 +154,7 @@ public class LeaderboardManager {
             return LegacyComponentSerializer.legacyAmpersand().serialize(Component.empty()
                     .append(Component.text(placement))
                     .append(Component.text(". "))
-                    .append(Component.text(ign)
-                            .color(teamColor))
+                    .append(displayName)
                     .append(Component.text(" - "))
                     .append(Component.text(score))
                     .color(NamedTextColor.GOLD)
