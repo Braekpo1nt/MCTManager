@@ -1542,8 +1542,11 @@ public class GameManager implements Listener {
      * @param score The score to set to. If the score is negative, the score will be set to 0.
      */
     public void setScore(UUID participantUUID, int score) {
-        // TODO: OfflineParticipant great place for using the OfflineParticipant.getTeamId()
-        MCTTeam team = teams.get(getTeamId(participantUUID));
+        OfflineParticipant offlineParticipant = allParticipants.get(participantUUID);
+        if (offlineParticipant == null) {
+            return;
+        }
+        MCTTeam team = teams.get(offlineParticipant.getTeamId());
         if (team == null) {
             return;
         }
