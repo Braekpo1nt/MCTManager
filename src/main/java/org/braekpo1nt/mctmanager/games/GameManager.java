@@ -1570,9 +1570,11 @@ public class GameManager implements Listener {
     @Deprecated
     public @NotNull Component getFormattedTeamDisplayName(@NotNull String teamId) {
         // TODO: Team delete this method
-        String displayName = gameStateStorageUtil.getTeamDisplayName(teamId);
-        NamedTextColor teamColor = gameStateStorageUtil.getTeamColor(teamId);
-        return Component.text(displayName).color(teamColor).decorate(TextDecoration.BOLD);
+        MCTTeam team = teams.get(teamId);
+        if (team == null) {
+            return Component.empty();
+        }
+        return team.getFormattedDisplayName();
     }
     
     /**
