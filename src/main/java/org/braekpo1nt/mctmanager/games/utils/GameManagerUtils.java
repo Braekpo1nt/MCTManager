@@ -151,42 +151,28 @@ public class GameManagerUtils {
     
     /**
      * @param gameManager the GameManager to get the data from
-     * @return a sorted list of OfflinePlayers representing the participants. Sorted first by score from greatest to least, then alphabetically (A first, Z last).
+     * @return a sorted list of {@link OfflineParticipant}s. 
+     * Sorted first by score from greatest to least, then alphabetically (A first, Z last).
      */
-    public static @NotNull List<OfflinePlayer> getSortedOfflineParticipants(GameManager gameManager) {
-        List<OfflinePlayer> offlineParticipants = gameManager.getOfflineParticipants();
-        sortOfflinePlayers(offlineParticipants, gameManager);
-        return offlineParticipants;
+    public static @NotNull List<OfflineParticipant> getSortedOfflineParticipants(GameManager gameManager) {
+        Collection<OfflineParticipant> offlineParticipants = gameManager.getOfflineParticipants();
+        return sortOfflinePlayers(offlineParticipants, gameManager);
     }
     
     /**
-     * Sorts the provided list of OfflinePlayer objects. Sorts in place.
-     * @param offlinePlayers each entry must have a UUID of a valid participant in the GameState of the given GameManager
+     * Sorts the provided list of OfflinePlayer objects.
+     * @param offlineParticipants each entry must have a UUID of a valid participant in the GameState of the given GameManager
      * @param gameManager the GameManager to get the data from
+     * @return the given participants in a sorted list
      */
-    public static void sortOfflinePlayers(List<OfflinePlayer> offlinePlayers, GameManager gameManager) {
-        offlinePlayers.sort((p1, p2) -> {
+    public static List<OfflineParticipant> sortOfflinePlayers(Collection<OfflineParticipant> offlineParticipants, GameManager gameManager) {
+        return offlineParticipants.stream().sorted((p1, p2) -> {
             int scoreComparison = gameManager.getScore(p2.getUniqueId()) - gameManager.getScore(p1.getUniqueId());
             if (scoreComparison != 0) {
                 return scoreComparison;
             }
-            
-            String p1Name = p1.getName();
-            if (p1Name == null) {
-                p1Name = gameManager.getOfflineIGN(p1.getUniqueId());
-                if (p1Name == null) {
-                    p1Name = p1.getUniqueId().toString();
-                }
-            }
-            String p2Name = p2.getName();
-            if (p2Name == null) {
-                p2Name = gameManager.getOfflineIGN(p2.getUniqueId());
-                if (p2Name == null) {
-                    p2Name = p2.getUniqueId().toString();
-                }
-            }
-            return p1Name.compareToIgnoreCase(p2Name);
-        });
+            return p1.getName().compareToIgnoreCase(p2.getName());
+        }).toList();
     }
     
     /**

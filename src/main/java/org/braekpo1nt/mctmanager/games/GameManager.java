@@ -1623,22 +1623,7 @@ public class GameManager implements Listener {
      * @return a list of the names of all participants in the game state
      */
     public List<@NotNull String> getAllParticipantNames() {
-        List<OfflinePlayer> offlinePlayers = getOfflineParticipants();
-        List<@NotNull String> playerNames = new ArrayList<>();
-        for (OfflinePlayer offlinePlayer : offlinePlayers) {
-            String name = offlinePlayer.getName();
-            if (name != null){
-                playerNames.add(name);
-            } else {
-                String ign = gameStateStorageUtil.getOfflineIGN(offlinePlayer.getUniqueId());
-                if (ign != null) {
-                    playerNames.add(ign);
-                } else {
-                    playerNames.add(offlinePlayer.getUniqueId().toString());
-                }
-            }
-        }
-        return playerNames;
+        return allParticipants.values().stream().map(OfflineParticipant::getName).toList();
     }
     
     /**
@@ -1653,19 +1638,8 @@ public class GameManager implements Listener {
      * @return A list {@link OfflinePlayer}s representing all participants in the {@link GameStateStorageUtil}. 
      * These players could be offline or online, have logged in at least once or not
      */
-    public List<OfflinePlayer> getOfflineParticipants() {
-        List<UUID> uniqueIds = gameStateStorageUtil.getPlayerUniqueIds();
-        List<OfflinePlayer> offlineParticipants = new ArrayList<>();
-        for (UUID uniqueId : uniqueIds) {
-            OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(uniqueId);
-            offlineParticipants.add(offlinePlayer);
-        }
-        List<UUID> offlineUniqueIds = gameStateStorageUtil.getOfflinePlayerUniqueIds();
-        for (UUID offlineUniqueId : offlineUniqueIds) {
-            OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(offlineUniqueId);
-            offlineParticipants.add(offlinePlayer);
-        }
-        return offlineParticipants;
+    public Collection<OfflineParticipant> getOfflineParticipants() {
+        return allParticipants.values();
     }
     
     /**
@@ -1674,16 +1648,12 @@ public class GameManager implements Listener {
      * who are on the given team. 
      * These players could be offline or online, have logged in at least once or not
      */
-    public List<OfflinePlayer> getOfflineParticipants(@NotNull String teamId) {
-        List<OfflinePlayer> offlineParticipants = getOfflineParticipants();
-        List<OfflinePlayer> result = new ArrayList<>();
-        for (OfflinePlayer offlineParticipant : offlineParticipants) {
-            String offlineTeamId = getTeamId(offlineParticipant.getUniqueId());
-            if (teamId.equals(offlineTeamId)) {
-                result.add(offlineParticipant);
-            }
+    public @NotNull Collection<OfflineParticipant> getOfflineParticipants(@NotNull String teamId) {
+        MCTTeam team = teams.get(teamId);
+        if (team == null) {
+            return Collections.emptyList();
         }
-        return result;
+        return team.getMemberUUIDs().stream().map(allParticipants::get).collect(Collectors.toSet());
     }
     
     public void addScoreParticipants(Collection<Participant> participants, int score) {
