@@ -4,7 +4,6 @@ import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
 import com.google.common.base.Preconditions;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -100,7 +99,6 @@ public class GameManager implements Listener {
     private final Map<String, MCTTeam> teams = new HashMap<>();
     /**
      * Contains the list of all participants, offline and online.
-     * TODO: implement updating this
      */
     private final Map<UUID, OfflineParticipant> allParticipants = new HashMap<>();
     /**
@@ -688,7 +686,6 @@ public class GameManager implements Listener {
         }
         
         hubManager.removeParticipantsFromHub(onlineParticipants.values());
-        // TODO: Teams make sure this is the best way to pass teams to start
         selectedGame.start(new HashSet<>(onlineTeams), onlineParticipants.values(), onlineAdmins);
         activeGame = selectedGame;
         updatePersonalScores(onlineParticipants.values());
@@ -722,9 +719,7 @@ public class GameManager implements Listener {
     
     /**
      * @return all teams
-     * @deprecated find another way to get all the teams in the EventManager
      */
-    @Deprecated
     public @NotNull Collection<Team> getTeams() {
         return teams.values().stream().map(mctTeam -> (Team) mctTeam).toList();
     }
@@ -1059,10 +1054,11 @@ public class GameManager implements Listener {
      * @param teamId The teamId of the team. If a team with the given id already exists, nothing happens.
      * @param teamDisplayName The display name of the team.
      * @param colorString the string representing the color
+     * @return the newly created team, or null if the given team already exists or could not be created
      */
-    public void addTeam(String teamId, String teamDisplayName, String colorString) {
-        if (gameStateStorageUtil.containsTeam(teamId)) {
-            return;
+    public Team addTeam(String teamId, String teamDisplayName, String colorString) {
+        if (teams.containsKey(teamId)) {
+            return null;
         }
         try {
             gameStateStorageUtil.addTeam(teamId, teamDisplayName, colorString);
@@ -1079,6 +1075,7 @@ public class GameManager implements Listener {
         newTeam.color(color);
         tabList.addTeam(teamId, teamDisplayName, color);
         updateTeamScore(team);
+        return team;
     }
     
     /**
@@ -1142,7 +1139,6 @@ public class GameManager implements Listener {
             leaveParticipant(sender, existingParticipant);
         }
         
-        // TODO: make this a common method somewhere
         org.bukkit.scoreboard.Team scoreboardTeam = mctScoreboard.getTeam(team.getTeamId());
         if (scoreboardTeam != null) {
             scoreboardTeam.addPlayer(offlinePlayer);
@@ -1367,7 +1363,6 @@ public class GameManager implements Listener {
      * @param points The points to add
      */
     public void awardPointsToTeam(Team team, int points) {
-        // TODO: Team should this take in a Team object or a teamId? should Team implement AudienceDelegate?
         MCTTeam mctTeam = teams.get(team.getTeamId());
         int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
         addScore(mctTeam, multipliedPoints);

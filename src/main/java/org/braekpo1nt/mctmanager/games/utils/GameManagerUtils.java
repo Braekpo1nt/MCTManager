@@ -4,7 +4,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
@@ -222,10 +221,12 @@ public class GameManagerUtils {
                     .append(Component.text(" is not a recognized color")));
         }
         
-        gameManager.addTeam(teamId, teamDisplayName, colorString);
-        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
+        Team team = gameManager.addTeam(teamId, teamDisplayName, colorString);
+        if (team == null) {
+            return CommandResult.failure("Unable to create team (already exists)");
+        }
         return CommandResult.success(Component.text("Created team ")
-                .append(formattedTeamDisplayName)
+                .append(team.getFormattedDisplayName())
                 .append(Component.text(" (teamId=\""))
                 .append(Component.text(teamId))
                 .append(Component.text("\")")));
