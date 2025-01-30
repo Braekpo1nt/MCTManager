@@ -488,7 +488,7 @@ public class GameManager implements Listener {
             reportGameStateException("loading game state", e);
             return false;
         }
-        gameStateStorageUtil.setupScoreboard(mctScoreboard);
+        gameStateStorageUtil.setupScoreboard(mctScoreboard, plugin.getServer());
         teams.clear();
         allParticipants.clear();
         onlineParticipants.clear();

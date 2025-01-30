@@ -16,10 +16,6 @@ import java.util.*;
 class GameStateDTO implements Validatable {
     
     private @Nullable Map<UUID, MCTPlayerDTO> players = new HashMap<>();
-    /**
-     * Holds the list of players who are to be added upon joining
-     */
-    private @Nullable List<OfflineMCTPlayerDTO> offlinePlayers = new ArrayList<>();
     private @Nullable Map<String, MCTTeamDTO> teams = new HashMap<>();
     private @Nullable List<UUID> admins = new ArrayList<>();
     
@@ -41,17 +37,6 @@ class GameStateDTO implements Validatable {
             validator.validate(!uniqueUUIDs.contains(uuid), "players[%s].uniqueId is a duplicate of \"%s\"", entry.getKey(), uuid);
             uniqueUUIDs.add(uuid);
         }
-        if (offlinePlayers != null) {
-            Set<String> uniqueIGNs = new HashSet<>(offlinePlayers.size());
-            for (int i = 0; i < offlinePlayers.size(); i++) {
-                OfflineMCTPlayerDTO offlineMCTPlayer = offlinePlayers.get(i);
-                validator.validate(offlineMCTPlayer != null, "offlinePlayers can't contain null values");
-                offlineMCTPlayer.validate(validator.path("offlinePlayers[%d]", i));
-                String ign = offlineMCTPlayer.getIgn();
-                validator.validate(!uniqueIGNs.contains(ign), "offlinePlayers[%d].ign is a duplicate of \"%s\"", i, ign);
-                uniqueIGNs.add(ign);
-            }
-        }
         validator.validateMap(this.teams, "teams");
     }
     
@@ -59,9 +44,6 @@ class GameStateDTO implements Validatable {
         return GameState.builder()
                 .players(this.players != null 
                         ? MCTPlayerDTO.toMCTPlayers(this.players) 
-                        : new HashMap<>())
-                .offlinePlayers(this.offlinePlayers != null 
-                        ? OfflineMCTPlayerDTO.toOfflineMCTPlayers(this.offlinePlayers) 
                         : new HashMap<>())
                 .teams(this.teams != null 
                         ? MCTTeamDTO.toTeams(this.teams) 
@@ -75,7 +57,6 @@ class GameStateDTO implements Validatable {
     static @NotNull GameStateDTO fromGameState(@NotNull GameState gameState) {
         return new GameStateDTO(
                 MCTPlayerDTO.fromMCTPlayers(gameState.getPlayers()),
-                OfflineMCTPlayerDTO.fromOfflineMCTPlayers(gameState.getOfflinePlayers()),
                 MCTTeamDTO.fromTeams(gameState.getTeams()),
                 gameState.getAdmins()
         );
