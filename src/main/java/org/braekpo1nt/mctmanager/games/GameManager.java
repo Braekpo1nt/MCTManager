@@ -1094,43 +1094,18 @@ public class GameManager implements Listener {
      * Checks if the team exists in the game state
      * @param teamId The team to look for
      * @return true if the team with the given teamId exists, false otherwise.
-     * @deprecated in favor of checking if {@link #getTeam(String)} is non-null
      */
-    @Deprecated
     public boolean hasTeam(String teamId) {
         return gameStateStorageUtil.containsTeam(teamId);
     }
     
     /**
      * Checks if the player exists in the game state
-     * @param playerUniqueId The UUID of the player to check for
+     * @param uuid The UUID of the participant to check for
      * @return true if the UUID is in the game state, false otherwise
-     * @deprecated in favor of checking if they are contained in {@link #allParticipants}
      */
-    @Deprecated
-    public boolean isParticipant(UUID playerUniqueId) {
-        return gameStateStorageUtil.containsPlayer(playerUniqueId);
-    }
-    
-    /**
-     * @param offlineUUID the UUID of the offline player which may be in the GameState
-     * @return true if the given UUID matches one of the offline players in the GameState, false otherwise
-     * @deprecated in favor of checking for {@link #getOfflineParticipant(UUID)} is not null
-     */
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    @Deprecated
-    public boolean isOfflineParticipant(UUID offlineUUID) {
-        return gameStateStorageUtil.containsOfflinePlayer(offlineUUID);
-    }
-    
-    /**
-     * @param ign the in-game-name of the OfflineParticipant
-     * @return true if the ign is that of an OfflineParticipant (one who has never logged in before), false otherwise
-     * @deprecated in favor of using {@link OfflineParticipant}
-     */
-    @Deprecated
-    public boolean isOfflineIGN(@NotNull String ign) {
-        return gameStateStorageUtil.containsOfflineIGN(ign);
+    public boolean isParticipant(UUID uuid) {
+        return allParticipants.containsKey(uuid);
     }
     
     /**
@@ -1217,74 +1192,6 @@ public class GameManager implements Listener {
     }
     
     /**
-     * @param sender the sender of the command, who will receive success/error messages
-     * @param ign The in-game-name of the participant who has never logged in before, which you are joining to the given team
-     * @param offlineUUID nullable. The UUID of the offline player with the ign, if you know it. 
-     * @param teamId the teamId of the team to join the participant to. Nothing happens if this is not a valid teamId
-     * @deprecated in favor of {@link #joinParticipantToTeam(CommandSender, OfflinePlayer, String, String)}
-     */
-    @Deprecated
-    public void joinOfflineIGNToTeam(CommandSender sender, @NotNull String ign, @NotNull UUID offlineUUID, @NotNull String teamId) {
-        MCTTeam team = teams.get(teamId);
-        if (team == null) {
-            return;
-        }
-        if (isAdmin(offlineUUID)) {
-            OfflinePlayer offlineAdmin = plugin.getServer().getOfflinePlayer(offlineUUID);
-            removeAdmin(sender, offlineAdmin, ign);
-        }
-        OfflineParticipant offlineParticipant = getOfflineParticipant(offlineUUID);
-        if (offlineParticipant != null) {
-            String originalTeamId = getTeamId(offlineUUID);
-            if (originalTeamId.equals(teamId)) {
-                sender.sendMessage(Component.text()
-                        .append(Component.text(ign)
-                                .decorate(TextDecoration.BOLD))
-                        .append(Component.text(" is already a member of team "))
-                        .append(Component.text(teamId))
-                        .append(Component.text(". Nothing happened.")));
-                return;
-            }
-            leaveParticipant(sender, offlineParticipant);
-        }
-        addNewOfflineIGN(sender, ign, offlineUUID, team);
-        hubManager.updateLeaderboards();
-        tabList.joinParticipant(offlineUUID, ign, teamId, true);
-        Component teamDisplayName = getFormattedTeamDisplayName(teamId);
-        TextComponent displayName = Component.text(ign)
-                .color(team.getColor())
-                .decorate(TextDecoration.BOLD);
-        sender.sendMessage(Component.text("Joined ")
-                .append(displayName)
-                .append(Component.text(" to team "))
-                .append(teamDisplayName)
-                .append(Component.newline())
-                .append(Component.empty()
-                    .append(displayName)
-                    .append(Component.text(" is offline, and will be joined to their team when they log on"))
-                    .decorate(TextDecoration.ITALIC))
-        );
-    }
-    
-    /**
-     * Adds the new offline IGN to the game state and joins them the given team. 
-     * @param sender the sender of the command, who will receive success/error messages
-     * @param ign The in-game-name of the participant who has never logged in before
-     * @param offlineUUID nullable. The UUID of the offline player with the ign, if you know it.
-     * @param team The team to join the new offline ign to. 
-     */
-    private void addNewOfflineIGN(CommandSender sender, @NotNull String ign, @NotNull UUID offlineUUID, @NotNull MCTTeam team) {
-        try {
-            gameStateStorageUtil.addNewOfflineIGN(ign, offlineUUID, team.getTeamId());
-        } catch (ConfigIOException e) {
-            reportGameStateException("adding new offline IGN", e);
-            sender.sendMessage(Component.text("error occurred adding new offline IGN, see console for details.")
-                    .color(NamedTextColor.RED));
-        }
-        team.joinMember(offlineUUID);
-    }
-    
-    /**
      * @param teamId the teamId of the team to get the {@link OfflineParticipant}s from
      * @return a collection of {@link OfflineParticipant}s who are on the given team
      */
@@ -1360,16 +1267,6 @@ public class GameManager implements Listener {
                     String.format("Can't get teamId for non-participant UUID %s", participantUUID));
         }
         return teamId;
-    }
-    
-    /**
-     * @param uniqueId the UUID of the offline IGN to get
-     * @return the in-game-name of the offlinePlayer in the GameState with the given UUID. Null if the UUID doesn't belong to an offline player 
-     * @deprecated in favor of {@link #getOfflineParticipant(UUID)}
-     */
-    @Deprecated
-    public @Nullable String getOfflineIGN(@NotNull UUID uniqueId) {
-        return gameStateStorageUtil.getOfflineIGN(uniqueId);
     }
     
     /**
