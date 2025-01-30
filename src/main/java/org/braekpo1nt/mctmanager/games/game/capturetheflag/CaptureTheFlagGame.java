@@ -198,26 +198,32 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         Main.logger().info("Stopping Capture the Flag");
     }
     
-    @Override
+    /**
+     * Called when a team has a member join, even if members of that team are already present
+     * @param team the team which had a member join
+     */
     public void onTeamJoin(Team team) {
-        if (state == null) {
+        if (teams.containsKey(team.getTeamId())) {
             return;
         }
-        state.onTeamJoin(team);
+        teams.put(team.getTeamId(), new TeamData<>(team));
+        roundManager.regenerateRounds(Team.getTeamIds(teams),
+                config.getArenas().size());
+        updateRoundLine();
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
         Main.logger().info("onParticipantJoin " + participant.getName());
         if (state == null) {
             return;
         }
-        state.onParticipantJoin(participant);
+        state.onParticipantJoin(participant, team);
         state.updateSidebar(participant, this);
     }
     
     @Override
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantQuit(Participant participant, Team team) {
         Main.logger().info("onParticipantQuit " + participant.getName());
         if (state == null) {
             return;
@@ -228,12 +234,18 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         state.onParticipantQuit(participant);
     }
     
-    @Override
-    public void onTeamQuit(Team team) {
-        if (state == null) {
+    /**
+     * called when a participant on the given team quits, not just when the last member quits
+     * @param team the team that had a member quit
+     */
+    public void onTeamQuit(TeamData<Participant> team) {
+        if (team.size() > 0) {
             return;
         }
-        state.onTeamQuit(team);
+        teams.remove(team.getTeamId());
+        roundManager.regenerateRounds(Team.getTeamIds(teams),
+                config.getArenas().size());
+        updateRoundLine();
     }
     
     @Override

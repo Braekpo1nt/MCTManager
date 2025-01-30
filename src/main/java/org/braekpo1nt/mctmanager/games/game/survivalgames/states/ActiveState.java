@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -184,20 +185,15 @@ public class ActiveState implements SurvivalGamesState {
     }
     
     @Override
-    public void onTeamJoin(Team team) {
-        context.getTeams().put(team.getTeamId(), team);
-    }
-    
-    @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
+        context.onTeamJoin(team);
         if (participantShouldRejoin(participant)) {
             rejoinParticipant(participant);
         } else {
             context.getDeadPlayers().remove(participant.getUniqueId());
             String teamId = participant.getTeamId();
             if (!context.getLivingMembers().containsKey(teamId)) {
-                TextColor color = context.getGameManager().getTeamColor(teamId);
-                context.getTopbar().addTeam(teamId, color);
+                context.getTopbar().addTeam(teamId, team.getColor());
             }
             initializeParticipant(participant);
             participant.teleport(config.getPlatformSpawns().getFirst());
@@ -214,6 +210,7 @@ public class ActiveState implements SurvivalGamesState {
     
     private void rejoinParticipant(Participant participant) {
         context.getParticipants().put(participant.getUniqueId(), participant);
+        context.getTeams().get(participant.getTeamId()).addParticipant(participant);
         participant.setGameMode(GameMode.SPECTATOR);
         sidebar.addPlayer(participant);
         topbar.showPlayer(participant);
@@ -243,6 +240,7 @@ public class ActiveState implements SurvivalGamesState {
     @Override
     public void initializeParticipant(Participant participant) {
         context.getParticipants().put(participant.getUniqueId(), participant);
+        context.getTeams().get(participant.getTeamId()).addParticipant(participant);
         context.getLivingPlayers().add(participant.getUniqueId());
         String teamId = participant.getTeamId();
         context.getLivingMembers().putIfAbsent(teamId, 0);
@@ -261,6 +259,7 @@ public class ActiveState implements SurvivalGamesState {
     
     @Override
     public void resetParticipant(Participant participant) {
+        context.getTeams().get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -369,7 +368,7 @@ public class ActiveState implements SurvivalGamesState {
                 .append(deadTeam.getFormattedDisplayName())
                 .append(Component.text(" has been eliminated.")));
         // TODO: does getLivingTeams need to return teams, or just ids?
-        List<Team> livingTeams = getLivingTeams();
+        List<TeamData<Participant>> livingTeams = getLivingTeams();
         gameManager.awardPointsToTeams(Team.getTeamIds(livingTeams), config.getSurviveTeamScore());
         switch (livingTeams.size()) {
             case 2 -> {
@@ -395,7 +394,7 @@ public class ActiveState implements SurvivalGamesState {
     /**
      * @return a list of the teamIds of the teams which are still alive (have at least 1 living member)
      */
-    private @NotNull List<Team> getLivingTeams() {
+    private @NotNull List<TeamData<Participant>> getLivingTeams() {
         // TODO: Teams remove this in favor of teams storing their living members
         return context.getLivingMembers().entrySet().stream()
                 .filter(entry -> entry.getValue() > 0)

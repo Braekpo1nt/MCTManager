@@ -410,24 +410,36 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         timerManager.cancel();
     }
     
-    @Override
     public void onTeamJoin(Team team) {
-        if (state == null) {
+        if (teams.containsKey(team.getTeamId())) {
             return;
         }
-        state.onTeamJoin(team);
+        Arena newArena;
+        FarmRushTeam lastInLine = getLastTeamInLine();
+        int newOrder;
+        if (lastInLine == null) {
+            newArena = config.getFirstArena();
+            newOrder = 0;
+        } else {
+            Vector offset = new Vector(config.getFirstArena().getBounds().getWidthX() + 1, 0, 0);
+            newArena = lastInLine.getArena().offset(offset);
+            newOrder = lastInLine.getArenaOrder() + 1;
+        }
+        FarmRushTeam farmRushTeam = new FarmRushTeam(team, newArena, newOrder);
+        teams.put(farmRushTeam.getTeamId(), farmRushTeam);
+        placeArenas(Collections.singletonList(newArena));
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
         if (state == null) {
             return;
         }
-        state.onParticipantJoin(participant);
+        state.onParticipantJoin(participant, team);
     }
     
     @Override
-    public void onParticipantQuit(Participant player) {
+    public void onParticipantQuit(Participant player, Team team) {
         if (state == null) {
             return;
         }

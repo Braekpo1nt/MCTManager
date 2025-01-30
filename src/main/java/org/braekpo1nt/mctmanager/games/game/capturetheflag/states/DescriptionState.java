@@ -38,15 +38,8 @@ public class DescriptionState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onTeamJoin(Team team) {
-        context.getTeams().put(team.getTeamId(), new TeamData<>(team));
-        context.getRoundManager().regenerateRounds(Team.getTeamIds(context.getTeams()),
-                context.getConfig().getArenas().size());
-        context.updateRoundLine();
-    }
-    
-    @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
+        context.onTeamJoin(team);
         initializeParticipant(participant);
     }
     
@@ -61,13 +54,7 @@ public class DescriptionState implements CaptureTheFlagState {
     public void onParticipantQuit(Participant participant) {
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
-    }
-    
-    @Override
-    public void onTeamQuit(Team team) {
-        context.getRoundManager().regenerateRounds(Team.getTeamIds(context.getTeams()), 
-                context.getConfig().getArenas().size());
-        context.updateRoundLine();
+        context.onTeamQuit(context.getTeams().get(participant.getTeamId()));
     }
     
     @Override

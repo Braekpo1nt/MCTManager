@@ -249,20 +249,12 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     @Override
-    public void onTeamJoin(Team team) {
-        teams.put(team.getTeamId(), new TeamData<>(team));
-        if (currentRoundIndex < rounds.size()) {
-            ClockworkRound currentRound = rounds.get(currentRoundIndex);
-            if (currentRound.isActive()) {
-                currentRound.onTeamJoin(team);
-            }
-        }
-    }
-    
-    @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
         if (!gameActive) {
             return;
+        }
+        if (!teams.containsKey(team.getTeamId())) {
+            teams.put(team.getTeamId(), new TeamData<>(team));
         }
         initializeParticipant(participant);
         sidebar.updateLines(participant.getUniqueId(), 
@@ -275,13 +267,13 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         if (currentRoundIndex < rounds.size()) {
             ClockworkRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
-                currentRound.onParticipantJoin(participant);
+                currentRound.onParticipantJoin(participant, team);
             }
         }
     }
     
     @Override
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantQuit(Participant participant, Team team) {
         if (!gameActive) {
             return;
         }
@@ -290,21 +282,13 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         if (descriptionShowing) {
             return;
         }
+        if (teams.get(participant.getTeamId()).size() == 0) {
+            teams.remove(participant.getTeamId());
+        }
         if (currentRoundIndex < rounds.size()) {
             ClockworkRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
                 currentRound.onParticipantQuit(participant);
-            }
-        }
-    }
-    
-    @Override
-    public void onTeamQuit(Team team) {
-        teams.remove(team.getTeamId());
-        if (currentRoundIndex < rounds.size()) {
-            ClockworkRound currentRound = rounds.get(currentRoundIndex);
-            if (currentRound.isActive()) {
-                currentRound.onTeamQuit(team);
             }
         }
     }

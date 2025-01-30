@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
@@ -36,17 +37,18 @@ public class DescriptionState implements SurvivalGamesState {
                 .build());
     }
     
-    @Override
-    public void onTeamJoin(Team team) {
-        if (!context.getTeams().containsKey(team.getTeamId())) {
-            context.createPlatformsAndTeleportTeams();
-            context.getTopbar().addTeam(team.getTeamId(), team.getColor());
+    private void onTeamJoin(Team team) {
+        if (context.getTeams().containsKey(team.getTeamId())) {
+            return;
         }
-        context.getTeams().put(team.getTeamId(), team);
+        context.getTeams().put(team.getTeamId(), new TeamData<>(team));
+        context.createPlatformsAndTeleportTeams();
+        context.getTopbar().addTeam(team.getTeamId(), team.getColor());
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
+        onTeamJoin(team);
         context.getDeadPlayers().remove(participant.getUniqueId());
         initializeParticipant(participant);
         context.createPlatformsAndTeleportTeams();
@@ -74,6 +76,7 @@ public class DescriptionState implements SurvivalGamesState {
     @Override
     public void initializeParticipant(Participant participant) {
         context.getParticipants().put(participant.getUniqueId(), participant);
+        context.getTeams().get(participant.getTeamId()).addParticipant(participant);
         context.getLivingPlayers().add(participant.getUniqueId());
         String teamId = participant.getTeamId();
         context.getLivingMembers().putIfAbsent(teamId, 0);
@@ -93,6 +96,7 @@ public class DescriptionState implements SurvivalGamesState {
     
     @Override
     public void resetParticipant(Participant participant) {
+        context.getTeams().get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);

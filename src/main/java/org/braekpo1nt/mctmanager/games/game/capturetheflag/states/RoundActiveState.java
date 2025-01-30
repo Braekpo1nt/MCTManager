@@ -156,25 +156,18 @@ public class RoundActiveState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onTeamJoin(Team team) {
-        context.getTeams().put(team.getTeamId(), new TeamData<>(team));
-        context.getRoundManager().regenerateRounds(Team.getTeamIds(context.getTeams()),
-                context.getConfig().getArenas().size());
-        context.updateRoundLine();
-    }
-    
-    @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
+        context.onTeamJoin(team);
         context.initializeParticipant(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
-        Team team = context.getTeams().get(participant.getTeamId());
-        CaptureTheFlagMatch match = getMatch(team.getTeamId());
+        Team ctfTeam = context.getTeams().get(participant.getTeamId());
+        CaptureTheFlagMatch match = getMatch(ctfTeam.getTeamId());
         if (match == null) {
             initializeOnDeckParticipant(participant);
             participant.sendMessage(Component.empty()
-                    .append(team.getFormattedDisplayName())
+                    .append(ctfTeam.getFormattedDisplayName())
                     .append(Component.text(" is on-deck this round."))
                     .color(NamedTextColor.YELLOW));
             Component roundDisplay = Component.empty()
@@ -184,7 +177,7 @@ public class RoundActiveState implements CaptureTheFlagState {
             participant.showTitle(UIUtils.defaultTitle(
                     roundDisplay,
                     Component.empty()
-                            .append(team.getFormattedDisplayName())
+                            .append(ctfTeam.getFormattedDisplayName())
                             .append(Component.text(" is on-deck"))));
         } else {
             match.onParticipantJoin(participant);
@@ -207,13 +200,7 @@ public class RoundActiveState implements CaptureTheFlagState {
         }
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
-    }
-    
-    @Override
-    public void onTeamQuit(Team team) {
-        context.getRoundManager().regenerateRounds(Team.getTeamIds(context.getTeams()), 
-                context.getConfig().getArenas().size());
-        context.updateRoundLine();
+        context.onTeamQuit(context.getTeams().get(participant.getTeamId()));
     }
     
     public void resetParticipant(Participant participant) {

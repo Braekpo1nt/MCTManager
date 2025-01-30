@@ -19,6 +19,7 @@ import org.braekpo1nt.mctmanager.games.game.survivalgames.states.SurvivalGamesSt
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.glow.GlowManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -75,7 +76,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     private Sidebar sidebar;
     private Sidebar adminSidebar;
     private SurvivalGamesConfig config;
-    public Map<String, Team> teams = new HashMap<>();
+    public Map<String, TeamData<Participant>> teams = new HashMap<>();
     public Map<UUID, Participant> participants = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     private WorldBorder worldBorder;
@@ -128,7 +129,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
         this.teams = new HashMap<>(newTeams.size());
         for (Team team : newTeams) {
-            teams.put(team.getTeamId(), team);
+            teams.put(team.getTeamId(), new TeamData<>(team));
         }
         this.participants = new HashMap<>(newParticipants.size());
         livingPlayers = new ArrayList<>(newParticipants.size());
@@ -215,6 +216,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     }
     
     public void resetParticipant(Participant participant) {
+        teams.get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -262,22 +264,22 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         Main.logger().info("Stopped Survival Games");
     }
     
-    @Override
     public void onTeamJoin(Team team) {
+        if (teams.containsKey(team.getTeamId())) {
+            return;
+        }
+        teams.put(team.getTeamId(), new TeamData<>(team));
+    }
+    
+    @Override
+    public void onParticipantJoin(Participant participant, Team team) {
         if (state != null) {
-            state.onTeamJoin(team);
+            state.onParticipantJoin(participant, team);
         }
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
-        if (state != null) {
-            state.onParticipantJoin(participant);
-        }
-    }
-    
-    @Override
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantQuit(Participant participant, Team team) {
         if (state != null) {
             state.onParticipantQuit(participant);
         }

@@ -12,8 +12,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 
 public interface FarmRushState {
     
-    void onTeamJoin(Team team);
-    void onParticipantJoin(Participant participant);
+    void onParticipantJoin(Participant participant, Team team);
     void onParticipantQuit(Participant participant);
     default void onParticipantDamage(EntityDamageEvent event) {
         Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "FarmRushState.onPlayerDamage()");

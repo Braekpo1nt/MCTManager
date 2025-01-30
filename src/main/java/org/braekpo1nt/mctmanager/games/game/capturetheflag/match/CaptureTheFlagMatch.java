@@ -100,7 +100,7 @@ public class CaptureTheFlagMatch {
         }
         state.nextState();
     }
-    // TODO: just have teams not be removed when they have no players, and if a team has no online players then they forfeight. YOu must make sure that you only use online teams for round generation, however
+    
     public void start(TeamData<Participant> northTeam, TeamData<Participant> southTeam, Collection<Participant> newParticipants) {
         placeFlags();
         closeGlassBarriers();

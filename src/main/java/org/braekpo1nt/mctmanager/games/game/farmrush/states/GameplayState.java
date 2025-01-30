@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.games.game.farmrush.states;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushTeam;
 import org.braekpo1nt.mctmanager.games.game.farmrush.ItemSale;
@@ -41,28 +40,8 @@ public abstract class GameplayState implements FarmRushState {
     }
     
     @Override
-    public void onTeamJoin(Team team) {
-        if (context.getTeams().containsKey(team.getTeamId())) {
-            return;
-        }
-        Arena newArena;
-        FarmRushTeam lastInLine = context.getLastTeamInLine();
-        int newOrder;
-        if (lastInLine == null) {
-            newArena = context.getConfig().getFirstArena();
-            newOrder = 0;
-        } else {
-            Vector offset = new Vector(context.getConfig().getFirstArena().getBounds().getWidthX() + 1, 0, 0);
-            newArena = lastInLine.getArena().offset(offset);
-            newOrder = lastInLine.getArenaOrder() + 1;
-        }
-        FarmRushTeam farmRushTeam = new FarmRushTeam(team, newArena, newOrder);
-        context.getTeams().put(farmRushTeam.getTeamId(), farmRushTeam);
-        context.placeArenas(Collections.singletonList(newArena));
-    }
-    
-    @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
+        context.onTeamJoin(team);
         context.getTeams().get(participant.getTeamId()).getArena().openBarnDoor();
         context.initializeParticipant(participant);
         participant.setGameMode(GameMode.SURVIVAL);

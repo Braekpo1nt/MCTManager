@@ -253,7 +253,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
         participants.put(participant.getUniqueId(), participant);
         UUID uniqueId = participant.getUniqueId();
         currentPuzzles.putIfAbsent(uniqueId, 0);
@@ -328,7 +328,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantQuit(Participant participant, Team team) {
         if (parkourHasStarted) {
             int unusedSkips = calculateUnusedSkips(participant);
             quitParticipantsSkips.put(participant.getUniqueId(), unusedSkips);

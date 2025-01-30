@@ -131,6 +131,7 @@ public class ClockworkRound implements Listener {
     
     private void rejoinParticipant(Participant participant) {
         participants.put(participant.getUniqueId(), participant);
+        teams.get(participant.getTeamId()).addParticipant(participant);
         participant.teleport(config.getStartingLocation());
         participant.setRespawnLocation(config.getStartingLocation(), true);
         ParticipantInitializer.clearInventory(participant);
@@ -200,7 +201,10 @@ public class ClockworkRound implements Listener {
         teams.put(team.getTeamId(), new TeamData<>(team));
     }
     
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
+        if (!teams.containsKey(team.getTeamId())) {
+            teams.put(team.getTeamId(), new TeamData<>(team));
+        }
         if (participantShouldRejoin(participant)) {
             rejoinParticipant(participant);
         } else {
@@ -214,10 +218,9 @@ public class ClockworkRound implements Listener {
         }
         resetParticipant(participant);
         participants.remove(participant.getUniqueId());
-    }
-    
-    public void onTeamQuit(Team team) {
-        teams.remove(team.getTeamId());
+        if (teams.get(participant.getTeamId()).size() == 0) {
+            teams.remove(participant.getTeamId());
+        }
     }
     
     private void cancelAllTasks() {

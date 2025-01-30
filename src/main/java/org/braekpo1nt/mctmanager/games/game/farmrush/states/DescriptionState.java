@@ -45,28 +45,8 @@ public class DescriptionState implements FarmRushState {
     }
     
     @Override
-    public void onTeamJoin(Team team) {
-        if (context.getTeams().containsKey(team.getTeamId())) {
-            return;
-        }
-        Arena newArena;
-        FarmRushTeam lastInLine = context.getLastTeamInLine();
-        int newOrder;
-        if (lastInLine == null) {
-            newArena = context.getConfig().getFirstArena();
-            newOrder = 0;
-        } else {
-            Vector offset = new Vector(context.getConfig().getFirstArena().getBounds().getWidthX() + 1, 0, 0);
-            newArena = lastInLine.getArena().offset(offset);
-            newOrder = lastInLine.getArenaOrder() + 1;
-        }
-        FarmRushTeam farmRushTeam = new FarmRushTeam(team, newArena, newOrder);
-        context.getTeams().put(farmRushTeam.getTeamId(), farmRushTeam);
-        context.placeArenas(Collections.singletonList(newArena));
-    }
-    
-    @Override
-    public void onParticipantJoin(Participant player) {
+    public void onParticipantJoin(Participant player, Team team) {
+        context.onTeamJoin(team);
         context.initializeParticipant(player);
         context.getSidebar().updateLine(player.getUniqueId(), "title", context.getTitle());
         player.sendMessage(context.getConfig().getDescription());

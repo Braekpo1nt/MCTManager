@@ -34,12 +34,7 @@ public class GameOverState implements FarmRushState {
     }
     
     @Override
-    public void onTeamJoin(Team team) {
-        // do nothing
-    }
-    
-    @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
         // do nothing
     }
     

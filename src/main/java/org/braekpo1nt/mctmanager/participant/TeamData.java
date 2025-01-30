@@ -64,4 +64,11 @@ public class TeamData<T extends Participant> extends TeamInfo implements Audienc
     public Collection<UUID> getMemberUUIDs() {
         return participants.keySet();
     }
+    
+    /**
+     * @return the number of participants in the team
+     */
+    public int size() {
+        return participants.size();
+    }
 }

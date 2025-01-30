@@ -39,12 +39,7 @@ public class GameOverState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onTeamJoin(Team team) {
-        // do nothing
-    }
-    
-    @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
         // do nothing
     }
     
@@ -57,11 +52,7 @@ public class GameOverState implements CaptureTheFlagState {
     public void onParticipantQuit(Participant participant) {
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
-    }
-    
-    @Override
-    public void onTeamQuit(Team team) {
-        // do nothing
+        context.onTeamQuit(context.getTeams().get(participant.getTeamId()));
     }
     
     @Override

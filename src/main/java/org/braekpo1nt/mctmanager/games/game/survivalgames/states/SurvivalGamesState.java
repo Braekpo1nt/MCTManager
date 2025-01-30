@@ -6,8 +6,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
 public interface SurvivalGamesState {
-    void onTeamJoin(Team team);
-    void onParticipantJoin(Participant participant);
+    void onParticipantJoin(Participant participant, Team team);
     void onParticipantQuit(Participant participant);
     void initializeParticipant(Participant participant);
     void resetParticipant(Participant participant);
