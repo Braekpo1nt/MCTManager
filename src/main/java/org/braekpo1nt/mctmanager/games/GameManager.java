@@ -988,7 +988,13 @@ public class GameManager implements Listener {
     }
     
     public void returnAllParticipantsToPodium(String winningTeam) {
-        List<Participant> winningTeamParticipants = getOnlineParticipantsOnTeam(winningTeam);
+        MCTTeam team = teams.get(winningTeam);
+        Collection<Participant> winningTeamParticipants;
+        if (team == null) {
+            winningTeamParticipants = Collections.emptyList();
+        } else {
+            winningTeamParticipants = team.getOnlineMembers();
+        }
         List<Participant> otherParticipants = new ArrayList<>();
         for (Participant participant : onlineParticipants.values()) {
             if (!winningTeamParticipants.contains(participant)) {
@@ -1227,7 +1233,6 @@ public class GameManager implements Listener {
             OfflinePlayer offlineAdmin = plugin.getServer().getOfflinePlayer(offlineUUID);
             removeAdmin(sender, offlineAdmin, ign);
         }
-        // TODO: OfflineParticipant this is a great place for it
         OfflineParticipant offlineParticipant = getOfflineParticipant(offlineUUID);
         if (offlineParticipant != null) {
             String originalTeamId = getTeamId(offlineUUID);
@@ -1241,21 +1246,6 @@ public class GameManager implements Listener {
                 return;
             }
             leaveParticipant(sender, offlineParticipant);
-        }
-        if (isOfflineIGN(ign)) {
-            String originalTeamId = getOfflineIGNTeamId(ign);
-            if (originalTeamId != null) {
-                if (originalTeamId.equals(teamId)) {
-                    sender.sendMessage(Component.text()
-                            .append(Component.text(ign)
-                                    .decorate(TextDecoration.BOLD))
-                            .append(Component.text(" is already a member of team "))
-                            .append(Component.text(teamId))
-                            .append(Component.text(". Nothing happened.")));
-                    return;
-                }
-                leaveOfflineIGN(sender, ign);
-            }
         }
         addNewOfflineIGN(sender, ign, offlineUUID, team);
         hubManager.updateLeaderboards();
@@ -1292,17 +1282,6 @@ public class GameManager implements Listener {
                     .color(NamedTextColor.RED));
         }
         team.joinMember(offlineUUID);
-    }
-    
-    /**
-     * @param teamId the teamId 
-     * @return a list of the online participants who are on the given team
-     * @deprecated in favor of {@link Participant#getParticipantsOnTeam(Collection, String)}
-     */
-    @Deprecated
-    public List<Participant> getOnlineParticipantsOnTeam(String teamId) {
-        // TODO: Team remove this method
-        return Participant.getParticipantsOnTeam(onlineParticipants.values(), teamId);
     }
     
     /**
@@ -1366,49 +1345,6 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Leaves the offline IGN from the team and removes them from the game state.
-     * @param sender the sender of the command, who will receive success/error messages
-     * @param ign the in-game-name of a participant who has never logged on. If this is not
-     *            in the {@link GameStateStorageUtil}, nothing happens
-     * @deprecated in favor of using {@link OfflineParticipant}s
-     */
-    @Deprecated
-    public void leaveOfflineIGN(CommandSender sender, @NotNull String ign) {
-        UUID uuid = gameStateStorageUtil.getOfflineIGNUniqueId(ign);
-        if (uuid == null) {
-            return;
-        }
-        try {
-            gameStateStorageUtil.leaveOfflineIGN(ign);
-        } catch (ConfigIOException e) {
-            reportGameStateException("leaving offline IGN", e);
-            sender.sendMessage(Component.text("error occurred leaving offline IGN, see console for details.")
-                    .color(NamedTextColor.RED));
-        }
-        String teamId = gameStateStorageUtil.getOfflineIGNTeamId(ign);
-        MCTTeam team = teams.get(teamId);
-        if (team == null) {
-            return;
-        }
-        team.leaveMember(uuid);
-        hubManager.updateLeaderboards();
-        tabList.leaveParticipant(uuid);
-        TextComponent displayName = Component.text(ign)
-                .decorate(TextDecoration.BOLD);
-        sender.sendMessage(Component.text("Removed ")
-                .append(displayName)
-                .append(Component.text(" from team "))
-                .append(team.getFormattedDisplayName())
-                .append(Component.newline())
-                .append(Component.empty()
-                        .append(displayName)
-                        .append(Component.text(" is offline"))
-                        .decorate(TextDecoration.ITALIC)
-                )
-        );
-    }
-    
-    /**
      * Gets the teamId of the participant with the given UUID
      * @param participantUUID The UUID of the participant to find the team of
      * @return The teamId of the player with the given UUID
@@ -1424,16 +1360,6 @@ public class GameManager implements Listener {
                     String.format("Can't get teamId for non-participant UUID %s", participantUUID));
         }
         return teamId;
-    }
-    
-    /**
-     * @param ign the in-game-name of a participant who has never logged in before
-     * @return the teamId of the OfflineParticipant with the given ign. Null if the ign doesn't exist in the GameState
-     * @deprecated in favor of {@link #getOfflineParticipant(UUID)}
-     */
-    @Deprecated
-    public @Nullable String getOfflineIGNTeamId(@NotNull String ign) {
-        return gameStateStorageUtil.getOfflineIGNTeamId(ign);
     }
     
     /**
