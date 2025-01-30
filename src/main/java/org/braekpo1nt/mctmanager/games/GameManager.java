@@ -1578,25 +1578,6 @@ public class GameManager implements Listener {
     }
     
     /**
-     * @param offlineParticipant the OfflinePlayer with the UUID of a valid participant.
-     *                           If the OfflinePlayer's name is null, then the
-     *                           UUID will be used as the name. 
-     * @return the name of the participant represented by the given offline participant
-     */
-    public String getOfflineParticipantIGN(@NotNull OfflinePlayer offlineParticipant) {
-        String name = offlineParticipant.getName();
-        UUID uuid = offlineParticipant.getUniqueId();
-        if (name == null) {
-            String ign = gameStateStorageUtil.getOfflineIGN(uuid);
-            if (ign != null) {
-                return ign;
-            }
-            return uuid.toString();
-        }
-        return name;
-    }
-    
-    /**
      * @return a copy of the list of online participants. Modifying this will not change
      *      * the online participants
      */
