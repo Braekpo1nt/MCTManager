@@ -71,12 +71,11 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
     }
     
     /**
-     * // TODO: Teams consider a better way to label that a team is online or not
      * @param teams the teams to filter for online
      * @return the set of teams from the given collection who has at least one online member
      */
     public static Set<MCTTeam> getOnlineTeams(Collection<MCTTeam> teams) {
-        return teams.stream().filter(team -> !team.getOnlineMembers().isEmpty()).collect(Collectors.toSet());
+        return teams.stream().filter(MCTTeam::isOnline).collect(Collectors.toSet());
     }
     
     /**
@@ -227,6 +226,13 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
      */
     public Collection<Participant> getOnlineMembers() {
         return onlineMembers.values();
+    }
+    
+    /**
+     * @return true if there are any online members in this team, false otherwise
+     */
+    public boolean isOnline() {
+        return !onlineMembers.isEmpty();
     }
     
     /**
