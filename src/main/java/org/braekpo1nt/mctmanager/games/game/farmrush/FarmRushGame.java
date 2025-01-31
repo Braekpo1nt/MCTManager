@@ -106,7 +106,6 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     private Sidebar sidebar;
     private Sidebar adminSidebar;
     private final Map<UUID, Participant> participants = new HashMap<>();
-    // TODO: Teams right now, we don't remove teams whose participants have left. Instead, we leave them in this list with no participants. When the team rejoins, we just use this existing one. Evaluate whether this is the best action for this task.
     private final Map<String, FarmRushTeam> teams = new HashMap<>();
     private @Nullable ItemStack materialBook;
     
