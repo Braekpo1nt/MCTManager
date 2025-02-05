@@ -582,15 +582,15 @@ public class EventManager implements Listener {
         adminSidebar.updateLines(teamLines);
     }
     
-    public List<Team> sortTeams(Collection<Team> teamIds) {
-        List<Team> sortedTeamIds = new ArrayList<>(teamIds);
-        sortedTeamIds.sort(Comparator.comparing(team -> gameManager.getScore(team.getTeamId()), Comparator.reverseOrder()));
-        sortedTeamIds.sort(Comparator
-                .comparing(teamId -> gameManager.getScore((String) teamId))
+    public List<Team> sortTeams(Collection<Team> teamsToSort) {
+        List<Team> sortedTeams = new ArrayList<>(teamsToSort);
+        sortedTeams.sort(Comparator.comparing(team -> gameManager.getScore(team.getTeamId()), Comparator.reverseOrder()));
+        sortedTeams.sort(Comparator
+                .comparing(team -> gameManager.getScore(((Team) team).getTeamId()))
                 .reversed()
-                .thenComparing(teamId -> ((String) teamId))
+                .thenComparing(team -> ((Team) team).getTeamId())
         );
-        return sortedTeamIds;
+        return sortedTeams;
     }
     
     private void reorderTeamLines(List<Team> sortedTeamIds) {
