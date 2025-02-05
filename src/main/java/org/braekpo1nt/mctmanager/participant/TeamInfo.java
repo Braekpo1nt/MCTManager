@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.participant;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -13,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
  * is to reduce boilerplate of new Team implementations. 
  */
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString
 public abstract class TeamInfo implements Team {
     /**
      * The unique ID of the team

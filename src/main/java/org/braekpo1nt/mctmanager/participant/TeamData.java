@@ -1,5 +1,7 @@
 package org.braekpo1nt.mctmanager.participant;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import net.kyori.adventure.audience.Audience;
 import org.braekpo1nt.mctmanager.utils.AudienceDelegate;
 import org.jetbrains.annotations.NotNull;
@@ -13,6 +15,8 @@ import java.util.UUID;
  * Used by implementations for {@link org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame}
  * to handle team data, such as membership.
  */
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
+@ToString(callSuper = true)
 public class TeamData<T extends Participant> extends TeamInfo implements AudienceDelegate {
     
     /**
