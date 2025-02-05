@@ -1017,7 +1017,7 @@ public class GameManager implements Listener {
      * @param teamId The internal name of the team to remove
      */
     public void removeTeam(CommandSender sender, String teamId) {
-        MCTTeam team = teams.remove(teamId);
+        MCTTeam team = teams.get(teamId);
         if (team == null) {
             sender.sendMessage(Component.text("Team ")
                     .append(Component.text(teamId))
@@ -1029,6 +1029,7 @@ public class GameManager implements Listener {
         for (OfflineParticipant member : members) {
             leaveParticipant(sender, member);
         }
+        teams.remove(team.getTeamId());
         tabList.removeTeam(teamId);
         try {
             gameStateStorageUtil.removeTeam(teamId);
@@ -1043,6 +1044,8 @@ public class GameManager implements Listener {
         org.bukkit.scoreboard.Team scoreboardTeam = mctScoreboard.getTeam(teamId);
         if (scoreboardTeam != null) {
             scoreboardTeam.unregister();
+        } else {
+            Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (removeTeam)", teamId));
         }
         if (eventManager.eventIsActive()) {
             eventManager.updateTeamScores();
@@ -1143,7 +1146,7 @@ public class GameManager implements Listener {
         if (scoreboardTeam != null) {
             scoreboardTeam.addPlayer(offlinePlayer);
         } else {
-            Main.logger().warning(String.format("Something is wrong with the team Scoreboard. Could not find teamId %s\"", team.getTeamId()));
+            Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (joinParticipantToTeam)", team.getTeamId()));
         }
         
         Component displayName = team.createDisplayName(name);
@@ -1240,10 +1243,12 @@ public class GameManager implements Listener {
                 .append(Component.text(" from team "))
                 .append(team.getFormattedDisplayName()));
         org.bukkit.scoreboard.Team scoreboardTeam = mctScoreboard.getTeam(offlineParticipant.getTeamId());
-        if (scoreboardTeam != null && offlineParticipant.getPlayer() != null) {
-            scoreboardTeam.removePlayer(offlineParticipant.getPlayer());
+        if (scoreboardTeam != null) {
+            if (offlineParticipant.getPlayer() != null) {
+                scoreboardTeam.removePlayer(offlineParticipant.getPlayer());
+            }
         } else {
-            Main.logger().warning(String.format("mctScoreboard could not find team \"%s\"", offlineParticipant.getTeamId()));
+            Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (leaveParticipant)", offlineParticipant.getTeamId()));
         }
     }
     
@@ -1670,8 +1675,11 @@ public class GameManager implements Listener {
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text(" as an admin")));
         org.bukkit.scoreboard.Team adminTeam = mctScoreboard.getTeam(ADMIN_TEAM);
-        Preconditions.checkState(adminTeam != null, "mctScoreboard could not find team \"%s\"", ADMIN_TEAM);
-        adminTeam.addPlayer(newAdmin);
+        if (adminTeam != null) {
+            adminTeam.addPlayer(newAdmin);
+        } else {
+            Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (addAdmin)", ADMIN_TEAM));;
+        }
         if (newAdmin.isOnline()) {
             newAdmin.sendMessage(Component.text("You were added as an admin"));
             onAdminJoin(newAdmin);
@@ -1711,8 +1719,11 @@ public class GameManager implements Listener {
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text(" is no longer an admin")));
         org.bukkit.scoreboard.Team adminTeam = mctScoreboard.getTeam(ADMIN_TEAM);
-        Preconditions.checkState(adminTeam != null, "mctScoreboard could not find team \"%s\"", ADMIN_TEAM);
-        adminTeam.removePlayer(offlineAdmin);
+        if (adminTeam != null) {
+            adminTeam.removePlayer(offlineAdmin);
+        } else {
+            Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (addAdmin)", ADMIN_TEAM));;
+        }
     }
     
     @Deprecated
