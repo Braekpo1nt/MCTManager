@@ -53,38 +53,37 @@ public class PreRoundState implements CaptureTheFlagState {
     }
     
     private void announceMatchToParticipant(Participant participant) {
-        String teamId = participant.getTeamId();
-        Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
         List<MatchPairing> currentRound = roundManager.getCurrentRound();
-        String oppositeTeamId = RoundManager.getOppositeTeam(teamId, currentRound);
+        TeamData<Participant> team = context.getTeams().get(participant.getTeamId());
+        String oppositeTeamId = RoundManager.getOppositeTeam(team.getTeamId(), currentRound);
+        TeamData<Participant> oppositeTeam = context.getTeams().get(oppositeTeamId);
         Component roundDisplay = Component.empty()
                 .append(Component.text("Round "))
                 .append(Component.text(roundManager.getPlayedRounds() + 1))
                 .append(Component.text(":"));
-        if (oppositeTeamId != null) {
-            Component oppositeTeamDisplayName = gameManager.getFormattedTeamDisplayName(oppositeTeamId);
+        if (oppositeTeam != null) {
             participant.sendMessage(Component.empty()
-                    .append(teamDisplayName)
+                    .append(team.getFormattedDisplayName())
                     .append(Component.text(" is competing against "))
-                    .append(oppositeTeamDisplayName)
+                    .append(oppositeTeam.getFormattedDisplayName())
                     .append(Component.text(" this round."))
                     .color(NamedTextColor.YELLOW));
             participant.showTitle(UIUtils.defaultTitle(
                     roundDisplay,
                     Component.empty()
-                            .append(teamDisplayName)
+                            .append(team.getFormattedDisplayName())
                             .append(Component.text(" vs "))
-                            .append(oppositeTeamDisplayName)
+                            .append(oppositeTeam.getFormattedDisplayName())
             ));
         } else {
             participant.sendMessage(Component.empty()
-                    .append(teamDisplayName)
+                    .append(team.getFormattedDisplayName())
                     .append(Component.text(" is on-deck this round."))
                     .color(NamedTextColor.YELLOW));
             participant.showTitle(UIUtils.defaultTitle(
                     roundDisplay,
                     Component.empty()
-                            .append(teamDisplayName)
+                            .append(team.getFormattedDisplayName())
                             .append(Component.text(" is on-deck"))));
         }
     }
