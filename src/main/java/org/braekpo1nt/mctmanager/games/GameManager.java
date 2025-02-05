@@ -1,9 +1,9 @@
 package org.braekpo1nt.mctmanager.games;
 
 import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
-import com.google.common.base.Preconditions;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -120,6 +120,49 @@ public class GameManager implements Listener {
         this.sidebarFactory = new SidebarFactory();
         this.hubManager = initializeHubManager(plugin, this);
         this.eventManager = new EventManager(plugin, this, voteManager);
+    }
+    
+    private void printStateToConsole() {
+        TextComponent.Builder builder = Component.text();
+        builder.append(Component.text("====teams (")
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text(teams.size()))
+                .append(Component.text("):"))
+                .append(Component.newline());
+        for (Map.Entry<String, MCTTeam> entry : teams.entrySet()) {
+            MCTTeam team = entry.getValue();
+            builder.append(Component.text("--"))
+                    .append(Component.text(entry.getKey()))
+                    .append(Component.text(" ("))
+                    .append(Component.text(team.getMemberUUIDs().size()))
+                    .append(Component.text("):\n"));
+            for (Participant member : team.getOnlineMembers()) {
+                builder.append(Component.text("----"))
+                        .append(member.displayName())
+                        .append(Component.newline());
+            }
+        }
+        builder.append(Component.text("====allParticipants (")
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text(allParticipants.size()))
+                .append(Component.text("):"))
+                .append(Component.newline());
+        for (OfflineParticipant p : allParticipants.values()) {
+            builder.append(Component.text("--"))
+                    .append(p.displayName())
+                    .append(Component.newline());
+        }
+        builder.append(Component.text("====onlineParticipants (")
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text(onlineParticipants.size()))
+                .append(Component.text("):"))
+                .append(Component.newline());
+        for (OfflineParticipant p : onlineParticipants.values()) {
+            builder.append(Component.text("--"))
+                    .append(p.displayName())
+                    .append(Component.newline());
+        }
+        plugin.getServer().getConsoleSender().sendMessage(builder.build());
     }
     
     /**

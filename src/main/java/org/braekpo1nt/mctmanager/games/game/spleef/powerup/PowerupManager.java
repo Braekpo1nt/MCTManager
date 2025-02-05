@@ -264,11 +264,14 @@ public class PowerupManager implements Listener {
     
     @EventHandler
     public void onProjectileLaunch(ProjectileLaunchEvent event) {
-        Participant participant = participants.get(event.getEntity().getUniqueId());
-        if (participant == null) {
+        if (!(event.getEntity() instanceof Snowball snowball)) {
             return;
         }
-        if (!(event.getEntity() instanceof Snowball snowball)) {
+        if (!(snowball.getShooter() instanceof Player player)) {
+            return;
+        }
+        Participant participant = participants.get(player.getUniqueId());
+        if (participant == null) {
             return;
         }
         ItemStack mainHandItem = participant.getInventory().getItemInMainHand();
