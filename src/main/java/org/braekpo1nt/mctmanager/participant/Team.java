@@ -1,36 +1,60 @@
 package org.braekpo1nt.mctmanager.participant;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
+import org.bukkit.Color;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashSet;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Represents a team of {@link Participant}s
  */
-@Data
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Team {
+public interface Team {
+    
     /**
-     * The unique ID of the team
+     * @return The unique ID of the team
      */
-    @EqualsAndHashCode.Include
-    protected final @NotNull String teamId;
+    @NotNull String getTeamId();
+    
     /**
-     * The display name of the team for chat messages
+     * @return The display name of the team
      */
-    protected final @NotNull Component displayName;
+    @NotNull String getDisplayName();
+    
     /**
-     * The color associated with the team
+     * @return The formatted display name of the team for use in chat messages.
+     * The {@link #getDisplayName()} in {@link #getColor()} and bold.
      */
-    protected final @NotNull TextColor color;
+    @NotNull Component getFormattedDisplayName();
+    
     /**
-     * The UUIDs of the {@link Participant}s on this team
+     * @return The {@link TextColor} color associated with the team
      */
-    protected final @NotNull Set<UUID> members = new HashSet<>();
+    @NotNull TextColor getColor();
+    
+    /**
+     * @return The {@link Color} associated with the team
+     */
+    @NotNull Color getBukkitColor();
+    
+    /**
+     * @param teams the map of Teams to get the teamIds of
+     * @return a set of all the teamIds of the given map's values
+     */
+    static <T extends Team> Set<String> getTeamIds(Map<String, T> teams) {
+        return getTeamIds(teams.values());
+    }
+    
+    /**
+     * @param teams the Teams to get the teamIds of
+     * @return a set of all the teamIds of the given teams
+     */
+    static <T extends Team> Set<String> getTeamIds(Collection<T> teams) {
+        return teams.stream().map(Team::getTeamId).collect(Collectors.toSet());
+    }
+    
 }

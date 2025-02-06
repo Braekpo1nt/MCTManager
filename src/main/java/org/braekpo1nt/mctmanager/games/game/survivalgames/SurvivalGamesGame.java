@@ -4,6 +4,7 @@ import lombok.Data;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
@@ -17,6 +18,8 @@ import org.braekpo1nt.mctmanager.games.game.survivalgames.states.DescriptionStat
 import org.braekpo1nt.mctmanager.games.game.survivalgames.states.SurvivalGamesState;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.glow.GlowManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -46,7 +49,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.loot.LootTable;
 import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -74,6 +76,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     private Sidebar sidebar;
     private Sidebar adminSidebar;
     private SurvivalGamesConfig config;
+    public Map<String, TeamData<Participant>> teams = new HashMap<>();
     public Map<UUID, Participant> participants = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     private WorldBorder worldBorder;
@@ -123,7 +126,11 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     }
     
     @Override
-    public void start(Collection<Participant> newParticipants, List<Player> newAdmins) {
+    public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
+        this.teams = new HashMap<>(newTeams.size());
+        for (Team team : newTeams) {
+            teams.put(team.getTeamId(), new TeamData<>(team));
+        }
         this.participants = new HashMap<>(newParticipants.size());
         livingPlayers = new ArrayList<>(newParticipants.size());
         deadPlayers = new ArrayList<>();
@@ -133,7 +140,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         worldBorder = config.getWorld().getWorldBorder();
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
-        List<String> teams = Participant.getTeamIds(newParticipants);
+        Set<String> teams = Participant.getTeamIds(newParticipants);
         setUpTopbarTeams(teams);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         glowManager.registerListeners();
@@ -178,8 +185,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     public void initializeGlowing(Participant participant) {
         for (Participant other : participants.values()) {
             if (!other.equals(participant)) {
-                String otherTeamId = gameManager.getTeamId(other.getUniqueId());
-                if (participant.getTeamId().equals(otherTeamId)) {
+                if (participant.getTeamId().equals(other.getTeamId())) {
                     glowManager.showGlowing(participant, other);
                     glowManager.showGlowing(other, participant);
                 }
@@ -210,6 +216,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     }
     
     public void resetParticipant(Participant participant) {
+        teams.get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -218,9 +225,9 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         glowManager.removePlayer(participant);
     }
     
-    private void setUpTopbarTeams(List<String> newTeamIds) {
+    private void setUpTopbarTeams(Set<String> newTeamIds) {
         for (String teamId : newTeamIds) {
-            NamedTextColor color = gameManager.getTeamColor(teamId);
+            TextColor color = gameManager.getTeamColor(teamId);
             topbar.addTeam(teamId, color);
         }
     }
@@ -245,6 +252,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         }
         clearSidebar();
         glowManager.clear();
+        teams.clear();
         participants.clear();
         livingPlayers.clear();
         deadPlayers.clear();
@@ -256,15 +264,22 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         Main.logger().info("Stopped Survival Games");
     }
     
+    public void onTeamJoin(Team team) {
+        if (teams.containsKey(team.getTeamId())) {
+            return;
+        }
+        teams.put(team.getTeamId(), new TeamData<>(team));
+    }
+    
     @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
         if (state != null) {
-            state.onParticipantJoin(participant);
+            state.onParticipantJoin(participant, team);
         }
     }
     
     @Override
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantQuit(Participant participant, Team team) {
         if (state != null) {
             state.onParticipantQuit(participant);
         }
@@ -358,23 +373,23 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     }
     
     public void createPlatformsAndTeleportTeams() {
-        List<String> teams = Participant.getTeamIds(participants);
+        Set<String> teams = Participant.getTeamIds(participants);
         createPlatforms(teams);
         teleportTeams(teams);
     }
     
     /**
-     * Creates platforms for teams to spawn on made of a hollow rectangle of Barrier blocks where the bottom layer is Concrete that matches the color of the team
+     * Creates platforms for teamIds to spawn on made of a hollow rectangle of Barrier blocks where the bottom layer is Concrete that matches the color of the team
      * <br>
-     * For n teams and m platforms in storageUtil.getPlatformBarriers():<br>
+     * For n teamIds and m platforms in storageUtil.getPlatformBarriers():<br>
      * - place n platforms, but no more than m platforms
-     * @param teams the teams that will be teleported
+     * @param teamIds the teamIds that will be teleported
      */
-    private void createPlatforms(List<String> teams) {
+    private void createPlatforms(Set<String> teamIds) {
         List<BoundingBox> platformBarriers = config.getPlatformBarriers();
         World world = config.getWorld();
-        for (int i = 0; i < teams.size(); i++) {
-            String team = teams.get(i);
+        int i = 0;
+        for (String teamId : teamIds) {
             int platformIndex = MathUtils.wrapIndex(i, platformBarriers.size());
             BoundingBox barrierArea = platformBarriers.get(platformIndex);
             BoundingBox concreteArea = new BoundingBox(
@@ -384,25 +399,27 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
                     barrierArea.getMaxX()-1,
                     barrierArea.getMinY(),
                     barrierArea.getMaxZ()-1);
-            Material concreteColor = gameManager.getTeamConcreteColor(team);
+            Material concreteColor = gameManager.getTeamConcreteColor(teamId);
             BlockPlacementUtils.createHollowCube(world, barrierArea, Material.BARRIER);
             BlockPlacementUtils.createCube(world, concreteArea, concreteColor);
+            i++;
         }
     }
     
     /**
      * For n teams and m platforms in storageUtil.getPlatformBarriers():<br>
      * - teleport teams to their designated platforms. If n is greater than m, then it will start wrapping around and teleporting different teams to the same platforms, until all teams have a platform. 
-     * @param teams the teams to teleport (players will be selected from the participants list)
+     * @param teamIds the teams to teleport (players will be selected from the participants list)
      */
-    private void teleportTeams(List<String> teams) {
+    private void teleportTeams(Set<String> teamIds) {
         List<Location> platformSpawns = config.getPlatformSpawns();
-        Map<String, Location> teamSpawnLocations = new HashMap<>(teams.size());
-        for (int i = 0; i < teams.size(); i++) {
-            String team = teams.get(i);
+        Map<String, Location> teamSpawnLocations = new HashMap<>(teamIds.size());
+        int i = 0;
+        for (String teamId : teamIds) {
             int platformIndex = MathUtils.wrapIndex(i, platformSpawns.size());
             Location platformSpawn = platformSpawns.get(platformIndex);
-            teamSpawnLocations.put(team, platformSpawn);
+            teamSpawnLocations.put(teamId, platformSpawn);
+            i++;
         }
         for (Participant participant : participants.values()) {
             Location spawn = teamSpawnLocations.get(participant.getTeamId());
@@ -429,12 +446,12 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     
     private void setUpTeamOptions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
-        for (Team team : mctScoreboard.getTeams()) {
+        for (org.bukkit.scoreboard.Team team : mctScoreboard.getTeams()) {
             team.setAllowFriendlyFire(false);
             team.setCanSeeFriendlyInvisibles(true);
-            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS);
+            team.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+            team.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+            team.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
         }
     }
     

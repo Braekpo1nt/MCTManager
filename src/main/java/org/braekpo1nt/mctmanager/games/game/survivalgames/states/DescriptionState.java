@@ -1,12 +1,13 @@
 package org.braekpo1nt.mctmanager.games.game.survivalgames.states;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
@@ -36,14 +37,19 @@ public class DescriptionState implements SurvivalGamesState {
                 .build());
     }
     
-    @Override
-    public void onParticipantJoin(Participant participant) {
-        context.getDeadPlayers().remove(participant.getUniqueId());
-        String teamId = participant.getTeamId();
-        if (!context.getLivingMembers().containsKey(teamId)) {
-            NamedTextColor color = context.getGameManager().getTeamColor(teamId);
-            context.getTopbar().addTeam(teamId, color);
+    private void onTeamJoin(Team team) {
+        if (context.getTeams().containsKey(team.getTeamId())) {
+            return;
         }
+        context.getTeams().put(team.getTeamId(), new TeamData<>(team));
+        context.createPlatformsAndTeleportTeams();
+        context.getTopbar().addTeam(team.getTeamId(), team.getColor());
+    }
+    
+    @Override
+    public void onParticipantJoin(Participant participant, Team team) {
+        onTeamJoin(team);
+        context.getDeadPlayers().remove(participant.getUniqueId());
         initializeParticipant(participant);
         context.createPlatformsAndTeleportTeams();
         context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
@@ -54,7 +60,7 @@ public class DescriptionState implements SurvivalGamesState {
     public void onParticipantQuit(Participant participant) {
         context.getParticipants().remove(participant.getUniqueId());
         UUID participantUUID = participant.getUniqueId();
-        String teamId = context.getGameManager().getTeamId(participantUUID);
+        String teamId = participant.getTeamId();
         Integer oldLivingMembers = context.getLivingMembers().get(teamId);
         if (oldLivingMembers != null) {
             context.getLivingMembers().put(teamId, Math.max(0, oldLivingMembers - 1));
@@ -70,6 +76,7 @@ public class DescriptionState implements SurvivalGamesState {
     @Override
     public void initializeParticipant(Participant participant) {
         context.getParticipants().put(participant.getUniqueId(), participant);
+        context.getTeams().get(participant.getTeamId()).addParticipant(participant);
         context.getLivingPlayers().add(participant.getUniqueId());
         String teamId = participant.getTeamId();
         context.getLivingMembers().putIfAbsent(teamId, 0);
@@ -89,6 +96,7 @@ public class DescriptionState implements SurvivalGamesState {
     
     @Override
     public void resetParticipant(Participant participant) {
+        context.getTeams().get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);

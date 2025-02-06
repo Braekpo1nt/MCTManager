@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.PreRoundState;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.RoundActiveState;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.RoundOverState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -58,13 +59,15 @@ public class CaptureTheFlagGameTest {
     MyPlayerMock createParticipant(String name, String teamId) {
         MyPlayerMock player = new MyPlayerMock(server, name, UUID.nameUUIDFromBytes(name.getBytes(StandardCharsets.UTF_8)));
         server.addPlayer(player);
-        gameManager.joinParticipantToTeam(sender, player, teamId);
+        gameManager.joinParticipantToTeam(sender, player, name, teamId);
         Assertions.assertTrue(gameManager.isParticipant(player.getUniqueId()));
         return player;
     }
     
     void removeParticipant(OfflinePlayer player, @NotNull String playerName) {
-        gameManager.leaveParticipant(sender, player, playerName);
+        OfflineParticipant offlineParticipant = gameManager.getOfflineParticipant(player.getUniqueId());
+        Assertions.assertNotNull(offlineParticipant, String.format("player %s did not exist in the game state", playerName));
+        gameManager.leaveParticipant(sender, offlineParticipant);
     }
     
     void addTeam(String teamId, String teamDisplayName, String teamColor) {

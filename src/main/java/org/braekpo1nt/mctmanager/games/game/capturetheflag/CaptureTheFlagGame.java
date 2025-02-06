@@ -18,6 +18,8 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -61,6 +63,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private Sidebar adminSidebar;
     private CaptureTheFlagConfigController configController;
     private CaptureTheFlagConfig config;
+    private Map<String, TeamData<Participant>> teams = new HashMap<>();
     private Map<UUID, Participant> participants = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     private Map<UUID, Integer> killCount = new HashMap<>();
@@ -105,13 +108,18 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public void start(Collection<Participant> newParticipants, List<Player> newAdmins) {
+    public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
+        teams = new HashMap<>(newTeams.size());
+        for (Team newTeam : newTeams) {
+            TeamData<Participant> team = new TeamData<>(newTeam);
+            teams.put(team.getTeamId(), team);
+        }
         participants = new HashMap<>(newParticipants.size());
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
-        List<String> teamIds = Participant.getTeamIds(newParticipants);
+        Set<String> teamIds = Participant.getTeamIds(newParticipants);
         roundManager = new RoundManager(teamIds, config.getArenas().size());
         killCount = new HashMap<>(newParticipants.size());
         deathCount = new HashMap<>(newParticipants.size());
@@ -127,6 +135,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     
     public void initializeParticipant(Participant participant) {
         participants.put(participant.getUniqueId(), participant);
+        teams.get(participant.getTeamId()).addParticipant(participant);
         sidebar.addPlayer(participant);
         topbar.showPlayer(participant);
         killCount.putIfAbsent(participant.getUniqueId(), 0);
@@ -141,6 +150,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     public void resetParticipant(Participant participant) {
+        teams.get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -180,6 +190,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             resetParticipant(participant);
         }
         participants.clear();
+        teams.clear();
         stopAdmins();
         clearSidebar();
         state = null;
@@ -187,19 +198,33 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         Main.logger().info("Stopping Capture the Flag");
     }
     
-    @Override
-    public void onParticipantJoin(Participant participant) {
-        if (state == null) {
+    /**
+     * Called when a team has a member join, even if members of that team are already present
+     * @param team the team which had a member join
+     */
+    public void onTeamJoin(Team team) {
+        if (teams.containsKey(team.getTeamId())) {
             return;
         }
-        state.onParticipantJoin(participant);
-        if (sidebar != null) {
-            sidebar.updateLine(participant.getUniqueId(), "title", title);
-        }
+        teams.put(team.getTeamId(), new TeamData<>(team));
+        roundManager.regenerateRounds(Team.getTeamIds(teams),
+                config.getArenas().size());
+        updateRoundLine();
     }
     
     @Override
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
+        Main.logger().info("onParticipantJoin " + participant.getName());
+        if (state == null) {
+            return;
+        }
+        state.onParticipantJoin(participant, team);
+        state.updateSidebar(participant, this);
+    }
+    
+    @Override
+    public void onParticipantQuit(Participant participant, Team team) {
+        Main.logger().info("onParticipantQuit " + participant.getName());
         if (state == null) {
             return;
         }
@@ -207,6 +232,20 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             return;
         }
         state.onParticipantQuit(participant);
+    }
+    
+    /**
+     * called when a participant on the given team quits, not just when the last member quits
+     * @param team the team that had a member quit
+     */
+    public void onTeamQuit(TeamData<Participant> team) {
+        if (team.size() > 0) {
+            return;
+        }
+        teams.remove(team.getTeamId());
+        roundManager.regenerateRounds(Team.getTeamIds(teams),
+                config.getArenas().size());
+        updateRoundLine();
     }
     
     @Override
@@ -263,6 +302,16 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
                 new KeyLine("title", title),
                 new KeyLine("round", "")
         );
+    }
+    
+    public void updateRoundLine(UUID participantUUID) {
+        Component roundLine = Component.empty()
+                .append(Component.text("Round "))
+                .append(Component.text(roundManager.getPlayedRounds() + 1))
+                .append(Component.text("/"))
+                .append(Component.text(roundManager.getMaxRounds()))
+                ;
+        sidebar.updateLine(participantUUID, "round", roundLine);
     }
     
     public void updateRoundLine() {

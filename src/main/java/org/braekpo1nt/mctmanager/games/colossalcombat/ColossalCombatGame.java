@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.colossalcombat;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
@@ -233,8 +234,8 @@ public class ColossalCombatGame implements Listener, Configurable {
     
     private void setUpTopbarForRound() {
         topbar.removeAllTeamPairs();
-        NamedTextColor firstColor = gameManager.getTeamColor(firstTeamId);
-        NamedTextColor secondColor = gameManager.getTeamColor(secondTeamId);
+        TextColor firstColor = gameManager.getTeamColor(firstTeamId);
+        TextColor secondColor = gameManager.getTeamColor(secondTeamId);
         topbar.addTeam(firstTeamId, firstColor);
         topbar.addTeam(secondTeamId, secondColor);
         topbar.linkTeamPair(firstTeamId, secondTeamId);

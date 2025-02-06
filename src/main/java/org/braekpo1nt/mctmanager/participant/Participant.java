@@ -1,8 +1,8 @@
 package org.braekpo1nt.mctmanager.participant;
 
 import io.papermc.paper.entity.LookAnchor;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.utils.AudienceDelegate;
@@ -19,17 +19,15 @@ import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
- * Represents a Participant. A participant is always a member of a {@link Team}.
+ * Represents a Participant. A participant is always a member of a {@link MCTTeam}.
  */
-@Data
+@Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
-public class Participant extends AudienceDelegate {
+public class Participant extends OfflineParticipant implements AudienceDelegate {
     
     /**
      * @param participants the participants list to get the list of players from
@@ -43,7 +41,7 @@ public class Participant extends AudienceDelegate {
      * @param participants the participants map to get the list of teamIds from the values
      * @return the teamIds
      */
-    public static List<String> getTeamIds(Map<UUID, Participant> participants) {
+    public static Set<String> getTeamIds(Map<UUID, Participant> participants) {
         return getTeamIds(participants.values());
     }
     
@@ -51,8 +49,8 @@ public class Participant extends AudienceDelegate {
      * @param participants the participants list to get the list of teamIds from
      * @return the teamIds
      */
-    public static List<String> getTeamIds(Collection<Participant> participants) {
-        return participants.stream().map(Participant::getTeamId).toList();
+    public static Set<String> getTeamIds(Collection<Participant> participants) {
+        return participants.stream().map(Participant::getTeamId).collect(Collectors.toSet());
     }
     
     /**
@@ -69,16 +67,14 @@ public class Participant extends AudienceDelegate {
     @EqualsAndHashCode.Include
     protected final @NotNull Player player;
     
-    /**
-     * The teamId of the team this Participant belongs to
-     */
-    protected final @NotNull String teamId;
+    public Participant(@NotNull Player player, @NotNull String teamId) {
+        super(player.getUniqueId(), player.getName(), player.displayName(), teamId);
+        this.player = player;
+    }
     
-    /**
-     * @return the UUID of the player this Participant represents
-     */
-    public UUID getUniqueId() {
-        return player.getUniqueId();
+    public Participant(@NotNull OfflineParticipant offlineParticipant, @NotNull Player player) {
+        super(offlineParticipant);
+        this.player = player;
     }
     
     /**
@@ -88,6 +84,21 @@ public class Participant extends AudienceDelegate {
     @Override
     public @NotNull Audience getAudience() {
         return player;
+    }
+    
+    /**
+     * @return the Player associated with this participant
+     */
+    @Override
+    public @NotNull Player getPlayer() {
+        return player;
+    }
+    
+    /**
+     * Delegate for {@link Player#getName()}
+     */
+    public @NotNull String getName() {
+        return player.getName();
     }
     
     /**
@@ -145,13 +156,6 @@ public class Participant extends AudienceDelegate {
      */
     public @NotNull Component displayName() {
         return player.displayName();
-    }
-    
-    /**
-     * Delegate for {@link Player#displayName(Component)}
-     */
-    public void displayName(final @Nullable Component displayName) {
-        player.displayName(displayName);
     }
     
     /**
@@ -225,13 +229,6 @@ public class Participant extends AudienceDelegate {
     }
     
     /**
-     * Delegate for {@link Player#getName()}
-     */
-    public @NotNull String getName() {
-        return player.getName();
-    }
-    
-    /**
      * Delegate for {@link Player#getGameMode()}
      */
     public @NotNull GameMode getGameMode() {
@@ -246,16 +243,16 @@ public class Participant extends AudienceDelegate {
     }
     
     /**
-     * Delegate for {@link Player#playerListName(Component)}
-     */
-    public void playerListName(net.kyori.adventure.text.@Nullable Component name) {
-        player.playerListName(name);
-    }
-    
-    /**
      * Delegate for {@link Player#sendMessage(String)}
      */
     public void sendMessage(@NotNull String message) {
         player.sendMessage(message);
+    }
+    
+    /**
+     * Delegate for {@link Player#getOpenInventory()}
+     */
+    public @NotNull InventoryView getOpenInventory() {
+        return player.getOpenInventory();
     }
 }

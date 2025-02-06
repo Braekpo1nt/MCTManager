@@ -5,6 +5,8 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
@@ -13,8 +15,6 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-
-import java.util.List;
 
 public class RoundOverState implements CaptureTheFlagState {
     
@@ -37,13 +37,9 @@ public class RoundOverState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
+        context.onTeamJoin(team);
         context.initializeParticipant(participant);
-        if (!context.getRoundManager().containsTeamId(participant.getTeamId())) {
-            List<String> teamIds = Participant.getTeamIds(context.getParticipants());
-            context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
-        }
-        context.updateRoundLine();
         participant.setGameMode(GameMode.ADVENTURE);
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
@@ -53,11 +49,7 @@ public class RoundOverState implements CaptureTheFlagState {
     public void onParticipantQuit(Participant participant) {
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
-        List<String> teamIds = Participant.getTeamIds(context.getParticipants());
-        if (!teamIds.contains(participant.getTeamId())) {
-            context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
-            context.updateRoundLine();
-        }
+        context.onTeamQuit(context.getTeams().get(participant.getTeamId()));
     }
     
     @Override

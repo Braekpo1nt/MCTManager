@@ -15,6 +15,8 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -36,7 +38,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -52,6 +53,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
             .append(Component.text("Clockwork"))
             .color(NamedTextColor.BLUE);
     private Component title = baseTitle;
+    private Map<String, TeamData<Participant>> teams = new HashMap<>();
     private Map<UUID, Participant> participants = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     private List<ClockworkRound> rounds;
@@ -99,7 +101,11 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     @Override
-    public void start(Collection<Participant> newParticipants, List<Player> newAdmins) {
+    public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
+        teams = new HashMap<>(newTeams.size());
+        for (Team team : newTeams) {
+            teams.put(team.getTeamId(), new TeamData<>(team));
+        }
         participants = new HashMap<>(newParticipants.size());
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
@@ -127,6 +133,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     private void initializeParticipant(Participant participant) {
+        teams.get(participant.getTeamId()).addParticipant(participant);
         participants.put(participant.getUniqueId(), participant);
         participant.setGameMode(GameMode.ADVENTURE);
         sidebar.addPlayer(participant);
@@ -191,6 +198,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     private void resetParticipant(Participant participant) {
+        teams.get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
         ParticipantInitializer.clearInventory(participant);
         sidebar.removePlayer(participant.getUniqueId());
         ParticipantInitializer.clearStatusEffects(participant);
@@ -236,14 +244,17 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     
     public void startNextRound() {
         ClockworkRound nextRound = rounds.get(currentRoundIndex);
-        nextRound.start(participants.values());
+        nextRound.start(teams.values(), participants.values());
         updateRoundFastBoard();
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
         if (!gameActive) {
             return;
+        }
+        if (!teams.containsKey(team.getTeamId())) {
+            teams.put(team.getTeamId(), new TeamData<>(team));
         }
         initializeParticipant(participant);
         sidebar.updateLines(participant.getUniqueId(), 
@@ -256,13 +267,13 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         if (currentRoundIndex < rounds.size()) {
             ClockworkRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
-                currentRound.onParticipantJoin(participant);
+                currentRound.onParticipantJoin(participant, team);
             }
         }
     }
     
     @Override
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantQuit(Participant participant, Team team) {
         if (!gameActive) {
             return;
         }
@@ -270,6 +281,9 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         participants.remove(participant.getUniqueId());
         if (descriptionShowing) {
             return;
+        }
+        if (teams.get(participant.getTeamId()).size() == 0) {
+            teams.remove(participant.getTeamId());
         }
         if (currentRoundIndex < rounds.size()) {
             ClockworkRound currentRound = rounds.get(currentRoundIndex);
@@ -471,12 +485,12 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     
     private void setupTeamOptions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
-        for (Team team : mctScoreboard.getTeams()) {
+        for (org.bukkit.scoreboard.Team team : mctScoreboard.getTeams()) {
             team.setAllowFriendlyFire(false);
             team.setCanSeeFriendlyInvisibles(true);
-            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS);
+            team.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+            team.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+            team.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
         }
     }
     

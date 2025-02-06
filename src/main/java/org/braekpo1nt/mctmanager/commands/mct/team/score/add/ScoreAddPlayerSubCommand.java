@@ -2,11 +2,13 @@ package org.braekpo1nt.mctmanager.commands.mct.team.score.add;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -35,23 +37,12 @@ public class ScoreAddPlayerSubCommand extends TabSubCommand {
         }
         String playerName = args[0];
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
-        
-        if (!gameManager.isParticipant(offlinePlayer.getUniqueId())) {
-            if (!gameManager.isOfflineParticipant(offlinePlayer.getUniqueId())) {
-                return CommandResult.failure(Component.empty()
-                        .append(Component.text(playerName)
-                                .decorate(TextDecoration.BOLD))
-                        .append(Component.text(" is not a participant")));
-            } else {
-                String teamId = gameManager.getOfflineIGNTeamId(playerName);
-                NamedTextColor teamColor = gameManager.getTeamColor(teamId);
-                return CommandResult.failure(Component.empty()
-                        .append(Component.text("Can't change the score of "))
-                        .append(Component.text(playerName)
-                                .color(teamColor))
-                        .append(Component.text(" because they have not logged in since being joined to a team"))
-                );
-            }
+        OfflineParticipant offlineParticipant = gameManager.getOfflineParticipant(offlinePlayer.getUniqueId());
+        if (offlineParticipant == null) {
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text(playerName)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" is not a participant")));
         }
         String scoreString = args[1];
         if (!CommandUtils.isInteger(scoreString)) {

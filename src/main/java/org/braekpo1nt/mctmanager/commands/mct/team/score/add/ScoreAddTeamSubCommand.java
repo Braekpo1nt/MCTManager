@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +31,8 @@ public class ScoreAddTeamSubCommand extends TabSubCommand {
             return CommandResult.failure(getUsage().of("<teamId>").of("<score>"));
         }
         String teamId = args[0];
-        if (!gameManager.hasTeam(teamId)) {
+        Team team = gameManager.getTeam(teamId);
+        if (team == null) {
             return CommandResult.failure(Component.empty()
                     .append(Component.text(teamId)
                             .decorate(TextDecoration.BOLD))
@@ -51,10 +53,10 @@ public class ScoreAddTeamSubCommand extends TabSubCommand {
                 score = -currentScore;
             }
         }
-        gameManager.addScore(teamId, score);
+        gameManager.addScore(team.getTeamId(), score);
         int newScore = gameManager.getScore(teamId);
         return CommandResult.success(Component.empty()
-                .append(gameManager.getFormattedTeamDisplayName(teamId))
+                .append(team.getFormattedDisplayName())
                 .append(Component.text(" score is now "))
                 .append(Component.text(newScore)));
     }

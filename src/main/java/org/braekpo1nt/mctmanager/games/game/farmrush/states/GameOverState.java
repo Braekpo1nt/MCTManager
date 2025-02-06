@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +34,7 @@ public class GameOverState implements FarmRushState {
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
         // do nothing
     }
     
@@ -41,6 +42,5 @@ public class GameOverState implements FarmRushState {
     public void onParticipantQuit(Participant participant) {
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
-        context.getTeams().get(participant.getTeamId()).getMembers().remove(participant.getUniqueId());
     }
 }

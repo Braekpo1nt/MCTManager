@@ -8,7 +8,9 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
@@ -106,34 +108,24 @@ public class GameManagerUtils {
     public static Component getTeamDisplay(GameManager gameManager) {
         TextComponent.Builder messageBuilder = Component.text().append(Component.text("Scores:\n")
                     .decorate(TextDecoration.BOLD));
-        List<OfflinePlayer> offlinePlayers = getSortedOfflineParticipants(gameManager);
-        List<String> sortedTeams = getSortedTeams(gameManager);
+        List<OfflineParticipant> offlineParticipants = getSortedOfflineParticipants(gameManager);
+        List<Team> sortedTeams = getSortedTeams(gameManager);
         
-        for (String team : sortedTeams) {
-            int teamScore = gameManager.getScore(team);
-            NamedTextColor teamNamedTextColor = gameManager.getTeamColor(team);
+        for (Team team : sortedTeams) {
+            int teamScore = gameManager.getScore(team.getTeamId());
             messageBuilder.append(Component.empty()
-                            .append(gameManager.getFormattedTeamDisplayName(team))
+                            .append(team.getFormattedDisplayName())
                             .append(Component.text(" - "))
                             .append(Component.text(teamScore)
                                     .decorate(TextDecoration.BOLD)
                                     .color(NamedTextColor.GOLD))
                     .append(Component.text(":\n")));
-            for (OfflinePlayer offlinePlayer : offlinePlayers) {
-                String playerTeam = gameManager.getTeamId(offlinePlayer.getUniqueId());
-                int playerScore = gameManager.getScore(offlinePlayer.getUniqueId());
-                String name = offlinePlayer.getName();
-                if (name == null) {
-                    name = gameManager.getOfflineIGN(offlinePlayer.getUniqueId());
-                    if (name == null) {
-                        continue;
-                    }
-                }
-                if (playerTeam.equals(team)) {
+            for (OfflineParticipant offlineParticipant : offlineParticipants) {
+                int playerScore = gameManager.getScore(offlineParticipant.getUniqueId());
+                if (offlineParticipant.getTeamId().equals(team.getTeamId())) {
                     messageBuilder.append(Component.empty()
                             .append(Component.text("  "))
-                            .append(Component.text(name)
-                                    .color(teamNamedTextColor))
+                            .append(offlineParticipant.displayName())
                             .append(Component.text(" - "))
                             .append(Component.text(playerScore)
                                     .decorate(TextDecoration.BOLD)
@@ -148,58 +140,42 @@ public class GameManagerUtils {
     
     /**
      * @param gameManager the GameManager to get the data from
-     * @return a sorted list of OfflinePlayers representing the participants. Sorted first by score from greatest to least, then alphabetically (A first, Z last).
+     * @return a sorted list of {@link OfflineParticipant}s. 
+     * Sorted first by score from greatest to least, then alphabetically (A first, Z last).
      */
-    public static @NotNull List<OfflinePlayer> getSortedOfflineParticipants(GameManager gameManager) {
-        List<OfflinePlayer> offlineParticipants = gameManager.getOfflineParticipants();
-        sortOfflinePlayers(offlineParticipants, gameManager);
-        return offlineParticipants;
+    public static @NotNull List<OfflineParticipant> getSortedOfflineParticipants(GameManager gameManager) {
+        Collection<OfflineParticipant> offlineParticipants = gameManager.getOfflineParticipants();
+        return sortOfflinePlayers(offlineParticipants, gameManager);
     }
     
     /**
-     * Sorts the provided list of OfflinePlayer objects. Sorts in place.
-     * @param offlinePlayers each entry must have a UUID of a valid participant in the GameState of the given GameManager
+     * Sorts the provided list of OfflinePlayer objects.
+     * @param offlineParticipants each entry must have a UUID of a valid participant in the GameState of the given GameManager
      * @param gameManager the GameManager to get the data from
+     * @return the given participants in a sorted list
      */
-    public static void sortOfflinePlayers(List<OfflinePlayer> offlinePlayers, GameManager gameManager) {
-        offlinePlayers.sort((p1, p2) -> {
+    public static List<OfflineParticipant> sortOfflinePlayers(Collection<OfflineParticipant> offlineParticipants, GameManager gameManager) {
+        return offlineParticipants.stream().sorted((p1, p2) -> {
             int scoreComparison = gameManager.getScore(p2.getUniqueId()) - gameManager.getScore(p1.getUniqueId());
             if (scoreComparison != 0) {
                 return scoreComparison;
             }
-            
-            String p1Name = p1.getName();
-            if (p1Name == null) {
-                p1Name = gameManager.getOfflineIGN(p1.getUniqueId());
-                if (p1Name == null) {
-                    p1Name = p1.getUniqueId().toString();
-                }
-            }
-            String p2Name = p2.getName();
-            if (p2Name == null) {
-                p2Name = gameManager.getOfflineIGN(p2.getUniqueId());
-                if (p2Name == null) {
-                    p2Name = p2.getUniqueId().toString();
-                }
-            }
-            return p1Name.compareToIgnoreCase(p2Name);
-        });
+            return p1.getName().compareToIgnoreCase(p2.getName());
+        }).toList();
     }
     
     /**
      * @param gameManager the GameManager to get the data from
      * @return a sorted list of team names. Sorted first by score from greatest to least, then alphabetically (A to Z).
      */
-    public static List<String> getSortedTeams(GameManager gameManager) {
-        List<String> teamIds = new ArrayList<>(gameManager.getTeamIds());
-        teamIds.sort((t1, t2) -> {
-            int scoreComparison = gameManager.getScore(t2) - gameManager.getScore(t1);
+    public static List<Team> getSortedTeams(GameManager gameManager) {
+        return gameManager.getTeams().stream().sorted((t1, t2) -> {
+            int scoreComparison = gameManager.getScore(t2.getTeamId()) - gameManager.getScore(t1.getTeamId());
             if (scoreComparison != 0) {
                 return scoreComparison;
             }
-            return t1.compareToIgnoreCase(t2);
-        });
-        return teamIds;
+            return t1.getDisplayName().compareToIgnoreCase(t2.getDisplayName());
+        }).toList();
     }
     
     /**
@@ -245,10 +221,12 @@ public class GameManagerUtils {
                     .append(Component.text(" is not a recognized color")));
         }
         
-        gameManager.addTeam(teamId, teamDisplayName, colorString);
-        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
+        Team team = gameManager.addTeam(teamId, teamDisplayName, colorString);
+        if (team == null) {
+            return CommandResult.failure("Unable to create team (already exists)");
+        }
         return CommandResult.success(Component.text("Created team ")
-                .append(formattedTeamDisplayName)
+                .append(team.getFormattedDisplayName())
                 .append(Component.text(" (teamId=\""))
                 .append(Component.text(teamId))
                 .append(Component.text("\")")));
@@ -279,41 +257,16 @@ public class GameManagerUtils {
         if (ign.isEmpty()) {
             return CommandResult.failure("player name must not be blank");
         }
-        if (!gameManager.hasTeam(teamId)) {
+        Team team = gameManager.getTeam(teamId);
+        if (team == null) {
             return CommandResult.failure(Component.text("Team ")
                     .append(Component.text(teamId)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" does not exist.")));
         }
         
-        Player playerToJoin = plugin.getServer().getPlayer(ign);
-        Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
-        if (playerToJoin == null) {
-            if (gameManager.isOfflineIGN(ign)) {
-                String oldTeamId = gameManager.getOfflineIGNTeamId(ign);
-                if (oldTeamId != null && oldTeamId.equals(teamId)) {
-                    NamedTextColor teamColor = gameManager.getTeamColor(teamId);
-                    return CommandResult.success(Component.empty()
-                            .append(Component.text(ign)
-                                    .color(teamColor))
-                            .append(Component.text(" is already on team "))
-                            .append(teamDisplayName));
-                }
-            }
-            OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(ign);
-            gameManager.joinOfflineIGNToTeam(sender, ign, offlinePlayer.getUniqueId(), teamId);
-            return CommandResult.success();
-        }
-        if (gameManager.isParticipant(playerToJoin.getUniqueId())) {
-            String oldTeamId = gameManager.getTeamId(playerToJoin.getUniqueId());
-            if (oldTeamId.equals(teamId)) {
-                return CommandResult.success(Component.empty()
-                        .append(playerToJoin.displayName())
-                        .append(Component.text(" is already on team "))
-                        .append(teamDisplayName));
-            }
-        }
-        gameManager.joinParticipantToTeam(sender, playerToJoin, teamId);
+        OfflinePlayer playerToJoin = plugin.getServer().getOfflinePlayer(ign);
+        gameManager.joinParticipantToTeam(sender, playerToJoin, ign, teamId);
         return CommandResult.success();
     }
     
@@ -344,7 +297,7 @@ public class GameManagerUtils {
         if (!gameManager.isParticipant(participant.getUniqueId())) {
             return;
         }
-        Color teamColor = gameManager.getTeamColor(participant.getUniqueId());
+        Color teamColor = gameManager.getTeam(participant).getBukkitColor();
         colorLeatherArmor(participant.getInventory().getHelmet(), teamColor);
         colorLeatherArmor(participant.getInventory().getChestplate(), teamColor);
         colorLeatherArmor(participant.getInventory().getLeggings(), teamColor);

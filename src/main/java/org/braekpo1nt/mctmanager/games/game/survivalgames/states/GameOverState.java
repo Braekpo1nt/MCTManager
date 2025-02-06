@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
@@ -35,7 +36,7 @@ public class GameOverState implements SurvivalGamesState {
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
         context.initializeGlowing(participant);
     }
     
@@ -43,7 +44,7 @@ public class GameOverState implements SurvivalGamesState {
     public void onParticipantQuit(Participant participant) {
         context.getParticipants().remove(participant.getUniqueId());
         UUID participantUUID = participant.getUniqueId();
-        String teamId = context.getGameManager().getTeamId(participantUUID);
+        String teamId = participant.getTeamId();
         Integer oldLivingMembers = context.getLivingMembers().get(teamId);
         if (oldLivingMembers != null) {
             context.getLivingMembers().put(teamId, Math.max(0, oldLivingMembers - 1));

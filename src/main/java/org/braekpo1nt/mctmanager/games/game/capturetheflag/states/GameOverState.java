@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
@@ -38,14 +39,20 @@ public class GameOverState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
+        // do nothing
+    }
+    
+    @Override
+    public void updateSidebar(Participant participant, CaptureTheFlagGame context) {
         // do nothing
     }
     
     @Override
     public void onParticipantQuit(Participant participant) {
         context.resetParticipant(participant);
-        context.getParticipants().remove(participant);
+        context.getParticipants().remove(participant.getUniqueId());
+        context.onTeamQuit(context.getTeams().get(participant.getTeamId()));
     }
     
     @Override

@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.farmrush.states;
 
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -11,7 +12,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 
 public interface FarmRushState {
     
-    void onParticipantJoin(Participant participant);
+    void onParticipantJoin(Participant participant, Team team);
     void onParticipantQuit(Participant participant);
     default void onParticipantDamage(EntityDamageEvent event) {
         Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "FarmRushState.onPlayerDamage()");

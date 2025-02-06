@@ -4,6 +4,8 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
@@ -11,8 +13,6 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-
-import java.util.List;
 
 public class DescriptionState implements CaptureTheFlagState {
     
@@ -38,13 +38,9 @@ public class DescriptionState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
+        context.onTeamJoin(team);
         initializeParticipant(participant);
-        if (!context.getRoundManager().containsTeamId(participant.getTeamId())) {
-            List<String> teamIds = Participant.getTeamIds(context.getParticipants().values());
-            context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
-        }
-        context.updateRoundLine();
     }
     
     private void initializeParticipant(Participant participant) {
@@ -58,13 +54,8 @@ public class DescriptionState implements CaptureTheFlagState {
     public void onParticipantQuit(Participant participant) {
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
-        List<String> teamIds = Participant.getTeamIds(context.getParticipants().values());
-        if (!teamIds.contains(participant.getTeamId())) {
-            context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
-            context.updateRoundLine();
-        }
+        context.onTeamQuit(context.getTeams().get(participant.getTeamId()));
     }
-    
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {

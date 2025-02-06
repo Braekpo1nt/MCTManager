@@ -13,6 +13,8 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagM
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.LogType;
@@ -54,16 +56,15 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         context.messageAllParticipants(Component.text("Begin!"));
         context.openGlassBarriers();
         if (context.getNorthParticipants().isEmpty()) {
-            onTeamForfeit(matchPairing.northTeam());
+            onTeamForfeit(context.getNorthTeam());
         } else if (context.getSouthParticipants().isEmpty()) {
-            onTeamForfeit(matchPairing.southTeam());
+            onTeamForfeit(context.getSouthTeam());
         }
     }
     
-    private void onTeamForfeit(String forfeit) {
-        Component displayName = gameManager.getFormattedTeamDisplayName(forfeit);
+    private void onTeamForfeit(Team forfeit) {
         context.messageAllParticipants(Component.empty()
-                .append(displayName)
+                .append(forfeit.getFormattedDisplayName())
                 .append(Component.text(" is absent, match cancelled.")));
         context.setState(new MatchOverState(context));
     }
@@ -89,30 +90,22 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         context.setState(new MatchOverState(context));
     }
     
-    private void onTeamWin(String winningTeam) {
-        String losingTeam = matchPairing.northTeam();
-        if (winningTeam.equals(matchPairing.northTeam())) {
-            losingTeam = matchPairing.southTeam();
-        }
-        Component winningTeamDisplayName = gameManager.getFormattedTeamDisplayName(winningTeam);
-        Component losingTeamDisplayName = gameManager.getFormattedTeamDisplayName(losingTeam);
+    private void onTeamWin(TeamData<Participant> winner, TeamData<Participant> loser) {
         context.getParentContext().messageAllParticipants(Component.empty()
-                .append(winningTeamDisplayName)
+                .append(winner.getFormattedDisplayName())
                 .append(Component.text(" captured "))
-                .append(losingTeamDisplayName)
+                .append(loser.getFormattedDisplayName())
                 .append(Component.text("'s flag!"))
                 .color(NamedTextColor.YELLOW));
-        gameManager.awardPointsToTeam(winningTeam, context.getConfig().getWinScore());
+        gameManager.awardPointsToTeam(winner, context.getConfig().getWinScore());
         
-        showWinLoseTitles(winningTeam);
+        showWinLoseTitles(winner, loser);
         context.setState(new MatchOverState(context));
     }
     
-    private void showWinLoseTitles(String winningTeam) {
-        for (Participant participant : context.getAllParticipants().values()) {
-            if (winningTeam.equals(participant.getTeamId())) {
-                participant.showTitle(
-                    Title.title(
+    private void showWinLoseTitles(TeamData<Participant> winner, TeamData<Participant> loser) {
+        winner.showTitle(
+                Title.title(
                         Component.empty()
                                 .append(Component.text("Match Over!"))
                                 .color(NamedTextColor.RED),
@@ -120,22 +113,19 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
                                 .append(Component.text("You won!"))
                                 .color(NamedTextColor.GREEN),
                         UIUtils.DEFAULT_TIMES
-                    )
-                );
-            } else {
-                participant.showTitle(
-                        Title.title(
-                                Component.empty()
-                                        .append(Component.text("Match Over!"))
-                                        .color(NamedTextColor.RED),
-                                Component.empty()
-                                        .append(Component.text("You lost"))
-                                        .color(NamedTextColor.RED),
-                                UIUtils.DEFAULT_TIMES
-                        )
-                );
-            }
-        }
+                )
+        );
+        loser.showTitle(
+                Title.title(
+                        Component.empty()
+                                .append(Component.text("Match Over!"))
+                                .color(NamedTextColor.RED),
+                        Component.empty()
+                                .append(Component.text("You lost"))
+                                .color(NamedTextColor.RED),
+                        UIUtils.DEFAULT_TIMES
+                )
+        );
     }
     
     private void onParticipantGetKill(@NotNull Participant killer, @NotNull Participant killed) {
@@ -273,8 +263,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         killed.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
         killed.lookAt(arena.northFlag().getX(), arena.northFlag().getY(), arena.northFlag().getZ(), LookAnchor.EYES);
         
-        String teamId = gameManager.getTeamId(killed.getUniqueId());
-        context.getTopbar().setMembers(teamId, alive, dead);
+        context.getTopbar().setMembers(killed.getTeamId(), alive, dead);
         context.getParentContext().addDeath(killed.getUniqueId());
     }
     
@@ -422,8 +411,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     private void deliverSouthFlag(Participant northParticipant) {
         BlockPlacementUtils.placeFlag(context.getSouthBanner(), arena.northFlag(), BlockFace.NORTH);
         northParticipant.getInventory().remove(context.getSouthBanner());
-        String winningTeam = gameManager.getTeamId(northParticipant.getUniqueId());
-        onTeamWin(winningTeam);
+        onTeamWin(context.getNorthTeam(), context.getSouthTeam());
     }
     
     private boolean hasSouthFlag(Participant northParticipant) {
@@ -532,8 +520,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     private void deliverNorthFlag(Participant southParticipant) {
         BlockPlacementUtils.placeFlag(context.getNorthBanner(), arena.southFlag(), BlockFace.SOUTH);
         southParticipant.getInventory().remove(context.getNorthBanner());
-        String winningTeam = gameManager.getTeamId(southParticipant.getUniqueId());
-        onTeamWin(winningTeam);
+        onTeamWin(context.getSouthTeam(), context.getNorthTeam());
     }
     
     private boolean canRecoverSouthFlag(Location location) {
