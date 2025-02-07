@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
@@ -412,5 +413,16 @@ public class GameManagerUtils {
      */
     public static String getPlacementTitleString(int placement) {
         return placement + getStandingSuffix(placement);
+    }
+    
+    /**
+     * @param name the name to turn into a display name
+     * @param color the color to use for the display name
+     * @return the display name from the given name and color
+     */
+    public static @NotNull Component createDisplayName(@NotNull String name, @NotNull TextColor color) {
+        return Component.empty()
+                .append(Component.text(name))
+                .color(color);
     }
 }

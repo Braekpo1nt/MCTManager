@@ -542,13 +542,8 @@ public class GameManager implements Listener {
             teams.put(teamId, team);
         }
         for (UUID uuid : gameStateStorageUtil.getPlayerUniqueIds()) {
-            OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(uuid);
-            // TODO: OfflineParticipant store the name in the GameState instead of creating it here
-            String name = (offlinePlayer.getName() != null) ? offlinePlayer.getName() : offlinePlayer.getUniqueId().toString();
-            String teamId = gameStateStorageUtil.getPlayerTeamId(uuid);
-            if (teamId != null) { // this will not be null, formality
-                Component displayName = teams.get(teamId).createDisplayName(name);
-                OfflineParticipant offlineParticipant = new OfflineParticipant(uuid, name, displayName, teamId);
+            OfflineParticipant offlineParticipant = gameStateStorageUtil.getOfflineParticipant(uuid);
+            if (offlineParticipant != null) {
                 allParticipants.put(offlineParticipant.getUniqueId(), offlineParticipant);
             }
         }

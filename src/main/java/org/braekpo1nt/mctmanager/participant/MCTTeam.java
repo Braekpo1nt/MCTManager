@@ -6,6 +6,7 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.utils.AudienceDelegate;
 import org.jetbrains.annotations.NotNull;
 
@@ -90,9 +91,7 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
     }
     
     public @NotNull Component createDisplayName(String name) {
-        return Component.empty()
-                .append(Component.text(name))
-                .color(this.getColor());
+        return GameManagerUtils.createDisplayName(name, getColor());
     }
     
     /**
