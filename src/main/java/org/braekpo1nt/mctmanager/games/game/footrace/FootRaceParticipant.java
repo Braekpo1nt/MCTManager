@@ -18,9 +18,13 @@ public class FootRaceParticipant extends Participant {
      */
     private long lapCooldown;
     /**
-     * What lap the participant is on
+     * The participant's current lap
      */
     private int lap;
+    /**
+     * The participant's current checkpoint
+     */
+    private int currentCheckpoint;
     /**
      * Whether the participant finished the race or not
      */
