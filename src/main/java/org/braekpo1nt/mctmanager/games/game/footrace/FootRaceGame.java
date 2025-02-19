@@ -71,8 +71,9 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private Sidebar sidebar;
     private Sidebar adminSidebar;
     private int timerRefreshTaskId;
-    private Map<UUID, Participant> participants = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
+    
+    private Map<UUID, Participant> participants = new HashMap<>();
     private Map<UUID, Long> lapCooldowns;
     private Map<UUID, Integer> laps;
     /**
