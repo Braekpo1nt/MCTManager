@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
-public class GameStateController extends ConfigController<GameStateDTO> {
+class GameStateController extends ConfigController<GameStateDTO> {
     
     private final File gameStateFile;
     
@@ -21,7 +21,7 @@ public class GameStateController extends ConfigController<GameStateDTO> {
     
     @Override
     protected @NotNull Gson getGson() {
-        return Main.GSON;
+        return Main.GSON_PRETTY;
     }
     
     /**
