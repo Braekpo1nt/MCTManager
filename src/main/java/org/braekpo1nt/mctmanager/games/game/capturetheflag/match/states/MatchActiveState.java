@@ -68,7 +68,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
                     .append(forfeit.getFormattedDisplayName())
                     .append(Component.text(" is absent, match cancelled.")));
         } else {
-            // TODO: Team handle this being null sometimes CaptureTheFlagTest.playerLeavingStillEndsGame()
+            // TODO: Team handle this being null sometimes CaptureTheFlagGameTest.playerLeavingStillEndsGame()
             context.messageAllParticipants(Component.empty()
                     .append(Component.text("Opposing team is absent, match cancelled.")));
         }
