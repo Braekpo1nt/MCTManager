@@ -142,7 +142,6 @@ public class Main extends JavaPlugin {
         new TopCommand(this, gameManager);
     
         alwaysGiveNightVision();
-        this.getLogger().info("This is a test=================");
     }
     
     public MCTCommand getMctCommand() {
