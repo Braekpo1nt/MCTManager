@@ -168,11 +168,12 @@ public class GameStateStorageUtil {
     /**
      * Adds the given player to the game state, joined to the given team
      * @param playerToJoin the UUID of the player
+     * @param name the name of the player
      * @param teamId the teamId to join it to
      * @throws ConfigIOException if there is an IO error saving the game state
      */
-    public void addNewPlayer(UUID playerToJoin, String teamId) throws ConfigIOException {
-        gameState.addPlayer(playerToJoin, teamId);
+    public void addNewPlayer(@NotNull UUID playerToJoin, @NotNull String name, @NotNull String teamId) throws ConfigIOException {
+        gameState.addPlayer(playerToJoin, name, teamId);
         saveGameState();
     }
     

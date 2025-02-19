@@ -1196,7 +1196,7 @@ public class GameManager implements Listener {
                 offlineParticipant.getName(), 
                 offlineParticipant.getTeamId(), 
                 false);
-        addParticipantToGameState(offlineParticipant.getUniqueId(), teamId);
+        addParticipantToGameState(offlineParticipant);
         hubManager.updateLeaderboards();
         sender.sendMessage(Component.text("Joined ")
                 .append(offlineParticipant.displayName())
@@ -1215,12 +1215,11 @@ public class GameManager implements Listener {
     
     /**
      * Adds the new participant to the {@link GameStateStorageUtil} and joins them the given team. 
-     * @param uuid The UUID of the participant to add
-     * @param teamId The teamId to join the new player to
+     * @param participant the participant to add to the game state
      */
-    private void addParticipantToGameState(UUID uuid, String teamId) {
+    private void addParticipantToGameState(@NotNull OfflineParticipant participant) {
         try {
-            gameStateStorageUtil.addNewPlayer(uuid, teamId);
+            gameStateStorageUtil.addNewPlayer(participant.getUniqueId(), participant.getName(), participant.getTeamId());
         } catch (ConfigIOException e) {
             reportGameStateException("adding new player", e);
             messageAdmins(Component.text("error occurred adding new player, see console for details.")
