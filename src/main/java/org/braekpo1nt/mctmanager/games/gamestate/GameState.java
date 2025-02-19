@@ -59,8 +59,8 @@ public class GameState {
      * @param playerUniqueId the UUID of the player
      * @param teamId the teamId to join it to
      */
-    public void addPlayer(UUID playerUniqueId, String teamId) {
-        MCTPlayer newPlayer = new MCTPlayer(playerUniqueId, 0, teamId);
+    public void addPlayer(@NotNull UUID playerUniqueId, @NotNull String name, @NotNull String teamId) {
+        MCTPlayer newPlayer = new MCTPlayer(playerUniqueId, name, 0, teamId);
         players.put(playerUniqueId, newPlayer);
     }
     

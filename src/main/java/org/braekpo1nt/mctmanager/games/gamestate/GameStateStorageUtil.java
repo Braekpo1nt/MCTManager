@@ -6,6 +6,8 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
@@ -166,11 +168,12 @@ public class GameStateStorageUtil {
     /**
      * Adds the given player to the game state, joined to the given team
      * @param playerToJoin the UUID of the player
+     * @param name the name of the player
      * @param teamId the teamId to join it to
      * @throws ConfigIOException if there is an IO error saving the game state
      */
-    public void addNewPlayer(UUID playerToJoin, String teamId) throws ConfigIOException {
-        gameState.addPlayer(playerToJoin, teamId);
+    public void addNewPlayer(@NotNull UUID playerToJoin, @NotNull String name, @NotNull String teamId) throws ConfigIOException {
+        gameState.addPlayer(playerToJoin, name, teamId);
         saveGameState();
     }
     
@@ -181,6 +184,37 @@ public class GameStateStorageUtil {
      */
     public boolean containsPlayer(UUID playerUniqueId) {
         return gameState.containsPlayer(playerUniqueId);
+    }
+    
+    /**
+     * @param uuid the UUID of the participant to get
+     * @return the OfflineParticipant from the given UUID, or null if the UUID isn't in the game state
+     */
+    public @Nullable OfflineParticipant getOfflineParticipant(@NotNull UUID uuid) {
+        MCTPlayer player = gameState.getPlayer(uuid);
+        if (player == null) {
+            return null;
+        }
+        NamedTextColor teamColor = getTeamColor(player.getTeamId());
+        return new OfflineParticipant(
+                player.getUniqueId(),
+                player.getName(),
+                GameManagerUtils.createDisplayName(player.getName(), teamColor),
+                player.getTeamId()
+        );
+    }
+    
+    /**
+     * Gets the stored name of the player with the given UUID
+     * @param uuid the UUID of the player to find the name of
+     * @return the stored name of the player with the given UUID, null if the game state doesn't contain the player's UUID
+     */
+    public @Nullable String getPlayerName(@NotNull UUID uuid) {
+        MCTPlayer player = gameState.getPlayer(uuid);
+        if (player != null) {
+            return player.getName();
+        }
+        return null;
     }
     
     /**

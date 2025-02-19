@@ -9,6 +9,7 @@ import java.util.UUID;
 @Builder
 public class MCTPlayer {
     private UUID uniqueId;
+    private String name;
     private int score;
     private String teamId;
 }

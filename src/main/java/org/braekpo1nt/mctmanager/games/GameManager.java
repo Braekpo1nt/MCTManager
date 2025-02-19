@@ -542,13 +542,8 @@ public class GameManager implements Listener {
             teams.put(teamId, team);
         }
         for (UUID uuid : gameStateStorageUtil.getPlayerUniqueIds()) {
-            OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(uuid);
-            // TODO: OfflineParticipant store the name in the GameState instead of creating it here
-            String name = (offlinePlayer.getName() != null) ? offlinePlayer.getName() : offlinePlayer.getUniqueId().toString();
-            String teamId = gameStateStorageUtil.getPlayerTeamId(uuid);
-            if (teamId != null) { // this will not be null, formality
-                Component displayName = teams.get(teamId).createDisplayName(name);
-                OfflineParticipant offlineParticipant = new OfflineParticipant(uuid, name, displayName, teamId);
+            OfflineParticipant offlineParticipant = gameStateStorageUtil.getOfflineParticipant(uuid);
+            if (offlineParticipant != null) {
                 allParticipants.put(offlineParticipant.getUniqueId(), offlineParticipant);
             }
         }
@@ -1201,7 +1196,7 @@ public class GameManager implements Listener {
                 offlineParticipant.getName(), 
                 offlineParticipant.getTeamId(), 
                 false);
-        addParticipantToGameState(offlineParticipant.getUniqueId(), teamId);
+        addParticipantToGameState(offlineParticipant);
         hubManager.updateLeaderboards();
         sender.sendMessage(Component.text("Joined ")
                 .append(offlineParticipant.displayName())
@@ -1220,12 +1215,11 @@ public class GameManager implements Listener {
     
     /**
      * Adds the new participant to the {@link GameStateStorageUtil} and joins them the given team. 
-     * @param uuid The UUID of the participant to add
-     * @param teamId The teamId to join the new player to
+     * @param participant the participant to add to the game state
      */
-    private void addParticipantToGameState(UUID uuid, String teamId) {
+    private void addParticipantToGameState(@NotNull OfflineParticipant participant) {
         try {
-            gameStateStorageUtil.addNewPlayer(uuid, teamId);
+            gameStateStorageUtil.addNewPlayer(participant.getUniqueId(), participant.getName(), participant.getTeamId());
         } catch (ConfigIOException e) {
             reportGameStateException("adding new player", e);
             messageAdmins(Component.text("error occurred adding new player, see console for details.")

@@ -310,13 +310,13 @@ public class ReadyUpState implements EventState {
      * @return the players sorted by readiness
      */
     public List<OfflineParticipant> getSortedOfflineParticipants(@Nullable String teamId) {
-        Collection<OfflineParticipant> sortedOfflineParticipants;
+        Collection<OfflineParticipant> unsortedOfflineParticipants;
         if (teamId == null) {
-            sortedOfflineParticipants = gameManager.getOfflineParticipants();
+            unsortedOfflineParticipants = gameManager.getOfflineParticipants();
         } else {
-            sortedOfflineParticipants = gameManager.getOfflineParticipants(teamId);
+            unsortedOfflineParticipants = gameManager.getOfflineParticipants(teamId);
         }
-        return sortedOfflineParticipants.stream().sorted((p1, p2) -> {
+        return unsortedOfflineParticipants.stream().sorted((p1, p2) -> {
             int readyComparison = Boolean.compare(
                     readyUpManager.participantIsReady(p2.getUniqueId(), p2.getTeamId()),
                     readyUpManager.participantIsReady(p1.getUniqueId(), p1.getTeamId()));
