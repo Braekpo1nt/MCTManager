@@ -101,7 +101,7 @@ public class PowerupManager implements Listener {
         this.config = config;
     }
     
-    public void start(Collection<Participant> newParticipants) {
+    public <T extends Participant> void start(Collection<T> newParticipants) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         participants = new HashMap<>(newParticipants.size());
         lastPowerupTimestamps = new HashMap<>(newParticipants.size());
