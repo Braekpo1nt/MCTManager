@@ -41,7 +41,7 @@ public class Participant extends OfflineParticipant implements AudienceDelegate 
      * @param participants the participants map to get the list of teamIds from the values
      * @return the teamIds
      */
-    public static Set<String> getTeamIds(Map<UUID, Participant> participants) {
+    public static <T extends Participant> Set<String> getTeamIds(Map<UUID, T> participants) {
         return getTeamIds(participants.values());
     }
     
@@ -49,7 +49,7 @@ public class Participant extends OfflineParticipant implements AudienceDelegate 
      * @param participants the participants list to get the list of teamIds from
      * @return the teamIds
      */
-    public static Set<String> getTeamIds(Collection<Participant> participants) {
+    public static <T extends Participant> Set<String> getTeamIds(Collection<T> participants) {
         return participants.stream().map(Participant::getTeamId).collect(Collectors.toSet());
     }
     

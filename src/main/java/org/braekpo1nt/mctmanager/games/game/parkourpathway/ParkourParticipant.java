@@ -27,8 +27,26 @@ public class ParkourParticipant extends Participant {
      */
     private int currentPuzzleCheckpoint;
     
-    public ParkourParticipant(@NotNull ParkourParticipant participant) {
+    public ParkourParticipant(@NotNull Participant participant) {
         super(participant);
+        this.finished = false;
+        this.currentPuzzle = 0;
+        this.currentPuzzleCheckpoint = 0;
     }
     
+    public ParkourParticipant(@NotNull Participant participant, @NotNull ParkourQuitData quitData) {
+        super(participant);
+        this.finished = quitData.isFinished();
+        this.currentPuzzle = quitData.getCurrentPuzzle();
+        this.currentPuzzleCheckpoint = quitData.getCurrentPuzzleCheckpoint();
+    }
+    
+    public ParkourQuitData getQuitData(int unusedSkips) {
+        return new ParkourQuitData(
+                finished,
+                currentPuzzle,
+                currentPuzzleCheckpoint,
+                unusedSkips
+        );
+    }
 }
