@@ -138,10 +138,8 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         }
         startAdmins(newAdmins);
         initializeSidebar();
-        if (!config.useLegacy()) {
-            updateStandings();
-            displayStandings();
-        }
+        updateStandings();
+        displayStandings();
         startStatusEffectsTask();
         setupTeamOptions();
         state = new DescriptionState(this);
