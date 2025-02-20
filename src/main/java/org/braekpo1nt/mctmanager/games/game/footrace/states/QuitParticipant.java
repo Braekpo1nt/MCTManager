@@ -8,23 +8,19 @@ import lombok.Data;
 @Data
 public class QuitParticipant {
     /**
-     * The lap cooldown for the participant crossing the finish line
-     */
-    private long lapCooldown;
-    /**
      * The participant's current lap
      */
-    private int lap;
+    private final int lap;
     /**
      * The participant's current checkpoint
      */
-    private int currentCheckpoint;
+    private final int currentCheckpoint;
     /**
      * Whether the participant finished the race or not
      */
-    private boolean finished;
+    private final boolean finished;
     /**
      * The participant's placement upon finishing the race
      */
-    private int placement;
+    private final int placement;
 }

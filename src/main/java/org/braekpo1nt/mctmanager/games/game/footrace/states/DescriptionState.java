@@ -28,13 +28,14 @@ public class DescriptionState implements FootRaceState {
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
-        initializeParticipant(participant);
+    public void onParticipantJoin(Participant newParticipant) {
+        initializeParticipant(newParticipant);
+        // TODO: make initializeParticipant return the foot race participant?
+        FootRaceParticipant participant = context.getParticipants().get(newParticipant.getUniqueId());
         context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
-        Integer currentLap = context.getLaps().get(participant.getUniqueId());
         context.getSidebar().updateLine(participant.getUniqueId(), "lap", Component.empty()
                 .append(Component.text("Lap: "))
-                .append(Component.text(currentLap))
+                .append(Component.text(participant.getLap()))
                 .append(Component.text("/"))
                 .append(Component.text(context.getConfig().getLaps())));
         context.updateStandings();
@@ -46,9 +47,6 @@ public class DescriptionState implements FootRaceState {
     public void onParticipantQuit(FootRaceParticipant participant) {
         resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
-        context.getLapCooldowns().remove(participant.getUniqueId());
-        context.getLaps().remove(participant.getUniqueId());
-        context.getCurrentCheckpoints().remove(participant.getUniqueId());
         context.getStandings().remove(participant);
         context.updateStandings();
         context.displayStandings();

@@ -53,11 +53,20 @@ public class FootRaceParticipant extends Participant {
     
     public FootRaceParticipant(Participant participant, QuitParticipant quitData) {
         super(participant);
-        this.lapCooldown = quitData.getLapCooldown();
+        this.lapCooldown = System.currentTimeMillis();
         this.lap = quitData.getLap();
         this.currentCheckpoint = quitData.getCurrentCheckpoint();
         this.finished = quitData.isFinished();
         this.placement = quitData.getPlacement();
         this.standing = 1;
+    }
+    
+    public QuitParticipant getQuitData() {
+        return new QuitParticipant(
+                lap,
+                currentCheckpoint,
+                finished,
+                placement
+        );
     }
 }

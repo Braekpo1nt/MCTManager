@@ -297,7 +297,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         closeGlassBarrier();
         cancelAllTasks();
         stopAdmins();
-        for (Participant participant : participants.values()) {
+        for (FootRaceParticipant participant : participants.values()) {
             resetParticipant(participant);
         }
         clearSidebar();
@@ -314,11 +314,12 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         timerManager.cancel();
     }
     
-    public void resetParticipant(Participant participant) {
+    public void resetParticipant(FootRaceParticipant participant) {
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         sidebar.removePlayer(participant);
+        quitParticipants.put(participant.getUniqueId(), participant.getQuitData());
     }
     
     @Override

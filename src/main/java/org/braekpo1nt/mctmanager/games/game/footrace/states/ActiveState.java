@@ -79,7 +79,7 @@ public class ActiveState implements FootRaceState {
     
     @Override
     public void onParticipantJoin(Participant newParticipant) {
-        QuitParticipant quitData = context.getQuitParticipants().get(newParticipant.getUniqueId());
+        QuitParticipant quitData = context.getQuitParticipants().remove(newParticipant.getUniqueId());
         if (quitData != null) {
             FootRaceParticipant rejoinedParticipant = new FootRaceParticipant(newParticipant, quitData);
             rejoinParticipant(rejoinedParticipant);

@@ -4,7 +4,7 @@ import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 
 public interface FootRaceState {
-    void onParticipantJoin(Participant participant);
+    void onParticipantJoin(Participant newParticipant);
     void onParticipantQuit(FootRaceParticipant participant);
     void initializeParticipant(Participant participant);
     void resetParticipant(FootRaceParticipant participant);

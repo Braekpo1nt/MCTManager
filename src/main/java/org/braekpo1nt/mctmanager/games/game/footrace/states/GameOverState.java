@@ -31,7 +31,7 @@ public class GameOverState implements FootRaceState {
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(Participant newParticipant) {
         // do nothing
     }
     
