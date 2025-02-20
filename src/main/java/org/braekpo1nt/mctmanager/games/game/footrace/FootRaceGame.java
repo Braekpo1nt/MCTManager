@@ -129,6 +129,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     @Override
     public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
         this.participants = new HashMap<>(newParticipants.size());
+        this.quitDatas = new HashMap<>();
         standings = new ArrayList<>(newParticipants.size());
         admins = new ArrayList<>(newAdmins.size());
         sidebar = gameManager.createSidebar();
@@ -302,6 +303,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         }
         clearSidebar();
         participants.clear();
+        quitDatas.clear();
         standings.clear();
         gameManager.gameIsOver();
         Main.logger().info("Stopping Foot Race game");
