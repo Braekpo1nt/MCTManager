@@ -134,6 +134,7 @@ public class ActiveState implements FootRaceState {
         context.getStandings().remove(participant);
         context.updateStandings();
         context.displayStandings();
+        context.getQuitParticipants().put(participant.getUniqueId(), participant.getQuitData());
     }
     
     @Override

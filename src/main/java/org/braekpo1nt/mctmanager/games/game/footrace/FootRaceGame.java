@@ -319,7 +319,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         sidebar.removePlayer(participant);
-        quitParticipants.put(participant.getUniqueId(), participant.getQuitData());
     }
     
     @Override
