@@ -77,6 +77,10 @@ public class Participant extends OfflineParticipant implements AudienceDelegate 
         this.player = player;
     }
     
+    public Participant(@NotNull Participant participant) {
+        this(participant, participant.getPlayer());
+    }
+    
     /**
      * {@inheritDoc}
      * @return this Participant's {@link #player}. 
