@@ -194,7 +194,6 @@ public class SpleefRound implements Listener {
         if (descriptionShowing) {
             resetParticipant(spleefParticipant);
             participants.remove(spleefParticipant.getUniqueId());
-            quitDatas.put(spleefParticipant.getUniqueId(), spleefParticipant.getQuitData());
             return;
         }
         if (spleefHasStarted && spleefParticipant.isAlive()) {
