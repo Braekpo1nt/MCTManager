@@ -28,13 +28,21 @@ public class FootRaceParticipant extends Participant {
     /**
      * Whether the participant finished the race or not
      */
-    private boolean finishedRace;
+    private boolean finished;
+    /**
+     * The participant's placement upon finishing the race
+     * TODO: should this be the same thing as {@link #standing}?
+     */
+    private int placement;
     /**
      * The participant's current standing
      */
     private int standing;
     
-    public FootRaceParticipant(@NotNull Participant participant) {
+    public FootRaceParticipant(@NotNull Participant participant, int currentCheckpoint) {
         super(participant);
+        this.lapCooldown = System.currentTimeMillis();
+        this.lap = 1;
+        this.currentCheckpoint = currentCheckpoint;
     }
 }

@@ -73,22 +73,11 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private int timerRefreshTaskId;
     private List<Player> admins = new ArrayList<>();
     
-    private Map<UUID, Participant> participants = new HashMap<>();
-    private Map<UUID, Long> lapCooldowns;
-    private Map<UUID, Integer> laps;
-    /**
-     * the index of each participant's current checkpoint. (the checkpoint they just passed).
-     */
-    private Map<UUID, Integer> currentCheckpoints;
-    /**
-     * Participants who have finished the race, stored in standing order
-     * (first entry came in first place, second entry came in second place, etc.)
-     */
-    private List<UUID> finishedParticipants;
+    private Map<UUID, FootRaceParticipant> participants = new HashMap<>();
     /**
      * what place every participant is in at any given moment in the race
      */
-    private List<Participant> standings;
+    private List<FootRaceParticipant> standings;
     private long raceStartTime;
     private int statusEffectsTaskId;
     private int standingsDisplayTaskId;
@@ -130,10 +119,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     @Override
     public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
         this.participants = new HashMap<>(newParticipants.size());
-        lapCooldowns = new HashMap<>(newParticipants.size());
-        laps = new HashMap<>(newParticipants.size());
-        currentCheckpoints = new HashMap<>(newParticipants.size());
-        finishedParticipants = new ArrayList<>(newParticipants.size());
         standings = new ArrayList<>(newParticipants.size());
         admins = new ArrayList<>(newAdmins.size());
         sidebar = gameManager.createSidebar();
@@ -159,17 +144,11 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     public void updateStandings() {
         standings = standings.stream()
                 .sorted((participant1, participant2) -> {
-                    UUID uuid1 = participant1.getUniqueId();
-                    UUID uuid2 = participant2.getUniqueId();
-                    boolean finished1 = finishedParticipants.contains(uuid1);
-                    boolean finished2 = finishedParticipants.contains(uuid2);
-                    if (finished1 || finished2) {
-                        if (finished1 && finished2) {
-                            int placement1 = finishedParticipants.indexOf(uuid1);
-                            int placement2 = finishedParticipants.indexOf(uuid2);
-                            return placement1 - placement2;
+                    if (participant1.isFinished() || participant2.isFinished()) {
+                        if (participant1.isFinished() && participant2.isFinished()) {
+                            return participant1.getPlacement() - participant2.getPlacement();
                         } else {
-                            if (finished1) {
+                            if (participant1.isFinished()) {
                                 return -1;
                             } else {
                                 return 1;
@@ -177,14 +156,12 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                         }
                     }
                     
-                    int currentLap1 = laps.get(uuid1);
-                    int currentLap2 = laps.get(uuid2);
-                    if (currentLap1 != currentLap2) {
-                        return currentLap2 - currentLap1; // Reverse order
+                    if (participant1.getLap() != participant2.getLap()) {
+                        return participant2.getLap() - participant1.getLap(); // Reverse order
                     }
                     
-                    int nextCheckpoint1 = MathUtils.wrapIndex(currentCheckpoints.get(uuid1) + 1, config.getCheckpoints().size());
-                    int nextCheckpoint2 = MathUtils.wrapIndex(currentCheckpoints.get(uuid2) + 1, config.getCheckpoints().size());
+                    int nextCheckpoint1 = MathUtils.wrapIndex(participant1.getCurrentCheckpoint() + 1, config.getCheckpoints().size());
+                    int nextCheckpoint2 = MathUtils.wrapIndex(participant2.getCurrentCheckpoint() + 1, config.getCheckpoints().size());
                     if (nextCheckpoint1 != nextCheckpoint2) {
                         return nextCheckpoint2 - nextCheckpoint1; // Reverse order
                     }
@@ -283,12 +260,9 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         }
     }
     
-    public void initializeParticipant(Participant participant) {
-        UUID participantUUID = participant.getUniqueId();
+    public void initializeParticipant(Participant newParticipant) {
+        FootRaceParticipant participant = new FootRaceParticipant(newParticipant, config.getCheckpoints().size() - 1);
         participants.put(participant.getUniqueId(), participant);
-        lapCooldowns.put(participantUUID, System.currentTimeMillis());
-        laps.put(participantUUID, 1);
-        currentCheckpoints.put(participantUUID, config.getCheckpoints().size() - 1);
         standings.add(participant);
         sidebar.addPlayer(participant);
         participant.teleport(config.getStartingLocation());
@@ -320,10 +294,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         }
         clearSidebar();
         participants.clear();
-        lapCooldowns.clear();
-        laps.clear();
-        finishedParticipants.clear();
-        currentCheckpoints.clear();
         standings.clear();
         gameManager.gameIsOver();
         Main.logger().info("Stopping Foot Race game");
