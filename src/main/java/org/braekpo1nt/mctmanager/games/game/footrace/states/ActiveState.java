@@ -7,7 +7,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceParticipant;
-import org.braekpo1nt.mctmanager.games.game.footrace.QuitParticipant;
+import org.braekpo1nt.mctmanager.games.game.footrace.QuitData;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -81,7 +81,7 @@ public class ActiveState implements FootRaceState {
     
     @Override
     public void onParticipantJoin(Participant newParticipant) {
-        QuitParticipant quitData = context.getQuitParticipants().remove(newParticipant.getUniqueId());
+        QuitData quitData = context.getQuitDatas().remove(newParticipant.getUniqueId());
         if (quitData != null) {
             Main.logger().info(newParticipant.getName() + " should rejoin");
             FootRaceParticipant rejoinedParticipant = new FootRaceParticipant(newParticipant, quitData);
@@ -138,7 +138,7 @@ public class ActiveState implements FootRaceState {
         context.getStandings().remove(participant);
         context.updateStandings();
         context.displayStandings();
-        context.getQuitParticipants().put(participant.getUniqueId(), participant.getQuitData());
+        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
     }
     
     @Override

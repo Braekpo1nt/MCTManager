@@ -74,7 +74,10 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private List<Player> admins = new ArrayList<>();
     
     private Map<UUID, FootRaceParticipant> participants = new HashMap<>();
-    private Map<UUID, QuitParticipant> quitParticipants = new HashMap<>();
+    /**
+     * Holds the data for participants when they have quit mid-round
+     */
+    private Map<UUID, QuitData> quitDatas = new HashMap<>();
     /**
      * what place every participant is in at any given moment in the race
      */

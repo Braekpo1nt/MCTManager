@@ -6,7 +6,7 @@ import lombok.Data;
  * Holds data for the participant when they leave the game
  */
 @Data
-public class QuitParticipant {
+public class QuitData {
     /**
      * The participant's current lap
      */
