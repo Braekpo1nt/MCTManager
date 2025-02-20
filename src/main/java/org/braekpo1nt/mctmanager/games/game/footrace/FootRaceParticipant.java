@@ -32,13 +32,8 @@ public class FootRaceParticipant extends Participant {
     /**
      * The participant's placement upon finishing the race.
      * 0 when they haven't finished.
-     * TODO: should this be the same thing as {@link #standing}?
      */
     private int placement;
-    /**
-     * The participant's current standing
-     */
-    private int standing;
     
     public FootRaceParticipant(@NotNull Participant participant, int currentCheckpoint) {
         super(participant);
@@ -47,7 +42,6 @@ public class FootRaceParticipant extends Participant {
         this.currentCheckpoint = currentCheckpoint;
         this.finished = false;
         this.placement = 0;
-        this.standing = 1;
     }
     
     public FootRaceParticipant(Participant participant, QuitParticipant quitData) {
@@ -57,7 +51,6 @@ public class FootRaceParticipant extends Participant {
         this.currentCheckpoint = quitData.getCurrentCheckpoint();
         this.finished = quitData.isFinished();
         this.placement = quitData.getPlacement();
-        this.standing = 1;
     }
     
     public QuitParticipant getQuitData() {
