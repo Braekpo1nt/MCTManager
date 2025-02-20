@@ -183,27 +183,31 @@ public class SpleefRound implements Listener {
         decayManager.setAlivePercent(aliveCount / (double) participants.size());
     }
     
-    public void onParticipantQuit(SpleefParticipant participant) {
+    public void onParticipantQuit(Participant participant) {
         if (!roundActive) {
             return;
         }
-        if (descriptionShowing) {
-            resetParticipant(participant);
-            participants.remove(participant.getUniqueId());
-            quitDatas.put(participant.getUniqueId(), participant.getQuitData());
+        SpleefParticipant spleefParticipant = participants.get(participant.getUniqueId());
+        if (spleefParticipant == null) {
             return;
         }
-        if (spleefHasStarted) {
+        if (descriptionShowing) {
+            resetParticipant(spleefParticipant);
+            participants.remove(spleefParticipant.getUniqueId());
+            quitDatas.put(spleefParticipant.getUniqueId(), spleefParticipant.getQuitData());
+            return;
+        }
+        if (spleefHasStarted && spleefParticipant.isAlive()) {
             Component deathMessage = Component.empty()
-                    .append(Component.text(participant.getName()))
+                    .append(Component.text(spleefParticipant.getName()))
                     .append(Component.text(" left early. Their life is forfeit."));
-            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant.getPlayer(),
+            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(spleefParticipant.getPlayer(),
                     DamageSource.builder(DamageType.GENERIC).build(), Collections.emptyList(), 0, deathMessage);
             Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
         }
-        resetParticipant(participant);
-        participants.remove(participant.getUniqueId());
-        quitDatas.put(participant.getUniqueId(), participant.getQuitData());
+        resetParticipant(spleefParticipant);
+        participants.remove(spleefParticipant.getUniqueId());
+        quitDatas.put(spleefParticipant.getUniqueId(), spleefParticipant.getQuitData());
     }
     
     @EventHandler
