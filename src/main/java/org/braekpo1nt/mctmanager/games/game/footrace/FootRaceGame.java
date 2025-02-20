@@ -330,8 +330,12 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     @Override
     public void onParticipantQuit(Participant participant, Team team) {
+        FootRaceParticipant footRaceParticipant = participants.get(participant.getUniqueId());
+        if (footRaceParticipant == null) {
+            return;
+        }
         if (state != null) {
-            state.onParticipantQuit(participant);
+            state.onParticipantQuit(footRaceParticipant);
         }
     }
     
@@ -420,7 +424,9 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                 new KeyLine("personalScore", ""),
                 new KeyLine("title", title),
                 new KeyLine("elapsedTime", "00:00:000"),
-                new KeyLine("lap", String.format("Lap: %d/%d", 1, config.getLaps())),
+                new KeyLine("lap", Component.empty()
+                        .append(Component.text("Lap: 1/"))
+                        .append(Component.text(config.getLaps()))),
                 new KeyLine("timer", Component.empty()),
                 new KeyLine("standing1", Component.empty()),
                 new KeyLine("standing2", Component.empty()),
