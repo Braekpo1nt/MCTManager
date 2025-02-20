@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.footrace.states;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
+import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +43,7 @@ public class DescriptionState implements FootRaceState {
     }
     
     @Override
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantQuit(FootRaceParticipant participant) {
         resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
         context.getLapCooldowns().remove(participant.getUniqueId());
@@ -59,12 +60,12 @@ public class DescriptionState implements FootRaceState {
     }
     
     @Override
-    public void resetParticipant(Participant participant) {
+    public void resetParticipant(FootRaceParticipant participant) {
         context.resetParticipant(participant);
     }
     
     @Override
-    public void onParticipantMove(Participant participant) {
+    public void onParticipantMove(FootRaceParticipant participant) {
         // do nothing
     }
 }

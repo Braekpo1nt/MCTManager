@@ -4,6 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.braekpo1nt.mctmanager.games.game.footrace.states.QuitParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,7 +31,8 @@ public class FootRaceParticipant extends Participant {
      */
     private boolean finished;
     /**
-     * The participant's placement upon finishing the race
+     * The participant's placement upon finishing the race.
+     * 0 when they haven't finished.
      * TODO: should this be the same thing as {@link #standing}?
      */
     private int placement;
@@ -44,5 +46,18 @@ public class FootRaceParticipant extends Participant {
         this.lapCooldown = System.currentTimeMillis();
         this.lap = 1;
         this.currentCheckpoint = currentCheckpoint;
+        this.finished = false;
+        this.placement = 0;
+        this.standing = 1;
+    }
+    
+    public FootRaceParticipant(Participant participant, QuitParticipant quitData) {
+        super(participant);
+        this.lapCooldown = quitData.getLapCooldown();
+        this.lap = quitData.getLap();
+        this.currentCheckpoint = quitData.getCurrentCheckpoint();
+        this.finished = quitData.isFinished();
+        this.placement = quitData.getPlacement();
+        this.standing = 1;
     }
 }

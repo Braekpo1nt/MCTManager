@@ -13,6 +13,7 @@ import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfigController;
 import org.braekpo1nt.mctmanager.games.game.footrace.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.footrace.states.FootRaceState;
+import org.braekpo1nt.mctmanager.games.game.footrace.states.QuitParticipant;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
@@ -74,10 +75,17 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private List<Player> admins = new ArrayList<>();
     
     private Map<UUID, FootRaceParticipant> participants = new HashMap<>();
+    private Map<UUID, QuitParticipant> quitParticipants = new HashMap<>();
     /**
      * what place every participant is in at any given moment in the race
      */
     private List<FootRaceParticipant> standings;
+    /**
+     * Keeps track of how many participants have finished the race, so we can know 
+     * what place a player should be in when they finish
+     * TODO: Participant would {@link #standings} be sufficient for this?
+     */
+    private int numOfFinishedParticipants = 0;
     private long raceStartTime;
     private int statusEffectsTaskId;
     private int standingsDisplayTaskId;
@@ -518,7 +526,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
-        Participant participant = participants.get(event.getPlayer().getUniqueId());
+        FootRaceParticipant participant = participants.get(event.getPlayer().getUniqueId());
         if (participant == null) {
             return;
         }
