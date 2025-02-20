@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.game.footrace.states;
+package org.braekpo1nt.mctmanager.games.game.footrace;
 
 import lombok.Data;
 

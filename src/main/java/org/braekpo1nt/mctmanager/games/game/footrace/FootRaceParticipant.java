@@ -4,7 +4,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.braekpo1nt.mctmanager.games.game.footrace.states.QuitParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.jetbrains.annotations.NotNull;
 

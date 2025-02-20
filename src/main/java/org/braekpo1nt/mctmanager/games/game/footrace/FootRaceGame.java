@@ -13,7 +13,6 @@ import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfigController;
 import org.braekpo1nt.mctmanager.games.game.footrace.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.footrace.states.FootRaceState;
-import org.braekpo1nt.mctmanager.games.game.footrace.states.QuitParticipant;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;

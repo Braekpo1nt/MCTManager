@@ -6,6 +6,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceParticipant;
+import org.braekpo1nt.mctmanager.games.game.footrace.QuitParticipant;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Participant;
