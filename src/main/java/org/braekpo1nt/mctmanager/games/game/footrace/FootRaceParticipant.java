@@ -44,7 +44,7 @@ public class FootRaceParticipant extends Participant {
         this.placement = 0;
     }
     
-    public FootRaceParticipant(Participant participant, QuitData quitData) {
+    public FootRaceParticipant(Participant participant, FootRaceQuitData quitData) {
         super(participant);
         this.lapCooldown = System.currentTimeMillis();
         this.lap = quitData.getLap();
@@ -53,8 +53,8 @@ public class FootRaceParticipant extends Participant {
         this.placement = quitData.getPlacement();
     }
     
-    public QuitData getQuitData() {
-        return new QuitData(
+    public FootRaceQuitData getQuitData() {
+        return new FootRaceQuitData(
                 lap,
                 currentCheckpoint,
                 finished,
