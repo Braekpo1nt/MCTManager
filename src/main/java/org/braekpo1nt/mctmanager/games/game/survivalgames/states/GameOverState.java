@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesParticipant;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesTeam;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
@@ -44,17 +45,9 @@ public class GameOverState implements SurvivalGamesState {
     @Override
     public void onParticipantQuit(SurvivalGamesParticipant participant) {
         context.getParticipants().remove(participant.getUniqueId());
-        UUID participantUUID = participant.getUniqueId();
-        String teamId = participant.getTeamId();
-        Integer oldLivingMembers = context.getLivingMembers().get(teamId);
-        if (oldLivingMembers != null) {
-            context.getLivingMembers().put(teamId, Math.max(0, oldLivingMembers - 1));
-            context.updateAliveCount(teamId);
-        }
-        context.getLivingPlayers().remove(participantUUID);
-        context.getKillCounts().remove(participantUUID);
-        context.getDeathCounts().remove(participantUUID);
-        context.getTopbar().unlinkFromTeam(participantUUID);
+        SurvivalGamesTeam team = context.getTeams().get(participant.getTeamId());
+        context.updateAliveCount(team);
+        context.getTopbar().unlinkFromTeam(participant.getUniqueId());
         resetParticipant(participant);
     }
     
