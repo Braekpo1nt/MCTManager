@@ -169,7 +169,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
      * @param participant the participant to show their teammates to
      */
     public void initializeGlowing(Participant participant) {
-        for (Participant other : participants.values()) {
+        for (SurvivalGamesParticipant other : participants.values()) {
             if (!other.equals(participant)) {
                 if (participant.getTeamId().equals(other.getTeamId())) {
                     glowManager.showGlowing(participant, other);
