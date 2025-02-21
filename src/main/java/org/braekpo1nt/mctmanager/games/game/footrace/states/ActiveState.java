@@ -6,7 +6,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceParticipant;
-import org.braekpo1nt.mctmanager.games.game.footrace.QuitData;
+import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceQuitData;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -80,7 +80,7 @@ public class ActiveState implements FootRaceState {
     
     @Override
     public void onParticipantJoin(Participant newParticipant) {
-        QuitData quitData = context.getQuitDatas().remove(newParticipant.getUniqueId());
+        FootRaceQuitData quitData = context.getQuitDatas().remove(newParticipant.getUniqueId());
         if (quitData != null) {
             FootRaceParticipant rejoinedParticipant = new FootRaceParticipant(newParticipant, quitData);
             rejoinParticipant(rejoinedParticipant);

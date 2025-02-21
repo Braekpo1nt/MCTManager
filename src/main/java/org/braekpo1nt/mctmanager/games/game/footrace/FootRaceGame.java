@@ -77,7 +77,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     /**
      * Holds the data for participants when they have quit mid-round
      */
-    private Map<UUID, QuitData> quitDatas = new HashMap<>();
+    private Map<UUID, FootRaceQuitData> quitDatas = new HashMap<>();
     /**
      * what place every participant is in at any given moment in the race
      */

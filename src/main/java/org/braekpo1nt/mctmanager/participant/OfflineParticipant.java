@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.participant;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.utils.AudienceDelegate;
@@ -11,7 +12,14 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
+/**
+ * Represents a participant without a {@link Player} object. 
+ * <p>
+ * Implementations of {@link OfflineParticipant} should not use {@link EqualsAndHashCode}
+ * so that only the {@link #uniqueId} is used to check for equality. 
+ */
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString
 public class OfflineParticipant implements AudienceDelegate {
     
     /**

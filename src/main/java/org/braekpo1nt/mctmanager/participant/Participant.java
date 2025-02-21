@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.participant;
 import io.papermc.paper.entity.LookAnchor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.utils.AudienceDelegate;
@@ -26,7 +27,7 @@ import java.util.stream.Collectors;
  * Represents a Participant. A participant is always a member of a {@link MCTTeam}.
  */
 @Getter
-@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
+@ToString(callSuper = true)
 public class Participant extends OfflineParticipant implements AudienceDelegate {
     
     /**

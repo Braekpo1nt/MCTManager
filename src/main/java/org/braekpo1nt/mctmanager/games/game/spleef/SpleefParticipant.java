@@ -4,7 +4,6 @@ import lombok.*;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.jetbrains.annotations.NotNull;
 
-@EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Getter
 @Setter

@@ -1,13 +1,11 @@
 package org.braekpo1nt.mctmanager.games.game.footrace;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.jetbrains.annotations.NotNull;
 
-@EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Getter
 @Setter
@@ -44,7 +42,7 @@ public class FootRaceParticipant extends Participant {
         this.placement = 0;
     }
     
-    public FootRaceParticipant(Participant participant, QuitData quitData) {
+    public FootRaceParticipant(Participant participant, FootRaceQuitData quitData) {
         super(participant);
         this.lapCooldown = System.currentTimeMillis();
         this.lap = quitData.getLap();
@@ -53,8 +51,8 @@ public class FootRaceParticipant extends Participant {
         this.placement = quitData.getPlacement();
     }
     
-    public QuitData getQuitData() {
-        return new QuitData(
+    public FootRaceQuitData getQuitData() {
+        return new FootRaceQuitData(
                 lap,
                 currentCheckpoint,
                 finished,
