@@ -191,7 +191,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         sidebar.addPlayer(participant);
         topbar.showPlayer(participant);
         topbar.linkToTeam(participant.getUniqueId(), teamId);
-        glowManager.addPlayer(participant);//
+        glowManager.addPlayer(participant);
         updateAliveCount(team);
         initializeKillCount(participant);
         participant.setGameMode(GameMode.ADVENTURE);
