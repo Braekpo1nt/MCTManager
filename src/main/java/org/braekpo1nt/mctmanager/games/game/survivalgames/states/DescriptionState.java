@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.survivalgames.states;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesParticipant;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -50,7 +51,7 @@ public class DescriptionState implements SurvivalGamesState {
     public void onParticipantJoin(Participant participant, Team team) {
         onTeamJoin(team);
         context.getDeadPlayers().remove(participant.getUniqueId());
-        initializeParticipant(participant);
+        context.initializeParticipant(participant);
         context.createPlatformsAndTeleportTeams();
         context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
         context.initializeGlowing(participant);
@@ -71,27 +72,6 @@ public class DescriptionState implements SurvivalGamesState {
         context.getDeathCounts().remove(participantUUID);
         context.getTopbar().unlinkFromTeam(participantUUID);
         resetParticipant(participant);
-    }
-    
-    @Override
-    public void initializeParticipant(Participant participant) {
-        context.getParticipants().put(participant.getUniqueId(), participant);
-        context.getTeams().get(participant.getTeamId()).addParticipant(participant);
-        context.getLivingPlayers().add(participant.getUniqueId());
-        String teamId = participant.getTeamId();
-        context.getLivingMembers().putIfAbsent(teamId, 0);
-        int oldAliveCount = context.getLivingMembers().get(teamId);
-        context.getLivingMembers().put(teamId, oldAliveCount + 1);
-        context.getSidebar().addPlayer(participant);
-        context.getTopbar().showPlayer(participant);
-        context.getTopbar().linkToTeam(participant.getUniqueId(), teamId);
-        context.updateAliveCount(teamId);
-        context.initializeKillCount(participant);
-        participant.setGameMode(GameMode.ADVENTURE);
-        ParticipantInitializer.clearInventory(participant);
-        ParticipantInitializer.resetHealthAndHunger(participant);
-        ParticipantInitializer.clearStatusEffects(participant);
-        context.getGlowManager().addPlayer(participant);
     }
     
     @Override

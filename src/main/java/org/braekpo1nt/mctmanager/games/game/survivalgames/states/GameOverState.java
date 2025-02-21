@@ -58,11 +58,6 @@ public class GameOverState implements SurvivalGamesState {
     }
     
     @Override
-    public void initializeParticipant(Participant participant) {
-        // not used
-    }
-    
-    @Override
     public void resetParticipant(Participant participant) {
         context.resetParticipant(participant);
     }

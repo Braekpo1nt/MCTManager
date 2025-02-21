@@ -7,6 +7,7 @@ import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesParticipant;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesTeam;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
@@ -196,7 +197,7 @@ public class ActiveState implements SurvivalGamesState {
             if (!context.getLivingMembers().containsKey(teamId)) {
                 context.getTopbar().addTeam(teamId, team.getColor());
             }
-            initializeParticipant(participant);
+            context.initializeParticipant(participant);
             participant.teleport(config.getPlatformSpawns().getFirst());
             participant.setRespawnLocation(config.getPlatformSpawns().getFirst(), true);
         }
@@ -236,26 +237,6 @@ public class ActiveState implements SurvivalGamesState {
         }
         resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
-    }
-    
-    @Override
-    public void initializeParticipant(Participant participant) {
-        context.getParticipants().put(participant.getUniqueId(), participant);
-        context.getTeams().get(participant.getTeamId()).addParticipant(participant);
-        context.getLivingPlayers().add(participant.getUniqueId());
-        String teamId = participant.getTeamId();
-        context.getLivingMembers().putIfAbsent(teamId, 0);
-        int oldAliveCount = context.getLivingMembers().get(teamId);
-        context.getLivingMembers().put(teamId, oldAliveCount + 1);
-        sidebar.addPlayer(participant);
-        topbar.showPlayer(participant);
-        topbar.linkToTeam(participant.getUniqueId(), teamId);
-        context.updateAliveCount(teamId);
-        context.initializeKillCount(participant);
-        participant.setGameMode(GameMode.ADVENTURE);
-        ParticipantInitializer.clearInventory(participant);
-        ParticipantInitializer.resetHealthAndHunger(participant);
-        ParticipantInitializer.clearStatusEffects(participant);
     }
     
     @Override
