@@ -1,6 +1,9 @@
 package org.braekpo1nt.mctmanager.participant;
 
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceParticipant;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourParticipant;
+import org.braekpo1nt.mctmanager.games.game.spleef.SpleefParticipant;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesParticipant;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Assertions;
@@ -37,11 +40,35 @@ class ParticipantTest {
     }
     
     @Test
+    void parkourParticipantEquals() {
+        Participant participant = new Participant(mockPlayer, "yellow");
+        ParkourParticipant subParticipant = new ParkourParticipant(participant);
+        
+        Assertions.assertEquals(participant, subParticipant);
+    }
+    
+    @Test
+    void spleefParticipantEquals() {
+        Participant participant = new Participant(mockPlayer, "yellow");
+        SpleefParticipant subParticipant = new SpleefParticipant(participant);
+        
+        Assertions.assertEquals(participant, subParticipant);
+    }
+    
+    @Test
+    void footRaceParticipantEquals() {
+        Participant participant = new Participant(mockPlayer, "yellow");
+        FootRaceParticipant subParticipant = new FootRaceParticipant(participant, 0);
+        
+        Assertions.assertEquals(participant, subParticipant);
+    }
+    
+    @Test
     void survivalGamesParticipantEquals() {
         Participant participant = new Participant(mockPlayer, "yellow");
-        SurvivalGamesParticipant sgParticipant = new SurvivalGamesParticipant(participant);
+        SurvivalGamesParticipant subParticipant = new SurvivalGamesParticipant(participant);
         
-        Assertions.assertEquals(participant, sgParticipant);
+        Assertions.assertEquals(participant, subParticipant);
     }
     
 }
