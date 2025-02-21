@@ -1,0 +1,21 @@
+package org.braekpo1nt.mctmanager.games.game.clockwork;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.jetbrains.annotations.NotNull;
+
+@ToString(callSuper = true)
+@Getter
+@Setter
+public class ClockworkParticipant extends Participant {
+    
+    private boolean alive;
+    
+    public ClockworkParticipant(@NotNull Participant participant) {
+        super(participant);
+        this.alive = true;
+    }
+    
+}
