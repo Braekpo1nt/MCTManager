@@ -188,7 +188,7 @@ public class ActiveState implements SurvivalGamesState {
     @Override
     public void onParticipantJoin(Participant participant, Team team) {
         context.onTeamJoin(team);
-        SurvivalGamesQuitData quitData = context.getQuitDatas().get(participant.getUniqueId());
+        SurvivalGamesQuitData quitData = context.getQuitDatas().remove(participant.getUniqueId());
         if (quitData != null) {
             SurvivalGamesParticipant sgParticipant = new SurvivalGamesParticipant(
                     participant,
@@ -232,6 +232,7 @@ public class ActiveState implements SurvivalGamesState {
         }
         resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
+        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
     }
     
     @Override
@@ -337,7 +338,6 @@ public class ActiveState implements SurvivalGamesState {
         context.messageAllParticipants(Component.empty()
                 .append(deadTeam.getFormattedDisplayName())
                 .append(Component.text(" has been eliminated.")));
-        // TODO: does getLivingTeams need to return teams, or just ids?
         List<SurvivalGamesTeam> livingTeams = getLivingTeams();
         gameManager.awardPointsToTeams(Team.getTeamIds(livingTeams), config.getSurviveTeamScore());
         switch (livingTeams.size()) {
