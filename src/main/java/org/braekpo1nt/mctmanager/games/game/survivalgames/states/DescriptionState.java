@@ -11,7 +11,6 @@ import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
-import org.bukkit.GameMode;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.jetbrains.annotations.NotNull;
@@ -58,7 +57,7 @@ public class DescriptionState implements SurvivalGamesState {
     }
     
     @Override
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantQuit(SurvivalGamesParticipant participant) {
         context.getParticipants().remove(participant.getUniqueId());
         UUID participantUUID = participant.getUniqueId();
         String teamId = participant.getTeamId();

@@ -254,8 +254,12 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     
     @Override
     public void onParticipantQuit(Participant participant, Team team) {
+        SurvivalGamesParticipant sgParticipant = participants.get(participant.getUniqueId());
+        if (sgParticipant == null) {
+            return;
+        }
         if (state != null) {
-            state.onParticipantQuit(participant);
+            state.onParticipantQuit(sgParticipant);
         }
     }
     
