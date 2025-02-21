@@ -7,6 +7,7 @@ import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesTeam;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
@@ -394,7 +395,7 @@ public class ActiveState implements SurvivalGamesState {
     /**
      * @return a list of the teamIds of the teams which are still alive (have at least 1 living member)
      */
-    private @NotNull List<TeamData<Participant>> getLivingTeams() {
+    private @NotNull List<SurvivalGamesTeam> getLivingTeams() {
         // TODO: Teams remove this in favor of teams storing their living members
         return context.getLivingMembers().entrySet().stream()
                 .filter(entry -> entry.getValue() > 0)

@@ -23,4 +23,12 @@ public class SurvivalGamesTeam extends TeamData<SurvivalGamesParticipant> {
     public boolean isAlive() {
         return getParticipants().stream().anyMatch(SurvivalGamesParticipant::isAlive);
     }
+    
+    public int getAlive() {
+        return (int) getParticipants().stream().filter(SurvivalGamesParticipant::isAlive).count();
+    }
+    
+    public int getDead() {
+        return (int) getParticipants().stream().filter(p -> !p.isAlive()).count();
+    }
 }

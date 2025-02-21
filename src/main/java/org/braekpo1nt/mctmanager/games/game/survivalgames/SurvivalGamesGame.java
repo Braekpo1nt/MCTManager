@@ -4,7 +4,6 @@ import lombok.Data;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
@@ -19,7 +18,6 @@ import org.braekpo1nt.mctmanager.games.game.survivalgames.states.SurvivalGamesSt
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
-import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.glow.GlowManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -76,18 +74,11 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     private Sidebar sidebar;
     private Sidebar adminSidebar;
     private SurvivalGamesConfig config;
-    public Map<String, TeamData<Participant>> teams = new HashMap<>();
-    public Map<UUID, Participant> participants = new HashMap<>();
+    public Map<String, SurvivalGamesTeam> teams = new HashMap<>();
+    public Map<UUID, SurvivalGamesParticipant> participants = new HashMap<>();
+    public Map<UUID, SurvivalGamesQuitData> quitDatas = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     private WorldBorder worldBorder;
-    private List<UUID> livingPlayers = new ArrayList<>();
-    /**
-     * a map of all teamIds to how many members are alive on that team
-     */
-    private Map<String, Integer> livingMembers = new HashMap<>();
-    private List<UUID> deadPlayers = new ArrayList<>();
-    private Map<UUID, Integer> killCounts = new HashMap<>();
-    private Map<UUID, Integer> deathCounts = new HashMap<>();
     private Component title = baseTitle;
     
     public SurvivalGamesGame(Main plugin, GameManager gameManager) {
@@ -129,19 +120,14 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
         this.teams = new HashMap<>(newTeams.size());
         for (Team team : newTeams) {
-            teams.put(team.getTeamId(), new TeamData<>(team));
+            teams.put(team.getTeamId(), new SurvivalGamesTeam(team));
+            topbar.addTeam(team.getTeamId(), team.getColor());
         }
         this.participants = new HashMap<>(newParticipants.size());
-        livingPlayers = new ArrayList<>(newParticipants.size());
-        deadPlayers = new ArrayList<>();
-        livingMembers = new HashMap<>(Participant.getTeamIds(newParticipants).size());
-        killCounts = new HashMap<>(newParticipants.size());
-        deathCounts = new HashMap<>(newParticipants.size());
+        this.quitDatas = new HashMap<>();
         worldBorder = config.getWorld().getWorldBorder();
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
-        Set<String> teams = Participant.getTeamIds(newParticipants);
-        setUpTopbarTeams(teams);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         glowManager.registerListeners();
         gameManager.getTimerManager().register(timerManager);
@@ -196,18 +182,17 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         }
     }
     
-    public void initializeParticipant(Participant participant) {
+    public void initializeParticipant(Participant newParticipant) {
+        SurvivalGamesParticipant participant = new SurvivalGamesParticipant(newParticipant);
         participants.put(participant.getUniqueId(), participant);
-        livingPlayers.add(participant.getUniqueId());
+        SurvivalGamesTeam team = teams.get(participant.getTeamId());
+        team.addParticipant(participant);
         String teamId = participant.getTeamId();
-        livingMembers.putIfAbsent(teamId, 0);
-        int oldAliveCount = livingMembers.get(teamId);
-        livingMembers.put(teamId, oldAliveCount + 1);
         sidebar.addPlayer(participant);
         topbar.showPlayer(participant);
         topbar.linkToTeam(participant.getUniqueId(), teamId);
         glowManager.addPlayer(participant);
-        updateAliveCount(teamId);
+        updateAliveCount(team);
         initializeKillCount(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearInventory(participant);
@@ -223,13 +208,6 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         sidebar.removePlayer(participant.getUniqueId());
         topbar.hidePlayer(participant.getUniqueId());
         glowManager.removePlayer(participant);
-    }
-    
-    private void setUpTopbarTeams(Set<String> newTeamIds) {
-        for (String teamId : newTeamIds) {
-            TextColor color = gameManager.getTeamColor(teamId);
-            topbar.addTeam(teamId, color);
-        }
     }
     
     @Override
@@ -254,11 +232,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         glowManager.clear();
         teams.clear();
         participants.clear();
-        livingPlayers.clear();
-        deadPlayers.clear();
-        livingMembers.clear();
-        killCounts.clear();
-        deathCounts.clear();
+        quitDatas.clear();
         gameManager.gameIsOver();
         state = null;
         Main.logger().info("Stopped Survival Games");
@@ -268,7 +242,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         if (teams.containsKey(team.getTeamId())) {
             return;
         }
-        teams.put(team.getTeamId(), new TeamData<>(team));
+        teams.put(team.getTeamId(), new SurvivalGamesTeam(team));
     }
     
     @Override
@@ -466,41 +440,20 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     
     /**
      * updates the number of living and dead players in the topbar
-     * @param teamId the team to update
+     * @param team the team to update
      */
-    public void updateAliveCount(@NotNull String teamId) {
-        int alive = livingMembers.get(teamId);
-        int dead = getDeadMembers(teamId);
-        topbar.setMembers(teamId, alive, dead);
+    public void updateAliveCount(@NotNull SurvivalGamesTeam team) {
+        topbar.setMembers(team.getTeamId(), team.getAlive(), team.getDead());
     }
     
-    /**
-     * @param teamId the teamId of the team to count the dead members of
-     * @return the number of dead players on the given team in this game
-     */
-    private int getDeadMembers(String teamId) {
-        int count = 0;
-        for (Participant participant : participants.values()) {
-            if (deadPlayers.contains(participant.getUniqueId())) {
-                if (teamId.equals(participant.getTeamId())) {
-                    count++;
-                }
-            }
-        }
-        return count;
-    }
-    
-    public void initializeKillCount(Participant participant) {
-        killCounts.putIfAbsent(participant.getUniqueId(), 0);
-        deathCounts.putIfAbsent(participant.getUniqueId(), 0);
-        int kills = killCounts.get(participant.getUniqueId());
+    public void initializeKillCount(SurvivalGamesParticipant participant) {
         int deaths;
         if (!config.showDeathCount()) {
             deaths = -1;
         } else {
-            deaths = deathCounts.get(participant.getUniqueId());
+            deaths = participant.getDeaths();
         }
-        topbar.setKillsAndDeaths(participant.getUniqueId(), kills, deaths);
+        topbar.setKillsAndDeaths(participant.getUniqueId(), participant.getKills(), deaths);
     }
     
     private void cancelAllTasks() {
@@ -785,9 +738,11 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
      * @return the number of {@link HumanEntity}s in the viewers list who are living participants
      */
     private long countLivingParticipantViewers(List<HumanEntity> viewers) {
-        return viewers.stream().filter(viewer -> 
-                participants.containsKey(viewer.getUniqueId()) 
-                && livingPlayers.contains(viewer.getUniqueId())).count();
+        return viewers.stream()
+                .map(viewer -> participants.get(viewer.getUniqueId()))
+                .filter(Objects::nonNull)
+                .filter(SurvivalGamesParticipant::isAlive)
+                .count();
     }
     
     // State-specific callers
