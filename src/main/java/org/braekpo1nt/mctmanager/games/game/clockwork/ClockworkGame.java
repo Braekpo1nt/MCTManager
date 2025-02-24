@@ -132,7 +132,8 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         messageAllParticipants(config.getDescription());
     }
     
-    private void initializeParticipant(Participant participant) {
+    private void initializeParticipant(Participant newParticipant) {
+        ClockworkParticipant participant = new ClockworkParticipant(newParticipant);
         teams.get(participant.getTeamId()).addParticipant(participant);
         participants.put(participant.getUniqueId(), participant);
         participant.setGameMode(GameMode.ADVENTURE);
@@ -199,8 +200,8 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     
     private void resetParticipant(Participant participant) {
         teams.get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
-        ParticipantInitializer.clearInventory(participant);
         sidebar.removePlayer(participant.getUniqueId());
+        ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
@@ -277,19 +278,25 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         if (!gameActive) {
             return;
         }
-        resetParticipant(participant);
-        participants.remove(participant.getUniqueId());
-        if (descriptionShowing) {
+        Participant quitParticipant = participants.get(participant.getUniqueId());
+        if (quitParticipant == null) {
             return;
         }
-        if (teams.get(participant.getTeamId()).size() == 0) {
-            teams.remove(participant.getTeamId());
+        if (descriptionShowing) {
+            resetParticipant(participant);
+            participants.remove(participant.getUniqueId());
+            return;
         }
         if (currentRoundIndex < rounds.size()) {
             ClockworkRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
-                currentRound.onParticipantQuit(participant);
+                currentRound.onParticipantQuit(quitParticipant);
             }
+        }
+        resetParticipant(participant);
+        participants.remove(participant.getUniqueId());
+        if (teams.get(participant.getTeamId()).size() == 0) {
+            teams.remove(participant.getTeamId());
         }
     }
     
