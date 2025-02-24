@@ -50,7 +50,7 @@ dependencies {
     testImplementation 'org.slf4j:slf4j-jdk14:2.0.5'
     
     compileOnly 'io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT'
-    compileOnly 'com.github.decentsoftware-eu:decentholograms:2.8.12'
+    compileOnly 'com.github.decentsoftware-eu:decentholograms:2.8.14'
 
     // This would normally be compileOnly, but it's implementation so that the MockBukkit
     // tests can work. I mock PacketEventsAPI in the test folders to be a no-op implementation.
