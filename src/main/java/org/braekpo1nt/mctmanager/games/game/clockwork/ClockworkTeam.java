@@ -20,7 +20,13 @@ public class ClockworkTeam extends TeamData<ClockworkParticipant> {
      * @return true if no members are alive, false otherwise
      */
     public boolean isDead() {
-        return getParticipants().stream().noneMatch(ClockworkParticipant::isAlive);
+        for (ClockworkParticipant participant : getParticipants()) {
+            if (participant.isAlive()) {
+                return false;
+            }
+        }
+        return true;
+//        return getParticipants().stream().noneMatch(ClockworkParticipant::isAlive);
     }
     
     public int getAlive() {

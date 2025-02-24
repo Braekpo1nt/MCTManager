@@ -94,7 +94,7 @@ public class ClockworkRound implements Listener {
         roundActive = true;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
-        for (Participant participant : newParticipants) {
+        for (ClockworkParticipant participant : newParticipants) {
             initializeParticipant(participant);
         }
         chimeInterval = config.getInitialChimeInterval();
@@ -105,8 +105,7 @@ public class ClockworkRound implements Listener {
         Main.logger().info("Starting Clockwork Round " + roundNumber);
     }
     
-    private void initializeParticipant(Participant newParticipant) {
-        ClockworkParticipant participant = new ClockworkParticipant(newParticipant);
+    private void initializeParticipant(ClockworkParticipant participant) {
         teams.get(participant.getTeamId()).addParticipant(participant);
         participants.put(participant.getUniqueId(), participant);
         participant.teleport(config.getStartingLocation());
@@ -347,7 +346,6 @@ public class ClockworkRound implements Listener {
     }
     
     public void killParticipants(Collection<ClockworkParticipant> participantsToKill) {
-        
         // teams which were already dead
         List<ClockworkTeam> existingDeadTeams = teams.values().stream()
                 .filter(ClockworkTeam::isDead).toList();
@@ -358,8 +356,6 @@ public class ClockworkRound implements Listener {
                 .map(p -> (Participant) p) // TODO: Participant make awardPointsToParticipants accept Collection<T extends Participant>
                 .toList();
         
-        // how many members on each team is in participantsToKill
-        Map<String, Integer> teamsKilledMembers = new HashMap<>();
         for (ClockworkParticipant toKill : participantsToKill) {
             toKill.setGameMode(GameMode.SPECTATOR);
             toKill.getInventory().clear();
@@ -377,12 +373,6 @@ public class ClockworkRound implements Listener {
                     .toList();
             gameManager.awardPointsToParticipants(awardedParticipants, config.getPlayerEliminationScore());
             // award living participants end
-            
-            if (!teamsKilledMembers.containsKey(killedTeamId)) {
-                teamsKilledMembers.put(killedTeamId, 1);
-            } else {
-                teamsKilledMembers.put(killedTeamId, teamsKilledMembers.get(killedTeamId) + 1);
-            }
         }
         // who are now dead, which weren't at the start of this method
         List<ClockworkTeam> newlyKilledTeams = teams.values().stream()
