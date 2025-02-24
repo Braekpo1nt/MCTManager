@@ -53,8 +53,8 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
             .append(Component.text("Clockwork"))
             .color(NamedTextColor.BLUE);
     private Component title = baseTitle;
-    private Map<String, TeamData<Participant>> teams = new HashMap<>();
-    private Map<UUID, Participant> participants = new HashMap<>();
+    private Map<String, ClockworkTeam> teams = new HashMap<>();
+    private Map<UUID, ClockworkParticipant> participants = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     private List<ClockworkRound> rounds;
     private int currentRoundIndex = 0;
@@ -104,7 +104,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
         teams = new HashMap<>(newTeams.size());
         for (Team team : newTeams) {
-            teams.put(team.getTeamId(), new TeamData<>(team));
+            teams.put(team.getTeamId(), new ClockworkTeam(team));
         }
         participants = new HashMap<>(newParticipants.size());
         sidebar = gameManager.createSidebar();
@@ -132,7 +132,8 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         messageAllParticipants(config.getDescription());
     }
     
-    private void initializeParticipant(Participant participant) {
+    private void initializeParticipant(Participant newParticipant) {
+        ClockworkParticipant participant = new ClockworkParticipant(newParticipant);
         teams.get(participant.getTeamId()).addParticipant(participant);
         participants.put(participant.getUniqueId(), participant);
         participant.setGameMode(GameMode.ADVENTURE);
@@ -254,7 +255,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
             return;
         }
         if (!teams.containsKey(team.getTeamId())) {
-            teams.put(team.getTeamId(), new TeamData<>(team));
+            teams.put(team.getTeamId(), new ClockworkTeam(team));
         }
         initializeParticipant(participant);
         sidebar.updateLines(participant.getUniqueId(), 

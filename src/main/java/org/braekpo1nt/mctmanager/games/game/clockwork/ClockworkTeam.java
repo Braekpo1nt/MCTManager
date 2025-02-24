@@ -9,8 +9,18 @@ public class ClockworkTeam extends TeamData<ClockworkParticipant> {
         super(team);
     }
     
+    /**
+     * @return true if at least one member is alive, false otherwise
+     */
     public boolean isAlive() {
         return getParticipants().stream().anyMatch(ClockworkParticipant::isAlive);
+    }
+    
+    /**
+     * @return true if no members are alive, false otherwise
+     */
+    public boolean isDead() {
+        return getParticipants().stream().noneMatch(ClockworkParticipant::isAlive);
     }
     
     public int getAlive() {
