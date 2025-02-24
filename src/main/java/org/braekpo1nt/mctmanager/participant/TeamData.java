@@ -15,7 +15,6 @@ import java.util.UUID;
  * Used by implementations for {@link org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame}
  * to handle team data, such as membership.
  */
-@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 @ToString(callSuper = true)
 public class TeamData<T extends Participant> extends TeamInfo implements AudienceDelegate {
     

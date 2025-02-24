@@ -1,8 +1,10 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork;
 
+import lombok.ToString;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.participant.TeamData;
 
+@ToString(callSuper = true)
 public class ClockworkTeam extends TeamData<ClockworkParticipant> {
     
     public ClockworkTeam(Team team) {

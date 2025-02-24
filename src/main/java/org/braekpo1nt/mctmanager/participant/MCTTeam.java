@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.participant;
 
-import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -17,7 +16,6 @@ import java.util.stream.Collectors;
  * The GameManager's implementation of {@link Team}. Handles online membership
  * and stores online members.
  */
-@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 @ToString(callSuper = true)
 public class MCTTeam extends TeamInfo implements AudienceDelegate {
     
