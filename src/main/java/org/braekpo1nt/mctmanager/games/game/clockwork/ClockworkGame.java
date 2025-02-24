@@ -278,19 +278,25 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         if (!gameActive) {
             return;
         }
-        resetParticipant(participant);
-        participants.remove(participant.getUniqueId());
-        if (descriptionShowing) {
+        ClockworkParticipant clockworkParticipant = participants.get(participant.getUniqueId());
+        if (clockworkParticipant == null) {
             return;
         }
-        if (teams.get(participant.getTeamId()).size() == 0) {
-            teams.remove(participant.getTeamId());
+        if (descriptionShowing) {
+            resetParticipant(participant);
+            participants.remove(participant.getUniqueId());
+            return;
         }
         if (currentRoundIndex < rounds.size()) {
             ClockworkRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
-                currentRound.onParticipantQuit(participant);
+                currentRound.onParticipantQuit(clockworkParticipant);
             }
+        }
+        resetParticipant(participant);
+        participants.remove(participant.getUniqueId());
+        if (teams.get(participant.getTeamId()).size() == 0) {
+            teams.remove(participant.getTeamId());
         }
     }
     
