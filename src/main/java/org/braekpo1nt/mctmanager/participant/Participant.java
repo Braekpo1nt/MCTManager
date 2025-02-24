@@ -68,6 +68,10 @@ public class Participant extends OfflineParticipant implements AudienceDelegate 
     @EqualsAndHashCode.Include
     protected final @NotNull Player player;
     
+    public Participant(@NotNull Participant participant) {
+        this(participant, participant.getPlayer());
+    }
+    
     public Participant(@NotNull Player player, @NotNull String teamId) {
         super(player.getUniqueId(), player.getName(), player.displayName(), teamId);
         this.player = player;
@@ -76,10 +80,6 @@ public class Participant extends OfflineParticipant implements AudienceDelegate 
     public Participant(@NotNull OfflineParticipant offlineParticipant, @NotNull Player player) {
         super(offlineParticipant);
         this.player = player;
-    }
-    
-    public Participant(@NotNull Participant participant) {
-        this(participant, participant.getPlayer());
     }
     
     /**
