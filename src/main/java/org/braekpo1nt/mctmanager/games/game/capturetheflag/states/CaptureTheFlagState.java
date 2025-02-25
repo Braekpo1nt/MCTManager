@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.states;
 
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
@@ -11,7 +12,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 
 public interface CaptureTheFlagState {
     void onParticipantJoin(Participant participant, Team team);
-    void onParticipantQuit(Participant participant);
+    void onParticipantQuit(CTFParticipant participant);
     
     default void stop() {
         // do nothing

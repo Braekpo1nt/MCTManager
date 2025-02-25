@@ -63,11 +63,10 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private Sidebar adminSidebar;
     private CaptureTheFlagConfigController configController;
     private CaptureTheFlagConfig config;
-    private Map<String, TeamData<Participant>> teams = new HashMap<>();
-    private Map<UUID, Participant> participants = new HashMap<>();
+    private Map<String, TeamData<CTFParticipant>> teams = new HashMap<>();
+    private Map<UUID, CTFParticipant> participants = new HashMap<>();
+    private Map<UUID, CTFQuitData> quitDatas = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
-    private Map<UUID, Integer> killCount = new HashMap<>();
-    private Map<UUID, Integer> deathCount = new HashMap<>();
     
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -113,16 +112,15 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         gameManager.getTimerManager().register(timerManager);
         teams = new HashMap<>(newTeams.size());
         for (Team newTeam : newTeams) {
-            TeamData<Participant> team = new TeamData<>(newTeam);
+            TeamData<CTFParticipant> team = new TeamData<>(newTeam);
             teams.put(team.getTeamId(), team);
         }
         participants = new HashMap<>(newParticipants.size());
+        this.quitDatas = new HashMap<>();
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
         Set<String> teamIds = Participant.getTeamIds(newParticipants);
         roundManager = new RoundManager(teamIds, config.getArenas().size());
-        killCount = new HashMap<>(newParticipants.size());
-        deathCount = new HashMap<>(newParticipants.size());
         for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -133,23 +131,24 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         Main.logger().info("Starting Capture the Flag");
     }
     
-    public void initializeParticipant(Participant participant) {
+    public void initializeParticipant(Participant newParticipant) {
+        initializeParticipant(newParticipant, 0, 0);
+    }
+    
+    public void initializeParticipant(Participant newParticipant, int kills, int deaths) {
+        CTFParticipant participant = new CTFParticipant(newParticipant, kills, deaths);
         participants.put(participant.getUniqueId(), participant);
         teams.get(participant.getTeamId()).addParticipant(participant);
         sidebar.addPlayer(participant);
         topbar.showPlayer(participant);
-        killCount.putIfAbsent(participant.getUniqueId(), 0);
-        deathCount.putIfAbsent(participant.getUniqueId(), 0);
         participant.setGameMode(GameMode.ADVENTURE);
         participant.teleport(config.getSpawnObservatory());
         participant.setRespawnLocation(config.getSpawnObservatory());
         ParticipantInitializer.clearInventory(participant);
-        int kills = killCount.get(participant.getUniqueId());
-        int deaths = deathCount.get(participant.getUniqueId());
         topbar.setKillsAndDeaths(participant.getUniqueId(), kills, deaths);
     }
     
-    public void resetParticipant(Participant participant) {
+    public void resetParticipant(CTFParticipant participant) {
         teams.get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -186,10 +185,11 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (state != null) {
             state.stop();
         }
-        for (Participant participant : participants.values()) {
+        for (CTFParticipant participant : participants.values()) {
             resetParticipant(participant);
         }
         participants.clear();
+        quitDatas.clear();
         teams.clear();
         stopAdmins();
         clearSidebar();
@@ -214,7 +214,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     
     @Override
     public void onParticipantJoin(Participant participant, Team team) {
-        Main.logger().info("onParticipantJoin " + participant.getName());
         if (state == null) {
             return;
         }
@@ -228,17 +227,18 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (state == null) {
             return;
         }
-        if (!participants.containsKey(participant.getUniqueId())) {
+        CTFParticipant ctfParticipant = participants.get(participant.getUniqueId());
+        if (ctfParticipant == null) {
             return;
         }
-        state.onParticipantQuit(participant);
+        state.onParticipantQuit(ctfParticipant);
     }
     
     /**
      * called when a participant on the given team quits, not just when the last member quits
      * @param team the team that had a member quit
      */
-    public void onTeamQuit(TeamData<Participant> team) {
+    public void onTeamQuit(TeamData<CTFParticipant> team) {
         if (team.size() > 0) {
             return;
         }
@@ -273,26 +273,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         }
         clearAdminSidebar();
         admins.clear();
-    }
-    
-    /**
-     * @param playerUUID the player to add a kill to
-     */
-    public void addKill(@NotNull UUID playerUUID) {
-        int oldKillCount = killCount.get(playerUUID);
-        int newKillCount = oldKillCount + 1;
-        killCount.put(playerUUID, newKillCount);
-        topbar.setKills(playerUUID, newKillCount);
-    }
-    
-    /**
-     * @param playerUUID the player to add a death to
-     */
-    public void addDeath(@NotNull UUID playerUUID) {
-        int oldDeathCount = deathCount.get(playerUUID);
-        int newDeathCount = oldDeathCount + 1;
-        deathCount.put(playerUUID, newDeathCount);
-        topbar.setDeaths(playerUUID, newDeathCount);
     }
     
     private void initializeSidebar() {

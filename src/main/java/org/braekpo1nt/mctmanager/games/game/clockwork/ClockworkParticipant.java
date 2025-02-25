@@ -18,16 +18,8 @@ public class ClockworkParticipant extends Participant {
         this.alive = alive;
     }
     
-    public ClockworkParticipant(@NotNull Participant participant, @NotNull ClockworkQuitData quitData) {
-        this(participant, quitData.isAlive());
-    }
-    
     public ClockworkParticipant(@NotNull Participant participant) {
         this(participant, true);
-    }
-    
-    public ClockworkQuitData getQuitData() {
-        return new ClockworkQuitData(alive);
     }
     
 }

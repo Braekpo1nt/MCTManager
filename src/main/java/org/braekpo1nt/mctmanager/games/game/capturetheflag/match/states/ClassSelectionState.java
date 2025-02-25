@@ -1,9 +1,10 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states;
 
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.ClassPicker;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchParticipant;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
-import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
@@ -45,7 +46,7 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(CTFParticipant participant) {
         context.initializeParticipant(participant);
         context.getTopbar().linkToTeam(participant.getUniqueId(), participant.getTeamId());
         if (context.getMatchPairing().northTeam().equals(participant.getTeamId())) {
@@ -56,7 +57,7 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
     }
     
     @Override
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantQuit(CTFMatchParticipant participant) {
         context.resetParticipant(participant);
         context.getAllParticipants().remove(participant.getUniqueId());
         int alive;
@@ -64,12 +65,12 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
         if (context.getMatchPairing().northTeam().equals(participant.getTeamId())) {
             context.getNorthParticipants().remove(participant.getUniqueId());
             context.getNorthClassPicker().removeTeamMate(participant);
-            alive = context.countAlive(context.getNorthParticipants().values());
+            alive = CaptureTheFlagMatch.countAlive(context.getNorthParticipants().values());
             dead = context.getNorthParticipants().size() - alive;
         } else {
             context.getSouthParticipants().remove(participant.getUniqueId());
             context.getSouthClassPicker().removeTeamMate(participant);
-            alive = context.countAlive(context.getSouthParticipants().values());
+            alive = CaptureTheFlagMatch.countAlive(context.getSouthParticipants().values());
             dead = context.getSouthParticipants().size() - alive;
         }
         context.getTopbar().setMembers(participant.getTeamId(), alive, dead);

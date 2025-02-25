@@ -1,6 +1,9 @@
 package org.braekpo1nt.mctmanager.participant;
 
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchParticipant;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceParticipant;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourParticipant;
 import org.braekpo1nt.mctmanager.games.game.spleef.SpleefParticipant;
@@ -69,6 +72,17 @@ class ParticipantTest {
         SurvivalGamesParticipant subParticipant = new SurvivalGamesParticipant(participant);
         
         Assertions.assertEquals(participant, subParticipant);
+    }
+    
+    @Test
+    void ctfParticipantEquals() {
+        Participant participant = new Participant(mockPlayer, "yellow");
+        CTFParticipant ctfParticipant = new CTFParticipant(participant);
+        CTFMatchParticipant ctfMatchParticipant = new CTFMatchParticipant(ctfParticipant, CaptureTheFlagMatch.Affiliation.NORTH, true);
+        
+        Assertions.assertEquals(participant, ctfParticipant);
+        Assertions.assertEquals(participant, ctfMatchParticipant);
+        Assertions.assertEquals(ctfMatchParticipant, ctfParticipant);
     }
     
 }

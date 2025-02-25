@@ -2,9 +2,10 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states;
 
 import io.papermc.paper.entity.LookAnchor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchParticipant;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -20,8 +21,8 @@ public class MatchOverState implements CaptureTheFlagMatchState {
     
     public MatchOverState(CaptureTheFlagMatch context) {
         this.context = context;
-        for (Participant participant : context.getAllParticipants().values()) {
-            if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {
+        for (CTFMatchParticipant participant : context.getAllParticipants().values()) {
+            if (participant.isAlive()) {
                 participant.teleport(context.getConfig().getSpawnObservatory());
                 participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
                 ParticipantInitializer.clearInventory(participant);
@@ -34,9 +35,8 @@ public class MatchOverState implements CaptureTheFlagMatchState {
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
-        context.getParticipantsAreAlive().put(participant.getUniqueId(), false);
-        context.initializeParticipant(participant);
+    public void onParticipantJoin(CTFParticipant participant) {
+        context.initializeParticipant(participant, false);
         participant.setGameMode(GameMode.ADVENTURE);
         context.getTopbar().linkToTeam(participant.getUniqueId(), participant.getTeamId());
         participant.teleport(context.getConfig().getSpawnObservatory());
@@ -51,7 +51,7 @@ public class MatchOverState implements CaptureTheFlagMatchState {
     }
     
     @Override
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantQuit(CTFMatchParticipant participant) {
         context.resetParticipant(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         if (context.getMatchPairing().northTeam().equals(participant.getTeamId())) {

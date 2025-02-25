@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchParticipant;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.Bukkit;
@@ -51,7 +52,7 @@ public class ClassPicker implements Listener {
      * @param newTeamMates The list of teammates. They are assumed to be on the same team. Weird things will happen if they are not.
      * @param loadouts the loadouts for each BattleClass
      */
-    public void start(Main plugin, Collection<Participant> newTeamMates, 
+    public void start(Main plugin, Collection<CTFMatchParticipant> newTeamMates, 
                       Map<String, Loadout> loadouts) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.materialToBattleClass = new HashMap<>();
