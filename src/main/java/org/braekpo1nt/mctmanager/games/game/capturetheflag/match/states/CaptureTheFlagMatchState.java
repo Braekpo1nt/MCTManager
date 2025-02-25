@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states;
 
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
@@ -8,7 +9,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
 public interface CaptureTheFlagMatchState {
-    void onParticipantJoin(Participant participant);
+    void onParticipantJoin(CTFParticipant participant);
     void onParticipantQuit(Participant participant);
     void nextState();
     

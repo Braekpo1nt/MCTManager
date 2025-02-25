@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states;
 
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.ClassPicker;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -45,7 +46,7 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(CTFParticipant participant) {
         context.initializeParticipant(participant);
         context.getTopbar().linkToTeam(participant.getUniqueId(), participant.getTeamId());
         if (context.getMatchPairing().northTeam().equals(participant.getTeamId())) {

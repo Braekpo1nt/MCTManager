@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag.states;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
@@ -39,7 +40,7 @@ public class GameOverState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantJoin(Participant participant, Team team) {
+    public void onParticipantJoin(CTFParticipant participant, Team team) {
         // do nothing
     }
     

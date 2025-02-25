@@ -157,7 +157,7 @@ public class RoundActiveState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantJoin(Participant participant, Team team) {
+    public void onParticipantJoin(CTFParticipant participant, Team team) {
         context.onTeamJoin(team);
         context.initializeParticipant(participant);
         participant.setGameMode(GameMode.ADVENTURE);

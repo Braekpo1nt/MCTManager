@@ -160,7 +160,7 @@ public class CaptureTheFlagMatch {
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
-    public void onParticipantJoin(Participant participant) {
+    public void onParticipantJoin(CTFParticipant participant) {
         if (state == null) {
             return;
         }

@@ -207,11 +207,11 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     
     @Override
     public void onParticipantJoin(Participant participant, Team team) {
-        Main.logger().info("onParticipantJoin " + participant.getName());
         if (state == null) {
             return;
         }
-        state.onParticipantJoin(participant, team);
+        CTFParticipant ctfParticipant = participants.get(participant.getUniqueId());
+        state.onParticipantJoin(ctfParticipant, team);
         state.updateSidebar(participant, this);
     }
     
