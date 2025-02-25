@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.games.colossalcombat;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
@@ -13,6 +12,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
@@ -35,7 +35,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,8 +61,8 @@ public class ColossalCombatGame implements Listener, Configurable {
     private int currentRoundIndex = 0;
     private int firstPlaceRoundWins = 0;
     private int secondPlaceRoundWins = 0;
-    private String firstTeamId;
-    private String secondTeamId;
+    private ColossalTeam first;
+    private ColossalTeam second;
     private boolean descriptionShowing = false;
     private boolean gameActive = false;
     private final TimerManager timerManager;
@@ -93,9 +92,9 @@ public class ColossalCombatGame implements Listener, Configurable {
      * @param newSpectators The participants who are third place and on, who should spectate the game
      * @param newAdmins The admins
      */
-    public void start(Collection<Participant> newFirstPlaceParticipants, Collection<Participant> newSecondPlaceParticipants, Collection<Participant> newSpectators, List<Player> newAdmins) {
-        firstTeamId = gameManager.getTeamId(newFirstPlaceParticipants.stream().findFirst().orElseThrow().getUniqueId());
-        secondTeamId = gameManager.getTeamId(newSecondPlaceParticipants.stream().findFirst().orElseThrow().getUniqueId());
+    public void start(Team newFirst, Team newSecond, Collection<Participant> newFirstPlaceParticipants, Collection<Participant> newSecondPlaceParticipants, Collection<Participant> newSpectators, List<Player> newAdmins) {
+        this.first = new ColossalTeam(newFirst);
+        this.second = new ColossalTeam(newSecond);
         firstPlaceRoundWins = 0;
         secondPlaceRoundWins = 0;
         closeGates();
@@ -227,36 +226,34 @@ public class ColossalCombatGame implements Listener, Configurable {
     private void startNextRound() {
         ColossalCombatRound nextRound = rounds.get(currentRoundIndex);
         setUpTopbarForRound();
-        nextRound.start(firstPlaceParticipants.values(), secondPlaceParticipants.values(), spectators.values(), firstTeamId, secondTeamId);
+        nextRound.start(firstPlaceParticipants.values(), secondPlaceParticipants.values(), spectators.values(), first, second);
         sidebar.updateLine("round", String.format("Round: %s", currentRoundIndex+1));
         adminSidebar.updateLine("round", String.format("Round: %s", currentRoundIndex+1));
     }
     
     private void setUpTopbarForRound() {
         topbar.removeAllTeamPairs();
-        TextColor firstColor = gameManager.getTeamColor(firstTeamId);
-        TextColor secondColor = gameManager.getTeamColor(secondTeamId);
-        topbar.addTeam(firstTeamId, firstColor);
-        topbar.addTeam(secondTeamId, secondColor);
-        topbar.linkTeamPair(firstTeamId, secondTeamId);
+        topbar.addTeam(first.getTeamId(), first.getColor());
+        topbar.addTeam(second.getTeamId(), second.getColor());
+        topbar.linkTeamPair(first.getTeamId(), second.getTeamId());
         for (Participant firstPlaceParticipant : firstPlaceParticipants.values()) {
-            topbar.linkToTeam(firstPlaceParticipant.getUniqueId(), firstTeamId);
+            topbar.linkToTeam(firstPlaceParticipant.getUniqueId(), first.getTeamId());
         }
         for (Participant secondPlaceParticipant : secondPlaceParticipants.values()) {
-            topbar.linkToTeam(secondPlaceParticipant.getUniqueId(), secondTeamId);
+            topbar.linkToTeam(secondPlaceParticipant.getUniqueId(), second.getTeamId());
         }
         for (Participant spectator : spectators.values()) {
-            topbar.linkToTeam(spectator.getUniqueId(), firstTeamId);
+            topbar.linkToTeam(spectator.getUniqueId(), first.getTeamId());
         }
-        topbar.setMembers(firstTeamId, firstPlaceParticipants.size(), 0);
-        topbar.setMembers(secondTeamId, secondPlaceParticipants.size(), 0);
+        topbar.setMembers(first.getTeamId(), firstPlaceParticipants.size(), 0);
+        topbar.setMembers(second.getTeamId(), secondPlaceParticipants.size(), 0);
     }
     
     public void onFirstPlaceWinRound() {
         firstPlaceRoundWins++;
         updateRoundWinSidebar();
         if (firstPlaceRoundWins >= config.getRequiredWins()) {
-            stop(firstTeamId);
+            stop(first);
             return;
         }
         currentRoundIndex++;
@@ -267,14 +264,14 @@ public class ColossalCombatGame implements Listener, Configurable {
         secondPlaceRoundWins++;
         updateRoundWinSidebar();
         if (secondPlaceRoundWins >= config.getRequiredWins()) {
-            stop(secondTeamId);
+            stop(second);
             return;
         }
         currentRoundIndex++;
         startNextRound();
     }
     
-    public void stop(@Nullable String winningTeam) {
+    public void stop(@Nullable ColossalTeam winningTeam) {
         gameActive = false;
         descriptionShowing = false;
         HandlerList.unregisterAll(this);
@@ -336,7 +333,7 @@ public class ColossalCombatGame implements Listener, Configurable {
         if (!gameActive) {
             return;
         }
-        if (firstTeamId.equals(participant.getTeamId())) {
+        if (first.getTeamId().equals(participant.getTeamId())) {
             if (descriptionShowing) {
                 initializeFirstPlaceParticipant(participant);
             } else {
@@ -346,10 +343,10 @@ public class ColossalCombatGame implements Listener, Configurable {
                 participant.setRespawnLocation(config.getFirstPlaceSpawn(), true);
                 sidebar.addPlayer(participant);
                 topbar.showPlayer(participant);
-                topbar.linkToTeam(participant.getUniqueId(), firstTeamId);
+                topbar.linkToTeam(participant.getUniqueId(), first.getTeamId());
                 initializeKillCount(participant);
             }
-        } else if (secondTeamId.equals(participant.getTeamId())) {
+        } else if (second.getTeamId().equals(participant.getTeamId())) {
             if (descriptionShowing) {
                 initializeSecondPlaceParticipant(participant);
             } else {
@@ -359,7 +356,7 @@ public class ColossalCombatGame implements Listener, Configurable {
                 participant.setRespawnLocation(config.getSecondPlaceSpawn(), true);
                 sidebar.addPlayer(participant);
                 topbar.showPlayer(participant);
-                topbar.linkToTeam(participant.getUniqueId(), secondTeamId);
+                topbar.linkToTeam(participant.getUniqueId(), second.getTeamId());
                 initializeKillCount(participant);
             }
         } else {
@@ -371,7 +368,7 @@ public class ColossalCombatGame implements Listener, Configurable {
                 participant.setRespawnLocation(config.getSpectatorSpawn(), true);
                 sidebar.addPlayer(participant);
                 topbar.showPlayer(participant);
-                topbar.linkToTeam(participant.getUniqueId(), firstTeamId);
+                topbar.linkToTeam(participant.getUniqueId(), first.getTeamId());
             }
         }
         if ( 0 <= currentRoundIndex && currentRoundIndex < rounds.size()) {
@@ -398,9 +395,9 @@ public class ColossalCombatGame implements Listener, Configurable {
             }
         }
         resetParticipant(participant);
-        if (firstTeamId.equals(participant.getTeamId())) {
+        if (first.getTeamId().equals(participant.getTeamId())) {
             firstPlaceParticipants.remove(participant.getUniqueId());
-        } else if (secondTeamId.equals(participant.getTeamId())) {
+        } else if (second.getTeamId().equals(participant.getTeamId())) {
             secondPlaceParticipants.remove(participant.getUniqueId());
         } else {
             spectators.remove(participant.getUniqueId());
@@ -538,12 +535,10 @@ public class ColossalCombatGame implements Listener, Configurable {
     }
     
     private void updateRoundWinSidebar() {
-        Component firstDisplayName = gameManager.getFormattedTeamDisplayName(firstTeamId);
-        Component secondDisplayName = gameManager.getFormattedTeamDisplayName(secondTeamId);
-        sidebar.updateLine("firstWinCount", toWinCountComponent(firstDisplayName, firstPlaceRoundWins));
-        sidebar.updateLine("secondWinCount", toWinCountComponent(secondDisplayName, secondPlaceRoundWins));
-        adminSidebar.updateLine("firstWinCount", toWinCountComponent(firstDisplayName, firstPlaceRoundWins));
-        adminSidebar.updateLine("secondWinCount", toWinCountComponent(secondDisplayName, secondPlaceRoundWins));
+        sidebar.updateLine("firstWinCount", toWinCountComponent(first.getFormattedDisplayName(), firstPlaceRoundWins));
+        sidebar.updateLine("secondWinCount", toWinCountComponent(second.getFormattedDisplayName(), secondPlaceRoundWins));
+        adminSidebar.updateLine("firstWinCount", toWinCountComponent(first.getFormattedDisplayName(), firstPlaceRoundWins));
+        adminSidebar.updateLine("secondWinCount", toWinCountComponent(second.getFormattedDisplayName(), secondPlaceRoundWins));
     }
     
     private Component toWinCountComponent(Component teamDisplayName, int roundWins) {
@@ -557,16 +552,14 @@ public class ColossalCombatGame implements Listener, Configurable {
     }
     
     private void initializeAdminSidebar() {
-        Component firstDisplayName = gameManager.getFormattedTeamDisplayName(firstTeamId);
-        Component secondDisplayName = gameManager.getFormattedTeamDisplayName(secondTeamId);
         adminSidebar.addLines(
                 new KeyLine("title", title),
                 new KeyLine("firstWinCount", Component.empty()
-                        .append(firstDisplayName)
+                        .append(first.getFormattedDisplayName())
                         .append(Component.text(": 0/"))
                         .append(Component.text(config.getRequiredWins()))),
                 new KeyLine("secondWinCount", Component.empty()
-                        .append(secondDisplayName)
+                        .append(second.getFormattedDisplayName())
                         .append(Component.text(": 0/"))
                         .append(Component.text(config.getRequiredWins()))),
                 new KeyLine("round", Component.text("Round: 1")),
@@ -580,16 +573,14 @@ public class ColossalCombatGame implements Listener, Configurable {
     }
     
     private void initializeSidebar() {
-        Component firstDisplayName = gameManager.getFormattedTeamDisplayName(firstTeamId);
-        Component secondDisplayName = gameManager.getFormattedTeamDisplayName(secondTeamId);
         sidebar.addLines(
                 new KeyLine("title", title),
                 new KeyLine("firstWinCount", Component.empty()
-                        .append(firstDisplayName)
+                        .append(first.getFormattedDisplayName())
                         .append(Component.text(": 0/"))
                         .append(Component.text(config.getRequiredWins()))),
                 new KeyLine("secondWinCount", Component.empty()
-                        .append(secondDisplayName)
+                        .append(second.getFormattedDisplayName())
                         .append(Component.text(": 0/"))
                         .append(Component.text(config.getRequiredWins()))),
                 new KeyLine("round", Component.text("Round: 1"))
@@ -629,13 +620,13 @@ public class ColossalCombatGame implements Listener, Configurable {
                 config.getFirstPlaceClearArea(), 
                 config.getFirstPlaceStone(), 
                 config.getFirstPlacePlaceArea(), 
-                gameManager.getTeamPowderColor(firstTeamId)
+                gameManager.getTeamPowderColor(first.getTeamId())
         );
         closeGate(
                 config.getSecondPlaceClearArea(), 
                 config.getSecondPlaceStone(), 
                 config.getSecondPlacePlaceArea(), 
-                gameManager.getTeamPowderColor(secondTeamId)
+                gameManager.getTeamPowderColor(second.getTeamId())
         );
         placeConcrete();
     }
@@ -646,12 +637,12 @@ public class ColossalCombatGame implements Listener, Configurable {
                     config.getWorld(),
                     config.getFirstPlaceFlagReplaceArea(),
                     config.getReplaceBlock(),
-                    gameManager.getTeamConcreteColor(firstTeamId));
+                    gameManager.getTeamConcreteColor(first.getTeamId()));
             BlockPlacementUtils.createCubeReplace(
                     config.getWorld(),
                     config.getSecondPlaceFlagReplaceArea(),
                     config.getReplaceBlock(),
-                    gameManager.getTeamConcreteColor(secondTeamId));
+                    gameManager.getTeamConcreteColor(second.getTeamId()));
         }
     }
     
@@ -660,12 +651,12 @@ public class ColossalCombatGame implements Listener, Configurable {
             BlockPlacementUtils.createCubeReplace(
                     config.getWorld(),
                     config.getFirstPlaceFlagReplaceArea(),
-                    gameManager.getTeamConcreteColor(firstTeamId),
+                    gameManager.getTeamConcreteColor(first.getTeamId()),
                     config.getReplaceBlock());
             BlockPlacementUtils.createCubeReplace(
                     config.getWorld(),
                     config.getSecondPlaceFlagReplaceArea(),
-                    gameManager.getTeamConcreteColor(secondTeamId),
+                    gameManager.getTeamConcreteColor(second.getTeamId()),
                     config.getReplaceBlock());
         }
     }
@@ -683,12 +674,12 @@ public class ColossalCombatGame implements Listener, Configurable {
     
     private void setupTeamOptions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
-        for (Team team : mctScoreboard.getTeams()) {
+        for (org.bukkit.scoreboard.Team team : mctScoreboard.getTeams()) {
             team.setAllowFriendlyFire(false);
             team.setCanSeeFriendlyInvisibles(true);
-            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
+            team.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+            team.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+            team.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.NEVER);
         }
     }
     
