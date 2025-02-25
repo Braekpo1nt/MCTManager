@@ -40,7 +40,7 @@ public class GameOverState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantJoin(CTFParticipant participant, Team team) {
+    public void onParticipantJoin(Participant participant, Team team) {
         // do nothing
     }
     
@@ -50,7 +50,7 @@ public class GameOverState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantQuit(CTFParticipant participant) {
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
         context.onTeamQuit(context.getTeams().get(participant.getTeamId()));

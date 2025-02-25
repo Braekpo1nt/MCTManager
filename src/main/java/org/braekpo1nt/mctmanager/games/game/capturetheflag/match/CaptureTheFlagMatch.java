@@ -62,6 +62,7 @@ public class CaptureTheFlagMatch {
     private final ClassPicker southClassPicker;
     private CTFMatchTeam northTeam;
     private CTFMatchTeam southTeam;
+    // TODO: replace north and south lists with team.getParticipants() (above)
     private final Map<UUID, CTFMatchParticipant> northParticipants = new HashMap<>();
     private final Map<UUID, CTFMatchParticipant> southParticipants = new HashMap<>();
     private final Map<UUID, CTFMatchParticipant> allParticipants = new HashMap<>();
@@ -168,14 +169,15 @@ public class CaptureTheFlagMatch {
         state.onParticipantJoin(participant);
     }
     
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantQuit(CTFParticipant participant) {
         if (state == null) {
             return;
         }
-        if (!allParticipants.containsKey(participant.getUniqueId())) {
+        CTFMatchParticipant ctfMatchParticipant = allParticipants.get(participant.getUniqueId());
+        if (ctfMatchParticipant == null) {
             return;
         }
-        state.onParticipantQuit(participant);
+        state.onParticipantQuit(ctfMatchParticipant);
     }
     
     public static int countAlive(Collection<CTFMatchParticipant> participants) {

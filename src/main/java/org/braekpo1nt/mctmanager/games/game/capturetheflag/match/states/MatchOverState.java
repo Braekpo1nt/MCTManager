@@ -6,7 +6,6 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchParticipant;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -52,7 +51,7 @@ public class MatchOverState implements CaptureTheFlagMatchState {
     }
     
     @Override
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantQuit(CTFMatchParticipant participant) {
         context.resetParticipant(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         if (context.getMatchPairing().northTeam().equals(participant.getTeamId())) {

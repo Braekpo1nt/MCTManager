@@ -142,7 +142,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         topbar.setKillsAndDeaths(participant.getUniqueId(), 0, 0);
     }
     
-    public void resetParticipant(Participant participant) {
+    public void resetParticipant(CTFParticipant participant) {
         teams.get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -179,7 +179,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (state != null) {
             state.stop();
         }
-        for (Participant participant : participants.values()) {
+        for (CTFParticipant participant : participants.values()) {
             resetParticipant(participant);
         }
         participants.clear();
@@ -210,8 +210,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (state == null) {
             return;
         }
-        CTFParticipant ctfParticipant = participants.get(participant.getUniqueId());
-        state.onParticipantJoin(ctfParticipant, team);
+        state.onParticipantJoin(participant, team);
         state.updateSidebar(participant, this);
     }
     
@@ -221,10 +220,11 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (state == null) {
             return;
         }
-        if (!participants.containsKey(participant.getUniqueId())) {
+        CTFParticipant ctfParticipant = participants.get(participant.getUniqueId());
+        if (ctfParticipant == null) {
             return;
         }
-        state.onParticipantQuit(participant);
+        state.onParticipantQuit(ctfParticipant);
     }
     
     /**

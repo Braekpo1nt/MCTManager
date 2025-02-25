@@ -157,7 +157,7 @@ public class RoundActiveState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantJoin(CTFParticipant participant, Team team) {
+    public void onParticipantJoin(Participant participant, Team team) {
         context.onTeamJoin(team);
         context.initializeParticipant(participant);
         participant.setGameMode(GameMode.ADVENTURE);
@@ -181,7 +181,8 @@ public class RoundActiveState implements CaptureTheFlagState {
                             .append(ctfTeam.getFormattedDisplayName())
                             .append(Component.text(" is on-deck"))));
         } else {
-            match.onParticipantJoin(participant);
+            CTFParticipant ctfParticipant = context.getParticipants().get(participant.getUniqueId());
+            match.onParticipantJoin(ctfParticipant);
         }
     }
     
@@ -192,7 +193,7 @@ public class RoundActiveState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantQuit(CTFParticipant participant) {
         CaptureTheFlagMatch match = getMatch(participant.getTeamId());
         if (match == null) {
             participant.setGameMode(GameMode.ADVENTURE);

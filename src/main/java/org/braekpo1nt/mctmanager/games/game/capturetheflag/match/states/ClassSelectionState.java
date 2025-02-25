@@ -3,8 +3,8 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.ClassPicker;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchParticipant;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
-import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
@@ -57,7 +57,7 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
     }
     
     @Override
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantQuit(CTFMatchParticipant participant) {
         context.resetParticipant(participant);
         context.getAllParticipants().remove(participant.getUniqueId());
         int alive;

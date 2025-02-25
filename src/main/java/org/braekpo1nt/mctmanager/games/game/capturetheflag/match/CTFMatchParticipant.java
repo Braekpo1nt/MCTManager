@@ -35,10 +35,6 @@ public class CTFMatchParticipant extends Participant {
         this.hasFlag = false;
     }
     
-    public CTFMatchParticipant(@NotNull CTFParticipant ctfParticipant, @NotNull CaptureTheFlagMatch.Affiliation affiliation) {
-        this(ctfParticipant, affiliation, true);
-    }
-    
     /**
      * @return true if this player has the opposite team's flag
      */
