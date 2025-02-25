@@ -65,12 +65,12 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
         if (context.getMatchPairing().northTeam().equals(participant.getTeamId())) {
             context.getNorthParticipants().remove(participant.getUniqueId());
             context.getNorthClassPicker().removeTeamMate(participant);
-            alive = context.countAlive(context.getNorthParticipants().values());
+            alive = CaptureTheFlagMatch.countAlive(context.getNorthParticipants().values());
             dead = context.getNorthParticipants().size() - alive;
         } else {
             context.getSouthParticipants().remove(participant.getUniqueId());
             context.getSouthClassPicker().removeTeamMate(participant);
-            alive = context.countAlive(context.getSouthParticipants().values());
+            alive = CaptureTheFlagMatch.countAlive(context.getSouthParticipants().values());
             dead = context.getSouthParticipants().size() - alive;
         }
         context.getTopbar().setMembers(participant.getTeamId(), alive, dead);

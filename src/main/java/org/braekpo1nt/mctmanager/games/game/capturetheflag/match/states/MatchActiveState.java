@@ -21,6 +21,7 @@ import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
@@ -147,8 +148,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     
     @Override
     public void onParticipantJoin(CTFParticipant participant) {
-        context.getParticipantsAreAlive().put(participant.getUniqueId(), false);
-        context.initializeParticipant(participant);
+        context.initializeParticipant(participant, false);
         context.getTopbar().linkToTeam(participant.getUniqueId(), participant.getTeamId());
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
@@ -163,7 +163,11 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     
     @Override
     public void onParticipantQuit(Participant participant) {
-        if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {
+        CTFMatchParticipant ctfMatchParticipant = context.getAllParticipants().get(participant.getUniqueId());
+        if (ctfMatchParticipant == null) {
+            return;
+        }
+        if (ctfMatchParticipant.isAlive()) {
             Component deathMessage = Component.empty()
                     .append(participant.displayName())
                     .append(Component.text(" left early. Their life is forfeit."));
@@ -185,7 +189,11 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         if (!(event.getEntity() instanceof Player participant)) {
             return;
         }
-        if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {
+        CTFMatchParticipant ctfMatchParticipant = context.getAllParticipants().get(participant.getUniqueId());
+        if (ctfMatchParticipant == null) {
+            return;
+        }
+        if (ctfMatchParticipant.isAlive()) {
             return;
         }
         Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "CaptureTheFlagMatch.MatchActiveState.onPlayerDamage() cancelled");
@@ -241,27 +249,27 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     
     /**
      * Checks if all participants are dead.
-     * @return True if all participants are dead, false otherwise
+     * @return True if all participants are dead, false if at least one participant is alive
      */
     private boolean allParticipantsAreDead() {
-        return !context.getParticipantsAreAlive().containsValue(true);
+        return context.getAllParticipants().values().stream().noneMatch(CTFMatchParticipant::isAlive);
     }
     
     private void onParticipantDeath(CTFMatchParticipant killed) {
-        context.getParticipantsAreAlive().put(killed.getUniqueId(), false);
+        killed.setAlive(false);
         int alive = 0;
         int dead = 0;
         if (context.getNorthParticipants().containsKey(killed.getUniqueId())) {
             if (hasSouthFlag(killed)) {
                 dropSouthFlag(killed);
             }
-            alive = countAlive(context.getNorthParticipants().values());
+            alive = CaptureTheFlagMatch.countAlive(context.getNorthParticipants().values());
             dead = context.getNorthParticipants().size() - alive;
         } else if (context.getSouthParticipants().containsKey(killed.getUniqueId())) {
             if (hasNorthFlag(killed)){
                 dropNorthFlag(killed);
             }
-            alive = countAlive(context.getSouthParticipants().values());
+            alive = CaptureTheFlagMatch.countAlive(context.getSouthParticipants().values());
             dead = context.getSouthParticipants().size() - alive;
         }
         
@@ -273,20 +281,6 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         
         context.getTopbar().setMembers(killed.getTeamId(), alive, dead);
         context.addDeath(killed);
-    }
-    
-    /**
-     * @deprecated soon to be removed in favor of using a custom Participant implementation to track alive status
-     */
-    @Deprecated
-    private int countAlive(Collection<CTFMatchParticipant> participants) {
-        int living = 0;
-        for (Participant participant : participants) {
-            if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {
-                living++;
-            }
-        }
-        return living;
     }
     
     private void dropSouthFlag(Participant northParticipant) {
@@ -341,11 +335,11 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     
     @Override
     public void onPlayerMove(PlayerMoveEvent event) {
-        Participant participant = context.getAllParticipants().get(event.getPlayer().getUniqueId());
+        CTFMatchParticipant participant = context.getAllParticipants().get(event.getPlayer().getUniqueId());
         if (participant == null) {
             return;
         }
-        if (!context.getParticipantsAreAlive().get(participant.getUniqueId())) {
+        if (!participant.isAlive()) {
             return;
         }
         if (context.getNorthParticipants().containsKey(participant.getUniqueId())) {

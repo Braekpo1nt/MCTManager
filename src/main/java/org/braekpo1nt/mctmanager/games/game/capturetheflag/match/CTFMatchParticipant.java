@@ -26,13 +26,17 @@ public class CTFMatchParticipant extends Participant {
     private final @NotNull CaptureTheFlagMatch.Affiliation affiliation;
     private boolean hasFlag;
     
-    public CTFMatchParticipant(@NotNull CTFParticipant ctfParticipant, @NotNull CaptureTheFlagMatch.Affiliation affiliation) {
+    public CTFMatchParticipant(@NotNull CTFParticipant ctfParticipant, @NotNull CaptureTheFlagMatch.Affiliation affiliation, boolean alive) {
         super(ctfParticipant);
         this.kills = ctfParticipant.getKills();
         this.deaths = ctfParticipant.getDeaths();
-        this.alive = true;
+        this.alive = alive;
         this.affiliation = affiliation;
         this.hasFlag = false;
+    }
+    
+    public CTFMatchParticipant(@NotNull CTFParticipant ctfParticipant, @NotNull CaptureTheFlagMatch.Affiliation affiliation) {
+        this(ctfParticipant, affiliation, true);
     }
     
     /**

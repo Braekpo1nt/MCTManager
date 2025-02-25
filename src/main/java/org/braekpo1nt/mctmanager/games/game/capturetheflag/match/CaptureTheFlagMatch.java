@@ -65,7 +65,6 @@ public class CaptureTheFlagMatch {
     private final Map<UUID, CTFMatchParticipant> northParticipants = new HashMap<>();
     private final Map<UUID, CTFMatchParticipant> southParticipants = new HashMap<>();
     private final Map<UUID, CTFMatchParticipant> allParticipants = new HashMap<>();
-    private final Map<UUID, Boolean> participantsAreAlive = new HashMap<>();
     /**
      * The position of the north flag, if it has been dropped and can be picked up. Null if not
      */
@@ -121,13 +120,15 @@ public class CaptureTheFlagMatch {
     }
     
     public void initializeParticipant(CTFParticipant newParticipant) {
+        initializeParticipant(newParticipant, true);
+    }
+    
+    public void initializeParticipant(CTFParticipant newParticipant, boolean isAlive) {
         Affiliation affiliation = 
                 matchPairing.northTeam().equals(newParticipant.getTeamId()) ? 
                         Affiliation.NORTH : Affiliation.SOUTH;
-        CTFMatchParticipant participant = new CTFMatchParticipant(newParticipant, affiliation);
+        CTFMatchParticipant participant = new CTFMatchParticipant(newParticipant, affiliation, isAlive);
         allParticipants.put(participant.getUniqueId(), participant);
-        UUID participantUniqueId = participant.getUniqueId();
-        participantsAreAlive.putIfAbsent(participantUniqueId, true);
         int alive;
         int dead;
         if (affiliation == Affiliation.NORTH) {
@@ -177,14 +178,8 @@ public class CaptureTheFlagMatch {
         state.onParticipantQuit(participant);
     }
     
-    public int countAlive(Collection<CTFMatchParticipant> participants) {
-        int living = 0;
-        for (Participant participant : participants) {
-            if (participantsAreAlive.get(participant.getUniqueId())) {
-                living++;
-            }
-        }
-        return living;
+    public static int countAlive(Collection<CTFMatchParticipant> participants) {
+        return (int) participants.stream().filter(CTFMatchParticipant::isAlive).count();
     }
     
     private void initializeSidebar() {
