@@ -60,7 +60,6 @@ public class CaptureTheFlagMatch {
     private final Sidebar adminSidebar;
     private final ClassPicker northClassPicker;
     private final ClassPicker southClassPicker;
-    // TODO: Use teams more completely
     private CTFMatchTeam northTeam;
     private CTFMatchTeam southTeam;
     private final Map<UUID, CTFMatchParticipant> northParticipants = new HashMap<>();
@@ -353,6 +352,7 @@ public class CaptureTheFlagMatch {
         int oldKillCount = participant.getKills();
         int newKillCount = oldKillCount + 1;
         participant.setKills(newKillCount);
+        parentContext.getParticipants().get(participant.getUniqueId()).setKills(newKillCount);
         topbar.setKills(participant.getUniqueId(), newKillCount);
     }
     
@@ -363,6 +363,7 @@ public class CaptureTheFlagMatch {
         int oldDeathCount = participant.getDeaths();
         int newDeathCount = oldDeathCount + 1;
         participant.setDeaths(newDeathCount);
+        parentContext.getParticipants().get(participant.getUniqueId()).setDeaths(newDeathCount);
         topbar.setDeaths(participant.getUniqueId(), newDeathCount);
     }
     
