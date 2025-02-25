@@ -4,6 +4,7 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.MatchPairing;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.RoundManager;
@@ -43,7 +44,7 @@ public class RoundActiveState implements CaptureTheFlagState {
         
         List<MatchPairing> currentRound = roundManger.getCurrentRound();
         matches = new HashMap<>(currentRound.size());
-        Map<MatchPairing, List<Participant>> matchParticipants = new HashMap<>();
+        Map<MatchPairing, List<CTFParticipant>> matchParticipants = new HashMap<>();
         for (int i = 0; i < currentRound.size(); i++) {
             MatchPairing matchPairing = currentRound.get(i);
             CaptureTheFlagMatch match = new CaptureTheFlagMatch(
@@ -56,7 +57,7 @@ public class RoundActiveState implements CaptureTheFlagState {
         }
         
         
-        for (Participant participant : context.getParticipants().values()) {
+        for (CTFParticipant participant : context.getParticipants().values()) {
             MatchPairing matchPairing = RoundManager.getMatchPairing(participant.getTeamId(), currentRound);
             if (matchPairing == null) {
                 initializeOnDeckParticipant(participant);
@@ -67,9 +68,9 @@ public class RoundActiveState implements CaptureTheFlagState {
         
         for (MatchPairing matchPairing : currentRound) {
             CaptureTheFlagMatch match = matches.get(matchPairing);
-            List<Participant> newParticipants = matchParticipants.get(matchPairing);
-            TeamData<Participant> northTeam = context.getTeams().get(matchPairing.northTeam());
-            TeamData<Participant> southTeam = context.getTeams().get(matchPairing.southTeam());
+            List<CTFParticipant> newParticipants = matchParticipants.get(matchPairing);
+            TeamData<CTFParticipant> northTeam = context.getTeams().get(matchPairing.northTeam());
+            TeamData<CTFParticipant> southTeam = context.getTeams().get(matchPairing.southTeam());
             match.start(northTeam, southTeam, newParticipants);
         }
         

@@ -31,6 +31,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -60,11 +61,11 @@ public class CaptureTheFlagMatch {
     private final ClassPicker northClassPicker;
     private final ClassPicker southClassPicker;
     // TODO: Use teams more completely
-    private TeamData<Participant> northTeam;
-    private TeamData<Participant> southTeam;
-    private final Map<UUID, Participant> northParticipants = new HashMap<>();
-    private final Map<UUID, Participant> southParticipants = new HashMap<>();
-    private final Map<UUID, Participant> allParticipants = new HashMap<>();
+    private CTFMatchTeam northTeam;
+    private CTFMatchTeam southTeam;
+    private final Map<UUID, CTFMatchParticipant> northParticipants = new HashMap<>();
+    private final Map<UUID, CTFMatchParticipant> southParticipants = new HashMap<>();
+    private final Map<UUID, CTFMatchParticipant> allParticipants = new HashMap<>();
     private final Map<UUID, Boolean> participantsAreAlive = new HashMap<>();
     /**
      * The position of the north flag, if it has been dropped and can be picked up. Null if not
@@ -106,12 +107,12 @@ public class CaptureTheFlagMatch {
         state.nextState();
     }
     
-    public void start(TeamData<Participant> northTeam, TeamData<Participant> southTeam, Collection<Participant> newParticipants) {
+    public void start(TeamData<CTFParticipant> northTeam, TeamData<CTFParticipant> southTeam, Collection<CTFParticipant> newParticipants) {
         placeFlags();
         closeGlassBarriers();
-        this.northTeam = northTeam;
-        this.southTeam = southTeam;
-        for (Participant participant : newParticipants) {
+        this.northTeam = new CTFMatchTeam(northTeam, Affiliation.NORTH);
+        this.southTeam = new CTFMatchTeam(southTeam, Affiliation.SOUTH);
+        for (CTFParticipant participant : newParticipants) {
             initializeParticipant(participant);
         }
         initializeSidebar();
@@ -120,13 +121,17 @@ public class CaptureTheFlagMatch {
         Main.logger().info(String.format("Starting capture the flag match %s", matchPairing));
     }
     
-    public void initializeParticipant(Participant participant) {
+    public void initializeParticipant(CTFParticipant newParticipant) {
+        Affiliation affiliation = 
+                matchPairing.northTeam().equals(newParticipant.getTeamId()) ? 
+                        Affiliation.NORTH : Affiliation.SOUTH;
+        CTFMatchParticipant participant = new CTFMatchParticipant(newParticipant, affiliation);
         allParticipants.put(participant.getUniqueId(), participant);
         UUID participantUniqueId = participant.getUniqueId();
         participantsAreAlive.putIfAbsent(participantUniqueId, true);
         int alive;
         int dead;
-        if (matchPairing.northTeam().equals(participant.getTeamId())) {
+        if (affiliation == Affiliation.NORTH) {
             northParticipants.put(participant.getUniqueId(), participant);
             participant.teleport(arena.northSpawn());
             participant.setRespawnLocation(arena.northSpawn(), true);
@@ -173,7 +178,7 @@ public class CaptureTheFlagMatch {
         state.onParticipantQuit(participant);
     }
     
-    public int countAlive(Collection<Participant> participants) {
+    public int countAlive(Collection<CTFMatchParticipant> participants) {
         int living = 0;
         for (Participant participant : participants) {
             if (participantsAreAlive.get(participant.getUniqueId())) {
@@ -339,6 +344,26 @@ public class CaptureTheFlagMatch {
             return;
         }
         state.onPlayerDeath(event);
+    }
+    
+    /**
+     * @param participant the participant to add a kill to
+     */
+    public void addKill(@NotNull CTFMatchParticipant participant) {
+        int oldKillCount = participant.getKills();
+        int newKillCount = oldKillCount + 1;
+        participant.setKills(newKillCount);
+        topbar.setKills(participant.getUniqueId(), newKillCount);
+    }
+    
+    /**
+     * @param participant the participant to add a death to
+     */
+    public void addDeath(@NotNull CTFMatchParticipant participant) {
+        int oldDeathCount = participant.getDeaths();
+        int newDeathCount = oldDeathCount + 1;
+        participant.setDeaths(newDeathCount);
+        topbar.setDeaths(participant.getUniqueId(), newDeathCount);
     }
     
     public void messageAllParticipants(Component message) {

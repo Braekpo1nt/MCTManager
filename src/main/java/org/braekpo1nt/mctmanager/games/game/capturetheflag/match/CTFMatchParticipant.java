@@ -1,10 +1,9 @@
-package org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states;
+package org.braekpo1nt.mctmanager.games.game.capturetheflag.match;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.jetbrains.annotations.NotNull;
 

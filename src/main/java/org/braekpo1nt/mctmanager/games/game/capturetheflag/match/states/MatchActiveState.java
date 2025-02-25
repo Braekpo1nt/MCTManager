@@ -9,12 +9,13 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.MatchPairing;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchParticipant;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchTeam;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
-import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.LogType;
@@ -96,7 +97,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         context.setState(new MatchOverState(context));
     }
     
-    private void onTeamWin(TeamData<Participant> winner, TeamData<Participant> loser) {
+    private void onTeamWin(CTFMatchTeam winner, CTFMatchTeam loser) {
         context.getParentContext().messageAllParticipants(Component.empty()
                 .append(winner.getFormattedDisplayName())
                 .append(Component.text(" captured "))
@@ -109,7 +110,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         context.setState(new MatchOverState(context));
     }
     
-    private void showWinLoseTitles(TeamData<Participant> winner, TeamData<Participant> loser) {
+    private void showWinLoseTitles(CTFMatchTeam winner, CTFMatchTeam loser) {
         winner.showTitle(
                 Title.title(
                         Component.empty()
@@ -134,11 +135,11 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         );
     }
     
-    private void onParticipantGetKill(@NotNull Participant killer, @NotNull Participant killed) {
+    private void onParticipantGetKill(@NotNull CTFMatchParticipant killer, @NotNull Participant killed) {
         if (!context.getAllParticipants().containsKey(killer.getUniqueId())) {
             return;
         }
-        context.getParentContext().addKill(killer.getUniqueId());
+        context.addKill(killer);
         UIUtils.showKillTitle(killer, killed);
         gameManager.awardPointsToParticipant(killer, context.getConfig().getKillScore());
     }
@@ -210,7 +211,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     
     @Override
     public void onPlayerDeath(PlayerDeathEvent event) {
-        Participant killed = context.getAllParticipants().get(event.getEntity().getUniqueId());
+        CTFMatchParticipant killed = context.getAllParticipants().get(event.getEntity().getUniqueId());
         if (killed == null) {
             return;
         }
@@ -227,7 +228,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         onParticipantDeath(killed);
         Player killerPlayer = killed.getKiller();
         if (killerPlayer != null) {
-            Participant killer = context.getAllParticipants().get(killerPlayer.getUniqueId());
+            CTFMatchParticipant killer = context.getAllParticipants().get(killerPlayer.getUniqueId());
             if (killer != null) {
                 onParticipantGetKill(killer, killed);
             }
@@ -245,7 +246,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         return !context.getParticipantsAreAlive().containsValue(true);
     }
     
-    private void onParticipantDeath(Participant killed) {
+    private void onParticipantDeath(CTFMatchParticipant killed) {
         context.getParticipantsAreAlive().put(killed.getUniqueId(), false);
         int alive = 0;
         int dead = 0;
@@ -270,14 +271,14 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         killed.lookAt(arena.northFlag().getX(), arena.northFlag().getY(), arena.northFlag().getZ(), LookAnchor.EYES);
         
         context.getTopbar().setMembers(killed.getTeamId(), alive, dead);
-        context.getParentContext().addDeath(killed.getUniqueId());
+        context.addDeath(killed);
     }
     
     /**
      * @deprecated soon to be removed in favor of using a custom Participant implementation to track alive status
      */
     @Deprecated
-    private int countAlive(Collection<Participant> participants) {
+    private int countAlive(Collection<CTFMatchParticipant> participants) {
         int living = 0;
         for (Participant participant : participants) {
             if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {

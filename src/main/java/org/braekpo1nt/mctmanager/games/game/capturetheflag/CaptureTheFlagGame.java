@@ -63,7 +63,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private Sidebar adminSidebar;
     private CaptureTheFlagConfigController configController;
     private CaptureTheFlagConfig config;
-    private Map<String, TeamData<Participant>> teams = new HashMap<>();
+    private Map<String, TeamData<CTFParticipant>> teams = new HashMap<>();
     private Map<UUID, CTFParticipant> participants = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     
@@ -111,7 +111,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         gameManager.getTimerManager().register(timerManager);
         teams = new HashMap<>(newTeams.size());
         for (Team newTeam : newTeams) {
-            TeamData<Participant> team = new TeamData<>(newTeam);
+            TeamData<CTFParticipant> team = new TeamData<>(newTeam);
             teams.put(team.getTeamId(), team);
         }
         participants = new HashMap<>(newParticipants.size());
@@ -231,7 +231,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
      * called when a participant on the given team quits, not just when the last member quits
      * @param team the team that had a member quit
      */
-    public void onTeamQuit(TeamData<Participant> team) {
+    public void onTeamQuit(TeamData<CTFParticipant> team) {
         if (team.size() > 0) {
             return;
         }
@@ -266,26 +266,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         }
         clearAdminSidebar();
         admins.clear();
-    }
-    
-    /**
-     * @param participant the participant to add a kill to
-     */
-    public void addKill(@NotNull CTFParticipant participant) {
-        int oldKillCount = participant.getKills();
-        int newKillCount = oldKillCount + 1;
-        participant.setKills(newKillCount);
-        topbar.setKills(participant.getUniqueId(), newKillCount);
-    }
-    
-    /**
-     * @param participant the participant to add a death to
-     */
-    public void addDeath(@NotNull CTFParticipant participant) {
-        int oldDeathCount = participant.getDeaths();
-        int newDeathCount = oldDeathCount + 1;
-        participant.setDeaths(newDeathCount);
-        topbar.setDeaths(participant.getUniqueId(), newDeathCount);
     }
     
     private void initializeSidebar() {
