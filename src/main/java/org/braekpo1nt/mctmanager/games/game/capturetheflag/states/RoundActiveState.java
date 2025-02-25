@@ -4,10 +4,7 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.MatchPairing;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.RoundManager;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.*;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -159,7 +156,12 @@ public class RoundActiveState implements CaptureTheFlagState {
     @Override
     public void onParticipantJoin(Participant participant, Team team) {
         context.onTeamJoin(team);
-        context.initializeParticipant(participant);
+        CTFQuitData quitData = context.getQuitDatas().remove(participant.getUniqueId());
+        if (quitData == null) {
+            context.initializeParticipant(participant);
+        } else {
+            context.initializeParticipant(participant, quitData.getKills(), quitData.getDeaths());
+        }
         participant.setGameMode(GameMode.ADVENTURE);
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
@@ -202,6 +204,7 @@ public class RoundActiveState implements CaptureTheFlagState {
         }
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
+        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
         context.onTeamQuit(context.getTeams().get(participant.getTeamId()));
     }
     

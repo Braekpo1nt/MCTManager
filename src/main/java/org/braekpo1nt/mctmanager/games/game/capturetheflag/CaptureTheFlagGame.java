@@ -65,6 +65,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private CaptureTheFlagConfig config;
     private Map<String, TeamData<CTFParticipant>> teams = new HashMap<>();
     private Map<UUID, CTFParticipant> participants = new HashMap<>();
+    private Map<UUID, CTFQuitData> quitDatas = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
@@ -115,6 +116,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             teams.put(team.getTeamId(), team);
         }
         participants = new HashMap<>(newParticipants.size());
+        this.quitDatas = new HashMap<>();
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
         Set<String> teamIds = Participant.getTeamIds(newParticipants);
@@ -130,7 +132,11 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     public void initializeParticipant(Participant newParticipant) {
-        CTFParticipant participant = new CTFParticipant(newParticipant);
+        initializeParticipant(newParticipant, 0, 0);
+    }
+    
+    public void initializeParticipant(Participant newParticipant, int kills, int deaths) {
+        CTFParticipant participant = new CTFParticipant(newParticipant, kills, deaths);
         participants.put(participant.getUniqueId(), participant);
         teams.get(participant.getTeamId()).addParticipant(participant);
         sidebar.addPlayer(participant);
@@ -139,7 +145,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         participant.teleport(config.getSpawnObservatory());
         participant.setRespawnLocation(config.getSpawnObservatory());
         ParticipantInitializer.clearInventory(participant);
-        topbar.setKillsAndDeaths(participant.getUniqueId(), 0, 0);
+        topbar.setKillsAndDeaths(participant.getUniqueId(), kills, deaths);
     }
     
     public void resetParticipant(CTFParticipant participant) {
@@ -183,6 +189,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             resetParticipant(participant);
         }
         participants.clear();
+        quitDatas.clear();
         teams.clear();
         stopAdmins();
         clearSidebar();

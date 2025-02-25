@@ -15,9 +15,17 @@ public class CTFParticipant extends Participant {
     private int deaths;
     
     public CTFParticipant(@NotNull Participant participant) {
+        this(participant, 0, 0);
+    }
+    
+    public CTFParticipant(@NotNull Participant participant, int kills, int deaths) {
         super(participant);
-        kills = 0;
-        deaths = 0;
+        this.kills = kills;
+        this.deaths = deaths;
+    }
+    
+    public CTFQuitData getQuitData() {
+        return new CTFQuitData(kills, deaths);
     }
     
 }
