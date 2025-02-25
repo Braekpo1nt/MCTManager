@@ -38,6 +38,11 @@ import java.util.*;
 @Data
 public class CaptureTheFlagMatch {
     
+    public enum Affiliation {
+        NORTH,
+        SOUTH
+    }
+    
     private @Nullable CaptureTheFlagMatchState state;
     
     private final CaptureTheFlagGame parentContext;
