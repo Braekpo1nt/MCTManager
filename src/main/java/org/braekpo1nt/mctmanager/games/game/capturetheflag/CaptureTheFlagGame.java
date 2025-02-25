@@ -64,10 +64,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private CaptureTheFlagConfigController configController;
     private CaptureTheFlagConfig config;
     private Map<String, TeamData<Participant>> teams = new HashMap<>();
-    private Map<UUID, Participant> participants = new HashMap<>();
+    private Map<UUID, CTFParticipant> participants = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
-    private Map<UUID, Integer> killCount = new HashMap<>();
-    private Map<UUID, Integer> deathCount = new HashMap<>();
     
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -121,8 +119,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         adminSidebar = gameManager.createSidebar();
         Set<String> teamIds = Participant.getTeamIds(newParticipants);
         roundManager = new RoundManager(teamIds, config.getArenas().size());
-        killCount = new HashMap<>(newParticipants.size());
-        deathCount = new HashMap<>(newParticipants.size());
         for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -133,20 +129,17 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         Main.logger().info("Starting Capture the Flag");
     }
     
-    public void initializeParticipant(Participant participant) {
+    public void initializeParticipant(Participant newParticipant) {
+        CTFParticipant participant = new CTFParticipant(newParticipant);
         participants.put(participant.getUniqueId(), participant);
         teams.get(participant.getTeamId()).addParticipant(participant);
         sidebar.addPlayer(participant);
         topbar.showPlayer(participant);
-        killCount.putIfAbsent(participant.getUniqueId(), 0);
-        deathCount.putIfAbsent(participant.getUniqueId(), 0);
         participant.setGameMode(GameMode.ADVENTURE);
         participant.teleport(config.getSpawnObservatory());
         participant.setRespawnLocation(config.getSpawnObservatory());
         ParticipantInitializer.clearInventory(participant);
-        int kills = killCount.get(participant.getUniqueId());
-        int deaths = deathCount.get(participant.getUniqueId());
-        topbar.setKillsAndDeaths(participant.getUniqueId(), kills, deaths);
+        topbar.setKillsAndDeaths(participant.getUniqueId(), 0, 0);
     }
     
     public void resetParticipant(Participant participant) {
@@ -276,23 +269,23 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     /**
-     * @param playerUUID the player to add a kill to
+     * @param participant the participant to add a kill to
      */
-    public void addKill(@NotNull UUID playerUUID) {
-        int oldKillCount = killCount.get(playerUUID);
+    public void addKill(@NotNull CTFParticipant participant) {
+        int oldKillCount = participant.getKills();
         int newKillCount = oldKillCount + 1;
-        killCount.put(playerUUID, newKillCount);
-        topbar.setKills(playerUUID, newKillCount);
+        participant.setKills(newKillCount);
+        topbar.setKills(participant.getUniqueId(), newKillCount);
     }
     
     /**
-     * @param playerUUID the player to add a death to
+     * @param participant the participant to add a death to
      */
-    public void addDeath(@NotNull UUID playerUUID) {
-        int oldDeathCount = deathCount.get(playerUUID);
+    public void addDeath(@NotNull CTFParticipant participant) {
+        int oldDeathCount = participant.getDeaths();
         int newDeathCount = oldDeathCount + 1;
-        deathCount.put(playerUUID, newDeathCount);
-        topbar.setDeaths(playerUUID, newDeathCount);
+        participant.setDeaths(newDeathCount);
+        topbar.setDeaths(participant.getUniqueId(), newDeathCount);
     }
     
     private void initializeSidebar() {
