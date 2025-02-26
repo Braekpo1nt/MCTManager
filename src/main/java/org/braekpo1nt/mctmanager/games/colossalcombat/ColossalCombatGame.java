@@ -341,13 +341,6 @@ public class ColossalCombatGame implements Listener, Configurable {
         if (!gameActive) {
             return;
         }
-        ColossalCombatRound currentRound = null;
-        if ( 0 <= currentRoundIndex && currentRoundIndex < rounds.size()) {
-            currentRound = rounds.get(currentRoundIndex);
-            if (!currentRound.isActive()) {
-                currentRound = null;
-            }
-        }
         ColossalCombatRound.Affiliation affiliation;
         if (first.getTeamId().equals(participant.getTeamId())) {
             affiliation = ColossalCombatRound.Affiliation.FIRST;
@@ -358,40 +351,43 @@ public class ColossalCombatGame implements Listener, Configurable {
         }
         if (affiliation != null) {
             ColossalQuitData quitData = quitDatas.remove(participant.getUniqueId());
+            int kills;
+            int deaths;
+            if (quitData != null) {
+                kills = quitData.getKills();
+                deaths = quitData.getDeaths();
+            } else {
+                kills = 0;
+                deaths = 0;
+            }
             ColossalParticipant ccParticipant;
             if (affiliation == ColossalCombatRound.Affiliation.FIRST) {
-                if (quitData == null) {
-                    initializeFirstPlaceParticipant(participant);
-                } else {
-                    initializeFirstPlaceParticipant(participant, quitData.getKills(), quitData.getDeaths());
-                }
+                initializeFirstPlaceParticipant(participant, kills, deaths);
                 ccParticipant = firstPlaceParticipants.get(participant.getUniqueId());
             } else {
-                if (quitData == null) {
-                    initializeSecondPlaceParticipant(participant);
-                } else {
-                    initializeSecondPlaceParticipant(participant, quitData.getKills(), quitData.getDeaths());
-                }
+                initializeSecondPlaceParticipant(participant, kills, deaths);
                 ccParticipant = secondPlaceParticipants.get(participant.getUniqueId());
             }
+            participant.setGameMode(GameMode.SPECTATOR);
             if (!descriptionShowing) {
-                participant.setGameMode(GameMode.SPECTATOR);
-                sidebar.addPlayer(participant);
-                topbar.showPlayer(participant);
                 topbar.linkToTeam(participant.getUniqueId(), participant.getTeamId());
             }
-            if (currentRound != null) {
-                currentRound.onParticipantJoin(ccParticipant);
+            if ( 0 <= currentRoundIndex && currentRoundIndex < rounds.size()) {
+                ColossalCombatRound currentRound = rounds.get(currentRoundIndex);
+                if (currentRound.isActive()) {
+                    currentRound.onParticipantJoin(ccParticipant);
+                }
             }
         } else {
             initializeSpectator(participant);
             if (!descriptionShowing) {
-                sidebar.addPlayer(participant);
-                topbar.showPlayer(participant);
                 topbar.linkToTeam(participant.getUniqueId(), first.getTeamId());
             }
-            if (currentRound != null) {
-                currentRound.onSpectatorJoin(participant);
+            if ( 0 <= currentRoundIndex && currentRoundIndex < rounds.size()) {
+                ColossalCombatRound currentRound = rounds.get(currentRoundIndex);
+                if (currentRound.isActive()) {
+                    currentRound.onSpectatorJoin(participant);
+                }
             }
         }
         
