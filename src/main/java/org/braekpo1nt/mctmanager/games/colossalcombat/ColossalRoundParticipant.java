@@ -16,12 +16,12 @@ public class ColossalRoundParticipant extends Participant {
     private boolean alive;
     private final @NotNull ColossalCombatRound.Affiliation affiliation;
     
-    public ColossalRoundParticipant(@NotNull Participant participant, int kills, int deaths, boolean alive, @NotNull ColossalCombatRound.Affiliation affiliation) {
+    public ColossalRoundParticipant(@NotNull ColossalParticipant participant, boolean alive) {
         super(participant);
-        this.kills = kills;
-        this.deaths = deaths;
+        this.kills = participant.getKills();
+        this.deaths = participant.getDeaths();
         this.alive = alive;
-        this.affiliation = affiliation;
+        this.affiliation = participant.getAffiliation();
     }
     
     public boolean isDead() {
