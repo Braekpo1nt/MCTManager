@@ -53,6 +53,7 @@ public class ColossalCombatGame implements Listener, Configurable {
     private final Component title = Component.text("Colossal Combat").color(NamedTextColor.BLUE);
     private Map<UUID, ColossalParticipant> firstPlaceParticipants = new HashMap<>();
     private Map<UUID, ColossalParticipant> secondPlaceParticipants = new HashMap<>();
+    private Map<UUID, ColossalQuitData> quitDatas = new HashMap<>();
     private Map<UUID, Participant> spectators = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     private List<ColossalCombatRound> rounds = new ArrayList<>();
@@ -84,11 +85,12 @@ public class ColossalCombatGame implements Listener, Configurable {
     }
     
     /**
-     * Start the game with the first and second place teams, and the spectators. 
-     * @param newFirstPlaceParticipants The participants in the first place team
+     * Start the game with the first and second place teams, and the spectators.
+     *
+     * @param newFirstPlaceParticipants  The participants in the first place team
      * @param newSecondPlaceParticipants The participants in the second place team
-     * @param newSpectators The participants who are third place and on, who should spectate the game
-     * @param newAdmins The admins
+     * @param newSpectators              The participants who are third place and on, who should spectate the game
+     * @param newAdmins                  The admins
      */
     public void start(Team newFirst, Team newSecond, Collection<Participant> newFirstPlaceParticipants, Collection<Participant> newSecondPlaceParticipants, Collection<Participant> newSpectators, List<Player> newAdmins) {
         this.first = new ColossalTeam(newFirst);
@@ -98,6 +100,7 @@ public class ColossalCombatGame implements Listener, Configurable {
         closeGates();
         firstPlaceParticipants = new HashMap<>(newFirstPlaceParticipants.size());
         secondPlaceParticipants = new HashMap<>(newSecondPlaceParticipants.size());
+        quitDatas = new HashMap<>();
         spectators = new HashMap<>(newSpectators.size());
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
@@ -132,7 +135,11 @@ public class ColossalCombatGame implements Listener, Configurable {
     }
     
     private void initializeFirstPlaceParticipant(Participant newParticipant) {
-        ColossalParticipant participant = new ColossalParticipant(newParticipant, 0, 0, ColossalCombatRound.Affiliation.FIRST);
+        initializeFirstPlaceParticipant(newParticipant, 0, 0);
+    }
+    
+    private void initializeFirstPlaceParticipant(Participant newParticipant, int kills, int deaths) {
+        ColossalParticipant participant = new ColossalParticipant(newParticipant, kills, deaths, ColossalCombatRound.Affiliation.FIRST);
         firstPlaceParticipants.put(participant.getUniqueId(), participant);
         participant.teleport(config.getFirstPlaceSpawn());
         participant.setRespawnLocation(config.getFirstPlaceSpawn(), true);
@@ -145,7 +152,11 @@ public class ColossalCombatGame implements Listener, Configurable {
     }
     
     private void initializeSecondPlaceParticipant(Participant newParticipant) {
-        ColossalParticipant participant = new ColossalParticipant(newParticipant, 0, 0, ColossalCombatRound.Affiliation.SECOND);
+        initializeSecondPlaceParticipant(newParticipant, 0, 0);
+    }
+    
+    private void initializeSecondPlaceParticipant(Participant newParticipant, int kills, int deaths) {
+        ColossalParticipant participant = new ColossalParticipant(newParticipant, kills, deaths, ColossalCombatRound.Affiliation.SECOND);
         secondPlaceParticipants.put(participant.getUniqueId(), participant);
         participant.teleport(config.getSecondPlaceSpawn());
         participant.setRespawnLocation(config.getSecondPlaceSpawn(), true);
@@ -289,6 +300,7 @@ public class ColossalCombatGame implements Listener, Configurable {
         for (Participant participant : spectators.values()) {
             resetParticipant(participant);
         }
+        quitDatas.clear();
         clearSidebar();
         stopAdmins();
         spectators.clear();
@@ -341,12 +353,21 @@ public class ColossalCombatGame implements Listener, Configurable {
             affiliation = null;
         }
         if (affiliation != null) {
+            ColossalQuitData quitData = quitDatas.remove(participant.getUniqueId());
             ColossalParticipant ccParticipant;
             if (affiliation == ColossalCombatRound.Affiliation.FIRST) {
-                initializeFirstPlaceParticipant(participant);
+                if (quitData == null) {
+                    initializeFirstPlaceParticipant(participant);
+                } else {
+                    initializeFirstPlaceParticipant(participant, quitData.getKills(), quitData.getDeaths());
+                }
                 ccParticipant = firstPlaceParticipants.get(participant.getUniqueId());
             } else {
-                initializeSecondPlaceParticipant(participant);
+                if (quitData == null) {
+                    initializeSecondPlaceParticipant(participant);
+                } else {
+                    initializeSecondPlaceParticipant(participant, quitData.getKills(), quitData.getDeaths());
+                }
                 ccParticipant = secondPlaceParticipants.get(participant.getUniqueId());
             }
             if (!descriptionShowing) {
@@ -389,9 +410,11 @@ public class ColossalCombatGame implements Listener, Configurable {
         }
         resetParticipant(participant);
         if (first.getTeamId().equals(participant.getTeamId())) {
-            firstPlaceParticipants.remove(participant.getUniqueId());
+            ColossalParticipant ccParticipant = firstPlaceParticipants.remove(participant.getUniqueId());
+            quitDatas.put(ccParticipant.getUniqueId(), ccParticipant.getQuitData());
         } else if (second.getTeamId().equals(participant.getTeamId())) {
-            secondPlaceParticipants.remove(participant.getUniqueId());
+            ColossalParticipant ccParticipant = secondPlaceParticipants.remove(participant.getUniqueId());
+            quitDatas.put(ccParticipant.getUniqueId(), ccParticipant.getQuitData());
         } else {
             spectators.remove(participant.getUniqueId());
         }
