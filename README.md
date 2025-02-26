@@ -12,7 +12,7 @@ Comprehensive documentation for this plugin can be found [here](https://braekpo1
 - The event this plugin supports was created by SgtShotgun. Find them on [YouTube](https://www.youtube.com/@SgtShotgun) and [twitter](https://twitter.com/SgtShotgun1) 
 
 ## Discord
-Ask the authors for access to the discord
+The discord for [Challenger Trials](https://discord.gg/Qgs4a8r5UE) is where the developer community for this plugin communicate, and where the plugin is primarily used. 
 
 # Dependencies
 Dependencies that are require to run this plugin
