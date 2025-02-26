@@ -190,8 +190,6 @@ public class ColossalCombatRound implements Listener {
         }
         flagPosition = null;
         spectators.clear();
-        first = null;
-        second = null;
         Main.logger().info("Stopping Colossal Combat round");
     }
     
@@ -223,7 +221,6 @@ public class ColossalCombatRound implements Listener {
         if (!roundActive) {
             return;
         }
-        Main.logger().info(String.format("round.onParticipantJoin(%s)", participant.getName()));
         if (participant.getAffiliation() == Affiliation.FIRST) {
             onFirstPlaceParticipantJoin(participant);
         } else {
@@ -258,7 +255,6 @@ public class ColossalCombatRound implements Listener {
         if (!roundActive) {
             return;
         }
-        Main.logger().info(String.format("round.onParticipantQuit(%s)", participant.getName()));
         if (first.getTeamId().equals(participant.getTeamId())) {
             ColossalRoundParticipant colossalRoundParticipant = firstPlaceParticipants.get(participant.getUniqueId());
             if (colossalRoundParticipant == null) {
