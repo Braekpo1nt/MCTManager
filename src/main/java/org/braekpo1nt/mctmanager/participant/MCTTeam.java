@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.participant;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -30,8 +29,7 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
     private final @NotNull Map<UUID, Participant> onlineMembers;
     private @NotNull Audience audience = Audience.empty();
     @Getter
-    @Setter
-    private int score;
+    private final int score;
     
     /**
      * Create a new Team

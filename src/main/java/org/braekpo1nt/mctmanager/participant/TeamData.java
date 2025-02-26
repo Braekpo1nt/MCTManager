@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.participant;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import net.kyori.adventure.audience.Audience;
 import org.braekpo1nt.mctmanager.utils.AudienceDelegate;
@@ -25,8 +24,7 @@ public class TeamData<T extends Participant> extends TeamInfo implements Audienc
     private final @NotNull Map<UUID, T> participants;
     private @NotNull Audience audience = Audience.empty();
     @Getter
-    @Setter
-    private int score;
+    private final int score;
     
     public TeamData(Team team, int score) {
         super(team);

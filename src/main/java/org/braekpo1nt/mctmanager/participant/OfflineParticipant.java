@@ -38,6 +38,27 @@ public class OfflineParticipant implements AudienceDelegate {
     protected final @NotNull String name;
     
     protected final @NotNull Component displayName;
+    /**
+     * The participant's score
+     */
+    @Getter
+    protected final int score;
+    
+    /**
+     * Create a new OfflineParticipant 
+     * @param uniqueId the UUID of the player this participant represents
+     * @param name the IGN of the player this represents
+     * @param displayName the display name (usually the color of their team) of this participant
+     * @param teamId the teamId of the participant
+     * @param score the participant's score
+     */
+    public OfflineParticipant(@NotNull UUID uniqueId, @NotNull String name, @NotNull Component displayName, @NotNull String teamId, int score) {
+        this.uniqueId = uniqueId;
+        this.name = name;
+        this.displayName = displayName;
+        this.teamId = teamId;
+        this.score = score;
+    }
     
     /**
      * Create a new OfflineParticipant 
@@ -47,10 +68,7 @@ public class OfflineParticipant implements AudienceDelegate {
      * @param teamId the teamId of the participant
      */
     public OfflineParticipant(@NotNull UUID uniqueId, @NotNull String name, @NotNull Component displayName, @NotNull String teamId) {
-        this.uniqueId = uniqueId;
-        this.name = name;
-        this.displayName = displayName;
-        this.teamId = teamId;
+        this(uniqueId, name, displayName, teamId, 0);
     }
     
     /**
@@ -63,10 +81,20 @@ public class OfflineParticipant implements AudienceDelegate {
     }
     
     /**
+     * Create a new OfflineParticipant
+     * @param player the player this participant represents. The UUID, the name, the display name
+     * @param teamId the teamId of the participant
+     * @param score the participant's score
+     */
+    public OfflineParticipant(@NotNull Player player, @NotNull String teamId, int score) {
+        this(player.getUniqueId(), player.getName(), player.displayName(), teamId, score);
+    }
+    
+    /**
      * @param offlineParticipant the OfflineParticipant to copy the info from
      */
     public OfflineParticipant(@NotNull OfflineParticipant offlineParticipant) {
-        this(offlineParticipant.getUniqueId(), offlineParticipant.getName(), offlineParticipant.displayName(), offlineParticipant.getTeamId());
+        this(offlineParticipant.getUniqueId(), offlineParticipant.getName(), offlineParticipant.displayName(), offlineParticipant.getTeamId(), offlineParticipant.getScore());
     }
     
     @Override

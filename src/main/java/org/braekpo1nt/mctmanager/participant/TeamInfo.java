@@ -46,6 +46,25 @@ public abstract class TeamInfo implements Team {
      */
     @Getter
     private final @NotNull Component formattedDisplayName;
+    @Getter
+    private final int score;
+    
+    /**
+     * @param teamId the unique ID of the team
+     * @param displayName the display name of the team
+     * @param color the {@link TextColor} associated with the team
+     * @param bukkitColor The {@link Color} associated with the team
+     * @param formattedDisplayName The formatted display name of the team for use in chat messages.
+     * @param score the team's score
+     */
+    public TeamInfo(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull Color bukkitColor, @NotNull Component formattedDisplayName, int score) {
+        this.teamId = teamId;
+        this.displayName = displayName;
+        this.color = color;
+        this.bukkitColor = bukkitColor;
+        this.formattedDisplayName = formattedDisplayName;
+        this.score = score;
+    }
     
     /**
      * @param teamId the unique ID of the team
@@ -55,11 +74,7 @@ public abstract class TeamInfo implements Team {
      * @param formattedDisplayName The formatted display name of the team for use in chat messages.
      */
     public TeamInfo(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull Color bukkitColor, @NotNull Component formattedDisplayName) {
-        this.teamId = teamId;
-        this.displayName = displayName;
-        this.color = color;
-        this.bukkitColor = bukkitColor;
-        this.formattedDisplayName = formattedDisplayName;
+        this(teamId, displayName, color, bukkitColor, formattedDisplayName, 0);
     }
     
     /**
@@ -82,5 +97,6 @@ public abstract class TeamInfo implements Team {
         this.color = team.getColor();
         this.bukkitColor = team.getBukkitColor();
         this.formattedDisplayName = team.getFormattedDisplayName();
+        this.score = team.getScore();
     }
 }
