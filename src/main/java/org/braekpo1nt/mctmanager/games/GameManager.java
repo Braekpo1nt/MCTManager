@@ -1021,7 +1021,7 @@ public class GameManager implements Listener {
     }
     
     public void returnAllParticipantsToPodium(Team winningTeam) {
-        MCTTeam team = teams.get(winningTeam.getTeamId());
+        MCTTeam team = winningTeam != null ? teams.get(winningTeam.getTeamId()) : null;
         Collection<Participant> winningTeamParticipants;
         if (team == null) {
             winningTeamParticipants = Collections.emptyList();
