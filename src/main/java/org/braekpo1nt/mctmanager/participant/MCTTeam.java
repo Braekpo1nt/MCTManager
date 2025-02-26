@@ -1,5 +1,7 @@
 package org.braekpo1nt.mctmanager.participant;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -27,6 +29,24 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
      */
     private final @NotNull Map<UUID, Participant> onlineMembers;
     private @NotNull Audience audience = Audience.empty();
+    @Getter
+    @Setter
+    private int score;
+    
+    /**
+     * Create a new Team
+     * @param teamId the unique id of the team
+     * @param displayName the pretty display name of the team in text form
+     * @param color the team's assigned color
+     * @param members a set of the UUIDs of the members of this team
+     * @param score the team's score
+     */
+    public MCTTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull Set<UUID> members, int score) {
+        super(teamId, displayName, color);
+        this.members = members;
+        this.onlineMembers = new HashMap<>();
+        this.score = score;
+    }
     
     /**
      * Create a new Team
@@ -36,9 +56,7 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
      * @param members a set of the UUIDs of the members of this team
      */
     public MCTTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull Set<UUID> members) {
-        super(teamId, displayName, color);
-        this.members = members;
-        this.onlineMembers = new HashMap<>();
+        this(teamId, displayName, color, members, 0);
     }
     
     /**
