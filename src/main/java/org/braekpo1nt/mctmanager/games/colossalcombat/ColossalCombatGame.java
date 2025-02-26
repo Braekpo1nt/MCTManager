@@ -141,6 +141,7 @@ public class ColossalCombatGame implements Listener, Configurable {
     private void initializeFirstPlaceParticipant(Participant newParticipant, int kills, int deaths) {
         ColossalParticipant participant = new ColossalParticipant(newParticipant, kills, deaths, ColossalCombatRound.Affiliation.FIRST);
         firstPlaceParticipants.put(participant.getUniqueId(), participant);
+        first.addParticipant(participant);
         participant.teleport(config.getFirstPlaceSpawn());
         participant.setRespawnLocation(config.getFirstPlaceSpawn(), true);
         initializeParticipant(participant);
@@ -157,6 +158,7 @@ public class ColossalCombatGame implements Listener, Configurable {
     
     private void initializeSecondPlaceParticipant(Participant newParticipant, int kills, int deaths) {
         ColossalParticipant participant = new ColossalParticipant(newParticipant, kills, deaths, ColossalCombatRound.Affiliation.SECOND);
+        second.addParticipant(participant);
         secondPlaceParticipants.put(participant.getUniqueId(), participant);
         participant.teleport(config.getSecondPlaceSpawn());
         participant.setRespawnLocation(config.getSecondPlaceSpawn(), true);
@@ -291,10 +293,12 @@ public class ColossalCombatGame implements Listener, Configurable {
         removeConcrete();
         for (Participant participant : firstPlaceParticipants.values()) {
             resetParticipant(participant);
+            first.removeParticipant(participant.getUniqueId());
         }
         firstPlaceParticipants.clear();
         for (Participant participant : secondPlaceParticipants.values()) {
             resetParticipant(participant);
+            second.removeParticipant(participant.getUniqueId());
         }
         secondPlaceParticipants.clear();
         for (Participant participant : spectators.values()) {
@@ -411,9 +415,11 @@ public class ColossalCombatGame implements Listener, Configurable {
         resetParticipant(participant);
         if (first.getTeamId().equals(participant.getTeamId())) {
             ColossalParticipant ccParticipant = firstPlaceParticipants.remove(participant.getUniqueId());
+            first.removeParticipant(participant.getUniqueId());
             quitDatas.put(ccParticipant.getUniqueId(), ccParticipant.getQuitData());
         } else if (second.getTeamId().equals(participant.getTeamId())) {
             ColossalParticipant ccParticipant = secondPlaceParticipants.remove(participant.getUniqueId());
+            second.removeParticipant(participant.getUniqueId());
             quitDatas.put(ccParticipant.getUniqueId(), ccParticipant.getQuitData());
         } else {
             spectators.remove(participant.getUniqueId());
@@ -616,6 +622,14 @@ public class ColossalCombatGame implements Listener, Configurable {
             firstPlaceParticipants.get(uuid).setKills(kills);
         } else {
             secondPlaceParticipants.get(uuid).setKills(kills);
+        }
+    }
+    
+    void setDeaths(UUID uuid, ColossalCombatRound.Affiliation affiliation, int kills) {
+        if (affiliation == ColossalCombatRound.Affiliation.FIRST) {
+            firstPlaceParticipants.get(uuid).setDeaths(kills);
+        } else {
+            secondPlaceParticipants.get(uuid).setDeaths(kills);
         }
     }
     

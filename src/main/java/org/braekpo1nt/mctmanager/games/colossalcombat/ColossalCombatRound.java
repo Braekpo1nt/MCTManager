@@ -115,6 +115,7 @@ public class ColossalCombatRound implements Listener {
     
     private void initializeFirstPlaceParticipant(ColossalParticipant newParticipant, boolean alive) {
         ColossalRoundParticipant participant = new ColossalRoundParticipant(newParticipant, alive);
+        first.addParticipant(participant);
         firstPlaceParticipants.put(participant.getUniqueId(), participant);
         participant.teleport(config.getFirstPlaceSpawn());
         participant.setRespawnLocation(config.getFirstPlaceSpawn(), true);
@@ -132,6 +133,7 @@ public class ColossalCombatRound implements Listener {
     
     private void initializeSecondPlaceParticipant(ColossalParticipant newParticipant, boolean alive) {
         ColossalRoundParticipant participant = new ColossalRoundParticipant(newParticipant, alive);
+        second.addParticipant(participant);
         secondPlaceParticipants.put(participant.getUniqueId(), participant);
         participant.teleport(config.getSecondPlaceSpawn());
         participant.setRespawnLocation(config.getSecondPlaceSpawn(), true);
@@ -175,10 +177,12 @@ public class ColossalCombatRound implements Listener {
         resetArena();
         for (Participant participant : firstPlaceParticipants.values()) {
             resetParticipant(participant);
+            first.removeParticipant(participant.getUniqueId());
         }
         firstPlaceParticipants.clear();
         for (Participant participant : secondPlaceParticipants.values()) {
             resetParticipant(participant);
+            second.removeParticipant(participant.getUniqueId());
         }
         secondPlaceParticipants.clear();
         for (Participant participant : spectators.values()) {
@@ -263,6 +267,7 @@ public class ColossalCombatRound implements Listener {
                 updateAliveCount(first);
             }
             resetParticipant(participant);
+            first.removeParticipant(participant.getUniqueId());
             firstPlaceParticipants.remove(participant.getUniqueId());
         } else if (second.getTeamId().equals(participant.getTeamId())) {
             ColossalRoundParticipant colossalRoundParticipant = secondPlaceParticipants.get(participant.getUniqueId());
@@ -275,6 +280,7 @@ public class ColossalCombatRound implements Listener {
                 updateAliveCount(second);
             }
             resetParticipant(participant);
+            second.removeParticipant(participant.getUniqueId());
             secondPlaceParticipants.remove(participant.getUniqueId());
         } else {
             resetParticipant(participant);
@@ -359,12 +365,14 @@ public class ColossalCombatRound implements Listener {
         if (killed.getAffiliation() == Affiliation.FIRST) {
             updateAliveCount(first);
             if (first.isDead()) {
+                Main.logger().info("onParticipantDeath second win");
                 onSecondPlaceTeamWin();
                 return;
             }
         } else {
             updateAliveCount(second);
             if (second.isDead()) {
+                Main.logger().info("onParticipantDeath first win");
                 onFirstPlaceTeamWin();
                 return;
             }
@@ -433,8 +441,10 @@ public class ColossalCombatRound implements Listener {
         openGates();
         spawnItemDrops();
         if (first.isDead() || firstPlaceParticipants.isEmpty()) {
+            Main.logger().info("startRound first win");
             onSecondPlaceTeamWin();
         } else if (second.isDead() || secondPlaceParticipants.isEmpty()) {
+            Main.logger().info("startRound second win");
             onFirstPlaceTeamWin();
         }
     }
@@ -638,6 +648,7 @@ public class ColossalCombatRound implements Listener {
         int oldDeathCount = participant.getDeaths();
         int newDeathCount = oldDeathCount + 1;
         participant.setDeaths(newDeathCount);
+        colossalCombatGame.setDeaths(participant.getUniqueId(), participant.getAffiliation(), newDeathCount);
         topbar.setDeaths(participant.getUniqueId(), newDeathCount);
     }
     
