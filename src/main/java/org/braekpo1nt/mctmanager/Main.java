@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.commands.mct.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.mctdebug.MCTDebugCommand;
 import org.braekpo1nt.mctmanager.commands.readyup.ReadyUpCommand;
 import org.braekpo1nt.mctmanager.commands.readyup.UnReadyCommand;
+import org.braekpo1nt.mctmanager.commands.teammsg.TeamMsgCommand;
 import org.braekpo1nt.mctmanager.commands.utils.UtilsCommand;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -140,6 +141,7 @@ public class Main extends JavaPlugin {
         new ReadyUpCommand(this, gameManager);
         new UnReadyCommand(this, gameManager);
         new TopCommand(this, gameManager);
+        new TeamMsgCommand(this, gameManager);
     
         alwaysGiveNightVision();
     }
