@@ -349,7 +349,6 @@ public class ColossalCombatRound implements Listener {
     }
     
     private void onParticipantDeath(ColossalRoundParticipant killed) {
-        Main.logger().info(String.format("round.onParticipantDeath(%s)", killed.getName()));
         killed.setGameMode(GameMode.SPECTATOR);
         killed.getInventory().clear();
         ParticipantInitializer.resetHealthAndHunger(killed);
