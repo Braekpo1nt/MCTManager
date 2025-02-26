@@ -3,7 +3,6 @@ package org.braekpo1nt.mctmanager.games.event.states;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
@@ -12,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.states.delay.ToPodiumDelayState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -24,9 +24,9 @@ import java.util.logging.Level;
 
 public class PlayingColossalCombatState extends PlayingGameState {
     
-    public PlayingColossalCombatState(EventManager context, @NotNull String firstTeamId, @NotNull String secondTeamId) {
+    public PlayingColossalCombatState(EventManager context, @NotNull Team firstTeam, @NotNull Team secondTeam) {
         super(context, null);
-        boolean success = tryToStartColossalCombat(firstTeamId, secondTeamId);
+        boolean success = tryToStartColossalCombat(firstTeam, secondTeam);
         if (!success) {
             context.setState(new WaitingInHubState(context));
         }
@@ -37,7 +37,7 @@ public class PlayingColossalCombatState extends PlayingGameState {
         // do nothing
     }
     
-    private boolean tryToStartColossalCombat(@NotNull String firstTeamId, @NotNull String secondTeamId) {
+    private boolean tryToStartColossalCombat(@NotNull Team firstTeam, @NotNull Team secondTeam) {
         try {
             context.getColossalCombatGame().loadConfig();
         } catch (ConfigException e) {
@@ -55,9 +55,9 @@ public class PlayingColossalCombatState extends PlayingGameState {
         List<Participant> spectators = new ArrayList<>();
         for (Participant participant : context.getParticipants().values()) {
             String teamId = participant.getTeamId();
-            if (teamId.equals(firstTeamId)) {
+            if (teamId.equals(firstTeam.getTeamId())) {
                 firstPlaceParticipants.add(participant);
-            } else if (teamId.equals(secondTeamId)) {
+            } else if (teamId.equals(secondTeam.getTeamId())) {
                 secondPlaceParticipants.add(participant);
             } else {
                 spectators.add(participant);
@@ -68,7 +68,7 @@ public class PlayingColossalCombatState extends PlayingGameState {
             context.messageAllAdmins(Component.empty()
                     .append(Component.text("There are no members of the first place team online. Please use "))
                     .append(Component.text("/mct event finalgame start <first> <second>")
-                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstTeamId, secondTeamId)))
+                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstTeam.getTeamId(), secondTeam.getTeamId())))
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" to manually start the final game."))
                     .color(NamedTextColor.RED));
@@ -79,7 +79,7 @@ public class PlayingColossalCombatState extends PlayingGameState {
             context.messageAllAdmins(Component.empty()
                     .append(Component.text("There are no members of the second place team online. Please use "))
                     .append(Component.text("/mct event finalgame start <first> <second>")
-                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstTeamId, secondTeamId)))
+                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstTeam.getTeamId(), secondTeam.getTeamId())))
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" to manually start the final game."))
                     .color(NamedTextColor.RED));
@@ -88,14 +88,14 @@ public class PlayingColossalCombatState extends PlayingGameState {
         context.getSidebar().removePlayers(context.getParticipants().values());
         context.getAdminSidebar().removePlayers(context.getAdmins());
         gameManager.removeParticipantsFromHub(context.getParticipants());
-        context.getColossalCombatGame().start(firstPlaceParticipants, secondPlaceParticipants, spectators, context.getAdmins());
+        context.getColossalCombatGame().start(firstTeam, secondTeam, firstPlaceParticipants, secondPlaceParticipants, spectators, context.getAdmins());
         context.getParticipants().clear();
         context.getAdmins().clear();
         return true;
     }
     
     @Override
-    public void colossalCombatIsOver(@Nullable String winningTeam) {
+    public void colossalCombatIsOver(@Nullable Team winningTeam) {
         if (winningTeam == null) {
             Component message = Component.text("Game stopped early. No winner declared.");
             context.messageAllAdmins(message);
@@ -104,30 +104,28 @@ public class PlayingColossalCombatState extends PlayingGameState {
             context.setState(new ToPodiumDelayState(context));
             return;
         }
-        TextColor teamColor = gameManager.getTeamColor(winningTeam);
-        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(winningTeam);
         Component message = Component.empty()
-                .append(formattedTeamDisplayName)
+                .append(winningTeam.getFormattedDisplayName())
                 .append(Component.text(" wins ")
                         .append(context.getConfig().getTitle())
                         .append(Component.text("!")))
-                .color(teamColor)
+                .color(winningTeam.getColor())
                 .decorate(TextDecoration.BOLD);
         context.getPlugin().getServer().sendMessage(message);
         context.getPlugin().getServer().showTitle(Title.title(
-                formattedTeamDisplayName,
+                winningTeam.getFormattedDisplayName(),
                 Component.empty()
                         .append(Component.text("wins "))
                         .append(context.getConfig().getTitle())
                         .append(Component.text("!"))
-                        .color(teamColor),
+                        .color(winningTeam.getColor()),
                 UIUtils.DEFAULT_TIMES));
         context.setWinningTeam(winningTeam);
         context.setState(new ToPodiumDelayState(context));
     }
     
     @Override
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam) {
         sender.sendMessage(Component.text("Colossal Combat is already running").color(NamedTextColor.RED));
     }
     

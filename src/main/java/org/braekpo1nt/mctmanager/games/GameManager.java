@@ -1020,8 +1020,8 @@ public class GameManager implements Listener {
         hubManager.returnParticipantsToHub(Collections.singletonList(participant), Collections.emptyList(), false);
     }
     
-    public void returnAllParticipantsToPodium(String winningTeam) {
-        MCTTeam team = teams.get(winningTeam);
+    public void returnAllParticipantsToPodium(Team winningTeam) {
+        MCTTeam team = winningTeam != null ? teams.get(winningTeam.getTeamId()) : null;
         Collection<Participant> winningTeamParticipants;
         if (team == null) {
             winningTeamParticipants = Collections.emptyList();

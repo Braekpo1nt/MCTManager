@@ -68,7 +68,7 @@ public class EventManager implements Listener {
     private int currentGameNumber = 0;
     private Map<UUID, Participant> participants = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
-    private @Nullable String winningTeam;
+    private @Nullable Team winningTeam;
     private final ReadyUpManager readyUpManager = new ReadyUpManager();
     private final ReadyUpTopbar topbar = new ReadyUpTopbar();
     
@@ -176,7 +176,7 @@ public class EventManager implements Listener {
         }
         if (winningTeam != null) {
             for (Participant participant : participants.values()) {
-                if (participant.getTeamId().equals(winningTeam)) {
+                if (participant.getTeamId().equals(winningTeam.getTeamId())) {
                     removeCrown(participant);
                 }
             }
@@ -454,7 +454,7 @@ public class EventManager implements Listener {
         state.gameIsOver(finishedGameType);
     }
     
-    public void colossalCombatIsOver(String winningTeam) {
+    public void colossalCombatIsOver(Team winningTeam) {
         state.colossalCombatIsOver(winningTeam);
     }
     
@@ -462,7 +462,7 @@ public class EventManager implements Listener {
         state.stopColossalCombat(sender);
     }
     
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam) {
         state.startColossalCombat(sender, firstTeam, secondTeam);
     }
     

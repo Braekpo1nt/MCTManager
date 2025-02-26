@@ -4,7 +4,6 @@ import lombok.ToString;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.utils.AudienceDelegate;
 import org.jetbrains.annotations.NotNull;
@@ -185,7 +184,6 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
         joinMember(participant.getUniqueId());
         onlineMembers.put(participant.getUniqueId(), participant);
         audience = Audience.audience(onlineMembers.values());
-        Main.logger().info(String.format("joinOnlineMember(): %s %s; members.size=%d, onlineMembers.size=%d", participant.getName(), participant.getTeamId(), members.size(), onlineMembers.size()));
     }
     
     /**

@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.event.states;
 
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -20,10 +21,10 @@ public interface EventState {
     void onClickInventory(InventoryClickEvent event);
     void onDropItem(PlayerDropItemEvent event);
     void gameIsOver(@NotNull GameType finishedGameType);
-    void colossalCombatIsOver(@Nullable String winningTeam);
+    void colossalCombatIsOver(@Nullable Team winningTeam);
     void setMaxGames(@NotNull CommandSender sender, int newMaxGames);
     void stopColossalCombat(@NotNull CommandSender sender);
-    void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam);
+    void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam);
     default void cancelAllTasks() {
         // do nothing
     }
