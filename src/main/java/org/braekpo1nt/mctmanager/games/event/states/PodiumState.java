@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.command.CommandSender;
@@ -32,10 +33,9 @@ public class PodiumState implements EventState {
         adminSidebar = context.getAdminSidebar();
         Component winner;
         if (context.getWinningTeam() != null) {
-            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(context.getWinningTeam());
             winner = Component.empty()
                     .append(Component.text("Winner: "))
-                    .append(teamDisplayName);
+                    .append(context.getWinningTeam().getFormattedDisplayName());
         } else {
             winner = Component.empty();
         }
@@ -45,7 +45,7 @@ public class PodiumState implements EventState {
         adminSidebar.updateLine("currentGame", context.getCurrentGameLine());
         gameManager.returnAllParticipantsToPodium(context.getWinningTeam());
         for (Participant participant : context.getParticipants().values()) {
-            if (participant.getTeamId().equals(context.getWinningTeam())) {
+            if (participant.getTeamId().equals(context.getWinningTeam().getTeamId())) {
                 context.giveCrown(participant);
             }
         }
@@ -54,7 +54,7 @@ public class PodiumState implements EventState {
     @Override
     public void onParticipantJoin(Participant participant) {
         if (context.getWinningTeam() != null) {
-            boolean winner = participant.getTeamId().equals(context.getWinningTeam());
+            boolean winner = participant.getTeamId().equals(context.getWinningTeam().getTeamId());
             gameManager.returnParticipantToPodium(participant, winner);
             if (winner) {
                 context.giveCrown(participant);
@@ -68,10 +68,9 @@ public class PodiumState implements EventState {
             context.updateTeamScores();
             sidebar.updateLine(participant.getUniqueId(), "currentGame", context.getCurrentGameLine());
             if (context.getWinningTeam() != null) {
-                Component teamDisplayName = gameManager.getFormattedTeamDisplayName(context.getWinningTeam());
                 sidebar.updateLine("winner", Component.empty()
                         .append(Component.text("Winner: "))
-                        .append(teamDisplayName));
+                        .append(context.getWinningTeam().getFormattedDisplayName()));
             }
         }
     }
@@ -83,7 +82,7 @@ public class PodiumState implements EventState {
             sidebar.removePlayer(participant);
         }
         if (context.getWinningTeam() != null) {
-            if (participant.getTeamId().equals(context.getWinningTeam())) {
+            if (participant.getTeamId().equals(context.getWinningTeam().getTeamId())) {
                 context.removeCrown(participant);
             }
         }
@@ -97,10 +96,9 @@ public class PodiumState implements EventState {
             context.updateTeamScores();
             adminSidebar.updateLine(admin.getUniqueId(), "currentGame", context.getCurrentGameLine());
             if (context.getWinningTeam() != null) {
-                Component teamDisplayName = gameManager.getFormattedTeamDisplayName(context.getWinningTeam());
                 adminSidebar.updateLine("winner", Component.empty()
                         .append(Component.text("Winner: "))
-                        .append(teamDisplayName));
+                        .append(context.getWinningTeam().getFormattedDisplayName()));
             }
         }
     }
@@ -141,7 +139,7 @@ public class PodiumState implements EventState {
         if (participant == null) {
             return;
         }
-        if (!participant.getTeamId().equals(context.getWinningTeam())) {
+        if (!participant.getTeamId().equals(context.getWinningTeam().getTeamId())) {
             return;
         }
         if (!currentItem.equals(context.getCrown())) {
@@ -159,7 +157,7 @@ public class PodiumState implements EventState {
         if (context.getWinningTeam() == null) {
             return;
         }
-        if (!participant.getTeamId().equals(context.getWinningTeam())) {
+        if (!participant.getTeamId().equals(context.getWinningTeam().getTeamId())) {
             return;
         }
         if (!event.getItemDrop().getItemStack().equals(context.getCrown())) {
@@ -174,7 +172,7 @@ public class PodiumState implements EventState {
     }
     
     @Override
-    public void colossalCombatIsOver(@Nullable String winningTeam) {
+    public void colossalCombatIsOver(@Nullable Team winningTeam) {
         // do nothing
     }
     
@@ -191,7 +189,7 @@ public class PodiumState implements EventState {
     }
     
     @Override
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam) {
         sender.sendMessage(Component.text("The event is over, can't start Colossal Combat")
                 .color(NamedTextColor.RED));
     }

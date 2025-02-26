@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.commands.manager.SubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -24,24 +25,26 @@ public class FinalGameCommand extends CommandManager {
                 if (args.length != 2) {
                     return CommandResult.failure(getUsage().of("<first>").of("<second>"));
                 }
-                String firstTeam = args[0];
-                String secondTeam = args[1];
-                if (firstTeam.equals(secondTeam)) {
+                String firstTeamId = args[0];
+                String secondTeamId = args[1];
+                if (firstTeamId.equals(secondTeamId)) {
                     return CommandResult.failure(Component.text("must be two different teams"));
                 }
-                if (!gameManager.hasTeam(firstTeam)) {
+                Team first = gameManager.getTeam(firstTeamId);
+                if (first == null) {
                     return CommandResult.failure(Component.empty()
-                            .append(Component.text(firstTeam)
+                            .append(Component.text(firstTeamId)
                                     .decorate(TextDecoration.BOLD))
                             .append(Component.text(" is not a valid team name")));
                 }
-                if (!gameManager.hasTeam(secondTeam)) {
+                Team second = gameManager.getTeam(secondTeamId);
+                if (second == null) {
                     return CommandResult.failure(Component.empty()
-                            .append(Component.text(secondTeam)
+                            .append(Component.text(secondTeamId)
                                     .decorate(TextDecoration.BOLD))
                             .append(Component.text(" is not a valid team name")));
                 }
-                gameManager.getEventManager().startColossalCombat(sender, firstTeam, secondTeam);
+                gameManager.getEventManager().startColossalCombat(sender, first, second);
                 return CommandResult.success();
             }
             

@@ -350,7 +350,7 @@ public class ReadyUpState implements EventState {
     }
     
     @Override
-    public void colossalCombatIsOver(@Nullable String winningTeam) {
+    public void colossalCombatIsOver(@Nullable Team winningTeam) {
         // do nothing
     }
     
@@ -372,7 +372,7 @@ public class ReadyUpState implements EventState {
     }
     
     @Override
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam) {
         sender.sendMessage(Component.text("Can't start Colossal Combat during Ready Up state")
                 .color(NamedTextColor.RED));
     }

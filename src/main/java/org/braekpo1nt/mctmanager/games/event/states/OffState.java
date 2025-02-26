@@ -4,7 +4,6 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
@@ -163,7 +162,7 @@ public class OffState implements EventState {
     }
     
     @Override
-    public void colossalCombatIsOver(@Nullable String winningTeam) {
+    public void colossalCombatIsOver(@Nullable Team winningTeam) {
         if (winningTeam == null) {
             Component message = Component.text("No winner declared.");
             context.messageAllAdmins(message);
@@ -171,20 +170,18 @@ public class OffState implements EventState {
             gameManager.returnAllParticipantsToHub();
             return;
         }
-        TextColor teamColor = gameManager.getTeamColor(winningTeam);
-        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(winningTeam);
         Component message = Component.empty()
-                .append(formattedTeamDisplayName)
+                .append(winningTeam.getFormattedDisplayName())
                 .append(Component.text(" wins!"))
-                .color(teamColor)
+                .color(winningTeam.getColor())
                 .decorate(TextDecoration.BOLD);
         context.messageAllAdmins(message);
         gameManager.messageOnlineParticipants(message);
         Audience.audience(
                 Audience.audience(context.getAdmins()),
                 Audience.audience(gameManager.getOnlineParticipants())
-        ).showTitle(Title.title(formattedTeamDisplayName, Component.text("wins!")
-                .color(teamColor), UIUtils.DEFAULT_TIMES));
+        ).showTitle(Title.title(winningTeam.getFormattedDisplayName(), Component.text("wins!")
+                .color(winningTeam.getColor()), UIUtils.DEFAULT_TIMES));
     }
     
     @Override
@@ -204,7 +201,7 @@ public class OffState implements EventState {
     }
     
     @Override
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeamId, @NotNull String secondTeamId) {
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam) {
         if (context.getGameManager().gameIsRunning()) {
             sender.sendMessage(Component.text("Can't start Colossal Combat while a game is running")
                     .color(NamedTextColor.RED));
@@ -236,9 +233,9 @@ public class OffState implements EventState {
         List<Player> adminPool;
         adminPool = new ArrayList<>(gameManager.getOnlineAdmins());
         for (Participant participant : participantPool) {
-            if (participant.getTeamId().equals(firstTeamId)) {
+            if (participant.getTeamId().equals(firstTeam.getTeamId())) {
                 firstPlaceParticipants.add(participant);
-            } else if (participant.getTeamId().equals(secondTeamId)) {
+            } else if (participant.getTeamId().equals(secondTeam.getTeamId())) {
                 secondPlaceParticipants.add(participant);
             } else {
                 spectators.add(participant);
@@ -249,7 +246,7 @@ public class OffState implements EventState {
             sender.sendMessage(Component.empty()
                     .append(Component.text("There are no members of the first place team online. Please use "))
                     .append(Component.text("/mct event finalgame start <first> <second>")
-                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstTeamId, secondTeamId)))
+                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstTeam.getTeamId(), secondTeam.getTeamId())))
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" to manually start the final game."))
                     .color(NamedTextColor.RED));
@@ -260,7 +257,7 @@ public class OffState implements EventState {
             sender.sendMessage(Component.empty()
                     .append(Component.text("There are no members of the second place team online. Please use "))
                     .append(Component.text("/mct event finalgame start <first> <second>")
-                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstTeamId, secondTeamId)))
+                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstTeam.getTeamId(), secondTeam.getTeamId())))
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" to manually start the final game."))
                     .color(NamedTextColor.RED));
@@ -268,7 +265,7 @@ public class OffState implements EventState {
         }
         
         gameManager.removeParticipantsFromHub(participantPool);
-        context.getColossalCombatGame().start(firstPlaceParticipants, secondPlaceParticipants, spectators, adminPool);
+        context.getColossalCombatGame().start(firstTeam, secondTeam, firstPlaceParticipants, secondPlaceParticipants, spectators, adminPool);
     }
     
     @Override
