@@ -4,8 +4,6 @@ import lombok.Getter;
 import lombok.ToString;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFTeam;
 import org.braekpo1nt.mctmanager.participant.ScoredTeamData;
-import org.braekpo1nt.mctmanager.participant.Team;
-import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.jetbrains.annotations.NotNull;
 
 @ToString(callSuper = true)

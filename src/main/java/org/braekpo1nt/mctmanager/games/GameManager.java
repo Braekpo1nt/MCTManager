@@ -1308,6 +1308,12 @@ public class GameManager implements Listener {
         return teamId;
     }
     
+    /**
+     * Add the given scores to the given teams and participants, save the game state, update
+     * the UI, etc.
+     * @param teamScores map of teamId to score to add
+     * @param participantScores map of UUID to score to add
+     */
     public void updateScores(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores) {
         for (Map.Entry<String, Integer> entry : teamScores.entrySet()) {
             String teamId = entry.getKey();
@@ -1329,8 +1335,12 @@ public class GameManager implements Listener {
         }
         try {
             gameStateStorageUtil.updateScores(teams.values(), allParticipants.values());
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> 
-                    gameStateStorageUtil.saveGameState());
+            if (plugin.isEnabled()) {
+                plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
+                        gameStateStorageUtil.saveGameState());
+            } else {
+                gameStateStorageUtil.saveGameState();
+            }
         } catch (ConfigIOException e) {
             reportGameStateException("updating scores", e);
         }
@@ -1339,7 +1349,9 @@ public class GameManager implements Listener {
             eventManager.updateTeamScores();
         }
         hubManager.updateLeaderboards();
-        tabList.setScores(teams.values());
+        if (plugin.isEnabled()) {
+            tabList.setScores(teams.values());
+        }
     }
     
     /**

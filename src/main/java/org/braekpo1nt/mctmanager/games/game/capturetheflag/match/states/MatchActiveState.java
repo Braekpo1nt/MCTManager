@@ -292,19 +292,19 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     }
     
     private void dropSouthFlag(Participant northParticipant) {
-        context.messageSouthParticipants(Component.empty()
+        context.getSouthTeam().sendMessage(Component.empty()
                 .append(Component.text("Your flag was dropped"))
                 .color(NamedTextColor.GREEN));
-        context.titleSouthParticipants(UIUtils.defaultTitle(
+        context.getSouthTeam().showTitle(UIUtils.defaultTitle(
                 Component.empty(),
                 Component.empty()
                         .append(Component.text("flag dropped"))
                         .color(NamedTextColor.GREEN)
         ));
-        context.messageNorthParticipants(Component.empty()
+        context.getNorthTeam().sendMessage(Component.empty()
                 .append(Component.text("You dropped the flag"))
                 .color(NamedTextColor.DARK_RED));
-        context.titleNorthParticipants(UIUtils.defaultTitle(
+        context.getNorthTeam().showTitle(UIUtils.defaultTitle(
                 Component.empty(),
                 Component.empty()
                         .append(Component.text("flag dropped"))
@@ -317,19 +317,19 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     }
     
     private void dropNorthFlag(Participant southParticipant) {
-        context.messageNorthParticipants(Component.empty()
+        context.getNorthTeam().sendMessage(Component.empty()
                 .append(Component.text("Your flag was dropped"))
                 .color(NamedTextColor.GREEN));
-        context.titleNorthParticipants(UIUtils.defaultTitle(
+        context.getNorthTeam().showTitle(UIUtils.defaultTitle(
                 Component.empty(),
                 Component.empty()
                         .append(Component.text("flag dropped"))
                         .color(NamedTextColor.GREEN)
         ));
-        context.messageSouthParticipants(Component.empty()
+        context.getSouthTeam().sendMessage(Component.empty()
                 .append(Component.text("You dropped the flag"))
                 .color(NamedTextColor.DARK_RED));
-        context.titleSouthParticipants(UIUtils.defaultTitle(
+        context.getSouthTeam().showTitle(UIUtils.defaultTitle(
                 Component.empty(),
                 Component.empty()
                         .append(Component.text("flag dropped"))
@@ -386,19 +386,19 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     }
     
     private synchronized void pickUpSouthFlag(Participant northParticipant) {
-        context.messageSouthParticipants(Component.empty()
+        context.getSouthTeam().sendMessage(Component.empty()
                 .append(Component.text("Your flag was captured"))
                 .color(NamedTextColor.DARK_RED));
-        context.titleSouthParticipants(UIUtils.defaultTitle(
+        context.getSouthTeam().showTitle(UIUtils.defaultTitle(
                 Component.empty(),
                 Component.empty()
                         .append(Component.text("flag captured"))
                         .color(NamedTextColor.DARK_RED)
         ));
-        context.messageNorthParticipants(Component.empty()
+        context.getNorthTeam().sendMessage(Component.empty()
                 .append(Component.text("You captured the flag"))
                 .color(NamedTextColor.GREEN));
-        context.titleNorthParticipants(UIUtils.defaultTitle(
+        context.getNorthTeam().showTitle(UIUtils.defaultTitle(
                 Component.empty(),
                 Component.empty()
                         .append(Component.text("flag captured"))
@@ -437,19 +437,19 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     }
     
     private void recoverNorthFlag() {
-        context.messageNorthParticipants(Component.empty()
+        context.getNorthTeam().sendMessage(Component.empty()
                 .append(Component.text("Your flag was recovered"))
                 .color(NamedTextColor.GREEN));
-        context.titleNorthParticipants(UIUtils.defaultTitle(
+        context.getNorthTeam().showTitle(UIUtils.defaultTitle(
                 Component.empty(),
                 Component.empty()
                         .append(Component.text("flag recovered"))
                         .color(NamedTextColor.GREEN)
         ));
-        context.messageSouthParticipants(Component.empty()
+        context.getSouthTeam().sendMessage(Component.empty()
                 .append(Component.text("Opponents' flag was recovered"))
                 .color(NamedTextColor.DARK_RED));
-        context.titleSouthParticipants(UIUtils.defaultTitle(
+        context.getSouthTeam().showTitle(UIUtils.defaultTitle(
                 Component.empty(),
                 Component.empty()
                         .append(Component.text("flag recovered"))
@@ -491,19 +491,19 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     }
     
     private synchronized void pickUpNorthFlag(Participant southParticipant) {
-        context.messageNorthParticipants(Component.empty()
+        context.getNorthTeam().sendMessage(Component.empty()
                 .append(Component.text("Your flag was captured!"))
                 .color(NamedTextColor.DARK_RED));
-        context.titleNorthParticipants(UIUtils.defaultTitle(
+        context.getNorthTeam().showTitle(UIUtils.defaultTitle(
                 Component.empty(),
                 Component.empty()
                         .append(Component.text("flag captured"))
                         .color(NamedTextColor.DARK_RED)
         ));
-        context.messageSouthParticipants(Component.empty()
+        context.getSouthTeam().sendMessage(Component.empty()
                 .append(Component.text("You captured the flag!"))
                 .color(NamedTextColor.GREEN));
-        context.titleSouthParticipants(UIUtils.defaultTitle(
+        context.getSouthTeam().showTitle(UIUtils.defaultTitle(
                 Component.empty(),
                 Component.empty()
                         .append(Component.text("flag captured"))
@@ -542,19 +542,19 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     }
     
     private void recoverSouthFlag() {
-        context.messageSouthParticipants(Component.empty()
+        context.getSouthTeam().sendMessage(Component.empty()
                 .append(Component.text("Your flag was recovered"))
                 .color(NamedTextColor.GREEN));
-        context.titleSouthParticipants(UIUtils.defaultTitle(
+        context.getSouthTeam().showTitle(UIUtils.defaultTitle(
                 Component.empty(),
                 Component.empty()
                         .append(Component.text("flag recovered"))
                         .color(NamedTextColor.GREEN)
         ));
-        context.messageNorthParticipants(Component.empty()
+        context.getNorthTeam().sendMessage(Component.empty()
                 .append(Component.text("Opponents' flag was recovered"))
                 .color(NamedTextColor.DARK_RED));
-        context.titleNorthParticipants(UIUtils.defaultTitle(
+        context.getNorthTeam().showTitle(UIUtils.defaultTitle(
                 Component.empty(),
                 Component.empty()
                         .append(Component.text("flag recovered"))

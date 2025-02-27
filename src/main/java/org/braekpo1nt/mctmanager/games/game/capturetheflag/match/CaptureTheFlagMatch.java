@@ -4,7 +4,6 @@ import io.papermc.paper.entity.LookAnchor;
 import lombok.Data;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.*;
@@ -13,7 +12,6 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states.CaptureT
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states.ClassSelectionState;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
-import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
@@ -106,11 +104,11 @@ public class CaptureTheFlagMatch {
         state.nextState();
     }
     
-    public void start(CTFTeam northTeam, CTFTeam southTeam, Collection<CTFParticipant> newParticipants) {
+    public void start(CTFTeam newNorthTeam, CTFTeam newSouthTeam, Collection<CTFParticipant> newParticipants) {
         placeFlags();
         closeGlassBarriers();
-        this.northTeam = new CTFMatchTeam(northTeam, Affiliation.NORTH);
-        this.southTeam = new CTFMatchTeam(southTeam, Affiliation.SOUTH);
+        this.northTeam = new CTFMatchTeam(newNorthTeam, Affiliation.NORTH);
+        this.southTeam = new CTFMatchTeam(newSouthTeam, Affiliation.SOUTH);
         for (CTFParticipant participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -134,6 +132,7 @@ public class CaptureTheFlagMatch {
         int dead;
         if (affiliation == Affiliation.NORTH) {
             northParticipants.put(participant.getUniqueId(), participant);
+            northTeam.addParticipant(participant);
             participant.teleport(arena.northSpawn());
             participant.setRespawnLocation(arena.northSpawn(), true);
             participant.lookAt(
@@ -145,6 +144,7 @@ public class CaptureTheFlagMatch {
             dead = northParticipants.size() - alive;
         } else {
             southParticipants.put(participant.getUniqueId(), participant);
+            southTeam.addParticipant(participant);
             participant.teleport(arena.southSpawn());
             participant.setRespawnLocation(arena.southSpawn(), true);
             participant.lookAt(
@@ -242,7 +242,7 @@ public class CaptureTheFlagMatch {
         hasNorthFlag = null;
         hasSouthFlag = null;
         resetArena();
-        for (Participant participant : allParticipants.values()) {
+        for (CTFMatchParticipant participant : allParticipants.values()) {
             resetParticipant(participant);
         }
         northTeam = null;
@@ -278,7 +278,12 @@ public class CaptureTheFlagMatch {
         }
     }
     
-    public void resetParticipant(Participant participant) {
+    public void resetParticipant(CTFMatchParticipant participant) {
+        if (participant.getAffiliation() == Affiliation.NORTH) {
+            northTeam.removeParticipant(participant.getUniqueId());
+        } else {
+            southTeam.removeParticipant(participant.getUniqueId());
+        }
         ParticipantInitializer.clearInventory(participant);
         participant.closeInventory();
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -381,22 +386,6 @@ public class CaptureTheFlagMatch {
         Audience.audience(
                 allParticipants.values()
         ).sendMessage(message);
-    }
-    
-    public void messageNorthParticipants(Component message) {
-        Audience.audience(northParticipants.values()).sendMessage(message);
-    }
-    
-    public void titleNorthParticipants(Title title) {
-        Audience.audience(northParticipants.values()).showTitle(title);
-    }
-    
-    public void messageSouthParticipants(Component message) {
-        Audience.audience(southParticipants.values()).sendMessage(message);
-    }
-    
-    public void titleSouthParticipants(Title title) {
-        Audience.audience(southParticipants.values()).showTitle(title);
     }
     
 }

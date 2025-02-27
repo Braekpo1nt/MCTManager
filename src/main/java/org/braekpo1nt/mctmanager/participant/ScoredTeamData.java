@@ -28,7 +28,6 @@ public class ScoredTeamData<T extends Participant> extends TeamData<T> {
      */
     public void awardPoints(int points) {
         this.score += points;
-        Main.logger().info(String.format("awarded %d points to %s", points, getTeamId()));
         sendMessage(Component.text("+")
                 .append(Component.text(points))
                 .append(Component.text(" points for "))
