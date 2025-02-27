@@ -136,7 +136,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     public void initializeParticipant(Participant newParticipant, int kills, int deaths) {
-        CTFParticipant participant = new CTFParticipant(newParticipant, kills, deaths);
+        CTFParticipant participant = new CTFParticipant(newParticipant, kills, deaths, 0);
         participants.put(participant.getUniqueId(), participant);
         teams.get(participant.getTeamId()).addParticipant(participant);
         sidebar.addPlayer(participant);
