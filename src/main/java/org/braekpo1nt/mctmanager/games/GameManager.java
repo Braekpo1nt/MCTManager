@@ -1386,15 +1386,13 @@ public class GameManager implements Listener {
         if (activeGame != null) {
             eventManager.trackPointsTeams(Team.getTeamIds(awardedTeams), multipliedPoints, activeGame.getType());
         }
-        for (Team team : awardedTeams) {
-            if (team instanceof Audience audience) {
-                audience.sendMessage(Component.text("+")
-                        .append(Component.text(multipliedPoints))
-                        .append(Component.text(" points for "))
-                        .append(team.getFormattedDisplayName())
-                        .decorate(TextDecoration.BOLD)
-                        .color(NamedTextColor.GOLD));
-            }
+        for (MCTTeam team : awardedTeams) {
+            team.sendMessage(Component.text("+")
+                    .append(Component.text(multipliedPoints))
+                    .append(Component.text(" points for "))
+                    .append(team.getFormattedDisplayName())
+                    .decorate(TextDecoration.BOLD)
+                    .color(NamedTextColor.GOLD));
         }
     }
     
