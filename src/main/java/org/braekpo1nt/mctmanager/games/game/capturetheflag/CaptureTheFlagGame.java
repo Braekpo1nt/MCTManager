@@ -138,7 +138,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     public void initializeParticipant(Participant newParticipant, int kills, int deaths, int score) {
         CTFParticipant participant = new CTFParticipant(newParticipant, kills, deaths, score);
         participants.put(participant.getUniqueId(), participant);
-        teams.get(participant.getTeamId()).addParticipant(participant);
+        CTFTeam team = teams.get(participant.getTeamId());
+        team.addParticipant(participant);
         sidebar.addPlayer(participant);
         topbar.showPlayer(participant);
         participant.setGameMode(GameMode.ADVENTURE);
@@ -288,6 +289,12 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
                 new KeyLine("title", title),
                 new KeyLine("round", "")
         );
+        for (CTFTeam team : teams.values()) {
+            updateScore(team);
+        }
+        for (CTFParticipant participant : participants.values()) {
+            updateScore(participant);
+        }
     }
     
     public void updateRoundLine(UUID participantUUID) {

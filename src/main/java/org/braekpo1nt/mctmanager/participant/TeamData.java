@@ -2,9 +2,6 @@ package org.braekpo1nt.mctmanager.participant;
 
 import lombok.ToString;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.utils.AudienceDelegate;
 import org.jetbrains.annotations.NotNull;
 
