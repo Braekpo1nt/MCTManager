@@ -28,8 +28,6 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
      */
     private final @NotNull Map<UUID, Participant> onlineMembers;
     private @NotNull Audience audience = Audience.empty();
-    @Getter
-    private final int score;
     
     /**
      * Create a new Team
@@ -40,21 +38,9 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
      * @param score the team's score
      */
     public MCTTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull Set<UUID> members, int score) {
-        super(teamId, displayName, color);
+        super(teamId, displayName, color, score);
         this.members = members;
         this.onlineMembers = new HashMap<>();
-        this.score = score;
-    }
-    
-    /**
-     * Create a new Team
-     * @param teamId the unique id of the team
-     * @param displayName the pretty display name of the team in text form
-     * @param color the team's assigned color
-     * @param members a set of the UUIDs of the members of this team
-     */
-    public MCTTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull Set<UUID> members) {
-        this(teamId, displayName, color, members, 0);
     }
     
     /**
@@ -64,8 +50,8 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
      * @param color the team's assigned color
      * @param members a collection of the UUIDs of the members of this team
      */
-    public MCTTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull Collection<UUID> members) {
-        this(teamId, displayName, color, new HashSet<>(members));
+    public MCTTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull Collection<UUID> members, int score) {
+        this(teamId, displayName, color, new HashSet<>(members), score);
     }
     
     /**
@@ -74,8 +60,8 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
      * @param displayName the pretty display name of the team in text form
      * @param color the team's assigned color
      */
-    public MCTTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color) {
-        this(teamId, displayName, color, new HashSet<>());
+    public MCTTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, int score) {
+        this(teamId, displayName, color, new HashSet<>(), score);
     }
     
     /**

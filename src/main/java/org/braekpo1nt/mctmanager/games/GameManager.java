@@ -538,7 +538,8 @@ public class GameManager implements Listener {
             String teamDisplayName = gameStateStorageUtil.getTeamDisplayName(teamId);
             NamedTextColor teamColor = gameStateStorageUtil.getTeamColor(teamId);
             List<UUID> members = gameStateStorageUtil.getParticipantUUIDsOnTeam(teamId);
-            MCTTeam team = new MCTTeam(teamId, teamDisplayName, teamColor, members);
+            int score = gameStateStorageUtil.getTeamScore(teamId);
+            MCTTeam team = new MCTTeam(teamId, teamDisplayName, teamColor, members, score);
             teams.put(teamId, team);
         }
         for (UUID uuid : gameStateStorageUtil.getPlayerUniqueIds()) {
@@ -1108,7 +1109,7 @@ public class GameManager implements Listener {
         }
         
         NamedTextColor color = ColorMap.getNamedTextColor(colorString);
-        MCTTeam team = new MCTTeam(teamId, teamDisplayName, color);
+        MCTTeam team = new MCTTeam(teamId, teamDisplayName, color, 0);
         teams.put(teamId, team);
         
         org.bukkit.scoreboard.Team newTeam = mctScoreboard.registerNewTeam(teamId);
@@ -1188,7 +1189,7 @@ public class GameManager implements Listener {
         }
         
         Component displayName = team.createDisplayName(name);
-        OfflineParticipant offlineParticipant = new OfflineParticipant(offlinePlayer.getUniqueId(), name, displayName, teamId);
+        OfflineParticipant offlineParticipant = new OfflineParticipant(offlinePlayer.getUniqueId(), name, displayName, teamId, 0);
         allParticipants.put(offlineParticipant.getUniqueId(), offlineParticipant);
         team.joinMember(offlineParticipant.getUniqueId());
         tabList.joinParticipant(

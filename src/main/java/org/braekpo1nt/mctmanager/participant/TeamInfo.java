@@ -67,24 +67,13 @@ public abstract class TeamInfo implements Team {
     }
     
     /**
-     * @param teamId the unique ID of the team
-     * @param displayName the display name of the team
-     * @param color the {@link TextColor} associated with the team
-     * @param bukkitColor The {@link Color} associated with the team
-     * @param formattedDisplayName The formatted display name of the team for use in chat messages.
-     */
-    public TeamInfo(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull Color bukkitColor, @NotNull Component formattedDisplayName) {
-        this(teamId, displayName, color, bukkitColor, formattedDisplayName, 0);
-    }
-    
-    /**
      * Create the info using the given name and color
      * @param teamId the unique ID of the team
      * @param displayName the display name of the team
      * @param color the {@link TextColor} associated with the team
      */
-    public TeamInfo(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color) {
-        this(teamId, displayName, color, Color.fromARGB(255, color.red(), color.green(), color.blue()), Component.text(displayName, color, TextDecoration.BOLD));
+    public TeamInfo(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, int score) {
+        this(teamId, displayName, color, Color.fromARGB(255, color.red(), color.green(), color.blue()), Component.text(displayName, color, TextDecoration.BOLD), score);
     }
     
     /**
@@ -92,11 +81,11 @@ public abstract class TeamInfo implements Team {
      * @param team the team to copy the info from
      */
     public TeamInfo(Team team) {
-        this.teamId = team.getTeamId();
-        this.displayName = team.getDisplayName();
-        this.color = team.getColor();
-        this.bukkitColor = team.getBukkitColor();
-        this.formattedDisplayName = team.getFormattedDisplayName();
-        this.score = team.getScore();
+        this(team.getTeamId(),
+            team.getDisplayName(),
+            team.getColor(),
+            team.getBukkitColor(),
+            team.getFormattedDisplayName(),
+            team.getScore());
     }
 }

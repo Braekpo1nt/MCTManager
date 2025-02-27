@@ -200,7 +200,8 @@ public class GameStateStorageUtil {
                 player.getUniqueId(),
                 player.getName(),
                 GameManagerUtils.createDisplayName(player.getName(), teamColor),
-                player.getTeamId()
+                player.getTeamId(),
+                player.getScore()
         );
     }
     
