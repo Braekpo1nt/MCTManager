@@ -205,17 +205,17 @@ public class GameStateStorageUtil {
         );
     }
     
-    /**
-     * Gets the stored name of the player with the given UUID
-     * @param uuid the UUID of the player to find the name of
-     * @return the stored name of the player with the given UUID, null if the game state doesn't contain the player's UUID
-     */
-    public @Nullable String getPlayerName(@NotNull UUID uuid) {
-        MCTPlayer player = gameState.getPlayer(uuid);
-        if (player != null) {
-            return player.getName();
+    public void updateScores(Collection<org.braekpo1nt.mctmanager.participant.MCTTeam> teams, Collection<OfflineParticipant> participants) {
+        for (org.braekpo1nt.mctmanager.participant.MCTTeam team : teams) {
+            MCTTeam mctTeam = gameState.getTeam(team.getTeamId());
+            mctTeam.setScore(team.getScore());
         }
-        return null;
+        for (OfflineParticipant participant : participants) {
+            MCTPlayer player = Objects.requireNonNull(
+                    gameState.getPlayer(participant.getUniqueId()), 
+                    "attempted to update the score of a participant who is not in the GameState");
+            player.setScore(participant.getScore());
+        }
     }
     
     /**
@@ -412,4 +412,5 @@ public class GameStateStorageUtil {
         gameState.removeAdmin(adminUniqueId);
         saveGameState();
     }
+    
 }

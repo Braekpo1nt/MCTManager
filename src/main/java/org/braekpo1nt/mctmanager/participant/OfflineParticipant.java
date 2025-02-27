@@ -71,10 +71,19 @@ public class OfflineParticipant implements AudienceDelegate {
     }
     
     /**
+     * Copy everything about the given offline participant, but use the new score
+     * @param offlineParticipant the offline participant to copy everything but the score from
+     * @param newScore the score to use
+     */
+    public OfflineParticipant(OfflineParticipant offlineParticipant, int newScore) {
+        this(offlineParticipant.getUniqueId(), offlineParticipant.getName(), offlineParticipant.displayName(), offlineParticipant.getTeamId(), newScore);
+    }
+    
+    /**
      * @param offlineParticipant the OfflineParticipant to copy the info from
      */
     public OfflineParticipant(@NotNull OfflineParticipant offlineParticipant) {
-        this(offlineParticipant.getUniqueId(), offlineParticipant.getName(), offlineParticipant.displayName(), offlineParticipant.getTeamId(), offlineParticipant.getScore());
+        this(offlineParticipant, offlineParticipant.getScore());
     }
     
     @Override

@@ -64,6 +64,17 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
     }
     
     /**
+     * Copy everything from the team, but change the score
+     * @param team the team to copy
+     * @param newScore the new score
+     */
+    public MCTTeam(MCTTeam team, int newScore) {
+        super(team.getTeamId(), team.getDisplayName(), team.getColor(), team.getBukkitColor(), team.getFormattedDisplayName(), newScore);
+        this.members = team.members;
+        this.onlineMembers = team.onlineMembers;
+    }
+    
+    /**
      * @param teams the teams to filter for online
      * @return the set of teams from the given collection who has at least one online member
      */

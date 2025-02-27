@@ -1308,6 +1308,40 @@ public class GameManager implements Listener {
         return teamId;
     }
     
+    public void updateScores(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores) {
+        for (Map.Entry<String, Integer> entry : teamScores.entrySet()) {
+            String teamId = entry.getKey();
+            int newScore = entry.getValue();
+            MCTTeam team = teams.get(teamId);
+            teams.put(teamId, new MCTTeam(team, team.getScore() + newScore));
+        }
+        for (Map.Entry<UUID, Integer> entry : participantScores.entrySet()) {
+            UUID uuid = entry.getKey();
+            int newScore = entry.getValue();
+            OfflineParticipant offlineParticipant = allParticipants.get(uuid);
+            allParticipants.put(uuid, new OfflineParticipant(offlineParticipant, 
+                    offlineParticipant.getScore() + newScore));
+            Participant participant = onlineParticipants.get(uuid);
+            if (participant != null) {
+                onlineParticipants.put(uuid, new Participant(participant, 
+                        participant.getScore() + newScore));
+            }
+        }
+        try {
+            gameStateStorageUtil.updateScores(teams.values(), allParticipants.values());
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> 
+                    gameStateStorageUtil.saveGameState());
+        } catch (ConfigIOException e) {
+            reportGameStateException("updating scores", e);
+        }
+        if (eventManager.eventIsActive()) {
+            eventManager.updatePersonalScores();
+            eventManager.updateTeamScores();
+        }
+        hubManager.updateLeaderboards();
+        tabList.setScores(teams.values());
+    }
+    
     /**
      * Awards the same number of points to each participant in the collection and their respective teams.
      * Also announces to the participants how many points they received.

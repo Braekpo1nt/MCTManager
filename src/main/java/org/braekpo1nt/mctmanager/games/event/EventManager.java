@@ -103,6 +103,7 @@ public class EventManager implements Listener {
     
     public void updatePersonalScores() {
         for (Participant participant : participants.values()) {
+            // TODO: Participant replace call to getScore with Participant.getScore()
             int score = gameManager.getScore(participant.getUniqueId());
             updatePersonalScore(participant, Component.empty()
                     .append(Component.text("Personal: "))
@@ -110,6 +111,33 @@ public class EventManager implements Listener {
                     .color(NamedTextColor.GOLD)
             );
         }
+    }
+    
+    public void updateTeamScores() {
+        if (sidebar == null) {
+            return;
+        }
+        List<Team> sortedTeams = sortTeams(gameManager.getTeams());
+        if (numberOfTeams != sortedTeams.size()) {
+            reorderTeamLines(sortedTeams);
+            return;
+        }
+        KeyLine[] teamLines = new KeyLine[numberOfTeams];
+        for (int i = 0; i < numberOfTeams; i++) {
+            Team team = sortedTeams.get(i);
+            int teamScore = gameManager.getScore(team.getTeamId());
+            teamLines[i] = new KeyLine("team"+i, Component.empty()
+                    .append(team.getFormattedDisplayName())
+                    .append(Component.text(": "))
+                    .append(Component.text(teamScore)
+                            .color(NamedTextColor.GOLD))
+            );
+        }
+        sidebar.updateLines(teamLines);
+        if (adminSidebar == null) {
+            return;
+        }
+        adminSidebar.updateLines(teamLines);
     }
     
     /**
@@ -553,33 +581,6 @@ public class EventManager implements Listener {
             return multipliers[multipliers.length - 1];
         }
         return multipliers[currentGameNumber - 1];
-    }
-    
-    public void updateTeamScores() {
-        if (sidebar == null) {
-            return;
-        }
-        List<Team> sortedTeams = sortTeams(gameManager.getTeams());
-        if (numberOfTeams != sortedTeams.size()) {
-            reorderTeamLines(sortedTeams);
-            return;
-        }
-        KeyLine[] teamLines = new KeyLine[numberOfTeams];
-        for (int i = 0; i < numberOfTeams; i++) {
-            Team team = sortedTeams.get(i);
-            int teamScore = gameManager.getScore(team.getTeamId());
-            teamLines[i] = new KeyLine("team"+i, Component.empty()
-                    .append(team.getFormattedDisplayName())
-                    .append(Component.text(": "))
-                    .append(Component.text(teamScore)
-                            .color(NamedTextColor.GOLD))
-            );
-        }
-        sidebar.updateLines(teamLines);
-        if (adminSidebar == null) {
-            return;
-        }
-        adminSidebar.updateLines(teamLines);
     }
     
     public List<Team> sortTeams(Collection<Team> teamsToSort) {

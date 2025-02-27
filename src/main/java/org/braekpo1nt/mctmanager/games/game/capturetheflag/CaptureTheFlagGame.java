@@ -186,6 +186,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         if (state != null) {
             state.stop();
         }
+        saveScores();
         for (CTFParticipant participant : participants.values()) {
             resetParticipant(participant);
         }
@@ -197,6 +198,24 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         state = null;
         gameManager.gameIsOver();
         Main.logger().info("Stopping Capture the Flag");
+    }
+    
+    private void saveScores() {
+        Map<String, Integer> teamScores = new HashMap<>();
+        Map<UUID, Integer> participantScores = new HashMap<>();
+        for (CTFTeam team : teams.values()) {
+            teamScores.put(team.getTeamId(), team.getScore());
+        }
+        for (CTFParticipant participant : participants.values()) {
+            participantScores.put(participant.getUniqueId(), participant.getScore());
+        }
+        for (Map.Entry<String, CTFTeam.QuitData> entry : teamQuitDatas.entrySet()) {
+            teamScores.put(entry.getKey(), entry.getValue().getScore());
+        }
+        for (Map.Entry<UUID, CTFParticipant.QuitData> entry : quitDatas.entrySet()) {
+            participantScores.put(entry.getKey(), entry.getValue().getScore());
+        }
+        gameManager.updateScores(teamScores, participantScores);
     }
     
     /**

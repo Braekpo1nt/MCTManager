@@ -8,6 +8,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIException;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -295,6 +296,22 @@ public class TabList {
             TeamData teamData = getTeamData(teamId);
             if (teamData != null) {
                 teamData.setScore(score);
+            }
+        }
+        update();
+    }
+    
+    /**
+     * Set the scores of the given teams
+     * @param teams the teams to update the scores of.
+     *              (Any teams not in this TabList will be ignored.)
+     * @param <T> any implementation of {@link Team}
+     */
+    public <T extends Team> void setScores(Collection<T> teams) {
+        for (T team : teams) {
+            TeamData teamData = getTeamData(team.getTeamId());
+            if (teamData != null) {
+                teamData.setScore(team.getScore());
             }
         }
         update();
