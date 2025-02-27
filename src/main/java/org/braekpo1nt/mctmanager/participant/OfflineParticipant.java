@@ -42,7 +42,7 @@ public class OfflineParticipant implements AudienceDelegate {
      * The participant's score
      */
     @Getter
-    protected final int score;
+    private final int score;
     
     /**
      * Create a new OfflineParticipant 

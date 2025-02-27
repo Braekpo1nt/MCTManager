@@ -23,17 +23,10 @@ public class TeamData<T extends Participant> extends TeamInfo implements Audienc
      */
     private final @NotNull Map<UUID, T> participants;
     private @NotNull Audience audience = Audience.empty();
-    @Getter
-    private final int score;
-    
-    public TeamData(Team team, int score) {
-        super(team);
-        participants = new HashMap<>();
-        this.score = score;
-    }
     
     public TeamData(Team team) {
-        this(team, 0);
+        super(team);
+        participants = new HashMap<>();
     }
     
     @Override
