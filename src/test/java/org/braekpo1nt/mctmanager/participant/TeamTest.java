@@ -19,7 +19,7 @@ class TeamTest {
     
     @BeforeAll
     static void setup() {
-        team = new MCTTeam("yellow", "Yellow", NamedTextColor.YELLOW, Collections.emptySet());
+        team = new MCTTeam("yellow", "Yellow", NamedTextColor.YELLOW, Collections.emptySet(), 0);
     }
     
     @Test
