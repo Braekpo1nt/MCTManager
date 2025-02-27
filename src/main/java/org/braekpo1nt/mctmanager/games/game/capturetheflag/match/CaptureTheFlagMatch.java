@@ -106,7 +106,7 @@ public class CaptureTheFlagMatch {
         state.nextState();
     }
     
-    public void start(TeamData<CTFParticipant> northTeam, TeamData<CTFParticipant> southTeam, Collection<CTFParticipant> newParticipants) {
+    public void start(CTFTeam northTeam, CTFTeam southTeam, Collection<CTFParticipant> newParticipants) {
         placeFlags();
         closeGlassBarriers();
         this.northTeam = new CTFMatchTeam(northTeam, Affiliation.NORTH);
@@ -362,6 +362,18 @@ public class CaptureTheFlagMatch {
         participant.setDeaths(newDeathCount);
         parentContext.getParticipants().get(participant.getUniqueId()).setDeaths(newDeathCount);
         topbar.setDeaths(participant.getUniqueId(), newDeathCount);
+    }
+    
+    public void updateScore(CTFMatchTeam team) {
+        CTFTeam ctfTeam = parentContext.getTeams().get(team.getTeamId());
+        ctfTeam.setScore(team.getScore());
+        parentContext.updateScore(ctfTeam);
+    }
+    
+    public void updateScore(CTFMatchParticipant participant) {
+        CTFParticipant ctfParticipant = parentContext.getParticipants().get(participant.getUniqueId());
+        ctfParticipant.setScore(participant.getScore());
+        parentContext.updateScore(ctfParticipant);
     }
     
     public void messageAllParticipants(Component message) {

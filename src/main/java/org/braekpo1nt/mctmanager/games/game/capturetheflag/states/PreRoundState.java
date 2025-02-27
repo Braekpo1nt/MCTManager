@@ -115,11 +115,11 @@ public class PreRoundState implements CaptureTheFlagState {
     @Override
     public void onParticipantJoin(Participant participant, Team team) {
         context.onTeamJoin(team);
-        CTFQuitData quitData = context.getQuitDatas().remove(participant.getUniqueId());
+        CTFParticipant.QuitData quitData = context.getQuitDatas().remove(participant.getUniqueId());
         if (quitData == null) {
             context.initializeParticipant(participant);
         } else {
-            context.initializeParticipant(participant, quitData.getKills(), quitData.getDeaths());
+            context.initializeParticipant(participant, quitData.getKills(), quitData.getDeaths(), quitData.getScore());
         }
         participant.setGameMode(GameMode.ADVENTURE);
         participant.teleport(context.getConfig().getSpawnObservatory());

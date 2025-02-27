@@ -1904,13 +1904,13 @@ public class GameManager implements Listener {
     private void updateTeamScore(@NotNull MCTTeam team) {
         int teamScore = getScore(team.getTeamId());
         if (activeGame != null && activeGame instanceof Headerable headerable) {
+            Component contents = Component.empty()
+                    .append(team.getFormattedDisplayName())
+                    .append(Component.text(": "))
+                    .append(Component.text(teamScore)
+                            .color(NamedTextColor.GOLD));
             for (Participant participant : team.getOnlineMembers()) {
-                headerable.updateTeamScore(participant, Component.empty()
-                        .append(team.getFormattedDisplayName())
-                        .append(Component.text(": "))
-                        .append(Component.text(teamScore)
-                                .color(NamedTextColor.GOLD))
-                );
+                headerable.updateTeamScore(participant, contents);
             }
         }
         if (eventManager.eventIsActive()) {

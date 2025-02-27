@@ -3,31 +3,34 @@ package org.braekpo1nt.mctmanager.participant;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.jetbrains.annotations.NotNull;
 
-public class ParticipantData extends Participant {
+public class ScoredTeamData<T extends Participant> extends TeamData<T> {
     
     private int score;
     
-    public ParticipantData(@NotNull Participant participant, int score) {
-        super(participant);
+    public ScoredTeamData(Team team, int score) {
+        super(team);
         this.score = score;
     }
     
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getScore() {
-        return this.score;
+        return score;
     }
     
     /**
-     * Add the given points and send a message to the participant
+     * Add the given points and send a message to the team members
      * @param points the points to add
      */
     public void awardPoints(int points) {
         this.score += points;
         sendMessage(Component.text("+")
                 .append(Component.text(points))
-                .append(Component.text(" points"))
+                .append(Component.text(" points for "))
+                .append(getFormattedDisplayName())
                 .decorate(TextDecoration.BOLD)
                 .color(NamedTextColor.GOLD));
     }
@@ -41,7 +44,7 @@ public class ParticipantData extends Participant {
     }
     
     /**
-     * Add the given points silently, without a message to the participant
+     * Add the given points silently, without a message to the team
      * @param points the points to add
      */
     public void addPoints(int points) {
@@ -49,7 +52,7 @@ public class ParticipantData extends Participant {
     }
     
     /**
-     * @param score the participant's new score
+     * @param score the team's new score
      */
     public void setScore(int score) {
         this.score = score;

@@ -20,7 +20,6 @@ import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.participant.TeamData;
-import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
@@ -46,7 +45,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 @Data
-public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Headerable {
+public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     
     public @Nullable CaptureTheFlagState state;
     
@@ -63,9 +62,10 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private Sidebar adminSidebar;
     private CaptureTheFlagConfigController configController;
     private CaptureTheFlagConfig config;
-    private Map<String, TeamData<CTFParticipant>> teams = new HashMap<>();
     private Map<UUID, CTFParticipant> participants = new HashMap<>();
-    private Map<UUID, CTFQuitData> quitDatas = new HashMap<>();
+    private Map<UUID, CTFParticipant.QuitData> quitDatas = new HashMap<>();
+    private Map<String, CTFTeam> teams = new HashMap<>();
+    private Map<String, CTFTeam.QuitData> teamQuitDatas = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
@@ -112,7 +112,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         gameManager.getTimerManager().register(timerManager);
         teams = new HashMap<>(newTeams.size());
         for (Team newTeam : newTeams) {
-            TeamData<CTFParticipant> team = new TeamData<>(newTeam);
+            CTFTeam team = new CTFTeam(newTeam, 0);
             teams.put(team.getTeamId(), team);
         }
         participants = new HashMap<>(newParticipants.size());
@@ -132,11 +132,11 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     public void initializeParticipant(Participant newParticipant) {
-        initializeParticipant(newParticipant, 0, 0);
+        initializeParticipant(newParticipant, 0, 0, 0);
     }
     
-    public void initializeParticipant(Participant newParticipant, int kills, int deaths) {
-        CTFParticipant participant = new CTFParticipant(newParticipant, kills, deaths, 0);
+    public void initializeParticipant(Participant newParticipant, int kills, int deaths, int score) {
+        CTFParticipant participant = new CTFParticipant(newParticipant, kills, deaths, score);
         participants.put(participant.getUniqueId(), participant);
         teams.get(participant.getTeamId()).addParticipant(participant);
         sidebar.addPlayer(participant);
@@ -206,7 +206,12 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (teams.containsKey(team.getTeamId())) {
             return;
         }
-        teams.put(team.getTeamId(), new TeamData<>(team));
+        CTFTeam.QuitData quitData = teamQuitDatas.remove(team.getTeamId());
+        if (quitData != null) {
+            teams.put(team.getTeamId(), new CTFTeam(team, quitData));
+        } else {
+            teams.put(team.getTeamId(), new CTFTeam(team, 0));
+        }
         roundManager.regenerateRounds(Team.getTeamIds(teams),
                 config.getArenas().size());
         updateRoundLine();
@@ -242,7 +247,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (team.size() > 0) {
             return;
         }
-        teams.remove(team.getTeamId());
+        CTFTeam removed = teams.remove(team.getTeamId());
+        teamQuitDatas.put(team.getTeamId(), removed.getQuitData());
         roundManager.regenerateRounds(Team.getTeamIds(teams),
                 config.getArenas().size());
         updateRoundLine();
@@ -325,26 +331,22 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         adminSidebar = null;
     }
     
-    @Override
-    public void updateTeamScore(Participant participant, Component contents) {
-        if (sidebar == null) {
-            return;
+    public void updateScore(CTFTeam team) {
+        Component contents = Component.empty()
+                .append(team.getFormattedDisplayName())
+                .append(Component.text(": "))
+                .append(Component.text(team.getScore())
+                        .color(NamedTextColor.GOLD));
+        for (UUID memberUUID : team.getMemberUUIDs()) {
+            sidebar.updateLine(memberUUID, "personalTeam", contents);
         }
-        if (!participants.containsKey(participant.getUniqueId())) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
     }
     
-    @Override
-    public void updatePersonalScore(Participant participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.containsKey(participant.getUniqueId())) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
+    public void updateScore(CTFParticipant participant) {
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", Component.empty()
+                .append(Component.text("Personal: "))
+                .append(Component.text(participant.getScore()))
+                .color(NamedTextColor.GOLD));
     }
     
     private void cancelAllTasks() {

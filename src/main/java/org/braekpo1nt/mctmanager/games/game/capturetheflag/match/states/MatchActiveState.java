@@ -104,7 +104,8 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
                 .append(loser.getFormattedDisplayName())
                 .append(Component.text("'s flag!"))
                 .color(NamedTextColor.YELLOW));
-        gameManager.awardPointsToTeam(winner, context.getConfig().getWinScore());
+        winner.awardPoints(context.getConfig().getWinScore() * gameManager.getMultiplier());
+        context.updateScore(winner);
         
         showWinLoseTitles(winner, loser);
         context.setState(new MatchOverState(context));
@@ -141,7 +142,8 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         }
         context.addKill(killer);
         UIUtils.showKillTitle(killer, killed);
-        gameManager.awardPointsToParticipant(killer, context.getConfig().getKillScore());
+        killer.awardPoints(context.getConfig().getKillScore() * gameManager.getMultiplier());
+        context.updateScore(killer);
     }
     
     @Override
