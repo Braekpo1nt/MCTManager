@@ -245,8 +245,6 @@ public class CaptureTheFlagMatch {
         for (CTFMatchParticipant participant : allParticipants.values()) {
             resetParticipant(participant);
         }
-        northTeam = null;
-        southTeam = null;
         allParticipants.clear();
         northParticipants.clear();
         southParticipants.clear();
