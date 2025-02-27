@@ -1420,6 +1420,16 @@ public class GameManager implements Listener {
     }
     
     /**
+     * @return the event manager's point multiplier, if there is a match going on. 1.0 otherwise.
+     */
+    public double getMultiplier() {
+        if (!eventManager.eventIsActive()) {
+            return 1.0;
+        }
+        return eventManager.matchProgressPointMultiplier();
+    }
+    
+    /**
      * Gets the team's display name as a Component with the team's text color
      * and in bold
      * @param teamId The internal name of the team
@@ -1953,15 +1963,5 @@ public class GameManager implements Listener {
             eventManager.updatePersonalScore(participant, contents);
         }
         hubManager.updateLeaderboards();
-    }
-    
-    /**
-     * @return the event manager's point multiplier, if there is a match going on. 1.0 otherwise.
-     */
-    public double matchProgressPointMultiplier() {
-        if (!eventManager.eventIsActive()) {
-            return 1.0;
-        }
-        return eventManager.matchProgressPointMultiplier();
     }
 }

@@ -20,7 +20,6 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -154,7 +153,7 @@ public abstract class GameplayState implements FarmRushState {
             }
             if (totalScore > 0) {
                 gameManager.awardPointsToTeam(team, totalScore);
-                team.setTotalScore(team.getTotalScore() + (int) (totalScore * gameManager.matchProgressPointMultiplier()));
+                team.setTotalScore(team.getTotalScore() + (int) (totalScore * gameManager.getMultiplier()));
             }
         }
         return soldItems;

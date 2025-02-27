@@ -1,8 +1,10 @@
 package org.braekpo1nt.mctmanager.participant;
 
-import lombok.Getter;
 import lombok.ToString;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.utils.AudienceDelegate;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,6 +25,7 @@ public class TeamData<T extends Participant> extends TeamInfo implements Audienc
      */
     private final @NotNull Map<UUID, T> participants;
     private @NotNull Audience audience = Audience.empty();
+    private int score;
     
     public TeamData(Team team) {
         super(team);
@@ -74,4 +77,32 @@ public class TeamData<T extends Participant> extends TeamInfo implements Audienc
     public int size() {
         return participants.size();
     }
+    
+    @Override
+    public int getScore() {
+        return score;
+    }
+    
+    /**
+     * Add the given points and send a message to the team members
+     * @param points the points to add
+     */
+    public void awardPoints(int points) {
+        this.score += points;
+        sendMessage(Component.text("+")
+                .append(Component.text(points))
+                .append(Component.text(" points for "))
+                .append(getFormattedDisplayName())
+                .decorate(TextDecoration.BOLD)
+                .color(NamedTextColor.GOLD));
+    }
+    
+    /**
+     * Add the given points silently, without a message to the team
+     * @param points the points to add
+     */
+    public void addPoints(int points) {
+        this.score += points;
+    }
+    
 }

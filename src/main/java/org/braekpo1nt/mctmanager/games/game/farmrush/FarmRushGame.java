@@ -164,7 +164,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         BookMeta bookMeta = builder
                 .title(Component.text("Item Values"))
                 .author(Component.text("Farm Rush"))
-                .pages(createPages(config.getMaterialScores(), gameManager.matchProgressPointMultiplier()))
+                .pages(createPages(config.getMaterialScores(), gameManager.getMultiplier()))
                 .build();
         materialBook.setItemMeta(bookMeta);
         return materialBook;
@@ -759,7 +759,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         }
         return Component.empty()
                 .append(Component.text("Price: "))
-                .append(Component.text((int) (itemSale.getScore() * gameManager.matchProgressPointMultiplier())))
+                .append(Component.text((int) (itemSale.getScore() * gameManager.getMultiplier())))
                 .color(NamedTextColor.GOLD);
     }
     

@@ -106,7 +106,7 @@ public class ActiveState extends GameplayState {
      * @return the multiplied max score
      */
     private int getTrueMaxScore() {
-        return (int) (context.getConfig().getMaxScore() * gameManager.matchProgressPointMultiplier());
+        return (int) (context.getConfig().getMaxScore() * gameManager.getMultiplier());
     }
     
     /**
@@ -115,7 +115,7 @@ public class ActiveState extends GameplayState {
     private int calculateWarningThreshold() {
         return (int) (context.getConfig().getWarningThreshold() *
                 context.getConfig().getMaxScore() *
-                gameManager.matchProgressPointMultiplier());
+                gameManager.getMultiplier());
     }
     
     private void onTeamReachWarningThreshold(FarmRushTeam team) {
