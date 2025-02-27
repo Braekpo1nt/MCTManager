@@ -4,13 +4,13 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.braekpo1nt.mctmanager.participant.Participant;
-import org.braekpo1nt.mctmanager.participant.ScoredParticipant;
+import org.braekpo1nt.mctmanager.participant.ParticipantData;
 import org.jetbrains.annotations.NotNull;
 
 @Getter
 @Setter
 @ToString(callSuper = true)
-public class CTFParticipant extends ScoredParticipant {
+public class CTFParticipant extends ParticipantData {
     
     private int kills;
     private int deaths;

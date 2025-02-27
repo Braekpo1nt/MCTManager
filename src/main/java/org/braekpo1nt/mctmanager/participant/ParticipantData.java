@@ -5,16 +5,16 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.jetbrains.annotations.NotNull;
 
-public class ScoredParticipant extends Participant {
+public class ParticipantData extends Participant {
     
     protected int score;
     
-    public ScoredParticipant(@NotNull Participant participant, int score) {
+    public ParticipantData(@NotNull Participant participant, int score) {
         super(participant);
         this.score = score;
     }
     
-    public ScoredParticipant(@NotNull Participant participant) {
+    public ParticipantData(@NotNull Participant participant) {
         super(participant);
         this.score = 0;
     }
