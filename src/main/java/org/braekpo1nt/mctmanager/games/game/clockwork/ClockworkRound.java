@@ -374,13 +374,13 @@ public class ClockworkRound implements Listener {
                     .filter(p -> !p.getTeamId().equals(killedTeamId))
                     .toList();
             int multiplied = (int) (gameManager.getMultiplier() * config.getPlayerEliminationScore());
-            for (ClockworkRoundParticipant living : awardedParticipants) {
-                living.awardPoints(multiplied);
-                teams.get(living.getTeamId()).addPoints(multiplied);
-                clockworkGame.displayScore(living.getUniqueId());
+            for (ClockworkRoundParticipant participant : awardedParticipants) {
+                participant.awardPoints(multiplied);
+                teams.get(participant.getTeamId()).addPoints(multiplied);
+                clockworkGame.updateScore(participant);
             }
             for (String teamId : Participant.getTeamIds(awardedParticipants)) {
-                clockworkGame.displayScore(teamId);
+                clockworkGame.updateScore(teams.get(teamId));
             }
             // award living participants end
         }
@@ -411,7 +411,7 @@ public class ClockworkRound implements Listener {
             int multiplied = (int) (gameManager.getMultiplier() * config.getTeamEliminationScore());
             for (ClockworkRoundTeam team : livingTeams) {
                 team.awardPoints(multiplied);
-                clockworkGame.displayScore(team.getTeamId());
+                clockworkGame.updateScore(team);
             }
         }
         boolean allTeamsAreDead = teams.values().stream().noneMatch(ClockworkRoundTeam::isAlive);
@@ -442,7 +442,7 @@ public class ClockworkRound implements Listener {
         }
         int multiplied = (int) (gameManager.getMultiplier() * config.getWinRoundScore());
         winner.awardPoints(multiplied);
-        clockworkGame.displayScore(winner.getTeamId());
+        clockworkGame.updateScore(winner);
         roundIsOver();
     }
     

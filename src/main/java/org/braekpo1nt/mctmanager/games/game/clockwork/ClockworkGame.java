@@ -509,8 +509,10 @@ public class ClockworkGame implements Listener, MCTGame, Configurable {
         }
     }
     
-    public void displayScore(String teamId) {
-        displayScore(teams.get(teamId));
+    public void updateScore(ClockworkRoundTeam team) {
+        ClockworkTeam clockworkTeam = teams.get(team.getTeamId());
+        clockworkTeam.setScore(team.getScore());
+        displayScore(clockworkTeam);
     }
     
     private void displayScore(ClockworkTeam team) {
@@ -524,8 +526,10 @@ public class ClockworkGame implements Listener, MCTGame, Configurable {
         }
     }
     
-    public void displayScore(UUID uuid) {
-        displayScore(participants.get(uuid));
+    public void updateScore(ClockworkRoundParticipant participant) {
+        ClockworkParticipant clockworkParticipant = participants.get(participant.getUniqueId());
+        clockworkParticipant.setScore(participant.getScore());
+        displayScore(clockworkParticipant);
     }
     
     private void displayScore(ClockworkParticipant participant) {
