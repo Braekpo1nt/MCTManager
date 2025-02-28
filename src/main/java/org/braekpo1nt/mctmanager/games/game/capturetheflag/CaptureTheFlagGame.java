@@ -19,7 +19,6 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
-import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
@@ -248,7 +247,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     
     @Override
     public void onParticipantQuit(Participant participant, Team team) {
-        Main.logger().info("onParticipantQuit " + participant.getName());
         if (state == null) {
             return;
         }
@@ -263,7 +261,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
      * called when a participant on the given team quits, not just when the last member quits
      * @param team the team that had a member quit
      */
-    public void onTeamQuit(TeamData<CTFParticipant> team) {
+    public void onTeamQuit(CTFTeam team) {
         if (team.size() > 0) {
             return;
         }
@@ -309,10 +307,10 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
                 new KeyLine("round", "")
         );
         for (CTFTeam team : teams.values()) {
-            updateScore(team);
+            displayScore(team);
         }
         for (CTFParticipant participant : participants.values()) {
-            updateScore(participant);
+            displayScore(participant);
         }
     }
     
@@ -357,7 +355,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         adminSidebar = null;
     }
     
-    public void updateScore(CTFTeam team) {
+    public void displayScore(CTFTeam team) {
         Component contents = Component.empty()
                 .append(team.getFormattedDisplayName())
                 .append(Component.text(": "))
@@ -368,7 +366,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         }
     }
     
-    public void updateScore(CTFParticipant participant) {
+    public void displayScore(CTFParticipant participant) {
         sidebar.updateLine(participant.getUniqueId(), "personalScore", Component.empty()
                 .append(Component.text("Personal: "))
                 .append(Component.text(participant.getScore()))

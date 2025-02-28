@@ -367,16 +367,16 @@ public class CaptureTheFlagMatch {
         topbar.setDeaths(participant.getUniqueId(), newDeathCount);
     }
     
-    public void updateScore(CTFMatchTeam team) {
+    public void syncScores(CTFMatchTeam team) {
         CTFTeam ctfTeam = parentContext.getTeams().get(team.getTeamId());
         ctfTeam.setScore(team.getScore());
-        parentContext.updateScore(ctfTeam);
+        parentContext.displayScore(ctfTeam);
     }
     
-    public void updateScore(CTFMatchParticipant participant) {
+    public void syncScores(CTFMatchParticipant participant) {
         CTFParticipant ctfParticipant = parentContext.getParticipants().get(participant.getUniqueId());
         ctfParticipant.setScore(participant.getScore());
-        parentContext.updateScore(ctfParticipant);
+        parentContext.displayScore(ctfParticipant);
     }
     
     public void messageAllParticipants(Component message) {

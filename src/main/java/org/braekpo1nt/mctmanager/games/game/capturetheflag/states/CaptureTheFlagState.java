@@ -33,8 +33,8 @@ public interface CaptureTheFlagState {
         context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
         context.updateRoundLine(participant.getUniqueId());
         CTFParticipant ctfParticipant = context.getParticipants().get(participant.getUniqueId());
-        context.updateScore(ctfParticipant);
+        context.displayScore(ctfParticipant);
         CTFTeam ctfTeam = context.getTeams().get(ctfParticipant.getTeamId());
-        context.updateScore(ctfTeam);
+        context.displayScore(ctfTeam);
     }
 }

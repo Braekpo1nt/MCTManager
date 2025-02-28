@@ -105,7 +105,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
                 .append(Component.text("'s flag!"))
                 .color(NamedTextColor.YELLOW));
         winner.awardPoints(context.getConfig().getWinScore() * gameManager.getMultiplier());
-        context.updateScore(winner);
+        context.syncScores(winner);
         
         showWinLoseTitles(winner, loser);
         context.setState(new MatchOverState(context));
@@ -146,12 +146,12 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         killer.awardPoints(points);
         if (killer.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
             context.getNorthTeam().addPoints(points);
-            context.updateScore(context.getNorthTeam());
+            context.syncScores(context.getNorthTeam());
         } else {
             context.getSouthTeam().addPoints(points);
-            context.updateScore(context.getSouthTeam());
+            context.syncScores(context.getSouthTeam());
         }
-        context.updateScore(killer);
+        context.syncScores(killer);
     }
     
     @Override
