@@ -35,3 +35,7 @@ commands:
     description: Teleports the user to the highest solid block above their position
     permission: mctmanager.top
     permission-message: "You do not have permission to use this command"
+  t:
+    description: Send a message to your teammates
+    permission: mctmanager.t
+    permission-message: "You do not have permission to use this command"
