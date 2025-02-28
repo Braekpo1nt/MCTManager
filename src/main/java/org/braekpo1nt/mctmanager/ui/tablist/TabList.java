@@ -286,8 +286,7 @@ public class TabList {
     /**
      * Set the scores of the given teams
      * @param teamIdsToScores the teamIds to update mapped to their new scores. 
-     *                        (Any teamIds not in this TabList will be ignored
-     *                        and a log message will announce the error.)
+     *                        (Any teamIds not in this TabList will be ignored)
      */
     public void setScores(@NotNull Map<@NotNull String, @NotNull Integer> teamIdsToScores) {
         for (Map.Entry<String, Integer> entry : teamIdsToScores.entrySet()) {

@@ -53,7 +53,7 @@ public class ScoreAddTeamSubCommand extends TabSubCommand {
                 score = -currentScore;
             }
         }
-        gameManager.addScore(team.getTeamId(), score);
+        gameManager.addScore(team, score);
         int newScore = gameManager.getScore(teamId);
         return CommandResult.success(Component.empty()
                 .append(team.getFormattedDisplayName())

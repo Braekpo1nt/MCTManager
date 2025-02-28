@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.Preset;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -125,10 +126,10 @@ public class PresetApplySubCommand extends TabSubCommand {
         int teamCount = preset.getTeamCount();
         int participantCount = preset.getParticipantCount();
         for (Preset.PresetTeam team : preset.getTeams()) {
-            if (gameManager.hasTeam(team.getTeamId())) {
-                Component teamDisplayName = gameManager.getFormattedTeamDisplayName(team.getTeamId());
+            Team realTeam = gameManager.getTeam(team.getTeamId());
+            if (realTeam != null) {
                 results.add(CommandResult.success(Component.empty()
-                        .append(teamDisplayName)
+                        .append(realTeam.getFormattedDisplayName())
                         .append(Component.text(" already exists."))
                 ));
             } else {

@@ -367,7 +367,7 @@ public class EventManager implements Listener {
             if (teamCurrentScore - teamScoreToSubtract < 0) {
                 teamScoreToSubtract = teamCurrentScore;
             }
-            gameManager.addScore(team.getTeamId(), -teamScoreToSubtract);
+            gameManager.addScore(team, -teamScoreToSubtract);
             
             Collection<OfflineParticipant> participantsOnTeam = gameManager.getParticipantsOnTeam(team.getTeamId());
             for (OfflineParticipant participant : participantsOnTeam) {
@@ -376,7 +376,7 @@ public class EventManager implements Listener {
                 if (participantCurrentScore - participantScoreToSubtract < 0) {
                     participantScoreToSubtract = participantCurrentScore;
                 }
-                gameManager.addScore(participant.getUniqueId(), -participantScoreToSubtract);
+                gameManager.addScore(participant, -participantScoreToSubtract);
             }
         }
     }

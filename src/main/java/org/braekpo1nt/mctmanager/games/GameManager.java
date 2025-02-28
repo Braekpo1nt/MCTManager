@@ -1315,11 +1315,13 @@ public class GameManager implements Listener {
      * @param participantScores map of UUID to score to add
      */
     public void updateScores(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores) {
+        Main.logf("%d teams, %d participants for updateScores", teamScores.size(), participantScores.size());
         for (Map.Entry<String, Integer> entry : teamScores.entrySet()) {
             String teamId = entry.getKey();
             int newScore = entry.getValue();
             MCTTeam team = teams.get(teamId);
             teams.put(teamId, new MCTTeam(team, team.getScore() + newScore));
+            Main.logf("%s: newScore=%d, added=%d", teamId, newScore, team.getScore() + newScore);
         }
         for (Map.Entry<UUID, Integer> entry : participantScores.entrySet()) {
             UUID uuid = entry.getKey();
@@ -1327,6 +1329,7 @@ public class GameManager implements Listener {
             OfflineParticipant offlineParticipant = allParticipants.get(uuid);
             allParticipants.put(uuid, new OfflineParticipant(offlineParticipant, 
                     offlineParticipant.getScore() + newScore));
+            Main.logf("%s: newScore=%d, added=%d", offlineParticipant.getName(), newScore, offlineParticipant.getScore() + newScore);
             Participant participant = onlineParticipants.get(uuid);
             if (participant != null) {
                 onlineParticipants.put(uuid, new Participant(participant, 
@@ -1399,7 +1402,7 @@ public class GameManager implements Listener {
         }
         double multiplier = eventManager.matchProgressPointMultiplier();
         int multipliedPoints = (int) (points * multiplier);
-        addScore(uuid, points);
+        addScore(participant, points);
         addScore(team, multipliedPoints);
         if (activeGame != null) {
             eventManager.trackPoints(uuid, points, activeGame.getType());
@@ -1476,23 +1479,6 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Gets the team's display name as a Component with the team's text color
-     * and in bold
-     * @param teamId The internal name of the team
-     * @return A Component with the formatted team dislay name
-     * @deprecated in favor of {@link Team#getFormattedDisplayName()}
-     */
-    @Deprecated
-    public @NotNull Component getFormattedTeamDisplayName(@NotNull String teamId) {
-        // TODO: Team delete this method
-        MCTTeam team = teams.get(teamId);
-        if (team == null) {
-            return Component.empty();
-        }
-        return team.getFormattedDisplayName();
-    }
-    
-    /**
      * @return a copy of the list of online participants. Modifying this will not change
      *      * the online participants
      */
@@ -1554,9 +1540,16 @@ public class GameManager implements Listener {
         return team.getMemberUUIDs().stream().map(allParticipants::get).collect(Collectors.toSet());
     }
     
-    public void addScoreParticipants(Collection<Participant> participants, int score) {
+    private void addScoreParticipants(Collection<Participant> participants, int score) {
+        for (Participant participant : participants) {
+            OfflineParticipant offlineParticipant = allParticipants.get(participant.getUniqueId());
+            allParticipants.put(participant.getUniqueId(),
+                    new OfflineParticipant(offlineParticipant, offlineParticipant.getScore() + score));
+            onlineParticipants.put(participant.getUniqueId(),
+                    new Participant(participant, participant.getScore() + score));
+        }
         try {
-            gameStateStorageUtil.addScorePlayers(participants.stream().map(Participant::getUniqueId).toList(), score);
+            gameStateStorageUtil.updateParticipantScores(allParticipants.values());
             plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
                     gameStateStorageUtil.saveGameState());
             updatePersonalScores(participants);
@@ -1566,100 +1559,66 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Adds the given score to the participant with the given UUID
-     * @param participantUUID The UUID of the participant to add the score to
-     * @param score The score to add. Could be positive or negative.
-     */
-    public void addScore(UUID participantUUID, int score) {
-        try {
-            gameStateStorageUtil.addScore(participantUUID, score);
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
-                    gameStateStorageUtil.saveGameState());
-            Participant participant = onlineParticipants.get(participantUUID);
-            if (participant != null) {
-                updatePersonalScore(participant);
-            }
-        } catch (ConfigIOException e) {
-            reportGameStateException("adding score to player", e);
-        }
-    }
-    
-    /**
      * Adds the given score to each of the given teams
      * <br>
-     * Use this instead of calling {@link #addScore(MCTTeam, int)} for each teamId because this is more
+     * Use this instead of calling {@link #addScore(Team, int)} for each teamId because this is more
      * efficient in that it only writes to the {@link org.braekpo1nt.mctmanager.games.gamestate.GameState} once
-     * @param updateTeams the teamIds to add the score to. Must all be valid teamIds.
+     * @param theTeams the teamIds to add the score to. Must all be valid teamIds.
      * @param score the score to add. Could be positive or negative.
      */
-    private void addScoreTeams(Collection<MCTTeam> updateTeams, int score) {
-        Set<String> teamIds = Team.getTeamIds(updateTeams);
+    private void addScoreTeams(Collection<MCTTeam> theTeams, int score) {
+        for (MCTTeam team : theTeams) {
+            teams.put(team.getTeamId(), new MCTTeam(team, team.getScore() + score));
+        }
         try {
-            gameStateStorageUtil.addScoreTeams(teamIds, score);
+            gameStateStorageUtil.updateTeamScores(teams.values());
             plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
                     gameStateStorageUtil.saveGameState());
-            updateTeamScores(updateTeams);
+            updateTeamScores(teams.values());
         } catch (ConfigIOException e) {
             reportGameStateException("adding score to teams", e);
         }
     }
     
     /**
-     * Adds the given score to the given team
-     * @param teamId The team to add the score to
+     * Adds the given score to the participant with the given UUID
+     * @param participant The participant to add the score to
      * @param score The score to add. Could be positive or negative.
      */
-    public void addScore(@NotNull String teamId, int score) {
-        MCTTeam team = teams.get(teamId);
-        if (team == null) {
-            return;
-        }
-        addScore(team, score);
+    public void addScore(OfflineParticipant participant, int score) {
+        setScore(participant, participant.getScore() + score);
     }
     
     /**
      * Adds the given score to the given team
-     * @param team The {@link MCTTeam} to add the score to
+     * @param team The team to add the score to
      * @param score The score to add. Could be positive or negative.
      */
-    private void addScore(@NotNull MCTTeam team, int score) {
-        try {
-            gameStateStorageUtil.addScore(team.getTeamId(), score);
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
-                    gameStateStorageUtil.saveGameState());
-            updateTeamScore(team);
-        } catch (ConfigIOException e) {
-            reportGameStateException("adding score to team", e);
-        }
+    public void addScore(@NotNull Team team, int score) {
+        setScore(team, team.getScore() + score);
     }
     
-    /**
-     * Sets the score of the participant with the given UUID to the given value
-     * @param participantUUID The UUID of the participant to set the score to
-     * @param score The score to set to. If the score is negative, the score will be set to 0.
-     */
-    public void setScore(UUID participantUUID, int score) {
-        OfflineParticipant offlineParticipant = allParticipants.get(participantUUID);
-        if (offlineParticipant == null) {
-            return;
-        }
-        MCTTeam team = teams.get(offlineParticipant.getTeamId());
-        if (team == null) {
-            return;
+    public void setScore(@NotNull OfflineParticipant participant, int value) {
+        int score = Math.max(0, value);
+        OfflineParticipant updated = new OfflineParticipant(participant, score);
+        allParticipants.put(participant.getUniqueId(), updated);
+        Participant oldOnline = onlineParticipants.get(participant.getUniqueId());
+        Participant updatedOnline;
+        if (oldOnline != null) {
+            updatedOnline = new Participant(oldOnline, score);
+            onlineParticipants.put(participant.getUniqueId(), updatedOnline);
+        } else {
+            updatedOnline = null;
         }
         try {
-            if (score < 0) {
-                gameStateStorageUtil.setScore(participantUUID, 0);
-                return;
-            }
-            gameStateStorageUtil.setScore(participantUUID, score);
+            gameStateStorageUtil.updateScore(updated);
             plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
                     gameStateStorageUtil.saveGameState());
-            Participant participant = onlineParticipants.get(participantUUID);
-            if (participant != null) {
-                updatePersonalScore(participant);
+            if (updatedOnline != null) {
+                updatePersonalScore(updatedOnline);
             }
-            updateTeamScore(team);
+            // TODO: Participant does this need to be here?
+            updateTeamScore(teams.get(updated.getTeamId()));
         } catch (ConfigIOException e) {
             reportGameStateException("setting a player's score", e);
         }
@@ -1667,23 +1626,22 @@ public class GameManager implements Listener {
     
     /**
      * Sets the score of the team with the given name to the given value
-     * @param teamId The UUID of the participant to set the score to
-     * @param score The score to set to. If the score is negative, the score will be set to 0.
+     * @param team The UUID of the participant to set the score to
+     * @param value The score to set to. If the score is negative, the score will be set to 0.
      */
-    public void setScore(String teamId, int score) {
-        MCTTeam team = teams.get(teamId);
-        if (team == null) {
+    public void setScore(Team team, int value) {
+        int score = Math.max(0, value);
+        MCTTeam old = teams.get(team.getTeamId());
+        if (old == null) {
             return;
         }
+        MCTTeam updated = new MCTTeam(old, score);
+        teams.put(old.getTeamId(), updated);
         try {
-            if (score < 0) {
-                gameStateStorageUtil.setScore(teamId, 0);
-                return;
-            }
-            gameStateStorageUtil.setScore(teamId, score);
+            gameStateStorageUtil.updateScore(updated);
             plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
                     gameStateStorageUtil.saveGameState());
-            updateTeamScore(team);
+            updateTeamScore(updated);
         } catch (ConfigIOException e) {
             reportGameStateException("adding score to team", e);
         }
@@ -1691,15 +1649,22 @@ public class GameManager implements Listener {
     
     /**
      * Set all the teams and players scores to the given score
-     * @param score the score to set to. If the score is negative, the score will be set to 0.
+     * @param value the score to set to. If the score is negative, the score will be set to 0.
      */
-    public void setScoreAll(int score) {
-        try {
-            if (score < 0) {
-                gameStateStorageUtil.setAllScores(0);
-                return;
+    public void setScoreAll(int value) {
+        int score = Math.max(0, value);
+        for (MCTTeam team : teams.values()) {
+            teams.put(team.getTeamId(), new MCTTeam(team, score));
+        }
+        for (OfflineParticipant participant : allParticipants.values()) {
+            allParticipants.put(participant.getUniqueId(), new OfflineParticipant(participant, score));
+            Participant online = onlineParticipants.get(participant.getUniqueId());
+            if (online != null) {
+                onlineParticipants.put(participant.getUniqueId(), new Participant(online, score));
             }
-            gameStateStorageUtil.setAllScores(score);
+        }
+        try {
+            gameStateStorageUtil.updateScores(teams.values(), allParticipants.values());
             plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
                     gameStateStorageUtil.saveGameState());
             updatePersonalScores(onlineParticipants.values());
@@ -1713,7 +1678,9 @@ public class GameManager implements Listener {
      * Gets the score of the given team
      * @param teamId The team to get the score of
      * @return The score of the given team
+     * @deprecated use {@link Team#getScore()}
      */
+    @Deprecated
     public int getScore(String teamId) {
         return gameStateStorageUtil.getTeamScore(teamId);
     }
@@ -1722,7 +1689,9 @@ public class GameManager implements Listener {
      * Gets the score of the participant with the given UUID
      * @param participantUniqueId The UUID of the participant to get the score of
      * @return The score of the participant with the given UUID
+     * @deprecated use {@link OfflineParticipant#getScore()}
      */
+    @Deprecated
     public int getScore(UUID participantUniqueId) {
         return gameStateStorageUtil.getParticipantScore(participantUniqueId);
     }
@@ -1970,7 +1939,9 @@ public class GameManager implements Listener {
      * Update the displays of the given participants to reflect their current scores.
      * Also updates their team scores.
      * @param participants the participants to update
+     * @deprecated in favor of {@link #updateScores(Map, Map)}
      */
+    @Deprecated
     private void updatePersonalScores(Collection<Participant> participants) {
         // perform this check and cast one time instead of for each player
         Headerable headerable = activeGame instanceof Headerable ? (Headerable) activeGame : null;
@@ -1995,7 +1966,9 @@ public class GameManager implements Listener {
      * Update the display of the given participant to reflect their current score.
      * Also updates their team scores.
      * @param participant the participant to update
+     * @deprecated in favor of {@link #updateScores(Map, Map)}
      */
+    @Deprecated
     private void updatePersonalScore(Participant participant) {
         int score = getScore(participant.getUniqueId());
         Component contents = Component.empty()

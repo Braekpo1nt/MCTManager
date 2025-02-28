@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -32,7 +33,8 @@ public class ScoreSetPlayerSubCommand extends TabSubCommand {
         String playerName = args[0];
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
         
-        if (gameManager.getOfflineParticipant(offlinePlayer.getUniqueId()) == null) {
+        OfflineParticipant offlineParticipant = gameManager.getOfflineParticipant(offlinePlayer.getUniqueId());
+        if (offlineParticipant == null) {
             return CommandResult.failure(Component.empty()
                     .append(Component.text(playerName)
                             .decorate(TextDecoration.BOLD))
@@ -49,7 +51,7 @@ public class ScoreSetPlayerSubCommand extends TabSubCommand {
         if (score < 0) {
             return CommandResult.failure(Component.text("Score must be at least 0"));
         }
-        gameManager.setScore(offlinePlayer.getUniqueId(), score);
+        gameManager.setScore(offlineParticipant, score);
         int newScore = gameManager.getScore(offlinePlayer.getUniqueId());
         return CommandResult.success(Component.empty()
                 .append(Component.text(playerName))

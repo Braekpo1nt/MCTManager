@@ -59,7 +59,7 @@ public class ScoreAddPlayerSubCommand extends TabSubCommand {
         if (currentScore + score < 0) {
             score = -currentScore;
         }
-        gameManager.addScore(offlinePlayer.getUniqueId(), score);
+        gameManager.addScore(offlineParticipant, score);
         int newScore = gameManager.getScore(offlinePlayer.getUniqueId());
         return CommandResult.success(Component.empty()
                 .append(Component.text(playerName))

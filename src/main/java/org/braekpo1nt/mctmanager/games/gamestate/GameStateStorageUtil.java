@@ -206,15 +206,36 @@ public class GameStateStorageUtil {
     }
     
     public void updateScores(Collection<org.braekpo1nt.mctmanager.participant.MCTTeam> teams, Collection<OfflineParticipant> participants) {
+        Main.logf("storage util: %d teams, %d participants", teams.size(), participants.size());
+        updateTeamScores(teams);
+        updateParticipantScores(participants);
+    }
+    
+    public void updateScore(OfflineParticipant participant) {
+        Objects.requireNonNull(gameState.getPlayer(participant.getUniqueId()),
+                        "attempted to update score of non-existent participant")
+                .setScore(participant.getScore());
+    }
+    
+    public void updateParticipantScores(Collection<OfflineParticipant> participants) {
+        for (OfflineParticipant participant : participants) {
+            MCTPlayer player = Objects.requireNonNull(
+                    gameState.getPlayer(participant.getUniqueId()),
+                    "attempted to update the score of a participant who is not in the GameState");
+            Main.logf("%s.getScore=%d", player.getName(), player.getScore());
+            player.setScore(participant.getScore());
+        }
+    }
+    
+    public void updateScore(org.braekpo1nt.mctmanager.participant.MCTTeam team) {
+        gameState.getTeam(team.getTeamId()).setScore(team.getScore());
+    }
+    
+    public void updateTeamScores(Collection<org.braekpo1nt.mctmanager.participant.MCTTeam> teams) {
         for (org.braekpo1nt.mctmanager.participant.MCTTeam team : teams) {
             MCTTeam mctTeam = gameState.getTeam(team.getTeamId());
             mctTeam.setScore(team.getScore());
-        }
-        for (OfflineParticipant participant : participants) {
-            MCTPlayer player = Objects.requireNonNull(
-                    gameState.getPlayer(participant.getUniqueId()), 
-                    "attempted to update the score of a participant who is not in the GameState");
-            player.setScore(participant.getScore());
+            Main.logf("%s.getScore=%d", mctTeam.getName(), mctTeam.getScore());
         }
     }
     
@@ -284,90 +305,6 @@ public class GameStateStorageUtil {
      */
     public List<UUID> getPlayerUniqueIds() {
         return gameState.getPlayers().keySet().stream().toList();
-    }
-    
-    /**
-     * Add the given score to the given player
-     * <b>Important:</b> This does not save the game state, it must be done manually with {@link #saveGameState()}
-     * @param uuid the uuid of the player to add the score to
-     * @param score the score to add
-     */
-    public void addScore(UUID uuid, int score) {
-        MCTPlayer player = gameState.getPlayers().get(uuid);
-        player.setScore(player.getScore() + score);
-    }
-    
-    /**
-     * Add the given score to the given players
-     * <b>Important:</b> This does not save the game state, it must be done manually with {@link #saveGameState()}
-     * @param uuids the uuids of the players to add the score to
-     * @param score the score to add
-     */
-    public void addScorePlayers(Collection<UUID> uuids, int score) {
-        for (UUID uuid : uuids) {
-            MCTPlayer player = gameState.getPlayers().get(uuid);
-            player.setScore(player.getScore() + score);
-        }
-    }
-    
-    /**
-     * Add the given score to the given team
-     * <b>Important:</b> This does not save the game state, it must be done manually with {@link #saveGameState()}
-     * @param teamId the teamId of the team to add the score to
-     * @param score the score to add
-     */
-    public void addScore(String teamId, int score) {
-        MCTTeam team = gameState.getTeams().get(teamId);
-        team.setScore(team.getScore() + score);
-    }
-    
-    /**
-     * Adds the given score to each given teamId
-     * <b>Important:</b> This does not save the game state, it must be done manually with {@link #saveGameState()}
-     * @param teamIds the teamIds to add the score to
-     * @param score the score to add
-     */
-    public void addScoreTeams(Collection<String> teamIds, int score) {
-        for (String teamId : teamIds) {
-            MCTTeam team = gameState.getTeams().get(teamId);
-            team.setScore(team.getScore() + score);
-        }
-    }
-    
-    /**
-     * Sets the score of the given player to the given value
-     * <b>Important:</b> This does not save the game state, it must be done manually with {@link #saveGameState()}
-     * @param uuid the uuid of the player to set the score of
-     * @param score the score to set to
-     */
-    public void setScore(UUID uuid, int score) {
-        MCTPlayer player = gameState.getPlayers().get(uuid);
-        player.setScore(score);
-    }
-    
-    /**
-     * Sets the score of the given team to the given value
-     * <b>Important:</b> This does not save the game state, it must be done manually with {@link #saveGameState()}
-     * @param teamId the uuid of the team to set the score of
-     * @param score the score to set to
-     */
-    public void setScore(String teamId, int score) {
-        MCTTeam team = gameState.getTeams().get(teamId);
-        team.setScore(score);
-    }
-    
-    /**
-     * Sets the score of all teams and players to the given value
-     * <b>Important:</b> This does not save the game state, it must be done manually with {@link #saveGameState()}
-     * @param score the score to set to
-     */
-    public void setAllScores(int score) {
-        for (MCTPlayer player : gameState.getPlayers().values()) {
-            player.setScore(score);
-        }
-        for (MCTTeam team : gameState.getTeams().values()) {
-            team.setScore(score);
-        }
     }
     
     public int getTeamScore(String teamId) {

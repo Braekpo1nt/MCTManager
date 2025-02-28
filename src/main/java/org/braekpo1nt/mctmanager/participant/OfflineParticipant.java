@@ -119,5 +119,4 @@ public class OfflineParticipant implements AudienceDelegate {
         return displayName;
     }
     
-    
 }
