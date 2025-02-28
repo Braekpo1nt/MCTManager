@@ -196,6 +196,8 @@ public class ClockworkGame implements Listener, MCTGame, Configurable {
         clearSidebar();
         stopAdmins();
         participants.clear();
+        quitDatas.clear();
+        teamQuitDatas.clear();
         gameManager.gameIsOver();
         Main.logger().info("Stopping Clockwork");
     }
