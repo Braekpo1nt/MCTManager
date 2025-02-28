@@ -116,6 +116,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         }
         participants = new HashMap<>(newParticipants.size());
         this.quitDatas = new HashMap<>();
+        this.teamQuitDatas = new HashMap<>();
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
         Set<String> teamIds = Participant.getTeamIds(newParticipants);

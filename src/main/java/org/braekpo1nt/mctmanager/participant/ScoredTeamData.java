@@ -4,7 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 
-public class ScoredTeamData<T extends Participant> extends TeamData<T> {
+public abstract class ScoredTeamData<T extends Participant> extends TeamData<T> {
     
     private int score;
     

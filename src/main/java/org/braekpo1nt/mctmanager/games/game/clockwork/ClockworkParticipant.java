@@ -1,25 +1,22 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.ParticipantData;
 import org.jetbrains.annotations.NotNull;
 
-@ToString(callSuper = true)
-@Getter
-@Setter
-public class ClockworkParticipant extends Participant {
-    
-    private boolean alive;
-    
-    public ClockworkParticipant(@NotNull Participant participant, boolean alive) {
-        super(participant);
-        this.alive = alive;
+public class ClockworkParticipant extends ParticipantData {
+    public ClockworkParticipant(@NotNull Participant participant, int score) {
+        super(participant, score);
     }
     
-    public ClockworkParticipant(@NotNull Participant participant) {
-        this(participant, true);
+    @Data
+    public static class QuitData {
+        private final int score;
+    }
+    
+    public QuitData getQuitData() {
+        return new QuitData(getScore());
     }
     
 }

@@ -5,7 +5,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.jetbrains.annotations.NotNull;
 
-public class ParticipantData extends Participant {
+public abstract class ParticipantData extends Participant {
     
     private int score;
     
