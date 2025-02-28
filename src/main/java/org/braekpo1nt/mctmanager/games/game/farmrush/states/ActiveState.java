@@ -58,7 +58,7 @@ public class ActiveState extends GameplayState {
     @Override
     public void onCloseInventory(InventoryCloseEvent event, Participant participant) {
         FarmRushTeam team = context.getTeams().get(participant.getTeamId());
-        int oldScore = team.getTotalScore();
+        int oldScore = team.getScore();
         sellItemsOnCloseInventory(event, participant);
         if (context.getConfig().shouldEnforceMaxScore() && teamReachedMaxScore(team)) {
             onTeamReachMaxScore(team);
@@ -66,7 +66,7 @@ public class ActiveState extends GameplayState {
         }
         int warningThreshold = calculateWarningThreshold();
         boolean teamWasNotAboveThreshold = oldScore < warningThreshold;
-        boolean teamIsNowAboveThreshold = team.getTotalScore() >= warningThreshold;
+        boolean teamIsNowAboveThreshold = team.getScore() >= warningThreshold;
         if (context.getConfig().shouldEnforceMaxScore() && 
                 context.getConfig().shouldWarnAtThreshold() && 
                 teamWasNotAboveThreshold && teamIsNowAboveThreshold) {
@@ -75,12 +75,14 @@ public class ActiveState extends GameplayState {
     }
     
     private boolean teamReachedMaxScore(FarmRushTeam team) {
-        return team.getTotalScore() >= getTrueMaxScore();
+        return team.getScore() >= getTrueMaxScore();
     }
     
     private void onTeamReachMaxScore(FarmRushTeam winingTeam) {
         gameTimer.cancel();
-        gameManager.awardPointsToTeam(winingTeam, context.getConfig().getWinnerBonus());
+        int multiplied = (int) (gameManager.getMultiplier() * context.getConfig().getWinnerBonus());
+        winingTeam.awardPoints(multiplied);
+        context.displayScore(winingTeam);
         context.messageAllParticipants(Component.empty()
                 .append(winingTeam.getFormattedDisplayName())
                 .append(Component.text(" reached "))
@@ -122,7 +124,7 @@ public class ActiveState extends GameplayState {
         context.messageAllParticipants(Component.empty()
                 .append(team.getFormattedDisplayName())
                 .append(Component.text(" has "))
-                .append(Component.text(team.getTotalScore())
+                .append(Component.text(team.getScore())
                         .color(NamedTextColor.GOLD)
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text("/"))

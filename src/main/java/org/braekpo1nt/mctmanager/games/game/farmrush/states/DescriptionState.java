@@ -5,6 +5,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
+import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
@@ -43,13 +44,13 @@ public class DescriptionState implements FarmRushState {
     @Override
     public void onParticipantJoin(Participant player, Team team) {
         context.onTeamJoin(team);
-        context.initializeParticipant(player);
+        context.initializeParticipant(player, 0);
         context.getSidebar().updateLine(player.getUniqueId(), "title", context.getTitle());
         player.sendMessage(context.getConfig().getDescription());
     }
     
     @Override
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantQuit(FarmRushParticipant participant) {
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
     }

@@ -27,7 +27,7 @@ public class TabList {
      */
     @Data
     @AllArgsConstructor
-    public static class PlayerData {
+    protected static class PlayerData {
         private final @NotNull Player player;
         /**
          * True if the TabList should be visible to this player
@@ -41,7 +41,7 @@ public class TabList {
      */
     @Data
     @AllArgsConstructor
-    public static class ParticipantData {
+    protected static class ParticipantData {
         private final @NotNull String name;
         private final @NotNull String teamId;
         private boolean grey;
@@ -62,7 +62,7 @@ public class TabList {
     
     @Data
     @AllArgsConstructor
-    public static class TeamData {
+    protected static class TeamData {
         private final @NotNull TextColor color;
         private final @NotNull String name;
         private final @NotNull List<ParticipantData> participants;

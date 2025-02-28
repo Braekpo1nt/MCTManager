@@ -27,7 +27,6 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
-import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
@@ -76,7 +75,7 @@ import java.util.*;
 import java.util.List;
 
 @Data
-public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener {
+public class FarmRushGame implements MCTGame, Configurable, Listener {
     
     @SuppressWarnings("SpellCheckingInspection")
     public static final NamespacedKey HAS_SCORE_LORE = NamespacedKey.minecraft("hasscorelore");
@@ -105,8 +104,10 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     private final List<Player> admins = new ArrayList<>();
     private Sidebar sidebar;
     private Sidebar adminSidebar;
-    private final Map<UUID, Participant> participants = new HashMap<>();
+    private final Map<UUID, FarmRushParticipant> participants = new HashMap<>();
+    private Map<UUID, FarmRushParticipant.QuitData> quitDatas = new HashMap<>();
     private final Map<String, FarmRushTeam> teams = new HashMap<>();
+    
     private @Nullable ItemStack materialBook;
     
     public FarmRushGame(Main plugin, GameManager gameManager) {
@@ -139,14 +140,16 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         int arenaOrder = 0;
         for (Team team : newTeams) {
             Arena arena = arenas.get(team.getTeamId());
-            FarmRushTeam farmRushTeam = new FarmRushTeam(team, arena, arenaOrder);
+            FarmRushTeam farmRushTeam = new FarmRushTeam(team, arena, arenaOrder, 0);
             arenaOrder++;
             teams.put(farmRushTeam.getTeamId(), farmRushTeam);
             Main.logger().info(String.format("FarmRush.start(): Team %s size is %d", farmRushTeam.getTeamId(), farmRushTeam.getMemberUUIDs().size()));
         }
+        this.participants.clear();
+        this.quitDatas = new HashMap<>();
         placeArenas(arenas.values());
         for (Participant participant : newParticipants) {
-            initializeParticipant(participant);
+            initializeParticipant(participant, 0);
         }
         startAdmins(newAdmins);
         initializeSidebar();
@@ -325,7 +328,8 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
                 .orElse(null);
     }
     
-    public void initializeParticipant(Participant participant) {
+    public void initializeParticipant(Participant newParticipant, int score) {
+        FarmRushParticipant participant = new FarmRushParticipant(newParticipant, score);
         FarmRushTeam team = teams.get(participant.getTeamId());
         team.addParticipant(participant);
         participants.put(participant.getUniqueId(), participant);
@@ -374,20 +378,37 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         stopAdmins();
         cancelAllTasks();
         removeRecipes();
-        for (Participant participant : participants.values()) {
+        saveScores();
+        for (FarmRushParticipant participant : participants.values()) {
             resetParticipant(participant);
         }
         clearSidebar();
         removeArenas(teams.values().stream().map(FarmRushTeam::getArena).toList());
         teams.clear();
         participants.clear();
+        quitDatas.clear();
         TopCommand.setEnabled(false);
         gameManager.gameIsOver();
         powerupManager.stop();
         Main.logger().info("Stopping Farm Rush game");
     }
     
-    public void resetParticipant(Participant participant) {
+    private void saveScores() {
+        Map<String, Integer> teamScores = new HashMap<>();
+        Map<UUID, Integer> participantScores = new HashMap<>();
+        for (FarmRushTeam team : teams.values()) {
+            teamScores.put(team.getTeamId(), team.getScore());
+        }
+        for (FarmRushParticipant participant : participants.values()) {
+            participantScores.put(participant.getUniqueId(), participant.getScore());
+        }
+        for (Map.Entry<UUID, FarmRushParticipant.QuitData> entry : quitDatas.entrySet()) {
+            participantScores.put(entry.getKey(), entry.getValue().getScore());
+        }
+        gameManager.updateScores(teamScores, participantScores);
+    }
+    
+    public void resetParticipant(FarmRushParticipant participant) {
         FarmRushTeam team = teams.get(participant.getTeamId());
         team.removeParticipant(participant.getUniqueId());
         ParticipantInitializer.clearInventory(participant);
@@ -424,7 +445,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             newArena = lastInLine.getArena().offset(offset);
             newOrder = lastInLine.getArenaOrder() + 1;
         }
-        FarmRushTeam farmRushTeam = new FarmRushTeam(team, newArena, newOrder);
+        FarmRushTeam farmRushTeam = new FarmRushTeam(team, newArena, newOrder, 0);
         teams.put(farmRushTeam.getTeamId(), farmRushTeam);
         placeArenas(Collections.singletonList(newArena));
     }
@@ -442,7 +463,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         if (state == null) {
             return;
         }
-        Participant participant = participants.get(player.getUniqueId());
+        FarmRushParticipant participant = participants.get(player.getUniqueId());
         if (participant == null) {
             return;
         }
@@ -783,26 +804,22 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         plugin.getServer().updateRecipes();
     }
     
-    @Override
-    public void updatePersonalScore(Participant participant, Component contents) {
-        if (sidebar == null) {
-            return;
+    public void displayScore(FarmRushTeam team) {
+        Component contents = Component.empty()
+                .append(team.getFormattedDisplayName())
+                .append(Component.text(": "))
+                .append(Component.text(team.getScore())
+                        .color(NamedTextColor.GOLD));
+        for (UUID memberUUID : team.getMemberUUIDs()) {
+            sidebar.updateLine(memberUUID, "personalTeam", contents);
         }
-        if (!participants.containsKey(participant.getUniqueId())) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
     }
     
-    @Override
-    public void updateTeamScore(Participant participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.containsKey(participant.getUniqueId())) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
+    public void displayScore(FarmRushParticipant participant) {
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", Component.empty()
+                .append(Component.text("Personal: "))
+                .append(Component.text(participant.getScore()))
+                .color(NamedTextColor.GOLD));
     }
     
     private void initializeSidebar() {
@@ -812,6 +829,12 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
                 new KeyLine("title", title),
                 new KeyLine("timer", Component.empty())
         );
+        for (FarmRushTeam team : teams.values()) {
+            displayScore(team);
+        }
+        for (FarmRushParticipant participant : participants.values()) {
+            displayScore(participant);
+        }
     }
     
     private void clearSidebar() {
