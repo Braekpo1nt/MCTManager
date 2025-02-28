@@ -206,7 +206,6 @@ public class GameStateStorageUtil {
     }
     
     public void updateScores(Collection<org.braekpo1nt.mctmanager.participant.MCTTeam> teams, Collection<OfflineParticipant> participants) {
-        Main.logf("storage util: %d teams, %d participants", teams.size(), participants.size());
         updateTeamScores(teams);
         updateParticipantScores(participants);
     }
@@ -222,7 +221,6 @@ public class GameStateStorageUtil {
             MCTPlayer player = Objects.requireNonNull(
                     gameState.getPlayer(participant.getUniqueId()),
                     "attempted to update the score of a participant who is not in the GameState");
-            Main.logf("%s.getScore=%d", player.getName(), player.getScore());
             player.setScore(participant.getScore());
         }
     }
@@ -235,7 +233,6 @@ public class GameStateStorageUtil {
         for (org.braekpo1nt.mctmanager.participant.MCTTeam team : teams) {
             MCTTeam mctTeam = gameState.getTeam(team.getTeamId());
             mctTeam.setScore(team.getScore());
-            Main.logf("%s.getScore=%d", mctTeam.getName(), mctTeam.getScore());
         }
     }
     

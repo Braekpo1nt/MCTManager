@@ -1315,13 +1315,11 @@ public class GameManager implements Listener {
      * @param participantScores map of UUID to score to add
      */
     public void updateScores(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores) {
-        Main.logf("%d teams, %d participants for updateScores", teamScores.size(), participantScores.size());
         for (Map.Entry<String, Integer> entry : teamScores.entrySet()) {
             String teamId = entry.getKey();
             int newScore = entry.getValue();
             MCTTeam team = teams.get(teamId);
             teams.put(teamId, new MCTTeam(team, team.getScore() + newScore));
-            Main.logf("%s: newScore=%d, added=%d", teamId, newScore, team.getScore() + newScore);
         }
         for (Map.Entry<UUID, Integer> entry : participantScores.entrySet()) {
             UUID uuid = entry.getKey();
@@ -1329,7 +1327,6 @@ public class GameManager implements Listener {
             OfflineParticipant offlineParticipant = allParticipants.get(uuid);
             allParticipants.put(uuid, new OfflineParticipant(offlineParticipant, 
                     offlineParticipant.getScore() + newScore));
-            Main.logf("%s: newScore=%d, added=%d", offlineParticipant.getName(), newScore, offlineParticipant.getScore() + newScore);
             Participant participant = onlineParticipants.get(uuid);
             if (participant != null) {
                 onlineParticipants.put(uuid, new Participant(participant, 
