@@ -3,7 +3,6 @@ package org.braekpo1nt.mctmanager.participant;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.braekpo1nt.mctmanager.Main;
 
 public class ScoredTeamData<T extends Participant> extends TeamData<T> {
     
