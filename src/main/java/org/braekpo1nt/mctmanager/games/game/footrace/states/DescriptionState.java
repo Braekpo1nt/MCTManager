@@ -3,7 +3,9 @@ package org.braekpo1nt.mctmanager.games.game.footrace.states;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceParticipant;
+import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceTeam;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,9 +30,9 @@ public class DescriptionState implements FootRaceState {
     }
     
     @Override
-    public void onParticipantJoin(Participant newParticipant) {
+    public void onParticipantJoin(Participant newParticipant, Team team) {
+        context.onTeamJoin(team);
         initializeParticipant(newParticipant);
-        // TODO: make initializeParticipant return the foot race participant?
         FootRaceParticipant participant = context.getParticipants().get(newParticipant.getUniqueId());
         context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
         context.getSidebar().updateLine(participant.getUniqueId(), "lap", Component.empty()
@@ -40,16 +42,19 @@ public class DescriptionState implements FootRaceState {
                 .append(Component.text(context.getConfig().getLaps())));
         context.updateStandings();
         context.displayStandings();
+        context.displayScore(context.getParticipants().get(participant.getUniqueId()));
+        context.displayScore(context.getTeams().get(team.getTeamId()));
         participant.sendMessage(context.getConfig().getDescription());
     }
     
     @Override
-    public void onParticipantQuit(FootRaceParticipant participant) {
+    public void onParticipantQuit(FootRaceParticipant participant, FootRaceTeam team) {
         resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
         context.getStandings().remove(participant);
         context.updateStandings();
         context.displayStandings();
+        context.onTeamQuit(team);
     }
     
     @Override

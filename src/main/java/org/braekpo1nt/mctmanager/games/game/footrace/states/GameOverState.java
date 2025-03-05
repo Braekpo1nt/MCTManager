@@ -4,7 +4,9 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceParticipant;
+import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceTeam;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.jetbrains.annotations.NotNull;
@@ -31,14 +33,15 @@ public class GameOverState implements FootRaceState {
     }
     
     @Override
-    public void onParticipantJoin(Participant newParticipant) {
+    public void onParticipantJoin(Participant newParticipant, Team team) {
         // do nothing
     }
     
     @Override
-    public void onParticipantQuit(FootRaceParticipant participant) {
+    public void onParticipantQuit(FootRaceParticipant participant, FootRaceTeam team) {
         resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
+        context.onTeamQuit(team);
     }
     
     @Override

@@ -6,10 +6,11 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceParticipant;
-import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceQuitData;
+import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceTeam;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -79,8 +80,9 @@ public class ActiveState implements FootRaceState {
     }
     
     @Override
-    public void onParticipantJoin(Participant newParticipant) {
-        FootRaceQuitData quitData = context.getQuitDatas().remove(newParticipant.getUniqueId());
+    public void onParticipantJoin(Participant newParticipant, Team team) {
+        context.onTeamJoin(team);
+        FootRaceParticipant.QuitData quitData = context.getQuitDatas().remove(newParticipant.getUniqueId());
         if (quitData != null) {
             FootRaceParticipant rejoinedParticipant = new FootRaceParticipant(newParticipant, quitData);
             rejoinParticipant(rejoinedParticipant);
@@ -102,6 +104,8 @@ public class ActiveState implements FootRaceState {
         }
         context.updateStandings();
         context.displayStandings();
+        context.displayScore(context.getParticipants().get(participant.getUniqueId()));
+        context.displayScore(context.getTeams().get(team.getTeamId()));
     }
     
     private void rejoinParticipant(FootRaceParticipant participant) {
@@ -129,13 +133,14 @@ public class ActiveState implements FootRaceState {
     }
     
     @Override
-    public void onParticipantQuit(FootRaceParticipant participant) {
+    public void onParticipantQuit(FootRaceParticipant participant, FootRaceTeam team) {
+        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
         resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
         context.getStandings().remove(participant);
         context.updateStandings();
         context.displayStandings();
-        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
+        context.onTeamQuit(team);
     }
     
     @Override
