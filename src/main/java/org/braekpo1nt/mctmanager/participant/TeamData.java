@@ -23,7 +23,7 @@ public class TeamData<T extends Participant> extends TeamInfo implements Audienc
     private final @NotNull Map<UUID, T> participants;
     private @NotNull Audience audience = Audience.empty();
     
-    public TeamData(Team team) {
+    public TeamData(@NotNull Team team) {
         super(team);
         participants = new HashMap<>();
     }
