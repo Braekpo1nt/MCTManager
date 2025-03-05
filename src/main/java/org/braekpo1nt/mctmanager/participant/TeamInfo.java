@@ -76,7 +76,7 @@ public abstract class TeamInfo implements Team {
      * Copy the immutable info from the given team
      * @param team the team to copy the info from
      */
-    public TeamInfo(Team team) {
+    public TeamInfo(@NotNull Team team) {
         this.teamId = team.getTeamId();
         this.displayName = team.getDisplayName();
         this.color = team.getColor();
