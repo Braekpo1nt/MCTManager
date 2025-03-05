@@ -12,7 +12,7 @@ public class CTFMatchTeam extends ScoredTeamData<CTFMatchParticipant> {
     @Getter
     private final @NotNull CaptureTheFlagMatch.Affiliation affiliation;
     
-    public CTFMatchTeam(CTFTeam ctfTeam, @NotNull CaptureTheFlagMatch.Affiliation affiliation) {
+    public CTFMatchTeam(@NotNull CTFTeam ctfTeam, @NotNull CaptureTheFlagMatch.Affiliation affiliation) {
         super(ctfTeam, ctfTeam.getScore());
         this.affiliation = affiliation;
     }
