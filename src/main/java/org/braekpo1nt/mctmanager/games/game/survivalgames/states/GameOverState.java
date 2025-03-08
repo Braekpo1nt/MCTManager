@@ -16,8 +16,6 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.UUID;
-
 public class GameOverState implements SurvivalGamesState {
     private final @NotNull SurvivalGamesGame context;
     
@@ -47,9 +45,12 @@ public class GameOverState implements SurvivalGamesState {
     public void onParticipantQuit(SurvivalGamesParticipant participant) {
         context.getParticipants().remove(participant.getUniqueId());
         SurvivalGamesTeam team = context.getTeams().get(participant.getTeamId());
+        team.removeParticipant(participant.getUniqueId());
         context.updateAliveCount(team);
         context.getTopbar().unlinkFromTeam(participant.getUniqueId());
+        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
         resetParticipant(participant);
+        context.onTeamQuit(context.getTeams().get(participant.getTeamId()));
     }
     
     @Override

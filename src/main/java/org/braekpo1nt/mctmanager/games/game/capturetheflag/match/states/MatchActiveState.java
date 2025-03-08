@@ -142,13 +142,13 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         }
         context.addKill(killer);
         UIUtils.showKillTitle(killer, killed);
-        int points = (int) (context.getConfig().getKillScore() * gameManager.getMultiplier());
-        killer.awardPoints(points);
+        int multiplied = (int) (context.getConfig().getKillScore() * gameManager.getMultiplier());
+        killer.awardPoints(multiplied);
         if (killer.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
-            context.getNorthTeam().addPoints(points);
+            context.getNorthTeam().addPoints(multiplied);
             context.syncScores(context.getNorthTeam());
         } else {
-            context.getSouthTeam().addPoints(points);
+            context.getSouthTeam().addPoints(multiplied);
             context.syncScores(context.getSouthTeam());
         }
         context.syncScores(killer);

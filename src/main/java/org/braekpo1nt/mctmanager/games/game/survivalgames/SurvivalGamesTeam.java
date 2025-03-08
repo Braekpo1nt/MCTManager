@@ -1,19 +1,17 @@
 package org.braekpo1nt.mctmanager.games.game.survivalgames;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
+import org.braekpo1nt.mctmanager.participant.ScoredTeamData;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.participant.TeamData;
 
 @ToString(callSuper = true)
 @Getter
 @Setter
-public class SurvivalGamesTeam extends TeamData<SurvivalGamesParticipant> {
+public class SurvivalGamesTeam extends ScoredTeamData<SurvivalGamesParticipant> {
     
-    public SurvivalGamesTeam(Team team) {
-        super(team);
+    public SurvivalGamesTeam(Team team, int score) {
+        super(team, score);
     }
     
     /**
@@ -29,5 +27,14 @@ public class SurvivalGamesTeam extends TeamData<SurvivalGamesParticipant> {
     
     public int getDead() {
         return (int) getParticipants().stream().filter(p -> !p.isAlive()).count();
+    }
+    
+    @Data
+    public static class QuitData {
+        private final int score;
+    }
+    
+    public QuitData getQuitData() {
+        return new QuitData(getScore());
     }
 }
