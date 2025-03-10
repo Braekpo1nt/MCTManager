@@ -19,6 +19,11 @@ public class SpleefRoundParticipant extends ParticipantData {
         alive = true;
     }
     
+    public SpleefRoundParticipant(@NotNull SpleefParticipant participant, QuitData quitData) {
+        super(participant, participant.getScore());
+        alive = quitData.isAlive();
+    }
+    
     @Data
     public static class QuitData {
         private final boolean alive;

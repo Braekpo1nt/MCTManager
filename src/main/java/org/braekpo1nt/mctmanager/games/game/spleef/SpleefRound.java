@@ -77,13 +77,18 @@ public class SpleefRound implements Listener {
         this.powerupManager.setConfig(config);
     }
     
-    public void start(Collection<Participant> newParticipants) {
+    public void start(Collection<SpleefParticipant> newParticipants, Collection<SpleefTeam> newTeams) {
         this.participants = new HashMap<>(newParticipants.size());
         this.quitDatas = new HashMap<>();
+        this.teams = new HashMap<>(newTeams.size());
+        for (SpleefTeam newTeam : newTeams) {
+            SpleefRoundTeam team = new SpleefRoundTeam(newTeam);
+            this.teams.put(team.getTeamId(), team);
+        }
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
         placeLayers(true);
-        for (Participant participant : newParticipants) {
+        for (SpleefParticipant participant : newParticipants) {
             initializeParticipant(participant);
         }
         initializeSidebar();
@@ -101,8 +106,8 @@ public class SpleefRound implements Listener {
         Main.logger().info("Starting Spleef round");
     }
     
-    private void initializeParticipant(Participant newParticipant) {
-        SpleefParticipant participant = new SpleefParticipant(newParticipant);
+    private void initializeParticipant(SpleefParticipant newParticipant) {
+        SpleefRoundParticipant participant = new SpleefRoundParticipant(newParticipant);
         participants.put(participant.getUniqueId(), participant);
         teleportParticipantToRandomStartingPosition(participant);
         ParticipantInitializer.clearInventory(participant);
@@ -111,15 +116,16 @@ public class SpleefRound implements Listener {
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
-    private void rejoinParticipant(SpleefParticipant participant) {
+    private void rejoinParticipant(SpleefRoundParticipant participant) {
         participants.put(participant.getUniqueId(), participant);
         participant.setGameMode(GameMode.SPECTATOR);
     }
     
-    private void resetParticipant(Participant participant) {
+    private void resetParticipant(SpleefRoundParticipant participant) {
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
+        teams.get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
         participant.setGameMode(GameMode.SPECTATOR);
     }
     
@@ -160,13 +166,13 @@ public class SpleefRound implements Listener {
         return roundActive;
     }
     
-    public void onParticipantJoin(Participant newParticipant) {
+    public void onParticipantJoin(SpleefParticipant newParticipant) {
         if (!roundActive) {
             return;
         }
-        SpleefParticipant.QuitData quitData = quitDatas.remove(newParticipant.getUniqueId());
+        SpleefRoundParticipant.QuitData quitData = quitDatas.remove(newParticipant.getUniqueId());
         if (quitData != null) {
-            SpleefParticipant participant = new SpleefParticipant(newParticipant, quitData);
+            SpleefRoundParticipant participant = new SpleefRoundParticipant(newParticipant, quitData);
             rejoinParticipant(participant);
         } else {
             initializeParticipant(newParticipant);

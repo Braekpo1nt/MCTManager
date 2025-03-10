@@ -98,10 +98,17 @@ public class SpleefGame implements Listener, MCTGame, Configurable {
     @Override
     public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
         participants = new HashMap<>(newParticipants.size());
+        this.quitDatas = new HashMap<>();
+        this.teamQuitDatas = new HashMap<>();
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
+        this.teams = new HashMap<>(newTeams.size());
+        for (Team newTeam : newTeams) {
+            SpleefTeam team = new SpleefTeam(newTeam, 0);
+            this.teams.put(team.getTeamId(), team);
+        }
         for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -125,8 +132,10 @@ public class SpleefGame implements Listener, MCTGame, Configurable {
         messageAllParticipants(config.getDescription());
     }
     
-    private void initializeParticipant(Participant participant) {
+    private void initializeParticipant(Participant newParticipant) {
+        SpleefParticipant participant = new SpleefParticipant(newParticipant, 0);
         participants.put(participant.getUniqueId(), participant);
+        teams.get(participant.getTeamId()).addParticipant(participant);
         sidebar.addPlayer(participant);
         teleportParticipantToRandomStartingPosition(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -193,6 +202,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable {
     
     private void resetParticipant(Participant participant) {
         ParticipantInitializer.clearInventory(participant);
+        teams.get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
         sidebar.removePlayer(participant.getUniqueId());
     }
     
@@ -390,7 +400,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable {
     }
     
     // make this private if above used
-    public void displayScore(SpleefTeam team) {
+    private void displayScore(SpleefTeam team) {
         Component contents = Component.empty()
                 .append(team.getFormattedDisplayName())
                 .append(Component.text(": "))
@@ -409,7 +419,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable {
     }
     
     // make this private if above used
-    public void displayScore(SpleefParticipant participant) {
+    private void displayScore(SpleefParticipant participant) {
         sidebar.updateLine(participant.getUniqueId(), "personalScore", Component.empty()
                 .append(Component.text("Personal: "))
                 .append(Component.text(participant.getScore()))
