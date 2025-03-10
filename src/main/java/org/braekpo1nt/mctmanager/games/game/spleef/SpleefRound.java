@@ -47,8 +47,9 @@ public class SpleefRound implements Listener {
     private final Sidebar adminSidebar;
     private final Random random = new Random();
     private SpleefConfig config;
-    private Map<UUID, SpleefParticipant> participants = new HashMap<>();
-    private Map<UUID, SpleefQuitData> quitDatas = new HashMap<>();
+    private Map<UUID, SpleefRoundParticipant> participants = new HashMap<>();
+    private Map<UUID, SpleefRoundParticipant.QuitData> quitDatas = new HashMap<>();
+    private Map<String, SpleefRoundTeam> teams = new HashMap<>();
     private boolean spleefHasStarted = false;
     private boolean roundActive = false;
     private final SpleefGame spleefGame;
@@ -163,7 +164,7 @@ public class SpleefRound implements Listener {
         if (!roundActive) {
             return;
         }
-        SpleefQuitData quitData = quitDatas.remove(newParticipant.getUniqueId());
+        SpleefParticipant.QuitData quitData = quitDatas.remove(newParticipant.getUniqueId());
         if (quitData != null) {
             SpleefParticipant participant = new SpleefParticipant(newParticipant, quitData);
             rejoinParticipant(participant);

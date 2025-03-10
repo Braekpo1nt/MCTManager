@@ -35,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
+public class SpleefGame implements Listener, MCTGame, Configurable {
     private final Main plugin;
     private final GameManager gameManager;
     private final Random random = new Random();
@@ -47,7 +47,10 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
             .append(Component.text("Spleef"))
             .color(NamedTextColor.BLUE);
     private Component title = baseTitle;
-    private Map<UUID, Participant> participants = new HashMap<>();
+    private Map<UUID, SpleefParticipant> participants = new HashMap<>();
+    private Map<UUID, SpleefParticipant.QuitData> quitDatas = new HashMap<>();
+    private Map<String, SpleefTeam> teams = new HashMap<>();
+    private Map<String, SpleefTeam.QuitData> teamQuitDatas = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     private List<SpleefRound> rounds = new ArrayList<>();
     private int currentRoundIndex = 0;
@@ -370,33 +373,52 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
                 new KeyLine("round", String.format("Round %d/%d", 1, config.getRounds())),
                 new KeyLine("timer", "")
         );
+        
+        for (SpleefTeam team : teams.values()) {
+            displayScore(team);
+        }
+        for (SpleefParticipant participant : participants.values()) {
+            displayScore(participant);
+        }
+    }
+    
+    // Only if you have subteams, like rounds
+    public void updateScore(SpleefRoundTeam team) {
+        SpleefTeam myTeam = teams.get(team.getTeamId());
+        myTeam.setScore(team.getScore());
+        displayScore(myTeam);
+    }
+    
+    // make this private if above used
+    public void displayScore(SpleefTeam team) {
+        Component contents = Component.empty()
+                .append(team.getFormattedDisplayName())
+                .append(Component.text(": "))
+                .append(Component.text(team.getScore())
+                        .color(NamedTextColor.GOLD));
+        for (UUID memberUUID : team.getMemberUUIDs()) {
+            sidebar.updateLine(memberUUID, "personalTeam", contents);
+        }
+    }
+    
+    // Only if you have sub-participants, like rounds
+    public void updateScore(SpleefRoundParticipant participant) {
+        SpleefParticipant myParticipant = participants.get(participant.getUniqueId());
+        myParticipant.setScore(participant.getScore());
+        displayScore(myParticipant);
+    }
+    
+    // make this private if above used
+    public void displayScore(SpleefParticipant participant) {
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", Component.empty()
+                .append(Component.text("Personal: "))
+                .append(Component.text(participant.getScore()))
+                .color(NamedTextColor.GOLD));
     }
     
     private void clearSidebar() {
         sidebar.deleteAllLines();
         sidebar = null;
-    }
-    
-    @Override
-    public void updateTeamScore(Participant participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.containsKey(participant.getUniqueId())) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
-    }
-    
-    @Override
-    public void updatePersonalScore(Participant participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.containsKey(participant.getUniqueId())) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
     }
     
     private void setupTeamOptions() {

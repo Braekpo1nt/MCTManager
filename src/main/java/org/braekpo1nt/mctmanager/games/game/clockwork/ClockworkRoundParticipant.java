@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
