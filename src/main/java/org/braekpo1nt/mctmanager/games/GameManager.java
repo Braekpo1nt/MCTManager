@@ -34,7 +34,6 @@ import org.braekpo1nt.mctmanager.participant.MCTTeam;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
-import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.ui.tablist.TabList;
@@ -1884,20 +1883,9 @@ public class GameManager implements Listener {
     private void updateTeamScores(Collection<MCTTeam> updateTeams) {
         Map<String, Integer> teamIdsToScores = new HashMap<>(updateTeams.size());
         // perform this check and cast one time instead of for each teamId
-        Headerable headerable = activeGame instanceof Headerable ? (Headerable) activeGame : null;
         for (MCTTeam team : updateTeams) {
             int teamScore = getScore(team.getTeamId());
             teamIdsToScores.put(team.getTeamId(), teamScore);
-            if (headerable != null) {
-                for (Participant participant : team.getOnlineMembers()) {
-                    headerable.updateTeamScore(participant, Component.empty()
-                            .append(team.getFormattedDisplayName())
-                            .append(Component.text(": "))
-                            .append(Component.text(teamScore)
-                                    .color(NamedTextColor.GOLD))
-                    );
-                }
-            }
         }
         if (eventManager.eventIsActive()) {
             eventManager.updateTeamScores();
@@ -1915,16 +1903,6 @@ public class GameManager implements Listener {
      */
     private void updateTeamScore(@NotNull MCTTeam team) {
         int teamScore = getScore(team.getTeamId());
-        if (activeGame != null && activeGame instanceof Headerable headerable) {
-            Component contents = Component.empty()
-                    .append(team.getFormattedDisplayName())
-                    .append(Component.text(": "))
-                    .append(Component.text(teamScore)
-                            .color(NamedTextColor.GOLD));
-            for (Participant participant : team.getOnlineMembers()) {
-                headerable.updateTeamScore(participant, contents);
-            }
-        }
         if (eventManager.eventIsActive()) {
             eventManager.updateTeamScores();
         }
@@ -1941,7 +1919,6 @@ public class GameManager implements Listener {
     @Deprecated
     private void updatePersonalScores(Collection<Participant> participants) {
         // perform this check and cast one time instead of for each player
-        Headerable headerable = activeGame instanceof Headerable ? (Headerable) activeGame : null;
         for (Participant participant : participants) {
             int score = getScore(participant.getUniqueId());
             Component contents = Component.empty()
@@ -1949,9 +1926,6 @@ public class GameManager implements Listener {
                     .append(Component.text(score))
                     .color(NamedTextColor.GOLD);
             // TODO: replace this loop with bulk operation update methods
-            if (headerable != null) {
-                headerable.updatePersonalScore(participant, contents);
-            }
             if (eventManager.eventIsActive()) {
                 eventManager.updatePersonalScore(participant, contents);
             }
@@ -1972,9 +1946,6 @@ public class GameManager implements Listener {
                 .append(Component.text("Personal: "))
                 .append(Component.text(score))
                 .color(NamedTextColor.GOLD);
-        if (activeGame != null && activeGame instanceof Headerable headerable) {
-            headerable.updatePersonalScore(participant, contents);
-        }
         if (eventManager.eventIsActive()) {
             eventManager.updatePersonalScore(participant, contents);
         }
