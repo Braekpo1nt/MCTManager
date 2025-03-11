@@ -39,6 +39,7 @@ public class GameOverState implements FootRaceState {
     
     @Override
     public void onParticipantQuit(FootRaceParticipant participant, FootRaceTeam team) {
+        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
         resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
         context.onTeamQuit(team);

@@ -202,9 +202,9 @@ public class RoundActiveState implements CaptureTheFlagState {
         } else {
             match.onParticipantQuit(participant);
         }
+        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
-        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
         context.onTeamQuit(context.getTeams().get(participant.getTeamId()));
     }
     

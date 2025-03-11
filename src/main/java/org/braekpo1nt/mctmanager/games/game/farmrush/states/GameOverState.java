@@ -41,6 +41,7 @@ public class GameOverState implements FarmRushState {
     
     @Override
     public void onParticipantQuit(FarmRushParticipant participant) {
+        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
     }
