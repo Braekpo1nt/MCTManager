@@ -46,28 +46,28 @@ class ParticipantTest {
     
     @Test
     void parkourParticipantEquals() {
-        ParkourParticipant subParticipant = new ParkourParticipant(participant);
+        ParkourParticipant subParticipant = new ParkourParticipant(participant, 0);
         
         Assertions.assertEquals(participant, subParticipant);
     }
     
     @Test
     void spleefParticipantEquals() {
-        SpleefParticipant subParticipant = new SpleefParticipant(participant);
+        SpleefParticipant subParticipant = new SpleefParticipant(participant, 0);
         
         Assertions.assertEquals(participant, subParticipant);
     }
     
     @Test
     void footRaceParticipantEquals() {
-        FootRaceParticipant subParticipant = new FootRaceParticipant(participant, 0);
+        FootRaceParticipant subParticipant = new FootRaceParticipant(participant, 0, 0);
         
         Assertions.assertEquals(participant, subParticipant);
     }
     
     @Test
     void survivalGamesParticipantEquals() {
-        SurvivalGamesParticipant subParticipant = new SurvivalGamesParticipant(participant);
+        SurvivalGamesParticipant subParticipant = new SurvivalGamesParticipant(participant, 0);
         
         Assertions.assertEquals(participant, subParticipant);
     }

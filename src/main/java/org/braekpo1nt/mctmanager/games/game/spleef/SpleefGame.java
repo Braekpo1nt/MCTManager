@@ -16,7 +16,6 @@ import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfigController
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
-import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
