@@ -47,8 +47,7 @@ public class ScoreSetTeamSubCommand extends TabSubCommand {
         if (score < 0) {
             return CommandResult.failure(Component.text("Score must be at least 0"));
         }
-        gameManager.setScore(team, score);
-        int newScore = gameManager.getScore(teamId);
+        int newScore = gameManager.setScore(team, score);
         return CommandResult.success(Component.empty()
                 .append(team.getFormattedDisplayName())
                 .append(Component.text(" score is now "))

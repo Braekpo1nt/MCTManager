@@ -113,22 +113,20 @@ public class GameManagerUtils {
         List<Team> sortedTeams = getSortedTeams(gameManager);
         
         for (Team team : sortedTeams) {
-            int teamScore = gameManager.getScore(team.getTeamId());
             messageBuilder.append(Component.empty()
                             .append(team.getFormattedDisplayName())
                             .append(Component.text(" - "))
-                            .append(Component.text(teamScore)
+                            .append(Component.text(team.getScore())
                                     .decorate(TextDecoration.BOLD)
                                     .color(NamedTextColor.GOLD))
                     .append(Component.text(":\n")));
             for (OfflineParticipant offlineParticipant : offlineParticipants) {
-                int playerScore = gameManager.getScore(offlineParticipant.getUniqueId());
                 if (offlineParticipant.getTeamId().equals(team.getTeamId())) {
                     messageBuilder.append(Component.empty()
                             .append(Component.text("  "))
                             .append(offlineParticipant.displayName())
                             .append(Component.text(" - "))
-                            .append(Component.text(playerScore)
+                            .append(Component.text(offlineParticipant.getScore())
                                     .decorate(TextDecoration.BOLD)
                                     .color(NamedTextColor.GOLD))
                             .append(Component.newline()));
@@ -146,18 +144,17 @@ public class GameManagerUtils {
      */
     public static @NotNull List<OfflineParticipant> getSortedOfflineParticipants(GameManager gameManager) {
         Collection<OfflineParticipant> offlineParticipants = gameManager.getOfflineParticipants();
-        return sortOfflinePlayers(offlineParticipants, gameManager);
+        return sortOfflinePlayers(offlineParticipants);
     }
     
     /**
      * Sorts the provided list of OfflinePlayer objects.
      * @param offlineParticipants each entry must have a UUID of a valid participant in the GameState of the given GameManager
-     * @param gameManager the GameManager to get the data from
      * @return the given participants in a sorted list
      */
-    public static List<OfflineParticipant> sortOfflinePlayers(Collection<OfflineParticipant> offlineParticipants, GameManager gameManager) {
+    public static List<OfflineParticipant> sortOfflinePlayers(Collection<OfflineParticipant> offlineParticipants) {
         return offlineParticipants.stream().sorted((p1, p2) -> {
-            int scoreComparison = gameManager.getScore(p2.getUniqueId()) - gameManager.getScore(p1.getUniqueId());
+            int scoreComparison = p2.getScore() - p1.getScore();
             if (scoreComparison != 0) {
                 return scoreComparison;
             }
@@ -171,7 +168,7 @@ public class GameManagerUtils {
      */
     public static List<Team> getSortedTeams(GameManager gameManager) {
         return gameManager.getTeams().stream().sorted((t1, t2) -> {
-            int scoreComparison = gameManager.getScore(t2.getTeamId()) - gameManager.getScore(t1.getTeamId());
+            int scoreComparison = t2.getScore() - t1.getScore();
             if (scoreComparison != 0) {
                 return scoreComparison;
             }

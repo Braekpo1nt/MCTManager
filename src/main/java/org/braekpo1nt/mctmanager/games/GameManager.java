@@ -1231,16 +1231,6 @@ public class GameManager implements Listener {
     }
     
     /**
-     * @param teamId the team to get the members of
-     * @return the UUIDs of the players on that team
-     * @deprecated in favor of {@link MCTTeam#getMemberUUIDs()}
-     */
-    @Deprecated
-    public List<UUID> getParticipantUUIDsOnTeam(String teamId) {
-        return gameStateStorageUtil.getParticipantUUIDsOnTeam(teamId);
-    }
-    
-    /**
      * Leaves the player from the team and removes them from the game state.
      * If a game is running, and the player is online, removes that player from the game as well. 
      * @param sender the sender of the command, who will receive success/error messages
@@ -1278,24 +1268,6 @@ public class GameManager implements Listener {
         } else {
             Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (leaveParticipant)", offlineParticipant.getTeamId()));
         }
-    }
-    
-    /**
-     * Gets the teamId of the participant with the given UUID
-     * @param participantUUID The UUID of the participant to find the team of
-     * @return The teamId of the player with the given UUID
-     * @throws IllegalStateException if the {@link GameStateStorageUtil} doesn't contain the given UUID
-     * @deprecated in favor of {@link Participant#getTeamId()}
-     */
-    @Contract("null -> null")
-    @Deprecated
-    public String getTeamId(UUID participantUUID) {
-        String teamId = gameStateStorageUtil.getPlayerTeamId(participantUUID);
-        if (teamId == null) {
-            throw new IllegalStateException(
-                    String.format("Can't get teamId for non-participant UUID %s", participantUUID));
-        }
-        return teamId;
     }
     
     /**
@@ -1431,21 +1403,29 @@ public class GameManager implements Listener {
      * Adds the given score to the participant with the given UUID
      * @param participant The participant to add the score to
      * @param score The score to add. Could be positive or negative.
+     * @return the new score of the participant
      */
-    public void addScore(OfflineParticipant participant, int score) {
-        setScore(participant, participant.getScore() + score);
+    public int addScore(OfflineParticipant participant, int score) {
+        return setScore(participant, participant.getScore() + score);
     }
     
     /**
      * Adds the given score to the given team
      * @param team The team to add the score to
      * @param score The score to add. Could be positive or negative.
+     * @return the new score of the team
      */
-    public void addScore(@NotNull Team team, int score) {
-        setScore(team, team.getScore() + score);
+    public int addScore(@NotNull Team team, int score) {
+        return setScore(team, team.getScore() + score);
     }
     
-    public void setScore(@NotNull OfflineParticipant participant, int value) {
+    /**
+     * Sets the participant's score to the given value, or 0 if the value is negative
+     * @param participant the participant to set the score of
+     * @param value the score to set the participant to
+     * @return the new score of the participant
+     */
+    public int setScore(@NotNull OfflineParticipant participant, int value) {
         int score = Math.max(0, value);
         OfflineParticipant updated = new OfflineParticipant(participant, score);
         allParticipants.put(participant.getUniqueId(), updated);
@@ -1466,18 +1446,20 @@ public class GameManager implements Listener {
         } catch (ConfigIOException e) {
             reportGameStateException("setting a player's score", e);
         }
+        return updated.getScore();
     }
     
     /**
      * Sets the score of the team with the given name to the given value
      * @param team The UUID of the participant to set the score to
      * @param value The score to set to. If the score is negative, the score will be set to 0.
+     * @return the new score of the team
      */
-    public void setScore(Team team, int value) {
+    public int setScore(Team team, int value) {
         int score = Math.max(0, value);
         MCTTeam old = teams.get(team.getTeamId());
         if (old == null) {
-            return;
+            return 0;
         }
         MCTTeam updated = new MCTTeam(old, score);
         teams.put(old.getTeamId(), updated);
@@ -1489,6 +1471,7 @@ public class GameManager implements Listener {
         } catch (ConfigIOException e) {
             reportGameStateException("adding score to team", e);
         }
+        return updated.getScore();
     }
     
     /**
