@@ -28,6 +28,14 @@ class ParticipantTest {
         mockPlayer = mock(Player.class);
         when(mockPlayer.getName()).thenReturn("rstln");
         when(mockPlayer.getUniqueId()).thenReturn(UUID.randomUUID());
+        OfflineParticipant offlineParticipant = new OfflineParticipant(
+                mockPlayer.getUniqueId(),
+                "rstln",
+                Component.text("rstln"),
+                "yellow",
+                0
+        );
+        participant = new Participant(offlineParticipant, mockPlayer);
     }
     
     @Test
@@ -39,7 +47,6 @@ class ParticipantTest {
                 "yellow",
                 0
         );
-        participant = new Participant(offlineParticipant, mockPlayer);
         
         Assertions.assertEquals(offlineParticipant, participant);
     }
