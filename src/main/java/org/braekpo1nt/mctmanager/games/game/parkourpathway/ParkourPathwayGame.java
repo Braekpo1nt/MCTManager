@@ -236,7 +236,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
         for (Map.Entry<UUID, ParkourParticipant.QuitData> entry : quitDatas.entrySet()) {
             participantScores.put(entry.getKey(), entry.getValue().getScore());
         }
-        gameManager.updateScores(teamScores, participantScores);
+        gameManager.addScores(teamScores, participantScores);
     }
     
     private void resetParticipant(Participant participant) {

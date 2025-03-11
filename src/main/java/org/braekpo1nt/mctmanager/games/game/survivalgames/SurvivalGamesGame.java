@@ -256,7 +256,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener {
         for (Map.Entry<UUID, SurvivalGamesParticipant.QuitData> entry : quitDatas.entrySet()) {
             participantScores.put(entry.getKey(), entry.getValue().getScore());
         }
-        gameManager.updateScores(teamScores, participantScores);
+        gameManager.addScores(teamScores, participantScores);
     }
     
     public void onTeamJoin(Team team) {

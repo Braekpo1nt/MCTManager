@@ -405,7 +405,7 @@ public class FarmRushGame implements MCTGame, Configurable, Listener {
         for (Map.Entry<UUID, FarmRushParticipant.QuitData> entry : quitDatas.entrySet()) {
             participantScores.put(entry.getKey(), entry.getValue().getScore());
         }
-        gameManager.updateScores(teamScores, participantScores);
+        gameManager.addScores(teamScores, participantScores);
     }
     
     public void resetParticipant(FarmRushParticipant participant) {

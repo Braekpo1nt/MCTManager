@@ -215,7 +215,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         for (Map.Entry<UUID, CTFParticipant.QuitData> entry : quitDatas.entrySet()) {
             participantScores.put(entry.getKey(), entry.getValue().getScore());
         }
-        gameManager.updateScores(teamScores, participantScores);
+        gameManager.addScores(teamScores, participantScores);
     }
     
     /**

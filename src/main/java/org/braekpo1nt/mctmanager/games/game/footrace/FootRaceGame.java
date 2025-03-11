@@ -335,7 +335,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
         for (Map.Entry<UUID, FootRaceParticipant.QuitData> entry : quitDatas.entrySet()) {
             participantScores.put(entry.getKey(), entry.getValue().getScore());
         }
-        gameManager.updateScores(teamScores, participantScores);
+        gameManager.addScores(teamScores, participantScores);
     }
     
     private void cancelAllTasks() {

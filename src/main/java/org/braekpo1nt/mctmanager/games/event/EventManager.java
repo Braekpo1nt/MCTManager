@@ -101,8 +101,8 @@ public class EventManager implements Listener {
         adminSidebar.updateLine("currentGame", getCurrentGameLine());
     }
     
-    public void updatePersonalScores() {
-        for (Participant participant : participants.values()) {
+    public void updatePersonalScores(Collection<Participant> updateParticipants) {
+        for (Participant participant : updateParticipants) {
             // TODO: Participant replace call to getScore with Participant.getScore()
             int score = gameManager.getScore(participant.getUniqueId());
             updatePersonalScore(participant, Component.empty()
@@ -113,11 +113,19 @@ public class EventManager implements Listener {
         }
     }
     
+    public void updatePersonalScores() {
+        updatePersonalScores(participants.values());
+    }
+    
     public void updateTeamScores() {
+        updateTeamScores(gameManager.getTeams());
+    }
+    
+    public <T extends Team> void updateTeamScores(Collection<T> updateTeams) {
         if (sidebar == null) {
             return;
         }
-        List<Team> sortedTeams = sortTeams(gameManager.getTeams());
+        List<Team> sortedTeams = sortTeams(updateTeams);
         if (numberOfTeams != sortedTeams.size()) {
             reorderTeamLines(sortedTeams);
             return;
@@ -583,7 +591,7 @@ public class EventManager implements Listener {
         return multipliers[currentGameNumber - 1];
     }
     
-    public List<Team> sortTeams(Collection<Team> teamsToSort) {
+    public <T extends Team> List<Team> sortTeams(Collection<T> teamsToSort) {
         List<Team> sortedTeams = new ArrayList<>(teamsToSort);
         sortedTeams.sort(Comparator.comparing(team -> gameManager.getScore(team.getTeamId()), Comparator.reverseOrder()));
         sortedTeams.sort(Comparator

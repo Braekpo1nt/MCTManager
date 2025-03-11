@@ -217,7 +217,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable {
         for (Map.Entry<UUID, ClockworkParticipant.QuitData> entry : quitDatas.entrySet()) {
             participantScores.put(entry.getKey(), entry.getValue().getScore());
         }
-        gameManager.updateScores(teamScores, participantScores);
+        gameManager.addScores(teamScores, participantScores);
     }
     
     private void resetParticipant(Participant participant) {
