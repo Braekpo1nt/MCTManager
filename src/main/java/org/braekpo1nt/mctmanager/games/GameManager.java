@@ -1344,6 +1344,7 @@ public class GameManager implements Listener {
             reportGameStateException("updating scores", e);
         }
         if (eventManager.eventIsActive()) {
+            eventManager.trackScores(teamScores, participantScores, activeGame.getType());
             eventManager.updatePersonalScores();
             eventManager.updateTeamScores();
         }
