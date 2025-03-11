@@ -142,6 +142,15 @@ public class SpleefGame implements Listener, MCTGame, Configurable {
         ParticipantInitializer.clearStatusEffects(participant);
     }
     
+    private void reJoinParticipant(SpleefParticipant participant) {
+        participants.put(participant.getUniqueId(), participant);
+        teams.get(participant.getTeamId()).addParticipant(participant);
+        sidebar.addPlayer(participant);
+        teleportParticipantToRandomStartingPosition(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
+    }
+    
     private void teleportParticipantToRandomStartingPosition(Participant participant) {
         int index = random.nextInt(config.getStartingLocations().size());
         participant.teleport(config.getStartingLocations().get(index));
@@ -190,14 +199,36 @@ public class SpleefGame implements Listener, MCTGame, Configurable {
         }
         rounds.clear();
         gameActive = false;
+        saveScores();
         for (Participant participant : participants.values()) {
             resetParticipant(participant);
         }
         clearSidebar();
         stopAdmins();
         participants.clear();
+        teams.clear();
+        quitDatas.clear();
+        teamQuitDatas.clear();
         gameManager.gameIsOver();
         Main.logger().info("Stopping Spleef");
+    }
+    
+    private void saveScores() {
+        Map<String, Integer> teamScores = new HashMap<>();
+        Map<UUID, Integer> participantScores = new HashMap<>();
+        for (SpleefTeam team : teams.values()) {
+            teamScores.put(team.getTeamId(), team.getScore());
+        }
+        for (SpleefParticipant participant : participants.values()) {
+            participantScores.put(participant.getUniqueId(), participant.getScore());
+        }
+        for (Map.Entry<String, SpleefTeam.QuitData> entry : teamQuitDatas.entrySet()) {
+            teamScores.put(entry.getKey(), entry.getValue().getScore());
+        }
+        for (Map.Entry<UUID, SpleefParticipant.QuitData> entry : quitDatas.entrySet()) {
+            participantScores.put(entry.getKey(), entry.getValue().getScore());
+        }
+        gameManager.updateScores(teamScores, participantScores);
     }
     
     private void resetParticipant(Participant participant) {
@@ -307,22 +338,52 @@ public class SpleefGame implements Listener, MCTGame, Configurable {
         }
     }
     
+    private void onTeamJoin(Team team) {
+        if (teams.containsKey(team.getTeamId())) {
+            return;
+        }
+        SpleefTeam.QuitData quitData = teamQuitDatas.get(team.getTeamId());
+        if (quitData != null) {
+            teams.put(team.getTeamId(), new SpleefTeam(team, quitData.getScore()));
+        } else {
+            teams.put(team.getTeamId(), new SpleefTeam(team, 0));
+        }
+    }
+    
     @Override
     public void onParticipantJoin(Participant participant, Team team) {
         if (!gameActive) {
             return;
         }
-        initializeParticipant(participant);
+        onTeamJoin(team);
+        SpleefParticipant.QuitData quitData = quitDatas.remove(participant.getUniqueId());
+        if (quitData != null) {
+            reJoinParticipant(new SpleefParticipant(participant, quitData));
+        } else {
+            initializeParticipant(participant);
+        }
         sidebar.updateLines(participant.getUniqueId(),
                 new KeyLine("title", title),
                 new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, config.getRounds()))
         );
+        displayScore(participants.get(participant.getUniqueId()));
+        displayScore(teams.get(team.getTeamId()));
         if (currentRoundIndex < rounds.size()) {
             SpleefRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
-                currentRound.onParticipantJoin(participant);
+                currentRound.onParticipantJoin(
+                        participants.get(participant.getUniqueId()), 
+                        teams.get(team.getTeamId()));
             }
         }
+    }
+    
+    private void onTeamQuit(SpleefTeam team) {
+        if (team.size() > 0) {
+            return;
+        }
+        SpleefTeam removed = teams.remove(team.getTeamId());
+        teamQuitDatas.put(team.getTeamId(), removed.getQuitData());
     }
     
     @Override
@@ -330,14 +391,21 @@ public class SpleefGame implements Listener, MCTGame, Configurable {
         if (!gameActive) {
             return;
         }
-        resetParticipant(participant);
-        participants.remove(participant.getUniqueId());
+        SpleefParticipant quitParticipant = participants.get(participant.getUniqueId());
+        if (quitParticipant == null) {
+            return;
+        }
+        quitDatas.put(quitParticipant.getUniqueId(), quitParticipant.getQuitData());
+        SpleefTeam spleefTeam = teams.get(team.getTeamId());
         if (currentRoundIndex < rounds.size()) {
             SpleefRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
-                currentRound.onParticipantQuit(participant);
+                currentRound.onParticipantQuit(quitParticipant, spleefTeam);
             }
         }
+        resetParticipant(participant);
+        participants.remove(participant.getUniqueId());
+        onTeamQuit(spleefTeam);
     }
     
     
@@ -352,7 +420,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable {
     
     public void startNextRound() {
         SpleefRound nextRound = rounds.get(currentRoundIndex);
-        nextRound.start(participants.values());
+        nextRound.start(participants.values(), teams.values());
         String round = String.format("Round %d/%d", currentRoundIndex + 1, rounds.size());
         sidebar.updateLine("round", round);
         adminSidebar.updateLine("round", round);
