@@ -105,8 +105,7 @@ public class LeaderboardManager {
         for (int i = 0; i < sortedOfflineParticipants.size(); i++) {
             OfflineParticipant participant = sortedOfflineParticipants.get(i);
             int placement = i+1;
-            int score = gameManager.getScore(participant.getUniqueId());
-            standings.add(new Standing(participant.getUniqueId(), placement, participant.displayName(), score));
+            standings.add(new Standing(participant.getUniqueId(), placement, participant.displayName(), participant.getScore()));
         }
         List<String> lines = new ArrayList<>(Math.min(topPlayers, standings.size())+(title != null ? 1 : 2));
         if (title != null) {

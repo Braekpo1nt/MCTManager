@@ -51,8 +51,7 @@ public class ScoreSetPlayerSubCommand extends TabSubCommand {
         if (score < 0) {
             return CommandResult.failure(Component.text("Score must be at least 0"));
         }
-        gameManager.setScore(offlineParticipant, score);
-        int newScore = gameManager.getScore(offlinePlayer.getUniqueId());
+        int newScore = gameManager.setScore(offlineParticipant, score);
         return CommandResult.success(Component.empty()
                 .append(Component.text(playerName))
                 .append(Component.text(" score is now "))

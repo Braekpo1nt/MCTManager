@@ -32,18 +32,17 @@ public class ScorePlayerSubCommand extends TabSubCommand {
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 0) {
-            if (!(sender instanceof Player participant)) {
+            if (!(sender instanceof Player player)) {
                 return CommandResult.failure(getUsage().of("<player>"));
             }
-            OfflineParticipant offlineParticipant = gameManager.getOfflineParticipant(participant.getUniqueId());
+            OfflineParticipant offlineParticipant = gameManager.getOfflineParticipant(player.getUniqueId());
             if (offlineParticipant == null) {
                 return CommandResult.failure(Component.text("You are not a participant"));
             }
-            int score = gameManager.getScore(participant.getUniqueId());
             return CommandResult.success(Component.empty()
-                    .append(participant.displayName())
+                    .append(player.displayName())
                     .append(Component.text(": "))
-                    .append(Component.text(score)
+                    .append(Component.text(offlineParticipant.getScore())
                             .color(NamedTextColor.GOLD)));
         }
         
@@ -63,11 +62,10 @@ public class ScorePlayerSubCommand extends TabSubCommand {
                     .append(Component.text(playerName))
                     .append(Component.text(" is not a participant")));
         }
-        int score = gameManager.getScore(offlineParticipant.getUniqueId());
         return CommandResult.success(Component.empty()
                 .append(offlineParticipant.displayName())
                 .append(Component.text(": "))
-                .append(Component.text(score)
+                .append(Component.text(offlineParticipant.getScore())
                         .color(NamedTextColor.GOLD)));
     }
     
@@ -80,12 +78,11 @@ public class ScorePlayerSubCommand extends TabSubCommand {
                         .decorate(TextDecoration.BOLD));
         List<OfflineParticipant> sortedOfflinePlayers = GameManagerUtils.getSortedOfflineParticipants(gameManager);
         for (OfflineParticipant participant : sortedOfflinePlayers) {
-            int score = gameManager.getScore(participant.getUniqueId());
             builder.append(Component.empty()
                     .append(Component.newline())
                     .append(participant.displayName())
                     .append(Component.text(": "))
-                    .append(Component.text(score)
+                    .append(Component.text(participant.getScore())
                             .color(NamedTextColor.GOLD)));
         }
         return builder.build();
