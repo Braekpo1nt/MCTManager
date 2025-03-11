@@ -1428,55 +1428,6 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Adds the same score to all the given participants
-     * @param participants the participants to add the score to
-     * @param score the score
-     * @deprecated might never be used
-     */
-    @Deprecated
-    private void addScoreParticipants(Collection<Participant> participants, int score) {
-        for (Participant participant : participants) {
-            OfflineParticipant offlineParticipant = allParticipants.get(participant.getUniqueId());
-            allParticipants.put(participant.getUniqueId(),
-                    new OfflineParticipant(offlineParticipant, offlineParticipant.getScore() + score));
-            onlineParticipants.put(participant.getUniqueId(),
-                    new Participant(participant, participant.getScore() + score));
-        }
-        try {
-            gameStateStorageUtil.updateParticipantScores(allParticipants.values());
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
-                    gameStateStorageUtil.saveGameState());
-            updateScoreVisuals(Collections.emptyList(), participants);
-        } catch (ConfigIOException e) {
-            reportGameStateException("adding score to players", e);
-        }
-    }
-    
-    /**
-     * Adds the given score to each of the given teams
-     * <br>
-     * Use this instead of calling {@link #addScore(Team, int)} for each teamId because this is more
-     * efficient in that it only writes to the {@link org.braekpo1nt.mctmanager.games.gamestate.GameState} once
-     * @param theTeams the teamIds to add the score to. Must all be valid teamIds.
-     * @param score the score to add. Could be positive or negative.
-     * @deprecated might never be used
-     */
-    @Deprecated
-    private void addScoreTeams(Collection<MCTTeam> theTeams, int score) {
-        for (MCTTeam team : theTeams) {
-            teams.put(team.getTeamId(), new MCTTeam(team, team.getScore() + score));
-        }
-        try {
-            gameStateStorageUtil.updateTeamScores(teams.values());
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
-                    gameStateStorageUtil.saveGameState());
-            updateScoreVisuals(teams.values(), Collections.emptyList());
-        } catch (ConfigIOException e) {
-            reportGameStateException("adding score to teams", e);
-        }
-    }
-    
-    /**
      * Adds the given score to the participant with the given UUID
      * @param participant The participant to add the score to
      * @param score The score to add. Could be positive or negative.
