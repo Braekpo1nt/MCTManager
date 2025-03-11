@@ -289,6 +289,9 @@ public class TabList {
      *                        (Any teamIds not in this TabList will be ignored)
      */
     public void setScores(@NotNull Map<@NotNull String, @NotNull Integer> teamIdsToScores) {
+        if (teamIdsToScores.isEmpty()) {
+            return;
+        }
         for (Map.Entry<String, Integer> entry : teamIdsToScores.entrySet()) {
             String teamId = entry.getKey();
             int score = entry.getValue();
@@ -307,6 +310,9 @@ public class TabList {
      * @param <T> any implementation of {@link Team}
      */
     public <T extends Team> void setScores(Collection<T> teams) {
+        if (teams.isEmpty()) {
+            return;
+        }
         for (T team : teams) {
             TeamData teamData = getTeamData(team.getTeamId());
             if (teamData != null) {
