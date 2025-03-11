@@ -1351,9 +1351,7 @@ public class GameManager implements Listener {
             eventManager.updateTeamScores(updateTeams);
         }
         hubManager.updateLeaderboards();
-        if (plugin.isEnabled()) {
-            tabList.setScores(updateTeams);
-        }
+        tabList.setScores(updateTeams);
     }
     
     /**

@@ -222,6 +222,9 @@ public class TabList {
      * Updates all views to reflect the current state of the data.
      */
     private void update() {
+        if (!plugin.isEnabled()) {
+            return;
+        }
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             Component tabList = toTabList();
             plugin.getServer().getScheduler().runTask(plugin, () -> {
@@ -238,6 +241,9 @@ public class TabList {
      * @param playerData the playerData to update the view of
      */
     private void update(PlayerData playerData) {
+        if (!plugin.isEnabled()) {
+            return;
+        }
         if (playerData.isVisible()) {
             plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
                 Component tabList = toTabList();
