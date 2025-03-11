@@ -129,9 +129,9 @@ public class PreRoundState implements CaptureTheFlagState {
     
     @Override
     public void onParticipantQuit(CTFParticipant participant) {
+        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
-        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
         context.onTeamQuit(context.getTeams().get(participant.getTeamId()));
     }
     
