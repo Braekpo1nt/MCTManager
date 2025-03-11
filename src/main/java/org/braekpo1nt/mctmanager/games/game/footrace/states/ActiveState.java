@@ -213,7 +213,12 @@ public class ActiveState implements FootRaceState {
                     .append(Component.text(currentLap))
                     .append(Component.text(" in "))
                     .append(TimeStringUtils.getTimeComponentMillis(elapsedTime)));
-            gameManager.awardPointsToParticipant(participant, config.getCompleteLapScore());
+            int multiplied = (int) (gameManager.getMultiplier() * config.getCompleteLapScore());
+            participant.awardPoints(multiplied);
+            FootRaceTeam team = context.getTeams().get(participant.getTeamId());
+            team.addPoints(multiplied);
+            context.displayScore(participant);
+            context.displayScore(team);
             return;
         }
         if (currentLap == context.getConfig().getLaps()) {
@@ -232,7 +237,12 @@ public class ActiveState implements FootRaceState {
         context.setNumOfFinishedParticipants(placement);
         showRaceCompleteFastBoard(participant);
         int points = calculatePointsForPlacement(placement);
-        gameManager.awardPointsToParticipant(participant, points);
+        int multiplied = (int) (gameManager.getMultiplier() * points);
+        participant.awardPoints(multiplied);
+        FootRaceTeam team = context.getTeams().get(participant.getTeamId());
+        team.addPoints(multiplied);
+        context.displayScore(participant);
+        context.displayScore(team);
         Component timeComponent = TimeStringUtils.getTimeComponentMillis(elapsedTime);
         Component endCountDown = TimeStringUtils.getTimeComponent(config.getRaceEndCountdownDuration());
         Component placementComponent = GameManagerUtils.getPlacementTitle(placement);
