@@ -118,7 +118,7 @@ public class PodiumState implements EventState {
     }
     
     @Override
-    public void onPlayerDamage(EntityDamageEvent event) {
+    public void onParticipantDamage(EntityDamageEvent event) {
         Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "EventManager.PodiumState.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
@@ -149,11 +149,7 @@ public class PodiumState implements EventState {
     }
     
     @Override
-    public void onDropItem(PlayerDropItemEvent event) {
-        Participant participant = context.getParticipants().get(event.getPlayer().getUniqueId());
-        if (participant == null) {
-            return;
-        }
+    public void onDropItem(PlayerDropItemEvent event, @NotNull Participant participant) {
         if (context.getWinningTeam() == null) {
             return;
         }

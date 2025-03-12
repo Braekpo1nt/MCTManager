@@ -140,7 +140,7 @@ public class OffState implements EventState {
     }
     
     @Override
-    public void onPlayerDamage(EntityDamageEvent event) {
+    public void onParticipantDamage(EntityDamageEvent event) {
         // do nothing
     }
     
@@ -150,7 +150,7 @@ public class OffState implements EventState {
     }
     
     @Override
-    public void onDropItem(PlayerDropItemEvent event) {
+    public void onDropItem(PlayerDropItemEvent event, @NotNull Participant participant) {
         // do nothing
     }
     

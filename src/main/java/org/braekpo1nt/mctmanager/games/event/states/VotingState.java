@@ -77,7 +77,7 @@ public class VotingState implements EventState {
     }
     
     @Override
-    public void onPlayerDamage(EntityDamageEvent event) {
+    public void onParticipantDamage(EntityDamageEvent event) {
         Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "EventManager.VotingState.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
@@ -88,7 +88,7 @@ public class VotingState implements EventState {
     }
     
     @Override
-    public void onDropItem(PlayerDropItemEvent event) {
+    public void onDropItem(PlayerDropItemEvent event, @NotNull Participant participant) {
         // do nothing
     }
     

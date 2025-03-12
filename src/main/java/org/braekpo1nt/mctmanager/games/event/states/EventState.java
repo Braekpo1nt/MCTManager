@@ -17,9 +17,9 @@ public interface EventState {
     void onAdminJoin(Player admin);
     void onAdminQuit(Player admin);
     void startEvent(@NotNull CommandSender sender, int numberOfGames, int currentGameNumber);
-    void onPlayerDamage(EntityDamageEvent event);
+    void onParticipantDamage(EntityDamageEvent event);
     void onClickInventory(InventoryClickEvent event);
-    void onDropItem(PlayerDropItemEvent event);
+    void onDropItem(PlayerDropItemEvent event, @NotNull Participant participant);
     void gameIsOver(@NotNull GameType finishedGameType);
     void colossalCombatIsOver(@Nullable Team winningTeam);
     void setMaxGames(@NotNull CommandSender sender, int newMaxGames);

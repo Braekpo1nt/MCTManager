@@ -65,11 +65,14 @@ public class EventManager implements Listener {
     private EventConfig config;
     private int maxGames = 6;
     private int currentGameNumber = 0;
-    private Map<UUID, Participant> participants = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     private @Nullable Team winningTeam;
     private final ReadyUpManager readyUpManager = new ReadyUpManager();
     private final ReadyUpTopbar topbar = new ReadyUpTopbar();
+    
+    public Collection<Participant> getParticipants() {
+        return gameManager.getOnlineParticipants();
+    }
     
     public EventManager(Main plugin, GameManager gameManager, VoteManager voteManager) {
         this.plugin = plugin;
@@ -83,11 +86,10 @@ public class EventManager implements Listener {
     }
     
     /**
-     * Add the participants back to the {@link EventManager#participants} list and the {@link EventManager#sidebar}, add the admins back to the {@link EventManager#admins} list and the {@link EventManager#adminSidebar}, and update the scores on all sidebars.
+     * Add the participants to the {@link EventManager#sidebar}, add the admins back to the {@link EventManager#admins} list and the {@link EventManager#adminSidebar}, and update the scores on all sidebars.
      */
     public void initializeParticipantsAndAdmins() {
         for (Participant participant : gameManager.getOnlineParticipants()) {
-            participants.put(participant.getUniqueId(), participant);
             sidebar.addPlayer(participant);
         }
         for (Player admin : gameManager.getOnlineAdmins()) {
@@ -101,17 +103,20 @@ public class EventManager implements Listener {
     }
     
     public void updatePersonalScores(Collection<Participant> updateParticipants) {
+        if (sidebar == null) {
+            return;
+        }
         for (Participant participant : updateParticipants) {
-            updatePersonalScore(participant, Component.empty()
-                    .append(Component.text("Personal: "))
-                    .append(Component.text(participant.getScore()))
-                    .color(NamedTextColor.GOLD)
-            );
+            sidebar.updateLine(participant.getUniqueId(), "personalScore", 
+                    Component.empty()
+                            .append(Component.text("Personal: "))
+                            .append(Component.text(participant.getScore()))
+                            .color(NamedTextColor.GOLD));
         }
     }
     
     public void updatePersonalScores() {
-        updatePersonalScores(participants.values());
+        updatePersonalScores(gameManager.getOnlineParticipants());
     }
     
     public void updateTeamScores() {
@@ -207,7 +212,7 @@ public class EventManager implements Listener {
             colossalCombatGame.stop(null);
         }
         if (winningTeam != null) {
-            for (Participant participant : participants.values()) {
+            for (Participant participant : gameManager.getOnlineParticipants()) {
                 if (participant.getTeamId().equals(winningTeam.getTeamId())) {
                     removeCrown(participant);
                 }
@@ -217,7 +222,6 @@ public class EventManager implements Listener {
         clearAdminSidebar();
         topbar.hideAllPlayers();
         topbar.removeAllTeams();
-        participants.clear();
         admins.clear();
         readyUpManager.clear();
         scoreKeepers.clear();
@@ -425,19 +429,11 @@ public class EventManager implements Listener {
         return reportBuilder.build();
     }
     
-    public void readyUpParticipant(@NotNull UUID uuid) {
-        Participant participant = participants.get(uuid);
-        if (participant == null) {
-            return;
-        }
+    public void readyUpParticipant(@NotNull Participant participant) {
         state.readyUpParticipant(participant);
     }
     
-    public void unReadyParticipant(@NotNull UUID uuid) {
-        Participant participant = participants.get(uuid);
-        if (participant == null) {
-            return;
-        }
+    public void unReadyParticipant(@NotNull Participant participant) {
         state.unReadyParticipant(participant);
     }
     
@@ -450,19 +446,17 @@ public class EventManager implements Listener {
         if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
-        if (!(event.getEntity() instanceof Player participant)) {
+        Participant participant = gameManager.getOnlineParticipant(event.getEntity().getUniqueId());
+        if (participant == null) {
             return;
         }
-        if (!participants.containsKey(participant.getUniqueId())) {
-            return;
-        }
-        state.onPlayerDamage(event);
+        state.onParticipantDamage(event);
     }
     
     @EventHandler
     public void onClickInventory(InventoryClickEvent event) {
-        Player participant = ((Player) event.getWhoClicked());
-        if (!participants.containsKey(participant.getUniqueId())) {
+        Participant participant = gameManager.getOnlineParticipant(event.getWhoClicked().getUniqueId());
+        if (participant == null) {
             return;
         }
         state.onClickInventory(event);
@@ -470,11 +464,11 @@ public class EventManager implements Listener {
     
     @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
-        Player participant = event.getPlayer();
-        if (!participants.containsKey(participant.getUniqueId())) {
+        Participant participant = gameManager.getOnlineParticipant(event.getPlayer().getUniqueId());
+        if (participant == null) {
             return;
         }
-        state.onDropItem(event);
+        state.onDropItem(event, participant);
     }
     
     /**
@@ -619,16 +613,6 @@ public class EventManager implements Listener {
         }
         sidebar.addLines(0, teamLines);
         adminSidebar.addLines(0, teamLines);
-    }
-    
-    public void updatePersonalScore(Participant participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.containsKey(participant.getUniqueId())) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
     }
     
     public void trackScores(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, GameType gameType) {
