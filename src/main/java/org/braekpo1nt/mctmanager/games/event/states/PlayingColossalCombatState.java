@@ -89,7 +89,6 @@ public class PlayingColossalCombatState extends PlayingGameState {
         context.getAdminSidebar().removePlayers(context.getAdmins());
         gameManager.removeParticipantsFromHub(context.getParticipants());
         context.getColossalCombatGame().start(firstTeam, secondTeam, firstPlaceParticipants, secondPlaceParticipants, spectators, context.getAdmins());
-        context.getParticipants().clear();
         context.getAdmins().clear();
         return true;
     }

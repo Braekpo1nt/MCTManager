@@ -115,7 +115,6 @@ public class OffState implements EventState {
         context.getSidebar().addLine("personalScore", "");
         context.getSidebar().addLine("timer", "");
         context.getSidebar().updateTitle(context.getConfig().getTitle());
-        context.updatePersonalScores();
     }
     
     private void initializeAdminSidebar() {
