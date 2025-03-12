@@ -24,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -88,14 +87,13 @@ public class OffState implements EventState {
         context.setCurrentGameNumber(currentGameNumber);
         context.getPlayedGames().clear();
         context.getScoreKeepers().clear();
-        context.setParticipants(new HashMap<>());
         context.setSidebar(context.getGameManager().createSidebar());
         context.setAdmins(new ArrayList<>());
         context.setAdminSidebar(context.getGameManager().createSidebar());
         initializeSidebar();
         initializeAdminSidebar();
         context.initializeParticipantsAndAdmins();
-        context.getGameManager().removeParticipantsFromHub(context.getParticipants().values());
+        context.getGameManager().removeParticipantsFromHub(context.getParticipants());
         context.setState(new ReadyUpState(context));
     }
     
@@ -145,7 +143,7 @@ public class OffState implements EventState {
     }
     
     @Override
-    public void onClickInventory(InventoryClickEvent event) {
+    public void onClickInventory(InventoryClickEvent event, Participant participant) {
         // do nothing
     }
     

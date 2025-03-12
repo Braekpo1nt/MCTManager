@@ -28,7 +28,6 @@ public abstract class DelayState implements EventState {
     
     @Override
     public void onParticipantJoin(Participant participant) {
-        context.getParticipants().put(participant.getUniqueId(), participant);
         if (context.getSidebar() != null) {
             context.getSidebar().addPlayer(participant);
             context.updateTeamScores();
@@ -38,7 +37,6 @@ public abstract class DelayState implements EventState {
     
     @Override
     public void onParticipantQuit(Participant participant) {
-        context.getParticipants().remove(participant.getUniqueId());
         if (context.getSidebar() != null) {
             context.getSidebar().removePlayer(participant);
         }
@@ -75,7 +73,7 @@ public abstract class DelayState implements EventState {
     }
     
     @Override
-    public void onClickInventory(InventoryClickEvent event) {
+    public void onClickInventory(InventoryClickEvent event, Participant participant) {
         if (event.getClickedInventory() == null) {
             return;
         }

@@ -459,7 +459,7 @@ public class EventManager implements Listener {
         if (participant == null) {
             return;
         }
-        state.onClickInventory(event);
+        state.onClickInventory(event, participant);
     }
     
     @EventHandler

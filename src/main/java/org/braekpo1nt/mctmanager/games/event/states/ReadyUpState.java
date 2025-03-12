@@ -82,7 +82,7 @@ public class ReadyUpState implements EventState {
                 topbar.setReadyCount(team.getTeamId(), 0);
             }
         }
-        for (Participant participant : context.getParticipants().values()) {
+        for (Participant participant : context.getParticipants()) {
             topbar.showPlayer(participant);
             topbar.setReady(participant.getUniqueId(), false);
         }
@@ -90,13 +90,13 @@ public class ReadyUpState implements EventState {
             topbar.showPlayer(admin);
         }
         
-        promptToReadyUp(Audience.audience(context.getParticipants().values()));
+        promptToReadyUp(Audience.audience(context.getParticipants()));
         context.messageAllAdmins(Component.text("Ready Up has begun"));
         
         readyUpPromptTaskId = new BukkitRunnable() {
             @Override
             public void run() {
-                for (Participant participant : context.getParticipants().values()) {
+                for (Participant participant : context.getParticipants()) {
                     boolean ready = readyUpManager.participantIsReady(participant.getUniqueId(), participant.getTeamId());
                     if (!ready) {
                         participant.showTitle(READYUP_TITLE);
@@ -218,7 +218,6 @@ public class ReadyUpState implements EventState {
     @Override
     public void onParticipantJoin(Participant participant) {
         gameManager.returnParticipantToHubInstantly(participant);
-        context.getParticipants().put(participant.getUniqueId(), participant);
         if (sidebar != null) {
             sidebar.addPlayer(participant);
             context.updateTeamScores();
@@ -236,7 +235,6 @@ public class ReadyUpState implements EventState {
     
     @Override
     public void onParticipantQuit(Participant participant) {
-        context.getParticipants().remove(participant.getUniqueId());
         if (sidebar != null) {
             sidebar.removePlayer(participant);
         }
@@ -277,14 +275,14 @@ public class ReadyUpState implements EventState {
                 .append(Component.text(" games.")));
         Audience.audience(
                 Audience.audience(context.getAdmins()),
-                Audience.audience(context.getParticipants().values())
+                Audience.audience(context.getParticipants())
         ).showTitle(UIUtils.defaultTitle(
                 Component.empty(),
                 Component.empty()
                         .append(Component.text("Event Starting"))
                         .color(NamedTextColor.GOLD)
         ));
-        gameManager.removeParticipantsFromHub(context.getParticipants().values());
+        gameManager.removeParticipantsFromHub(context.getParticipants());
         context.setState(new WaitingInHubState(context));
     }
     
@@ -335,7 +333,7 @@ public class ReadyUpState implements EventState {
     }
     
     @Override
-    public void onClickInventory(InventoryClickEvent event) {
+    public void onClickInventory(InventoryClickEvent event, Participant participant) {
         // do nothing
     }
     

@@ -44,7 +44,7 @@ public class PodiumState implements EventState {
         sidebar.updateLine("currentGame", context.getCurrentGameLine());
         adminSidebar.updateLine("currentGame", context.getCurrentGameLine());
         gameManager.returnAllParticipantsToPodium(context.getWinningTeam());
-        for (Participant participant : context.getParticipants().values()) {
+        for (Participant participant : context.getParticipants()) {
             if (participant.getTeamId().equals(context.getWinningTeam().getTeamId())) {
                 context.giveCrown(participant);
             }
@@ -62,7 +62,6 @@ public class PodiumState implements EventState {
         } else {
             gameManager.returnParticipantToPodium(participant, false);
         }
-        context.getParticipants().put(participant.getUniqueId(), participant);
         if (sidebar != null) {
             sidebar.addPlayer(participant);
             context.updateTeamScores();
@@ -77,7 +76,6 @@ public class PodiumState implements EventState {
     
     @Override
     public void onParticipantQuit(Participant participant) {
-        context.getParticipants().remove(participant.getUniqueId());
         if (sidebar != null) {
             sidebar.removePlayer(participant);
         }
@@ -124,7 +122,7 @@ public class PodiumState implements EventState {
     }
     
     @Override
-    public void onClickInventory(InventoryClickEvent event) {
+    public void onClickInventory(InventoryClickEvent event, Participant participant) {
         if (event.getClickedInventory() == null) {
             return;
         }
@@ -133,10 +131,6 @@ public class PodiumState implements EventState {
             return;
         }
         if (context.getWinningTeam() == null) {
-            return;
-        }
-        Participant participant = context.getParticipants().get(event.getWhoClicked().getUniqueId());
-        if (participant == null) {
             return;
         }
         if (!participant.getTeamId().equals(context.getWinningTeam().getTeamId())) {

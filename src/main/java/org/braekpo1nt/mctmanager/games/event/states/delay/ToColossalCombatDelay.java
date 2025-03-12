@@ -95,7 +95,7 @@ public class ToColossalCombatDelay extends DelayState {
                 "teamId not found even though game manager produced it");
         int onlineFirsts = 0;
         int onlineSeconds = 0;
-        for (Participant participant : context.getParticipants().values()) {
+        for (Participant participant : context.getParticipants()) {
             if (participant.getTeamId().equals(firstPlace.getTeamId())) {
                 onlineFirsts++;
             }

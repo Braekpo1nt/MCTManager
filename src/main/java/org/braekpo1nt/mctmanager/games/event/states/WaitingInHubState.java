@@ -67,7 +67,6 @@ public class WaitingInHubState implements EventState {
     @Override
     public void onParticipantJoin(Participant participant) {
         gameManager.returnParticipantToHubInstantly(participant);
-        context.getParticipants().put(participant.getUniqueId(), participant);
         if (sidebar != null) {
             sidebar.addPlayer(participant);
             context.updateTeamScores();
@@ -77,7 +76,6 @@ public class WaitingInHubState implements EventState {
     
     @Override
     public void onParticipantQuit(Participant participant) {
-        context.getParticipants().remove(participant.getUniqueId());
         if (sidebar != null) {
             sidebar.removePlayer(participant);
         }
@@ -113,7 +111,7 @@ public class WaitingInHubState implements EventState {
     }
     
     @Override
-    public void onClickInventory(InventoryClickEvent event) {
+    public void onClickInventory(InventoryClickEvent event, Participant participant) {
         // do nothing
     }
     
