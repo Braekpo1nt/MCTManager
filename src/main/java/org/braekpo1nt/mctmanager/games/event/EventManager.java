@@ -21,7 +21,6 @@ import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.ReadyUpTopbar;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -103,11 +102,9 @@ public class EventManager implements Listener {
     
     public void updatePersonalScores(Collection<Participant> updateParticipants) {
         for (Participant participant : updateParticipants) {
-            // TODO: Participant replace call to getScore with Participant.getScore()
-            int score = gameManager.getScore(participant.getUniqueId());
             updatePersonalScore(participant, Component.empty()
                     .append(Component.text("Personal: "))
-                    .append(Component.text(score))
+                    .append(Component.text(participant.getScore()))
                     .color(NamedTextColor.GOLD)
             );
         }
@@ -133,11 +130,10 @@ public class EventManager implements Listener {
         KeyLine[] teamLines = new KeyLine[numberOfTeams];
         for (int i = 0; i < numberOfTeams; i++) {
             Team team = sortedTeams.get(i);
-            int teamScore = gameManager.getScore(team.getTeamId());
             teamLines[i] = new KeyLine("team"+i, Component.empty()
                     .append(team.getFormattedDisplayName())
                     .append(Component.text(": "))
-                    .append(Component.text(teamScore)
+                    .append(Component.text(team.getScore())
                             .color(NamedTextColor.GOLD))
             );
         }
@@ -371,7 +367,7 @@ public class EventManager implements Listener {
         Collection<Team> teams = gameManager.getTeams();
         for (Team team : teams) {
             int teamScoreToSubtract = scoreKeeper.getScore(team.getTeamId());
-            int teamCurrentScore = gameManager.getScore(team.getTeamId());
+            int teamCurrentScore = team.getScore();
             if (teamCurrentScore - teamScoreToSubtract < 0) {
                 teamScoreToSubtract = teamCurrentScore;
             }
@@ -380,7 +376,7 @@ public class EventManager implements Listener {
             Collection<OfflineParticipant> participantsOnTeam = gameManager.getParticipantsOnTeam(team.getTeamId());
             for (OfflineParticipant participant : participantsOnTeam) {
                 int participantScoreToSubtract = scoreKeeper.getScore(participant.getUniqueId());
-                int participantCurrentScore = gameManager.getScore(participant.getUniqueId());
+                int participantCurrentScore = participant.getScore();
                 if (participantCurrentScore - participantScoreToSubtract < 0) {
                     participantScoreToSubtract = participantCurrentScore;
                 }
@@ -593,9 +589,9 @@ public class EventManager implements Listener {
     
     public <T extends Team> List<Team> sortTeams(Collection<T> teamsToSort) {
         List<Team> sortedTeams = new ArrayList<>(teamsToSort);
-        sortedTeams.sort(Comparator.comparing(team -> gameManager.getScore(team.getTeamId()), Comparator.reverseOrder()));
+        sortedTeams.sort(Comparator.comparing(Team::getScore, Comparator.reverseOrder()));
         sortedTeams.sort(Comparator
-                .comparing(team -> gameManager.getScore(((Team) team).getTeamId()))
+                .comparing(team -> ((Team) team).getScore())
                 .reversed()
                 .thenComparing(team -> ((Team) team).getTeamId())
         );
@@ -614,11 +610,10 @@ public class EventManager implements Listener {
         KeyLine[] teamLines = new KeyLine[numberOfTeams];
         for (int i = 0; i < numberOfTeams; i++) {
             Team team = sortedTeamIds.get(i);
-            int teamScore = gameManager.getScore(team.getTeamId());
             teamLines[i] = new KeyLine("team"+i, Component.empty()
                     .append(team.getFormattedDisplayName())
                     .append(Component.text(": "))
-                    .append(Component.text(teamScore)
+                    .append(Component.text(team.getScore())
                             .color(NamedTextColor.GOLD))
             );
         }
