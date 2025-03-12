@@ -41,7 +41,6 @@ public class ToColossalCombatDelay extends DelayState {
      * @return true if two teams were picked and Colossal Combat started successfully. False if anything went wrong.
      */
     private boolean identifyWinnersAndStartColossalCombat() {
-        // TODO: Teams Refactor this to use Teams instead of TeamIds
         Collection<Team> allTeams = gameManager.getTeams();
         if (allTeams.size() < 2) {
             context.messageAllAdmins(Component.empty()
