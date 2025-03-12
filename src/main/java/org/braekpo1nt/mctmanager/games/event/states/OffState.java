@@ -105,11 +105,10 @@ public class OffState implements EventState {
         KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
         for (int i = 0; i < context.getNumberOfTeams(); i++) {
             Team team = sortedTeams.get(i);
-            int teamScore = gameManager.getScore(team.getTeamId());
             teamLines[i] = new KeyLine("team"+i, Component.empty()
                     .append(team.getFormattedDisplayName())
                     .append(Component.text(": "))
-                    .append(Component.text(teamScore)
+                    .append(Component.text(team.getScore())
                             .color(NamedTextColor.GOLD))
             );
         }
@@ -127,11 +126,10 @@ public class OffState implements EventState {
         KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
         for (int i = 0; i < context.getNumberOfTeams(); i++) {
             Team team = sortedTeams.get(i);
-            int teamScore = gameManager.getScore(team.getTeamId());
             teamLines[i] = new KeyLine("team"+i, Component.empty()
                     .append(team.getFormattedDisplayName())
                     .append(Component.text(": "))
-                    .append(Component.text(teamScore)
+                    .append(Component.text(team.getScore())
                             .color(NamedTextColor.GOLD))
             );
         }

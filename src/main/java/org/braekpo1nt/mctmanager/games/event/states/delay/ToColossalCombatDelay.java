@@ -42,7 +42,7 @@ public class ToColossalCombatDelay extends DelayState {
      */
     private boolean identifyWinnersAndStartColossalCombat() {
         // TODO: Teams Refactor this to use Teams instead of TeamIds
-        Set<String> allTeams = gameManager.getTeamIds();
+        Collection<Team> allTeams = gameManager.getTeams();
         if (allTeams.size() < 2) {
             context.messageAllAdmins(Component.empty()
                     .append(Component.text("There are fewer than two teams online. Use "))
@@ -53,9 +53,8 @@ public class ToColossalCombatDelay extends DelayState {
             return false;
         }
         Map<String, Integer> teamScores = new HashMap<>();
-        for (String teamId : allTeams) {
-            int score = gameManager.getScore(teamId);
-            teamScores.put(teamId, score);
+        for (Team team : allTeams) {
+            teamScores.put(team.getTeamId(), team.getScore());
         }
         String[] firstPlaces = GameManagerUtils.calculateFirstPlace(teamScores);
         if (firstPlaces.length == 2) {

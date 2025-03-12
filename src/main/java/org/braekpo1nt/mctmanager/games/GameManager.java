@@ -1501,28 +1501,6 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Gets the score of the given team
-     * @param teamId The team to get the score of
-     * @return The score of the given team
-     * @deprecated use {@link Team#getScore()}
-     */
-    @Deprecated
-    public int getScore(String teamId) {
-        return gameStateStorageUtil.getTeamScore(teamId);
-    }
-    
-    /**
-     * Gets the score of the participant with the given UUID
-     * @param participantUniqueId The UUID of the participant to get the score of
-     * @return The score of the participant with the given UUID
-     * @deprecated use {@link OfflineParticipant#getScore()}
-     */
-    @Deprecated
-    public int getScore(UUID participantUniqueId) {
-        return gameStateStorageUtil.getParticipantScore(participantUniqueId);
-    }
-    
-    /**
      * Checks if the given player is an admin
      * @param adminUniqueId The unique id of the admin to check
      * @return True if the given player is an admin, false otherwise
