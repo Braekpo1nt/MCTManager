@@ -1338,10 +1338,10 @@ public class GameManager implements Listener {
     
     /**
      * @return a copy of the list of online participants. Modifying this will not change
-     *      * the online participants
+     *      * the online participants. Unmodifiable.
      */
     public @NotNull Collection<Participant> getOnlineParticipants() {
-        return onlineParticipants.values();
+        return Collections.unmodifiableCollection(onlineParticipants.values());
     }
     
     /**
@@ -1378,11 +1378,11 @@ public class GameManager implements Listener {
     }
     
     /**
-     * @return A list {@link OfflinePlayer}s representing all participants in the {@link GameStateStorageUtil}. 
+     * @return A list {@link OfflinePlayer}s representing all participants in the {@link GameStateStorageUtil}. Unmodifiable. 
      * These players could be offline or online, have logged in at least once or not
      */
     public Collection<OfflineParticipant> getOfflineParticipants() {
-        return allParticipants.values();
+        return Collections.unmodifiableCollection(allParticipants.values());
     }
     
     /**
