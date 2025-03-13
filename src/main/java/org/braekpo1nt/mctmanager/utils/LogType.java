@@ -12,7 +12,8 @@ import java.util.Map;
 @Getter
 public enum LogType {
     CANCEL_ENTITY_DAMAGE_EVENT("cancelEntityDamageEvent"), 
-    CANCEL_PLAYER_DEATH_EVENT("cancelPlayerDeathEvent");
+    CANCEL_PLAYER_DEATH_EVENT("cancelPlayerDeathEvent"),
+    EVENT_UPDATE_SCORES("eventUpdateScores");
     
     private final String id;
     

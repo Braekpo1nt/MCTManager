@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.states.PlayingColossalCombatState;
@@ -12,6 +13,7 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.utils.LogType;
 
 import java.util.*;
 
@@ -35,6 +37,18 @@ public class ToColossalCombatDelay extends DelayState {
                     }
                 })
                 .build());
+    }
+    
+    @Override
+    public void updatePersonalScores(Collection<Participant> updateParticipants) {
+        Main.debugLog(LogType.EVENT_UPDATE_SCORES, "ToColossalCombatDelayState updatePersonalScores()----");
+        // do nothing
+    }
+    
+    @Override
+    public <T extends Team> void updateTeamScores(Collection<T> updateTeams) {
+        Main.debugLog(LogType.EVENT_UPDATE_SCORES, "ToColossalCombatDelayState updateTeamScores()----");
+        // do nothing
     }
     
     /**

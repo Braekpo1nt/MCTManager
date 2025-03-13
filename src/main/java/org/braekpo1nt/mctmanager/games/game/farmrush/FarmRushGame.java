@@ -143,7 +143,6 @@ public class FarmRushGame implements MCTGame, Configurable, Listener {
             FarmRushTeam farmRushTeam = new FarmRushTeam(team, arena, arenaOrder, 0);
             arenaOrder++;
             teams.put(farmRushTeam.getTeamId(), farmRushTeam);
-            Main.logger().info(String.format("FarmRush.start(): Team %s size is %d", farmRushTeam.getTeamId(), farmRushTeam.getMemberUUIDs().size()));
         }
         this.participants.clear();
         this.quitDatas = new HashMap<>();

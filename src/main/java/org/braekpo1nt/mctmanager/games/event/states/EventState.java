@@ -11,6 +11,8 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
+
 public interface EventState {
     void onParticipantJoin(Participant participant);
     void onParticipantQuit(Participant participant);
@@ -25,6 +27,8 @@ public interface EventState {
     void setMaxGames(@NotNull CommandSender sender, int newMaxGames);
     void stopColossalCombat(@NotNull CommandSender sender);
     void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam);
+    void updatePersonalScores(Collection<Participant> updateParticipants);
+    <T extends Team> void updateTeamScores(Collection<T> updateTeams);
     default void cancelAllTasks() {
         // do nothing
     }

@@ -100,6 +100,7 @@ public class PlayingColossalCombatState extends PlayingGameState {
             context.messageAllAdmins(message);
             gameManager.messageOnlineParticipants(message);
             context.setWinningTeam(null);
+            context.initializeParticipantsAndAdmins();
             context.setState(new ToPodiumDelayState(context));
             return;
         }
@@ -120,6 +121,7 @@ public class PlayingColossalCombatState extends PlayingGameState {
                         .color(winningTeam.getColor()),
                 UIUtils.DEFAULT_TIMES));
         context.setWinningTeam(winningTeam);
+        context.initializeParticipantsAndAdmins();
         context.setState(new ToPodiumDelayState(context));
     }
     

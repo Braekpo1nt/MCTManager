@@ -15,6 +15,7 @@ import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -24,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -98,7 +100,7 @@ public class OffState implements EventState {
     }
     
     private void initializeSidebar() {
-        List<Team> sortedTeams = context.sortTeams(gameManager.getTeams());
+        List<Team> sortedTeams = EventManager.sortTeams(gameManager.getTeams());
         context.setNumberOfTeams(sortedTeams.size());
         KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
         for (int i = 0; i < context.getNumberOfTeams(); i++) {
@@ -118,7 +120,7 @@ public class OffState implements EventState {
     }
     
     private void initializeAdminSidebar() {
-        List<Team> sortedTeams = context.sortTeams(gameManager.getTeams());
+        List<Team> sortedTeams = EventManager.sortTeams(gameManager.getTeams());
         context.setNumberOfTeams(sortedTeams.size());
         KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
         for (int i = 0; i < context.getNumberOfTeams(); i++) {
@@ -134,6 +136,72 @@ public class OffState implements EventState {
         context.getAdminSidebar().addLines(teamLines);
         context.getAdminSidebar().addLine("timer", "");
         context.getAdminSidebar().updateTitle(context.getConfig().getTitle());
+    }
+    
+    @Override
+    public void updatePersonalScores(Collection<Participant> updateParticipants) {
+        Main.debugLog(LogType.EVENT_UPDATE_SCORES, "OffState updatePersonalScores()");
+        if (context.getSidebar() == null) {
+            return;
+        }
+        for (Participant participant : updateParticipants) {
+            context.getSidebar().updateLine(participant.getUniqueId(), "personalScore",
+                    Component.empty()
+                            .append(Component.text("Personal: "))
+                            .append(Component.text(participant.getScore()))
+                            .color(NamedTextColor.GOLD));
+        }
+    }
+    
+    @Override
+    public <T extends Team> void updateTeamScores(Collection<T> updateTeams) {
+        Main.debugLog(LogType.EVENT_UPDATE_SCORES, "OffState updateTeamScores()");
+        if (context.getSidebar() == null) {
+            return;
+        }
+        List<Team> sortedTeams = EventManager.sortTeams(updateTeams);
+        if (context.getNumberOfTeams() != sortedTeams.size()) {
+            reorderTeamLines(sortedTeams);
+            return;
+        }
+        KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
+        for (int i = 0; i < context.getNumberOfTeams(); i++) {
+            Team team = sortedTeams.get(i);
+            teamLines[i] = new KeyLine("team"+i, Component.empty()
+                    .append(team.getFormattedDisplayName())
+                    .append(Component.text(": "))
+                    .append(Component.text(team.getScore())
+                            .color(NamedTextColor.GOLD))
+            );
+        }
+        context.getSidebar().updateLines(teamLines);
+        if (context.getAdminSidebar() == null) {
+            return;
+        }
+        context.getAdminSidebar().updateLines(teamLines);
+    }
+    
+    private void reorderTeamLines(List<Team> sortedTeamIds) {
+        String[] teamKeys = new String[context.getNumberOfTeams()];
+        for (int i = 0; i < context.getNumberOfTeams(); i++) {
+            teamKeys[i] = "team"+i;
+        }
+        context.getSidebar().deleteLines(teamKeys);
+        context.getAdminSidebar().deleteLines(teamKeys);
+        
+        context.setNumberOfTeams(sortedTeamIds.size());
+        KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
+        for (int i = 0; i < context.getNumberOfTeams(); i++) {
+            Team team = sortedTeamIds.get(i);
+            teamLines[i] = new KeyLine("team"+i, Component.empty()
+                    .append(team.getFormattedDisplayName())
+                    .append(Component.text(": "))
+                    .append(Component.text(team.getScore())
+                            .color(NamedTextColor.GOLD))
+            );
+        }
+        context.getSidebar().addLines(0, teamLines);
+        context.getAdminSidebar().addLines(0, teamLines);
     }
     
     @Override

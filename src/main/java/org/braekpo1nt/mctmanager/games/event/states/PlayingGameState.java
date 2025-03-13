@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.event.states;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.ScoreKeeper;
@@ -10,7 +11,7 @@ import org.braekpo1nt.mctmanager.games.event.states.delay.BackToHubDelayState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
-import org.bukkit.Bukkit;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -20,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class PlayingGameState implements EventState {
@@ -38,7 +40,8 @@ public class PlayingGameState implements EventState {
         context.getSidebar().removeAllPlayers();
         context.getAdminSidebar().removeAllPlayers();
         context.getAdmins().clear();
-        boolean gameStarted = gameManager.startGame(gameType, Bukkit.getConsoleSender());
+        boolean gameStarted = gameManager.startGame(gameType, 
+                context.getPlugin().getServer().getConsoleSender());
         if (!gameStarted) {
             context.messageAllAdmins(Component.text("Unable to start the game ")
                     .append(Component.text(gameType.getTitle()))
@@ -61,6 +64,16 @@ public class PlayingGameState implements EventState {
             List<ScoreKeeper> iterationScoreKeepers = context.getScoreKeepers().get(gameType);
             iterationScoreKeepers.add(new ScoreKeeper());
         }
+    }
+    
+    @Override
+    public void updatePersonalScores(Collection<Participant> updateParticipants) {
+        Main.debugLog(LogType.EVENT_UPDATE_SCORES, "PlayingGameState updatePersonalScores()----");
+    }
+    
+    @Override
+    public <T extends Team> void updateTeamScores(Collection<T> updateTeams) {
+        Main.debugLog(LogType.EVENT_UPDATE_SCORES, "PlayingGameState updateTeamScores()----");
     }
     
     @Override
@@ -108,7 +121,10 @@ public class PlayingGameState implements EventState {
     public void gameIsOver(@NotNull GameType finishedGameType) {
         context.getPlayedGames().add(finishedGameType);
         context.setCurrentGameNumber(context.getCurrentGameNumber() + 1);
+        context.initializeParticipantsAndAdmins();
         context.setState(new BackToHubDelayState(context));
+        context.updateTeamScores();
+        context.updatePersonalScores();
     }
     
     @Override

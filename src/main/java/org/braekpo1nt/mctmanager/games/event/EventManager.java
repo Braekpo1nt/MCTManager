@@ -17,7 +17,6 @@ import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
-import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.ReadyUpTopbar;
@@ -102,21 +101,12 @@ public class EventManager implements Listener {
         adminSidebar.updateLine("currentGame", getCurrentGameLine());
     }
     
-    public void updatePersonalScores(Collection<Participant> updateParticipants) {
-        if (sidebar == null) {
-            return;
-        }
-        for (Participant participant : updateParticipants) {
-            sidebar.updateLine(participant.getUniqueId(), "personalScore", 
-                    Component.empty()
-                            .append(Component.text("Personal: "))
-                            .append(Component.text(participant.getScore()))
-                            .color(NamedTextColor.GOLD));
-        }
-    }
-    
     public void updatePersonalScores() {
         updatePersonalScores(gameManager.getOnlineParticipants());
+    }
+    
+    public void updatePersonalScores(Collection<Participant> updateParticipants) {
+        state.updatePersonalScores(updateParticipants);
     }
     
     public void updateTeamScores() {
@@ -124,29 +114,7 @@ public class EventManager implements Listener {
     }
     
     public <T extends Team> void updateTeamScores(Collection<T> updateTeams) {
-        if (sidebar == null) {
-            return;
-        }
-        List<Team> sortedTeams = sortTeams(updateTeams);
-        if (numberOfTeams != sortedTeams.size()) {
-            reorderTeamLines(sortedTeams);
-            return;
-        }
-        KeyLine[] teamLines = new KeyLine[numberOfTeams];
-        for (int i = 0; i < numberOfTeams; i++) {
-            Team team = sortedTeams.get(i);
-            teamLines[i] = new KeyLine("team"+i, Component.empty()
-                    .append(team.getFormattedDisplayName())
-                    .append(Component.text(": "))
-                    .append(Component.text(team.getScore())
-                            .color(NamedTextColor.GOLD))
-            );
-        }
-        sidebar.updateLines(teamLines);
-        if (adminSidebar == null) {
-            return;
-        }
-        adminSidebar.updateLines(teamLines);
+        state.updateTeamScores(updateTeams);
     }
     
     /**
@@ -581,7 +549,7 @@ public class EventManager implements Listener {
         return multipliers[currentGameNumber - 1];
     }
     
-    public <T extends Team> List<Team> sortTeams(Collection<T> teamsToSort) {
+    public static <T extends Team> List<Team> sortTeams(Collection<T> teamsToSort) {
         List<Team> sortedTeams = new ArrayList<>(teamsToSort);
         sortedTeams.sort(Comparator.comparing(Team::getScore, Comparator.reverseOrder()));
         sortedTeams.sort(Comparator
@@ -590,29 +558,6 @@ public class EventManager implements Listener {
                 .thenComparing(team -> ((Team) team).getTeamId())
         );
         return sortedTeams;
-    }
-    
-    private void reorderTeamLines(List<Team> sortedTeamIds) {
-        String[] teamKeys = new String[numberOfTeams];
-        for (int i = 0; i < numberOfTeams; i++) {
-            teamKeys[i] = "team"+i;
-        }
-        sidebar.deleteLines(teamKeys);
-        adminSidebar.deleteLines(teamKeys);
-        
-        numberOfTeams = sortedTeamIds.size();
-        KeyLine[] teamLines = new KeyLine[numberOfTeams];
-        for (int i = 0; i < numberOfTeams; i++) {
-            Team team = sortedTeamIds.get(i);
-            teamLines[i] = new KeyLine("team"+i, Component.empty()
-                    .append(team.getFormattedDisplayName())
-                    .append(Component.text(": "))
-                    .append(Component.text(team.getScore())
-                            .color(NamedTextColor.GOLD))
-            );
-        }
-        sidebar.addLines(0, teamLines);
-        adminSidebar.addLines(0, teamLines);
     }
     
     public void trackScores(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, GameType gameType) {
