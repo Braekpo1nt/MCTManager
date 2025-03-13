@@ -356,7 +356,7 @@ public class ReadyUpState implements EventState {
         }
         List<Team> sortedTeams = EventManager.sortTeams(updateTeams);
         if (context.getNumberOfTeams() != sortedTeams.size()) {
-            reorderTeamLines(sortedTeams);
+            EventState.reorderTeamLines(sortedTeams, context);
             return;
         }
         KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
@@ -374,29 +374,6 @@ public class ReadyUpState implements EventState {
             return;
         }
         context.getAdminSidebar().updateLines(teamLines);
-    }
-    
-    private void reorderTeamLines(List<Team> sortedTeamIds) {
-        String[] teamKeys = new String[context.getNumberOfTeams()];
-        for (int i = 0; i < context.getNumberOfTeams(); i++) {
-            teamKeys[i] = "team"+i;
-        }
-        context.getSidebar().deleteLines(teamKeys);
-        context.getAdminSidebar().deleteLines(teamKeys);
-        
-        context.setNumberOfTeams(sortedTeamIds.size());
-        KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
-        for (int i = 0; i < context.getNumberOfTeams(); i++) {
-            Team team = sortedTeamIds.get(i);
-            teamLines[i] = new KeyLine("team"+i, Component.empty()
-                    .append(team.getFormattedDisplayName())
-                    .append(Component.text(": "))
-                    .append(Component.text(team.getScore())
-                            .color(NamedTextColor.GOLD))
-            );
-        }
-        context.getSidebar().addLines(0, teamLines);
-        context.getAdminSidebar().addLines(0, teamLines);
     }
     
     @Override

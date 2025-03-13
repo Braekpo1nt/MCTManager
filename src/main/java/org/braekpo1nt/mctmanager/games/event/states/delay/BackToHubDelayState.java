@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
+import org.braekpo1nt.mctmanager.games.event.states.EventState;
 import org.braekpo1nt.mctmanager.games.event.states.HalftimeBreakState;
 import org.braekpo1nt.mctmanager.games.event.states.WaitingInHubState;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -58,7 +59,7 @@ public class BackToHubDelayState extends DelayState {
         }
         List<Team> sortedTeams = EventManager.sortTeams(updateTeams);
         if (context.getNumberOfTeams() != sortedTeams.size()) {
-            reorderTeamLines(sortedTeams);
+            EventState.reorderTeamLines(sortedTeams, context);
             return;
         }
         KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
@@ -78,26 +79,4 @@ public class BackToHubDelayState extends DelayState {
         context.getAdminSidebar().updateLines(teamLines);
     }
     
-    private void reorderTeamLines(List<Team> sortedTeamIds) {
-        String[] teamKeys = new String[context.getNumberOfTeams()];
-        for (int i = 0; i < context.getNumberOfTeams(); i++) {
-            teamKeys[i] = "team"+i;
-        }
-        context.getSidebar().deleteLines(teamKeys);
-        context.getAdminSidebar().deleteLines(teamKeys);
-        
-        context.setNumberOfTeams(sortedTeamIds.size());
-        KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
-        for (int i = 0; i < context.getNumberOfTeams(); i++) {
-            Team team = sortedTeamIds.get(i);
-            teamLines[i] = new KeyLine("team"+i, Component.empty()
-                    .append(team.getFormattedDisplayName())
-                    .append(Component.text(": "))
-                    .append(Component.text(team.getScore())
-                            .color(NamedTextColor.GOLD))
-            );
-        }
-        context.getSidebar().addLines(0, teamLines);
-        context.getAdminSidebar().addLines(0, teamLines);
-    }
 }
