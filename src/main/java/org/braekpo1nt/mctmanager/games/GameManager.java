@@ -439,6 +439,8 @@ public class GameManager implements Listener {
     private void onParticipantJoin(@NotNull Participant participant) {
         MCTTeam team = teams.get(participant.getTeamId());
         team.joinOnlineMember(participant);
+        team.sendMessage(Component.text("New member joining your team: ")
+                .append(participant.displayName()));
         onlineParticipants.put(participant.getUniqueId(), participant);
         participant.getPlayer().setScoreboard(mctScoreboard);
         participant.addPotionEffect(Main.NIGHT_VISION);
@@ -572,6 +574,9 @@ public class GameManager implements Listener {
                 Participant participant = new Participant(offlineParticipant, player);
                 onParticipantJoin(participant);
             }
+        }
+        for (MCTTeam team : teams.values()) {
+            team.sendMessage(Component.text("This is a message being sent on load"));
         }
         return true;
     }
@@ -1294,11 +1299,11 @@ public class GameManager implements Listener {
             UUID uuid = entry.getKey();
             int newScore = entry.getValue();
             OfflineParticipant offlineParticipant = allParticipants.get(uuid);
-            allParticipants.put(uuid, new OfflineParticipant(offlineParticipant,
+            allParticipants.put(uuid, new OfflineParticipant(offlineParticipant, 
                     offlineParticipant.getScore() + newScore));
             Participant participant = onlineParticipants.get(uuid);
             if (participant != null) {
-                onlineParticipants.put(uuid, new Participant(participant,
+                onlineParticipants.put(uuid, new Participant(participant, 
                         participant.getScore() + newScore));
             }
         }
@@ -1317,6 +1322,75 @@ public class GameManager implements Listener {
             eventManager.trackScores(teamScores, participantScores, activeGame.getType());
         }
         updateScoreVisuals(teams.values(), onlineParticipants.values());
+        displayStats(teamScores, participantScores);
+    }
+    
+    private void displayStats(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores) {
+        List<MCTTeam> sortedTeams = teamScores.keySet().stream()
+                .map(teams::get)
+                .filter(t -> teamScores.containsKey(t.getTeamId()))
+                .sorted(Comparator.comparing(
+                        t -> teamScores.get(t.getTeamId()), 
+                        Comparator.reverseOrder()))
+                .toList();
+        List<OfflineParticipant> sortedParticipants = participantScores.keySet().stream()
+                .map(allParticipants::get)
+                .filter(p -> participantScores.containsKey(p.getUniqueId()))
+                .sorted(Comparator.comparing(
+                        p -> participantScores.get(p.getUniqueId()),
+                        Comparator.reverseOrder()))
+                .toList();
+        Main.logf("sortedTeams=%d, sortedParticipants=%d",  sortedTeams.size(), sortedParticipants.size());
+        
+        TextComponent.Builder everyone = Component.text();
+        everyone.append(Component.text("Top 5 Teams:"))
+                .append(Component.newline());
+//        for (int i = 0; i < Math.min(sortedTeams.size(), 5); i++) {
+        for (int i = 0; i < sortedTeams.size(); i++) {
+            MCTTeam team = sortedTeams.get(i);
+            everyone
+                    .append(Component.text(i+1))
+                    .append(Component.text(". "))
+                    .append(team.getFormattedDisplayName())
+                    .append(Component.text(": "))
+                    .append(Component.text(teamScores.get(team.getTeamId()))
+                            .decorate(TextDecoration.BOLD)
+                            .color(NamedTextColor.GOLD))
+                    .append(Component.newline());
+        }
+        everyone.append(Component.text("Top 5 Participants:"))
+                .append(Component.newline());
+//        for (int i = 0; i < Math.min(sortedParticipants.size(), 5); i++) {
+        for (int i = 0; i < sortedParticipants.size(); i++) {
+            OfflineParticipant team = sortedParticipants.get(i);
+            everyone
+                    .append(Component.text(i+1))
+                    .append(Component.text(". "))
+                    .append(team.displayName())
+                    .append(Component.text(": "))
+                    .append(Component.text(teamScores.get(team.getTeamId()))
+                            .decorate(TextDecoration.BOLD)
+                            .color(NamedTextColor.GOLD))
+                    .append(Component.text(" ("))
+                    .append(Component.text(teamScores.get(team.getTeamId()) / getMultiplier())
+                            .decorate(TextDecoration.BOLD)
+                            .color(NamedTextColor.GOLD))
+                    .append(Component.text(" x "))
+                    .append(Component.text(getMultiplier()))
+                    .append(Component.text(")"))
+                    .append(Component.newline());
+        }
+        Audience.audience(sortedTeams).sendMessage(everyone.build());
+        plugin.getServer().getConsoleSender().sendMessage(everyone.build());
+        
+        // for everyone
+            // top 5 teams
+            // top 5 players
+        // for each team
+            // all player earnings in order from most to least points earned
+            // include un-multiplied points
+        // for each participant
+            // the points they earned
     }
     
     /**

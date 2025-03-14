@@ -4,6 +4,7 @@ import lombok.ToString;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.utils.AudienceDelegate;
 import org.jetbrains.annotations.NotNull;
@@ -186,15 +187,15 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
      */
     public void joinOnlineMember(@NotNull Participant participant) {
         if (!members.contains(participant.getUniqueId())) {
-            throw new IllegalStateException(String.format("Can't join participant \"%s\" with UUID \"%s\" and teamId \"%s\" to team \"%s\" because they are not in the members set",
+            throw new IllegalArgumentException(String.format("Can't join participant \"%s\" with UUID \"%s\" and teamId \"%s\" to team \"%s\" because they are not in the members set",
                     participant.getName(), participant.getUniqueId(), this.getTeamId(), participant.getTeamId()));
         }
         if (!getTeamId().equals(participant.getTeamId())) {
-            throw new IllegalStateException(String.format("Can't join participant \"%s\" with UUID \"%s\" and teamId \"%s\" to team \"%s\" because their teamId doesn't match",
+            throw new IllegalArgumentException(String.format("Can't join participant \"%s\" with UUID \"%s\" and teamId \"%s\" to team \"%s\" because their teamId doesn't match",
                     participant.getName(), participant.getUniqueId(), this.getTeamId(), participant.getTeamId()));
         }
-        joinMember(participant.getUniqueId());
         onlineMembers.put(participant.getUniqueId(), participant);
+        Main.logf("Joining participant %s to MCTTeam %s (onlineMembers.size=%d)", participant.getName(), getTeamId(), onlineMembers.size());
         audience = Audience.audience(onlineMembers.values());
     }
     
@@ -228,6 +229,12 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
             audience = onlineMembers.isEmpty() ? Audience.empty() : Audience.audience(onlineMembers.values());
         }
         return removed;
+    }
+    
+    @Override
+    public void sendMessage(@NotNull Component message) {
+        AudienceDelegate.super.sendMessage(message);
+        Main.logf("sendMessage() to team %s, onlineMembers=%d", getTeamId(), onlineMembers.size());
     }
     
     /**
