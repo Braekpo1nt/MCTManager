@@ -1273,10 +1273,17 @@ public class GameManager implements Listener {
     /**
      * Add the given scores to the given teams and participants, save the game state, update
      * the UI, etc.
-     * @param teamScores map of teamId to score to add
-     * @param participantScores map of UUID to score to add
+     * @param newTeamScores map of teamId to score to add
+     * @param newParticipantScores map of UUID to score to add
      */
-    public void addScores(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores) {
+    public void addScores(Map<String, Integer> newTeamScores, Map<UUID, Integer> newParticipantScores) {
+        // some values might be from offline teams who have been removed, but still saved as QuitData
+        Map<String, Integer> teamScores = newTeamScores.entrySet().stream()
+                .filter(e -> teams.containsKey(e.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        Map<UUID, Integer> participantScores = newParticipantScores.entrySet().stream()
+                .filter(e -> allParticipants.containsKey(e.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         for (Map.Entry<String, Integer> entry : teamScores.entrySet()) {
             String teamId = entry.getKey();
             int newScore = entry.getValue();
@@ -1287,11 +1294,11 @@ public class GameManager implements Listener {
             UUID uuid = entry.getKey();
             int newScore = entry.getValue();
             OfflineParticipant offlineParticipant = allParticipants.get(uuid);
-            allParticipants.put(uuid, new OfflineParticipant(offlineParticipant, 
+            allParticipants.put(uuid, new OfflineParticipant(offlineParticipant,
                     offlineParticipant.getScore() + newScore));
             Participant participant = onlineParticipants.get(uuid);
             if (participant != null) {
-                onlineParticipants.put(uuid, new Participant(participant, 
+                onlineParticipants.put(uuid, new Participant(participant,
                         participant.getScore() + newScore));
             }
         }
