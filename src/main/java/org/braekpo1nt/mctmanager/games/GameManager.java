@@ -1361,34 +1361,74 @@ public class GameManager implements Listener {
         everyone.append(Component.text("\nTop 5 Participants:"))
                 .append(Component.newline());
         for (int i = 0; i < Math.min(sortedParticipants.size(), 5); i++) {
-            OfflineParticipant team = sortedParticipants.get(i);
+            OfflineParticipant participant = sortedParticipants.get(i);
             everyone
                     .append(Component.text("  "))
                     .append(Component.text(i+1))
                     .append(Component.text(". "))
-                    .append(team.displayName())
+                    .append(participant.displayName())
                     .append(Component.text(": "))
-                    .append(Component.text(teamScores.get(team.getTeamId()))
+                    .append(Component.text(participantScores.get(participant.getUniqueId()))
                             .color(NamedTextColor.GOLD))
                     .append(Component.text(" ("))
-                    .append(Component.text((int) (teamScores.get(team.getTeamId()) / getMultiplier()))
+                    .append(Component.text((int) (participantScores.get(participant.getUniqueId()) / getMultiplier()))
                             .color(NamedTextColor.GOLD))
                     .append(Component.text(" x "))
                     .append(Component.text(getMultiplier()))
                     .append(Component.text(")"))
                     .append(Component.newline());
         }
-        Audience.audience(sortedTeams).sendMessage(everyone.build());
-        plugin.getServer().getConsoleSender().sendMessage(everyone.build());
+        Audience.audience(
+                Audience.audience(sortedTeams),
+                Audience.audience(onlineAdmins),
+                plugin.getServer().getConsoleSender()
+        ).sendMessage(everyone.build());
         
-        // for everyone
-            // top 5 teams
-            // top 5 players
-        // for each team
-            // all player earnings in order from most to least points earned
-            // include un-multiplied points
-        // for each participant
-            // the points they earned
+        for (MCTTeam team : sortedTeams) {
+            TextComponent.Builder message = Component.text();
+            message
+                    .append(team.getFormattedDisplayName())
+                    .append(Component.text(": \n"));
+            int i = 1;
+            for (OfflineParticipant participant : sortedParticipants) {
+                if (participant.getTeamId().equals(team.getTeamId())) {
+                    message
+                            .append(Component.text("  "))
+                            .append(Component.text(i))
+                            .append(Component.text(". "))
+                            .append(participant.displayName())
+                            .append(Component.text(": "))
+                            .append(Component.text(participantScores.get(participant.getUniqueId()))
+                                    .color(NamedTextColor.GOLD))
+                            .append(Component.text(" ("))
+                            .append(Component.text((int) (participantScores.get(participant.getUniqueId()) / getMultiplier()))
+                                    .color(NamedTextColor.GOLD))
+                            .append(Component.text(" x "))
+                            .append(Component.text(getMultiplier()))
+                            .append(Component.text(")"))
+                            .append(Component.newline());
+                    i++;
+                }
+            }
+            team.sendMessage(message.build());
+        }
+        
+        for (OfflineParticipant offlineParticipant : sortedParticipants) {
+            Participant participant = onlineParticipants.get(offlineParticipant.getUniqueId());
+            if (participant != null) {
+                participant.sendMessage(
+                        Component.text("\nYour Points: ")
+                                .append(Component.text(participantScores.get(offlineParticipant.getUniqueId()))
+                                        .color(NamedTextColor.GOLD))
+                                .append(Component.text(" ("))
+                                .append(Component.text((int) (participantScores.get(offlineParticipant.getUniqueId()) / getMultiplier()))
+                                        .color(NamedTextColor.GOLD))
+                                .append(Component.text(" x "))
+                                .append(Component.text(getMultiplier()))
+                                .append(Component.text(")"))
+                );
+            }
+        }
     }
     
     /**
