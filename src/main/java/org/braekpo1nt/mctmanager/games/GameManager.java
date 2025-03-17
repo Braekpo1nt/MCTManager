@@ -1345,8 +1345,7 @@ public class GameManager implements Listener {
         TextComponent.Builder everyone = Component.text();
         everyone.append(Component.text("Top 5 Teams:"))
                 .append(Component.newline());
-//        for (int i = 0; i < Math.min(sortedTeams.size(), 5); i++) {
-        for (int i = 0; i < sortedTeams.size(); i++) {
+        for (int i = 0; i < Math.min(sortedTeams.size(), 5); i++) {
             MCTTeam team = sortedTeams.get(i);
             everyone
                     .append(Component.text(i+1))
@@ -1354,14 +1353,12 @@ public class GameManager implements Listener {
                     .append(team.getFormattedDisplayName())
                     .append(Component.text(": "))
                     .append(Component.text(teamScores.get(team.getTeamId()))
-                            .decorate(TextDecoration.BOLD)
                             .color(NamedTextColor.GOLD))
                     .append(Component.newline());
         }
         everyone.append(Component.text("Top 5 Participants:"))
                 .append(Component.newline());
-//        for (int i = 0; i < Math.min(sortedParticipants.size(), 5); i++) {
-        for (int i = 0; i < sortedParticipants.size(); i++) {
+        for (int i = 0; i < Math.min(sortedParticipants.size(), 5); i++) {
             OfflineParticipant team = sortedParticipants.get(i);
             everyone
                     .append(Component.text(i+1))
@@ -1369,11 +1366,9 @@ public class GameManager implements Listener {
                     .append(team.displayName())
                     .append(Component.text(": "))
                     .append(Component.text(teamScores.get(team.getTeamId()))
-                            .decorate(TextDecoration.BOLD)
                             .color(NamedTextColor.GOLD))
                     .append(Component.text(" ("))
                     .append(Component.text(teamScores.get(team.getTeamId()) / getMultiplier())
-                            .decorate(TextDecoration.BOLD)
                             .color(NamedTextColor.GOLD))
                     .append(Component.text(" x "))
                     .append(Component.text(getMultiplier()))

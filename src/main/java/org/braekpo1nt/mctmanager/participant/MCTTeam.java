@@ -27,7 +27,7 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
      * The Participants who are members of this team and are online
      */
     private final @NotNull Map<UUID, Participant> onlineMembers;
-    private @NotNull Audience audience = Audience.empty();
+    private @NotNull Audience audience;
     
     /**
      * Create a new Team
@@ -41,6 +41,7 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
         super(teamId, displayName, color, score);
         this.members = members;
         this.onlineMembers = new HashMap<>();
+        this.audience = Audience.empty();
     }
     
     /**
@@ -71,8 +72,9 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
      */
     public MCTTeam(MCTTeam team, int newScore) {
         super(team.getTeamId(), team.getDisplayName(), team.getColor(), team.getBukkitColor(), team.getFormattedDisplayName(), newScore);
-        this.members = team.members;
-        this.onlineMembers = team.onlineMembers;
+        this.members = new HashSet<>(team.members);
+        this.onlineMembers = new HashMap<>(team.onlineMembers);
+        this.audience = Audience.audience(this.onlineMembers.values());
     }
     
     /**
