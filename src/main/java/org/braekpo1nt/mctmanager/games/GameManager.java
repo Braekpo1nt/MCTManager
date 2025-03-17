@@ -1340,7 +1340,6 @@ public class GameManager implements Listener {
                         p -> participantScores.get(p.getUniqueId()),
                         Comparator.reverseOrder()))
                 .toList();
-        Main.logf("sortedTeams=%d, sortedParticipants=%d",  sortedTeams.size(), sortedParticipants.size());
         
         TextComponent.Builder everyone = Component.text();
         everyone.append(Component.text("Top 5 Teams:"))

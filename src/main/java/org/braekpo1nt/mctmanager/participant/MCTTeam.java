@@ -197,7 +197,6 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
                     participant.getName(), participant.getUniqueId(), this.getTeamId(), participant.getTeamId()));
         }
         onlineMembers.put(participant.getUniqueId(), participant);
-        Main.logf("Joining participant %s to MCTTeam %s (onlineMembers.size=%d)", participant.getName(), getTeamId(), onlineMembers.size());
         audience = Audience.audience(onlineMembers.values());
     }
     
@@ -233,12 +232,6 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
         return removed;
     }
     
-    @Override
-    public void sendMessage(@NotNull Component message) {
-        AudienceDelegate.super.sendMessage(message);
-        Main.logf("sendMessage() to team %s, onlineMembers=%d", getTeamId(), onlineMembers.size());
-    }
-    
     /**
      * @return a collection of the online members of this team
      */
@@ -255,13 +248,17 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
     
     /**
      * Sends the given message to every online member of the team except for the given participant
-     * @param participant the participant who sent the message, and therefore should not receive the message
+     * @param sender the participant who sent the message, and therefore should not receive the message
      *                    (doesn't have to be a member of the team)
      * @param message the message to send
      */
-    public void sendMessageFrom(@NotNull Participant participant, @NotNull Component message) {
-        Audience.audience(onlineMembers.values().stream()
-                .filter(member -> !member.getUniqueId().equals(participant.getUniqueId())).toList())
-                .sendMessage(message);
+    public void sendMessageFrom(@NotNull Participant sender, @NotNull Component message) {
+        if (onlineMembers.containsKey(sender.getUniqueId())) {
+            Audience.audience(onlineMembers.values().stream()
+                            .filter(m -> !m.getUniqueId().equals(sender.getUniqueId())).toList())
+                    .sendMessage(message);
+        } else {
+            audience.sendMessage(message);
+        }
     }
 }
