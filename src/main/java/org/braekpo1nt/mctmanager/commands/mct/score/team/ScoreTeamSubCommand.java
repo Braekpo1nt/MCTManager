@@ -59,11 +59,10 @@ public class ScoreTeamSubCommand extends TabSubCommand {
                     .append(Component.text(" is not a valid teamId ID")));
         }
         
-        int score = gameManager.getScore(teamId);
         return CommandResult.success(Component.empty()
                 .append(team.getFormattedDisplayName())
                 .append(Component.text(": "))
-                .append(Component.text(score)
+                .append(Component.text(team.getScore())
                         .color(NamedTextColor.GOLD)));
     }
     
@@ -76,12 +75,11 @@ public class ScoreTeamSubCommand extends TabSubCommand {
                         .decorate(TextDecoration.BOLD));
         List<Team> sortedTeams = GameManagerUtils.getSortedTeams(gameManager);
         for (Team team : sortedTeams) {
-            int score = gameManager.getScore(team.getTeamId());
             builder.append(Component.empty()
                     .append(Component.newline())
                     .append(team.getFormattedDisplayName())
                     .append(Component.text(": "))
-                    .append(Component.text(score)
+                    .append(Component.text(team.getScore())
                             .color(NamedTextColor.GOLD)));
         }
         return builder.build();

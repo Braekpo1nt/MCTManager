@@ -5,15 +5,12 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
-import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushTeam;
+import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Collections;
 
 public class DescriptionState implements FarmRushState {
     
@@ -29,7 +26,7 @@ public class DescriptionState implements FarmRushState {
         if (context.getConfig().shouldEnforceMaxScore()) {
             context.messageAllParticipants(Component.empty()
                     .append(Component.text("The first team to reach "))
-                    .append(Component.text((int) (context.getConfig().getMaxScore() * context.getGameManager().matchProgressPointMultiplier()))
+                    .append(Component.text((int) (context.getConfig().getMaxScore() * context.getGameManager().getMultiplier()))
                             .color(NamedTextColor.GOLD)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" points wins!"))
@@ -47,13 +44,13 @@ public class DescriptionState implements FarmRushState {
     @Override
     public void onParticipantJoin(Participant player, Team team) {
         context.onTeamJoin(team);
-        context.initializeParticipant(player);
+        context.initializeParticipant(player, 0);
         context.getSidebar().updateLine(player.getUniqueId(), "title", context.getTitle());
         player.sendMessage(context.getConfig().getDescription());
     }
     
     @Override
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantQuit(FarmRushParticipant participant) {
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
     }

@@ -1,13 +1,16 @@
-package org.braekpo1nt.mctmanager.games.game.clockwork;
+package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
 import lombok.Data;
 import org.braekpo1nt.mctmanager.participant.ScoredTeamData;
 import org.braekpo1nt.mctmanager.participant.Team;
 
-public class ClockworkTeam extends ScoredTeamData<ClockworkParticipant> {
-    
-    public ClockworkTeam(Team team, int score) {
+public class CTFTeam extends ScoredTeamData<CTFParticipant> {
+    public CTFTeam(Team team, int score) {
         super(team, score);
+    }
+    
+    public CTFTeam(Team team, QuitData quitData) {
+        super(team, quitData.getScore());
     }
     
     @Data

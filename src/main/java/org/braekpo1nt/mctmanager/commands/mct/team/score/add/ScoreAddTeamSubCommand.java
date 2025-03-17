@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class ScoreAddTeamSubCommand extends TabSubCommand {
     private final GameManager gameManager;
@@ -48,13 +49,12 @@ public class ScoreAddTeamSubCommand extends TabSubCommand {
         int score = Integer.parseInt(scoreString);
         if (invert) {
             score = -score;
-            int currentScore = gameManager.getScore(teamId);
+            int currentScore = team.getScore();
             if (currentScore + score < 0) {
                 score = -currentScore;
             }
         }
-        gameManager.addScore(team.getTeamId(), score);
-        int newScore = gameManager.getScore(teamId);
+        int newScore = gameManager.addScore(team, score);
         return CommandResult.success(Component.empty()
                 .append(team.getFormattedDisplayName())
                 .append(Component.text(" score is now "))

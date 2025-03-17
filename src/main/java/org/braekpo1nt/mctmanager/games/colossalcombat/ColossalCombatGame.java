@@ -408,17 +408,24 @@ public class ColossalCombatGame implements Listener, Configurable {
                 currentRound.onParticipantQuit(participant);
             }
         }
-        resetParticipant(participant);
+        ColossalParticipant ccParticipant;
         if (first.getTeamId().equals(participant.getTeamId())) {
-            ColossalParticipant ccParticipant = firstPlaceParticipants.remove(participant.getUniqueId());
-            first.removeParticipant(participant.getUniqueId());
-            quitDatas.put(ccParticipant.getUniqueId(), ccParticipant.getQuitData());
+            ccParticipant = firstPlaceParticipants.get(participant.getUniqueId());
         } else if (second.getTeamId().equals(participant.getTeamId())) {
-            ColossalParticipant ccParticipant = secondPlaceParticipants.remove(participant.getUniqueId());
-            second.removeParticipant(participant.getUniqueId());
-            quitDatas.put(ccParticipant.getUniqueId(), ccParticipant.getQuitData());
+            ccParticipant = secondPlaceParticipants.get(participant.getUniqueId());
         } else {
+            resetParticipant(participant);
             spectators.remove(participant.getUniqueId());
+            return;
+        }
+        quitDatas.put(ccParticipant.getUniqueId(), ccParticipant.getQuitData());
+        resetParticipant(ccParticipant);
+        if (ccParticipant.getAffiliation() == ColossalCombatRound.Affiliation.FIRST) {
+            firstPlaceParticipants.remove(participant.getUniqueId());
+            first.removeParticipant(participant.getUniqueId());
+        } else {
+            secondPlaceParticipants.remove(participant.getUniqueId());
+            second.removeParticipant(participant.getUniqueId());
         }
     }
     

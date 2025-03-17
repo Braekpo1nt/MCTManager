@@ -28,7 +28,6 @@ public abstract class DelayState implements EventState {
     
     @Override
     public void onParticipantJoin(Participant participant) {
-        context.getParticipants().put(participant.getUniqueId(), participant);
         if (context.getSidebar() != null) {
             context.getSidebar().addPlayer(participant);
             context.updateTeamScores();
@@ -38,7 +37,6 @@ public abstract class DelayState implements EventState {
     
     @Override
     public void onParticipantQuit(Participant participant) {
-        context.getParticipants().remove(participant.getUniqueId());
         if (context.getSidebar() != null) {
             context.getSidebar().removePlayer(participant);
         }
@@ -69,13 +67,13 @@ public abstract class DelayState implements EventState {
     }
     
     @Override
-    public void onPlayerDamage(EntityDamageEvent event) {
+    public void onParticipantDamage(EntityDamageEvent event) {
         Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "EventManager.DelayState.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     
     @Override
-    public void onClickInventory(InventoryClickEvent event) {
+    public void onClickInventory(InventoryClickEvent event, Participant participant) {
         if (event.getClickedInventory() == null) {
             return;
         }
@@ -87,7 +85,7 @@ public abstract class DelayState implements EventState {
     }
     
     @Override
-    public void onDropItem(PlayerDropItemEvent event) {
+    public void onDropItem(PlayerDropItemEvent event, @NotNull Participant participant) {
         event.setCancelled(true);
     }
     

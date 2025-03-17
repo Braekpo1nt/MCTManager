@@ -68,18 +68,22 @@ public class Participant extends OfflineParticipant implements AudienceDelegate 
     @EqualsAndHashCode.Include
     protected final @NotNull Player player;
     
-    public Participant(@NotNull Participant participant) {
-        this(participant, participant.getPlayer());
+    public Participant(@NotNull Participant participant, int score) {
+        super(participant, score);
+        this.player = participant.getPlayer();
     }
     
-    public Participant(@NotNull Player player, @NotNull String teamId) {
-        super(player.getUniqueId(), player.getName(), player.displayName(), teamId);
+    public Participant(@NotNull Participant participant) {
+        this(participant, participant.getScore());
+    }
+    
+    public Participant(@NotNull OfflineParticipant offlineParticipant, @NotNull Player player, int score) {
+        super(offlineParticipant, score);
         this.player = player;
     }
     
     public Participant(@NotNull OfflineParticipant offlineParticipant, @NotNull Player player) {
-        super(offlineParticipant);
-        this.player = player;
+        this(offlineParticipant, player, offlineParticipant.getScore());
     }
     
     /**

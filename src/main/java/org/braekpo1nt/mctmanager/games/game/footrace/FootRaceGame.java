@@ -19,7 +19,6 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
-import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
@@ -53,7 +52,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Data
-public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable {
+public class FootRaceGame implements Listener, MCTGame, Configurable {
     
     private @Nullable FootRaceState state;
     
@@ -77,7 +76,9 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     /**
      * Holds the data for participants when they have quit mid-round
      */
-    private Map<UUID, FootRaceQuitData> quitDatas = new HashMap<>();
+    private Map<UUID, FootRaceParticipant.QuitData> quitDatas = new HashMap<>();
+    private Map<String, FootRaceTeam> teams = new HashMap<>();
+    private Map<String, FootRaceTeam.QuitData> teamQuitDatas = new HashMap<>();
     /**
      * what place every participant is in at any given moment in the race
      */
@@ -129,7 +130,13 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     @Override
     public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
         this.participants = new HashMap<>(newParticipants.size());
+        this.teams = new HashMap<>(newTeams.size());
+        for (Team newTeam : newTeams) {
+            FootRaceTeam team = new FootRaceTeam(newTeam, 0);
+            this.teams.put(team.getTeamId(), team);
+        }
         this.quitDatas = new HashMap<>();
+        this.teamQuitDatas = new HashMap<>();
         standings = new ArrayList<>(newParticipants.size());
         admins = new ArrayList<>(newAdmins.size());
         sidebar = gameManager.createSidebar();
@@ -270,8 +277,9 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     public void initializeParticipant(Participant newParticipant) {
-        FootRaceParticipant participant = new FootRaceParticipant(newParticipant, config.getCheckpoints().size() - 1);
+        FootRaceParticipant participant = new FootRaceParticipant(newParticipant, config.getCheckpoints().size() - 1, 0);
         participants.put(participant.getUniqueId(), participant);
+        teams.get(participant.getTeamId()).addParticipant(participant);
         standings.add(participant);
         sidebar.addPlayer(participant);
         participant.teleport(config.getStartingLocation());
@@ -298,15 +306,36 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         closeGlassBarrier();
         cancelAllTasks();
         stopAdmins();
+        saveScores();
         for (FootRaceParticipant participant : participants.values()) {
             resetParticipant(participant);
         }
         clearSidebar();
         participants.clear();
+        teams.clear();
         quitDatas.clear();
+        teamQuitDatas.clear();
         standings.clear();
         gameManager.gameIsOver();
         Main.logger().info("Stopping Foot Race game");
+    }
+    
+    private void saveScores() {
+        Map<String, Integer> teamScores = new HashMap<>();
+        Map<UUID, Integer> participantScores = new HashMap<>();
+        for (FootRaceTeam team : teams.values()) {
+            teamScores.put(team.getTeamId(), team.getScore());
+        }
+        for (FootRaceParticipant participant : participants.values()) {
+            participantScores.put(participant.getUniqueId(), participant.getScore());
+        }
+        for (Map.Entry<String, FootRaceTeam.QuitData> entry : teamQuitDatas.entrySet()) {
+            teamScores.put(entry.getKey(), entry.getValue().getScore());
+        }
+        for (Map.Entry<UUID, FootRaceParticipant.QuitData> entry : quitDatas.entrySet()) {
+            participantScores.put(entry.getKey(), entry.getValue().getScore());
+        }
+        gameManager.addScores(teamScores, participantScores);
     }
     
     private void cancelAllTasks() {
@@ -317,17 +346,38 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     public void resetParticipant(FootRaceParticipant participant) {
+        teams.get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         sidebar.removePlayer(participant);
     }
     
+    public void onTeamJoin(Team team) {
+        if (teams.containsKey(team.getTeamId())) {
+            return;
+        }
+        FootRaceTeam.QuitData quitData = teamQuitDatas.get(team.getTeamId());
+        if (quitData != null) {
+            teams.put(team.getTeamId(), new FootRaceTeam(team, quitData.getScore()));
+        } else {
+            teams.put(team.getTeamId(), new FootRaceTeam(team, 0));
+        }
+    }
+    
     @Override
     public void onParticipantJoin(Participant participant, Team team) {
         if (state != null) {
-            state.onParticipantJoin(participant);
+            state.onParticipantJoin(participant, team);
         }
+    }
+    
+    public void onTeamQuit(FootRaceTeam team) {
+        if (team.size() > 0) {
+            return;
+        }
+        FootRaceTeam removed = teams.remove(team.getTeamId());
+        teamQuitDatas.put(team.getTeamId(), removed.getQuitData());
     }
     
     @Override
@@ -336,8 +386,9 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         if (footRaceParticipant == null) {
             return;
         }
+        FootRaceTeam footRaceTeam = teams.get(participant.getTeamId());
         if (state != null) {
-            state.onParticipantQuit(footRaceParticipant);
+            state.onParticipantQuit(footRaceParticipant, footRaceTeam);
         }
     }
     
@@ -393,28 +444,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         adminSidebar.removePlayer(admin);
     }
     
-    @Override
-    public void updateTeamScore(Participant participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.containsKey(participant.getUniqueId())) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
-    }
-    
-    @Override
-    public void updatePersonalScore(Participant participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.containsKey(participant.getUniqueId())) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
-    }
-    
     private void clearAdminSidebar() {
         adminSidebar.deleteAllLines();
         adminSidebar = null;
@@ -436,6 +465,30 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                 new KeyLine("standing4", Component.empty()),
                 new KeyLine("standing5", Component.empty())
         );
+        for (FootRaceTeam team : teams.values()) {
+            displayScore(team);
+        }
+        for (FootRaceParticipant participant : participants.values()) {
+            displayScore(participant);
+        }
+    }
+    
+    public void displayScore(FootRaceTeam team) {
+        Component contents = Component.empty()
+                .append(team.getFormattedDisplayName())
+                .append(Component.text(": "))
+                .append(Component.text(team.getScore())
+                        .color(NamedTextColor.GOLD));
+        for (UUID memberUUID : team.getMemberUUIDs()) {
+            sidebar.updateLine(memberUUID, "personalTeam", contents);
+        }
+    }
+    
+    public void displayScore(FootRaceParticipant participant) {
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", Component.empty()
+                .append(Component.text("Personal: "))
+                .append(Component.text(participant.getScore()))
+                .color(NamedTextColor.GOLD));
     }
     
     private void clearSidebar() {

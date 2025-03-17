@@ -53,7 +53,7 @@ public class PlayingColossalCombatState extends PlayingGameState {
         List<Participant> firstPlaceParticipants = new ArrayList<>();
         List<Participant> secondPlaceParticipants = new ArrayList<>();
         List<Participant> spectators = new ArrayList<>();
-        for (Participant participant : context.getParticipants().values()) {
+        for (Participant participant : context.getParticipants()) {
             String teamId = participant.getTeamId();
             if (teamId.equals(firstTeam.getTeamId())) {
                 firstPlaceParticipants.add(participant);
@@ -85,11 +85,10 @@ public class PlayingColossalCombatState extends PlayingGameState {
                     .color(NamedTextColor.RED));
             return false;
         }
-        context.getSidebar().removePlayers(context.getParticipants().values());
+        context.getSidebar().removePlayers(context.getParticipants());
         context.getAdminSidebar().removePlayers(context.getAdmins());
         gameManager.removeParticipantsFromHub(context.getParticipants());
         context.getColossalCombatGame().start(firstTeam, secondTeam, firstPlaceParticipants, secondPlaceParticipants, spectators, context.getAdmins());
-        context.getParticipants().clear();
         context.getAdmins().clear();
         return true;
     }
@@ -101,6 +100,7 @@ public class PlayingColossalCombatState extends PlayingGameState {
             context.messageAllAdmins(message);
             gameManager.messageOnlineParticipants(message);
             context.setWinningTeam(null);
+            context.initializeParticipantsAndAdmins();
             context.setState(new ToPodiumDelayState(context));
             return;
         }
@@ -121,6 +121,7 @@ public class PlayingColossalCombatState extends PlayingGameState {
                         .color(winningTeam.getColor()),
                 UIUtils.DEFAULT_TIMES));
         context.setWinningTeam(winningTeam);
+        context.initializeParticipantsAndAdmins();
         context.setState(new ToPodiumDelayState(context));
     }
     

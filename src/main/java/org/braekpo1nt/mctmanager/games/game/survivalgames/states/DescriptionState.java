@@ -39,7 +39,7 @@ public class DescriptionState implements SurvivalGamesState {
         if (context.getTeams().containsKey(team.getTeamId())) {
             return;
         }
-        context.getTeams().put(team.getTeamId(), new SurvivalGamesTeam(team));
+        context.getTeams().put(team.getTeamId(), new SurvivalGamesTeam(team, 0));
         context.createPlatformsAndTeleportTeams();
         context.getTopbar().addTeam(team.getTeamId(), team.getColor());
     }
@@ -60,6 +60,7 @@ public class DescriptionState implements SurvivalGamesState {
         context.updateAliveCount(team);
         context.getTopbar().unlinkFromTeam(participant.getUniqueId());
         resetParticipant(participant);
+        context.onTeamQuit(context.getTeams().get(participant.getTeamId()));
     }
     
     @Override

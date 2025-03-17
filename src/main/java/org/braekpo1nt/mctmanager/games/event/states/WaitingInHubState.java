@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.games.event.states.delay.ToColossalCombatDelay;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
@@ -20,6 +21,9 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+import java.util.List;
 
 public class WaitingInHubState implements EventState {
     
@@ -67,7 +71,6 @@ public class WaitingInHubState implements EventState {
     @Override
     public void onParticipantJoin(Participant participant) {
         gameManager.returnParticipantToHubInstantly(participant);
-        context.getParticipants().put(participant.getUniqueId(), participant);
         if (sidebar != null) {
             sidebar.addPlayer(participant);
             context.updateTeamScores();
@@ -77,7 +80,6 @@ public class WaitingInHubState implements EventState {
     
     @Override
     public void onParticipantQuit(Participant participant) {
-        context.getParticipants().remove(participant.getUniqueId());
         if (sidebar != null) {
             sidebar.removePlayer(participant);
         }
@@ -107,18 +109,61 @@ public class WaitingInHubState implements EventState {
     }
     
     @Override
-    public void onPlayerDamage(EntityDamageEvent event) {
+    public void onParticipantDamage(EntityDamageEvent event) {
         Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "EventManager.WaitingInHubState.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     
     @Override
-    public void onClickInventory(InventoryClickEvent event) {
+    public void updatePersonalScores(Collection<Participant> updateParticipants) {
+        Main.debugLog(LogType.EVENT_UPDATE_SCORES, "WaitingInHubState updatePersonalScores()");
+        if (context.getSidebar() == null) {
+            return;
+        }
+        for (Participant participant : updateParticipants) {
+            context.getSidebar().updateLine(participant.getUniqueId(), "personalScore",
+                    Component.empty()
+                            .append(Component.text("Personal: "))
+                            .append(Component.text(participant.getScore()))
+                            .color(NamedTextColor.GOLD));
+        }
+    }
+    
+    @Override
+    public <T extends Team> void updateTeamScores(Collection<T> updateTeams) {
+        Main.debugLog(LogType.EVENT_UPDATE_SCORES, "WaitingInHubState updateTeamScores()");
+        if (context.getSidebar() == null) {
+            return;
+        }
+        List<Team> sortedTeams = EventManager.sortTeams(updateTeams);
+        if (context.getNumberOfTeams() != sortedTeams.size()) {
+            EventState.reorderTeamLines(sortedTeams, context);
+            return;
+        }
+        KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
+        for (int i = 0; i < context.getNumberOfTeams(); i++) {
+            Team team = sortedTeams.get(i);
+            teamLines[i] = new KeyLine("team"+i, Component.empty()
+                    .append(team.getFormattedDisplayName())
+                    .append(Component.text(": "))
+                    .append(Component.text(team.getScore())
+                            .color(NamedTextColor.GOLD))
+            );
+        }
+        context.getSidebar().updateLines(teamLines);
+        if (context.getAdminSidebar() == null) {
+            return;
+        }
+        context.getAdminSidebar().updateLines(teamLines);
+    }
+    
+    @Override
+    public void onClickInventory(InventoryClickEvent event, Participant participant) {
         // do nothing
     }
     
     @Override
-    public void onDropItem(PlayerDropItemEvent event) {
+    public void onDropItem(PlayerDropItemEvent event, @NotNull Participant participant) {
         // do nothing
     }
     

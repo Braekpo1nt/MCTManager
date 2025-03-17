@@ -1,12 +1,12 @@
-package org.braekpo1nt.mctmanager.games.game.clockwork;
+package org.braekpo1nt.mctmanager.games.game.parkourpathway;
 
 import lombok.Data;
 import org.braekpo1nt.mctmanager.participant.ScoredTeamData;
 import org.braekpo1nt.mctmanager.participant.Team;
 
-public class ClockworkTeam extends ScoredTeamData<ClockworkParticipant> {
+public class ParkourTeam extends ScoredTeamData<ParkourParticipant> {
     
-    public ClockworkTeam(Team team, int score) {
+    public ParkourTeam(Team team, int score) {
         super(team, score);
     }
     

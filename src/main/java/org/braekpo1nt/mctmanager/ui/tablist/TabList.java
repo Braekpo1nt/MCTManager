@@ -8,6 +8,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIException;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +27,7 @@ public class TabList {
      */
     @Data
     @AllArgsConstructor
-    public static class PlayerData {
+    protected static class PlayerData {
         private final @NotNull Player player;
         /**
          * True if the TabList should be visible to this player
@@ -40,7 +41,7 @@ public class TabList {
      */
     @Data
     @AllArgsConstructor
-    public static class ParticipantData {
+    protected static class ParticipantData {
         private final @NotNull String name;
         private final @NotNull String teamId;
         private boolean grey;
@@ -61,7 +62,7 @@ public class TabList {
     
     @Data
     @AllArgsConstructor
-    public static class TeamData {
+    protected static class TeamData {
         private final @NotNull TextColor color;
         private final @NotNull String name;
         private final @NotNull List<ParticipantData> participants;
@@ -221,6 +222,9 @@ public class TabList {
      * Updates all views to reflect the current state of the data.
      */
     private void update() {
+        if (!plugin.isEnabled()) {
+            return;
+        }
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             Component tabList = toTabList();
             plugin.getServer().getScheduler().runTask(plugin, () -> {
@@ -237,6 +241,9 @@ public class TabList {
      * @param playerData the playerData to update the view of
      */
     private void update(PlayerData playerData) {
+        if (!plugin.isEnabled()) {
+            return;
+        }
         if (playerData.isVisible()) {
             plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
                 Component tabList = toTabList();
@@ -285,16 +292,37 @@ public class TabList {
     /**
      * Set the scores of the given teams
      * @param teamIdsToScores the teamIds to update mapped to their new scores. 
-     *                        (Any teamIds not in this TabList will be ignored
-     *                        and a log message will announce the error.)
+     *                        (Any teamIds not in this TabList will be ignored)
      */
     public void setScores(@NotNull Map<@NotNull String, @NotNull Integer> teamIdsToScores) {
+        if (teamIdsToScores.isEmpty()) {
+            return;
+        }
         for (Map.Entry<String, Integer> entry : teamIdsToScores.entrySet()) {
             String teamId = entry.getKey();
             int score = entry.getValue();
             TeamData teamData = getTeamData(teamId);
             if (teamData != null) {
                 teamData.setScore(score);
+            }
+        }
+        update();
+    }
+    
+    /**
+     * Set the scores of the given teams
+     * @param teams the teams to update the scores of.
+     *              (Any teams not in this TabList will be ignored.)
+     * @param <T> any implementation of {@link Team}
+     */
+    public <T extends Team> void setScores(Collection<T> teams) {
+        if (teams.isEmpty()) {
+            return;
+        }
+        for (T team : teams) {
+            TeamData teamData = getTeamData(team.getTeamId());
+            if (teamData != null) {
+                teamData.setScore(team.getScore());
             }
         }
         update();

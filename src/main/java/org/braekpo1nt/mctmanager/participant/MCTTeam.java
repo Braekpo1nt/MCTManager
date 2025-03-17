@@ -4,6 +4,7 @@ import lombok.ToString;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.utils.AudienceDelegate;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +27,7 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
      * The Participants who are members of this team and are online
      */
     private final @NotNull Map<UUID, Participant> onlineMembers;
-    private @NotNull Audience audience = Audience.empty();
+    private @NotNull Audience audience;
     
     /**
      * Create a new Team
@@ -34,11 +35,13 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
      * @param displayName the pretty display name of the team in text form
      * @param color the team's assigned color
      * @param members a set of the UUIDs of the members of this team
+     * @param score the team's score
      */
-    public MCTTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull Set<UUID> members) {
-        super(teamId, displayName, color);
+    public MCTTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull Set<UUID> members, int score) {
+        super(teamId, displayName, color, score);
         this.members = members;
         this.onlineMembers = new HashMap<>();
+        this.audience = Audience.empty();
     }
     
     /**
@@ -48,8 +51,8 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
      * @param color the team's assigned color
      * @param members a collection of the UUIDs of the members of this team
      */
-    public MCTTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull Collection<UUID> members) {
-        this(teamId, displayName, color, new HashSet<>(members));
+    public MCTTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull Collection<UUID> members, int score) {
+        this(teamId, displayName, color, new HashSet<>(members), score);
     }
     
     /**
@@ -58,8 +61,20 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
      * @param displayName the pretty display name of the team in text form
      * @param color the team's assigned color
      */
-    public MCTTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color) {
-        this(teamId, displayName, color, new HashSet<>());
+    public MCTTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, int score) {
+        this(teamId, displayName, color, new HashSet<>(), score);
+    }
+    
+    /**
+     * Copy everything from the team, but change the score
+     * @param team the team to copy
+     * @param newScore the new score
+     */
+    public MCTTeam(MCTTeam team, int newScore) {
+        super(team.getTeamId(), team.getDisplayName(), team.getColor(), team.getBukkitColor(), team.getFormattedDisplayName(), newScore);
+        this.members = new HashSet<>(team.members);
+        this.onlineMembers = new HashMap<>(team.onlineMembers);
+        this.audience = Audience.audience(this.onlineMembers.values());
     }
     
     /**
@@ -174,14 +189,13 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
      */
     public void joinOnlineMember(@NotNull Participant participant) {
         if (!members.contains(participant.getUniqueId())) {
-            throw new IllegalStateException(String.format("Can't join participant \"%s\" with UUID \"%s\" and teamId \"%s\" to team \"%s\" because they are not in the members set",
+            throw new IllegalArgumentException(String.format("Can't join participant \"%s\" with UUID \"%s\" and teamId \"%s\" to team \"%s\" because they are not in the members set",
                     participant.getName(), participant.getUniqueId(), this.getTeamId(), participant.getTeamId()));
         }
         if (!getTeamId().equals(participant.getTeamId())) {
-            throw new IllegalStateException(String.format("Can't join participant \"%s\" with UUID \"%s\" and teamId \"%s\" to team \"%s\" because their teamId doesn't match",
+            throw new IllegalArgumentException(String.format("Can't join participant \"%s\" with UUID \"%s\" and teamId \"%s\" to team \"%s\" because their teamId doesn't match",
                     participant.getName(), participant.getUniqueId(), this.getTeamId(), participant.getTeamId()));
         }
-        joinMember(participant.getUniqueId());
         onlineMembers.put(participant.getUniqueId(), participant);
         audience = Audience.audience(onlineMembers.values());
     }
@@ -234,13 +248,17 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
     
     /**
      * Sends the given message to every online member of the team except for the given participant
-     * @param participant the participant who sent the message, and therefore should not receive the message
+     * @param sender the participant who sent the message, and therefore should not receive the message
      *                    (doesn't have to be a member of the team)
      * @param message the message to send
      */
-    public void sendMessageFrom(@NotNull Participant participant, @NotNull Component message) {
-        Audience.audience(onlineMembers.values().stream()
-                .filter(member -> !member.getUniqueId().equals(participant.getUniqueId())).toList())
-                .sendMessage(message);
+    public void sendMessageFrom(@NotNull Participant sender, @NotNull Component message) {
+        if (onlineMembers.containsKey(sender.getUniqueId())) {
+            Audience.audience(onlineMembers.values().stream()
+                            .filter(m -> !m.getUniqueId().equals(sender.getUniqueId())).toList())
+                    .sendMessage(message);
+        } else {
+            audience.sendMessage(message);
+        }
     }
 }

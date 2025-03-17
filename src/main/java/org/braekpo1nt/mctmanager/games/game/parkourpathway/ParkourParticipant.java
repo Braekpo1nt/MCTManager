@@ -1,15 +1,17 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.ParticipantData;
 import org.jetbrains.annotations.NotNull;
 
 @ToString(callSuper = true)
 @Getter
 @Setter
-public class ParkourParticipant extends Participant {
+public class ParkourParticipant extends ParticipantData {
     
     /**
      * True if the participant has finished the last puzzle
@@ -25,26 +27,36 @@ public class ParkourParticipant extends Participant {
      */
     private int currentPuzzleCheckpoint;
     
-    public ParkourParticipant(@NotNull Participant participant) {
-        super(participant);
+    public ParkourParticipant(@NotNull Participant participant, int score) {
+        super(participant, score);
         this.finished = false;
         this.currentPuzzle = 0;
         this.currentPuzzleCheckpoint = 0;
     }
     
-    public ParkourParticipant(@NotNull Participant participant, @NotNull ParkourQuitData quitData) {
-        super(participant);
+    public ParkourParticipant(@NotNull Participant participant, @NotNull ParkourParticipant.QuitData quitData) {
+        super(participant, quitData.getScore());
         this.finished = quitData.isFinished();
         this.currentPuzzle = quitData.getCurrentPuzzle();
         this.currentPuzzleCheckpoint = quitData.getCurrentPuzzleCheckpoint();
     }
     
-    public ParkourQuitData getQuitData(int unusedSkips) {
-        return new ParkourQuitData(
+    public QuitData getQuitData(int unusedSkips) {
+        return new QuitData(
+                getScore(),
                 finished,
                 currentPuzzle,
                 currentPuzzleCheckpoint,
                 unusedSkips
         );
+    }
+    
+    @Data
+    public static class QuitData {
+        private final int score;
+        private final boolean finished;
+        private final int currentPuzzle;
+        private final int currentPuzzleCheckpoint;
+        private final int numOfSkips;
     }
 }

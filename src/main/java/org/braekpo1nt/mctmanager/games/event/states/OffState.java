@@ -15,6 +15,7 @@ import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -24,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -88,28 +89,26 @@ public class OffState implements EventState {
         context.setCurrentGameNumber(currentGameNumber);
         context.getPlayedGames().clear();
         context.getScoreKeepers().clear();
-        context.setParticipants(new HashMap<>());
         context.setSidebar(context.getGameManager().createSidebar());
         context.setAdmins(new ArrayList<>());
         context.setAdminSidebar(context.getGameManager().createSidebar());
         initializeSidebar();
         initializeAdminSidebar();
         context.initializeParticipantsAndAdmins();
-        context.getGameManager().removeParticipantsFromHub(context.getParticipants().values());
+        context.getGameManager().removeParticipantsFromHub(context.getParticipants());
         context.setState(new ReadyUpState(context));
     }
     
     private void initializeSidebar() {
-        List<Team> sortedTeams = context.sortTeams(gameManager.getTeams());
+        List<Team> sortedTeams = EventManager.sortTeams(gameManager.getTeams());
         context.setNumberOfTeams(sortedTeams.size());
         KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
         for (int i = 0; i < context.getNumberOfTeams(); i++) {
             Team team = sortedTeams.get(i);
-            int teamScore = gameManager.getScore(team.getTeamId());
             teamLines[i] = new KeyLine("team"+i, Component.empty()
                     .append(team.getFormattedDisplayName())
                     .append(Component.text(": "))
-                    .append(Component.text(teamScore)
+                    .append(Component.text(team.getScore())
                             .color(NamedTextColor.GOLD))
             );
         }
@@ -118,20 +117,18 @@ public class OffState implements EventState {
         context.getSidebar().addLine("personalScore", "");
         context.getSidebar().addLine("timer", "");
         context.getSidebar().updateTitle(context.getConfig().getTitle());
-        context.updatePersonalScores();
     }
     
     private void initializeAdminSidebar() {
-        List<Team> sortedTeams = context.sortTeams(gameManager.getTeams());
+        List<Team> sortedTeams = EventManager.sortTeams(gameManager.getTeams());
         context.setNumberOfTeams(sortedTeams.size());
         KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
         for (int i = 0; i < context.getNumberOfTeams(); i++) {
             Team team = sortedTeams.get(i);
-            int teamScore = gameManager.getScore(team.getTeamId());
             teamLines[i] = new KeyLine("team"+i, Component.empty()
                     .append(team.getFormattedDisplayName())
                     .append(Component.text(": "))
-                    .append(Component.text(teamScore)
+                    .append(Component.text(team.getScore())
                             .color(NamedTextColor.GOLD))
             );
         }
@@ -142,17 +139,60 @@ public class OffState implements EventState {
     }
     
     @Override
-    public void onPlayerDamage(EntityDamageEvent event) {
+    public void updatePersonalScores(Collection<Participant> updateParticipants) {
+        Main.debugLog(LogType.EVENT_UPDATE_SCORES, "OffState updatePersonalScores()");
+        if (context.getSidebar() == null) {
+            return;
+        }
+        for (Participant participant : updateParticipants) {
+            context.getSidebar().updateLine(participant.getUniqueId(), "personalScore",
+                    Component.empty()
+                            .append(Component.text("Personal: "))
+                            .append(Component.text(participant.getScore()))
+                            .color(NamedTextColor.GOLD));
+        }
+    }
+    
+    @Override
+    public <T extends Team> void updateTeamScores(Collection<T> updateTeams) {
+        Main.debugLog(LogType.EVENT_UPDATE_SCORES, "OffState updateTeamScores()");
+        if (context.getSidebar() == null) {
+            return;
+        }
+        List<Team> sortedTeams = EventManager.sortTeams(updateTeams);
+        if (context.getNumberOfTeams() != sortedTeams.size()) {
+            EventState.reorderTeamLines(sortedTeams, context);
+            return;
+        }
+        KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
+        for (int i = 0; i < context.getNumberOfTeams(); i++) {
+            Team team = sortedTeams.get(i);
+            teamLines[i] = new KeyLine("team"+i, Component.empty()
+                    .append(team.getFormattedDisplayName())
+                    .append(Component.text(": "))
+                    .append(Component.text(team.getScore())
+                            .color(NamedTextColor.GOLD))
+            );
+        }
+        context.getSidebar().updateLines(teamLines);
+        if (context.getAdminSidebar() == null) {
+            return;
+        }
+        context.getAdminSidebar().updateLines(teamLines);
+    }
+    
+    @Override
+    public void onParticipantDamage(EntityDamageEvent event) {
         // do nothing
     }
     
     @Override
-    public void onClickInventory(InventoryClickEvent event) {
+    public void onClickInventory(InventoryClickEvent event, Participant participant) {
         // do nothing
     }
     
     @Override
-    public void onDropItem(PlayerDropItemEvent event) {
+    public void onDropItem(PlayerDropItemEvent event, @NotNull Participant participant) {
         // do nothing
     }
     

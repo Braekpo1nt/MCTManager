@@ -8,10 +8,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.participant.Participant;
-import org.braekpo1nt.mctmanager.participant.Team;
-import org.braekpo1nt.mctmanager.participant.TeamData;
-import org.braekpo1nt.mctmanager.participant.TeamInfo;
+import org.braekpo1nt.mctmanager.participant.*;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
@@ -44,8 +41,8 @@ public class ClockworkRound implements Listener {
     private ClockworkConfig config;
     private final ChaosManager chaosManager;
     private final int roundNumber;
-    private Map<String, ClockworkTeam> teams = new HashMap<>();
-    private Map<UUID, ClockworkParticipant> participants = new HashMap<>();
+    private Map<String, ClockworkRoundTeam> teams = new HashMap<>();
+    private Map<UUID, ClockworkRoundParticipant> participants = new HashMap<>();
     private boolean roundActive = false;
     private int clockChimeTaskId;
     private int statusEffectsTaskId;
@@ -84,10 +81,10 @@ public class ClockworkRound implements Listener {
         return roundActive;
     }
     
-    public void start(Collection<TeamData<Participant>> newTeams, Collection<Participant> newParticipants) {
+    public void start(Collection<ClockworkTeam> newTeams, Collection<ClockworkParticipant> newParticipants) {
         this.teams = new HashMap<>(newTeams.size());
-        for (Team team : newTeams) {
-            teams.put(team.getTeamId(), new ClockworkTeam(team));
+        for (ClockworkTeam team : newTeams) {
+            teams.put(team.getTeamId(), new ClockworkRoundTeam(team));
         }
         this.participants = new HashMap<>(newParticipants.size());
         mustStayOnWedge = false;
@@ -95,7 +92,7 @@ public class ClockworkRound implements Listener {
         roundActive = true;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
-        for (Participant participant : newParticipants) {
+        for (ClockworkParticipant participant : newParticipants) {
             initializeParticipant(participant);
         }
         chimeInterval = config.getInitialChimeInterval();
@@ -106,8 +103,8 @@ public class ClockworkRound implements Listener {
         Main.logger().info("Starting Clockwork Round " + roundNumber);
     }
     
-    private void initializeParticipant(Participant newParticipant) {
-        ClockworkParticipant participant = new ClockworkParticipant(newParticipant);
+    private void initializeParticipant(ClockworkParticipant newParticipant) {
+        ClockworkRoundParticipant participant = new ClockworkRoundParticipant(newParticipant);
         teams.get(participant.getTeamId()).addParticipant(participant);
         participants.put(participant.getUniqueId(), participant);
         participant.teleport(config.getStartingLocation());
@@ -123,8 +120,8 @@ public class ClockworkRound implements Listener {
      * to join the next round and spectate until then.
      * @param newParticipant the participant
      */
-    private void joinParticipantMidRound(Participant newParticipant) {
-        ClockworkParticipant participant = new ClockworkParticipant(newParticipant, false);
+    private void joinParticipantMidRound(ClockworkParticipant newParticipant) {
+        ClockworkRoundParticipant participant = new ClockworkRoundParticipant(newParticipant, false);
         participants.put(participant.getUniqueId(), participant);
         teams.get(participant.getTeamId()).addParticipant(participant);
         participant.teleport(config.getStartingLocation());
@@ -144,7 +141,7 @@ public class ClockworkRound implements Listener {
         HandlerList.unregisterAll(this);
         cancelAllTasks();
         chaosManager.stop();
-        for (ClockworkParticipant participant : participants.values()) {
+        for (ClockworkRoundParticipant participant : participants.values()) {
             resetParticipant(participant);
         }
         participants.clear();
@@ -152,26 +149,26 @@ public class ClockworkRound implements Listener {
         Main.logger().info("Stopping Clockwork round " + roundNumber);
     }
     
-    private void resetParticipant(ClockworkParticipant participant) {
+    private void resetParticipant(ClockworkRoundParticipant participant) {
         teams.get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
-    public void onTeamJoin(Team team) {
-        teams.put(team.getTeamId(), new ClockworkTeam(team));
+    public void onTeamJoin(ClockworkTeam team) {
+        teams.put(team.getTeamId(), new ClockworkRoundTeam(team));
     }
     
-    public void onParticipantJoin(Participant participant, Team team) {
+    public void onParticipantJoin(ClockworkParticipant participant, ClockworkTeam team) {
         if (!teams.containsKey(team.getTeamId())) {
-            teams.put(team.getTeamId(), new ClockworkTeam(team));
+            teams.put(team.getTeamId(), new ClockworkRoundTeam(team));
         }
         joinParticipantMidRound(participant);
     }
     
     public void onParticipantQuit(Participant participant) {
-        ClockworkParticipant clockworkParticipant = participants.get(participant.getUniqueId());
+        ClockworkRoundParticipant clockworkParticipant = participants.get(participant.getUniqueId());
         if (clockworkParticipant == null) {
             return;
         }
@@ -209,7 +206,7 @@ public class ClockworkRound implements Listener {
         this.numberOfChimes = random.nextInt(1, 13);
         clockIsChiming = true;
         turnOffCollisions();
-        for (ClockworkParticipant participant : participants.values()) {
+        for (ClockworkRoundParticipant participant : participants.values()) {
             if (participant.isAlive()) {
                 participant.teleport(config.getStartingLocation());
                 participant.setArrowsInBody(0);
@@ -264,8 +261,8 @@ public class ClockworkRound implements Listener {
                 .sidebarPrefix(Component.text("Stay on wedge: "))
                 .onCompletion(() -> {
                     mustStayOnWedge = false;
-                    List<ClockworkTeam> livingTeams = teams.values().stream()
-                            .filter(ClockworkTeam::isAlive).toList();
+                    List<ClockworkRoundTeam> livingTeams = teams.values().stream()
+                            .filter(ClockworkRoundTeam::isAlive).toList();
                     if (livingTeams.size() == 1) {
                         onTeamWinsRound(livingTeams.getFirst());
                     } else {
@@ -280,9 +277,9 @@ public class ClockworkRound implements Listener {
     }
     
     private void killParticipantsNotOnWedge() {
-        List<ClockworkParticipant> participantsToKill = new ArrayList<>();
+        List<ClockworkRoundParticipant> participantsToKill = new ArrayList<>();
         Wedge currentWedge = config.getWedges().get(numberOfChimes - 1);
-        for (ClockworkParticipant participant : participants.values()) {
+        for (ClockworkRoundParticipant participant : participants.values()) {
             if (participant.isAlive()) {
                 if (!currentWedge.contains(participant.getLocation().toVector())) {
                     participantsToKill.add(participant);
@@ -327,7 +324,7 @@ public class ClockworkRound implements Listener {
         if (!roundActive) {
             return;
         }
-        ClockworkParticipant participant = participants.get(event.getPlayer().getUniqueId());
+        ClockworkRoundParticipant participant = participants.get(event.getPlayer().getUniqueId());
         if (participant == null) {
             return;
         }
@@ -351,18 +348,17 @@ public class ClockworkRound implements Listener {
         }
     }
     
-    public void killParticipants(Collection<ClockworkParticipant> participantsToKill) {
+    public void killParticipants(Collection<ClockworkRoundParticipant> participantsToKill) {
         // teams which were already dead
-        List<ClockworkTeam> existingDeadTeams = teams.values().stream()
-                .filter(ClockworkTeam::isDead).toList();
+        List<ClockworkRoundTeam> existingDeadTeams = teams.values().stream()
+                .filter(ClockworkRoundTeam::isDead).toList();
         // participants who will be left alive once participantsToKill are killed
-        List<Participant> newLivingParticipants = participants.values().stream()
-                .filter(ClockworkParticipant::isAlive)
+        List<ClockworkRoundParticipant> newLivingParticipants = participants.values().stream()
+                .filter(ClockworkRoundParticipant::isAlive)
                 .filter(p -> !participantsToKill.contains(p))
-                .map(p -> (Participant) p) // TODO: Participant make awardPointsToParticipants accept Collection<T extends Participant>
                 .toList();
         
-        for (ClockworkParticipant toKill : participantsToKill) {
+        for (ClockworkRoundParticipant toKill : participantsToKill) {
             toKill.setGameMode(GameMode.SPECTATOR);
             toKill.getInventory().clear();
             ParticipantInitializer.clearStatusEffects(toKill);
@@ -374,26 +370,33 @@ public class ClockworkRound implements Listener {
             String killedTeamId = toKill.getTeamId();
             
             // award living participants start
-            List<Participant> awardedParticipants = newLivingParticipants.stream()
+            List<ClockworkRoundParticipant> awardedParticipants = newLivingParticipants.stream()
                     .filter(p -> !p.getTeamId().equals(killedTeamId))
                     .toList();
-            gameManager.awardPointsToParticipants(awardedParticipants, config.getPlayerEliminationScore());
+            int multiplied = (int) (gameManager.getMultiplier() * config.getPlayerEliminationScore());
+            for (ClockworkRoundParticipant participant : awardedParticipants) {
+                participant.awardPoints(multiplied);
+                teams.get(participant.getTeamId()).addPoints(multiplied);
+                clockworkGame.updateScore(participant);
+            }
+            for (String teamId : Participant.getTeamIds(awardedParticipants)) {
+                clockworkGame.updateScore(teams.get(teamId));
+            }
             // award living participants end
         }
         // who are now dead, which weren't at the start of this method
-        List<ClockworkTeam> newlyKilledTeams = teams.values().stream()
+        List<ClockworkRoundTeam> newlyKilledTeams = teams.values().stream()
                 .filter(t -> !existingDeadTeams.contains(t))
-                .filter(ClockworkTeam::isDead)
+                .filter(ClockworkRoundTeam::isDead)
                 .toList(); 
         if (newlyKilledTeams.isEmpty()) {
             return;
         }
-        List<String> livingTeamIds = teams.values().stream()
-                .filter(ClockworkTeam::isAlive)
+        List<ClockworkRoundTeam> livingTeams = teams.values().stream()
+                .filter(ClockworkRoundTeam::isAlive)
                 .filter(t -> !newlyKilledTeams.contains(t))
-                .map(TeamInfo::getTeamId)
                 .toList();
-        for (ClockworkTeam newlyKilledTeam : newlyKilledTeams) {
+        for (ClockworkRoundTeam newlyKilledTeam : newlyKilledTeams) {
             newlyKilledTeam.sendMessage(Component.empty()
                     .append(newlyKilledTeam.getFormattedDisplayName())
                     .append(Component.text(" has been eliminated"))
@@ -405,9 +408,13 @@ public class ClockworkRound implements Listener {
                     .append(Component.text(" has been eliminated"))
                     .color(NamedTextColor.GREEN));
             
-            gameManager.awardPointsToTeams(livingTeamIds, config.getTeamEliminationScore());
+            int multiplied = (int) (gameManager.getMultiplier() * config.getTeamEliminationScore());
+            for (ClockworkRoundTeam team : livingTeams) {
+                team.awardPoints(multiplied);
+                clockworkGame.updateScore(team);
+            }
         }
-        boolean allTeamsAreDead = teams.values().stream().noneMatch(ClockworkTeam::isAlive);
+        boolean allTeamsAreDead = teams.values().stream().noneMatch(ClockworkRoundTeam::isAlive);
         if (allTeamsAreDead) {
             onAllTeamsLoseRound();
         }
@@ -419,7 +426,7 @@ public class ClockworkRound implements Listener {
         roundIsOver();
     }
     
-    private void onTeamWinsRound(Team winner) {
+    private void onTeamWinsRound(ClockworkRoundTeam winner) {
         for (Participant participant : participants.values()) {
             if (participant.getTeamId().equals(winner.getTeamId())) {
                 participant.sendMessage(Component.empty()
@@ -433,7 +440,9 @@ public class ClockworkRound implements Listener {
                         .color(NamedTextColor.DARK_RED));
             }
         }
-        gameManager.awardPointsToTeam(winner, config.getWinRoundScore());
+        int multiplied = (int) (gameManager.getMultiplier() * config.getWinRoundScore());
+        winner.awardPoints(multiplied);
+        clockworkGame.updateScore(winner);
         roundIsOver();
     }
     

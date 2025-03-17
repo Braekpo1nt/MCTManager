@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.participant;
 
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkRoundTeam;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkTeam;
 import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushTeam;
@@ -19,7 +20,7 @@ class TeamTest {
     
     @BeforeAll
     static void setup() {
-        team = new MCTTeam("yellow", "Yellow", NamedTextColor.YELLOW, Collections.emptySet());
+        team = new MCTTeam("yellow", "Yellow", NamedTextColor.YELLOW, Collections.emptySet(), 0);
     }
     
     @Test
@@ -31,21 +32,21 @@ class TeamTest {
     
     @Test
     void clockworkEquals() {
-        ClockworkTeam teamData = new ClockworkTeam(team);
+        ClockworkTeam teamData = new ClockworkTeam(team, 0);
         
         Assertions.assertEquals(team, teamData);
     }
     
     @Test
     void farmRushEquals() {
-        FarmRushTeam teamData = new FarmRushTeam(team, mock(Arena.class), 0);
+        FarmRushTeam teamData = new FarmRushTeam(team, mock(Arena.class), 0, 0);
         
         Assertions.assertEquals(team, teamData);
     }
     
     @Test
     void survivalGamesEquals() {
-        SurvivalGamesTeam teamData = new SurvivalGamesTeam(team);
+        SurvivalGamesTeam teamData = new SurvivalGamesTeam(team, 0);
         
         Assertions.assertEquals(team, teamData);
     }

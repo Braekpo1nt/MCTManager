@@ -5,10 +5,11 @@ import lombok.Setter;
 import lombok.ToString;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.ParticipantData;
 import org.jetbrains.annotations.NotNull;
 
 @ToString(callSuper = true)
-public class CTFMatchParticipant extends Participant {
+public class CTFMatchParticipant extends ParticipantData {
     
     @Getter
     @Setter
@@ -27,7 +28,7 @@ public class CTFMatchParticipant extends Participant {
     private boolean hasFlag;
     
     public CTFMatchParticipant(@NotNull CTFParticipant ctfParticipant, @NotNull CaptureTheFlagMatch.Affiliation affiliation, boolean alive) {
-        super(ctfParticipant);
+        super(ctfParticipant, ctfParticipant.getScore());
         this.kills = ctfParticipant.getKills();
         this.deaths = ctfParticipant.getDeaths();
         this.alive = alive;

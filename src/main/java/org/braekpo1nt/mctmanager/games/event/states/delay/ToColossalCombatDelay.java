@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.states.PlayingColossalCombatState;
@@ -12,6 +13,7 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.utils.LogType;
 
 import java.util.*;
 
@@ -37,12 +39,23 @@ public class ToColossalCombatDelay extends DelayState {
                 .build());
     }
     
+    @Override
+    public void updatePersonalScores(Collection<Participant> updateParticipants) {
+        Main.debugLog(LogType.EVENT_UPDATE_SCORES, "ToColossalCombatDelayState updatePersonalScores()----");
+        // do nothing
+    }
+    
+    @Override
+    public <T extends Team> void updateTeamScores(Collection<T> updateTeams) {
+        Main.debugLog(LogType.EVENT_UPDATE_SCORES, "ToColossalCombatDelayState updateTeamScores()----");
+        // do nothing
+    }
+    
     /**
      * @return true if two teams were picked and Colossal Combat started successfully. False if anything went wrong.
      */
     private boolean identifyWinnersAndStartColossalCombat() {
-        // TODO: Teams Refactor this to use Teams instead of TeamIds
-        Set<String> allTeams = gameManager.getTeamIds();
+        Collection<Team> allTeams = gameManager.getTeams();
         if (allTeams.size() < 2) {
             context.messageAllAdmins(Component.empty()
                     .append(Component.text("There are fewer than two teams online. Use "))
@@ -53,9 +66,8 @@ public class ToColossalCombatDelay extends DelayState {
             return false;
         }
         Map<String, Integer> teamScores = new HashMap<>();
-        for (String teamId : allTeams) {
-            int score = gameManager.getScore(teamId);
-            teamScores.put(teamId, score);
+        for (Team team : allTeams) {
+            teamScores.put(team.getTeamId(), team.getScore());
         }
         String[] firstPlaces = GameManagerUtils.calculateFirstPlace(teamScores);
         if (firstPlaces.length == 2) {
@@ -97,7 +109,7 @@ public class ToColossalCombatDelay extends DelayState {
                 "teamId not found even though game manager produced it");
         int onlineFirsts = 0;
         int onlineSeconds = 0;
-        for (Participant participant : context.getParticipants().values()) {
+        for (Participant participant : context.getParticipants()) {
             if (participant.getTeamId().equals(firstPlace.getTeamId())) {
                 onlineFirsts++;
             }

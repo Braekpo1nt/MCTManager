@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.participant;
 
-import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import net.kyori.adventure.audience.Audience;
 import org.braekpo1nt.mctmanager.utils.AudienceDelegate;
@@ -43,6 +42,7 @@ public class TeamData<T extends Participant> extends TeamInfo implements Audienc
             throw new IllegalArgumentException(String.format("Participant \"%s\" can't be added to this TeamData \"%s\" because their team is \"%s\"", participant.getName(), participant.getTeamId(), getTeamId()));
         }
         participants.put(participant.getUniqueId(), participant);
+        audience = Audience.audience(participants.values());
     }
     
     /**
@@ -74,4 +74,5 @@ public class TeamData<T extends Participant> extends TeamInfo implements Audienc
     public int size() {
         return participants.size();
     }
+    
 }

@@ -1,12 +1,12 @@
-package org.braekpo1nt.mctmanager.games.game.clockwork;
+package org.braekpo1nt.mctmanager.games.game.farmrush;
 
 import lombok.Data;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.ParticipantData;
 import org.jetbrains.annotations.NotNull;
 
-public class ClockworkParticipant extends ParticipantData {
-    public ClockworkParticipant(@NotNull Participant participant, int score) {
+public class FarmRushParticipant extends ParticipantData {
+    public FarmRushParticipant(@NotNull Participant participant, int score) {
         super(participant, score);
     }
     
@@ -18,5 +18,4 @@ public class ClockworkParticipant extends ParticipantData {
     public QuitData getQuitData() {
         return new QuitData(getScore());
     }
-    
 }

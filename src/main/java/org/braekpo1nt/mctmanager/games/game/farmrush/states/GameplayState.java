@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.farmrush.states;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
+import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushParticipant;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushTeam;
 import org.braekpo1nt.mctmanager.games.game.farmrush.ItemSale;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -20,7 +21,6 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -43,13 +43,21 @@ public abstract class GameplayState implements FarmRushState {
     public void onParticipantJoin(Participant participant, Team team) {
         context.onTeamJoin(team);
         context.getTeams().get(participant.getTeamId()).getArena().openBarnDoor();
-        context.initializeParticipant(participant);
+        FarmRushParticipant.QuitData quitData = context.getQuitDatas().remove(participant.getUniqueId());
+        if (quitData != null) {
+            context.initializeParticipant(participant, quitData.getScore());
+        } else {
+            context.initializeParticipant(participant, 0);
+        }
         participant.setGameMode(GameMode.SURVIVAL);
         context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
+        context.displayScore(context.getParticipants().get(participant.getUniqueId()));
+        context.displayScore(context.getTeams().get(team.getTeamId()));
     }
     
     @Override
-    public void onParticipantQuit(Participant participant) {
+    public void onParticipantQuit(FarmRushParticipant participant) {
+        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
     }
@@ -153,8 +161,9 @@ public abstract class GameplayState implements FarmRushState {
                 context.getParticipants().get(uuid).getPlayer().sendMessage(message);
             }
             if (totalScore > 0) {
-                gameManager.awardPointsToTeam(team, totalScore);
-                team.setTotalScore(team.getTotalScore() + (int) (totalScore * gameManager.matchProgressPointMultiplier()));
+                int multiplied = (int) (gameManager.getMultiplier() * totalScore);
+                team.awardPoints(multiplied);
+                context.displayScore(team);
             }
         }
         return soldItems;

@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 
 class ParticipantTest {
     
+    static Participant participant;
     static Player mockPlayer;
     
     @BeforeAll
@@ -27,6 +28,14 @@ class ParticipantTest {
         mockPlayer = mock(Player.class);
         when(mockPlayer.getName()).thenReturn("rstln");
         when(mockPlayer.getUniqueId()).thenReturn(UUID.randomUUID());
+        OfflineParticipant offlineParticipant = new OfflineParticipant(
+                mockPlayer.getUniqueId(),
+                "rstln",
+                Component.text("rstln"),
+                "yellow",
+                0
+        );
+        participant = new Participant(offlineParticipant, mockPlayer);
     }
     
     @Test
@@ -35,48 +44,43 @@ class ParticipantTest {
                 mockPlayer.getUniqueId(), 
                 "rstln", 
                 Component.text("rstln"), 
-                "yellow"
+                "yellow",
+                0
         );
-        Participant participant = new Participant(offlineParticipant, mockPlayer);
         
         Assertions.assertEquals(offlineParticipant, participant);
     }
     
     @Test
     void parkourParticipantEquals() {
-        Participant participant = new Participant(mockPlayer, "yellow");
-        ParkourParticipant subParticipant = new ParkourParticipant(participant);
+        ParkourParticipant subParticipant = new ParkourParticipant(participant, 0);
         
         Assertions.assertEquals(participant, subParticipant);
     }
     
     @Test
     void spleefParticipantEquals() {
-        Participant participant = new Participant(mockPlayer, "yellow");
-        SpleefParticipant subParticipant = new SpleefParticipant(participant);
+        SpleefParticipant subParticipant = new SpleefParticipant(participant, 0);
         
         Assertions.assertEquals(participant, subParticipant);
     }
     
     @Test
     void footRaceParticipantEquals() {
-        Participant participant = new Participant(mockPlayer, "yellow");
-        FootRaceParticipant subParticipant = new FootRaceParticipant(participant, 0);
+        FootRaceParticipant subParticipant = new FootRaceParticipant(participant, 0, 0);
         
         Assertions.assertEquals(participant, subParticipant);
     }
     
     @Test
     void survivalGamesParticipantEquals() {
-        Participant participant = new Participant(mockPlayer, "yellow");
-        SurvivalGamesParticipant subParticipant = new SurvivalGamesParticipant(participant);
+        SurvivalGamesParticipant subParticipant = new SurvivalGamesParticipant(participant, 0);
         
         Assertions.assertEquals(participant, subParticipant);
     }
     
     @Test
     void ctfParticipantEquals() {
-        Participant participant = new Participant(mockPlayer, "yellow");
         CTFParticipant ctfParticipant = new CTFParticipant(participant);
         CTFMatchParticipant ctfMatchParticipant = new CTFMatchParticipant(ctfParticipant, CaptureTheFlagMatch.Affiliation.NORTH, true);
         

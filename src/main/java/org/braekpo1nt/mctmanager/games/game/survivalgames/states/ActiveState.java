@@ -7,7 +7,6 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesParticipant;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
-import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesQuitData;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesTeam;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
@@ -188,7 +187,7 @@ public class ActiveState implements SurvivalGamesState {
     @Override
     public void onParticipantJoin(Participant participant, Team team) {
         context.onTeamJoin(team);
-        SurvivalGamesQuitData quitData = context.getQuitDatas().remove(participant.getUniqueId());
+        SurvivalGamesParticipant.QuitData quitData = context.getQuitDatas().remove(participant.getUniqueId());
         if (quitData != null) {
             SurvivalGamesParticipant sgParticipant = new SurvivalGamesParticipant(
                     participant,
@@ -203,6 +202,8 @@ public class ActiveState implements SurvivalGamesState {
         }
         sidebar.updateLine(participant.getUniqueId(), "title", context.getTitle());
         context.initializeGlowing(participant);
+        context.displayScore(context.getParticipants().get(participant.getUniqueId()));
+        context.displayScore(context.getTeams().get(team.getTeamId()));
     }
     
     private void rejoinParticipant(SurvivalGamesParticipant participant) {
@@ -230,9 +231,10 @@ public class ActiveState implements SurvivalGamesState {
                     DamageSource.builder(DamageType.GENERIC).build(), drops, droppedExp, deathMessage);
             this.onParticipantDeath(fakeDeathEvent);
         }
+        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
         resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
-        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
+        context.onTeamQuit(context.getTeams().get(participant.getTeamId()));
     }
     
     @Override
@@ -295,7 +297,12 @@ public class ActiveState implements SurvivalGamesState {
         }
         addKill(killer);
         UIUtils.showKillTitle(killer, killed);
-        gameManager.awardPointsToParticipant(killer, config.getKillScore());
+        int multiplied = (int) (gameManager.getMultiplier() * config.getKillScore());
+        killer.awardPoints(multiplied);
+        SurvivalGamesTeam team = context.getTeams().get(killer.getTeamId());
+        team.addPoints(multiplied);
+        context.displayScore(killer);
+        context.displayScore(team);
     }
     
     /**
@@ -339,19 +346,27 @@ public class ActiveState implements SurvivalGamesState {
                 .append(deadTeam.getFormattedDisplayName())
                 .append(Component.text(" has been eliminated.")));
         List<SurvivalGamesTeam> livingTeams = getLivingTeams();
-        gameManager.awardPointsToTeams(Team.getTeamIds(livingTeams), config.getSurviveTeamScore());
+        int multipliedSurvive = (int) (gameManager.getMultiplier() * config.getSurviveTeamScore());
+        for (SurvivalGamesTeam livingTeam : livingTeams) {
+            livingTeam.awardPoints(multipliedSurvive);
+            context.displayScore(livingTeam);
+        }
         switch (livingTeams.size()) {
             case 2 -> {
                 plugin.getServer().sendMessage(Component.empty()
                         .append(deadTeam.getFormattedDisplayName())
                         .append(Component.text(" got third place!")));
-                gameManager.awardPointsToTeam(deadTeam, config.getThirdPlaceScore());
+                int multiplied = (int) (gameManager.getMultiplier() * config.getThirdPlaceScore());
+                deadTeam.awardPoints(multiplied);
+                context.displayScore(deadTeam);
             }
             case 1 -> {
                 plugin.getServer().sendMessage(Component.empty()
                         .append(deadTeam.getFormattedDisplayName())
                         .append(Component.text(" got second place!")));
-                gameManager.awardPointsToTeam(deadTeam, config.getSecondPlaceScore());
+                int multiplied = (int) (gameManager.getMultiplier() * config.getSecondPlaceScore());
+                deadTeam.awardPoints(multiplied);
+                context.displayScore(deadTeam);
                 onTeamWin(livingTeams.getFirst());
             }
             case 0 -> {
@@ -362,7 +377,7 @@ public class ActiveState implements SurvivalGamesState {
     }
     
     /**
-     * @return a list of the teamIds of the teams which are still alive (have at least 1 living member)
+     * @return a list of the teams which are still alive (have at least 1 living member)
      */
     private @NotNull List<SurvivalGamesTeam> getLivingTeams() {
         return context.getTeams().values().stream()
@@ -374,7 +389,9 @@ public class ActiveState implements SurvivalGamesState {
         plugin.getServer().sendMessage(Component.text("Team ")
                 .append(winningTeam.getFormattedDisplayName())
                 .append(Component.text(" wins!")));
-        gameManager.awardPointsToTeam(winningTeam, config.getFirstPlaceScore());
+        int multiplied = (int) (gameManager.getMultiplier() * config.getFirstPlaceScore());
+        winningTeam.awardPoints(multiplied);
+        context.displayScore(winningTeam);
         if (borderDelay != null) {
             borderDelay.cancel();
         }

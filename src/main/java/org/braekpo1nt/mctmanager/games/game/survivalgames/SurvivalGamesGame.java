@@ -19,7 +19,6 @@ import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.glow.GlowManager;
-import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
@@ -58,7 +57,7 @@ import java.util.*;
  * The context for the state pattern
  */
 @Data
-public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Headerable {
+public class SurvivalGamesGame implements MCTGame, Configurable, Listener {
     
     private @Nullable SurvivalGamesState state;
     
@@ -74,9 +73,10 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     private Sidebar sidebar;
     private Sidebar adminSidebar;
     private SurvivalGamesConfig config;
-    public Map<String, SurvivalGamesTeam> teams = new HashMap<>();
     public Map<UUID, SurvivalGamesParticipant> participants = new HashMap<>();
-    public Map<UUID, SurvivalGamesQuitData> quitDatas = new HashMap<>();
+    public Map<UUID, SurvivalGamesParticipant.QuitData> quitDatas = new HashMap<>();
+    public Map<String, SurvivalGamesTeam> teams = new HashMap<>();
+    private Map<String, SurvivalGamesTeam.QuitData> teamQuitDatas = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     private WorldBorder worldBorder;
     private Component title = baseTitle;
@@ -120,11 +120,12 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
         this.teams = new HashMap<>(newTeams.size());
         for (Team team : newTeams) {
-            teams.put(team.getTeamId(), new SurvivalGamesTeam(team));
+            teams.put(team.getTeamId(), new SurvivalGamesTeam(team, 0));
             topbar.addTeam(team.getTeamId(), team.getColor());
         }
         this.participants = new HashMap<>(newParticipants.size());
         this.quitDatas = new HashMap<>();
+        this.teamQuitDatas = new HashMap<>();
         worldBorder = config.getWorld().getWorldBorder();
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
@@ -183,7 +184,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     }
     
     public void initializeParticipant(Participant newParticipant) {
-        SurvivalGamesParticipant participant = new SurvivalGamesParticipant(newParticipant);
+        SurvivalGamesParticipant participant = new SurvivalGamesParticipant(newParticipant, 0);
         participants.put(participant.getUniqueId(), participant);
         SurvivalGamesTeam team = teams.get(participant.getTeamId());
         team.addParticipant(participant);
@@ -221,6 +222,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         removePlatforms();
         worldBorder.reset();
         stopAdmins();
+        saveScores();
         for (Participant participant : participants.values()) {
             if (state != null) {
                 state.resetParticipant(participant);
@@ -230,19 +232,43 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         }
         clearSidebar();
         glowManager.clear();
-        teams.clear();
         participants.clear();
+        teams.clear();
         quitDatas.clear();
+        teamQuitDatas.clear();
         gameManager.gameIsOver();
         state = null;
         Main.logger().info("Stopped Survival Games");
+    }
+    
+    private void saveScores() {
+        Map<String, Integer> teamScores = new HashMap<>();
+        Map<UUID, Integer> participantScores = new HashMap<>();
+        for (SurvivalGamesTeam team : teams.values()) {
+            teamScores.put(team.getTeamId(), team.getScore());
+        }
+        for (SurvivalGamesParticipant participant : participants.values()) {
+            participantScores.put(participant.getUniqueId(), participant.getScore());
+        }
+        for (Map.Entry<String, SurvivalGamesTeam.QuitData> entry : teamQuitDatas.entrySet()) {
+            teamScores.put(entry.getKey(), entry.getValue().getScore());
+        }
+        for (Map.Entry<UUID, SurvivalGamesParticipant.QuitData> entry : quitDatas.entrySet()) {
+            participantScores.put(entry.getKey(), entry.getValue().getScore());
+        }
+        gameManager.addScores(teamScores, participantScores);
     }
     
     public void onTeamJoin(Team team) {
         if (teams.containsKey(team.getTeamId())) {
             return;
         }
-        teams.put(team.getTeamId(), new SurvivalGamesTeam(team));
+        SurvivalGamesTeam.QuitData quitData = teamQuitDatas.get(team.getTeamId());
+        if (quitData != null) {
+            teams.put(team.getTeamId(), new SurvivalGamesTeam(team, quitData.getScore()));
+        } else {
+            teams.put(team.getTeamId(), new SurvivalGamesTeam(team, 0));
+        }
     }
     
     @Override
@@ -261,6 +287,14 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         if (state != null) {
             state.onParticipantQuit(sgParticipant);
         }
+    }
+    
+    public void onTeamQuit(SurvivalGamesTeam team) {
+        if (team.size() > 0) {
+            return;
+        }
+        SurvivalGamesTeam removed = teams.remove(team.getTeamId());
+        teamQuitDatas.put(team.getTeamId(), removed.getQuitData());
     }
     
     private void startAdmins(List<Player> newAdmins) {
@@ -413,6 +447,12 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
                 new KeyLine("title", title)
         );
         topbar.setMiddle(Component.empty());
+        for (SurvivalGamesTeam team : teams.values()) {
+            displayScore(team);
+        }
+        for (SurvivalGamesParticipant participant : participants.values()) {
+            displayScore(participant);
+        }
     }
     
     private void initializeAdminSidebar() {
@@ -773,25 +813,23 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         state.onParticipantDeath(event);
     }
     
-    @Override
-    public void updateTeamScore(Participant participant, Component contents) {
-        if (sidebar == null) {
-            return;
+    // make this private if above used
+    public void displayScore(SurvivalGamesTeam team) {
+        Component contents = Component.empty()
+                .append(team.getFormattedDisplayName())
+                .append(Component.text(": "))
+                .append(Component.text(team.getScore())
+                        .color(NamedTextColor.GOLD));
+        for (UUID memberUUID : team.getMemberUUIDs()) {
+            sidebar.updateLine(memberUUID, "personalTeam", contents);
         }
-        if (!participants.containsKey(participant.getUniqueId())) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
     }
     
-    @Override
-    public void updatePersonalScore(Participant participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.containsKey(participant.getUniqueId())) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
+    // make this private if above used
+    public void displayScore(SurvivalGamesParticipant participant) {
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", Component.empty()
+                .append(Component.text("Personal: "))
+                .append(Component.text(participant.getScore()))
+                .color(NamedTextColor.GOLD));
     }
 }

@@ -14,10 +14,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.participant.Participant;
-import org.braekpo1nt.mctmanager.participant.Team;
-import org.braekpo1nt.mctmanager.participant.TeamData;
-import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
+import org.braekpo1nt.mctmanager.participant.*;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
@@ -42,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class ClockworkGame implements Listener, MCTGame, Configurable, Headerable {
+public class ClockworkGame implements Listener, MCTGame, Configurable {
     private final Main plugin;
     private final GameManager gameManager;
     private Sidebar sidebar;
@@ -53,8 +50,10 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
             .append(Component.text("Clockwork"))
             .color(NamedTextColor.BLUE);
     private Component title = baseTitle;
-    private Map<String, TeamData<Participant>> teams = new HashMap<>();
-    private Map<UUID, Participant> participants = new HashMap<>();
+    private Map<UUID, ClockworkParticipant> participants = new HashMap<>();
+    private Map<UUID, ClockworkParticipant.QuitData> quitDatas = new HashMap<>();
+    private Map<String, ClockworkTeam> teams = new HashMap<>();
+    private Map<String, ClockworkTeam.QuitData> teamQuitDatas = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     private List<ClockworkRound> rounds;
     private int currentRoundIndex = 0;
@@ -104,15 +103,17 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
         teams = new HashMap<>(newTeams.size());
         for (Team team : newTeams) {
-            teams.put(team.getTeamId(), new TeamData<>(team));
+            teams.put(team.getTeamId(), new ClockworkTeam(team, 0));
         }
-        participants = new HashMap<>(newParticipants.size());
+        this.participants = new HashMap<>(newParticipants.size());
+        this.quitDatas = new HashMap<>();
+        this.teamQuitDatas = new HashMap<>();
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
         for (Participant participant : newParticipants) {
-            initializeParticipant(participant);
+            initializeParticipant(participant, 0);
         }
         initializeSidebar();
         rounds = new ArrayList<>(config.getRounds());
@@ -132,8 +133,8 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         messageAllParticipants(config.getDescription());
     }
     
-    private void initializeParticipant(Participant newParticipant) {
-        ClockworkParticipant participant = new ClockworkParticipant(newParticipant);
+    private void initializeParticipant(Participant newParticipant, int score) {
+        ClockworkParticipant participant = new ClockworkParticipant(newParticipant, score);
         teams.get(participant.getTeamId()).addParticipant(participant);
         participants.put(participant.getUniqueId(), participant);
         participant.setGameMode(GameMode.ADVENTURE);
@@ -188,14 +189,35 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         rounds.clear();
         descriptionShowing = false;
         gameActive = false;
+        saveScores();
         for (Participant participant : participants.values()) {
             resetParticipant(participant);
         }
         clearSidebar();
         stopAdmins();
         participants.clear();
+        quitDatas.clear();
+        teamQuitDatas.clear();
         gameManager.gameIsOver();
         Main.logger().info("Stopping Clockwork");
+    }
+    
+    private void saveScores() {
+        Map<String, Integer> teamScores = new HashMap<>();
+        Map<UUID, Integer> participantScores = new HashMap<>();
+        for (ClockworkTeam team : teams.values()) {
+            teamScores.put(team.getTeamId(), team.getScore());
+        }
+        for (ClockworkParticipant participant : participants.values()) {
+            participantScores.put(participant.getUniqueId(), participant.getScore());
+        }
+        for (Map.Entry<String, ClockworkTeam.QuitData> entry : teamQuitDatas.entrySet()) {
+            teamScores.put(entry.getKey(), entry.getValue().getScore());
+        }
+        for (Map.Entry<UUID, ClockworkParticipant.QuitData> entry : quitDatas.entrySet()) {
+            participantScores.put(entry.getKey(), entry.getValue().getScore());
+        }
+        gameManager.addScores(teamScores, participantScores);
     }
     
     private void resetParticipant(Participant participant) {
@@ -249,28 +271,55 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         updateRoundFastBoard();
     }
     
+    private void onTeamJoin(Team team) {
+        if (teams.containsKey(team.getTeamId())) {
+            return;
+        }
+        ClockworkTeam.QuitData quitData = teamQuitDatas.get(team.getTeamId());
+        if (quitData != null) {
+            teams.put(team.getTeamId(), new ClockworkTeam(team, quitData.getScore()));
+        } else {
+            teams.put(team.getTeamId(), new ClockworkTeam(team, 0));
+        }
+    }
+    
     @Override
     public void onParticipantJoin(Participant participant, Team team) {
         if (!gameActive) {
             return;
         }
-        if (!teams.containsKey(team.getTeamId())) {
-            teams.put(team.getTeamId(), new TeamData<>(team));
+        onTeamJoin(team);
+        ClockworkParticipant.QuitData quitData = quitDatas.remove(participant.getUniqueId());
+        if (quitData != null) {
+            initializeParticipant(participant, quitData.getScore());
+        } else {
+            initializeParticipant(participant, 0);
         }
-        initializeParticipant(participant);
         sidebar.updateLines(participant.getUniqueId(), 
                 new KeyLine("title", title),
                 new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size()))
         );
+        ClockworkParticipant clockworkParticipant = participants.get(participant.getUniqueId());
+        displayScore(clockworkParticipant);
+        ClockworkTeam clockworkTeam = teams.get(team.getTeamId());
+        displayScore(clockworkTeam);
         if (descriptionShowing) {
             return;
         }
         if (currentRoundIndex < rounds.size()) {
             ClockworkRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
-                currentRound.onParticipantJoin(participant, team);
+                currentRound.onParticipantJoin(clockworkParticipant, clockworkTeam);
             }
         }
+    }
+    
+    private void onTeamQuit(ClockworkTeam team) {
+        if (team.size() > 0) {
+            return;
+        }
+        ClockworkTeam removed = teams.remove(team.getTeamId());
+        teamQuitDatas.put(team.getTeamId(), removed.getQuitData());
     }
     
     @Override
@@ -278,10 +327,11 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         if (!gameActive) {
             return;
         }
-        Participant quitParticipant = participants.get(participant.getUniqueId());
+        ClockworkParticipant quitParticipant = participants.get(participant.getUniqueId());
         if (quitParticipant == null) {
             return;
         }
+        quitDatas.put(quitParticipant.getUniqueId(), quitParticipant.getQuitData());
         if (descriptionShowing) {
             resetParticipant(participant);
             participants.remove(participant.getUniqueId());
@@ -295,9 +345,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         }
         resetParticipant(participant);
         participants.remove(participant.getUniqueId());
-        if (teams.get(participant.getTeamId()).size() == 0) {
-            teams.remove(participant.getTeamId());
-        }
+        onTeamQuit(teams.get(team.getTeamId()));
     }
     
     private void cancelAllTasks() {
@@ -455,33 +503,47 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
                 new KeyLine("playerCount", ""),
                 new KeyLine("timer", "")
         );
+        for (ClockworkTeam team : teams.values()) {
+            displayScore(team);
+        }
+        for (ClockworkParticipant participant : participants.values()) {
+            displayScore(participant);
+        }
+    }
+    
+    public void updateScore(ClockworkRoundTeam team) {
+        ClockworkTeam clockworkTeam = teams.get(team.getTeamId());
+        clockworkTeam.setScore(team.getScore());
+        displayScore(clockworkTeam);
+    }
+    
+    private void displayScore(ClockworkTeam team) {
+        Component contents = Component.empty()
+                .append(team.getFormattedDisplayName())
+                .append(Component.text(": "))
+                .append(Component.text(team.getScore())
+                        .color(NamedTextColor.GOLD));
+        for (UUID memberUUID : team.getMemberUUIDs()) {
+            sidebar.updateLine(memberUUID, "personalTeam", contents);
+        }
+    }
+    
+    public void updateScore(ClockworkRoundParticipant participant) {
+        ClockworkParticipant clockworkParticipant = participants.get(participant.getUniqueId());
+        clockworkParticipant.setScore(participant.getScore());
+        displayScore(clockworkParticipant);
+    }
+    
+    private void displayScore(ClockworkParticipant participant) {
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", Component.empty()
+                .append(Component.text("Personal: "))
+                .append(Component.text(participant.getScore()))
+                .color(NamedTextColor.GOLD));
     }
     
     private void clearSidebar() {
         sidebar.deleteAllLines();
         sidebar = null;
-    }
-    
-    @Override
-    public void updateTeamScore(Participant participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.containsKey(participant.getUniqueId())) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
-    }
-    
-    @Override
-    public void updatePersonalScore(Participant participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.containsKey(participant.getUniqueId())) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
     }
     
     private void updateRoundFastBoard() {

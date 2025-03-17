@@ -1,12 +1,12 @@
-package org.braekpo1nt.mctmanager.games.game.clockwork;
+package org.braekpo1nt.mctmanager.games.game.spleef;
 
 import lombok.Data;
 import org.braekpo1nt.mctmanager.participant.ScoredTeamData;
 import org.braekpo1nt.mctmanager.participant.Team;
 
-public class ClockworkTeam extends ScoredTeamData<ClockworkParticipant> {
+public class SpleefTeam extends ScoredTeamData<SpleefParticipant> {
     
-    public ClockworkTeam(Team team, int score) {
+    public SpleefTeam(Team team, int score) {
         super(team, score);
     }
     

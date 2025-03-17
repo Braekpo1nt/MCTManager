@@ -37,6 +37,11 @@ public interface Team {
     @NotNull TextColor getColor();
     
     /**
+     * @return the team's score
+     */
+    int getScore();
+    
+    /**
      * @return The {@link Color} associated with the team
      */
     @NotNull Color getBukkitColor();

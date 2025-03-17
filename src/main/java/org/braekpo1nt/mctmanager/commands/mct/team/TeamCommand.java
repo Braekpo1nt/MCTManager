@@ -9,8 +9,6 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.permissions.Permissible;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-
 public class TeamCommand extends CommandManager {
     
     public TeamCommand(Main plugin, GameManager gameManager, @NotNull String name) {
@@ -20,7 +18,7 @@ public class TeamCommand extends CommandManager {
         addSubCommand(new LeaveSubCommand(plugin, gameManager, "leave"));
         addSubCommand(new ListSubCommand(gameManager, "list"));
         addSubCommand(new RemoveSubCommand(gameManager, "remove"));
-        addSubCommand(new ScoreCommand(plugin, gameManager, "score"));
+        addSubCommand(new ScoreCommand(gameManager, "score"));
         addSubCommand(new PresetCommand(plugin, gameManager, "preset"));
     }
     
