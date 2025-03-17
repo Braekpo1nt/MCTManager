@@ -1337,11 +1337,19 @@ public class GameManager implements Listener {
                 .toList();
         
         TextComponent.Builder everyone = Component.text();
+        everyone.append(
+                Component.empty()
+                        .append(Component.text("["))
+                        .append(Component.text(getMultiplier()))
+                        .append(Component.text(" Multiplier]\n"))
+                        .color(NamedTextColor.GRAY)
+        );
         everyone.append(Component.text("Top 5 Teams:"))
                 .append(Component.newline());
         for (int i = 0; i < Math.min(sortedTeams.size(), 5); i++) {
             MCTTeam team = sortedTeams.get(i);
             everyone
+                    .append(Component.text("  "))
                     .append(Component.text(i+1))
                     .append(Component.text(". "))
                     .append(team.getFormattedDisplayName())
@@ -1350,11 +1358,12 @@ public class GameManager implements Listener {
                             .color(NamedTextColor.GOLD))
                     .append(Component.newline());
         }
-        everyone.append(Component.text("Top 5 Participants:"))
+        everyone.append(Component.text("\nTop 5 Participants:"))
                 .append(Component.newline());
         for (int i = 0; i < Math.min(sortedParticipants.size(), 5); i++) {
             OfflineParticipant team = sortedParticipants.get(i);
             everyone
+                    .append(Component.text("  "))
                     .append(Component.text(i+1))
                     .append(Component.text(". "))
                     .append(team.displayName())
@@ -1362,7 +1371,7 @@ public class GameManager implements Listener {
                     .append(Component.text(teamScores.get(team.getTeamId()))
                             .color(NamedTextColor.GOLD))
                     .append(Component.text(" ("))
-                    .append(Component.text(teamScores.get(team.getTeamId()) / getMultiplier())
+                    .append(Component.text((int) (teamScores.get(team.getTeamId()) / getMultiplier()))
                             .color(NamedTextColor.GOLD))
                     .append(Component.text(" x "))
                     .append(Component.text(getMultiplier()))
