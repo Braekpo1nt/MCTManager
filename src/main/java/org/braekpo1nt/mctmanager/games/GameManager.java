@@ -439,8 +439,6 @@ public class GameManager implements Listener {
     private void onParticipantJoin(@NotNull Participant participant) {
         MCTTeam team = teams.get(participant.getTeamId());
         team.joinOnlineMember(participant);
-        team.sendMessage(Component.text("New member joining your team: ")
-                .append(participant.displayName()));
         onlineParticipants.put(participant.getUniqueId(), participant);
         participant.getPlayer().setScoreboard(mctScoreboard);
         participant.addPotionEffect(Main.NIGHT_VISION);
@@ -574,9 +572,6 @@ public class GameManager implements Listener {
                 Participant participant = new Participant(offlineParticipant, player);
                 onParticipantJoin(participant);
             }
-        }
-        for (MCTTeam team : teams.values()) {
-            team.sendMessage(Component.text("This is a message being sent on load"));
         }
         return true;
     }
