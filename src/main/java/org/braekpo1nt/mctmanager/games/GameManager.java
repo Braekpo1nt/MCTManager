@@ -1388,7 +1388,10 @@ public class GameManager implements Listener {
             TextComponent.Builder message = Component.text();
             message
                     .append(team.getFormattedDisplayName())
-                    .append(Component.text(": \n"));
+                    .append(Component.text(": "))
+                    .append(Component.text(teamScores.get(team.getTeamId()))
+                            .color(NamedTextColor.GOLD))
+                    .append(Component.newline());
             int i = 1;
             for (OfflineParticipant participant : sortedParticipants) {
                 if (participant.getTeamId().equals(team.getTeamId())) {
@@ -1417,7 +1420,10 @@ public class GameManager implements Listener {
             Participant participant = onlineParticipants.get(offlineParticipant.getUniqueId());
             if (participant != null) {
                 participant.sendMessage(
-                        Component.text("\nYour Points: ")
+                        Component.empty()
+                                .append(Component.text("Personal")
+                                        .color(NamedTextColor.GOLD))
+                                .append(Component.text(": "))
                                 .append(Component.text(participantScores.get(offlineParticipant.getUniqueId()))
                                         .color(NamedTextColor.GOLD))
                                 .append(Component.text(" ("))
