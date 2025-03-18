@@ -64,6 +64,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     private Map<UUID, CTFParticipant> participants = new HashMap<>();
     private Map<UUID, CTFParticipant.QuitData> quitDatas = new HashMap<>();
     private Map<String, CTFTeam> teams = new HashMap<>();
+    private Map<String, CTFTeam> quitTeams = new HashMap<>();
     private Map<String, CTFTeam.QuitData> teamQuitDatas = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     
@@ -117,6 +118,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         participants = new HashMap<>(newParticipants.size());
         this.quitDatas = new HashMap<>();
         this.teamQuitDatas = new HashMap<>();
+        this.quitTeams = new HashMap<>();
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
         Set<String> teamIds = Participant.getTeamIds(newParticipants);
@@ -227,6 +229,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
             return;
         }
         CTFTeam.QuitData quitData = teamQuitDatas.remove(team.getTeamId());
+        quitTeams.remove(team.getTeamId());
         if (quitData != null) {
             teams.put(team.getTeamId(), new CTFTeam(team, quitData));
         } else {
@@ -268,6 +271,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         }
         CTFTeam removed = teams.remove(team.getTeamId());
         teamQuitDatas.put(team.getTeamId(), removed.getQuitData());
+        quitTeams.put(team.getTeamId(), team);
         roundManager.regenerateRounds(Team.getTeamIds(teams),
                 config.getArenas().size());
         updateRoundLine();

@@ -104,7 +104,7 @@ public class CaptureTheFlagMatch {
         state.nextState();
     }
     
-    public void start(CTFTeam newNorthTeam, CTFTeam newSouthTeam, Collection<CTFParticipant> newParticipants) {
+    public void start(@NotNull CTFTeam newNorthTeam, @NotNull CTFTeam newSouthTeam, Collection<CTFParticipant> newParticipants) {
         placeFlags();
         closeGlassBarriers();
         this.northTeam = new CTFMatchTeam(newNorthTeam, Affiliation.NORTH);
