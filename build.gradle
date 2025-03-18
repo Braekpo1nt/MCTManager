@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '7.1.2'
-    id "io.freefair.lombok" version "8.6"
+//    id "io.freefair.lombok" version "8.6"
 }
 
 group = 'org.braekpo1nt'
@@ -57,6 +57,13 @@ dependencies {
     implementation 'com.github.retrooper:packetevents-spigot:2.7.0'
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'com.sk89q.worldedit:worldedit-bukkit:7.3.6'
+    
+    // lombok
+    compileOnly 'org.projectlombok:lombok:1.18.36'
+    annotationProcessor 'org.projectlombok:lombok:1.18.36'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.36'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.36'
 }
 
 def targetJavaVersion = 21
