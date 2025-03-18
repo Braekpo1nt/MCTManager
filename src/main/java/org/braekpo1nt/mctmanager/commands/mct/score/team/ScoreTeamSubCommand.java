@@ -9,6 +9,8 @@ import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -33,34 +35,34 @@ public class ScoreTeamSubCommand extends TabSubCommand {
         if (args.length > 1) {
             return CommandResult.failure(getUsage().of("[<teamId>]"));
         }
-        String team;
+        String teamId;
         if (args.length == 0) {
-            if (!(sender instanceof Player participant)) {
+            if (!(sender instanceof Player player)) {
                 return CommandResult.failure(getUsage().of("<teamId>"));
             }
-            if (!gameManager.isParticipant(participant.getUniqueId())) {
+            OfflineParticipant offlineParticipant = gameManager.getOfflineParticipant(player.getUniqueId());
+            if (offlineParticipant == null) {
                 return CommandResult.failure(Component.text("You are not a participant"));
             }
-            team = gameManager.getTeamId(participant.getUniqueId());
+            teamId = offlineParticipant.getTeamId();
         } else {
-            team = args[0];
-            if (team.equals("all")) {
+            teamId = args[0];
+            if (teamId.equals("all")) {
                 return CommandResult.success(getAllTeamScores());
             }
-            if (!gameManager.hasTeam(team)) {
-                return CommandResult.failure(Component.empty()
-                        .append(Component.text(team)
-                                .decorate(TextDecoration.BOLD))
-                        .append(Component.text(" is not a valid team ID")));
-            }
+        }
+        Team team = gameManager.getTeam(teamId);
+        if (team == null) {
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text(teamId)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" is not a valid teamId ID")));
         }
         
-        Component displayName = gameManager.getFormattedTeamDisplayName(team);
-        int score = gameManager.getScore(team);
         return CommandResult.success(Component.empty()
-                .append(displayName)
+                .append(team.getFormattedDisplayName())
                 .append(Component.text(": "))
-                .append(Component.text(score)
+                .append(Component.text(team.getScore())
                         .color(NamedTextColor.GOLD)));
     }
     
@@ -71,15 +73,13 @@ public class ScoreTeamSubCommand extends TabSubCommand {
         TextComponent.Builder builder = Component.text()
                 .append(Component.text("Team Scores:")
                         .decorate(TextDecoration.BOLD));
-        List<String> sortedTeams = GameManagerUtils.getSortedTeams(gameManager);
-        for (String team : sortedTeams) {
-            Component displayName = gameManager.getFormattedTeamDisplayName(team);
-            int score = gameManager.getScore(team);
+        List<Team> sortedTeams = GameManagerUtils.getSortedTeams(gameManager);
+        for (Team team : sortedTeams) {
             builder.append(Component.empty()
                     .append(Component.newline())
-                    .append(displayName)
+                    .append(team.getFormattedDisplayName())
                     .append(Component.text(": "))
-                    .append(Component.text(score)
+                    .append(Component.text(team.getScore())
                             .color(NamedTextColor.GOLD)));
         }
         return builder.build();

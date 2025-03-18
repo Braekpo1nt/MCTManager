@@ -4,10 +4,11 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchParticipant;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -34,7 +35,7 @@ public class ClassPicker implements Listener {
                     .color(NamedTextColor.GRAY));
     private final Component NETHER_STAR_NAME = Component.text("Vote");
     private final Map<UUID, String> pickedBattleClasses = new HashMap<>();
-    private final List<Player> teamMates = new ArrayList<>();
+    private final Map<UUID, Participant> teamMates = new HashMap<>();
     private final GameManager gameManager;
     private boolean classPickingActive = false;
     private Map<String, Loadout> loadouts = new HashMap<>();
@@ -51,7 +52,7 @@ public class ClassPicker implements Listener {
      * @param newTeamMates The list of teammates. They are assumed to be on the same team. Weird things will happen if they are not.
      * @param loadouts the loadouts for each BattleClass
      */
-    public void start(Main plugin, List<Player> newTeamMates, 
+    public void start(Main plugin, Collection<CTFMatchParticipant> newTeamMates, 
                       Map<String, Loadout> loadouts) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.materialToBattleClass = new HashMap<>();
@@ -60,9 +61,11 @@ public class ClassPicker implements Listener {
         }
         this.loadouts = loadouts;
         teamMates.clear();
-        teamMates.addAll(newTeamMates);
+        for (Participant teamMate : newTeamMates) {
+            teamMates.put(teamMate.getUniqueId(), teamMate);
+        }
         classPickingActive = true;
-        for (Player teamMate : teamMates) {
+        for (Participant teamMate : teamMates.values()) {
             teamMate.sendMessage(Component.text("Choose your class"));
             showClassPickerGui(teamMate);
         }
@@ -78,32 +81,32 @@ public class ClassPicker implements Listener {
         if (assignBattleClasses) {
             assignBattleClassesToTeamMatesWithoutBattleClasses();
         }
-        for (Player teamMate : teamMates) {
+        for (Participant teamMate : teamMates.values()) {
             teamMate.closeInventory();
         }
     }
     
-    public void addTeamMate(Player newTeamMate) {
+    public void addTeamMate(Participant newTeamMate) {
         if (!classPickingActive) {
             return;
         }
-        teamMates.add(newTeamMate);
+        teamMates.put(newTeamMate.getUniqueId(), newTeamMate);
         newTeamMate.sendMessage(Component.text("Choose your class"));
         showClassPickerGui(newTeamMate);
     }
     
-    public void removeTeamMate(Player teamMate) {
+    public void removeTeamMate(Participant teamMate) {
         if (!classPickingActive) {
             return;
         }
-        if (!teamMates.contains(teamMate)) {
+        if (!teamMates.containsKey(teamMate.getUniqueId())) {
             return;
         }
         if (pickedBattleClasses.containsKey(teamMate.getUniqueId())) {
             unAssignClass(teamMate);
             teamMate.getInventory().clear();
         }
-        teamMates.remove(teamMate);
+        teamMates.remove(teamMate.getUniqueId());
     }
     
     @EventHandler
@@ -118,8 +121,8 @@ public class ClassPicker implements Listener {
         if (clickedItem == null) {
             return;
         }
-        Player teamMate = ((Player) event.getWhoClicked());
-        if (!teamMates.contains(teamMate)) {
+        Participant teamMate = teamMates.get(event.getWhoClicked().getUniqueId());
+        if (teamMate == null) {
             return;
         }
         if (event.getView().title().equals(TITLE)) {
@@ -148,7 +151,7 @@ public class ClassPicker implements Listener {
      * @param teamMate the player who clicked
      * @param clickedItem the item they clicked on
      */
-    public void onClickClassPickerInventory(Player teamMate, ItemStack clickedItem) {
+    public void onClickClassPickerInventory(Participant teamMate, ItemStack clickedItem) {
         Material itemType = clickedItem.getType();
         String battleClass = materialToBattleClass.get(itemType);
         if (battleClass == null) {
@@ -169,8 +172,8 @@ public class ClassPicker implements Listener {
         if (!event.getView().title().equals(TITLE)) {
             return;
         }
-        Player teamMate = ((Player) event.getPlayer());
-        if (!teamMates.contains(teamMate)) {
+        Participant teamMate = teamMates.get(event.getPlayer().getUniqueId());
+        if (teamMate == null) {
             return;
         }
         if (pickedBattleClasses.containsKey(teamMate.getUniqueId())) {
@@ -185,8 +188,8 @@ public class ClassPicker implements Listener {
         if (!classPickingActive) {
             return;
         }
-        Player teamMate = event.getPlayer();
-        if (!teamMates.contains(teamMate)) {
+        Participant teamMate = teamMates.get(event.getPlayer().getUniqueId());
+        if (teamMate == null) {
             return;
         }
         ItemStack netherStar = event.getItem();
@@ -202,7 +205,7 @@ public class ClassPicker implements Listener {
         onClickNetherStar(teamMate, netherStar);
     }
     
-    private boolean selectBattleClass(@NotNull Player participant, @NotNull String battleClass) {
+    private boolean selectBattleClass(@NotNull Participant participant, @NotNull String battleClass) {
         if (pickedBattleClasses.containsValue(battleClass)) {
             Loadout loadout = loadouts.get(battleClass);
             participant.sendMessage(Component.empty()
@@ -215,7 +218,7 @@ public class ClassPicker implements Listener {
         return true;
     }
     
-    private void giveNetherStar(@NotNull Player teamMate) {
+    private void giveNetherStar(@NotNull Participant teamMate) {
         ItemStack netherStar = new ItemStack(Material.NETHER_STAR);
         ItemMeta netherStarMeta = netherStar.getItemMeta();
         netherStarMeta.displayName(NETHER_STAR_NAME);
@@ -228,7 +231,7 @@ public class ClassPicker implements Listener {
      * @param teamMate the player who used the nether star
      * @param netherStar the nether star item
      */
-    private void onClickNetherStar(@NotNull Player teamMate, @NotNull ItemStack netherStar) {
+    private void onClickNetherStar(@NotNull Participant teamMate, @NotNull ItemStack netherStar) {
         ItemMeta netherStarMeta = netherStar.getItemMeta();
         if (netherStarMeta == null ||
                 !netherStarMeta.hasDisplayName() ||
@@ -244,7 +247,7 @@ public class ClassPicker implements Listener {
      *  Assigns a class to any teamMates that don't already have one. It will assign classes from the pool of unpicked classes for that team.
      */
     private void assignBattleClassesToTeamMatesWithoutBattleClasses() {
-        for (Player teamMate : teamMates) {
+        for (Participant teamMate : teamMates.values()) {
             if (!pickedBattleClasses.containsKey(teamMate.getUniqueId())) {
                 randomlyAssignClass(teamMate);
             }
@@ -257,7 +260,7 @@ public class ClassPicker implements Listener {
      * @param teamMate the teamMate to assign a class to
      * @param battleClass the class to assign
      */
-    private void assignClass(Player teamMate, @NotNull String battleClass) {
+    private void assignClass(Participant teamMate, @NotNull String battleClass) {
         pickedBattleClasses.put(teamMate.getUniqueId(), battleClass);
         teamMate.getInventory().clear();
         Loadout loadout = loadouts.get(battleClass);
@@ -268,7 +271,7 @@ public class ClassPicker implements Listener {
                 .append(loadout.getName()));
     }
     
-    private void unAssignClass(Player teamMate) {
+    private void unAssignClass(Participant teamMate) {
         pickedBattleClasses.remove(teamMate.getUniqueId());
         teamMate.getInventory().clear();
         giveNetherStar(teamMate);
@@ -282,7 +285,7 @@ public class ClassPicker implements Listener {
      * @param participant the participant to assign a class to
      * @throws NullPointerException if the participant is not in the game state
      */
-    private void randomlyAssignClass(Player participant) {
+    private void randomlyAssignClass(Participant participant) {
         for (String battleClass : loadouts.keySet()) {
             if (!pickedBattleClasses.containsValue(battleClass)) {
                 assignClass(participant, battleClass);
@@ -295,7 +298,7 @@ public class ClassPicker implements Listener {
      * Shows the given teamMate the Class Picker gui
      * @param teamMate The teamMate to show the gui to
      */
-    private void showClassPickerGui(Player teamMate) {
+    private void showClassPickerGui(Participant teamMate) {
         Inventory newGui = Bukkit.createInventory(null, 9, TITLE);
         int column = 1;
         for (String battleClass : loadouts.keySet()) {
@@ -309,15 +312,4 @@ public class ClassPicker implements Listener {
     private int getSlotIndex(int line, int column) {
         return (line - 1) * 9 + (column - 1);
     }
-    
-    // Test methods
-    
-    /**
-     * Returns a copy of the list of the teamMates in this class picker
-     * @return A copy of the teamMates list
-     */
-    public @NotNull List<Player> getTeamMates() {
-        return new ArrayList<>(teamMates);
-    }
-    
 }

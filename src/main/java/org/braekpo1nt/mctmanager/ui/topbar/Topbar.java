@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.ui.topbar;
 
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -8,6 +9,14 @@ import java.util.List;
 import java.util.UUID;
 
 public interface Topbar {
+    
+    /**
+     * Show this Topbar to the given participant
+     * @param participant the participant to show this Topbar to
+     */
+    default void showPlayer(@NotNull Participant participant) {
+        showPlayer(participant.getPlayer());
+    }
     
     /**
      * Show this Topbar to the given player

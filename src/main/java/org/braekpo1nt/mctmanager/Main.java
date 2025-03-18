@@ -67,6 +67,15 @@ public class Main extends JavaPlugin {
         return Main.logger;
     }
     
+    /**
+     * Use the plugin's logger to send the log message at the info level
+     * @param message the message with {@link String#format(String, Object...)} style patterns
+     * @param args the args to {@link String#format(String, Object...)}
+     */
+    public static void logf(String message, Object... args) {
+        logger().info(String.format(message, args));
+    }
+    
     public static void setLogTypeActive(@NotNull LogType logType, boolean active) {
         logTypeActive.put(logType, active);
     }
@@ -117,8 +126,7 @@ public class Main extends JavaPlugin {
         try {
             gameManager.loadHubConfig();
         } catch (ConfigException e) {
-            Main.logger().severe(String.format("[MCTManager] Could not load hub config, see console for details. %s", e.getMessage()));
-            e.printStackTrace();
+            Main.logger().log(Level.SEVERE, String.format("Could not load hub config, see console for details. %s", e.getMessage()), e);
             saveGameStateOnDisable = false;
             Bukkit.getPluginManager().disablePlugin(this);
             return;
@@ -185,6 +193,9 @@ public class Main extends JavaPlugin {
         } else {
             Main.logger().info("[MCTManager] Skipping save game state.");
         }
+        gameManager = null;
+        mctCommand = null;
+        logTypeActive.clear();
     }
     
     // Testing methods for mocking components

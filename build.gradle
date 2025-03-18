@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '7.1.2'
-    id "io.freefair.lombok" version "8.6"
+//    id "io.freefair.lombok" version "8.6"
 }
 
 group = 'org.braekpo1nt'
@@ -50,13 +50,20 @@ dependencies {
     testImplementation 'org.slf4j:slf4j-jdk14:2.0.5'
     
     compileOnly 'io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT'
-    compileOnly 'com.github.decentsoftware-eu:decentholograms:2.8.14'
+    compileOnly 'com.github.decentsoftware-eu:decentholograms:2.8.15'
 
     // This would normally be compileOnly, but it's implementation so that the MockBukkit
     // tests can work. I mock PacketEventsAPI in the test folders to be a no-op implementation.
     implementation 'com.github.retrooper:packetevents-spigot:2.7.0'
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'com.sk89q.worldedit:worldedit-bukkit:7.3.6'
+    
+    // lombok
+    compileOnly 'org.projectlombok:lombok:1.18.36'
+    annotationProcessor 'org.projectlombok:lombok:1.18.36'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.36'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.36'
 }
 
 def targetJavaVersion = 21

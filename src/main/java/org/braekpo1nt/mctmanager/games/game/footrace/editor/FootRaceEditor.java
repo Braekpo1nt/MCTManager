@@ -105,7 +105,7 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
     }
     
     @Override
-    public void start(List<Player> newParticipants) {
+    public void start(Collection<Player> newParticipants) {
         participants = new ArrayList<>(newParticipants.size());
         currentCheckpoints = new HashMap<>(newParticipants.size());
         displays = new HashMap<>(newParticipants.size());

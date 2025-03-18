@@ -6,6 +6,8 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.states.EventState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -25,8 +27,7 @@ public abstract class DelayState implements EventState {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
-        context.getParticipants().add(participant);
+    public void onParticipantJoin(Participant participant) {
         if (context.getSidebar() != null) {
             context.getSidebar().addPlayer(participant);
             context.updateTeamScores();
@@ -35,8 +36,7 @@ public abstract class DelayState implements EventState {
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
-        context.getParticipants().remove(participant);
+    public void onParticipantQuit(Participant participant) {
         if (context.getSidebar() != null) {
             context.getSidebar().removePlayer(participant);
         }
@@ -67,13 +67,13 @@ public abstract class DelayState implements EventState {
     }
     
     @Override
-    public void onPlayerDamage(EntityDamageEvent event) {
+    public void onParticipantDamage(EntityDamageEvent event) {
         Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "EventManager.DelayState.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     
     @Override
-    public void onClickInventory(InventoryClickEvent event) {
+    public void onClickInventory(InventoryClickEvent event, Participant participant) {
         if (event.getClickedInventory() == null) {
             return;
         }
@@ -85,7 +85,7 @@ public abstract class DelayState implements EventState {
     }
     
     @Override
-    public void onDropItem(PlayerDropItemEvent event) {
+    public void onDropItem(PlayerDropItemEvent event, @NotNull Participant participant) {
         event.setCancelled(true);
     }
     
@@ -95,12 +95,12 @@ public abstract class DelayState implements EventState {
     }
     
     @Override
-    public void colossalCombatIsOver(@Nullable String winningTeam) {
+    public void colossalCombatIsOver(@Nullable Team winningTeam) {
         
     }
     
     @Override
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam) {
         
     }
     

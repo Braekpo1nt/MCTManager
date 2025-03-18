@@ -229,7 +229,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     }
     
     @Override
-    public void start(List<Player> newParticipants) {
+    public void start(Collection<Player> newParticipants) {
         participants = new ArrayList<>(newParticipants.size());
         currentPuzzles = new HashMap<>(newParticipants.size());
         currentInBounds = new HashMap<>(newParticipants.size());

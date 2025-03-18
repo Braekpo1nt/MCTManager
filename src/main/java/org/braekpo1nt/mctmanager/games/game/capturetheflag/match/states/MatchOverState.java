@@ -1,15 +1,14 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states;
 
 import io.papermc.paper.entity.LookAnchor;
-import net.kyori.adventure.audience.Audience;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchParticipant;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -22,8 +21,8 @@ public class MatchOverState implements CaptureTheFlagMatchState {
     
     public MatchOverState(CaptureTheFlagMatch context) {
         this.context = context;
-        for (Player participant : context.getAllParticipants()) {
-            if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {
+        for (CTFMatchParticipant participant : context.getAllParticipants().values()) {
+            if (participant.isAlive()) {
                 participant.teleport(context.getConfig().getSpawnObservatory());
                 participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
                 ParticipantInitializer.clearInventory(participant);
@@ -36,16 +35,14 @@ public class MatchOverState implements CaptureTheFlagMatchState {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
-        context.getParticipantsAreAlive().put(participant.getUniqueId(), false);
-        context.initializeParticipant(participant);
+    public void onParticipantJoin(CTFParticipant participant) {
+        context.initializeParticipant(participant, false);
         participant.setGameMode(GameMode.ADVENTURE);
-        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
-        context.getTopbar().linkToTeam(participant.getUniqueId(), teamId);
+        context.getTopbar().linkToTeam(participant.getUniqueId(), participant.getTeamId());
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
         Location lookLocation;
-        if (context.getMatchPairing().northTeam().equals(teamId)) {
+        if (context.getMatchPairing().northTeam().equals(participant.getTeamId())) {
             lookLocation = context.getArena().northFlag();
         } else {
             lookLocation = context.getArena().southFlag();
@@ -54,16 +51,15 @@ public class MatchOverState implements CaptureTheFlagMatchState {
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(CTFMatchParticipant participant) {
         context.resetParticipant(participant);
         participant.setGameMode(GameMode.ADVENTURE);
-        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
-        if (context.getMatchPairing().northTeam().equals(teamId)) {
-            context.getNorthParticipants().remove(participant);
-        } else if (context.getMatchPairing().southTeam().equals(teamId)) {
-            context.getSouthParticipants().remove(participant);
+        if (context.getMatchPairing().northTeam().equals(participant.getTeamId())) {
+            context.getNorthParticipants().remove(participant.getUniqueId());
+        } else if (context.getMatchPairing().southTeam().equals(participant.getTeamId())) {
+            context.getSouthParticipants().remove(participant.getUniqueId());
         }
-        context.getAllParticipants().remove(participant);
+        context.getAllParticipants().remove(participant.getUniqueId());
     }
     
     @Override

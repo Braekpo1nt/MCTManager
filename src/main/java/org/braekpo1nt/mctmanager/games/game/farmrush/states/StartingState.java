@@ -3,7 +3,6 @@ package org.braekpo1nt.mctmanager.games.game.farmrush.states;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 public class StartingState extends DescriptionState {

@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
@@ -42,7 +43,7 @@ public class VoteManager implements Listener {
     private Sidebar adminSidebar;
     private final Map<UUID, GameType> votes = new HashMap<>();
     private final Main plugin;
-    private final List<Player> voters = new ArrayList<>();
+    private final Map<UUID, Participant> voters = new HashMap<>();
     private final List<Player> admins = new ArrayList<>();
     private boolean voting = false;
     private final Component NETHER_STAR_NAME = Component.text("Vote");
@@ -71,7 +72,7 @@ public class VoteManager implements Listener {
      *                      is up or all voters have voted). It will be passed the voted for
      *                      GameType.
      */
-    public void startVote(List<Player> newParticipants, List<GameType> votingPool, int duration, Consumer<GameType> executeMethod, List<Player> newAdmins) {
+    public void startVote(Collection<Participant> newParticipants, List<GameType> votingPool, int duration, Consumer<GameType> executeMethod, List<Player> newAdmins) {
         this.executeMethod = executeMethod;
         this.voteCountDownDuration = duration;
         voting = true;
@@ -83,7 +84,7 @@ public class VoteManager implements Listener {
         adminSidebar = gameManager.createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
-        for (Player participant : newParticipants) {
+        for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
         initializeSidebar();
@@ -119,11 +120,11 @@ public class VoteManager implements Listener {
         adminSidebar.removePlayer(admin);
     }
     
-    private void initializeParticipant(Player voter) {
+    private void initializeParticipant(Participant voter) {
         if (!voting) {
             return;
         }
-        this.voters.add(voter);
+        this.voters.put(voter.getUniqueId(), voter);
         sidebar.addPlayer(voter);
         if (paused) {
             return;
@@ -133,19 +134,19 @@ public class VoteManager implements Listener {
                 .color(NamedTextColor.GREEN));
     }
     
-    public void onParticipantJoin(Player voter) {
+    public void onParticipantJoin(Participant voter) {
         if (!voting) {
             return;
         }
         initializeParticipant(voter);
     }
     
-    public void onParticipantQuit(Player voter) {
+    public void onParticipantQuit(Participant voter) {
         if (!voting) {
             return;
         }
         resetParticipant(voter);
-        voters.remove(voter);
+        voters.remove(voter.getUniqueId());
         sidebar.removePlayer(voter);
         votes.remove(voter.getUniqueId());
     }
@@ -198,8 +199,8 @@ public class VoteManager implements Listener {
         if (event.getCurrentItem() == null) {
             return;
         }
-        Player participant = ((Player) event.getWhoClicked());
-        if (!voters.contains(participant)) {
+        Participant participant = voters.get(event.getWhoClicked().getUniqueId());
+        if (participant == null) {
             return;
         }
         if (!event.getView().title().equals(TITLE)) {
@@ -258,8 +259,8 @@ public class VoteManager implements Listener {
         if (!voting) {
             return;
         }
-        Player participant = event.getPlayer();
-        if (!voters.contains(participant)) {
+        Participant participant = voters.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
             return;
         }
         event.setCancelled(true);
@@ -270,7 +271,7 @@ public class VoteManager implements Listener {
      * @param participant the participant to check
      * @return True of the participant voted, false if they haven't yet
      */
-    private boolean participantVoted(Player participant) {
+    private boolean participantVoted(Participant participant) {
         return votes.containsKey(participant.getUniqueId());
     }
     
@@ -285,8 +286,8 @@ public class VoteManager implements Listener {
         if (!event.getView().title().equals(TITLE)) {
             return;
         }
-        Player participant = ((Player) event.getPlayer());
-        if (!gameManager.isParticipant(participant.getUniqueId())) {
+        Participant participant = voters.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
             return;
         }
         if (allPlayersHaveVoted()) {
@@ -309,10 +310,8 @@ public class VoteManager implements Listener {
         if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
-        if (!(event.getEntity() instanceof Player voter)) {
-            return;
-        }
-        if (!voters.contains(voter)) {
+        Participant participant = voters.get(event.getEntity().getUniqueId());
+        if (participant == null) {
             return;
         }
         Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "VoteManager.onPlayerDamage() cancelled");
@@ -329,7 +328,7 @@ public class VoteManager implements Listener {
         }
         paused = true;
         timerManager.pause();
-        for (Player voter : voters) {
+        for (Participant voter : voters.values()) {
             voter.closeInventory();
             voter.getInventory().remove(NETHER_STAR);
         }
@@ -348,7 +347,7 @@ public class VoteManager implements Listener {
         }
         paused = false;
         timerManager.resume();
-        for (Player voter : voters) {
+        for (Participant voter : voters.values()) {
             if (!participantVoted(voter)) {
                 showVoteGui(voter);
             }
@@ -365,7 +364,7 @@ public class VoteManager implements Listener {
         voting = false;
         paused = false;
         cancelAllTasks();
-        for (Player voter : voters) {
+        for (Participant voter : voters.values()) {
             resetParticipant(voter);
         }
         clearSidebar();
@@ -377,7 +376,7 @@ public class VoteManager implements Listener {
         admins.clear();
     }
     
-    private static void resetParticipant(Player voter) {
+    private static void resetParticipant(Participant voter) {
         voter.closeInventory();
         voter.getInventory().clear();
     }
@@ -386,14 +385,14 @@ public class VoteManager implements Listener {
         voting = false;
         paused = false;
         GameType gameType = getVotedForGame();
-        Audience.audience(voters).showTitle(UIUtils.defaultTitle(
+        Audience.audience(voters.values()).showTitle(UIUtils.defaultTitle(
                 Component.empty()
                         .append(Component.text(gameType.getTitle()))
                         .color(NamedTextColor.BLUE),
                 Component.empty()
         ));
         cancelAllTasks();
-        for (Player voter : voters) {
+        for (Participant voter : voters.values()) {
             resetParticipant(voter);
         }
         HandlerList.unregisterAll(this);
@@ -414,13 +413,13 @@ public class VoteManager implements Listener {
         if (!voting) {
             return;
         }
-        Player participant = event.getPlayer();
+        Participant participant = voters.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
+            return;
+        }
         if (paused) {
             participant.sendMessage(Component.text("Voting is paused.")
                     .color(NamedTextColor.YELLOW));
-            return;
-        }
-        if (!voters.contains(participant)) {
             return;
         }
         ItemStack netherStar = event.getItem();
@@ -432,8 +431,8 @@ public class VoteManager implements Listener {
         if (netherStarMeta == null || !netherStarMeta.hasDisplayName() || !Objects.equals(netherStarMeta.displayName(), NETHER_STAR_NAME)) {
             return;
         }
-        if (!voters.contains(participant)) {
-            voters.add(participant);
+        if (!voters.containsKey(participant.getUniqueId())) {
+            voters.put(participant.getUniqueId(), participant);
         }
         if (participantVoted(participant)) {
             participant.sendMessage(Component.text("You already voted.")
@@ -450,7 +449,10 @@ public class VoteManager implements Listener {
         if (!voting) {
             return;
         }
-        Player participant = ((Player) event.getWhoClicked());
+        Participant participant = voters.get(event.getWhoClicked().getUniqueId());
+        if (participant == null) {
+            return;
+        }
         if (!gameManager.isParticipant(participant.getUniqueId())) {
             return;
         }
@@ -462,9 +464,6 @@ public class VoteManager implements Listener {
         ItemMeta netherStarMeta = netherStar.getItemMeta();
         if (netherStarMeta == null || !netherStarMeta.hasDisplayName() || !Objects.equals(netherStarMeta.displayName(), NETHER_STAR_NAME)) {
             return;
-        }
-        if (!voters.contains(participant)) {
-            voters.add(participant);
         }
         if (participantVoted(participant)) {
             participant.sendMessage(Component.text("You already voted.")
@@ -514,7 +513,7 @@ public class VoteManager implements Listener {
     }
     
     private boolean allPlayersHaveVoted() {
-        for (Player participant : voters) {
+        for (Participant participant : voters.values()) {
             if (!participantVoted(participant)) {
                 return false;
             }
@@ -522,7 +521,7 @@ public class VoteManager implements Listener {
         return true;
     }
     
-    private void showVoteGui(Player participant) {
+    private void showVoteGui(Participant participant) {
         ItemStack footRace = new ItemStack(Material.FEATHER);
 
         ItemMeta footRaceMeta = footRace.getItemMeta();
@@ -599,7 +598,7 @@ public class VoteManager implements Listener {
     }
     
     private void messageAllVoters(Component message) {
-        for (Player voter : voters) {
+        for (Participant voter : voters.values()) {
             voter.sendMessage(message);
         }
     }

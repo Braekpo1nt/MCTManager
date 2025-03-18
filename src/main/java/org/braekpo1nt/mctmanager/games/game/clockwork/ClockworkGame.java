@@ -14,7 +14,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
+import org.braekpo1nt.mctmanager.participant.*;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
@@ -35,13 +35,11 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-public class ClockworkGame implements Listener, MCTGame, Configurable, Headerable {
+public class ClockworkGame implements Listener, MCTGame, Configurable {
     private final Main plugin;
     private final GameManager gameManager;
     private Sidebar sidebar;
@@ -52,7 +50,10 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
             .append(Component.text("Clockwork"))
             .color(NamedTextColor.BLUE);
     private Component title = baseTitle;
-    private List<Player> participants = new ArrayList<>();
+    private Map<UUID, ClockworkParticipant> participants = new HashMap<>();
+    private Map<UUID, ClockworkParticipant.QuitData> quitDatas = new HashMap<>();
+    private Map<String, ClockworkTeam> teams = new HashMap<>();
+    private Map<String, ClockworkTeam.QuitData> teamQuitDatas = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     private List<ClockworkRound> rounds;
     private int currentRoundIndex = 0;
@@ -99,14 +100,20 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     @Override
-    public void start(List<Player> newParticipants, List<Player> newAdmins) {
-        participants = new ArrayList<>(newParticipants.size());
+    public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
+        teams = new HashMap<>(newTeams.size());
+        for (Team team : newTeams) {
+            teams.put(team.getTeamId(), new ClockworkTeam(team, 0));
+        }
+        this.participants = new HashMap<>(newParticipants.size());
+        this.quitDatas = new HashMap<>();
+        this.teamQuitDatas = new HashMap<>();
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
-        for (Player participant : newParticipants) {
-            initializeParticipant(participant);
+        for (Participant participant : newParticipants) {
+            initializeParticipant(participant, 0);
         }
         initializeSidebar();
         rounds = new ArrayList<>(config.getRounds());
@@ -126,8 +133,10 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         messageAllParticipants(config.getDescription());
     }
     
-    private void initializeParticipant(Player participant) {
-        participants.add(participant);
+    private void initializeParticipant(Participant newParticipant, int score) {
+        ClockworkParticipant participant = new ClockworkParticipant(newParticipant, score);
+        teams.get(participant.getTeamId()).addParticipant(participant);
+        participants.put(participant.getUniqueId(), participant);
         participant.setGameMode(GameMode.ADVENTURE);
         sidebar.addPlayer(participant);
         participant.teleport(config.getStartingLocation());
@@ -180,19 +189,41 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         rounds.clear();
         descriptionShowing = false;
         gameActive = false;
-        for (Player participant : participants) {
+        saveScores();
+        for (Participant participant : participants.values()) {
             resetParticipant(participant);
         }
         clearSidebar();
         stopAdmins();
         participants.clear();
+        quitDatas.clear();
+        teamQuitDatas.clear();
         gameManager.gameIsOver();
         Main.logger().info("Stopping Clockwork");
     }
     
-    private void resetParticipant(Player participant) {
-        ParticipantInitializer.clearInventory(participant);
+    private void saveScores() {
+        Map<String, Integer> teamScores = new HashMap<>();
+        Map<UUID, Integer> participantScores = new HashMap<>();
+        for (ClockworkTeam team : teams.values()) {
+            teamScores.put(team.getTeamId(), team.getScore());
+        }
+        for (ClockworkParticipant participant : participants.values()) {
+            participantScores.put(participant.getUniqueId(), participant.getScore());
+        }
+        for (Map.Entry<String, ClockworkTeam.QuitData> entry : teamQuitDatas.entrySet()) {
+            teamScores.put(entry.getKey(), entry.getValue().getScore());
+        }
+        for (Map.Entry<UUID, ClockworkParticipant.QuitData> entry : quitDatas.entrySet()) {
+            participantScores.put(entry.getKey(), entry.getValue().getScore());
+        }
+        gameManager.addScores(teamScores, participantScores);
+    }
+    
+    private void resetParticipant(Participant participant) {
+        teams.get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
         sidebar.removePlayer(participant.getUniqueId());
+        ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
@@ -216,7 +247,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
                 .withSidebar(sidebar, "timer")
                 .withSidebar(adminSidebar, "timer")
                 .sidebarPrefix(Component.text("Starting soon: "))
-                .titleAudience(Audience.audience(participants))
+                .titleAudience(Audience.audience(participants.values()))
                 .onCompletion(() -> {
                     descriptionShowing = false;
                     startNextRound();
@@ -236,39 +267,74 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     
     public void startNextRound() {
         ClockworkRound nextRound = rounds.get(currentRoundIndex);
-        nextRound.start(participants);
+        nextRound.start(teams.values(), participants.values());
         updateRoundFastBoard();
     }
     
+    private void onTeamJoin(Team team) {
+        if (teams.containsKey(team.getTeamId())) {
+            return;
+        }
+        ClockworkTeam.QuitData quitData = teamQuitDatas.get(team.getTeamId());
+        if (quitData != null) {
+            teams.put(team.getTeamId(), new ClockworkTeam(team, quitData.getScore()));
+        } else {
+            teams.put(team.getTeamId(), new ClockworkTeam(team, 0));
+        }
+    }
+    
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
         if (!gameActive) {
             return;
         }
-        initializeParticipant(participant);
+        onTeamJoin(team);
+        ClockworkParticipant.QuitData quitData = quitDatas.remove(participant.getUniqueId());
+        if (quitData != null) {
+            initializeParticipant(participant, quitData.getScore());
+        } else {
+            initializeParticipant(participant, 0);
+        }
         sidebar.updateLines(participant.getUniqueId(), 
                 new KeyLine("title", title),
                 new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size()))
         );
+        ClockworkParticipant clockworkParticipant = participants.get(participant.getUniqueId());
+        displayScore(clockworkParticipant);
+        ClockworkTeam clockworkTeam = teams.get(team.getTeamId());
+        displayScore(clockworkTeam);
         if (descriptionShowing) {
             return;
         }
         if (currentRoundIndex < rounds.size()) {
             ClockworkRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
-                currentRound.onParticipantJoin(participant);
+                currentRound.onParticipantJoin(clockworkParticipant, clockworkTeam);
             }
         }
     }
     
+    private void onTeamQuit(ClockworkTeam team) {
+        if (team.size() > 0) {
+            return;
+        }
+        ClockworkTeam removed = teams.remove(team.getTeamId());
+        teamQuitDatas.put(team.getTeamId(), removed.getQuitData());
+    }
+    
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(UUID participantUUID, String teamId) {
         if (!gameActive) {
             return;
         }
-        resetParticipant(participant);
-        participants.remove(participant);
+        ClockworkParticipant participant = participants.get(participantUUID);
+        if (participant == null) {
+            return;
+        }
+        quitDatas.put(participant.getUniqueId(), participant.getQuitData());
         if (descriptionShowing) {
+            resetParticipant(participant);
+            participants.remove(participant.getUniqueId());
             return;
         }
         if (currentRoundIndex < rounds.size()) {
@@ -277,6 +343,9 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
                 currentRound.onParticipantQuit(participant);
             }
         }
+        resetParticipant(participant);
+        participants.remove(participant.getUniqueId());
+        onTeamQuit(teams.get(teamId));
     }
     
     private void cancelAllTasks() {
@@ -291,7 +360,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         if (config.getSpectatorArea() == null){
             return;
         }
-        if (!participants.contains(event.getPlayer())) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
@@ -314,7 +383,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         if (config.getSpectatorArea() == null){
             return;
         }
-        if (!participants.contains(event.getPlayer())) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
@@ -336,7 +405,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         if (clickedBlock == null) {
             return;
         }
-        if (!participants.contains(event.getPlayer())) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         Material blockType = clickedBlock.getType();
@@ -354,10 +423,8 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
-        if (!(event.getEntity() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
+        Participant participant = participants.get(event.getEntity().getUniqueId());
+        if (participant == null) {
             return;
         }
         if (descriptionShowing) {
@@ -371,10 +438,8 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     
     @EventHandler
     public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        if (!(event.getEntity() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
+        Participant participant = participants.get(event.getEntity().getUniqueId());
+        if (participant == null) {
             return;
         }
         participant.setFoodLevel(20);
@@ -395,8 +460,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         if (event.getCurrentItem() == null) {
             return;
         }
-        Player participant = ((Player) event.getWhoClicked());
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(event.getWhoClicked().getUniqueId())) {
             return;
         }
         event.setCancelled(true);
@@ -410,8 +474,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         if (!gameActive) {
             return;
         }
-        Player participant = event.getPlayer();
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         event.setCancelled(true);
@@ -440,33 +503,47 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
                 new KeyLine("playerCount", ""),
                 new KeyLine("timer", "")
         );
+        for (ClockworkTeam team : teams.values()) {
+            displayScore(team);
+        }
+        for (ClockworkParticipant participant : participants.values()) {
+            displayScore(participant);
+        }
+    }
+    
+    public void updateScore(ClockworkRoundTeam team) {
+        ClockworkTeam clockworkTeam = teams.get(team.getTeamId());
+        clockworkTeam.setScore(team.getScore());
+        displayScore(clockworkTeam);
+    }
+    
+    private void displayScore(ClockworkTeam team) {
+        Component contents = Component.empty()
+                .append(team.getFormattedDisplayName())
+                .append(Component.text(": "))
+                .append(Component.text(team.getScore())
+                        .color(NamedTextColor.GOLD));
+        for (UUID memberUUID : team.getMemberUUIDs()) {
+            sidebar.updateLine(memberUUID, "personalTeam", contents);
+        }
+    }
+    
+    public void updateScore(ClockworkRoundParticipant participant) {
+        ClockworkParticipant clockworkParticipant = participants.get(participant.getUniqueId());
+        clockworkParticipant.setScore(participant.getScore());
+        displayScore(clockworkParticipant);
+    }
+    
+    private void displayScore(ClockworkParticipant participant) {
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", Component.empty()
+                .append(Component.text("Personal: "))
+                .append(Component.text(participant.getScore()))
+                .color(NamedTextColor.GOLD));
     }
     
     private void clearSidebar() {
         sidebar.deleteAllLines();
         sidebar = null;
-    }
-    
-    @Override
-    public void updateTeamScore(Player participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
-    }
-    
-    @Override
-    public void updatePersonalScore(Player participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
     }
     
     private void updateRoundFastBoard() {
@@ -477,19 +554,19 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     
     private void setupTeamOptions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
-        for (Team team : mctScoreboard.getTeams()) {
+        for (org.bukkit.scoreboard.Team team : mctScoreboard.getTeams()) {
             team.setAllowFriendlyFire(false);
             team.setCanSeeFriendlyInvisibles(true);
-            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS);
+            team.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+            team.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+            team.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
         }
     }
     
     private void messageAllParticipants(Component message) {
-        gameManager.messageAdmins(message);
-        for (Player participant : participants) {
-            participant.sendMessage(message);
-        }
+        Audience.audience(
+                Audience.audience(participants.values()),
+                Audience.audience(admins)
+        ).sendMessage(message);
     }
 }

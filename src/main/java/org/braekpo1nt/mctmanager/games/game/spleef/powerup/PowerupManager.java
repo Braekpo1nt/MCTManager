@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.spleef.powerup;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -32,7 +33,7 @@ public class PowerupManager implements Listener {
     private static final String BLOCK_BREAKER_METADATA_VALUE = "block_breaker";
     private final Main plugin;
     private SpleefConfig config;
-    private List<Player> participants = new ArrayList<>();
+    private Map<UUID, Participant> participants = new HashMap<>();
     /**
      * for each participant UUID, the system time of the moment they last received a powerup
      */
@@ -100,19 +101,19 @@ public class PowerupManager implements Listener {
         this.config = config;
     }
     
-    public void start(List<Player> newParticipants) {
+    public <T extends Participant> void start(Collection<T> newParticipants) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        participants = new ArrayList<>(newParticipants.size());
+        participants = new HashMap<>(newParticipants.size());
         lastPowerupTimestamps = new HashMap<>(newParticipants.size());
         setUpPowerups();
-        for (Player participant : newParticipants) {
+        for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
         startPowerupTimer();
     }
     
-    private void initializeParticipant(Player participant) {
-        participants.add(participant);
+    private void initializeParticipant(Participant participant) {
+        participants.put(participant.getUniqueId(), participant);
         for (Map.Entry<Powerup.Type, Integer> entry : config.getInitialLoadout().entrySet()) {
             Powerup.Type type = entry.getKey();
             int amount = entry.getValue();
@@ -125,7 +126,7 @@ public class PowerupManager implements Listener {
     public void stop() {
         HandlerList.unregisterAll(this);
         cancelAllTasks();
-        for (Player participant : participants) {
+        for (Participant participant : participants.values()) {
             resetParticipant(participant);
         }
         shouldGivePowerups = false;
@@ -133,7 +134,7 @@ public class PowerupManager implements Listener {
         lastPowerupTimestamps.clear();
     }
     
-    private void resetParticipant(Player participant) {
+    private void resetParticipant(Participant participant) {
         lastPowerupTimestamps.remove(participant.getUniqueId());
     }
     
@@ -141,8 +142,8 @@ public class PowerupManager implements Listener {
      * if the participant isn't already in this manager, adds them to it. Otherwise, does nothing.
      * @param participant the participant to add
      */
-    public void addParticipant(Player participant) {
-        if (participants.contains(participant)) {
+    public void addParticipant(Participant participant) {
+        if (participants.containsKey(participant.getUniqueId())) {
             return;
         }
         initializeParticipant(participant);
@@ -152,12 +153,12 @@ public class PowerupManager implements Listener {
      * if the participant is in this manager, removes them from it. Otherwise, does nothing. 
      * @param participant the participant to remove
      */
-    public void removeParticipant(Player participant) {
-        if (!participants.contains(participant)) {
+    public void removeParticipant(Participant participant) {
+        if (!participants.containsKey(participant.getUniqueId())) {
             return;
         }
         resetParticipant(participant);
-        participants.remove(participant);
+        participants.remove(participant.getUniqueId());
     }
     
     /**
@@ -189,7 +190,7 @@ public class PowerupManager implements Listener {
                     return;
                 }
                 long currentTime = System.currentTimeMillis();
-                for (Player participant : participants) {
+                for (Participant participant : participants.values()) {
                     if (canReceivePowerup(participant, currentTime)) {
                         randomlyGivePowerup(participant, Powerup.Source.GENERAL, currentTime);
                     }
@@ -205,7 +206,7 @@ public class PowerupManager implements Listener {
      * @param source the source from which to receive a powerup (null indicates any source)
      * @param currentTime the current system time in milliseconds
      */
-    private void randomlyGivePowerup(@NotNull Player participant, @NotNull Powerup.Source source, long currentTime) {
+    private void randomlyGivePowerup(@NotNull Participant participant, @NotNull Powerup.Source source, long currentTime) {
         if (random.nextDouble() < config.getChance(source)) {
             ItemStack powerup = getRandomPowerup(source);
             participant.getInventory().addItem(powerup);
@@ -228,7 +229,7 @@ public class PowerupManager implements Listener {
      * @param currentTime the current system time in milliseconds
      * @return true if the participant is allowed to receive a powerup (e.g. they've met all requirements)
      */
-    private boolean canReceivePowerup(Player participant, long currentTime) {
+    private boolean canReceivePowerup(Participant participant, long currentTime) {
         long lastPowerupTimestamp = lastPowerupTimestamps.get(participant.getUniqueId());
         boolean enoughTimeHasPassed = currentTime - lastPowerupTimestamp >= config.getMinTimeBetween();
         return enoughTimeHasPassed && !hasMaxPowerups(participant);
@@ -238,7 +239,7 @@ public class PowerupManager implements Listener {
      * @param participant the participant
      * @return true if the participant has the maximum number of powerups allowed in their inventory, false if not. 
      */
-    private boolean hasMaxPowerups(Player participant) {
+    private boolean hasMaxPowerups(Participant participant) {
         if (config.getMaxPowerups() < 0) {
             return false;
         }
@@ -251,7 +252,7 @@ public class PowerupManager implements Listener {
         return num >= config.getMaxPowerups();
     }
     
-    public void onParticipantBreakBlock(@NotNull Player participant) {
+    public void onParticipantBreakBlock(@NotNull Participant participant) {
         if (!shouldGivePowerups) {
             return;
         }
@@ -263,13 +264,14 @@ public class PowerupManager implements Listener {
     
     @EventHandler
     public void onProjectileLaunch(ProjectileLaunchEvent event) {
-        if (!(event.getEntity().getShooter() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
         if (!(event.getEntity() instanceof Snowball snowball)) {
+            return;
+        }
+        if (!(snowball.getShooter() instanceof Player player)) {
+            return;
+        }
+        Participant participant = participants.get(player.getUniqueId());
+        if (participant == null) {
             return;
         }
         ItemStack mainHandItem = participant.getInventory().getItemInMainHand();
@@ -282,12 +284,12 @@ public class PowerupManager implements Listener {
             }
         }
         switch (usedPowerup.getType()) {
-            case PLAYER_SWAPPER -> {
-                snowball.setMetadata(POWERUP_METADATA_KEY, new FixedMetadataValue(plugin, PLAYER_SWAPPER_METADATA_VALUE));
-            }
-            case BLOCK_BREAKER -> {
-                snowball.setMetadata(POWERUP_METADATA_KEY, new FixedMetadataValue(plugin, BLOCK_BREAKER_METADATA_VALUE));
-            }
+            case PLAYER_SWAPPER -> snowball.setMetadata(
+                    POWERUP_METADATA_KEY, 
+                    new FixedMetadataValue(plugin, PLAYER_SWAPPER_METADATA_VALUE));
+            case BLOCK_BREAKER -> snowball.setMetadata(
+                    POWERUP_METADATA_KEY, 
+                    new FixedMetadataValue(plugin, BLOCK_BREAKER_METADATA_VALUE));
         }
     }
     
@@ -312,14 +314,14 @@ public class PowerupManager implements Listener {
         if (!(snowball.getShooter() instanceof Player shooter)) {
             return;
         }
-        if (!participants.contains(shooter)) {
+        if (!participants.containsKey(shooter.getUniqueId())) {
             return;
         }
         List<MetadataValue> metadata = snowball.getMetadata(POWERUP_METADATA_KEY);
         if (metadata.isEmpty()) {
             return;
         }
-        String powerupType = metadata.get(0).asString();
+        String powerupType = metadata.getFirst().asString();
         if (event.getHitEntity() instanceof Player target) {
             onProjectileHitPlayer(shooter, target, powerupType);
             return;
@@ -337,7 +339,7 @@ public class PowerupManager implements Listener {
      * @param powerupTypeMetadataValue the metadata about the projectile entity which was used to hit a player
      */
     private void onProjectileHitPlayer(@NotNull Player shooter, @NotNull Player target, @NotNull String powerupTypeMetadataValue) {
-        if (!participants.contains(target)) {
+        if (!participants.containsKey(target.getUniqueId())) {
             return;
         }
         if (!powerupTypeMetadataValue.equals(PLAYER_SWAPPER_METADATA_VALUE)) {

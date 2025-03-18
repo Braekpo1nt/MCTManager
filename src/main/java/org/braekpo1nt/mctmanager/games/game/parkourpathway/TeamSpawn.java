@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -50,7 +51,7 @@ public class TeamSpawn {
      * Teleports the given participant to this {@link TeamSpawn}'s {@link TeamSpawn#spawnLocation}. 
      * @param participant the participant
      */
-    public void teleport(Player participant) {
+    public void teleport(Participant participant) {
         participant.teleport(spawnLocation);
     }
 }

@@ -11,8 +11,11 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -22,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -36,12 +40,12 @@ public class OffState implements EventState {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         // do nothing
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(Participant participant) {
         // do nothing
     }
     
@@ -85,7 +89,6 @@ public class OffState implements EventState {
         context.setCurrentGameNumber(currentGameNumber);
         context.getPlayedGames().clear();
         context.getScoreKeepers().clear();
-        context.setParticipants(new ArrayList<>());
         context.setSidebar(context.getGameManager().createSidebar());
         context.setAdmins(new ArrayList<>());
         context.setAdminSidebar(context.getGameManager().createSidebar());
@@ -97,17 +100,15 @@ public class OffState implements EventState {
     }
     
     private void initializeSidebar() {
-        List<String> sortedTeamIds = context.sortTeamIds(gameManager.getTeamIds());
-        context.setNumberOfTeams(sortedTeamIds.size());
+        List<Team> sortedTeams = EventManager.sortTeams(gameManager.getTeams());
+        context.setNumberOfTeams(sortedTeams.size());
         KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
         for (int i = 0; i < context.getNumberOfTeams(); i++) {
-            String teamId = sortedTeamIds.get(i);
-            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
-            int teamScore = gameManager.getScore(teamId);
+            Team team = sortedTeams.get(i);
             teamLines[i] = new KeyLine("team"+i, Component.empty()
-                    .append(teamDisplayName)
+                    .append(team.getFormattedDisplayName())
                     .append(Component.text(": "))
-                    .append(Component.text(teamScore)
+                    .append(Component.text(team.getScore())
                             .color(NamedTextColor.GOLD))
             );
         }
@@ -116,21 +117,18 @@ public class OffState implements EventState {
         context.getSidebar().addLine("personalScore", "");
         context.getSidebar().addLine("timer", "");
         context.getSidebar().updateTitle(context.getConfig().getTitle());
-        context.updatePersonalScores();
     }
     
     private void initializeAdminSidebar() {
-        List<String> sortedTeamIds = context.sortTeamIds(gameManager.getTeamIds());
-        context.setNumberOfTeams(sortedTeamIds.size());
+        List<Team> sortedTeams = EventManager.sortTeams(gameManager.getTeams());
+        context.setNumberOfTeams(sortedTeams.size());
         KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
         for (int i = 0; i < context.getNumberOfTeams(); i++) {
-            String teamId = sortedTeamIds.get(i);
-            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
-            int teamScore = gameManager.getScore(teamId);
+            Team team = sortedTeams.get(i);
             teamLines[i] = new KeyLine("team"+i, Component.empty()
-                    .append(teamDisplayName)
+                    .append(team.getFormattedDisplayName())
                     .append(Component.text(": "))
-                    .append(Component.text(teamScore)
+                    .append(Component.text(team.getScore())
                             .color(NamedTextColor.GOLD))
             );
         }
@@ -141,17 +139,60 @@ public class OffState implements EventState {
     }
     
     @Override
-    public void onPlayerDamage(EntityDamageEvent event) {
+    public void updatePersonalScores(Collection<Participant> updateParticipants) {
+        Main.debugLog(LogType.EVENT_UPDATE_SCORES, "OffState updatePersonalScores()");
+        if (context.getSidebar() == null) {
+            return;
+        }
+        for (Participant participant : updateParticipants) {
+            context.getSidebar().updateLine(participant.getUniqueId(), "personalScore",
+                    Component.empty()
+                            .append(Component.text("Personal: "))
+                            .append(Component.text(participant.getScore()))
+                            .color(NamedTextColor.GOLD));
+        }
+    }
+    
+    @Override
+    public <T extends Team> void updateTeamScores(Collection<T> updateTeams) {
+        Main.debugLog(LogType.EVENT_UPDATE_SCORES, "OffState updateTeamScores()");
+        if (context.getSidebar() == null) {
+            return;
+        }
+        List<Team> sortedTeams = EventManager.sortTeams(updateTeams);
+        if (context.getNumberOfTeams() != sortedTeams.size()) {
+            EventState.reorderTeamLines(sortedTeams, context);
+            return;
+        }
+        KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
+        for (int i = 0; i < context.getNumberOfTeams(); i++) {
+            Team team = sortedTeams.get(i);
+            teamLines[i] = new KeyLine("team"+i, Component.empty()
+                    .append(team.getFormattedDisplayName())
+                    .append(Component.text(": "))
+                    .append(Component.text(team.getScore())
+                            .color(NamedTextColor.GOLD))
+            );
+        }
+        context.getSidebar().updateLines(teamLines);
+        if (context.getAdminSidebar() == null) {
+            return;
+        }
+        context.getAdminSidebar().updateLines(teamLines);
+    }
+    
+    @Override
+    public void onParticipantDamage(EntityDamageEvent event) {
         // do nothing
     }
     
     @Override
-    public void onClickInventory(InventoryClickEvent event) {
+    public void onClickInventory(InventoryClickEvent event, Participant participant) {
         // do nothing
     }
     
     @Override
-    public void onDropItem(PlayerDropItemEvent event) {
+    public void onDropItem(PlayerDropItemEvent event, @NotNull Participant participant) {
         // do nothing
     }
     
@@ -161,7 +202,7 @@ public class OffState implements EventState {
     }
     
     @Override
-    public void colossalCombatIsOver(@Nullable String winningTeam) {
+    public void colossalCombatIsOver(@Nullable Team winningTeam) {
         if (winningTeam == null) {
             Component message = Component.text("No winner declared.");
             context.messageAllAdmins(message);
@@ -169,20 +210,18 @@ public class OffState implements EventState {
             gameManager.returnAllParticipantsToHub();
             return;
         }
-        NamedTextColor teamColor = gameManager.getTeamColor(winningTeam);
-        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(winningTeam);
         Component message = Component.empty()
-                .append(formattedTeamDisplayName)
+                .append(winningTeam.getFormattedDisplayName())
                 .append(Component.text(" wins!"))
-                .color(teamColor)
+                .color(winningTeam.getColor())
                 .decorate(TextDecoration.BOLD);
         context.messageAllAdmins(message);
         gameManager.messageOnlineParticipants(message);
         Audience.audience(
                 Audience.audience(context.getAdmins()),
                 Audience.audience(gameManager.getOnlineParticipants())
-        ).showTitle(Title.title(formattedTeamDisplayName, Component.text("wins!")
-                .color(teamColor), UIUtils.DEFAULT_TIMES));
+        ).showTitle(Title.title(winningTeam.getFormattedDisplayName(), Component.text("wins!")
+                .color(winningTeam.getColor()), UIUtils.DEFAULT_TIMES));
     }
     
     @Override
@@ -202,7 +241,7 @@ public class OffState implements EventState {
     }
     
     @Override
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeamId, @NotNull String secondTeamId) {
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam) {
         if (context.getGameManager().gameIsRunning()) {
             sender.sendMessage(Component.text("Can't start Colossal Combat while a game is running")
                     .color(NamedTextColor.RED));
@@ -227,18 +266,16 @@ public class OffState implements EventState {
                     .color(NamedTextColor.RED));
             return;
         }
-        List<Player> firstPlaceParticipants = new ArrayList<>();
-        List<Player> secondPlaceParticipants = new ArrayList<>();
-        List<Player> spectators = new ArrayList<>();
-        List<Player> participantPool;
+        List<Participant> firstPlaceParticipants = new ArrayList<>();
+        List<Participant> secondPlaceParticipants = new ArrayList<>();
+        List<Participant> spectators = new ArrayList<>();
+        List<Participant> participantPool = new ArrayList<>(gameManager.getOnlineParticipants());
         List<Player> adminPool;
-        participantPool = new ArrayList<>(gameManager.getOnlineParticipants());
         adminPool = new ArrayList<>(gameManager.getOnlineAdmins());
-        for (Player participant : participantPool) {
-            String teamId = gameManager.getTeamId(participant.getUniqueId());
-            if (teamId.equals(firstTeamId)) {
+        for (Participant participant : participantPool) {
+            if (participant.getTeamId().equals(firstTeam.getTeamId())) {
                 firstPlaceParticipants.add(participant);
-            } else if (teamId.equals(secondTeamId)) {
+            } else if (participant.getTeamId().equals(secondTeam.getTeamId())) {
                 secondPlaceParticipants.add(participant);
             } else {
                 spectators.add(participant);
@@ -249,7 +286,7 @@ public class OffState implements EventState {
             sender.sendMessage(Component.empty()
                     .append(Component.text("There are no members of the first place team online. Please use "))
                     .append(Component.text("/mct event finalgame start <first> <second>")
-                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstTeamId, secondTeamId)))
+                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstTeam.getTeamId(), secondTeam.getTeamId())))
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" to manually start the final game."))
                     .color(NamedTextColor.RED));
@@ -260,7 +297,7 @@ public class OffState implements EventState {
             sender.sendMessage(Component.empty()
                     .append(Component.text("There are no members of the second place team online. Please use "))
                     .append(Component.text("/mct event finalgame start <first> <second>")
-                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstTeamId, secondTeamId)))
+                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstTeam.getTeamId(), secondTeam.getTeamId())))
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" to manually start the final game."))
                     .color(NamedTextColor.RED));
@@ -268,16 +305,16 @@ public class OffState implements EventState {
         }
         
         gameManager.removeParticipantsFromHub(participantPool);
-        context.getColossalCombatGame().start(firstPlaceParticipants, secondPlaceParticipants, spectators, adminPool);
+        context.getColossalCombatGame().start(firstTeam, secondTeam, firstPlaceParticipants, secondPlaceParticipants, spectators, adminPool);
     }
     
     @Override
-    public void readyUpParticipant(@NotNull Player participant) {
+    public void readyUpParticipant(@NotNull Participant participant) {
         participant.sendMessage(Component.text("There is no event going on right now"));
     }
     
     @Override
-    public void unReadyParticipant(@NotNull Player participant) {
+    public void unReadyParticipant(@NotNull Participant participant) {
         participant.sendMessage(Component.text("There is no event going on right now"));
     }
     

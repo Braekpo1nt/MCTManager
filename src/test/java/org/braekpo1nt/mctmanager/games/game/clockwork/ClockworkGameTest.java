@@ -51,7 +51,7 @@ public class ClockworkGameTest {
     MyPlayerMock createParticipant(String name, String teamId) {
         MyPlayerMock player = new MyPlayerMock(server, name, UUID.nameUUIDFromBytes(name.getBytes(StandardCharsets.UTF_8)));
         server.addPlayer(player);
-        gameManager.joinPlayerToTeam(sender, player, teamId);
+        gameManager.joinParticipantToTeam(sender, player, name, teamId);
         Assertions.assertTrue(gameManager.isParticipant(player.getUniqueId()));
         return player;
     }

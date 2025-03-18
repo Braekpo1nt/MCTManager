@@ -3,14 +3,17 @@ package org.braekpo1nt.mctmanager.games.game.farmrush.states;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
+import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushParticipant;
+import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushTeam;
 import org.braekpo1nt.mctmanager.games.game.farmrush.ItemSale;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Barrel;
 import org.bukkit.block.Block;
 import org.bukkit.entity.HumanEntity;
-import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -36,25 +39,27 @@ public abstract class GameplayState implements FarmRushState {
         this.gameManager = context.getGameManager();
     }
     
-    
     @Override
-    public void onParticipantJoin(Player player) {
-        String teamId = context.getGameManager().getTeamId(player.getUniqueId());
-        boolean brandNewTeam = !context.getTeams().containsKey(teamId);
-        if (brandNewTeam) {
-            context.onNewTeamJoin(teamId);
-            context.getTeams().get(teamId).getArena().openBarnDoor();
+    public void onParticipantJoin(Participant participant, Team team) {
+        context.onTeamJoin(team);
+        context.getTeams().get(participant.getTeamId()).getArena().openBarnDoor();
+        FarmRushParticipant.QuitData quitData = context.getQuitDatas().remove(participant.getUniqueId());
+        if (quitData != null) {
+            context.initializeParticipant(participant, quitData.getScore());
+        } else {
+            context.initializeParticipant(participant, 0);
         }
-        context.initializeParticipant(player);
-        player.setGameMode(GameMode.SURVIVAL);
-        context.getSidebar().updateLine(player.getUniqueId(), "title", context.getTitle());
+        participant.setGameMode(GameMode.SURVIVAL);
+        context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
+        context.displayScore(context.getParticipants().get(participant.getUniqueId()));
+        context.displayScore(context.getTeams().get(team.getTeamId()));
     }
     
     @Override
-    public void onParticipantQuit(FarmRushGame.Participant participant) {
+    public void onParticipantQuit(FarmRushParticipant participant) {
+        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
-        context.getTeams().get(participant.getTeamId()).getMembers().remove(participant.getUniqueId());
     }
     
     @Override
@@ -62,7 +67,7 @@ public abstract class GameplayState implements FarmRushState {
         // do nothing
     }
     
-    protected void sellItemsOnCloseInventory(InventoryCloseEvent event, FarmRushGame.Participant participant) {
+    protected void sellItemsOnCloseInventory(InventoryCloseEvent event, Participant participant) {
         if (!event.getInventory().getType().equals(InventoryType.BARREL)) {
             return;
         }
@@ -75,7 +80,7 @@ public abstract class GameplayState implements FarmRushState {
         }
         Block block = barrel.getBlock();
         Location barrelPos = block.getLocation();
-        FarmRushGame.Team team = context.getTeams().get(participant.getTeamId());
+        FarmRushTeam team = context.getTeams().get(participant.getTeamId());
         Location delivery = team.getArena().getDelivery();
         if (!barrelPos.equals(delivery)) {
             return;
@@ -110,7 +115,7 @@ public abstract class GameplayState implements FarmRushState {
      * @param team the team who is being awarded the points and selling the items.
      * @return how many of each material type were sold
      */
-    private Map<Material, Integer> sellItems(@NotNull List<@NotNull ItemStack> itemsToSell, FarmRushGame.Team team) {
+    private Map<Material, Integer> sellItems(@NotNull List<@NotNull ItemStack> itemsToSell, FarmRushTeam team) {
         if (itemsToSell.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -152,19 +157,20 @@ public abstract class GameplayState implements FarmRushState {
                     .append(Component.text("Sold "))
                     .append(Component.text(totalAmountSold))
                     .append(Component.text(" items"));
-            for (UUID uuid : team.getMembers()) {
+            for (UUID uuid : team.getMemberUUIDs()) {
                 context.getParticipants().get(uuid).getPlayer().sendMessage(message);
             }
             if (totalScore > 0) {
-                gameManager.awardPointsToTeam(team.getTeamId(), totalScore);
-                team.setTotalScore(team.getTotalScore() + (int) (totalScore * gameManager.matchProgressPointMultiplier()));
+                int multiplied = (int) (gameManager.getMultiplier() * totalScore);
+                team.awardPoints(multiplied);
+                context.displayScore(team);
             }
         }
         return soldItems;
     }
     
     @Override
-    public void onPlaceBlock(BlockPlaceEvent event, FarmRushGame.Participant participant) {
+    public void onPlaceBlock(BlockPlaceEvent event, Participant participant) {
         context.getPowerupManager().onPlaceBlock(event);
     }
     

@@ -3,18 +3,18 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag.states;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
-import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-
-import java.util.List;
 
 public class RoundOverState implements CaptureTheFlagState {
     
@@ -22,7 +22,7 @@ public class RoundOverState implements CaptureTheFlagState {
     
     public RoundOverState(CaptureTheFlagGame context) {
         this.context = context;
-        Audience.audience(context.getParticipants()).showTitle(UIUtils.roundOverTitle());
+        Audience.audience(context.getParticipants().values()).showTitle(UIUtils.roundOverTitle());
         Main.logger().info("Starting RoundOverState timer");
         context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getRoundOverDuration())
@@ -37,29 +37,25 @@ public class RoundOverState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
-        context.initializeParticipant(participant);
-        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
-        if (!context.getRoundManager().containsTeamId(teamId)) {
-            List<String> teamIds = context.getGameManager().getTeamIds(context.getParticipants());
-            context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
+    public void onParticipantJoin(Participant participant, Team team) {
+        context.onTeamJoin(team);
+        CTFParticipant.QuitData quitData = context.getQuitDatas().remove(participant.getUniqueId());
+        if (quitData == null) {
+            context.initializeParticipant(participant);
+        } else {
+            context.initializeParticipant(participant, quitData.getKills(), quitData.getDeaths(), quitData.getScore());
         }
-        context.updateRoundLine();
         participant.setGameMode(GameMode.ADVENTURE);
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(CTFParticipant participant) {
+        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
         context.resetParticipant(participant);
-        context.getParticipants().remove(participant);
-        String quitTeamId = context.getGameManager().getTeamId(participant.getUniqueId());
-        List<String> teamIds = context.getGameManager().getTeamIds(context.getParticipants());
-        if (!teamIds.contains(quitTeamId)) {
-            context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
-            context.updateRoundLine();
-        }
+        context.getParticipants().remove(participant.getUniqueId());
+        context.onTeamQuit(context.getTeams().get(participant.getTeamId()));
     }
     
     @Override

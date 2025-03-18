@@ -16,9 +16,10 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.CheckPoint;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
-import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
@@ -47,7 +48,6 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -55,7 +55,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Headerable {
+public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
 
     private final Main plugin;
     private final GameManager gameManager;
@@ -72,29 +72,15 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     private @Nullable Timer mercryRuleCountdown;
     private boolean gameActive = false;
     private boolean parkourHasStarted = false;
-    private List<Player> participants = new ArrayList<>();
+    private Map<UUID, ParkourParticipant> participants = new HashMap<>();
+    private Map<UUID, ParkourParticipant.QuitData> quitDatas = new HashMap<>();
+    private Map<String, ParkourTeam> teams = new HashMap<>();
+    private Map<String, ParkourTeam.QuitData> teamQuitDatas = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
-    /**
-     * Participants who have reached the finish line
-     */
-    private List<UUID> finishedParticipants;
     /**
      * Holds the {@link TeamSpawn}s for this game
      */
     private @Nullable Map<String, @NotNull TeamSpawn> teamSpawns = new HashMap<>();
-    /**
-     * The index of the puzzle each participant is solving
-     */
-    private Map<UUID, Integer> currentPuzzles;
-    /**
-     * holds the number of skips a participant should have if they quit
-     * mid-game and come back
-     */
-    private Map<UUID, Integer> quitParticipantsSkips;
-    /**
-     * The index of the checkpoint that a player is associated with for their current puzzle (since there can be multiple)
-     */
-    private Map<UUID, Integer> currentPuzzleCheckpoints;
     private boolean descriptionShowing = false;
     private final TimerManager timerManager;
     
@@ -132,14 +118,16 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public void start(List<Player> newParticipants, List<Player> newAdmins) {
-        participants = new ArrayList<>(newParticipants.size());
-        currentPuzzles = new HashMap<>(newParticipants.size());
-        quitParticipantsSkips = new HashMap<>();
-        currentPuzzleCheckpoints = new HashMap<>(newParticipants.size());
-        finishedParticipants = new ArrayList<>();
-        List<String> teams = gameManager.getTeamIds(newParticipants);
-        teamSpawns = getTeamSpawns(teams);
+    public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
+        this.participants = new HashMap<>(newParticipants.size());
+        this.quitDatas = new HashMap<>();
+        this.teamQuitDatas = new HashMap<>();
+        this.teams = new HashMap<>(newTeams.size());
+        for (Team newTeam : newTeams) {
+            ParkourTeam team = new ParkourTeam(newTeam, 0);
+            this.teams.put(team.getTeamId(), team);
+        }
+        teamSpawns = getTeamSpawns(Team.getTeamIds(teams));
         closeTeamSpawns();
         closeGlassBarrier();
         sidebar = gameManager.createSidebar();
@@ -147,7 +135,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         parkourHasStarted = false;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
-        for (Player participant : newParticipants) {
+        for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
         initializeSidebar();
@@ -164,16 +152,15 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         messageAllParticipants(config.getDescription());
     }
     
-    private void initializeParticipant(Player participant) {
-        participants.add(participant);
-        currentPuzzles.put(participant.getUniqueId(), 0);
-        currentPuzzleCheckpoints.put(participant.getUniqueId(), 0);
+    private void initializeParticipant(Participant newParticipant) {
+        ParkourParticipant participant = new ParkourParticipant(newParticipant, 0);
+        teams.get(participant.getTeamId()).addParticipant(participant);
+        participants.put(participant.getUniqueId(), participant);
         sidebar.addPlayer(participant);
         if (teamSpawns == null) {
             participant.teleport(config.getStartingLocation());
         } else {
-            String team = gameManager.getTeamId(participant.getUniqueId());
-            teamSpawns.get(team).teleport(participant);
+            teamSpawns.get(participant.getTeamId()).teleport(participant);
         }
         participant.setRespawnLocation(config.getStartingLocation(), true);
         ParticipantInitializer.clearInventory(participant);
@@ -214,7 +201,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     public void stop() {
         HandlerList.unregisterAll(this);
         cancelAllTasks();
-        for (Player participant : participants) {
+        saveScores();
+        for (Participant participant : participants.values()) {
             resetParticipant(participant);
         }
         openGlassBarrier();
@@ -223,16 +211,36 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         clearSidebar();
         stopAdmins();
         participants.clear();
-        finishedParticipants.clear();
+        teams.clear();
+        quitDatas.clear();
+        teamQuitDatas.clear();
         descriptionShowing = false;
         parkourHasStarted = false;
         gameActive = false;
         gameManager.gameIsOver();
-        quitParticipantsSkips = null;
         Main.logger().info("Stopping Parkour Pathway game");
     }
     
-    private void resetParticipant(Player participant) {
+    private void saveScores() {
+        Map<String, Integer> teamScores = new HashMap<>();
+        Map<UUID, Integer> participantScores = new HashMap<>();
+        for (ParkourTeam team : teams.values()) {
+            teamScores.put(team.getTeamId(), team.getScore());
+        }
+        for (ParkourParticipant participant : participants.values()) {
+            participantScores.put(participant.getUniqueId(), participant.getScore());
+        }
+        for (Map.Entry<String, ParkourTeam.QuitData> entry : teamQuitDatas.entrySet()) {
+            teamScores.put(entry.getKey(), entry.getValue().getScore());
+        }
+        for (Map.Entry<UUID, ParkourParticipant.QuitData> entry : quitDatas.entrySet()) {
+            participantScores.put(entry.getKey(), entry.getValue().getScore());
+        }
+        gameManager.addScores(teamScores, participantScores);
+    }
+    
+    private void resetParticipant(Participant participant) {
+        teams.get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -252,49 +260,63 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         adminSidebar.removePlayer(admin);
     }
     
+    private void onTeamJoin(Team team) {
+        if (teams.containsKey(team.getTeamId())) {
+            return;
+        }
+        ParkourTeam.QuitData quitData = teamQuitDatas.get(team.getTeamId());
+        if (quitData != null) {
+            teams.put(team.getTeamId(), new ParkourTeam(team, quitData.getScore()));
+        } else {
+            teams.put(team.getTeamId(), new ParkourTeam(team, 0));
+        }
+    }
+    
+    
     @Override
-    public void onParticipantJoin(Player participant) {
-        participants.add(participant);
-        UUID uniqueId = participant.getUniqueId();
-        currentPuzzles.putIfAbsent(uniqueId, 0);
-        currentPuzzleCheckpoints.putIfAbsent(uniqueId, 0);
+    public void onParticipantJoin(Participant newParticipant, Team team) {
+        onTeamJoin(team);
+        ParkourParticipant.QuitData quitData = quitDatas.remove(newParticipant.getUniqueId());
+        ParkourParticipant participant;
+        if (quitData != null) {
+            participant = new ParkourParticipant(newParticipant, quitData);
+        } else {
+            participant = new ParkourParticipant(newParticipant, 0);
+        }
+        // initialize participant start
+        participants.put(participant.getUniqueId(), participant);
         sidebar.addPlayer(participant);
         ParticipantInitializer.clearInventory(participant);
         giveBoots(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
+        // initialize participant end
         if (parkourHasStarted) {
-            Location respawn = config.getPuzzle(currentPuzzles.get(uniqueId)).checkPoints().get(currentPuzzleCheckpoints.get(uniqueId)).respawn();
-            Main.logger().info(String.format("teleported %s to %s", participant.getName(), respawn.toString()));
-            participant.teleport(respawn);
-            Integer unusedSkips = quitParticipantsSkips.remove(uniqueId);
-            if (unusedSkips != null) {
-                if (unusedSkips > 0) {
-                    giveSkipItem(participant, unusedSkips);
+            if (quitData != null) {
+                if (quitData.getNumOfSkips() > 0) {
+                    giveSkipItem(participant, quitData.getNumOfSkips());
                 }
-            } else {
-                giveSkipItem(participant, config.getNumOfSkips());
             }
+            Location respawn = config.getPuzzle(participant.getCurrentPuzzle()).checkPoints().get(participant.getCurrentPuzzleCheckpoint()).respawn();
+            participant.teleport(respawn);
         } else {
             if (teamSpawns == null) {
-                Main.logger().info(String.format("teleported %s to %s", participant.getName(), config.getStartingLocation().toString()));
                 participant.teleport(config.getStartingLocation());
             } else {
-                String team = gameManager.getTeamId(participant.getUniqueId());
-                TeamSpawn teamSpawn = teamSpawns.get(team);
+                TeamSpawn teamSpawn = teamSpawns.get(participant.getTeamId());
                 if (teamSpawn == null) {
-                    Main.logger().info("re-setup team-spawns");
                     reSetUpTeamSpawns();
                 } else {
-                    Main.logger().info(String.format("teleported %s to %s", participant.getName(), teamSpawn.getSpawnLocation().toString()));
                     teamSpawn.teleport(participant);
                 }
             }
         }
         participant.setRespawnLocation(config.getStartingLocation(), true);
-        sidebar.updateLine(uniqueId, "title", title);
+        sidebar.updateLine(participant.getUniqueId(), "title", title);
         updateCheckpointSidebar(participant);
+        displayScore(participants.get(participant.getUniqueId()));
+        displayScore(teams.get(team.getTeamId()));
     }
     
     /**
@@ -302,15 +324,14 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
      * countdown is still going on
      */
     private void reSetUpTeamSpawns() {
-        List<String> teams = gameManager.getTeamIds(participants);
+        Set<String> teams = Participant.getTeamIds(participants);
         teamSpawns = getTeamSpawns(teams);
         if (teamSpawns == null) {
             return;
         }
         closeTeamSpawns();
-        for (Player participant : participants) {
-            String team = gameManager.getTeamId(participant.getUniqueId());
-            TeamSpawn teamSpawn = teamSpawns.get(team);
+        for (Participant participant : participants.values()) {
+            TeamSpawn teamSpawn = teamSpawns.get(participant.getTeamId());
             Main.logger().info(String.format("teleported %s to %s", participant.getName(), teamSpawn.getSpawnLocation().toString()));
             teamSpawn.teleport(participant);
         }
@@ -329,14 +350,27 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         teamSpawns.clear();
     }
     
+    private void onTeamQuit(ParkourTeam team) {
+        if (team.size() > 0) {
+            return;
+        }
+        ParkourTeam removed = teams.remove(team.getTeamId());
+        teamQuitDatas.put(team.getTeamId(), removed.getQuitData());
+    }
+    
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(UUID participantUUID, String teamId) {
+        ParkourParticipant participant = participants.get(participantUUID);
+        if (participant == null) {
+            return;
+        }
         if (parkourHasStarted) {
             int unusedSkips = calculateUnusedSkips(participant);
-            quitParticipantsSkips.put(participant.getUniqueId(), unusedSkips);
+            quitDatas.put(participantUUID, participant.getQuitData(unusedSkips));
         }
         resetParticipant(participant);
-        participants.remove(participant);
+        participants.remove(participant.getUniqueId());
+        onTeamQuit(teams.get(teamId));
     }
     
     private void startDescriptionPeriod() {
@@ -385,7 +419,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                 .withSidebar(sidebar, "timer")
                 .withSidebar(adminSidebar, "timer")
                 .sidebarPrefix(Component.text("Starting: "))
-                .titleAudience(Audience.audience(participants))
+                .titleAudience(Audience.audience(participants.values()))
                 .onCompletion(() -> {
                     if (config.getGlassBarrierOpenMessage() != null) {
                         messageAllParticipants(config.getGlassBarrierOpenMessage());
@@ -404,7 +438,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         if (config.getNumOfSkips() <= 0) {
             return;
         }
-        for (Player participant : participants) {
+        for (Participant participant : participants.values()) {
             giveSkipItem(participant, config.getNumOfSkips());
         }
     }
@@ -413,7 +447,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
      * Gives the appropriate number of skips to the given participant
      * @param participant the participant to receive skips
      */
-    private void giveSkipItem(Player participant, int numOfSkips) {
+    private void giveSkipItem(Participant participant, int numOfSkips) {
         participant.getInventory().setItem(8, config.getSkipItem().asQuantity(numOfSkips));
     }
     
@@ -453,21 +487,22 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     }
     
     /**
-     * @param teams the teams to get the spawns for. If there are more teams than spawns in the config, some teams will be in the same spawn.
+     * @param teamIds the teamIds to get the spawns for. If there are more teamIds than spawns in the config, some teamIds will be in the same spawn.
      * @return a map of teamIds to their {@link TeamSpawn}s. Null if the config never specified a list of {@link TeamSpawn}s.
      */
-    private @Nullable Map<String, @NotNull TeamSpawn> getTeamSpawns(@NotNull List<String> teams) {
+    private @Nullable Map<String, @NotNull TeamSpawn> getTeamSpawns(@NotNull Set<String> teamIds) {
         List<TeamSpawn> teamSpawns = config.getTeamSpawns();
         if (teamSpawns == null) {
             return null;
         }
-        Map<String, TeamSpawn> result = new HashMap<>(teams.size());
-        for (int i = 0; i < teams.size(); i++) {
-            String team = teams.get(i);
+        Map<String, TeamSpawn> result = new HashMap<>(teamIds.size());
+        int i = 0;
+        for (String teamId : teamIds) {
             int teamSpawnIndex = MathUtils.wrapIndex(i, teamSpawns.size());
             TeamSpawn teamSpawn = teamSpawns.get(teamSpawnIndex);
-            teamSpawn.setBarrierMaterial(gameManager.getTeamStainedGlassColor(team));
-            result.put(team, teamSpawn);
+            teamSpawn.setBarrierMaterial(gameManager.getTeamStainedGlassColor(teamId));
+            result.put(teamId, teamSpawn);
+            i++;
         }
         return result;
     }
@@ -480,10 +515,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
-        if (!(event.getEntity() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(event.getEntity().getUniqueId())) {
             return;
         }
         Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "ParkourPathwayGame.onPlayerDamage() cancelled");
@@ -492,10 +524,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     
     @EventHandler
     public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        if (!(event.getEntity() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
+        Participant participant = participants.get(event.getEntity().getUniqueId());
+        if (participant == null) {
             return;
         }
         participant.setFoodLevel(20);
@@ -516,8 +546,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         if (event.getCurrentItem() == null) {
             return;
         }
-        Player participant = ((Player) event.getWhoClicked());
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(event.getWhoClicked().getUniqueId())) {
             return;
         }
         event.setCancelled(true);
@@ -531,8 +560,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         if (!gameActive) {
             return;
         }
-        Player participant = event.getPlayer();
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         event.setCancelled(true);
@@ -543,8 +571,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         if (!gameActive) {
             return;
         }
-        Player participant = event.getPlayer();
-        if (!participants.contains(participant)) {
+        ParkourParticipant participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
             return;
         }
         onParticipantMove(participant);
@@ -557,12 +585,11 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
      * Handle when a participant moves
      * @param participant the participant. Assumed to be a valid participant in this game
      */
-    private void onParticipantMove(@NotNull Player participant) {
-        UUID uuid = participant.getUniqueId();
-        if (finishedParticipants.contains(uuid)) {
+    private void onParticipantMove(@NotNull ParkourParticipant participant) {
+        if (participant.isFinished()) {
             return;
         }
-        int currentPuzzleIndex = currentPuzzles.get(uuid);
+        int currentPuzzleIndex = participant.getCurrentPuzzle();
         int nextPuzzleIndex = currentPuzzleIndex + 1;
         if (nextPuzzleIndex >= config.getPuzzlesSize()) {
             // should not occur because of above check
@@ -581,11 +608,11 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         }
         int parallelCheckPointIndex = participantReachedCheckPoint(participant.getLocation().toVector(), currentPuzzle);
         if (parallelCheckPointIndex >= 0) {
-            int currentCheckpoint = currentPuzzleCheckpoints.get(uuid);
+            int currentCheckpoint = participant.getCurrentPuzzleCheckpoint();
             if (parallelCheckPointIndex == currentCheckpoint) {
                 return;
             }
-            currentPuzzleCheckpoints.put(uuid, parallelCheckPointIndex);
+            participant.setCurrentPuzzleCheckpoint(parallelCheckPointIndex);
         }
     }
     
@@ -594,7 +621,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
      * @param participant the participant (assumed to be a valid participant of this game in the SPECTATOR gamemode
      * @param event the event which may be cancelled in order to keep the given participant in the spectator area
      */
-    private void keepSpectatorsInArea(@NotNull Player participant, PlayerMoveEvent event) {
+    private void keepSpectatorsInArea(@NotNull Participant participant, PlayerMoveEvent event) {
         if (config.getSpectatorArea() == null){
             return;
         }
@@ -612,8 +639,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         if (!gameActive) {
             return;
         }
-        Player participant = event.getPlayer();
-        if (!participants.contains(participant)) {
+        ParkourParticipant participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
             return;
         }
         Action action = event.getAction();
@@ -641,12 +668,11 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         event.setUseInteractedBlock(Event.Result.DENY);
     }
     
-    private void performCheckpointSkip(Player participant) {
-        UUID uuid = participant.getUniqueId();
-        if (finishedParticipants.contains(uuid)) {
+    private void performCheckpointSkip(ParkourParticipant participant) {
+        if (participant.isFinished()) {
             return;
         }
-        int currentPuzzleIndex = currentPuzzles.get(uuid);
+        int currentPuzzleIndex = participant.getCurrentPuzzle();
         int nextPuzzleIndex = currentPuzzleIndex + 1;
         if (nextPuzzleIndex >= config.getPuzzlesSize()) {
             // should not occur because of above check
@@ -656,10 +682,9 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         onParticipantSkippedToCheckpoint(participant, nextPuzzleIndex);
     }
     
-    private void onParticipantSkippedToCheckpoint(Player participant, int puzzleIndex) {
-        UUID uuid = participant.getUniqueId();
-        currentPuzzles.put(uuid, puzzleIndex);
-        currentPuzzleCheckpoints.put(uuid, 0);
+    private void onParticipantSkippedToCheckpoint(ParkourParticipant participant, int puzzleIndex) {
+        participant.setCurrentPuzzle(puzzleIndex);
+        participant.setCurrentPuzzleCheckpoint(0);
         updateCheckpointSidebar(participant);
         Puzzle newPuzzle = config.getPuzzle(puzzleIndex);
         participant.teleport(newPuzzle.checkPoints().getFirst().respawn());
@@ -692,7 +717,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             }
         }
         if (allParticipantsHaveFinished()) {
-            for (Player p : participants) {
+            for (ParkourParticipant p : participants.values()) {
                 awardPointsForUnusedSkips(p);
                 p.setGameMode(GameMode.SPECTATOR);
             }
@@ -710,7 +735,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         if (config.getSpectatorArea() == null){
             return;
         }
-        if (!participants.contains(event.getPlayer())) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
@@ -724,16 +749,15 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         }
     }
     
-    private void onParticipantOutOfBounds(Player participant, Puzzle currentPuzzle) {
-        CheckPoint currentCheckPoint = currentPuzzle.checkPoints().get(currentPuzzleCheckpoints.get(participant.getUniqueId()));
+    private void onParticipantOutOfBounds(ParkourParticipant participant, Puzzle currentPuzzle) {
+        CheckPoint currentCheckPoint = currentPuzzle.checkPoints().get(participant.getCurrentPuzzleCheckpoint());
         Location respawn = currentCheckPoint.respawn().setDirection(participant.getLocation().getDirection());
         participant.teleport(respawn);
     }
     
-    private void onParticipantReachCheckpoint(Player participant, int puzzleIndex, int puzzleCheckPointIndex) {
-        UUID uuid = participant.getUniqueId();
-        currentPuzzles.put(uuid, puzzleIndex);
-        currentPuzzleCheckpoints.put(uuid, puzzleCheckPointIndex);
+    private void onParticipantReachCheckpoint(ParkourParticipant participant, int puzzleIndex, int puzzleCheckPointIndex) {
+        participant.setCurrentPuzzle(puzzleIndex);
+        participant.setCurrentPuzzleCheckpoint(puzzleCheckPointIndex);
         updateCheckpointSidebar(participant);
         if (puzzleIndex >= config.getPuzzlesSize()-1) {
             onParticipantFinish(participant, true);
@@ -753,9 +777,13 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                             .append(checkpointNum)
                             .color(NamedTextColor.YELLOW)
             ));
-            int playersCheckpoint = currentPuzzles.get(uuid);
-            int points = calculatePointsForPuzzle(playersCheckpoint, config.getCheckpointScore());
-            gameManager.awardPointsToParticipant(participant, points);
+            int multiplied = (int) (gameManager.getMultiplier() *
+                    calculatePointsForPuzzle(puzzleIndex, config.getCheckpointScore()));
+            participant.awardPoints(multiplied);
+            ParkourTeam team = teams.get(participant.getTeamId());
+            team.addPoints(multiplied);
+            displayScore(participant);
+            displayScore(team);
             
             if (config.getMaxSkipPuzzle() > 0) {
                 if (puzzleIndex == config.getMaxSkipPuzzle()) {
@@ -767,7 +795,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             }
         }
         if (allParticipantsHaveFinished()) {
-            for (Player p : participants) {
+            for (ParkourParticipant p : participants.values()) {
                 awardPointsForUnusedSkips(p);
                 p.setGameMode(GameMode.SPECTATOR);
             }
@@ -793,7 +821,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         return -1;
     }
     
-    private void onParticipantFinish(Player participant, boolean awardPoints) {
+    private void onParticipantFinish(ParkourParticipant participant, boolean awardPoints) {
         participant.showTitle(UIUtils.defaultTitle(
                 Component.empty()
                         .append(Component.text("You finished!"))
@@ -808,19 +836,24 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                 .color(NamedTextColor.GREEN)
         );
         if (awardPoints) {
-            int points = calculatePointsForWin(config.getWinScore());
-            gameManager.awardPointsToParticipant(participant, points);
+            int multiplied = (int) (gameManager.getMultiplier() *
+                    calculatePointsForWin(config.getWinScore()));
+            participant.awardPoints(multiplied);
+            ParkourTeam team = teams.get(participant.getTeamId());
+            team.addPoints(multiplied);
+            displayScore(participant);
+            displayScore(team);
         }
         awardPointsForUnusedSkips(participant);
         participant.setGameMode(GameMode.SPECTATOR);
-        finishedParticipants.add(participant.getUniqueId());
+        participant.setFinished(true);
     }
     
     /**
      * Checks how many skips the player has, and awards them points for any remaining
      * skips. Removes them from their inventory as well.
      */
-    private void awardPointsForUnusedSkips(Player participant) {
+    private void awardPointsForUnusedSkips(ParkourParticipant participant) {
         if (config.getUnusedSkipScore() <= 0.0) {
             return;
         }
@@ -830,8 +863,13 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                     .append(Component.text(unusedSkips))
                     .append(Component.text(" unused skips"))
                     .color(NamedTextColor.GREEN));
-            gameManager.awardPointsToParticipant(participant, 
+            int multiplied = (int) (gameManager.getMultiplier() *
                     unusedSkips * config.getUnusedSkipScore());
+            participant.awardPoints(multiplied);
+            ParkourTeam team = teams.get(participant.getTeamId());
+            team.addPoints(multiplied);
+            displayScore(participant);
+            displayScore(team);
         }
         ParticipantInitializer.clearInventory(participant);
     }
@@ -840,7 +878,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
      * @param participant the participant
      * @return the number of unused skips in the participant's inventory
      */
-    private int calculateUnusedSkips(Player participant) {
+    private int calculateUnusedSkips(Participant participant) {
         return Arrays.stream(participant.getInventory().getContents()).filter(itemStack -> {
             if (itemStack == null) {
                 return false;
@@ -850,8 +888,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     }
     
     private boolean allParticipantsHaveFinished() {
-        for (Player participant : participants) {
-            int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
+        for (ParkourParticipant participant : participants.values()) {
+            int currentPuzzleIndex = participant.getCurrentPuzzle();
             if (currentPuzzleIndex < config.getPuzzlesSize() - 1) {
                 //at least one player is still playing
                 return false;
@@ -869,7 +907,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
      */
     private int calculatePointsForPuzzle(int playersPuzzle, int[] puzzleScores) {
         int numWhoReachedOrPassedCheckpoint = 0;
-        for (int puzzleIndex : currentPuzzles.values()) {
+        for (ParkourParticipant participant : participants.values()) {
+            int puzzleIndex = participant.getCurrentPuzzle();
             if (puzzleIndex >= playersPuzzle) {
                 numWhoReachedOrPassedCheckpoint++;
             }
@@ -888,7 +927,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
      */
     private int calculatePointsForWin(int[] winScores) {
         int numberOfWins = 0;
-        for (int puzzleIndex : currentPuzzles.values()) {
+        for (ParkourParticipant participant : participants.values()) {
+            int puzzleIndex = participant.getCurrentPuzzle();
             if (puzzleIndex >= config.getPuzzlesSize() - 1) {
                 numberOfWins++;
             }
@@ -919,7 +959,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                             .append(timeLeft)
                             .append(Component.text("."))
                             .color(NamedTextColor.RED));
-                    Audience.audience(participants).showTitle(UIUtils.defaultTitle(
+                    Audience.audience(participants.values()).showTitle(UIUtils.defaultTitle(
                             Component.empty(), 
                             Component.empty()
                                 .append(timeLeft)
@@ -946,7 +986,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                     messageAllParticipants(Component.text("No one has reached a new checkpoint in the last ")
                             .append(TimeStringUtils.getTimeComponent(config.getMercyRuleDuration()))
                             .append(Component.text(". Stopping early")));
-                    for (Player participant : participants) {
+                    for (ParkourParticipant participant : participants.values()) {
                         awardPointsForUnusedSkips(participant);
                         participant.setGameMode(GameMode.SPECTATOR);
                     }
@@ -987,7 +1027,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                 .withSidebar(adminSidebar, "timer")
                 .timerColor(NamedTextColor.RED)
                 .onCompletion(() -> {
-                    for (Player participant : participants) {
+                    for (ParkourParticipant participant : participants.values()) {
                         awardPointsForUnusedSkips(participant);
                         participant.setGameMode(GameMode.SPECTATOR);
                     }
@@ -1000,15 +1040,15 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         this.statusEffectsTaskId = new BukkitRunnable(){
             @Override
             public void run() {
-                for (Player participant : participants) {
+                for (Participant participant : participants.values()) {
                     participant.addPotionEffect(INVISIBILITY);
                 }
             }
         }.runTaskTimer(plugin, 0L, 60L).getTaskId();
     }
     
-    private void giveBoots(Player participant) {
-        Color teamColor = gameManager.getTeamColor(participant.getUniqueId());
+    private void giveBoots(Participant participant) {
+        Color teamColor = gameManager.getTeam(participant).getBukkitColor();
         ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
         LeatherArmorMeta meta = (LeatherArmorMeta) boots.getItemMeta();
         meta.setColor(teamColor);
@@ -1018,12 +1058,12 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     
     private void setupTeamOptions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
-        for (Team team : mctScoreboard.getTeams()) {
+        for (org.bukkit.scoreboard.Team team : mctScoreboard.getTeams()) {
             team.setAllowFriendlyFire(false);
             team.setCanSeeFriendlyInvisibles(true);
-            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
+            team.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+            team.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+            team.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.NEVER);
         }
     }
     
@@ -1057,12 +1097,40 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                 new KeyLine("checkpoint", String.format("0/%s", config.getPuzzlesSize() - 1)),
                 new KeyLine("ending", "")
         );
+        
+        for (ParkourTeam team : teams.values()) {
+            displayScore(team);
+        }
+        for (ParkourParticipant participant : participants.values()) {
+            displayScore(participant);
+        }
     }
     
-    private void updateCheckpointSidebar(Player participant) {
-        int currentCheckpoint = currentPuzzles.get(participant.getUniqueId());
+    public void displayScore(ParkourTeam team) {
+        Component contents = Component.empty()
+                .append(team.getFormattedDisplayName())
+                .append(Component.text(": "))
+                .append(Component.text(team.getScore())
+                        .color(NamedTextColor.GOLD));
+        for (UUID memberUUID : team.getMemberUUIDs()) {
+            sidebar.updateLine(memberUUID, "personalTeam", contents);
+        }
+    }
+    
+    public void displayScore(ParkourParticipant participant) {
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", Component.empty()
+                .append(Component.text("Personal: "))
+                .append(Component.text(participant.getScore()))
+                .color(NamedTextColor.GOLD));
+    }
+    
+    private void updateCheckpointSidebar(ParkourParticipant participant) {
         int lastCheckpoint = config.getPuzzlesSize()-1;
-        sidebar.updateLine(participant.getUniqueId(), "checkpoint", String.format("%s/%s", currentCheckpoint, lastCheckpoint));
+        sidebar.updateLine(participant.getUniqueId(), "checkpoint",
+                Component.empty()
+                        .append(Component.text(participant.getCurrentPuzzle()))
+                        .append(Component.text("/"))
+                        .append(Component.text(lastCheckpoint)));
     }
     
     private void clearSidebar() {
@@ -1070,32 +1138,10 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         sidebar = null;
     }
     
-    @Override
-    public void updateTeamScore(Player participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
-    }
-    
-    @Override
-    public void updatePersonalScore(Player participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
-    }
-    
     private void messageAllParticipants(Component message) {
-        gameManager.messageAdmins(message);
-        for (Player participant : participants) {
-            participant.sendMessage(message);
-        }
+        Audience.audience(
+                Audience.audience(admins),
+                Audience.audience(participants.values())
+        ).sendMessage(message);
     }
 }

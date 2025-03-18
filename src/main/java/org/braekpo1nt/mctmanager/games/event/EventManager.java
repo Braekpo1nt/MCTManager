@@ -14,11 +14,12 @@ import org.braekpo1nt.mctmanager.games.event.states.*;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
-import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
+import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.ReadyUpTopbar;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -63,11 +64,14 @@ public class EventManager implements Listener {
     private EventConfig config;
     private int maxGames = 6;
     private int currentGameNumber = 0;
-    private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
-    private @Nullable String winningTeam;
+    private @Nullable Team winningTeam;
     private final ReadyUpManager readyUpManager = new ReadyUpManager();
     private final ReadyUpTopbar topbar = new ReadyUpTopbar();
+    
+    public Collection<Participant> getParticipants() {
+        return gameManager.getOnlineParticipants();
+    }
     
     public EventManager(Main plugin, GameManager gameManager, VoteManager voteManager) {
         this.plugin = plugin;
@@ -81,11 +85,10 @@ public class EventManager implements Listener {
     }
     
     /**
-     * Add the participants back to the {@link EventManager#participants} list and the {@link EventManager#sidebar}, add the admins back to the {@link EventManager#admins} list and the {@link EventManager#adminSidebar}, and update the scores on all sidebars.
+     * Add the participants to the {@link EventManager#sidebar}, add the admins back to the {@link EventManager#admins} list and the {@link EventManager#adminSidebar}, and update the scores on all sidebars.
      */
     public void initializeParticipantsAndAdmins() {
-        for (Player participant : gameManager.getOnlineParticipants()) {
-            participants.add(participant);
+        for (Participant participant : gameManager.getOnlineParticipants()) {
             sidebar.addPlayer(participant);
         }
         for (Player admin : gameManager.getOnlineAdmins()) {
@@ -99,14 +102,19 @@ public class EventManager implements Listener {
     }
     
     public void updatePersonalScores() {
-        for (Player participant : participants) {
-            int score = gameManager.getScore(participant.getUniqueId());
-            updatePersonalScore(participant, Component.empty()
-                    .append(Component.text("Personal: "))
-                    .append(Component.text(score))
-                    .color(NamedTextColor.GOLD)
-            );
-        }
+        updatePersonalScores(gameManager.getOnlineParticipants());
+    }
+    
+    public void updatePersonalScores(Collection<Participant> updateParticipants) {
+        state.updatePersonalScores(updateParticipants);
+    }
+    
+    public void updateTeamScores() {
+        updateTeamScores(gameManager.getTeams());
+    }
+    
+    public <T extends Team> void updateTeamScores(Collection<T> updateTeams) {
+        state.updateTeamScores(updateTeams);
     }
     
     /**
@@ -131,11 +139,11 @@ public class EventManager implements Listener {
         return colossalCombatGame.isActive();
     }
     
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         state.onParticipantJoin(participant);
     }
     
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(Participant participant) {
         state.onParticipantQuit(participant);
     }
     
@@ -172,9 +180,8 @@ public class EventManager implements Listener {
             colossalCombatGame.stop(null);
         }
         if (winningTeam != null) {
-            for (Player participant : participants) {
-                String team = gameManager.getTeamId(participant.getUniqueId());
-                if (team.equals(winningTeam)) {
+            for (Participant participant : gameManager.getOnlineParticipants()) {
+                if (participant.getTeamId().equals(winningTeam.getTeamId())) {
                     removeCrown(participant);
                 }
             }
@@ -183,7 +190,6 @@ public class EventManager implements Listener {
         clearAdminSidebar();
         topbar.hideAllPlayers();
         topbar.removeAllTeams();
-        participants.clear();
         admins.clear();
         readyUpManager.clear();
         scoreKeepers.clear();
@@ -264,7 +270,7 @@ public class EventManager implements Listener {
         gameScoreKeepers.set(iterationIndex, null); // remove tracked points for this iteration
         Component report = createScoreKeeperReport(gameType, iterationScoreKeeper);
         sender.sendMessage(report);
-        Bukkit.getConsoleSender().sendMessage(report);
+        plugin.getServer().getConsoleSender().sendMessage(report);
     }
     
     public void addGameToVotingPool(@NotNull CommandSender sender, @NotNull GameType gameToAdd) {
@@ -330,23 +336,23 @@ public class EventManager implements Listener {
      * @param scoreKeeper holds the tracked scores to be removed
      */
     private void undoScores(ScoreKeeper scoreKeeper) {
-        Set<String> teamIds = gameManager.getTeamIds();
-        for (String teamId : teamIds) {
-            int teamScoreToSubtract = scoreKeeper.getScore(teamId);
-            int teamCurrentScore = gameManager.getScore(teamId);
+        Collection<Team> teams = gameManager.getTeams();
+        for (Team team : teams) {
+            int teamScoreToSubtract = scoreKeeper.getScore(team.getTeamId());
+            int teamCurrentScore = team.getScore();
             if (teamCurrentScore - teamScoreToSubtract < 0) {
                 teamScoreToSubtract = teamCurrentScore;
             }
-            gameManager.addScore(teamId, -teamScoreToSubtract);
+            gameManager.addScore(team, -teamScoreToSubtract);
             
-            List<UUID> participantUUIDs = gameManager.getParticipantUUIDsOnTeam(teamId);
-            for (UUID participantUUID : participantUUIDs) {
-                int participantScoreToSubtract = scoreKeeper.getScore(participantUUID);
-                int participantCurrentScore = gameManager.getScore(participantUUID);
+            Collection<OfflineParticipant> participantsOnTeam = gameManager.getParticipantsOnTeam(team.getTeamId());
+            for (OfflineParticipant participant : participantsOnTeam) {
+                int participantScoreToSubtract = scoreKeeper.getScore(participant.getUniqueId());
+                int participantCurrentScore = participant.getScore();
                 if (participantCurrentScore - participantScoreToSubtract < 0) {
                     participantScoreToSubtract = participantCurrentScore;
                 }
-                gameManager.addScore(participantUUID, -participantScoreToSubtract);
+                gameManager.addScore(participant, -participantScoreToSubtract);
             }
         }
     }
@@ -359,49 +365,43 @@ public class EventManager implements Listener {
      */
     @NotNull
     private Component createScoreKeeperReport(@NotNull GameType gameType, @NotNull ScoreKeeper scoreKeeper) {
-        Set<String> teamIds = gameManager.getTeamIds();
+        Collection<Team> teams = gameManager.getTeams();
         TextComponent.Builder reportBuilder = Component.text()
                 .append(Component.text("|Scores for ("))
                 .append(Component.text(gameType.getTitle())
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text("):\n"))
                 .color(NamedTextColor.YELLOW);
-        for (String teamId : teamIds) {
-            int teamScoreToSubtract = scoreKeeper.getScore(teamId);
-            NamedTextColor teamColor = gameManager.getTeamColor(teamId);
-            Component displayName = gameManager.getFormattedTeamDisplayName(teamId);
+        for (Team team : teams) {
+            int teamScoreToSubtract = scoreKeeper.getScore(team.getTeamId());
             reportBuilder.append(Component.text("|  - "))
-                    .append(displayName)
+                    .append(team.getFormattedDisplayName())
                     .append(Component.text(": "))
                     .append(Component.text(teamScoreToSubtract)
                             .color(NamedTextColor.GOLD)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text("\n"));
             
-            List<UUID> participantUUIDs = gameManager.getParticipantUUIDsOnTeam(teamId);
-            for (UUID participantUUID : participantUUIDs) {
-                Player participant = Bukkit.getPlayer(participantUUID);
-                if (participant != null) {
-                    int participantScoreToSubtract = scoreKeeper.getScore(participantUUID);
-                    reportBuilder.append(Component.text("|    - "))
-                            .append(Component.text(participant.getName())
-                                    .color(teamColor))
-                            .append(Component.text(": "))
-                            .append(Component.text(participantScoreToSubtract)
-                                    .color(NamedTextColor.GOLD)
-                                    .decorate(TextDecoration.BOLD))
-                            .append(Component.text("\n"));
-                }
+            Collection<OfflineParticipant> participantsOnTeam = gameManager.getParticipantsOnTeam(team.getTeamId());
+            for (OfflineParticipant participant : participantsOnTeam) {
+                int participantScoreToSubtract = scoreKeeper.getScore(participant.getUniqueId());
+                reportBuilder.append(Component.text("|    - "))
+                        .append(participant.displayName())
+                        .append(Component.text(": "))
+                        .append(Component.text(participantScoreToSubtract)
+                                .color(NamedTextColor.GOLD)
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text("\n"));
             }
         }
         return reportBuilder.build();
     }
     
-    public void readyUpParticipant(@NotNull Player participant) {
+    public void readyUpParticipant(@NotNull Participant participant) {
         state.readyUpParticipant(participant);
     }
     
-    public void unReadyParticipant(@NotNull Player participant) {
+    public void unReadyParticipant(@NotNull Participant participant) {
         state.unReadyParticipant(participant);
     }
     
@@ -414,31 +414,29 @@ public class EventManager implements Listener {
         if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
-        if (!(event.getEntity() instanceof Player participant)) {
+        Participant participant = gameManager.getOnlineParticipant(event.getEntity().getUniqueId());
+        if (participant == null) {
             return;
         }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        state.onPlayerDamage(event);
+        state.onParticipantDamage(event);
     }
     
     @EventHandler
     public void onClickInventory(InventoryClickEvent event) {
-        Player participant = ((Player) event.getWhoClicked());
-        if (!participants.contains(participant)) {
+        Participant participant = gameManager.getOnlineParticipant(event.getWhoClicked().getUniqueId());
+        if (participant == null) {
             return;
         }
-        state.onClickInventory(event);
+        state.onClickInventory(event, participant);
     }
     
     @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
-        Player participant = event.getPlayer();
-        if (!participants.contains(participant)) {
+        Participant participant = gameManager.getOnlineParticipant(event.getPlayer().getUniqueId());
+        if (participant == null) {
             return;
         }
-        state.onDropItem(event);
+        state.onDropItem(event, participant);
     }
     
     /**
@@ -450,7 +448,7 @@ public class EventManager implements Listener {
         state.gameIsOver(finishedGameType);
     }
     
-    public void colossalCombatIsOver(String winningTeam) {
+    public void colossalCombatIsOver(Team winningTeam) {
         state.colossalCombatIsOver(winningTeam);
     }
     
@@ -458,7 +456,7 @@ public class EventManager implements Listener {
         state.stopColossalCombat(sender);
     }
     
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam) {
         state.startColossalCombat(sender, firstTeam, secondTeam);
     }
     
@@ -484,11 +482,11 @@ public class EventManager implements Listener {
         }
     }
     
-    public void giveCrown(Player participant) {
+    public void giveCrown(Participant participant) {
         participant.getInventory().setHelmet(crown);
     }
     
-    public void removeCrown(Player participant) {
+    public void removeCrown(Participant participant) {
         ItemStack helmet = participant.getInventory().getHelmet();
         if (helmet != null && helmet.equals(crown)) {
             participant.getInventory().setHelmet(null);
@@ -551,146 +549,24 @@ public class EventManager implements Listener {
         return multipliers[currentGameNumber - 1];
     }
     
-    public void updateTeamScores() {
-        if (sidebar == null) {
-            return;
-        }
-        List<String> sortedTeamIds = sortTeamIds(gameManager.getTeamIds());
-        if (numberOfTeams != sortedTeamIds.size()) {
-            reorderTeamLines(sortedTeamIds);
-            return;
-        }
-        KeyLine[] teamLines = new KeyLine[numberOfTeams];
-        for (int i = 0; i < numberOfTeams; i++) {
-            String teamId = sortedTeamIds.get(i);
-            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
-            int teamScore = gameManager.getScore(teamId);
-            teamLines[i] = new KeyLine("team"+i, Component.empty()
-                    .append(teamDisplayName)
-                    .append(Component.text(": "))
-                    .append(Component.text(teamScore)
-                            .color(NamedTextColor.GOLD))
-            );
-        }
-        sidebar.updateLines(teamLines);
-        if (adminSidebar == null) {
-            return;
-        }
-        adminSidebar.updateLines(teamLines);
-    }
-    
-    public List<String> sortTeamIds(Set<String> teamIds) {
-        List<String> sortedTeamIds = new ArrayList<>(teamIds);
-        sortedTeamIds.sort(Comparator.comparing(gameManager::getScore, Comparator.reverseOrder()));
-        sortedTeamIds.sort(Comparator
-                .comparing(teamId -> gameManager.getScore((String) teamId))
+    public static <T extends Team> List<Team> sortTeams(Collection<T> teamsToSort) {
+        List<Team> sortedTeams = new ArrayList<>(teamsToSort);
+        sortedTeams.sort(Comparator.comparing(Team::getScore, Comparator.reverseOrder()));
+        sortedTeams.sort(Comparator
+                .comparing(team -> ((Team) team).getScore())
                 .reversed()
-                .thenComparing(teamId -> ((String) teamId))
+                .thenComparing(team -> ((Team) team).getTeamId())
         );
-        return sortedTeamIds;
+        return sortedTeams;
     }
     
-    private void reorderTeamLines(List<String> sortedTeamIds) {
-        String[] teamKeys = new String[numberOfTeams];
-        for (int i = 0; i < numberOfTeams; i++) {
-            teamKeys[i] = "team"+i;
-        }
-        sidebar.deleteLines(teamKeys);
-        adminSidebar.deleteLines(teamKeys);
-        
-        numberOfTeams = sortedTeamIds.size();
-        KeyLine[] teamLines = new KeyLine[numberOfTeams];
-        for (int i = 0; i < numberOfTeams; i++) {
-            String teamId = sortedTeamIds.get(i);
-            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
-            int teamScore = gameManager.getScore(teamId);
-            teamLines[i] = new KeyLine("team"+i, Component.empty()
-                    .append(teamDisplayName)
-                    .append(Component.text(": "))
-                    .append(Component.text(teamScore)
-                            .color(NamedTextColor.GOLD))
-            );
-        }
-        sidebar.addLines(0, teamLines);
-        adminSidebar.addLines(0, teamLines);
-    }
-    
-    public void updatePersonalScore(Player participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
-    }
-    
-    /**
-     * Track the points earned for the given team in the given game. 
-     * If the event is not active, nothing happens.
-     * @param teamId The team to track points for
-     * @param points the points to add
-     * @param gameType the game that the points came from
-     */
-    public void trackPoints(String teamId, int points, GameType gameType) {
+    public void trackScores(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, GameType gameType) {
         if (state instanceof OffState) {
             return;
         }
         List<ScoreKeeper> iterationScoreKeepers = scoreKeepers.get(gameType);
         ScoreKeeper iteration = iterationScoreKeepers.getLast();
-        iteration.addPoints(teamId, points);
-    }
-    
-    /**
-     * Track the points earned for the given teams in the given game
-     * If the event is not active, nothing happens.
-     * @param teamIds The teams to track points for
-     * @param points the points to add
-     * @param gameType the game that the points came from
-     */
-    public void trackPointsTeams(Collection<String> teamIds, int points, GameType gameType) {
-        if (state instanceof OffState) {
-            return;
-        }
-        List<ScoreKeeper> iterationScoreKeepers = scoreKeepers.get(gameType);
-        ScoreKeeper iteration = iterationScoreKeepers.getLast();
-        for (String teamId : teamIds) {
-            iteration.addPoints(teamId, points);
-        }
-    }
-    
-    /**
-     * Track the points earned for the given participant in the given game. 
-     * If the event is not active, nothing happens.
-     * @param participantUUID The participant to track points for
-     * @param points the points to add 
-     * @param gameType the game that the points came from
-     */
-    public void trackPoints(UUID participantUUID, int points, GameType gameType) {
-        if (state instanceof OffState) {
-            return;
-        }
-        List<ScoreKeeper> iterationScoreKeepers = scoreKeepers.get(gameType);
-        ScoreKeeper iteration = iterationScoreKeepers.getLast();
-        iteration.addPoints(participantUUID, points);
-    }
-    
-    /**
-     * Track the points earned for the given participants in the given game. 
-     * If the event is not active, nothing happens.
-     * @param participants The participants to track points for
-     * @param points the points to add 
-     * @param gameType the game that the points came from
-     */
-    public void trackPointsParticipants(Collection<Player> participants, int points, GameType gameType) {
-        if (state instanceof OffState) {
-            return;
-        }
-        List<ScoreKeeper> iterationScoreKeepers = scoreKeepers.get(gameType);
-        ScoreKeeper iteration = iterationScoreKeepers.getLast();
-        for (Player participant : participants) {
-            iteration.addPoints(participant.getUniqueId(), points);
-        }
+        iteration.trackScores(teamScores, participantScores);
     }
     
     public void messageAllAdmins(Component message) {

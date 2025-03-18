@@ -4,23 +4,24 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesParticipant;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesTeam;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
-import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.UUID;
 
 public class GameOverState implements SurvivalGamesState {
     private final @NotNull SurvivalGamesGame context;
     
     public GameOverState(@NotNull SurvivalGamesGame context) {
         this.context = context;
-        Audience.audience(context.getParticipants()).showTitle(UIUtils.gameOverTitle());
+        Audience.audience(context.getParticipants().values()).showTitle(UIUtils.gameOverTitle());
         context.getAdminSidebar().addLine("over", "");
         context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getEndDuration())
@@ -35,34 +36,25 @@ public class GameOverState implements SurvivalGamesState {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
+        context.getGlowManager().addPlayer(participant);
         context.initializeGlowing(participant);
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
-        context.getParticipants().remove(participant);
-        UUID participantUUID = participant.getUniqueId();
-        String teamId = context.getGameManager().getTeamId(participantUUID);
-        Integer oldLivingMembers = context.getLivingMembers().get(teamId);
-        if (oldLivingMembers != null) {
-            context.getLivingMembers().put(teamId, Math.max(0, oldLivingMembers - 1));
-            context.updateAliveCount(teamId);
-        }
-        context.getLivingPlayers().remove(participantUUID);
-        context.getKillCounts().remove(participantUUID);
-        context.getDeathCounts().remove(participantUUID);
-        context.getTopbar().unlinkFromTeam(participantUUID);
+    public void onParticipantQuit(SurvivalGamesParticipant participant) {
+        context.getParticipants().remove(participant.getUniqueId());
+        SurvivalGamesTeam team = context.getTeams().get(participant.getTeamId());
+        team.removeParticipant(participant.getUniqueId());
+        context.updateAliveCount(team);
+        context.getTopbar().unlinkFromTeam(participant.getUniqueId());
+        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
         resetParticipant(participant);
+        context.onTeamQuit(context.getTeams().get(participant.getTeamId()));
     }
     
     @Override
-    public void initializeParticipant(Player participant) {
-        // not used
-    }
-    
-    @Override
-    public void resetParticipant(Player participant) {
+    public void resetParticipant(Participant participant) {
         context.resetParticipant(participant);
     }
     
@@ -76,7 +68,7 @@ public class GameOverState implements SurvivalGamesState {
     }
     
     @Override
-    public void onPlayerDeath(PlayerDeathEvent event) {
+    public void onParticipantDeath(PlayerDeathEvent event) {
         Main.debugLog(LogType.CANCEL_PLAYER_DEATH_EVENT, "SurvivalGamesGame.GameOverState.onPlayerDeath() cancelled");
         event.setCancelled(true);
     }

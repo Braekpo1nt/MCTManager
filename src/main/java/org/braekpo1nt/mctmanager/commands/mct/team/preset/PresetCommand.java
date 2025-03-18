@@ -22,7 +22,7 @@ public class PresetCommand extends CommandManager {
             plugin.getLogger().severe(String.format("Could not load preset. %s", e.getMessage()));
             e.printStackTrace();
         }
-        addSubCommand(new PresetApplySubCommand(gameManager, storageUtil, "apply"));
+        addSubCommand(new PresetApplySubCommand(plugin, gameManager, storageUtil, "apply"));
         addSubCommand(new PresetWhitelistSubCommand(gameManager, storageUtil, "whitelist"));
         
         // editor

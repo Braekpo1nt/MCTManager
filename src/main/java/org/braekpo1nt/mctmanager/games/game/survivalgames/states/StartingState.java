@@ -19,7 +19,7 @@ public class StartingState extends DescriptionState {
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .withTopbar(context.getTopbar())
                 .sidebarPrefix(Component.text("Starting: "))
-                .titleAudience(Audience.audience(context.getParticipants()))
+                .titleAudience(Audience.audience(context.getParticipants().values()))
                 .onCompletion(() -> {
                     context.setState(new ActiveState(context));
                 })

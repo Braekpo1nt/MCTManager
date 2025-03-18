@@ -16,8 +16,9 @@ import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesCo
 import org.braekpo1nt.mctmanager.games.game.survivalgames.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.states.SurvivalGamesState;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.glow.GlowManager;
-import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
@@ -45,7 +46,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.loot.LootTable;
 import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -57,7 +57,7 @@ import java.util.*;
  * The context for the state pattern
  */
 @Data
-public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Headerable {
+public class SurvivalGamesGame implements MCTGame, Configurable, Listener {
     
     private @Nullable SurvivalGamesState state;
     
@@ -73,17 +73,12 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     private Sidebar sidebar;
     private Sidebar adminSidebar;
     private SurvivalGamesConfig config;
-    public List<Player> participants;
+    public Map<UUID, SurvivalGamesParticipant> participants = new HashMap<>();
+    public Map<UUID, SurvivalGamesParticipant.QuitData> quitDatas = new HashMap<>();
+    public Map<String, SurvivalGamesTeam> teams = new HashMap<>();
+    private Map<String, SurvivalGamesTeam.QuitData> teamQuitDatas = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     private WorldBorder worldBorder;
-    private List<UUID> livingPlayers = new ArrayList<>();
-    /**
-     * a map of all teamIds to how many members are alive on that team
-     */
-    private Map<String, Integer> livingMembers = new HashMap<>();
-    private List<UUID> deadPlayers = new ArrayList<>();
-    private Map<UUID, Integer> killCounts = new HashMap<>();
-    private Map<UUID, Integer> deathCounts = new HashMap<>();
     private Component title = baseTitle;
     
     public SurvivalGamesGame(Main plugin, GameManager gameManager) {
@@ -122,23 +117,23 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     }
     
     @Override
-    public void start(List<Player> newParticipants, List<Player> newAdmins) {
-        this.participants = new ArrayList<>(newParticipants.size());
-        livingPlayers = new ArrayList<>(newParticipants.size());
-        deadPlayers = new ArrayList<>();
-        livingMembers = new HashMap<>(gameManager.getTeamIds(newParticipants).size());
-        killCounts = new HashMap<>(newParticipants.size());
-        deathCounts = new HashMap<>(newParticipants.size());
+    public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
+        this.teams = new HashMap<>(newTeams.size());
+        for (Team team : newTeams) {
+            teams.put(team.getTeamId(), new SurvivalGamesTeam(team, 0));
+            topbar.addTeam(team.getTeamId(), team.getColor());
+        }
+        this.participants = new HashMap<>(newParticipants.size());
+        this.quitDatas = new HashMap<>();
+        this.teamQuitDatas = new HashMap<>();
         worldBorder = config.getWorld().getWorldBorder();
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
-        List<String> teams = gameManager.getTeamIds(newParticipants);
-        setUpTopbarTeams(teams);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         glowManager.registerListeners();
         gameManager.getTimerManager().register(timerManager);
         fillAllChests();
-        for (Player participant : newParticipants) {
+        for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
         createPlatformsAndTeleportTeams();
@@ -155,12 +150,10 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
      * Set up all the appropriate glowing effects for the start of the game
      */
     private void initializeGlowManager() {
-        for (Player participant : participants) {
-            for (Player target : participants) {
+        for (Participant participant : participants.values()) {
+            for (Participant target : participants.values()) {
                 if (!participant.equals(target)) {
-                    String teamId = gameManager.getTeamId(participant.getUniqueId());
-                    String targetTeamId = gameManager.getTeamId(target.getUniqueId());
-                    if (teamId.equals(targetTeamId)) {
+                    if (participant.getTeamId().equals(target.getTeamId())) {
                         glowManager.showGlowing(participant, target);
                     }
                 }
@@ -176,12 +169,10 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
      * (but don't glow to themselves). Also makes the participant glow to the admins.
      * @param participant the participant to show their teammates to
      */
-    public void initializeGlowing(Player participant) {
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
-        for (Player other : participants) {
+    public void initializeGlowing(Participant participant) {
+        for (SurvivalGamesParticipant other : participants.values()) {
             if (!other.equals(participant)) {
-                String otherTeamId = gameManager.getTeamId(other.getUniqueId());
-                if (teamId.equals(otherTeamId)) {
+                if (participant.getTeamId().equals(other.getTeamId())) {
                     glowManager.showGlowing(participant, other);
                     glowManager.showGlowing(other, participant);
                 }
@@ -192,18 +183,17 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         }
     }
     
-    public void initializeParticipant(Player participant) {
-        participants.add(participant);
-        livingPlayers.add(participant.getUniqueId());
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
-        livingMembers.putIfAbsent(teamId, 0);
-        int oldAliveCount = livingMembers.get(teamId);
-        livingMembers.put(teamId, oldAliveCount + 1);
+    public void initializeParticipant(Participant newParticipant) {
+        SurvivalGamesParticipant participant = new SurvivalGamesParticipant(newParticipant, 0);
+        participants.put(participant.getUniqueId(), participant);
+        SurvivalGamesTeam team = teams.get(participant.getTeamId());
+        team.addParticipant(participant);
+        String teamId = participant.getTeamId();
         sidebar.addPlayer(participant);
         topbar.showPlayer(participant);
         topbar.linkToTeam(participant.getUniqueId(), teamId);
         glowManager.addPlayer(participant);
-        updateAliveCount(teamId);
+        updateAliveCount(team);
         initializeKillCount(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearInventory(participant);
@@ -211,20 +201,14 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         ParticipantInitializer.clearStatusEffects(participant);
     }
     
-    public void resetParticipant(Player participant) {
+    public void resetParticipant(Participant participant) {
+        teams.get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         sidebar.removePlayer(participant.getUniqueId());
         topbar.hidePlayer(participant.getUniqueId());
         glowManager.removePlayer(participant);
-    }
-    
-    private void setUpTopbarTeams(List<String> newTeamIds) {
-        for (String teamId : newTeamIds) {
-            NamedTextColor color = gameManager.getTeamColor(teamId);
-            topbar.addTeam(teamId, color);
-        }
     }
     
     @Override
@@ -238,7 +222,8 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         removePlatforms();
         worldBorder.reset();
         stopAdmins();
-        for (Player participant : participants) {
+        saveScores();
+        for (Participant participant : participants.values()) {
             if (state != null) {
                 state.resetParticipant(participant);
             } else {
@@ -248,28 +233,68 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         clearSidebar();
         glowManager.clear();
         participants.clear();
-        livingPlayers.clear();
-        deadPlayers.clear();
-        livingMembers.clear();
-        killCounts.clear();
-        deathCounts.clear();
+        teams.clear();
+        quitDatas.clear();
+        teamQuitDatas.clear();
         gameManager.gameIsOver();
         state = null;
         Main.logger().info("Stopped Survival Games");
     }
     
-    @Override
-    public void onParticipantJoin(Player participant) {
-        if (state != null) {
-            state.onParticipantJoin(participant);
+    private void saveScores() {
+        Map<String, Integer> teamScores = new HashMap<>();
+        Map<UUID, Integer> participantScores = new HashMap<>();
+        for (SurvivalGamesTeam team : teams.values()) {
+            teamScores.put(team.getTeamId(), team.getScore());
+        }
+        for (SurvivalGamesParticipant participant : participants.values()) {
+            participantScores.put(participant.getUniqueId(), participant.getScore());
+        }
+        for (Map.Entry<String, SurvivalGamesTeam.QuitData> entry : teamQuitDatas.entrySet()) {
+            teamScores.put(entry.getKey(), entry.getValue().getScore());
+        }
+        for (Map.Entry<UUID, SurvivalGamesParticipant.QuitData> entry : quitDatas.entrySet()) {
+            participantScores.put(entry.getKey(), entry.getValue().getScore());
+        }
+        gameManager.addScores(teamScores, participantScores);
+    }
+    
+    public void onTeamJoin(Team team) {
+        if (teams.containsKey(team.getTeamId())) {
+            return;
+        }
+        SurvivalGamesTeam.QuitData quitData = teamQuitDatas.get(team.getTeamId());
+        if (quitData != null) {
+            teams.put(team.getTeamId(), new SurvivalGamesTeam(team, quitData.getScore()));
+        } else {
+            teams.put(team.getTeamId(), new SurvivalGamesTeam(team, 0));
         }
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
         if (state != null) {
-            state.onParticipantQuit(participant);
+            state.onParticipantJoin(participant, team);
         }
+    }
+    
+    @Override
+    public void onParticipantQuit(UUID participantUUID, String teamId) {
+        SurvivalGamesParticipant sgParticipant = participants.get(participantUUID);
+        if (sgParticipant == null) {
+            return;
+        }
+        if (state != null) {
+            state.onParticipantQuit(sgParticipant);
+        }
+    }
+    
+    public void onTeamQuit(SurvivalGamesTeam team) {
+        if (team.size() > 0) {
+            return;
+        }
+        SurvivalGamesTeam removed = teams.remove(team.getTeamId());
+        teamQuitDatas.put(team.getTeamId(), removed.getQuitData());
     }
     
     private void startAdmins(List<Player> newAdmins) {
@@ -284,7 +309,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     public void onAdminJoin(Player admin) {
         initializeAdmin(admin);
         adminSidebar.updateLine(admin.getUniqueId(), "title", title);
-        for (Player participant : participants) {
+        for (Participant participant : participants.values()) {
             glowManager.showGlowing(admin.getUniqueId(), participant.getUniqueId());
         }
     }
@@ -360,23 +385,23 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     }
     
     public void createPlatformsAndTeleportTeams() {
-        List<String> teams = gameManager.getTeamIds(participants);
+        Set<String> teams = Participant.getTeamIds(participants);
         createPlatforms(teams);
         teleportTeams(teams);
     }
     
     /**
-     * Creates platforms for teams to spawn on made of a hollow rectangle of Barrier blocks where the bottom layer is Concrete that matches the color of the team
+     * Creates platforms for teamIds to spawn on made of a hollow rectangle of Barrier blocks where the bottom layer is Concrete that matches the color of the team
      * <br>
-     * For n teams and m platforms in storageUtil.getPlatformBarriers():<br>
+     * For n teamIds and m platforms in storageUtil.getPlatformBarriers():<br>
      * - place n platforms, but no more than m platforms
-     * @param teams the teams that will be teleported
+     * @param teamIds the teamIds that will be teleported
      */
-    private void createPlatforms(List<String> teams) {
+    private void createPlatforms(Set<String> teamIds) {
         List<BoundingBox> platformBarriers = config.getPlatformBarriers();
         World world = config.getWorld();
-        for (int i = 0; i < teams.size(); i++) {
-            String team = teams.get(i);
+        int i = 0;
+        for (String teamId : teamIds) {
             int platformIndex = MathUtils.wrapIndex(i, platformBarriers.size());
             BoundingBox barrierArea = platformBarriers.get(platformIndex);
             BoundingBox concreteArea = new BoundingBox(
@@ -386,29 +411,30 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
                     barrierArea.getMaxX()-1,
                     barrierArea.getMinY(),
                     barrierArea.getMaxZ()-1);
-            Material concreteColor = gameManager.getTeamConcreteColor(team);
+            Material concreteColor = gameManager.getTeamConcreteColor(teamId);
             BlockPlacementUtils.createHollowCube(world, barrierArea, Material.BARRIER);
             BlockPlacementUtils.createCube(world, concreteArea, concreteColor);
+            i++;
         }
     }
     
     /**
      * For n teams and m platforms in storageUtil.getPlatformBarriers():<br>
      * - teleport teams to their designated platforms. If n is greater than m, then it will start wrapping around and teleporting different teams to the same platforms, until all teams have a platform. 
-     * @param teams the teams to teleport (players will be selected from the participants list)
+     * @param teamIds the teams to teleport (players will be selected from the participants list)
      */
-    private void teleportTeams(List<String> teams) {
+    private void teleportTeams(Set<String> teamIds) {
         List<Location> platformSpawns = config.getPlatformSpawns();
-        Map<String, Location> teamSpawnLocations = new HashMap<>(teams.size());
-        for (int i = 0; i < teams.size(); i++) {
-            String team = teams.get(i);
+        Map<String, Location> teamSpawnLocations = new HashMap<>(teamIds.size());
+        int i = 0;
+        for (String teamId : teamIds) {
             int platformIndex = MathUtils.wrapIndex(i, platformSpawns.size());
             Location platformSpawn = platformSpawns.get(platformIndex);
-            teamSpawnLocations.put(team, platformSpawn);
+            teamSpawnLocations.put(teamId, platformSpawn);
+            i++;
         }
-        for (Player participant : participants) {
-            String team = gameManager.getTeamId(participant.getUniqueId());
-            Location spawn = teamSpawnLocations.get(team);
+        for (Participant participant : participants.values()) {
+            Location spawn = teamSpawnLocations.get(participant.getTeamId());
             participant.teleport(spawn);
             participant.setRespawnLocation(spawn, true);
         }
@@ -421,6 +447,12 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
                 new KeyLine("title", title)
         );
         topbar.setMiddle(Component.empty());
+        for (SurvivalGamesTeam team : teams.values()) {
+            displayScore(team);
+        }
+        for (SurvivalGamesParticipant participant : participants.values()) {
+            displayScore(participant);
+        }
     }
     
     private void initializeAdminSidebar() {
@@ -432,12 +464,12 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     
     private void setUpTeamOptions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
-        for (Team team : mctScoreboard.getTeams()) {
+        for (org.bukkit.scoreboard.Team team : mctScoreboard.getTeams()) {
             team.setAllowFriendlyFire(false);
             team.setCanSeeFriendlyInvisibles(true);
-            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS);
+            team.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+            team.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+            team.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
         }
     }
     
@@ -452,42 +484,20 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     
     /**
      * updates the number of living and dead players in the topbar
-     * @param teamId the team to update
+     * @param team the team to update
      */
-    public void updateAliveCount(@NotNull String teamId) {
-        int alive = livingMembers.get(teamId);
-        int dead = getDeadMembers(teamId);
-        topbar.setMembers(teamId, alive, dead);
+    public void updateAliveCount(@NotNull SurvivalGamesTeam team) {
+        topbar.setMembers(team.getTeamId(), team.getAlive(), team.getDead());
     }
     
-    /**
-     * @param teamId the teamId of the team to count the dead members of
-     * @return the number of dead players on the given team in this game
-     */
-    private int getDeadMembers(String teamId) {
-        int count = 0;
-        for (Player participant : participants) {
-            if (deadPlayers.contains(participant.getUniqueId())) {
-                String participantTeamId = gameManager.getTeamId(participant.getUniqueId());
-                if (teamId.equals(participantTeamId)) {
-                    count++;
-                }
-            }
-        }
-        return count;
-    }
-    
-    public void initializeKillCount(Player participant) {
-        killCounts.putIfAbsent(participant.getUniqueId(), 0);
-        deathCounts.putIfAbsent(participant.getUniqueId(), 0);
-        int kills = killCounts.get(participant.getUniqueId());
+    public void initializeKillCount(SurvivalGamesParticipant participant) {
         int deaths;
         if (!config.showDeathCount()) {
             deaths = -1;
         } else {
-            deaths = deathCounts.get(participant.getUniqueId());
+            deaths = participant.getDeaths();
         }
-        topbar.setKillsAndDeaths(participant.getUniqueId(), kills, deaths);
+        topbar.setKillsAndDeaths(participant.getUniqueId(), participant.getKills(), deaths);
     }
     
     private void cancelAllTasks() {
@@ -566,7 +576,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     
     public void messageAllParticipants(Component message) {
         gameManager.messageAdmins(message);
-        Audience.audience(participants).sendMessage(message);
+        Audience.audience(participants.values()).sendMessage(message);
     }
     
     // EventHandlers
@@ -582,8 +592,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
      */
     @EventHandler
     public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {
-        Player clicker = event.getPlayer();
-        if (!participants.contains(clicker)) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         if (event.getRightClicked() instanceof ArmorStand || event.getRightClicked().getType() == EntityType.ITEM_FRAME || event.getRightClicked().getType() == EntityType.GLOW_ITEM_FRAME) {
@@ -604,8 +613,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     
     @EventHandler
     public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
-        Player clicker = event.getPlayer();
-        if (!participants.contains(clicker)) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         if (event.getRightClicked().getType() == EntityType.ITEM_FRAME || event.getRightClicked().getType() == EntityType.GLOW_ITEM_FRAME) {
@@ -626,7 +634,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
         if (event.getDamager() instanceof Player clicker) {
-            if (!participants.contains(clicker)) {
+            if (!participants.containsKey(clicker.getUniqueId())) {
                 return;
             }
         }
@@ -648,8 +656,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
      */
     @EventHandler
     public void onHangingBreakByEntity(HangingBreakByEntityEvent event) {
-        Player clicker = (Player) event.getRemover();
-        if (!participants.contains(clicker)) {
+        if (!participants.containsKey(event.getRemover().getUniqueId())) {
             return;
         }
         if (event.getEntity().getType() == EntityType.ITEM_FRAME || event.getEntity().getType() == EntityType.GLOW_ITEM_FRAME) {
@@ -663,7 +670,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         if (clickedBlock == null) {
             return;
         }
-        if (!participants.contains(event.getPlayer())) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         Material blockType = clickedBlock.getType();
@@ -678,14 +685,14 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         if (config.getSpectatorArea() == null){
             return;
         }
-        if (!participants.contains(event.getPlayer())) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
             return;
         }
         if (!config.getSpectatorArea().contains(event.getFrom().toVector())) {
-            event.getPlayer().teleport(config.getPlatformSpawns().get(0));
+            event.getPlayer().teleport(config.getPlatformSpawns().getFirst());
             return;
         }
         if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
@@ -698,7 +705,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         if (config.getSpectatorArea() == null){
             return;
         }
-        if (!participants.contains(event.getPlayer())) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
@@ -720,10 +727,8 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         if (!config.lockOtherInventories()) {
             return;
         }
-        if (!(event.getPlayer() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
+        Participant participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
             return;
         }
         Inventory inventory = event.getInventory();
@@ -755,14 +760,12 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         if (!inventory.isEmpty()) {
             return;
         }
-        if (!(event.getPlayer() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
+        Participant participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
             return;
         }
         List<HumanEntity> viewers = inventory.getViewers();
-        if (countParticipantViewers(viewers) > 1) {
+        if (countLivingParticipantViewers(viewers) > 1) {
             return;
         }
         Block block = chest.getBlock();
@@ -774,18 +777,16 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         block.setType(Material.AIR);
     }
     
-    private int countParticipantViewers(List<HumanEntity> viewers) {
-        int count = 0;
-        for (HumanEntity viewer : viewers) {
-            if (viewer instanceof Player participant) {
-                if (participants.contains(participant)) {
-                    if (livingPlayers.contains(participant.getUniqueId())) {
-                        count++;
-                    }
-                }
-            }
-        }
-        return count;
+    /**
+     * @param viewers the viewers list containing entities who are viewing one inventory
+     * @return the number of {@link HumanEntity}s in the viewers list who are living participants
+     */
+    private long countLivingParticipantViewers(List<HumanEntity> viewers) {
+        return viewers.stream()
+                .map(viewer -> participants.get(viewer.getUniqueId()))
+                .filter(Objects::nonNull)
+                .filter(SurvivalGamesParticipant::isAlive)
+                .count();
     }
     
     // State-specific callers
@@ -795,10 +796,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         if (state == null) {
             return;
         }
-        if (!(event.getEntity() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(event.getEntity().getUniqueId())) {
             return;
         }
         state.onPlayerDamage(event);
@@ -809,32 +807,29 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         if (state == null) {
             return;
         }
-        Player participant = event.getPlayer();
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
-        state.onPlayerDeath(event);
+        state.onParticipantDeath(event);
     }
     
-    @Override
-    public void updateTeamScore(Player participant, Component contents) {
-        if (sidebar == null) {
-            return;
+    // make this private if above used
+    public void displayScore(SurvivalGamesTeam team) {
+        Component contents = Component.empty()
+                .append(team.getFormattedDisplayName())
+                .append(Component.text(": "))
+                .append(Component.text(team.getScore())
+                        .color(NamedTextColor.GOLD));
+        for (UUID memberUUID : team.getMemberUUIDs()) {
+            sidebar.updateLine(memberUUID, "personalTeam", contents);
         }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
     }
     
-    @Override
-    public void updatePersonalScore(Player participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
+    // make this private if above used
+    public void displayScore(SurvivalGamesParticipant participant) {
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", Component.empty()
+                .append(Component.text("Personal: "))
+                .append(Component.text(participant.getScore()))
+                .color(NamedTextColor.GOLD));
     }
 }

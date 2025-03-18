@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.games.game.footrace;
 
-import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import lombok.Data;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -18,7 +17,8 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
@@ -44,7 +44,6 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,7 +52,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Data
-public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable {
+public class FootRaceGame implements Listener, MCTGame, Configurable {
     
     private @Nullable FootRaceState state;
     
@@ -71,23 +70,25 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private Sidebar sidebar;
     private Sidebar adminSidebar;
     private int timerRefreshTaskId;
-    private List<Player> participants;
-    private List<Player> admins;
-    private Map<UUID, Long> lapCooldowns;
-    private Map<UUID, Integer> laps;
+    private List<Player> admins = new ArrayList<>();
+    
+    private Map<UUID, FootRaceParticipant> participants = new HashMap<>();
     /**
-     * the index of each participant's current checkpoint. (the checkpoint they just passed).
+     * Holds the data for participants when they have quit mid-round
      */
-    private Map<UUID, Integer> currentCheckpoints;
-    /**
-     * Participants who have finished the race, stored in standing order
-     * (first entry came in first place, second entry came in second place, etc.)
-     */
-    private List<UUID> finishedParticipants;
+    private Map<UUID, FootRaceParticipant.QuitData> quitDatas = new HashMap<>();
+    private Map<String, FootRaceTeam> teams = new HashMap<>();
+    private Map<String, FootRaceTeam.QuitData> teamQuitDatas = new HashMap<>();
     /**
      * what place every participant is in at any given moment in the race
      */
-    private List<Player> standings;
+    private List<FootRaceParticipant> standings;
+    /**
+     * Keeps track of how many participants have finished the race, so we can know 
+     * what place a player should be in when they finish
+     * TODO: Participant would {@link #standings} be sufficient for this?
+     */
+    private int numOfFinishedParticipants = 0;
     private long raceStartTime;
     private int statusEffectsTaskId;
     private int standingsDisplayTaskId;
@@ -127,12 +128,15 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     @Override
-    public void start(List<Player> newParticipants, List<Player> newAdmins) {
-        this.participants = new ArrayList<>(newParticipants.size());
-        lapCooldowns = new HashMap<>(newParticipants.size());
-        laps = new HashMap<>(newParticipants.size());
-        currentCheckpoints = new HashMap<>(newParticipants.size());
-        finishedParticipants = new ArrayList<>(newParticipants.size());
+    public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
+        this.participants = new HashMap<>(newParticipants.size());
+        this.teams = new HashMap<>(newTeams.size());
+        for (Team newTeam : newTeams) {
+            FootRaceTeam team = new FootRaceTeam(newTeam, 0);
+            this.teams.put(team.getTeamId(), team);
+        }
+        this.quitDatas = new HashMap<>();
+        this.teamQuitDatas = new HashMap<>();
         standings = new ArrayList<>(newParticipants.size());
         admins = new ArrayList<>(newAdmins.size());
         sidebar = gameManager.createSidebar();
@@ -140,15 +144,13 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
         closeGlassBarrier();
-        for (Player participant : newParticipants) {
+        for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
         startAdmins(newAdmins);
         initializeSidebar();
-        if (!config.useLegacy()) {
-            updateStandings();
-            displayStandings();
-        }
+        updateStandings();
+        displayStandings();
         startStatusEffectsTask();
         setupTeamOptions();
         state = new DescriptionState(this);
@@ -158,17 +160,11 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     public void updateStandings() {
         standings = standings.stream()
                 .sorted((participant1, participant2) -> {
-                    UUID uuid1 = participant1.getUniqueId();
-                    UUID uuid2 = participant2.getUniqueId();
-                    boolean finished1 = finishedParticipants.contains(uuid1);
-                    boolean finished2 = finishedParticipants.contains(uuid2);
-                    if (finished1 || finished2) {
-                        if (finished1 && finished2) {
-                            int placement1 = finishedParticipants.indexOf(uuid1);
-                            int placement2 = finishedParticipants.indexOf(uuid2);
-                            return placement1 - placement2;
+                    if (participant1.isFinished() || participant2.isFinished()) {
+                        if (participant1.isFinished() && participant2.isFinished()) {
+                            return participant1.getPlacement() - participant2.getPlacement();
                         } else {
-                            if (finished1) {
+                            if (participant1.isFinished()) {
                                 return -1;
                             } else {
                                 return 1;
@@ -176,14 +172,12 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                         }
                     }
                     
-                    int currentLap1 = laps.get(uuid1);
-                    int currentLap2 = laps.get(uuid2);
-                    if (currentLap1 != currentLap2) {
-                        return currentLap2 - currentLap1; // Reverse order
+                    if (participant1.getLap() != participant2.getLap()) {
+                        return participant2.getLap() - participant1.getLap(); // Reverse order
                     }
                     
-                    int nextCheckpoint1 = MathUtils.wrapIndex(currentCheckpoints.get(uuid1) + 1, config.getCheckpoints().size());
-                    int nextCheckpoint2 = MathUtils.wrapIndex(currentCheckpoints.get(uuid2) + 1, config.getCheckpoints().size());
+                    int nextCheckpoint1 = MathUtils.wrapIndex(participant1.getCurrentCheckpoint() + 1, config.getCheckpoints().size());
+                    int nextCheckpoint2 = MathUtils.wrapIndex(participant2.getCurrentCheckpoint() + 1, config.getCheckpoints().size());
                     if (nextCheckpoint1 != nextCheckpoint2) {
                         return nextCheckpoint2 - nextCheckpoint1; // Reverse order
                     }
@@ -201,10 +195,9 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     public void displayStandings() {
         for (int i = 0; i < standings.size(); i++) {
-            Player participant = standings.get(i);
-            UUID uuid = participant.getUniqueId();
+            FootRaceParticipant participant = standings.get(i);
             List<KeyLine> standingLines = createStandingLines(i);
-            sidebar.updateLines(uuid, standingLines);
+            sidebar.updateLines(participant.getUniqueId(), standingLines);
         }
         adminSidebar.updateLines(createStandingLines(0));
     }
@@ -264,7 +257,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         this.statusEffectsTaskId = new BukkitRunnable(){
             @Override
             public void run() {
-                for (Player participant : participants) {
+                for (Participant participant : participants.values()) {
                     participant.addPotionEffect(SPEED);
                     participant.addPotionEffect(INVISIBILITY);
                 }
@@ -274,21 +267,19 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     private void setupTeamOptions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
-        for (Team team : mctScoreboard.getTeams()) {
+        for (org.bukkit.scoreboard.Team team : mctScoreboard.getTeams()) {
             team.setAllowFriendlyFire(false);
             team.setCanSeeFriendlyInvisibles(true);
-            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
+            team.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+            team.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+            team.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.NEVER);
         }
     }
     
-    public void initializeParticipant(Player participant) {
-        UUID participantUUID = participant.getUniqueId();
-        participants.add(participant);
-        lapCooldowns.put(participantUUID, System.currentTimeMillis());
-        laps.put(participantUUID, 1);
-        currentCheckpoints.put(participantUUID, config.getCheckpoints().size() - 1);
+    public void initializeParticipant(Participant newParticipant) {
+        FootRaceParticipant participant = new FootRaceParticipant(newParticipant, config.getCheckpoints().size() - 1, 0);
+        participants.put(participant.getUniqueId(), participant);
+        teams.get(participant.getTeamId()).addParticipant(participant);
         standings.add(participant);
         sidebar.addPlayer(participant);
         participant.teleport(config.getStartingLocation());
@@ -300,8 +291,8 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
-    public void giveBoots(Player participant) {
-        Color teamColor = gameManager.getTeamColor(participant.getUniqueId());
+    public void giveBoots(Participant participant) {
+        Color teamColor = gameManager.getTeam(participant).getBukkitColor();
         ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
         LeatherArmorMeta meta = (LeatherArmorMeta) boots.getItemMeta();
         meta.setColor(teamColor);
@@ -315,18 +306,36 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         closeGlassBarrier();
         cancelAllTasks();
         stopAdmins();
-        for (Player participant : participants) {
+        saveScores();
+        for (FootRaceParticipant participant : participants.values()) {
             resetParticipant(participant);
         }
         clearSidebar();
         participants.clear();
-        lapCooldowns.clear();
-        laps.clear();
-        finishedParticipants.clear();
-        currentCheckpoints.clear();
+        teams.clear();
+        quitDatas.clear();
+        teamQuitDatas.clear();
         standings.clear();
         gameManager.gameIsOver();
         Main.logger().info("Stopping Foot Race game");
+    }
+    
+    private void saveScores() {
+        Map<String, Integer> teamScores = new HashMap<>();
+        Map<UUID, Integer> participantScores = new HashMap<>();
+        for (FootRaceTeam team : teams.values()) {
+            teamScores.put(team.getTeamId(), team.getScore());
+        }
+        for (FootRaceParticipant participant : participants.values()) {
+            participantScores.put(participant.getUniqueId(), participant.getScore());
+        }
+        for (Map.Entry<String, FootRaceTeam.QuitData> entry : teamQuitDatas.entrySet()) {
+            teamScores.put(entry.getKey(), entry.getValue().getScore());
+        }
+        for (Map.Entry<UUID, FootRaceParticipant.QuitData> entry : quitDatas.entrySet()) {
+            participantScores.put(entry.getKey(), entry.getValue().getScore());
+        }
+        gameManager.addScores(teamScores, participantScores);
     }
     
     private void cancelAllTasks() {
@@ -336,24 +345,50 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         timerManager.cancel();
     }
     
-    public void resetParticipant(Player participant) {
+    public void resetParticipant(FootRaceParticipant participant) {
+        teams.get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         sidebar.removePlayer(participant);
     }
     
-    @Override
-    public void onParticipantJoin(Player participant) {
-        if (state != null) {
-            state.onParticipantJoin(participant);
+    public void onTeamJoin(Team team) {
+        if (teams.containsKey(team.getTeamId())) {
+            return;
+        }
+        FootRaceTeam.QuitData quitData = teamQuitDatas.get(team.getTeamId());
+        if (quitData != null) {
+            teams.put(team.getTeamId(), new FootRaceTeam(team, quitData.getScore()));
+        } else {
+            teams.put(team.getTeamId(), new FootRaceTeam(team, 0));
         }
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
         if (state != null) {
-            state.onParticipantQuit(participant);
+            state.onParticipantJoin(participant, team);
+        }
+    }
+    
+    public void onTeamQuit(FootRaceTeam team) {
+        if (team.size() > 0) {
+            return;
+        }
+        FootRaceTeam removed = teams.remove(team.getTeamId());
+        teamQuitDatas.put(team.getTeamId(), removed.getQuitData());
+    }
+    
+    @Override
+    public void onParticipantQuit(UUID participantUUID, String teamId) {
+        FootRaceParticipant footRaceParticipant = participants.get(participantUUID);
+        if (footRaceParticipant == null) {
+            return;
+        }
+        FootRaceTeam footRaceTeam = teams.get(teamId);
+        if (state != null) {
+            state.onParticipantQuit(footRaceParticipant, footRaceTeam);
         }
     }
     
@@ -409,28 +444,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         adminSidebar.removePlayer(admin);
     }
     
-    @Override
-    public void updateTeamScore(Player participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
-    }
-    
-    @Override
-    public void updatePersonalScore(Player participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
-    }
-    
     private void clearAdminSidebar() {
         adminSidebar.deleteAllLines();
         adminSidebar = null;
@@ -442,7 +455,9 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                 new KeyLine("personalScore", ""),
                 new KeyLine("title", title),
                 new KeyLine("elapsedTime", "00:00:000"),
-                new KeyLine("lap", String.format("Lap: %d/%d", 1, config.getLaps())),
+                new KeyLine("lap", Component.empty()
+                        .append(Component.text("Lap: 1/"))
+                        .append(Component.text(config.getLaps()))),
                 new KeyLine("timer", Component.empty()),
                 new KeyLine("standing1", Component.empty()),
                 new KeyLine("standing2", Component.empty()),
@@ -450,6 +465,30 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                 new KeyLine("standing4", Component.empty()),
                 new KeyLine("standing5", Component.empty())
         );
+        for (FootRaceTeam team : teams.values()) {
+            displayScore(team);
+        }
+        for (FootRaceParticipant participant : participants.values()) {
+            displayScore(participant);
+        }
+    }
+    
+    public void displayScore(FootRaceTeam team) {
+        Component contents = Component.empty()
+                .append(team.getFormattedDisplayName())
+                .append(Component.text(": "))
+                .append(Component.text(team.getScore())
+                        .color(NamedTextColor.GOLD));
+        for (UUID memberUUID : team.getMemberUUIDs()) {
+            sidebar.updateLine(memberUUID, "personalTeam", contents);
+        }
+    }
+    
+    public void displayScore(FootRaceParticipant participant) {
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", Component.empty()
+                .append(Component.text("Personal: "))
+                .append(Component.text(participant.getScore()))
+                .color(NamedTextColor.GOLD));
     }
     
     private void clearSidebar() {
@@ -464,7 +503,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         if (config.getSpectatorArea() == null){
             return;
         }
-        if (!participants.contains(event.getPlayer())) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
@@ -489,8 +528,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         if (event.getCurrentItem() == null) {
             return;
         }
-        Player participant = ((Player) event.getWhoClicked());
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(event.getWhoClicked().getUniqueId())) {
             return;
         }
         event.setCancelled(true);
@@ -501,8 +539,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
      */
     @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
-        Player participant = event.getPlayer();
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         event.setCancelled(true);
@@ -513,10 +550,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
-        if (!(event.getEntity() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(event.getEntity().getUniqueId())) {
             return;
         }
         Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "FootraceGame.onPlayerDamage() cancelled");
@@ -525,10 +559,8 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     @EventHandler
     public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        if (!(event.getEntity() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
+        Participant participant = participants.get(event.getEntity().getUniqueId());
+        if (participant == null) {
             return;
         }
         participant.setFoodLevel(20);
@@ -541,7 +573,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         if (clickedBlock == null) {
             return;
         }
-        if (!participants.contains(event.getPlayer())) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         Material blockType = clickedBlock.getType();
@@ -555,8 +587,8 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
-        Player participant = event.getPlayer();
-        if (!participants.contains(participant)) {
+        FootRaceParticipant participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
             return;
         }
         if (state != null) {
@@ -572,7 +604,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
      * @param participant the participant (assumed to be a valid participant of this game in the SPECTATOR gamemode
      * @param event the event which may be cancelled in order to keep the given participant in the spectator area
      */
-    private void keepSpectatorsInArea(@NotNull Player participant, PlayerMoveEvent event) {
+    private void keepSpectatorsInArea(@NotNull Participant participant, PlayerMoveEvent event) {
         if (config.getSpectatorArea() == null){
             return;
         }
@@ -587,6 +619,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     public void messageAllParticipants(Component message) {
         gameManager.messageAdmins(message);
-        Audience.audience(participants).sendMessage(message);
+        Audience.audience(participants.values()).sendMessage(message);
     }
 }

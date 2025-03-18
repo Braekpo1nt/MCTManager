@@ -17,6 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 class MCTPlayerDTO implements Validatable {
     private UUID uniqueId;
+    private String name;
     private int score;
     @SerializedName(value = "teamId", alternate = {"teamName"})
     private String teamId;
@@ -24,6 +25,7 @@ class MCTPlayerDTO implements Validatable {
     @Override
     public void validate(@NotNull Validator validator) {
         validator.notNull(uniqueId, "uniqueId");
+        validator.notNull(name, "name");
         validator.validate(score >= 0, "score can't be negative");
         validator.notNull(teamId, "teamId");
     }
@@ -39,6 +41,7 @@ class MCTPlayerDTO implements Validatable {
     static MCTPlayerDTO fromMCTPlayer(MCTPlayer mctPlayer) {
         return new MCTPlayerDTO(
                 mctPlayer.getUniqueId(),
+                mctPlayer.getName(),
                 mctPlayer.getScore(),
                 mctPlayer.getTeamId());
     }
@@ -46,6 +49,7 @@ class MCTPlayerDTO implements Validatable {
     MCTPlayer toMCTPlayer() {
         return MCTPlayer.builder()
                 .uniqueId(this.uniqueId)
+                .name(this.name)
                 .score(this.score)
                 .teamId(this.teamId)
                 .build();

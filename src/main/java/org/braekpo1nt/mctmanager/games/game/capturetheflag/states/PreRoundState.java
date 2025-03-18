@@ -2,17 +2,18 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag.states;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.MatchPairing;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.RoundManager;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.*;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
-import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -34,7 +35,7 @@ public class PreRoundState implements CaptureTheFlagState {
         this.roundManager = context.getRoundManager();
         
         context.updateRoundLine();
-        for (Player participant : context.getParticipants()) {
+        for (Participant participant : context.getParticipants().values()) {
             announceMatchToParticipant(participant);
         }
         setUpTopbarForRound();
@@ -49,39 +50,38 @@ public class PreRoundState implements CaptureTheFlagState {
                 .build());
     }
     
-    private void announceMatchToParticipant(Player participant) {
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
-        Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
+    private void announceMatchToParticipant(Participant participant) {
         List<MatchPairing> currentRound = roundManager.getCurrentRound();
-        String oppositeTeamId = RoundManager.getOppositeTeam(teamId, currentRound);
+        TeamData<CTFParticipant> team = context.getTeams().get(participant.getTeamId());
+        String oppositeTeamId = RoundManager.getOppositeTeam(team.getTeamId(), currentRound);
+        TeamData<CTFParticipant> oppositeTeam = context.getTeams().get(oppositeTeamId);
         Component roundDisplay = Component.empty()
                 .append(Component.text("Round "))
                 .append(Component.text(roundManager.getPlayedRounds() + 1))
                 .append(Component.text(":"));
-        if (oppositeTeamId != null) {
-            Component oppositeTeamDisplayName = gameManager.getFormattedTeamDisplayName(oppositeTeamId);
+        if (oppositeTeam != null) {
             participant.sendMessage(Component.empty()
-                    .append(teamDisplayName)
+                    .append(team.getFormattedDisplayName())
                     .append(Component.text(" is competing against "))
-                    .append(oppositeTeamDisplayName)
+                    .append(oppositeTeam.getFormattedDisplayName())
                     .append(Component.text(" this round."))
                     .color(NamedTextColor.YELLOW));
             participant.showTitle(UIUtils.defaultTitle(
                     roundDisplay,
                     Component.empty()
-                            .append(teamDisplayName)
+                            .append(team.getFormattedDisplayName())
                             .append(Component.text(" vs "))
-                            .append(oppositeTeamDisplayName)
+                            .append(oppositeTeam.getFormattedDisplayName())
             ));
         } else {
             participant.sendMessage(Component.empty()
-                    .append(teamDisplayName)
+                    .append(team.getFormattedDisplayName())
                     .append(Component.text(" is on-deck this round."))
                     .color(NamedTextColor.YELLOW));
             participant.showTitle(UIUtils.defaultTitle(
                     roundDisplay,
                     Component.empty()
-                            .append(teamDisplayName)
+                            .append(team.getFormattedDisplayName())
                             .append(Component.text(" is on-deck"))));
         }
     }
@@ -90,15 +90,15 @@ public class PreRoundState implements CaptureTheFlagState {
         List<MatchPairing> roundMatchPairings = roundManager.getCurrentRound();
         topbar.removeAllTeamPairs();
         for (MatchPairing mp : roundMatchPairings) {
-            NamedTextColor northColor = gameManager.getTeamColor(mp.northTeam());
-            NamedTextColor southColor = gameManager.getTeamColor(mp.southTeam());
+            TextColor northColor = gameManager.getTeamColor(mp.northTeam());
+            TextColor southColor = gameManager.getTeamColor(mp.southTeam());
             topbar.addTeam(mp.northTeam(), northColor);
             topbar.addTeam(mp.southTeam(), southColor);
             topbar.linkTeamPair(mp.northTeam(), mp.southTeam());
             int northAlive = 0;
             int southAlive = 0;
-            for (Player participant : context.getParticipants()) {
-                String teamId = gameManager.getTeamId(participant.getUniqueId());
+            for (Participant participant : context.getParticipants().values()) {
+                String teamId = participant.getTeamId();
                 if (mp.northTeam().equals(teamId)) {
                     topbar.linkToTeam(participant.getUniqueId(), teamId);
                     northAlive++;
@@ -113,14 +113,14 @@ public class PreRoundState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
-        context.initializeParticipant(participant);
-        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
-        if (!context.getRoundManager().containsTeamId(teamId)) {
-            List<String> teamIds = context.getGameManager().getTeamIds(context.getParticipants());
-            context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
+    public void onParticipantJoin(Participant participant, Team team) {
+        context.onTeamJoin(team);
+        CTFParticipant.QuitData quitData = context.getQuitDatas().remove(participant.getUniqueId());
+        if (quitData == null) {
+            context.initializeParticipant(participant);
+        } else {
+            context.initializeParticipant(participant, quitData.getKills(), quitData.getDeaths(), quitData.getScore());
         }
-        context.updateRoundLine();
         participant.setGameMode(GameMode.ADVENTURE);
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
@@ -128,15 +128,11 @@ public class PreRoundState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(CTFParticipant participant) {
+        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
         context.resetParticipant(participant);
-        context.getParticipants().remove(participant);
-        String quitTeamId = context.getGameManager().getTeamId(participant.getUniqueId());
-        List<String> teamIds = context.getGameManager().getTeamIds(context.getParticipants());
-        if (!teamIds.contains(quitTeamId)) {
-            context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
-            context.updateRoundLine();
-        }
+        context.getParticipants().remove(participant.getUniqueId());
+        context.onTeamQuit(context.getTeams().get(participant.getTeamId()));
     }
     
     @Override

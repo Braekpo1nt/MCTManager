@@ -17,7 +17,8 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
@@ -43,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 @Data
-public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Headerable {
+public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     
     public @Nullable CaptureTheFlagState state;
     
@@ -60,10 +61,12 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private Sidebar adminSidebar;
     private CaptureTheFlagConfigController configController;
     private CaptureTheFlagConfig config;
-    private List<Player> participants = new ArrayList<>();
+    private Map<UUID, CTFParticipant> participants = new HashMap<>();
+    private Map<UUID, CTFParticipant.QuitData> quitDatas = new HashMap<>();
+    private Map<String, CTFTeam> teams = new HashMap<>();
+    private Map<String, CTFTeam> quitTeams = new HashMap<>();
+    private Map<String, CTFTeam.QuitData> teamQuitDatas = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
-    private Map<UUID, Integer> killCount = new HashMap<>();
-    private Map<UUID, Integer> deathCount = new HashMap<>();
     
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -104,17 +107,23 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public void start(List<Player> newParticipants, List<Player> newAdmins) {
+    public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
-        participants = new ArrayList<>(newParticipants.size());
+        teams = new HashMap<>(newTeams.size());
+        for (Team newTeam : newTeams) {
+            CTFTeam team = new CTFTeam(newTeam, 0);
+            teams.put(team.getTeamId(), team);
+        }
+        participants = new HashMap<>(newParticipants.size());
+        this.quitDatas = new HashMap<>();
+        this.teamQuitDatas = new HashMap<>();
+        this.quitTeams = new HashMap<>();
         sidebar = gameManager.createSidebar();
         adminSidebar = gameManager.createSidebar();
-        List<String> teamIds = gameManager.getTeamIds(newParticipants);
+        Set<String> teamIds = Participant.getTeamIds(newParticipants);
         roundManager = new RoundManager(teamIds, config.getArenas().size());
-        killCount = new HashMap<>(newParticipants.size());
-        deathCount = new HashMap<>(newParticipants.size());
-        for (Player participant : newParticipants) {
+        for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
         initializeSidebar();
@@ -124,22 +133,26 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         Main.logger().info("Starting Capture the Flag");
     }
     
-    public void initializeParticipant(Player participant) {
-        participants.add(participant);
+    public void initializeParticipant(Participant newParticipant) {
+        initializeParticipant(newParticipant, 0, 0, 0);
+    }
+    
+    public void initializeParticipant(Participant newParticipant, int kills, int deaths, int score) {
+        CTFParticipant participant = new CTFParticipant(newParticipant, kills, deaths, score);
+        participants.put(participant.getUniqueId(), participant);
+        CTFTeam team = teams.get(participant.getTeamId());
+        team.addParticipant(participant);
         sidebar.addPlayer(participant);
         topbar.showPlayer(participant);
-        killCount.putIfAbsent(participant.getUniqueId(), 0);
-        deathCount.putIfAbsent(participant.getUniqueId(), 0);
         participant.setGameMode(GameMode.ADVENTURE);
         participant.teleport(config.getSpawnObservatory());
         participant.setRespawnLocation(config.getSpawnObservatory());
         ParticipantInitializer.clearInventory(participant);
-        int kills = killCount.get(participant.getUniqueId());
-        int deaths = deathCount.get(participant.getUniqueId());
         topbar.setKillsAndDeaths(participant.getUniqueId(), kills, deaths);
     }
     
-    public void resetParticipant(Player participant) {
+    public void resetParticipant(CTFParticipant participant) {
+        teams.get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -175,10 +188,13 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (state != null) {
             state.stop();
         }
-        for (Player participant : participants) {
+        saveScores();
+        for (CTFParticipant participant : participants.values()) {
             resetParticipant(participant);
         }
         participants.clear();
+        quitDatas.clear();
+        teams.clear();
         stopAdmins();
         clearSidebar();
         state = null;
@@ -186,26 +202,79 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         Main.logger().info("Stopping Capture the Flag");
     }
     
-    @Override
-    public void onParticipantJoin(Player participant) {
-        if (state == null) {
+    private void saveScores() {
+        Map<String, Integer> teamScores = new HashMap<>();
+        Map<UUID, Integer> participantScores = new HashMap<>();
+        for (CTFTeam team : teams.values()) {
+            teamScores.put(team.getTeamId(), team.getScore());
+        }
+        for (CTFParticipant participant : participants.values()) {
+            participantScores.put(participant.getUniqueId(), participant.getScore());
+        }
+        for (Map.Entry<String, CTFTeam.QuitData> entry : teamQuitDatas.entrySet()) {
+            teamScores.put(entry.getKey(), entry.getValue().getScore());
+        }
+        for (Map.Entry<UUID, CTFParticipant.QuitData> entry : quitDatas.entrySet()) {
+            participantScores.put(entry.getKey(), entry.getValue().getScore());
+        }
+        gameManager.addScores(teamScores, participantScores);
+    }
+    
+    /**
+     * Called when a team has a member join, even if members of that team are already present
+     * @param team the team which had a member join
+     */
+    public void onTeamJoin(Team team) {
+        if (teams.containsKey(team.getTeamId())) {
             return;
         }
-        state.onParticipantJoin(participant);
-        if (sidebar != null) {
-            sidebar.updateLine(participant.getUniqueId(), "title", title);
+        CTFTeam.QuitData quitData = teamQuitDatas.remove(team.getTeamId());
+        quitTeams.remove(team.getTeamId());
+        if (quitData != null) {
+            teams.put(team.getTeamId(), new CTFTeam(team, quitData));
+        } else {
+            teams.put(team.getTeamId(), new CTFTeam(team, 0));
         }
+        roundManager.regenerateRounds(Team.getTeamIds(teams),
+                config.getArenas().size());
+        updateRoundLine();
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantJoin(Participant participant, Team team) {
         if (state == null) {
             return;
         }
-        if (!participants.contains(participant)) {
+        state.onParticipantJoin(participant, team);
+        state.updateSidebar(participant, this);
+    }
+    
+    @Override
+    public void onParticipantQuit(UUID participantUUID, String teamId) {
+        if (state == null) {
+            return;
+        }
+        CTFParticipant participant = participants.get(participantUUID);
+        if (participant == null) {
             return;
         }
         state.onParticipantQuit(participant);
+    }
+    
+    /**
+     * called when a participant on the given team quits, not just when the last member quits
+     * @param team the team that had a member quit
+     */
+    public void onTeamQuit(CTFTeam team) {
+        if (team.size() > 0) {
+            return;
+        }
+        CTFTeam removed = teams.remove(team.getTeamId());
+        teamQuitDatas.put(team.getTeamId(), removed.getQuitData());
+        quitTeams.put(team.getTeamId(), team);
+        roundManager.regenerateRounds(Team.getTeamIds(teams),
+                config.getArenas().size());
+        updateRoundLine();
     }
     
     @Override
@@ -235,26 +304,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         admins.clear();
     }
     
-    /**
-     * @param playerUUID the player to add a kill to
-     */
-    public void addKill(@NotNull UUID playerUUID) {
-        int oldKillCount = killCount.get(playerUUID);
-        int newKillCount = oldKillCount + 1;
-        killCount.put(playerUUID, newKillCount);
-        topbar.setKills(playerUUID, newKillCount);
-    }
-    
-    /**
-     * @param playerUUID the player to add a death to
-     */
-    public void addDeath(@NotNull UUID playerUUID) {
-        int oldDeathCount = deathCount.get(playerUUID);
-        int newDeathCount = oldDeathCount + 1;
-        deathCount.put(playerUUID, newDeathCount);
-        topbar.setDeaths(playerUUID, newDeathCount);
-    }
-    
     private void initializeSidebar() {
         sidebar.addLines(
                 new KeyLine("personalTeam", ""),
@@ -262,6 +311,22 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
                 new KeyLine("title", title),
                 new KeyLine("round", "")
         );
+        for (CTFTeam team : teams.values()) {
+            displayScore(team);
+        }
+        for (CTFParticipant participant : participants.values()) {
+            displayScore(participant);
+        }
+    }
+    
+    public void updateRoundLine(UUID participantUUID) {
+        Component roundLine = Component.empty()
+                .append(Component.text("Round "))
+                .append(Component.text(roundManager.getPlayedRounds() + 1))
+                .append(Component.text("/"))
+                .append(Component.text(roundManager.getMaxRounds()))
+                ;
+        sidebar.updateLine(participantUUID, "round", roundLine);
     }
     
     public void updateRoundLine() {
@@ -295,26 +360,22 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         adminSidebar = null;
     }
     
-    @Override
-    public void updateTeamScore(Player participant, Component contents) {
-        if (sidebar == null) {
-            return;
+    public void displayScore(CTFTeam team) {
+        Component contents = Component.empty()
+                .append(team.getFormattedDisplayName())
+                .append(Component.text(": "))
+                .append(Component.text(team.getScore())
+                        .color(NamedTextColor.GOLD));
+        for (UUID memberUUID : team.getMemberUUIDs()) {
+            sidebar.updateLine(memberUUID, "personalTeam", contents);
         }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
     }
     
-    @Override
-    public void updatePersonalScore(Player participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
+    public void displayScore(CTFParticipant participant) {
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", Component.empty()
+                .append(Component.text("Personal: "))
+                .append(Component.text(participant.getScore()))
+                .color(NamedTextColor.GOLD));
     }
     
     private void cancelAllTasks() {
@@ -337,10 +398,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
-        if (!(event.getEntity() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(event.getEntity().getUniqueId())) {
             return;
         }
         state.onPlayerDamage(event);
@@ -351,8 +409,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (state == null) {
             return;
         }
-        Player participant = (Player) event.getEntity();
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(event.getEntity().getUniqueId())) {
             return;
         }
         state.onPlayerLoseHunger(event);
@@ -363,8 +420,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (state == null) {
             return;
         }
-        Player participant = (Player) event.getWhoClicked();
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(event.getWhoClicked().getUniqueId())) {
             return;
         }
         state.onClickInventory(event);
@@ -378,8 +434,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (state == null) {
             return;
         }
-        Player participant = event.getPlayer();
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         event.setCancelled(true);
@@ -391,7 +446,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (clickedBlock == null) {
             return;
         }
-        if (!participants.contains(event.getPlayer())) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         Material blockType = clickedBlock.getType();
@@ -406,8 +461,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (state == null) {
             return;
         }
-        Player participant = event.getPlayer();
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         boolean cancelled = handleSpectators(event);
@@ -448,7 +502,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (config.getSpectatorArea() == null){
             return;
         }
-        if (!participants.contains(event.getPlayer())) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
@@ -468,7 +522,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
      */
     public void messageAllParticipants(Component message) {
         gameManager.messageAdmins(message);
-        for (Player participant : participants) {
+        for (Participant participant : participants.values()) {
             participant.sendMessage(message);
         }
     }

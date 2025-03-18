@@ -24,8 +24,7 @@ record FootRaceConfigDTO(
         String world, 
         int laps, // must be at least 1 lap. for backwards compatibility, excluding this or putting a number less than 1 results in 1 lap in-game, rather than a validation error
         LocationDTO startingLocation, 
-        @Nullable BoundingBox finishLine,
-        @Nullable List<BoundingBox> checkpoints,
+        List<BoundingBox> checkpoints,
         @Nullable BoundingBox spectatorArea, 
         BoundingBox glassBarrier,
         @Nullable List<Material> preventInteractions,
@@ -40,25 +39,20 @@ record FootRaceConfigDTO(
         validator.notNull(this.world(), "world");
         validator.notNull(Bukkit.getWorld(this.world()), "Could not find world \"%s\"", this.world());
         validator.notNull(this.startingLocation(), "startingLocation");
-        if (this.checkpoints == null) {
-            validator.validate(this.finishLine != null, "finishLine can't be null if checkpoints is null");
-            validator.validate(this.finishLine.getVolume() >= 1.0, "finishLine's volume (%s) can't be less than 1. %s", finishLine.getVolume(), finishLine);
-            validator.validate(!finishLine.contains(this.startingLocation().toVector()), "startingLocation (%S) can't be inside finishLine (%S)", this.startingLocation(), finishLine);
-        } else {
-            validator.validate(this.checkpoints.size() >= 2, "checkpoints must have at least 2 elements");
-            List<BoundingBox> realCheckpoints = new ArrayList<>(this.checkpoints.size());
-            for (int i = 0; i < this.checkpoints.size(); i++) {
-                BoundingBox checkpoint = this.checkpoints.get(i);
-                validator.notNull(checkpoint, "checkpoints[%d]", i);
-                validator.validate(checkpoint.getVolume() >= 1.0, "checkpoints[%d]'s volume must be at least 1.0", i);
-                realCheckpoints.add(checkpoint);
-            }
-            for (int i = 0; i < realCheckpoints.size(); i++) {
-                BoundingBox checkpoint = realCheckpoints.get(i);
-                for (int j = i + 1; j < realCheckpoints.size(); j++) {
-                    BoundingBox other = realCheckpoints.get(j);
-                    validator.validate(!checkpoint.overlaps(other), "checkpoints[%d] can't overlap checkpoints[%d]", i, j);
-                }
+        validator.notNull(this.checkpoints, "checkpoints");
+        validator.validate(this.checkpoints.size() >= 2, "checkpoints must have at least 2 elements");
+        List<BoundingBox> realCheckpoints = new ArrayList<>(this.checkpoints.size());
+        for (int i = 0; i < this.checkpoints.size(); i++) {
+            BoundingBox checkpoint = this.checkpoints.get(i);
+            validator.notNull(checkpoint, "checkpoints[%d]", i);
+            validator.validate(checkpoint.getVolume() >= 1.0, "checkpoints[%d]'s volume must be at least 1.0", i);
+            realCheckpoints.add(checkpoint);
+        }
+        for (int i = 0; i < realCheckpoints.size(); i++) {
+            BoundingBox checkpoint = realCheckpoints.get(i);
+            for (int j = i + 1; j < realCheckpoints.size(); j++) {
+                BoundingBox other = realCheckpoints.get(j);
+                validator.validate(!checkpoint.overlaps(other), "checkpoints[%d] can't overlap checkpoints[%d]", i, j);
             }
         }
         if (spectatorArea != null) {
@@ -95,7 +89,7 @@ record FootRaceConfigDTO(
         World newWorld = Bukkit.getWorld(this.world);
         Preconditions.checkState(newWorld != null, "Could not find world \"%s\"", this.world);
         
-        FootRaceConfig.FootRaceConfigBuilder builder = FootRaceConfig.builder()
+        return FootRaceConfig.builder()
                 .world(newWorld)
                 .startingLocation(this.startingLocation.toLocation(newWorld))
                 .laps(Math.max(this.laps, 1))
@@ -109,18 +103,9 @@ record FootRaceConfigDTO(
                 .gameOverDuration(this.durations.gameOver)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .spectatorArea(this.spectatorArea)
-                .description(this.description);
-        if (this.checkpoints == null) {
-            Preconditions.checkState(this.finishLine != null, "finishLine can't be null if checkpoints is null");
-            builder
-                    .finishLine(this.finishLine)
-                    .useLegacy(true);
-        } else {
-            builder
-                    .checkpoints(new ArrayList<>(this.checkpoints))
-                    .useLegacy(false);
-        }
-        return builder.build();
+                .checkpoints(new ArrayList<>(this.checkpoints))
+                .description(this.description)
+                .build();
     }
     
     public static FootRaceConfigDTO fromConfig(@NotNull FootRaceConfig config) {
@@ -129,7 +114,6 @@ record FootRaceConfigDTO(
                 config.getWorld().getName(),
                 config.getLaps(),
                 LocationDTO.from(config.getStartingLocation()),
-                config.getFinishLine(),
                 config.getCheckpoints(),
                 config.getSpectatorArea(),
                 config.getGlassBarrier(),

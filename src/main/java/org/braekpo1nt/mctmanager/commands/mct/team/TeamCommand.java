@@ -9,15 +9,13 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.permissions.Permissible;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-
 public class TeamCommand extends CommandManager {
     
     public TeamCommand(Main plugin, GameManager gameManager, @NotNull String name) {
         super(name);
         addSubCommand(new AddSubCommand(gameManager, "add"));
-        addSubCommand(new JoinSubCommand(gameManager, "join"));
-        addSubCommand(new LeaveSubCommand(gameManager, "leave"));
+        addSubCommand(new JoinSubCommand(plugin, gameManager, "join"));
+        addSubCommand(new LeaveSubCommand(plugin, gameManager, "leave"));
         addSubCommand(new ListSubCommand(gameManager, "list"));
         addSubCommand(new RemoveSubCommand(gameManager, "remove"));
         addSubCommand(new ScoreCommand(gameManager, "score"));

@@ -1,13 +1,12 @@
 package org.braekpo1nt.mctmanager.games;
 
 import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
-import com.google.common.base.Preconditions;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
@@ -31,7 +30,10 @@ import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.hub.HubManager;
-import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
+import org.braekpo1nt.mctmanager.participant.MCTTeam;
+import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.ui.tablist.TabList;
@@ -40,7 +42,6 @@ import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -55,14 +56,15 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Responsible for overall game management. 
@@ -90,9 +92,18 @@ public class GameManager implements Listener {
     private final EventManager eventManager;
     private final TimerManager timerManager;
     /**
+     * Contains the list of all teams. Updated when teams are added/removed or when participants are 
+     * joined/left or quit/join
+     */
+    private final Map<String, MCTTeam> teams = new HashMap<>();
+    /**
+     * Contains the list of all participants, offline and online.
+     */
+    private final Map<UUID, OfflineParticipant> allParticipants = new HashMap<>();
+    /**
      * Contains the list of online participants. Updated when participants are added/removed or quit/join
      */
-    private final List<Player> onlineParticipants = new ArrayList<>();
+    private final Map<UUID, Participant> onlineParticipants = new HashMap<>();
     private final List<Player> onlineAdmins = new ArrayList<>();
     private final TabList tabList;
     
@@ -108,6 +119,50 @@ public class GameManager implements Listener {
         this.sidebarFactory = new SidebarFactory();
         this.hubManager = initializeHubManager(plugin, this);
         this.eventManager = new EventManager(plugin, this, voteManager);
+    }
+    
+    @SuppressWarnings("unused")
+    private void printStateToConsole() {
+        TextComponent.Builder builder = Component.text();
+        builder.append(Component.text("====teams (")
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text(teams.size()))
+                .append(Component.text("):"))
+                .append(Component.newline());
+        for (Map.Entry<String, MCTTeam> entry : teams.entrySet()) {
+            MCTTeam team = entry.getValue();
+            builder.append(Component.text("--"))
+                    .append(Component.text(entry.getKey()))
+                    .append(Component.text(" ("))
+                    .append(Component.text(team.getMemberUUIDs().size()))
+                    .append(Component.text("):\n"));
+            for (Participant member : team.getOnlineMembers()) {
+                builder.append(Component.text("----"))
+                        .append(member.displayName())
+                        .append(Component.newline());
+            }
+        }
+        builder.append(Component.text("====allParticipants (")
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text(allParticipants.size()))
+                .append(Component.text("):"))
+                .append(Component.newline());
+        for (OfflineParticipant p : allParticipants.values()) {
+            builder.append(Component.text("--"))
+                    .append(p.displayName())
+                    .append(Component.newline());
+        }
+        builder.append(Component.text("====onlineParticipants (")
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text(onlineParticipants.size()))
+                .append(Component.text("):"))
+                .append(Component.newline());
+        for (OfflineParticipant p : onlineParticipants.values()) {
+            builder.append(Component.text("--"))
+                    .append(p.displayName())
+                    .append(Component.newline());
+        }
+        plugin.getServer().getConsoleSender().sendMessage(builder.build());
     }
     
     /**
@@ -182,13 +237,13 @@ public class GameManager implements Listener {
     
     @EventHandler
     public void onPlayerChangeArmor(PlayerArmorChangeEvent event) {
-        Player participant = event.getPlayer();
-        if (!isParticipant(participant.getUniqueId())) {
+        Participant participant = onlineParticipants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
             return;
         }
         ItemStack newItem = event.getNewItem();
         if (isLeatherArmor(newItem)) {
-            colorLeatherArmor(newItem, participant.getUniqueId());
+            GameManagerUtils.colorLeatherArmor(newItem, teams.get(participant.getTeamId()).getBukkitColor());
             participant.getEquipment().setItem(toEquipmentSlot(event.getSlotType()), newItem);
         }
         ItemStack oldItem = event.getOldItem();
@@ -255,7 +310,7 @@ public class GameManager implements Listener {
     @EventHandler
     public void onParticipantInteract(PlayerInteractEvent event) {
         Player participant = event.getPlayer();
-        if (!onlineParticipants.contains(participant)) {
+        if (!onlineParticipants.containsKey(participant.getUniqueId())) {
             return;
         }
         if (!event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
@@ -280,22 +335,18 @@ public class GameManager implements Listener {
         return item.getItemMeta() instanceof LeatherArmorMeta;
     }
     
-    private void colorLeatherArmor(@NotNull ItemStack leatherArmor, @NotNull UUID participantUUID) {
-        Color teamColor = getTeamColor(participantUUID);
-        GameManagerUtils.colorLeatherArmor(leatherArmor, teamColor);
-    }
-    
     @EventHandler
-    public void playerQuitEvent(PlayerQuitEvent event) {
+    public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         if (isAdmin(player.getUniqueId())) {
             event.quitMessage(GameManagerUtils.replaceWithDisplayName(player, event.quitMessage()));
             onAdminQuit(player);
             return;
         }
-        if (isParticipant(player.getUniqueId())) {
+        Participant participant = onlineParticipants.get(player.getUniqueId());
+        if (participant != null) {
             event.quitMessage(GameManagerUtils.replaceWithDisplayName(player, event.quitMessage()));
-            onParticipantQuit(player);
+            onParticipantQuit(participant);
         }
     }
     
@@ -318,25 +369,28 @@ public class GameManager implements Listener {
     /**
      * Handles when a participant leaves the event.
      * Should be called when a participant disconnects (quits/leaves) from the server 
-     * (see {@link GameManager#playerQuitEvent(PlayerQuitEvent)}),
+     * (see {@link GameManager#onPlayerQuit(PlayerQuitEvent)}),
      * or when they are removed from the participants list
      * @param participant The participant who left the event
-     * @see GameManager#leavePlayer(CommandSender, OfflinePlayer, String) 
+     * @see GameManager#leaveParticipant(CommandSender, OfflineParticipant)  
      */
-    private void onParticipantQuit(@NotNull Player participant) {
-        onlineParticipants.remove(participant);
+    private void onParticipantQuit(@NotNull Participant participant) {
+        MCTTeam team = teams.get(participant.getTeamId());
+        team.quitOnlineMember(participant.getUniqueId());
+        onlineParticipants.remove(participant.getUniqueId());
         if (gameIsRunning()) {
-            activeGame.onParticipantQuit(participant);
+            activeGame.onParticipantQuit(participant.getUniqueId(), team.getTeamId());
         } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
             eventManager.onParticipantQuit(participant);
         } else if (voteManager.isVoting()) {
             voteManager.onParticipantQuit(participant);
         }
         hubManager.onParticipantQuit(participant);
-        Component displayName = Component.text(participant.getName(), NamedTextColor.WHITE);
-        participant.displayName(displayName);
-        participant.playerListName(displayName);
-        GameManagerUtils.deColorLeatherArmor(participant);
+        Component displayName = Component.text(participant.getName(), 
+                NamedTextColor.WHITE);
+        participant.getPlayer().displayName(displayName);
+        participant.getPlayer().playerListName(displayName);
+        GameManagerUtils.deColorLeatherArmor(participant.getInventory());
         tabList.hidePlayer(participant.getUniqueId());
         tabList.setParticipantGrey(participant.getUniqueId(), true);
     }
@@ -349,13 +403,10 @@ public class GameManager implements Listener {
             event.joinMessage(GameManagerUtils.replaceWithDisplayName(player, event.joinMessage()));
             return;
         }
-        if (isParticipant(player.getUniqueId())) {
-            onParticipantJoin(player);
-            event.joinMessage(GameManagerUtils.replaceWithDisplayName(player, event.joinMessage()));
-            return;
-        }
-        if (isOfflineIGN(player.getName())) {
-            onOfflineIGNJoin(player);
+        OfflineParticipant offlineParticipant = allParticipants.get(player.getUniqueId());
+        if (offlineParticipant != null) {
+            Participant participant = new Participant(offlineParticipant, player);
+            onParticipantJoin(participant);
             event.joinMessage(GameManagerUtils.replaceWithDisplayName(player, event.joinMessage()));
         }
     }
@@ -383,19 +434,21 @@ public class GameManager implements Listener {
     
     /**
      * Handles when a participant joins
-     * @param participant a player (who is an official participant) who joined
+     * @param participant the participant who joined
      */
-    private void onParticipantJoin(@NotNull Player participant) {
-        onlineParticipants.add(participant);
-        participant.setScoreboard(mctScoreboard);
+    private void onParticipantJoin(@NotNull Participant participant) {
+        MCTTeam team = teams.get(participant.getTeamId());
+        team.joinOnlineMember(participant);
+        onlineParticipants.put(participant.getUniqueId(), participant);
+        participant.getPlayer().setScoreboard(mctScoreboard);
         participant.addPotionEffect(Main.NIGHT_VISION);
-        Component displayName = getParticipantDisplayName(participant);
-        participant.displayName(displayName);
-        participant.playerListName(displayName);
+        Component displayName = Component.text(participant.getName(), team.getColor());
+        participant.getPlayer().displayName(displayName);
+        participant.getPlayer().playerListName(displayName);
         hubManager.onParticipantJoin(participant);
         if (gameIsRunning()) {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
-            activeGame.onParticipantJoin(participant);
+            activeGame.onParticipantJoin(participant, team);
         } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
             eventManager.onParticipantJoin(participant);
@@ -405,31 +458,7 @@ public class GameManager implements Listener {
         GameManagerUtils.colorLeatherArmor(this, participant);
         tabList.showPlayer(participant);
         tabList.setParticipantGrey(participant.getUniqueId(), false);
-        String teamId = getTeamId(participant.getUniqueId());
-        updatePersonalScore(participant);
-        updateTeamScore(teamId);
-    }
-    
-    /**
-     * Handles when a participant who's in-game-name (IGN) matches that of an OfflinePlayer in the GameState,
-     * meaning they have joined the server for the first time.
-     * The OfflinePlayer is transitioned to a normal participant in the game state, the player is joined to the 
-     * appropriate team, and they are alerted to their new status
-     * @param participant the participant who has joined for the first time
-     */
-    private void onOfflineIGNJoin(@NotNull Player participant) {
-        String team = getOfflineIGNTeamId(participant.getName());
-        if (team == null) {
-            // this shouldn't happen
-            return;
-        }
-        leaveOfflineIGN(Bukkit.getConsoleSender(), participant.getName());
-        joinPlayerToTeam(Bukkit.getConsoleSender(), participant, team);
-        messageAdmins(Component.empty()
-                .append(participant.displayName())
-                .append(Component.text(" was joined to "))
-                .append(getFormattedTeamDisplayName(team))
-                .append(Component.text(" because their IGN was listed in the GameState's offlinePlayers list.")));
+        updateScoreVisuals(Collections.singletonList(team), Collections.singletonList(participant));
     }
     
     public Scoreboard getMctScoreboard() {
@@ -499,45 +528,49 @@ public class GameManager implements Listener {
             reportGameStateException("loading game state", e);
             return false;
         }
-        gameStateStorageUtil.setupScoreboard(mctScoreboard);
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            player.setScoreboard(mctScoreboard);
-        }
+        gameStateStorageUtil.setupScoreboard(mctScoreboard, plugin.getServer());
+        teams.clear();
+        allParticipants.clear();
         onlineParticipants.clear();
         onlineAdmins.clear();
-        // TabList start
-        tabList.clear();
         for (String teamId : gameStateStorageUtil.getTeamIds()) {
             String teamDisplayName = gameStateStorageUtil.getTeamDisplayName(teamId);
             NamedTextColor teamColor = gameStateStorageUtil.getTeamColor(teamId);
-            int teamScore = gameStateStorageUtil.getTeamScore(teamId);
-            tabList.addTeam(teamId, teamDisplayName, teamColor);
-            tabList.setScore(teamId, teamScore);
+            List<UUID> members = gameStateStorageUtil.getParticipantUUIDsOnTeam(teamId);
+            int score = gameStateStorageUtil.getTeamScore(teamId);
+            MCTTeam team = new MCTTeam(teamId, teamDisplayName, teamColor, members, score);
+            teams.put(teamId, team);
         }
         for (UUID uuid : gameStateStorageUtil.getPlayerUniqueIds()) {
-            OfflinePlayer offlinePlayer = Bukkit.getServer().getOfflinePlayer(uuid);
-            String name = getParticipantName(offlinePlayer);
-            String teamId = gameStateStorageUtil.getPlayerTeamId(uuid);
-            boolean grey = !offlinePlayer.isOnline();
-            if (teamId != null) { // this will not be null, formality
-                tabList.joinParticipant(uuid, name, teamId, grey);
+            OfflineParticipant offlineParticipant = gameStateStorageUtil.getOfflineParticipant(uuid);
+            if (offlineParticipant != null) {
+                allParticipants.put(offlineParticipant.getUniqueId(), offlineParticipant);
             }
         }
-        for (UUID uuid : gameStateStorageUtil.getOfflinePlayerUniqueIds()) {
-            OfflinePlayer offlinePlayer = Bukkit.getServer().getOfflinePlayer(uuid);
-            String name = getParticipantName(offlinePlayer);
-            String teamId = gameStateStorageUtil.getPlayerTeamId(uuid);
-            if (teamId != null) { // this will not be null, formality
-                tabList.joinParticipant(uuid, name, teamId, true);
-            }
+        Map<UUID, Player> onlinePlayers = plugin.getServer().getOnlinePlayers().stream()
+                .collect(Collectors.toMap(Player::getUniqueId, Function.identity()));
+        // TabList start
+        tabList.clear();
+        for (MCTTeam team : teams.values()) {
+            int teamScore = gameStateStorageUtil.getTeamScore(team.getTeamId());
+            tabList.addTeam(team.getTeamId(), team.getDisplayName(), team.getColor());
+            tabList.setScore(team.getTeamId(), teamScore);
+        }
+        for (OfflineParticipant participant : allParticipants.values()) {
+            boolean grey = !onlinePlayers.containsKey(participant.getUniqueId());
+            tabList.joinParticipant(participant.getUniqueId(), participant.getName(), participant.getTeamId(), grey);
         }
         // TabList stop
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (gameStateStorageUtil.isAdmin(player.getUniqueId())) {
+        
+        // Log on all online admins and participants
+        for (Player player : onlinePlayers.values()) {
+            if (isAdmin(player.getUniqueId())) {
                 onAdminJoin(player);
             }
-            if (gameStateStorageUtil.containsPlayer(player.getUniqueId())) {
-                onParticipantJoin(player);
+            OfflineParticipant offlineParticipant = allParticipants.get(player.getUniqueId());
+            if (offlineParticipant != null) {
+                Participant participant = new Participant(offlineParticipant, player);
+                onParticipantJoin(participant);
             }
         }
         return true;
@@ -574,7 +607,7 @@ public class GameManager implements Listener {
                             .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
             return;
         }
-        voteManager.startVote(onlineParticipants, votingPool, duration, (gameType) -> startGame(gameType, sender), onlineAdmins);
+        voteManager.startVote(onlineParticipants.values(), votingPool, duration, (gameType) -> startGame(gameType, sender), onlineAdmins);
     }
     
     /**
@@ -596,7 +629,11 @@ public class GameManager implements Listener {
         return eventManager;
     }
     
-    public void removeParticipantsFromHub(List<Player> participantsToRemove) {
+    public void removeParticipantsFromHub(Map<UUID, Participant> participantsToRemove) {
+        removeParticipantsFromHub(participantsToRemove.values());
+    }
+    
+    public void removeParticipantsFromHub(Collection<Participant> participantsToRemove) {
         hubManager.removeParticipantsFromHub(participantsToRemove);
     }
     
@@ -657,7 +694,8 @@ public class GameManager implements Listener {
             }
         }
         
-        List<String> onlineTeams = getTeamIds(onlineParticipants);
+        Collection<MCTTeam> onlineTeams = MCTTeam.getOnlineTeams(teams);
+        Main.logger().info(String.format("GameManager.startGame(): onlineTeams.size()=%d, onlineParticipants.size()=%d", onlineTeams.size(), onlineParticipants.size()));
         // make sure the player and team count requirements are met
         switch (gameType) {
             case SURVIVAL_GAMES -> {
@@ -685,12 +723,51 @@ public class GameManager implements Listener {
             selectedGame.setTitle(newTitle);
         }
         
-        hubManager.removeParticipantsFromHub(onlineParticipants);
-        selectedGame.start(onlineParticipants, onlineAdmins);
+        hubManager.removeParticipantsFromHub(onlineParticipants.values());
+        selectedGame.start(new HashSet<>(onlineTeams), onlineParticipants.values(), onlineAdmins);
         activeGame = selectedGame;
-        updatePersonalScores(onlineParticipants);
-        updateTeamScores(onlineTeams);
+        updateScoreVisuals(onlineTeams, onlineParticipants.values());
         return true;
+    }
+    
+    /**
+     * @param teamIds the teamIds of the teams to get. Ignores any invalid teamIds.
+     * @return a collection of the {@link Team}s represented by the given teamIds
+     */
+    public @NotNull Set<Team> getTeams(@NotNull Collection<@NotNull String> teamIds) {
+        return new HashSet<>(getMCTTeams(teamIds));
+    }
+    
+    /**
+     * @param teamIds the teamIds of the teams to get. Ignores any invalid teamIds.
+     * @return a collection of the {@link MCTTeam}s represented by the given teamIds
+     */
+    private @NotNull Set<MCTTeam> getMCTTeams(@NotNull Collection<@NotNull String> teamIds) {
+        return teamIds.stream().map(teams::get).filter(Objects::nonNull).collect(Collectors.toSet());
+    }
+    
+    /**
+     * @return all teams
+     */
+    public @NotNull Collection<Team> getTeams() {
+        return teams.values().stream().map(mctTeam -> (Team) mctTeam).toList();
+    }
+    
+    /**
+     * @param participant the participant to get the team of
+     * @return the team that the given participant belongs to. If the Participant is not in the GameManager,
+     * the team may not exist
+     */
+    public Team getTeam(@NotNull Participant participant) {
+        return teams.get(participant.getTeamId());
+    }
+    
+    /**
+     * @param teamId the teamId to get the {@link Team} for
+     * @return the team with the given teamId, if one exists, null otherwise
+     */
+    public @Nullable Team getTeam(@NotNull String teamId) {
+        return teams.get(teamId);
     }
     
     private @NotNull Component createNewTitle(MCTGame game) {
@@ -752,7 +829,7 @@ public class GameManager implements Listener {
             shouldTeleportToHub = true;
             return;
         }
-        hubManager.returnParticipantsToHub(onlineParticipants, onlineAdmins, true);
+        hubManager.returnParticipantsToHub(onlineParticipants.values(), onlineAdmins, true);
     }
     
     public void startEditor(GameType gameType, @NotNull CommandSender sender) {
@@ -817,7 +894,7 @@ public class GameManager implements Listener {
             return;
         }
         
-        selectedEditor.start(onlineParticipants);
+        selectedEditor.start(Participant.toPlayersList(onlineParticipants.values()));
         activeEditor = selectedEditor;
     }
     
@@ -923,21 +1000,27 @@ public class GameManager implements Listener {
     }
     
     public void returnAllParticipantsToHub() {
-        hubManager.returnParticipantsToHub(onlineParticipants, onlineAdmins, false);
+        hubManager.returnParticipantsToHub(onlineParticipants.values(), onlineAdmins, false);
     }
     
     /**
      * Instantly returns the given participant to the hub
      * @param participant the participant to be returned to the hub
      */
-    public void returnParticipantToHubInstantly(Player participant) {
+    public void returnParticipantToHubInstantly(Participant participant) {
         hubManager.returnParticipantsToHub(Collections.singletonList(participant), Collections.emptyList(), false);
     }
     
-    public void returnAllParticipantsToPodium(String winningTeam) {
-        List<Player> winningTeamParticipants = getOnlinePlayersOnTeam(winningTeam);
-        List<Player> otherParticipants = new ArrayList<>();
-        for (Player participant : getOnlineParticipants()) {
+    public void returnAllParticipantsToPodium(Team winningTeam) {
+        MCTTeam team = winningTeam != null ? teams.get(winningTeam.getTeamId()) : null;
+        Collection<Participant> winningTeamParticipants;
+        if (team == null) {
+            winningTeamParticipants = Collections.emptyList();
+        } else {
+            winningTeamParticipants = team.getOnlineMembers();
+        }
+        List<Participant> otherParticipants = new ArrayList<>();
+        for (Participant participant : onlineParticipants.values()) {
             if (!winningTeamParticipants.contains(participant)) {
                 otherParticipants.add(participant);
             }
@@ -945,7 +1028,11 @@ public class GameManager implements Listener {
         hubManager.sendAllParticipantsToPodium(winningTeamParticipants, otherParticipants, onlineAdmins);
     }
     
-    public void returnParticipantToPodium(Player participant, boolean winner) {
+    /**
+     * @param participant the participant
+     * @param winner whether they are a winner
+     */
+    public void returnParticipantToPodium(Participant participant, boolean winner) {
         hubManager.sendParticipantToPodium(participant, winner);
     }
     
@@ -959,45 +1046,38 @@ public class GameManager implements Listener {
      * @param teamId The internal name of the team to remove
      */
     public void removeTeam(CommandSender sender, String teamId) {
-        if (!gameStateStorageUtil.containsTeam(teamId)) {
+        MCTTeam team = teams.get(teamId);
+        if (team == null) {
             sender.sendMessage(Component.text("Team ")
                     .append(Component.text(teamId))
                     .append(Component.text(" does not exist."))
                     .color(NamedTextColor.RED));
             return;
         }
-        leavePlayersOnTeam(sender, teamId);
+        Set<OfflineParticipant> members = team.getMemberUUIDs().stream().map(allParticipants::get).collect(Collectors.toSet());
+        for (OfflineParticipant member : members) {
+            leaveParticipant(sender, member);
+        }
+        teams.remove(team.getTeamId());
         tabList.removeTeam(teamId);
         try {
-            Component formattedTeamDisplayName = getFormattedTeamDisplayName(teamId);
             gameStateStorageUtil.removeTeam(teamId);
             sender.sendMessage(Component.text("Removed team ")
-                    .append(formattedTeamDisplayName)
+                    .append(team.getFormattedDisplayName())
                     .append(Component.text(".")));
         } catch (ConfigIOException e) {
             reportGameStateException("removing team", e);
             sender.sendMessage(Component.text("error occurred removing team, see console for details.")
                     .color(NamedTextColor.RED));
         }
-        Team team = mctScoreboard.getTeam(teamId);
-        if (team != null) {
-            team.unregister();
+        org.bukkit.scoreboard.Team scoreboardTeam = mctScoreboard.getTeam(teamId);
+        if (scoreboardTeam != null) {
+            scoreboardTeam.unregister();
+        } else {
+            Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (removeTeam)", teamId));
         }
         if (eventManager.eventIsActive()) {
             eventManager.updateTeamScores();
-        }
-    }
-    
-    private void leavePlayersOnTeam(CommandSender sender, String teamId) {
-        List<UUID> playerUniqueIds = gameStateStorageUtil.getParticipantUUIDsOnTeam(teamId);
-        for (UUID playerUniqueId : playerUniqueIds) {
-            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerUniqueId);
-            String name = offlinePlayer.getName() != null ? offlinePlayer.getName() : "unknown";
-            leavePlayer(sender, offlinePlayer, name);
-        }
-        List<String> offlineIGNs = gameStateStorageUtil.getOfflineIGNsOnTeam(teamId);
-        for (String offlineIGN : offlineIGNs) {
-            leaveOfflineIGN(sender, offlineIGN);
         }
     }
     
@@ -1006,22 +1086,28 @@ public class GameManager implements Listener {
      * @param teamId The teamId of the team. If a team with the given id already exists, nothing happens.
      * @param teamDisplayName The display name of the team.
      * @param colorString the string representing the color
+     * @return the newly created team, or null if the given team already exists or could not be created
      */
-    public void addTeam(String teamId, String teamDisplayName, String colorString) {
-        if (gameStateStorageUtil.containsTeam(teamId)) {
-            return;
+    public Team addTeam(String teamId, String teamDisplayName, String colorString) {
+        if (teams.containsKey(teamId)) {
+            return null;
         }
         try {
             gameStateStorageUtil.addTeam(teamId, teamDisplayName, colorString);
         } catch (ConfigIOException e) {
             reportGameStateException("adding score to player", e);
         }
-        Team newTeam = mctScoreboard.registerNewTeam(teamId);
-        newTeam.displayName(Component.text(teamDisplayName));
+        
         NamedTextColor color = ColorMap.getNamedTextColor(colorString);
+        MCTTeam team = new MCTTeam(teamId, teamDisplayName, color, 0);
+        teams.put(teamId, team);
+        
+        org.bukkit.scoreboard.Team newTeam = mctScoreboard.registerNewTeam(teamId);
+        newTeam.displayName(Component.text(teamDisplayName));
         newTeam.color(color);
         tabList.addTeam(teamId, teamDisplayName, color);
-        updateTeamScore(teamId);
+        updateScoreVisuals(Collections.singletonList(team), Collections.emptyList());
+        return team;
     }
     
     /**
@@ -1034,40 +1120,6 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Gets a list of all unique team names which the given participants belong to.
-     * @param participants The list of participants to get the team names of
-     * @return A list of all unique team names which the given participants belong to.
-     */
-    public List<String> getTeamIds(Collection<Player> participants) {
-        List<String> teamIds = new ArrayList<>();
-        for (Player participant : participants) {
-            String teamId = getTeamId(participant.getUniqueId());
-            if (!teamIds.contains(teamId)){
-                teamIds.add(teamId);
-            }
-        }
-        return teamIds;
-    }
-    
-    /**
-     * Gets all available unique teamIds of the given UUIDs. Ignores invalid UUIDs.
-     * @param uuids the UUIDs to get the teamIds of. Each UUID doesn't strictly have to be a valid
-     *              participant UUID, and can be the UUID of an offline player. If a teamId
-     *              is not found for a given UUID, it simply will not be included.
-     * @return A list of all unique teamIds which the given participant UUIDs belong to
-     */
-    public List<String> getTeamIdsByUUID(List<UUID> uuids) {
-        List<String> teamIds = new ArrayList<>();
-        for (UUID uuid : uuids) {
-            String teamId = getTeamId(uuid);
-            if (!teamIds.contains(teamId)) {
-                teamIds.add(teamId);
-            }
-        }
-        return teamIds;
-    }
-    
-    /**
      * Checks if the team exists in the game state
      * @param teamId The team to look for
      * @return true if the team with the given teamId exists, false otherwise.
@@ -1077,495 +1129,353 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Checs if the player exists in the game state
-     * @param playerUniqueId The UUID of the player to check for
+     * Checks if the player exists in the game state
+     * @param uuid The UUID of the participant to check for
      * @return true if the UUID is in the game state, false otherwise
      */
-    public boolean isParticipant(UUID playerUniqueId) {
-        return gameStateStorageUtil.containsPlayer(playerUniqueId);
-    }
-    
-    /**
-     * @param offlineUUID the UUID of the offline player which may be in the GameState
-     * @return true if the given UUID matches one of the offline players in the GameState, false otherwise
-     */
-    public boolean isOfflineParticipant(UUID offlineUUID) {
-        return gameStateStorageUtil.containsOfflinePlayer(offlineUUID);
-    }
-    
-    /**
-     * @param ign the in-game-name of the OfflineParticipant
-     * @return true if the ign is that of an OfflineParticipant (one who has never logged in before), false otherwise
-     */
-    public boolean isOfflineIGN(@NotNull String ign) {
-        return gameStateStorageUtil.containsOfflineIGN(ign);
+    public boolean isParticipant(UUID uuid) {
+        return allParticipants.containsKey(uuid);
     }
     
     /**
      * Joins the given player to the team with the given teamId. If the player was on a team already (not teamId) they will be removed from that team and added to the other team. 
      * Note, this will not join a player to a team if that player is an admin. 
      * @param sender the sender of the command, who will receive success/error messages
-     * @param participant The player to join to the given team
+     * @param offlinePlayer The player to join to the given team
+     * @param name The name of the participant to join to the given team
      * @param teamId The internal teamId of the team to join the player to. 
      *                 This method assumes the team exists, and will throw a 
      *                 null pointer exception if it doesn't.
      */
-    public void joinPlayerToTeam(CommandSender sender, Player participant, String teamId) {
-        UUID playerUniqueId = participant.getUniqueId();
-        if (isAdmin(playerUniqueId)) {
-            removeAdmin(sender, participant, participant.getName());
+    public void joinParticipantToTeam(CommandSender sender, @NotNull OfflinePlayer offlinePlayer, @NotNull String name, @NotNull String teamId) {
+        MCTTeam team = teams.get(teamId);
+        if (team == null) {
+            sender.sendMessage(Component.empty()
+                    .append(Component.text(teamId).decorate(TextDecoration.BOLD))
+                    .append(Component.text(" is not a valid teamId")));
+            return;
         }
-        if (isParticipant(playerUniqueId)) {
-            String originalTeamId = getTeamId(playerUniqueId);
-            if (originalTeamId.equals(teamId)) {
+        if (isAdmin(offlinePlayer.getUniqueId())) {
+            removeAdmin(sender, offlinePlayer, name);
+        }
+        OfflineParticipant existingParticipant = allParticipants.get(offlinePlayer.getUniqueId());
+        if (existingParticipant != null) {
+            if (existingParticipant.getTeamId().equals(teamId)) {
                 sender.sendMessage(Component.text()
-                        .append(Component.text(participant.getName())
-                                .decorate(TextDecoration.BOLD))
-                        .append(Component.text(" is already a member of team "))
-                        .append(Component.text(teamId))
+                        .append(existingParticipant.displayName())
+                        .append(Component.text(" is already a member of "))
+                        .append(team.getFormattedDisplayName())
                         .append(Component.text(". Nothing happened.")));
                 return;
             }
-            leavePlayer(sender, participant, participant.getName());
+            leaveParticipant(sender, existingParticipant);
         }
-        tabList.joinParticipant(participant.getUniqueId(), participant.getName(), teamId, false);
-        addNewPlayer(sender, playerUniqueId, teamId);
+        
+        org.bukkit.scoreboard.Team scoreboardTeam = mctScoreboard.getTeam(team.getTeamId());
+        if (scoreboardTeam != null) {
+            scoreboardTeam.addPlayer(offlinePlayer);
+        } else {
+            Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (joinParticipantToTeam)", team.getTeamId()));
+        }
+        
+        Component displayName = team.createDisplayName(name);
+        OfflineParticipant offlineParticipant = new OfflineParticipant(offlinePlayer.getUniqueId(), name, displayName, teamId, 0);
+        allParticipants.put(offlineParticipant.getUniqueId(), offlineParticipant);
+        team.joinMember(offlineParticipant.getUniqueId());
+        tabList.joinParticipant(
+                offlineParticipant.getUniqueId(), 
+                offlineParticipant.getName(), 
+                offlineParticipant.getTeamId(), 
+                false);
+        addParticipantToGameState(offlineParticipant);
         hubManager.updateLeaderboards();
-        NamedTextColor teamIddTextColor = getTeamColor(teamId);
-        Component displayName = Component.text(participant.getName(), teamIddTextColor);
-        participant.displayName(displayName);
-        participant.playerListName(displayName);
-        Component teamDisplayName = getFormattedTeamDisplayName(teamId);
-        participant.sendMessage(Component.text("You've been joined to team ")
-                .append(teamDisplayName));
         sender.sendMessage(Component.text("Joined ")
-                .append(displayName
-                        .decorate(TextDecoration.BOLD))
-                .append(Component.text(" to team "))
-                .append(teamDisplayName));
+                .append(offlineParticipant.displayName())
+                .append(Component.text(" to "))
+                .append(team.getFormattedDisplayName()));
+        
+        // if they are online
+        Player player = offlinePlayer.getPlayer();
+        if (player != null) {
+            Participant participant = new Participant(offlineParticipant, player);
+            participant.sendMessage(Component.text("You've been joined to team ")
+                    .append(team.getFormattedDisplayName()));
+            onParticipantJoin(participant);
+        }
     }
     
     /**
-     * @param sender the sender of the command, who will receive success/error messages
-     * @param ign The in-game-name of the participant who has never logged in before, which you are joining to the given team
-     * @param offlineUniqueId nullable. The UUID of the offline player with the ign, if you know it. 
-     * @param teamId the teamId of the team to join the participant to. Must be a valid teamId. 
+     * Adds the new participant to the {@link GameStateStorageUtil} and joins them the given team. 
+     * @param participant the participant to add to the game state
      */
-    public void joinOfflineIGNToTeam(CommandSender sender, @NotNull String ign, @NotNull UUID offlineUniqueId, @NotNull String teamId) {
-        if (isAdmin(offlineUniqueId)) {
-            OfflinePlayer offlineAdmin = Bukkit.getOfflinePlayer(offlineUniqueId);
-            removeAdmin(sender, offlineAdmin, ign);
-        }
-        if (isParticipant(offlineUniqueId)) {
-            String originalTeamId = getTeamId(offlineUniqueId);
-            if (originalTeamId.equals(teamId)) {
-                sender.sendMessage(Component.text()
-                        .append(Component.text(ign)
-                                .decorate(TextDecoration.BOLD))
-                        .append(Component.text(" is already a member of team "))
-                        .append(Component.text(teamId))
-                        .append(Component.text(". Nothing happened.")));
-                return;
-            }
-            OfflinePlayer offlineParticipant = Bukkit.getOfflinePlayer(offlineUniqueId);
-            leavePlayer(sender, offlineParticipant, ign);
-        }
-        if (isOfflineIGN(ign)) {
-            String originalTeamId = getOfflineIGNTeamId(ign);
-            if (originalTeamId != null && originalTeamId.equals(teamId)) {
-                sender.sendMessage(Component.text()
-                        .append(Component.text(ign)
-                                .decorate(TextDecoration.BOLD))
-                        .append(Component.text(" is already a member of team "))
-                        .append(Component.text(teamId))
-                        .append(Component.text(". Nothing happened.")));
-                return;
-            }
-            leaveOfflineIGN(sender, ign);
-        }
-        addNewOfflineIGN(sender, ign, offlineUniqueId, teamId);
-        hubManager.updateLeaderboards();
-        tabList.joinParticipant(offlineUniqueId, ign, teamId, true);
-        Component teamDisplayName = getFormattedTeamDisplayName(teamId);
-        NamedTextColor teamIddTextColor = getTeamColor(teamId);
-        TextComponent displayName = Component.text(ign)
-                .color(teamIddTextColor)
-                .decorate(TextDecoration.BOLD);
-        sender.sendMessage(Component.text("Joined ")
-                .append(displayName)
-                .append(Component.text(" to team "))
-                .append(teamDisplayName)
-                .append(Component.newline())
-                .append(Component.empty()
-                    .append(displayName)
-                    .append(Component.text(" is offline, and will be joined to their team when they log on"))
-                    .decorate(TextDecoration.ITALIC))
-        );
-    }
-    
-    /**
-     * Adds the new player to the game state and joins them the given team. 
-     * If a game is running, and the player is online, joins the player to that game.  
-     * @param sender the sender of the command, who will receive success/error messages
-     * @param playerUniqueId The UUID of the player to add
-     * @param teamId The name of the team to join the new player to
-     */
-    private void addNewPlayer(CommandSender sender, UUID playerUniqueId, String teamId) {
+    private void addParticipantToGameState(@NotNull OfflineParticipant participant) {
         try {
-            gameStateStorageUtil.addNewPlayer(playerUniqueId, teamId);
+            gameStateStorageUtil.addNewPlayer(participant.getUniqueId(), participant.getName(), participant.getTeamId());
         } catch (ConfigIOException e) {
             reportGameStateException("adding new player", e);
-            sender.sendMessage(Component.text("error occurred adding new player, see console for details.")
-                    .color(NamedTextColor.RED));
-        }
-        Team team = mctScoreboard.getTeam(teamId);
-        OfflinePlayer newPlayer = Bukkit.getOfflinePlayer(playerUniqueId);
-        Preconditions.checkState(team != null, "Something is wrong with the team Scoreboard. Could not find team with name %s", teamId);
-        team.addPlayer(newPlayer);
-        Player onlineNewPlayer = newPlayer.getPlayer();
-        if (onlineNewPlayer != null) {
-            onParticipantJoin(onlineNewPlayer);
-        }
-    }
-    
-    /**
-     * Adds the new offline IGN to the game state and joins them the given team. 
-     * @param sender the sender of the command, who will receive success/error messages
-     * @param ign The in-game-name of the participant who has never logged in before
-     * @param offlineUniqueId nullable. The UUID of the offline player with the ign, if you know it.
-     * @param teamId The valid teamId of the team to join the new player to. 
-     */
-    private void addNewOfflineIGN(CommandSender sender, @NotNull String ign, @Nullable UUID offlineUniqueId, String teamId) {
-        try {
-            gameStateStorageUtil.addNewOfflineIGN(ign, offlineUniqueId, teamId);
-        } catch (ConfigIOException e) {
-            reportGameStateException("adding new offline IGN", e);
-            sender.sendMessage(Component.text("error occurred adding new offline IGN, see console for details.")
+            messageAdmins(Component.text("error occurred adding new player, see console for details.")
                     .color(NamedTextColor.RED));
         }
     }
     
     /**
-     * Gets the online players who are on the given team. 
-     * @param teamId The internal name of the team
-     * @return A list of all online players on that team, 
-     * or empty list if there are no players on that team or the team doesn't exist.
+     * @param teamId the teamId of the team to get the {@link OfflineParticipant}s from
+     * @return a collection of {@link OfflineParticipant}s who are on the given team
      */
-    public List<Player> getOnlinePlayersOnTeam(String teamId) {
-        List<UUID> playerUniqueIds = gameStateStorageUtil.getParticipantUUIDsOnTeam(teamId);
-        List<Player> onlinePlayersOnTeam = new ArrayList<>();
-        for (UUID playerUniqueId : playerUniqueIds) {
-            Player player = Bukkit.getPlayer(playerUniqueId);
-            if (player != null && player.isOnline()) {
-                onlinePlayersOnTeam.add(player);
-            }
+    public @NotNull Collection<OfflineParticipant> getParticipantsOnTeam(String teamId) {
+        MCTTeam team = teams.get(teamId);
+        if (team == null) {
+            return Collections.emptyList();
         }
-        return onlinePlayersOnTeam;
-    }
-    
-    public List<UUID> getParticipantUUIDsOnTeam(String teamId) {
-        return gameStateStorageUtil.getParticipantUUIDsOnTeam(teamId);
+        return team.getMemberUUIDs().stream().map(allParticipants::get).toList();
     }
     
     /**
      * Leaves the player from the team and removes them from the game state.
      * If a game is running, and the player is online, removes that player from the game as well. 
      * @param sender the sender of the command, who will receive success/error messages
-     * @param offlinePlayer The player to remove from the team
+     * @param offlineParticipant The participant to remove from their team
      */
-    public void leavePlayer(CommandSender sender, @NotNull OfflinePlayer offlinePlayer, @NotNull String playerName) {
-        UUID playerUniqueId = offlinePlayer.getUniqueId();
-        String teamId = gameStateStorageUtil.getPlayerTeamId(playerUniqueId);
-        if (teamId == null) {
-            sender.sendMessage(Component.empty()
-                    .append(Component.text("Could not find team for UUID "))
-                    .append(Component.text(playerUniqueId.toString())
-                            .decorate(TextDecoration.BOLD)
-                            .hoverEvent(HoverEvent.showText(Component.text("Copy to clipboard")))
-                            .clickEvent(ClickEvent.copyToClipboard(playerUniqueId.toString()))
-                    )
-            );
-            return;
+    public void leaveParticipant(CommandSender sender, @NotNull OfflineParticipant offlineParticipant) {
+        MCTTeam team = teams.get(offlineParticipant.getTeamId());
+        Participant participant = onlineParticipants.get(offlineParticipant.getUniqueId());
+        if (participant != null) {
+            onParticipantQuit(participant);
+            participant.sendMessage(Component.text("You've been removed from ")
+                    .append(team.getFormattedDisplayName()));
+            onlineParticipants.remove(participant.getUniqueId());
         }
-        Component teamDisplayName = getFormattedTeamDisplayName(teamId);
-        if (offlinePlayer.isOnline()) {
-            Player onlinePlayer = offlinePlayer.getPlayer();
-            if (onlinePlayer != null) {
-                onParticipantQuit(onlinePlayer);
-                onlinePlayer.sendMessage(Component.text("You've been removed from ")
-                        .append(teamDisplayName));
-            }
-        }
+        team.leaveMember(offlineParticipant.getUniqueId());
+        allParticipants.remove(offlineParticipant.getUniqueId());
         try {
-            gameStateStorageUtil.leavePlayer(playerUniqueId);
+            gameStateStorageUtil.leavePlayer(offlineParticipant.getUniqueId());
         } catch (ConfigIOException e) {
             reportGameStateException("leaving player", e);
             sender.sendMessage(Component.text("error occurred leaving player, see console for details.")
                     .color(NamedTextColor.RED));
         }
         hubManager.updateLeaderboards();
-        tabList.leaveParticipant(playerUniqueId);
+        tabList.leaveParticipant(offlineParticipant.getUniqueId());
         sender.sendMessage(Component.text("Removed ")
-                .append(Component.text(playerName)
-                        .decorate(TextDecoration.BOLD))
+                .append(offlineParticipant.displayName())
                 .append(Component.text(" from team "))
-                .append(teamDisplayName));
-        Team team = mctScoreboard.getTeam(teamId);
-        Preconditions.checkState(team != null, "mctScoreboard could not find team \"%s\"", teamId);
-        team.removePlayer(offlinePlayer);
+                .append(team.getFormattedDisplayName()));
+        org.bukkit.scoreboard.Team scoreboardTeam = mctScoreboard.getTeam(offlineParticipant.getTeamId());
+        if (scoreboardTeam != null) {
+            if (offlineParticipant.getPlayer() != null) {
+                scoreboardTeam.removePlayer(offlineParticipant.getPlayer());
+            }
+        } else {
+            Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (leaveParticipant)", offlineParticipant.getTeamId()));
+        }
     }
     
     /**
-     * Leaves the offline IGN from the team and removes them from the game state.
-     * @param sender the sender of the command, who will receive success/error messages
-     * @param ign the in-game-name of a participant who has never logged on
+     * Add the given scores to the given teams and participants, save the game state, update
+     * the UI, etc.
+     * @param newTeamScores map of teamId to score to add
+     * @param newParticipantScores map of UUID to score to add
      */
-    public void leaveOfflineIGN(CommandSender sender, @NotNull String ign) {
-        String teamId = gameStateStorageUtil.getOfflineIGNTeamId(ign);
-        UUID uuid = gameStateStorageUtil.getOfflineIGNUniqueId(ign);
-        Component teamDisplayName;
-        if (teamId != null) {
-            teamDisplayName = getFormattedTeamDisplayName(teamId);
-        } else {
-            teamDisplayName = Component.text("null").decorate(TextDecoration.ITALIC);
+    public void addScores(Map<String, Integer> newTeamScores, Map<UUID, Integer> newParticipantScores) {
+        // some values might be from offline teams who have been removed, but still saved as QuitData
+        Map<String, Integer> teamScores = newTeamScores.entrySet().stream()
+                .filter(e -> teams.containsKey(e.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        Map<UUID, Integer> participantScores = newParticipantScores.entrySet().stream()
+                .filter(e -> allParticipants.containsKey(e.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        for (Map.Entry<String, Integer> entry : teamScores.entrySet()) {
+            String teamId = entry.getKey();
+            int newScore = entry.getValue();
+            MCTTeam team = teams.get(teamId);
+            teams.put(teamId, new MCTTeam(team, team.getScore() + newScore));
+        }
+        for (Map.Entry<UUID, Integer> entry : participantScores.entrySet()) {
+            UUID uuid = entry.getKey();
+            int newScore = entry.getValue();
+            OfflineParticipant offlineParticipant = allParticipants.get(uuid);
+            allParticipants.put(uuid, new OfflineParticipant(offlineParticipant, 
+                    offlineParticipant.getScore() + newScore));
+            Participant participant = onlineParticipants.get(uuid);
+            if (participant != null) {
+                onlineParticipants.put(uuid, new Participant(participant, 
+                        participant.getScore() + newScore));
+            }
         }
         try {
-            gameStateStorageUtil.leaveOfflineIGN(ign);
+            gameStateStorageUtil.updateScores(teams.values(), allParticipants.values());
+            if (plugin.isEnabled()) {
+                plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
+                        gameStateStorageUtil.saveGameState());
+            } else {
+                gameStateStorageUtil.saveGameState();
+            }
         } catch (ConfigIOException e) {
-            reportGameStateException("leaving offline IGN", e);
-            sender.sendMessage(Component.text("error occurred leaving offline IGN, see console for details.")
-                    .color(NamedTextColor.RED));
+            reportGameStateException("updating scores", e);
+        }
+        if (eventManager.eventIsActive()) {
+            eventManager.trackScores(teamScores, participantScores, activeGame.getType());
+        }
+        updateScoreVisuals(teams.values(), onlineParticipants.values());
+        displayStats(teamScores, participantScores);
+    }
+    
+    private void displayStats(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores) {
+        List<MCTTeam> sortedTeams = teamScores.keySet().stream()
+                .map(teams::get)
+                .filter(t -> teamScores.containsKey(t.getTeamId()))
+                .sorted(Comparator.comparing(
+                        t -> teamScores.get(t.getTeamId()), 
+                        Comparator.reverseOrder()))
+                .toList();
+        List<OfflineParticipant> sortedParticipants = participantScores.keySet().stream()
+                .map(allParticipants::get)
+                .filter(p -> participantScores.containsKey(p.getUniqueId()))
+                .sorted(Comparator.comparing(
+                        p -> participantScores.get(p.getUniqueId()),
+                        Comparator.reverseOrder()))
+                .toList();
+        
+        TextComponent.Builder everyone = Component.text();
+        everyone.append(
+                Component.empty()
+                        .append(Component.text("["))
+                        .append(Component.text(getMultiplier()))
+                        .append(Component.text(" Multiplier]\n"))
+                        .color(NamedTextColor.GRAY)
+        );
+        everyone.append(Component.text("Top 5 Teams:"))
+                .append(Component.newline());
+        for (int i = 0; i < Math.min(sortedTeams.size(), 5); i++) {
+            MCTTeam team = sortedTeams.get(i);
+            everyone
+                    .append(Component.text("  "))
+                    .append(Component.text(i+1))
+                    .append(Component.text(". "))
+                    .append(team.getFormattedDisplayName())
+                    .append(Component.text(": "))
+                    .append(Component.text(teamScores.get(team.getTeamId()))
+                            .color(NamedTextColor.GOLD))
+                    .append(Component.newline());
+        }
+        everyone.append(Component.text("\nTop 5 Participants:"))
+                .append(Component.newline());
+        for (int i = 0; i < Math.min(sortedParticipants.size(), 5); i++) {
+            OfflineParticipant participant = sortedParticipants.get(i);
+            everyone
+                    .append(Component.text("  "))
+                    .append(Component.text(i+1))
+                    .append(Component.text(". "))
+                    .append(participant.displayName())
+                    .append(Component.text(": "))
+                    .append(Component.text(participantScores.get(participant.getUniqueId()))
+                            .color(NamedTextColor.GOLD))
+                    .append(Component.text(" ("))
+                    .append(Component.text((int) (participantScores.get(participant.getUniqueId()) / getMultiplier()))
+                            .color(NamedTextColor.GOLD))
+                    .append(Component.text(" x "))
+                    .append(Component.text(getMultiplier()))
+                    .append(Component.text(")"))
+                    .append(Component.newline());
+        }
+        Audience.audience(
+                Audience.audience(sortedTeams),
+                Audience.audience(onlineAdmins),
+                plugin.getServer().getConsoleSender()
+        ).sendMessage(everyone.build());
+        
+        for (MCTTeam team : sortedTeams) {
+            TextComponent.Builder message = Component.text();
+            message
+                    .append(team.getFormattedDisplayName())
+                    .append(Component.text(": "))
+                    .append(Component.text(teamScores.get(team.getTeamId()))
+                            .color(NamedTextColor.GOLD))
+                    .append(Component.newline());
+            int i = 1;
+            for (OfflineParticipant participant : sortedParticipants) {
+                if (participant.getTeamId().equals(team.getTeamId())) {
+                    message
+                            .append(Component.text("  "))
+                            .append(Component.text(i))
+                            .append(Component.text(". "))
+                            .append(participant.displayName())
+                            .append(Component.text(": "))
+                            .append(Component.text(participantScores.get(participant.getUniqueId()))
+                                    .color(NamedTextColor.GOLD))
+                            .append(Component.text(" ("))
+                            .append(Component.text((int) (participantScores.get(participant.getUniqueId()) / getMultiplier()))
+                                    .color(NamedTextColor.GOLD))
+                            .append(Component.text(" x "))
+                            .append(Component.text(getMultiplier()))
+                            .append(Component.text(")"))
+                            .append(Component.newline());
+                    i++;
+                }
+            }
+            team.sendMessage(message.build());
+        }
+        
+        for (OfflineParticipant offlineParticipant : sortedParticipants) {
+            Participant participant = onlineParticipants.get(offlineParticipant.getUniqueId());
+            if (participant != null) {
+                participant.sendMessage(
+                        Component.empty()
+                                .append(Component.text("Personal")
+                                        .color(NamedTextColor.GOLD))
+                                .append(Component.text(": "))
+                                .append(Component.text(participantScores.get(offlineParticipant.getUniqueId()))
+                                        .color(NamedTextColor.GOLD))
+                                .append(Component.text(" ("))
+                                .append(Component.text((int) (participantScores.get(offlineParticipant.getUniqueId()) / getMultiplier()))
+                                        .color(NamedTextColor.GOLD))
+                                .append(Component.text(" x "))
+                                .append(Component.text(getMultiplier()))
+                                .append(Component.text(")"))
+                );
+            }
+        }
+    }
+    
+    /**
+     * Updates all the visual scores of the given teams and participants
+     * @param updateTeams the teams to update the scores of
+     * @param updateParticipants the participants to update the visuals of
+     */
+    private void updateScoreVisuals(Collection<MCTTeam> updateTeams, Collection<Participant> updateParticipants) {
+        if (eventManager.eventIsActive()) {
+            eventManager.updatePersonalScores(updateParticipants);
+            eventManager.updateTeamScores(updateTeams);
         }
         hubManager.updateLeaderboards();
-        if (uuid != null) { // should always be non-null, formality
-            tabList.leaveParticipant(uuid);
+        tabList.setScores(updateTeams);
+    }
+    
+    /**
+     * @return the event manager's point multiplier, if there is a match going on. 1.0 otherwise.
+     */
+    public double getMultiplier() {
+        if (!eventManager.eventIsActive()) {
+            return 1.0;
         }
-        TextComponent displayName = Component.text(ign)
-                .decorate(TextDecoration.BOLD);
-        sender.sendMessage(Component.text("Removed ")
-                .append(displayName)
-                .append(Component.text(" from team "))
-                .append(teamDisplayName)
-                .append(Component.newline())
-                .append(Component.empty()
-                        .append(displayName)
-                        .append(Component.text(" is offline"))
-                        .decorate(TextDecoration.ITALIC)
-                )
-        );
-    }
-    
-    /**
-     * Gets the teamId of the player with the given UUID
-     * @param playerUniqueId The UUID of the player to find the team of
-     * @return The teamId of the player with the given UUID
-     * @throws NullPointerException if the game state doesn't contain the player's UUID
-     */
-    public String getTeamId(UUID playerUniqueId) {
-        return gameStateStorageUtil.getPlayerTeamId(playerUniqueId);
-    }
-    
-    /**
-     * @param ign the in-game-name of a participant who has never logged in before
-     * @return the teamId of the OfflineParticipant with the given ign. Null if the ign doesn't exist in the GameState
-     */
-    public @Nullable String getOfflineIGNTeamId(@NotNull String ign) {
-        return gameStateStorageUtil.getOfflineIGNTeamId(ign);
-    }
-    
-    /**
-     * @param uniqueId the UUID of the offline IGN to get
-     * @return the in-game-name of the offlinePlayer in the GameState with the given UUID. Null if the UUID doesn't belong to an offline player 
-     */
-    public @Nullable String getOfflineIGN(@NotNull UUID uniqueId) {
-        return gameStateStorageUtil.getOfflineIGN(uniqueId);
-    }
-    
-    /**
-     * Awards the same number of points to each participant in the collection and their respective teams.
-     * Also announces to the participants how many points they received.
-     * <br>
-     * This is used in replacement of looping through each participant and calling 
-     * {@link #awardPointsToParticipant(Player, int)} to reduce the number of changes to the {@link TabList}
-     * and file writes to the {@link org.braekpo1nt.mctmanager.games.gamestate.GameState} at once.
-     * @param participants must be a list of valid participants
-     * @param points the points to award to each participant
-     */
-    public void awardPointsToParticipants(Collection<Player> participants, int points) {
-        int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
-        List<String> teamIds = getTeamIds(participants);
-        if (activeGame != null) {
-            eventManager.trackPointsParticipants(participants, points, activeGame.getType());
-            eventManager.trackPointsTeams(teamIds, multipliedPoints, activeGame.getType());
-        }
-        addScoreParticipants(participants, points);
-        addScoreTeams(teamIds, multipliedPoints);
-        
-        Audience.audience(participants).sendMessage(Component.text("+")
-                .append(Component.text(multipliedPoints))
-                .append(Component.text(" points"))
-                .decorate(TextDecoration.BOLD)
-                .color(NamedTextColor.GOLD));
-    }
-    
-    /**
-     * Awards points to the participant and their team and announces to that participant how many points they received. 
-     * If the participant does not exist, nothing happens.
-     * @param participant The participant to award points to
-     * @param points The points to award to the participant
-     */
-    public void awardPointsToParticipant(Player participant, int points) {
-        UUID participantUUID = participant.getUniqueId();
-        if (!gameStateStorageUtil.containsPlayer(participantUUID)) {
-            return;
-        }
-        String teamId = gameStateStorageUtil.getPlayerTeamId(participantUUID);
-        double multiplier = eventManager.matchProgressPointMultiplier();
-        int multipliedPoints = (int) (points * multiplier);
-        addScore(participantUUID, points);
-        addScore(teamId, multipliedPoints);
-        if (activeGame != null) {
-            eventManager.trackPoints(participantUUID, points, activeGame.getType());
-            eventManager.trackPoints(teamId, multipliedPoints, activeGame.getType());
-        }
-        participant.sendMessage(Component.text("+")
-                .append(Component.text(multipliedPoints))
-                .append(Component.text(" points"))
-                .decorate(TextDecoration.BOLD)
-                .color(NamedTextColor.GOLD));
-    }
-    
-    /**
-     * Adds the given points to the given teams, and announces to the teammates how many
-     * points they earned. 
-     * <br>
-     * This is to be used instead of looping through each team and calling
-     * {@link #awardPointsToTeam(String, int)} to reduce the number of modifications to the
-     * {@link TabList} and file writes to the {@link org.braekpo1nt.mctmanager.games.gamestate.GameState} at once.
-     * @param teamIds the teamIds of the teams to give the points to. If this is empty, nothing happens.
-     * @param points the points to give to each team
-     */
-    public void awardPointsToTeams(@NotNull Collection<@NotNull String> teamIds, int points) {
-        if (teamIds.isEmpty()) {
-            return;
-        }
-        int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
-        addScoreTeams(teamIds, multipliedPoints);
-        if (activeGame != null) {
-            eventManager.trackPointsTeams(teamIds, multipliedPoints, activeGame.getType());
-        }
-        for (String teamId : teamIds) {
-            Component displayName = getFormattedTeamDisplayName(teamId);
-            List<Player> playersOnTeam = getOnlinePlayersOnTeam(teamId);
-            Audience.audience(playersOnTeam).sendMessage(Component.text("+")
-                    .append(Component.text(multipliedPoints))
-                    .append(Component.text(" points for "))
-                    .append(displayName)
-                    .decorate(TextDecoration.BOLD)
-                    .color(NamedTextColor.GOLD));
-        }
-    }
-    
-    /**
-     * Adds the given points to the given team, and announces to all online members of that 
-     * team how many points the team earned.
-     * If the team doesn't exist, nothing happens. 
-     * @param teamId The team to add points to
-     * @param points The points to add
-     */
-    public void awardPointsToTeam(String teamId, int points) {
-        if (!gameStateStorageUtil.containsTeam(teamId)) {
-            return;
-        }
-        int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
-        addScore(teamId, multipliedPoints);
-        if (activeGame != null) {
-            eventManager.trackPoints(teamId, multipliedPoints, activeGame.getType());
-        }
-        
-        Component displayName = getFormattedTeamDisplayName(teamId);
-        List<Player> playersOnTeam = getOnlinePlayersOnTeam(teamId);
-        Audience.audience(playersOnTeam).sendMessage(Component.text("+")
-                    .append(Component.text(multipliedPoints))
-                    .append(Component.text(" points for "))
-                    .append(displayName)
-                    .decorate(TextDecoration.BOLD)
-                    .color(NamedTextColor.GOLD));
-    }
-    
-    public Color getTeamColor(UUID playerUniqueId) {
-        return gameStateStorageUtil.getTeamColor(playerUniqueId);
-    }
-    
-    /**
-     * Gets the team's display name as a Component with the team's text color
-     * and in bold
-     * @param teamId The internal name of the team
-     * @return A Component with the formatted team dislay name
-     */
-    public @NotNull Component getFormattedTeamDisplayName(@NotNull String teamId) {
-        String displayName = gameStateStorageUtil.getTeamDisplayName(teamId);
-        NamedTextColor teamColor = gameStateStorageUtil.getTeamColor(teamId);
-        return Component.text(displayName).color(teamColor).decorate(TextDecoration.BOLD);
-    }
-    
-    /**
-     * @param participant must be a valid participant in the GameState
-     * @return the display name of the given participant
-     */
-    public Component getParticipantDisplayName(@NotNull Player participant) {
-        return getParticipantDisplayName(participant.getUniqueId(), participant.getName());
-    }
-    
-    /**
-     * @param offlineParticipant an OfflinePlayer with the UUID of a valid participant. 
-     *                           If the OfflinePlayer's name is null, then the
-     *                           UUID will be used as the name.
-     * @return the displayName of the participant represented by the given offline participant
-     */
-    public Component getParticipantDisplayName(@NotNull OfflinePlayer offlineParticipant) {
-        String name = getParticipantName(offlineParticipant);
-        UUID uuid = offlineParticipant.getUniqueId();
-        return getParticipantDisplayName(uuid, name);
-    }
-    
-    /**
-     * @param offlineParticipant the OfflinePlayer with the UUID of a valid participant.
-     *                           If the OfflinePlayer's name is null, then the
-     *                           UUID will be used as the name. 
-     * @return the name of the participant represented by the given offline participant
-     */
-    public String getParticipantName(@NotNull OfflinePlayer offlineParticipant) {
-        String name = offlineParticipant.getName();
-        UUID uuid = offlineParticipant.getUniqueId();
-        if (name == null) {
-            String ign = gameStateStorageUtil.getOfflineIGN(uuid);
-            if (ign != null) {
-                return ign;
-            }
-            return uuid.toString();
-        }
-        return name;
-    }
-    
-    /**
-     * Get the display name of the given participant's UUID. Throws an error if this is not a valid participant UUID.
-     * @param participantUUID a valid participant's UUID in the GameState
-     * @param name the name of the player
-     * @return the display name of the given participant's UUID
-     */
-    public Component getParticipantDisplayName(@NotNull UUID participantUUID, @NotNull String name) {
-        String teamId = getTeamId(participantUUID);
-        NamedTextColor teamNamedTextColor = getTeamColor(teamId);
-        return Component.text(name, teamNamedTextColor);
+        return eventManager.matchProgressPointMultiplier();
     }
     
     /**
      * @return a copy of the list of online participants. Modifying this will not change
-     * the online participants
+     *      * the online participants. Unmodifiable.
      */
-    public List<Player> getOnlineParticipants() {
-        return new ArrayList<>(onlineParticipants);
+    public @NotNull Collection<Participant> getOnlineParticipants() {
+        return Collections.unmodifiableCollection(onlineParticipants.values());
+    }
+    
+    /**
+     * @param uuid the UUID of the participant to get
+     * @return the Participant with the given UUID, if they are online
+     */
+    @SuppressWarnings("unused")
+    public @Nullable Participant getOnlineParticipant(UUID uuid) {
+        return onlineParticipants.get(uuid);
     }
     
     /**
@@ -1581,219 +1491,138 @@ public class GameManager implements Listener {
      * @return a list of the names of all participants in the game state
      */
     public List<@NotNull String> getAllParticipantNames() {
-        List<OfflinePlayer> offlinePlayers = getOfflineParticipants();
-        List<@NotNull String> playerNames = new ArrayList<>();
-        for (OfflinePlayer offlinePlayer : offlinePlayers) {
-            String name = offlinePlayer.getName();
-            if (name != null){
-                playerNames.add(name);
-            } else {
-                String ign = gameStateStorageUtil.getOfflineIGN(offlinePlayer.getUniqueId());
-                if (ign != null) {
-                    playerNames.add(ign);
-                } else {
-                    playerNames.add(offlinePlayer.getUniqueId().toString());
-                }
-            }
-        }
-        return playerNames;
+        return allParticipants.values().stream().map(OfflineParticipant::getName).toList();
     }
     
     /**
-     * @return a list of the names of all the teams in the game state
+     * @param uuid the UUID of the participant
+     * @return the OfflineParticipant, or null if they don't exist
      */
-    public List<String> getAllTeamIds() {
-        return new ArrayList<>(gameStateStorageUtil.getTeamIds());
+    public @Nullable OfflineParticipant getOfflineParticipant(UUID uuid) {
+        return allParticipants.get(uuid);
     }
     
     /**
-     * @return A list of all OfflinePlayers in the game state. These players could
-     * be offline or online, have names or not
+     * @return A list {@link OfflinePlayer}s representing all participants in the {@link GameStateStorageUtil}. Unmodifiable. 
+     * These players could be offline or online, have logged in at least once or not
      */
-    public List<OfflinePlayer> getOfflineParticipants() {
-        List<UUID> uniqueIds = gameStateStorageUtil.getPlayerUniqueIds();
-        List<OfflinePlayer> offlineParticipants = new ArrayList<>();
-        for (UUID uniqueId : uniqueIds) {
-            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uniqueId);
-            offlineParticipants.add(offlinePlayer);
-        }
-        List<UUID> offlineUniqueIds = gameStateStorageUtil.getOfflinePlayerUniqueIds();
-        for (UUID offlineUniqueId : offlineUniqueIds) {
-            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(offlineUniqueId);
-            offlineParticipants.add(offlinePlayer);
-        }
-        return offlineParticipants;
+    public Collection<OfflineParticipant> getOfflineParticipants() {
+        return Collections.unmodifiableCollection(allParticipants.values());
     }
     
     /**
      * @param teamId the teamId to get the members of
-     * @return A list of all OfflinePlayers in the game state whose team is the given teamId. These players could
-     * be offline or online, have names or not.
+     * @return A list {@link OfflinePlayer}s representing all participants in the {@link GameStateStorageUtil}
+     * who are on the given team. 
+     * These players could be offline or online, have logged in at least once or not
      */
-    public List<OfflinePlayer> getOfflineParticipants(@NotNull String teamId) {
-        List<OfflinePlayer> offlineParticipants = getOfflineParticipants();
-        List<OfflinePlayer> result = new ArrayList<>();
-        for (OfflinePlayer offlineParticipant : offlineParticipants) {
-            String offlineTeamId = getTeamId(offlineParticipant.getUniqueId());
-            if (teamId.equals(offlineTeamId)) {
-                result.add(offlineParticipant);
-            }
+    public @NotNull Collection<OfflineParticipant> getOfflineParticipants(@NotNull String teamId) {
+        MCTTeam team = teams.get(teamId);
+        if (team == null) {
+            return Collections.emptyList();
         }
-        return result;
-    }
-    
-    public void addScoreParticipants(Collection<Player> participants, int score) {
-        try {
-            gameStateStorageUtil.addScorePlayers(participants.stream().map(Entity::getUniqueId).toList(), score);
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
-                    gameStateStorageUtil.saveGameState());
-            updatePersonalScores(participants);
-        } catch (ConfigIOException e) {
-            reportGameStateException("adding score to players", e);
-        }
+        return team.getMemberUUIDs().stream().map(allParticipants::get).collect(Collectors.toSet());
     }
     
     /**
      * Adds the given score to the participant with the given UUID
-     * @param participantUUID The UUID of the participant to add the score to
+     * @param participant The participant to add the score to
      * @param score The score to add. Could be positive or negative.
+     * @return the new score of the participant
      */
-    public void addScore(UUID participantUUID, int score) {
-        try {
-            gameStateStorageUtil.addScore(participantUUID, score);
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
-                    gameStateStorageUtil.saveGameState());
-            Player participant = plugin.getServer().getPlayer(participantUUID);
-            if (participant != null && onlineParticipants.contains(participant)) {
-                updatePersonalScore(participant);
-            }
-        } catch (ConfigIOException e) {
-            reportGameStateException("adding score to player", e);
-        }
-    }
-    
-    /**
-     * Adds the given score to each of the given teams
-     * <br>
-     * Use this instead of calling {@link #addScore(String, int)} for each teamId because this is more
-     * efficient in that it only writes to the {@link org.braekpo1nt.mctmanager.games.gamestate.GameState} once
-     * @param teamIds the teamIds to add the score to
-     * @param score the score to add. Could be positive or negative.
-     */
-    public void addScoreTeams(Collection<String> teamIds, int score) {
-        try {
-            gameStateStorageUtil.addScoreTeams(teamIds, score);
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
-                    gameStateStorageUtil.saveGameState());
-            updateTeamScores(teamIds);
-        } catch (ConfigIOException e) {
-            reportGameStateException("adding score to teams", e);
-        }
+    public int addScore(OfflineParticipant participant, int score) {
+        return setScore(participant, participant.getScore() + score);
     }
     
     /**
      * Adds the given score to the given team
-     * @param teamId The team to add the score to
+     * @param team The team to add the score to
      * @param score The score to add. Could be positive or negative.
+     * @return the new score of the team
      */
-    public void addScore(String teamId, int score) {
-        try {
-            gameStateStorageUtil.addScore(teamId, score);
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
-                    gameStateStorageUtil.saveGameState());
-            updateTeamScore(teamId);
-        } catch (ConfigIOException e) {
-            reportGameStateException("adding score to team", e);
-        }
+    public int addScore(@NotNull Team team, int score) {
+        return setScore(team, team.getScore() + score);
     }
     
     /**
-     * Sets the score of the participant with the given UUID to the given value
-     * @param participantUUID The UUID of the participant to set the score to
-     * @param score The score to set to. If the score is negative, the score will be set to 0.
+     * Sets the participant's score to the given value, or 0 if the value is negative
+     * @param participant the participant to set the score of
+     * @param value the score to set the participant to
+     * @return the new score of the participant
      */
-    public void setScore(UUID participantUUID, int score) {
+    public int setScore(@NotNull OfflineParticipant participant, int value) {
+        int score = Math.max(0, value);
+        OfflineParticipant updated = new OfflineParticipant(participant, score);
+        allParticipants.put(participant.getUniqueId(), updated);
+        Participant oldOnline = onlineParticipants.get(participant.getUniqueId());
+        List<Participant> updatedList;
+        if (oldOnline != null) {
+            Participant updatedOnline = new Participant(oldOnline, score);
+            onlineParticipants.put(participant.getUniqueId(), updatedOnline);
+            updatedList = Collections.singletonList(updatedOnline);
+        } else {
+            updatedList = Collections.emptyList();
+        }
         try {
-            if (score < 0) {
-                gameStateStorageUtil.setScore(participantUUID, 0);
-                return;
-            }
-            gameStateStorageUtil.setScore(participantUUID, score);
+            gameStateStorageUtil.updateScore(updated);
             plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
                     gameStateStorageUtil.saveGameState());
-            Player participant = plugin.getServer().getPlayer(participantUUID);
-            if (participant != null && onlineParticipants.contains(participant)) {
-                updatePersonalScore(participant);
-            }
-            updateTeamScore(getTeamId(participantUUID));
+            updateScoreVisuals(Collections.singletonList(teams.get(updated.getTeamId())), updatedList);
         } catch (ConfigIOException e) {
             reportGameStateException("setting a player's score", e);
         }
+        return updated.getScore();
     }
     
     /**
      * Sets the score of the team with the given name to the given value
-     * @param teamId The UUID of the participant to set the score to
-     * @param score The score to set to. If the score is negative, the score will be set to 0.
+     * @param team The UUID of the participant to set the score to
+     * @param value The score to set to. If the score is negative, the score will be set to 0.
+     * @return the new score of the team
      */
-    public void setScore(String teamId, int score) {
+    public int setScore(Team team, int value) {
+        int score = Math.max(0, value);
+        MCTTeam old = teams.get(team.getTeamId());
+        if (old == null) {
+            return 0;
+        }
+        MCTTeam updated = new MCTTeam(old, score);
+        teams.put(old.getTeamId(), updated);
         try {
-            if (score < 0) {
-                gameStateStorageUtil.setScore(teamId, 0);
-                return;
-            }
-            gameStateStorageUtil.setScore(teamId, score);
+            gameStateStorageUtil.updateScore(updated);
             plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
                     gameStateStorageUtil.saveGameState());
-            updateTeamScore(teamId);
+            updateScoreVisuals(Collections.singletonList(updated), Collections.emptyList());
         } catch (ConfigIOException e) {
             reportGameStateException("adding score to team", e);
         }
+        return updated.getScore();
     }
     
     /**
      * Set all the teams and players scores to the given score
-     * @param score the score to set to. If the score is negative, the score will be set to 0.
+     * @param value the score to set to. If the score is negative, the score will be set to 0.
      */
-    public void setScoreAll(int score) {
-        try {
-            if (score < 0) {
-                gameStateStorageUtil.setAllScores(0);
-                return;
+    public void setScoreAll(int value) {
+        int score = Math.max(0, value);
+        for (MCTTeam team : teams.values()) {
+            teams.put(team.getTeamId(), new MCTTeam(team, score));
+        }
+        for (OfflineParticipant participant : allParticipants.values()) {
+            allParticipants.put(participant.getUniqueId(), new OfflineParticipant(participant, score));
+            Participant online = onlineParticipants.get(participant.getUniqueId());
+            if (online != null) {
+                onlineParticipants.put(participant.getUniqueId(), new Participant(online, score));
             }
-            gameStateStorageUtil.setAllScores(score);
+        }
+        try {
+            gameStateStorageUtil.updateScores(teams.values(), allParticipants.values());
             plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
                     gameStateStorageUtil.saveGameState());
-            updatePersonalScores(getOnlineParticipants());
-            updateTeamScores(getTeamIds());
+            updateScoreVisuals(teams.values(), onlineParticipants.values());
         } catch (ConfigIOException e) {
             reportGameStateException("setting all scores", e);
         }
-    }
-    
-    /**
-     * Gets the score of the given team
-     * @param teamId The team to get the score of
-     * @return The score of the given team
-     */
-    public int getScore(String teamId) {
-        return gameStateStorageUtil.getTeamScore(teamId);
-    }
-    
-    /**
-     * Gets the score of the participant with the given UUID
-     * @param participantUniqueId The UUID of the participant to get the score of
-     * @return The score of the participant with the given UUID
-     */
-    public int getScore(UUID participantUniqueId) {
-        return gameStateStorageUtil.getParticipantScore(participantUniqueId);
-    }
-    
-    /**
-     * @return a map of each participant's UUID to their score
-     */
-    public @NotNull Map<UUID, Integer> getParticipantScores() {
-        return gameStateStorageUtil.getParticipantScores();
     }
     
     /**
@@ -1819,8 +1648,9 @@ public class GameManager implements Listener {
                     .append(Component.text(" is already an admin. Nothing happened.")));
             return;
         }
-        if (gameStateStorageUtil.containsPlayer(uniqueId)) {
-            leavePlayer(sender, newAdmin, newAdmin.getName());
+        OfflineParticipant offlineParticipant = allParticipants.get(uniqueId);
+        if (offlineParticipant != null) {
+            leaveParticipant(sender, offlineParticipant);
         }
         try {
             gameStateStorageUtil.addAdmin(uniqueId);
@@ -1834,9 +1664,12 @@ public class GameManager implements Listener {
                 .append(Component.text(newAdmin.getName())
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text(" as an admin")));
-        Team adminTeam = mctScoreboard.getTeam(ADMIN_TEAM);
-        Preconditions.checkState(adminTeam != null, "mctScoreboard could not find team \"%s\"", ADMIN_TEAM);
-        adminTeam.addPlayer(newAdmin);
+        org.bukkit.scoreboard.Team adminTeam = mctScoreboard.getTeam(ADMIN_TEAM);
+        if (adminTeam != null) {
+            adminTeam.addPlayer(newAdmin);
+        } else {
+            Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (addAdmin)", ADMIN_TEAM));;
+        }
         if (newAdmin.isOnline()) {
             newAdmin.sendMessage(Component.text("You were added as an admin"));
             onAdminJoin(newAdmin);
@@ -1848,7 +1681,7 @@ public class GameManager implements Listener {
      * @param sender the sender of the command, who will receive success/error messages
      * @param offlineAdmin The admin to remove
      */
-    public void removeAdmin(@NotNull CommandSender sender, @NotNull OfflinePlayer offlineAdmin, @NotNull String adminName) {
+    public void removeAdmin(@NotNull CommandSender sender, @NotNull OfflinePlayer offlineAdmin, String adminName) {
         if (!isAdmin(offlineAdmin.getUniqueId())) {
             sender.sendMessage(Component.text()
                     .append(Component.text(adminName)
@@ -1875,31 +1708,45 @@ public class GameManager implements Listener {
                 .append(Component.text(adminName)
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text(" is no longer an admin")));
-        Team adminTeam = mctScoreboard.getTeam(ADMIN_TEAM);
-        Preconditions.checkState(adminTeam != null, "mctScoreboard could not find team \"%s\"", ADMIN_TEAM);
-        adminTeam.removePlayer(offlineAdmin);
+        org.bukkit.scoreboard.Team adminTeam = mctScoreboard.getTeam(ADMIN_TEAM);
+        if (adminTeam != null) {
+            adminTeam.removePlayer(offlineAdmin);
+        } else {
+            Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (addAdmin)", ADMIN_TEAM));;
+        }
     }
     
+    @Deprecated
     public Material getTeamPowderColor(@NotNull String teamId) {
         String colorString = gameStateStorageUtil.getTeamColorString(teamId);
         return ColorMap.getConcretePowderColor(colorString);
     }
     
+    @Deprecated
     public Material getTeamConcreteColor(@NotNull String teamId) {
         String colorString = gameStateStorageUtil.getTeamColorString(teamId);
         return ColorMap.getConcreteColor(colorString);
     }
     
+    @Deprecated
     public Material getTeamStainedGlassColor(@NotNull String teamId) {
         String colorString = gameStateStorageUtil.getTeamColorString(teamId);
         return ColorMap.getStainedGlassColor(colorString);
     }
     
-    public @NotNull NamedTextColor getTeamColor(@NotNull String teamId) {
-        String colorString = gameStateStorageUtil.getTeamColorString(teamId);
-        return ColorMap.getNamedTextColor(colorString);
+    /**
+     * @deprecated in favor of {@link Team#getColor()}
+     */
+    @Deprecated
+    public @NotNull TextColor getTeamColor(@NotNull String teamId) {
+        Team team = teams.get(teamId);
+        if (team == null) {
+            return NamedTextColor.WHITE;
+        }
+        return team.getColor();
     }
     
+    @Deprecated
     public Material getTeamBannerColor(@NotNull String teamId) {
         String colorString = gameStateStorageUtil.getTeamColorString(teamId);
         return ColorMap.getBannerColor(colorString);
@@ -1910,10 +1757,10 @@ public class GameManager implements Listener {
     }
     
     public void messageAdmins(Component message) {
-        Bukkit.getConsoleSender().sendMessage(message);
-        for (Player admin : onlineAdmins) {
-            admin.sendMessage(message);
-        }
+        Audience.audience(
+                Audience.audience(onlineAdmins),
+                plugin.getServer().getConsoleSender()
+        ).sendMessage(message);
     }
     
     public void playSoundForAdmins(@NotNull String sound, float volume, float pitch) {
@@ -1923,9 +1770,7 @@ public class GameManager implements Listener {
     }
     
     public void messageOnlineParticipants(Component message) {
-        for (Player participant : onlineParticipants) {
-            participant.sendMessage(message);
-        }
+        Audience.audience(onlineParticipants.values()).sendMessage(message);
     }
     
     // Test methods
@@ -1959,119 +1804,5 @@ public class GameManager implements Listener {
      */
     public void setTabListVisibility(@NotNull UUID uuid, boolean visible) {
         tabList.setVisibility(uuid, visible);
-    }
-    
-    /**
-     * Update the displays of team scores to reflect the current 
-     * {@link org.braekpo1nt.mctmanager.games.gamestate.GameState}
-     * <br>
-     * This includes the header of the current active game, the event sidebar in the hub, and the {@link TabList}
-     * @param teamIds the teamIds to update all displays for
-     */
-    private void updateTeamScores(Collection<String> teamIds) {
-        Map<String, Integer> teamIdsToScores = new HashMap<>(teamIds.size());
-        // perform this check and cast one time instead of for each teamId
-        Headerable headerable = activeGame instanceof Headerable ? (Headerable) activeGame : null;
-        for (String teamId : teamIds) {
-            Component teamDisplayName = getFormattedTeamDisplayName(teamId);
-            int teamScore = getScore(teamId);
-            teamIdsToScores.put(teamId, teamScore);
-            if (headerable != null) {
-                for (Player participant : getOnlinePlayersOnTeam(teamId)) {
-                    headerable.updateTeamScore(participant, Component.empty()
-                            .append(teamDisplayName)
-                            .append(Component.text(": "))
-                            .append(Component.text(teamScore)
-                                    .color(NamedTextColor.GOLD))
-                    );
-                }
-            }
-        }
-        if (eventManager.eventIsActive()) {
-            eventManager.updateTeamScores();
-        }
-        hubManager.updateLeaderboards();
-        // update all the scores at once instead of one at a time for each teamId in the above loop
-        tabList.setScores(teamIdsToScores);
-    }
-    
-    /**
-     * Update the displays of the given team to reflect the current score.
-     * <br>
-     * This includes the header of the current active game, the event sidebar in the hub, and the {@link TabList} 
-     * @param teamId the teamId to update in all displays
-     */
-    private void updateTeamScore(String teamId) {
-        Component teamDisplayName = getFormattedTeamDisplayName(teamId);
-        int teamScore = getScore(teamId);
-        if (activeGame != null && activeGame instanceof Headerable headerable) {
-            for (Player participant : getOnlinePlayersOnTeam(teamId)) {
-                headerable.updateTeamScore(participant, Component.empty()
-                        .append(teamDisplayName)
-                        .append(Component.text(": "))
-                        .append(Component.text(teamScore)
-                                .color(NamedTextColor.GOLD))
-                );
-            }
-        }
-        if (eventManager.eventIsActive()) {
-            eventManager.updateTeamScores();
-        }
-        hubManager.updateLeaderboards();
-        tabList.setScore(teamId, teamScore);
-    }
-    
-    /**
-     * Update the displays of the given participants to reflect their current scores.
-     * Also updates their team scores.
-     * @param participants the participants to update
-     */
-    private void updatePersonalScores(Collection<Player> participants) {
-        // perform this check and cast one time instead of for each teamId
-        Headerable headerable = activeGame instanceof Headerable ? (Headerable) activeGame : null;
-        for (Player participant : participants) {
-            int score = getScore(participant.getUniqueId());
-            Component contents = Component.empty()
-                    .append(Component.text("Personal: "))
-                    .append(Component.text(score))
-                    .color(NamedTextColor.GOLD);
-            if (headerable != null) {
-                headerable.updatePersonalScore(participant, contents);
-            }
-            if (eventManager.eventIsActive()) {
-                eventManager.updatePersonalScore(participant, contents);
-            }
-        }
-        hubManager.updateLeaderboards();
-    }
-    
-    /**
-     * Update the display of the given participant to reflect their current score.
-     * Also updates their team scores.
-     * @param participant the participant to update
-     */
-    private void updatePersonalScore(Player participant) {
-        int score = getScore(participant.getUniqueId());
-        Component contents = Component.empty()
-                .append(Component.text("Personal: "))
-                .append(Component.text(score))
-                .color(NamedTextColor.GOLD);
-        if (activeGame != null && activeGame instanceof Headerable headerable) {
-            headerable.updatePersonalScore(participant, contents);
-        }
-        if (eventManager.eventIsActive()) {
-            eventManager.updatePersonalScore(participant, contents);
-        }
-        hubManager.updateLeaderboards();
-    }
-    
-    /**
-     * @return the event manager's point multiplier, if there is a match going on. 1.0 otherwise.
-     */
-    public double matchProgressPointMultiplier() {
-        if (!eventManager.eventIsActive()) {
-            return 1.0;
-        }
-        return eventManager.matchProgressPointMultiplier();
     }
 }

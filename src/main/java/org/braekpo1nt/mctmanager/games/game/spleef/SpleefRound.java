@@ -9,19 +9,18 @@ import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.PowerupManager;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.LogType;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.block.Block;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -47,8 +46,9 @@ public class SpleefRound implements Listener {
     private final Sidebar adminSidebar;
     private final Random random = new Random();
     private SpleefConfig config;
-    private List<Player> participants = new ArrayList<>();
-    private Map<UUID, Boolean> participantsAlive;
+    private Map<UUID, SpleefRoundParticipant> participants = new HashMap<>();
+    private Map<UUID, SpleefRoundParticipant.QuitData> quitDatas = new HashMap<>();
+    private Map<String, SpleefRoundTeam> teams = new HashMap<>();
     private boolean spleefHasStarted = false;
     private boolean roundActive = false;
     private final SpleefGame spleefGame;
@@ -76,13 +76,18 @@ public class SpleefRound implements Listener {
         this.powerupManager.setConfig(config);
     }
     
-    public void start(List<Player> newParticipants) {
-        this.participants = new ArrayList<>(newParticipants.size());
-        participantsAlive = new HashMap<>(newParticipants.size());
+    public void start(Collection<SpleefParticipant> newParticipants, Collection<SpleefTeam> newTeams) {
+        this.participants = new HashMap<>(newParticipants.size());
+        this.quitDatas = new HashMap<>();
+        this.teams = new HashMap<>(newTeams.size());
+        for (SpleefTeam newTeam : newTeams) {
+            SpleefRoundTeam team = new SpleefRoundTeam(newTeam);
+            this.teams.put(team.getTeamId(), team);
+        }
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
         placeLayers(true);
-        for (Player participant : newParticipants) {
+        for (SpleefParticipant participant : newParticipants) {
             initializeParticipant(participant);
         }
         initializeSidebar();
@@ -100,10 +105,9 @@ public class SpleefRound implements Listener {
         Main.logger().info("Starting Spleef round");
     }
     
-    private void initializeParticipant(Player participant) {
-        UUID participantUniqueId = participant.getUniqueId();
-        participants.add(participant);
-        participantsAlive.put(participantUniqueId, true);
+    private void initializeParticipant(SpleefParticipant newParticipant) {
+        SpleefRoundParticipant participant = new SpleefRoundParticipant(newParticipant);
+        participants.put(participant.getUniqueId(), participant);
         teleportParticipantToRandomStartingPosition(participant);
         ParticipantInitializer.clearInventory(participant);
         participant.setGameMode(GameMode.ADVENTURE);
@@ -111,15 +115,16 @@ public class SpleefRound implements Listener {
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
-    private void rejoinParticipant(Player participant) {
-        participants.add(participant);
+    private void reJoinParticipant(SpleefRoundParticipant participant) {
+        participants.put(participant.getUniqueId(), participant);
         participant.setGameMode(GameMode.SPECTATOR);
     }
     
-    private void resetParticipant(Player participant) {
+    private void resetParticipant(SpleefRoundParticipant participant) {
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
+        teams.get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
         participant.setGameMode(GameMode.SPECTATOR);
     }
     
@@ -146,13 +151,14 @@ public class SpleefRound implements Listener {
         powerupManager.stop();
         placeLayers(false);
         cancelAllTasks();
-        for (Player participant : participants) {
+        for (SpleefRoundParticipant participant : participants.values()) {
             resetParticipant(participant);
         }
         clearSidebar();
         clearAdminSidebar();
         participants.clear();
-        participantsAlive.clear();
+        teams.clear();
+        quitDatas.clear();
         Main.logger().info("Stopping Spleef round");
     }
     
@@ -160,57 +166,74 @@ public class SpleefRound implements Listener {
         return roundActive;
     }
     
-    public void onParticipantJoin(Player participant) {
+    private void onTeamJoin(SpleefTeam team) {
+        if (teams.containsKey(team.getTeamId())) {
+            return;
+        }
+        teams.put(team.getTeamId(), new SpleefRoundTeam(team));
+    }
+    
+    public void onParticipantJoin(SpleefParticipant newParticipant, SpleefTeam team) {
         if (!roundActive) {
             return;
         }
-        if (participantShouldRejoin(participant)) {
-            rejoinParticipant(participant);
+        onTeamJoin(team);
+        SpleefRoundParticipant.QuitData quitData = quitDatas.remove(newParticipant.getUniqueId());
+        if (quitData != null) {
+            SpleefRoundParticipant participant = new SpleefRoundParticipant(newParticipant, quitData);
+            reJoinParticipant(participant);
         } else {
-            initializeParticipant(participant);
+            initializeParticipant(newParticipant);
             if (spleefHasStarted) {
-                giveTool(participant);
-                participant.setGameMode(GameMode.SURVIVAL);
+                giveTool(newParticipant);
+                newParticipant.setGameMode(GameMode.SURVIVAL);
             }
         }
-        powerupManager.addParticipant(participant);
+        powerupManager.addParticipant(newParticipant);
         long aliveCount = getAliveCount();
-        String alive = String.format("Alive: %s", aliveCount);
+        Component alive = Component.empty()
+                .append(Component.text("Alive: "))
+                .append(Component.text(aliveCount));
         sidebar.updateLine("alive", alive);
         adminSidebar.updateLine("alive", alive);
         decayManager.setAliveCount(aliveCount);
         decayManager.setAlivePercent(aliveCount / (double) participants.size());
     }
     
-    private boolean participantShouldRejoin(Player participant) {
-        if (!roundActive) {
-            return false;
+    private void onTeamQuit(SpleefRoundTeam team) {
+        if (team.size() > 0) {
+            return;
         }
-        if (descriptionShowing) {
-            return false;
-        }
-        return participantsAlive.containsKey(participant.getUniqueId());
+        teams.remove(team.getTeamId());
     }
     
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(SpleefParticipant spleefParticipant, SpleefTeam spleefTeam) {
         if (!roundActive) {
             return;
         }
-        if (descriptionShowing) {
-            resetParticipant(participant);
-            participants.remove(participant);
+        SpleefRoundParticipant participant = participants.get(spleefParticipant.getUniqueId());
+        if (participant == null) {
             return;
         }
-        if (spleefHasStarted) {
+        SpleefRoundTeam team = teams.get(spleefTeam.getTeamId());
+        if (descriptionShowing) {
+            resetParticipant(participant);
+            participants.remove(participant.getUniqueId());
+            onTeamQuit(team);
+            return;
+        }
+        if (spleefHasStarted && participant.isAlive()) {
             Component deathMessage = Component.empty()
                     .append(Component.text(participant.getName()))
                     .append(Component.text(" left early. Their life is forfeit."));
-            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant,
+            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant.getPlayer(),
                     DamageSource.builder(DamageType.GENERIC).build(), Collections.emptyList(), 0, deathMessage);
-            Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
+            onPlayerDeath(fakeDeathEvent);
         }
+        quitDatas.put(participant.getUniqueId(), participant.getQuitData());
         resetParticipant(participant);
-        participants.remove(participant);
+        participants.remove(participant.getUniqueId());
+        onTeamQuit(team);
     }
     
     @EventHandler
@@ -221,10 +244,7 @@ public class SpleefRound implements Listener {
         if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
-        if (!(event.getEntity() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(event.getEntity().getUniqueId())) {
             return;
         }
         EntityDamageEvent.DamageCause cause = event.getCause();
@@ -245,8 +265,8 @@ public class SpleefRound implements Listener {
         if (!roundActive) {
             return;
         }
-        Player killed = event.getPlayer();
-        if (!participants.contains(killed)) {
+        SpleefRoundParticipant killed = participants.get(event.getPlayer().getUniqueId());
+        if (killed == null) {
             return;
         }
         killed.setGameMode(GameMode.SPECTATOR);
@@ -267,9 +287,9 @@ public class SpleefRound implements Listener {
      */
     private boolean exactlyOneTeamIsAlive() {
         String onlyTeam = null;
-        for (Player participant : participants) {
-            if (participantsAlive.get(participant.getUniqueId())) {
-                String livingTeam = gameManager.getTeamId(participant.getUniqueId());
+        for (SpleefRoundParticipant participant : participants.values()) {
+            if (participant.isAlive()) {
+                String livingTeam = participant.getTeamId();
                 if (onlyTeam == null) {
                     onlyTeam = livingTeam;
                 } else if (!onlyTeam.equals(livingTeam)) {
@@ -289,8 +309,7 @@ public class SpleefRound implements Listener {
         if (!roundActive) {
             return;
         }
-        Player participant = event.getPlayer();
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
@@ -306,26 +325,32 @@ public class SpleefRound implements Listener {
         }
     }
     
-    private void onParticipantDeath(Player killed) {
+    private void onParticipantDeath(SpleefRoundParticipant killed) {
         ParticipantInitializer.clearStatusEffects(killed);
         ParticipantInitializer.resetHealthAndHunger(killed);
         killed.getInventory().clear();
-        participantsAlive.put(killed.getUniqueId(), false);
+        killed.setAlive(false);
         powerupManager.removeParticipant(killed);
-        String killedTeam = gameManager.getTeamId(killed.getUniqueId());
-        List<Player> awardedParticipants = new ArrayList<>();
         int aliveCount = participants.size();
-        for (Player participant : participants) {
-            if (participantsAlive.get(participant.getUniqueId())) {
-                String teamId = gameManager.getTeamId(participant.getUniqueId());
-                if (!teamId.equals(killedTeam)) {
-                    awardedParticipants.add(participant);
+        List<SpleefRoundTeam> awardedTeams = new ArrayList<>();
+        for (SpleefRoundParticipant participant : participants.values()) {
+            if (participant.isAlive()) {
+                if (!participant.getTeamId().equals(killed.getTeamId())) {
+                    int multiplied = (int) (gameManager.getMultiplier() * config.getSurviveScore());
+                    participant.awardPoints(multiplied);
+                    SpleefRoundTeam team = teams.get(participant.getTeamId());
+                    team.addPoints(multiplied);
+                    spleefGame.updateScore(participant);
+                    awardedTeams.add(team);
                 }
             } else {
                 aliveCount--;
             }
         }
-        gameManager.awardPointsToParticipants(awardedParticipants, config.getSurviveScore());
+        for (SpleefRoundTeam team : awardedTeams) {
+            spleefGame.updateScore(team);
+        }
+        
         Component alive = Component.empty()
                         .append(Component.text("Alive: "))
                         .append(Component.text(aliveCount));
@@ -340,21 +365,21 @@ public class SpleefRound implements Listener {
         sidebar.updateLine("alive", alive);
         adminSidebar.updateLine("alive", alive);
         giveTools();
-        for (Player participant : participants) {
+        for (Participant participant : participants.values()) {
             participant.setGameMode(GameMode.SURVIVAL);
         }
         spleefHasStarted = true;
         decayManager.start();
-        powerupManager.start(participants);
+        powerupManager.start(participants.values());
     }
     
     private void giveTools() {
-        for (Player participant : participants) {
+        for (Participant participant : participants.values()) {
             participant.getInventory().addItem(config.getTool());
         }
     }
     
-    private void giveTool(Player participant) {
+    private void giveTool(Participant participant) {
         participant.getInventory().addItem(config.getTool());
     }
     
@@ -379,7 +404,7 @@ public class SpleefRound implements Listener {
                 .withSidebar(sidebar, "timer")
                 .withSidebar(adminSidebar, "timer")
                 .sidebarPrefix(Component.text("Starting: "))
-                .titleAudience(Audience.audience(participants))
+                .titleAudience(Audience.audience(participants.values()))
                 .onCompletion(this::startSpleef)
                 .build());
     }
@@ -401,8 +426,8 @@ public class SpleefRound implements Listener {
         if (!roundActive) {
             return;
         }
-        Player participant = event.getPlayer();
-        if (!participants.contains(participant)) {
+        Participant participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
             return;
         }
         powerupManager.onParticipantBreakBlock(participant);
@@ -420,8 +445,8 @@ public class SpleefRound implements Listener {
         if (config.getSafetyArea() == null) {
             return;
         }
-        Player participant = event.getPlayer();
-        if (!participants.contains(participant)) {
+        Participant participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
             return;
         }
         if (!config.getSafetyArea().contains(event.getFrom().toVector())) {
@@ -460,7 +485,7 @@ public class SpleefRound implements Listener {
         sidebar.deleteLine("alive");
     }
     
-    private void teleportParticipantToRandomStartingPosition(Player participant) {
+    private void teleportParticipantToRandomStartingPosition(Participant participant) {
         int index = random.nextInt(config.getStartingLocations().size());
         participant.teleport(config.getStartingLocations().get(index));
         participant.setRespawnLocation(config.getStartingLocations().get(index), true);
@@ -472,7 +497,7 @@ public class SpleefRound implements Listener {
     
     void messageAllParticipants(Component message) {
         gameManager.messageAdmins(message);
-        for (Player participant : participants) {
+        for (Participant participant : participants.values()) {
             participant.sendMessage(message);
         }
     }
@@ -485,7 +510,7 @@ public class SpleefRound implements Listener {
      * @return the number of participants who are alive in this round
      */
     private long getAliveCount() {
-        return participantsAlive.values().stream().filter(value -> value).count();
+        return participants.values().stream().filter(SpleefRoundParticipant::isAlive).count();
     }
     
     /**

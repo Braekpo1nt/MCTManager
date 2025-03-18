@@ -11,6 +11,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSp
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -161,6 +162,18 @@ public class GlowManager extends SimplePacketListenerAbstract {
         PacketEvents.getAPI().getPlayerManager().sendPacket(viewer, packet);
     }
     
+    /**
+     * Add a participant to this manager to be referenced as a viewer or target
+     * @param participant the participant to add to this manager
+     */
+    public void addPlayer(Participant participant) {
+        addPlayer(participant.getPlayer());
+    }
+    
+    /**
+     * Add a player to this manager to be referenced as a viewer or target
+     * @param player the player to add to this manager
+     */
     public void addPlayer(Player player) {
         if (playerDatas.containsKey(player.getUniqueId())) {
             UIUtils.logUIError("Player %s already exists in this manager", player.getName());
@@ -168,6 +181,39 @@ public class GlowManager extends SimplePacketListenerAbstract {
         }
         playerDatas.put(player.getUniqueId(), new PlayerData(player));
         mapper.put(player.getEntityId(), player.getUniqueId());
+    }
+    
+    /**
+     * Show the viewer the target's glowing effect
+     * @param viewer the viewer (the player who should see the target glowing)
+     *               Must be a player contained in this manager
+     * @param target the target (the Participant who should glow). 
+     *               Must reference a player contained in this manager.
+     */
+    public void showGlowing(Player viewer, Participant target) {
+        showGlowing(viewer.getUniqueId(), target.getUniqueId());
+    }
+    
+    /**
+     * Show the viewer the target's glowing effect
+     * @param viewer the viewer (the Participant who should see the target glowing)
+     *               Must reference a player contained in this manager
+     * @param target the target (the Participant who should glow). 
+     *               Must be a player contained in this manager.
+     */
+    public void showGlowing(Participant viewer, Player target) {
+        showGlowing(viewer.getUniqueId(), target.getUniqueId());
+    }
+    
+    /**
+     * Show the viewer the target's glowing effect
+     * @param viewer the viewer (the Participant who should see the target glowing)
+     *               Must reference a player contained in this manager
+     * @param target the target (the Participant who should glow). 
+     *               Must reference a player contained in this manager.
+     */
+    public void showGlowing(Participant viewer, Participant target) {
+        showGlowing(viewer.getUniqueId(), target.getUniqueId());
     }
     
     /**
@@ -247,6 +293,15 @@ public class GlowManager extends SimplePacketListenerAbstract {
         
         List<EntityData> entityMetadata = getEntityMetadata(target, false);
         sendGlowingPacket(viewer, target.getEntityId(), entityMetadata);
+    }
+    
+    /**
+     * Remove the given participant from this manager. They will stop glowing and stop
+     * seeing others glow.
+     * @param participant the participant to remove
+     */
+    public void removePlayer(Participant participant) {
+        removePlayer(participant.getPlayer());
     }
     
     /**

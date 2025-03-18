@@ -4,13 +4,16 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.states.PlayingColossalCombatState;
 import org.braekpo1nt.mctmanager.games.event.states.WaitingInHubState;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
-import org.bukkit.entity.Player;
+import org.braekpo1nt.mctmanager.utils.LogType;
 
 import java.util.*;
 
@@ -36,11 +39,23 @@ public class ToColossalCombatDelay extends DelayState {
                 .build());
     }
     
+    @Override
+    public void updatePersonalScores(Collection<Participant> updateParticipants) {
+        Main.debugLog(LogType.EVENT_UPDATE_SCORES, "ToColossalCombatDelayState updatePersonalScores()----");
+        // do nothing
+    }
+    
+    @Override
+    public <T extends Team> void updateTeamScores(Collection<T> updateTeams) {
+        Main.debugLog(LogType.EVENT_UPDATE_SCORES, "ToColossalCombatDelayState updateTeamScores()----");
+        // do nothing
+    }
+    
     /**
      * @return true if two teams were picked and Colossal Combat started successfully. False if anything went wrong.
      */
     private boolean identifyWinnersAndStartColossalCombat() {
-        Set<String> allTeams = gameManager.getTeamIds();
+        Collection<Team> allTeams = gameManager.getTeams();
         if (allTeams.size() < 2) {
             context.messageAllAdmins(Component.empty()
                     .append(Component.text("There are fewer than two teams online. Use "))
@@ -51,14 +66,15 @@ public class ToColossalCombatDelay extends DelayState {
             return false;
         }
         Map<String, Integer> teamScores = new HashMap<>();
-        for (String teamId : allTeams) {
-            int score = gameManager.getScore(teamId);
-            teamScores.put(teamId, score);
+        for (Team team : allTeams) {
+            teamScores.put(team.getTeamId(), team.getScore());
         }
         String[] firstPlaces = GameManagerUtils.calculateFirstPlace(teamScores);
         if (firstPlaces.length == 2) {
-            String firstPlace = firstPlaces[0];
-            String secondPlace = firstPlaces[1];
+            Team firstPlace = Objects.requireNonNull(gameManager.getTeam(firstPlaces[0]), 
+                    "teamId not found even though game manager produced it");
+            Team secondPlace = Objects.requireNonNull(gameManager.getTeam(firstPlaces[1]), 
+                    "teamId not found even though game manager produced it");
             context.setState(new PlayingColossalCombatState(
                     context,
                     firstPlace,
@@ -75,8 +91,9 @@ public class ToColossalCombatDelay extends DelayState {
                     .color(NamedTextColor.RED));
             return false;
         }
-        String firstPlace = firstPlaces[0];
-        teamScores.remove(firstPlace);
+        Team firstPlace = Objects.requireNonNull(gameManager.getTeam(firstPlaces[0]),
+                "teamId not found even though game manager produced it");
+        teamScores.remove(firstPlace.getTeamId());
         String[] secondPlaces = GameManagerUtils.calculateFirstPlace(teamScores);
         if (secondPlaces.length > 1) {
             context.messageAllAdmins(Component.empty()
@@ -88,15 +105,15 @@ public class ToColossalCombatDelay extends DelayState {
                     .color(NamedTextColor.RED));
             return false;
         }
-        String secondPlace = secondPlaces[0];
+        Team secondPlace = Objects.requireNonNull(gameManager.getTeam(secondPlaces[0]),
+                "teamId not found even though game manager produced it");
         int onlineFirsts = 0;
         int onlineSeconds = 0;
-        for (Player participant : context.getParticipants()) {
-            String teamId = gameManager.getTeamId(participant.getUniqueId());
-            if (teamId.equals(firstPlace)) {
+        for (Participant participant : context.getParticipants()) {
+            if (participant.getTeamId().equals(firstPlace.getTeamId())) {
                 onlineFirsts++;
             }
-            if (teamId.equals(secondPlace)) {
+            if (participant.getTeamId().equals(secondPlace.getTeamId())) {
                 onlineSeconds++;
             }
         }
@@ -104,7 +121,7 @@ public class ToColossalCombatDelay extends DelayState {
             context.messageAllAdmins(Component.empty()
                     .append(Component.text("There are no members of the first place team online. Please use "))
                     .append(Component.text("/mct event finalgame start <first> <second>")
-                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstPlace, secondPlace)))
+                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstPlace.getTeamId(), secondPlace.getTeamId())))
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" to manually start the final game."))
                     .color(NamedTextColor.RED));
@@ -115,7 +132,7 @@ public class ToColossalCombatDelay extends DelayState {
             context.messageAllAdmins(Component.empty()
                     .append(Component.text("There are no members of the second place team online. Please use "))
                     .append(Component.text("/mct event finalgame start <first> <second>")
-                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstPlace, secondPlace)))
+                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstPlace.getTeamId(), secondPlace.getTeamId())))
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" to manually start the final game."))
                     .color(NamedTextColor.RED));

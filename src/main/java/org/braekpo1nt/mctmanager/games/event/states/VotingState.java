@@ -9,6 +9,9 @@ import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.states.delay.StartingGameDelayState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -19,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class VotingState implements EventState {
@@ -35,26 +39,68 @@ public class VotingState implements EventState {
         votingPool.removeAll(context.getPlayedGames());
         context.getSidebar().removeAllPlayers();
         context.getAdminSidebar().removeAllPlayers();
-        List<Player> participantsCopy = new ArrayList<>(context.getParticipants());
         List<Player> adminCopy = new ArrayList<>(context.getAdmins());
-        context.getParticipants().clear();
         context.getAdmins().clear();
-        voteManager.startVote(participantsCopy, votingPool, context.getConfig().getVotingDuration(), 
+        voteManager.startVote(context.getParticipants(), votingPool, context.getConfig().getVotingDuration(), 
                 this::startingGameDelay, adminCopy);
     }
     
     private void startingGameDelay(GameType gameType) {
+        context.initializeParticipantsAndAdmins();
         context.setState(new StartingGameDelayState(context, gameType));
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void updatePersonalScores(Collection<Participant> updateParticipants) {
+        Main.debugLog(LogType.EVENT_UPDATE_SCORES, "VotingState updatePersonalScores()");
+        if (context.getSidebar() == null) {
+            return;
+        }
+        for (Participant participant : updateParticipants) {
+            context.getSidebar().updateLine(participant.getUniqueId(), "personalScore",
+                    Component.empty()
+                            .append(Component.text("Personal: "))
+                            .append(Component.text(participant.getScore()))
+                            .color(NamedTextColor.GOLD));
+        }
+    }
+    
+    @Override
+    public <T extends Team> void updateTeamScores(Collection<T> updateTeams) {
+        Main.debugLog(LogType.EVENT_UPDATE_SCORES, "VotingState updateTeamScores()");
+        if (context.getSidebar() == null) {
+            return;
+        }
+        List<Team> sortedTeams = EventManager.sortTeams(updateTeams);
+        if (context.getNumberOfTeams() != sortedTeams.size()) {
+            EventState.reorderTeamLines(sortedTeams, context);
+            return;
+        }
+        KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
+        for (int i = 0; i < context.getNumberOfTeams(); i++) {
+            Team team = sortedTeams.get(i);
+            teamLines[i] = new KeyLine("team"+i, Component.empty()
+                    .append(team.getFormattedDisplayName())
+                    .append(Component.text(": "))
+                    .append(Component.text(team.getScore())
+                            .color(NamedTextColor.GOLD))
+            );
+        }
+        context.getSidebar().updateLines(teamLines);
+        if (context.getAdminSidebar() == null) {
+            return;
+        }
+        context.getAdminSidebar().updateLines(teamLines);
+    }
+    
+    @Override
+    public void onParticipantJoin(Participant participant) {
         gameManager.returnParticipantToHubInstantly(participant);
         voteManager.onParticipantJoin(participant);
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(Participant participant) {
         voteManager.onParticipantQuit(participant);
     }
     
@@ -75,18 +121,18 @@ public class VotingState implements EventState {
     }
     
     @Override
-    public void onPlayerDamage(EntityDamageEvent event) {
+    public void onParticipantDamage(EntityDamageEvent event) {
         Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "EventManager.VotingState.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     
     @Override
-    public void onClickInventory(InventoryClickEvent event) {
+    public void onClickInventory(InventoryClickEvent event, Participant participant) {
         // do nothing
     }
     
     @Override
-    public void onDropItem(PlayerDropItemEvent event) {
+    public void onDropItem(PlayerDropItemEvent event, @NotNull Participant participant) {
         // do nothing
     }
     
@@ -96,7 +142,7 @@ public class VotingState implements EventState {
     }
     
     @Override
-    public void colossalCombatIsOver(@Nullable String winningTeam) {
+    public void colossalCombatIsOver(@Nullable Team winningTeam) {
         // do nothing
     }
     
@@ -127,7 +173,7 @@ public class VotingState implements EventState {
     }
     
     @Override
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam) {
         sender.sendMessage(Component.text("Can't start Colossal Combat during voting")
                 .color(NamedTextColor.RED));
     }
