@@ -126,8 +126,7 @@ public class Main extends JavaPlugin {
         try {
             gameManager.loadHubConfig();
         } catch (ConfigException e) {
-            Main.logger().severe(String.format("[MCTManager] Could not load hub config, see console for details. %s", e.getMessage()));
-            e.printStackTrace();
+            Main.logger().log(Level.SEVERE, String.format("Could not load hub config, see console for details. %s", e.getMessage()), e);
             saveGameStateOnDisable = false;
             Bukkit.getPluginManager().disablePlugin(this);
             return;
@@ -196,7 +195,6 @@ public class Main extends JavaPlugin {
         }
         gameManager = null;
         mctCommand = null;
-        logger = null;
         logTypeActive.clear();
     }
     
