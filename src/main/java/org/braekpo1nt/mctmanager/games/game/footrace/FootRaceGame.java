@@ -381,12 +381,12 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
     }
     
     @Override
-    public void onParticipantQuit(Participant participant, Team team) {
-        FootRaceParticipant footRaceParticipant = participants.get(participant.getUniqueId());
+    public void onParticipantQuit(UUID participantUUID, String teamId) {
+        FootRaceParticipant footRaceParticipant = participants.get(participantUUID);
         if (footRaceParticipant == null) {
             return;
         }
-        FootRaceTeam footRaceTeam = teams.get(participant.getTeamId());
+        FootRaceTeam footRaceTeam = teams.get(teamId);
         if (state != null) {
             state.onParticipantQuit(footRaceParticipant, footRaceTeam);
         }

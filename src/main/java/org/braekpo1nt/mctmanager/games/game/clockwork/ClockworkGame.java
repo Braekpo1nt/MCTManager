@@ -323,15 +323,15 @@ public class ClockworkGame implements Listener, MCTGame, Configurable {
     }
     
     @Override
-    public void onParticipantQuit(Participant participant, Team team) {
+    public void onParticipantQuit(UUID participantUUID, String teamId) {
         if (!gameActive) {
             return;
         }
-        ClockworkParticipant quitParticipant = participants.get(participant.getUniqueId());
-        if (quitParticipant == null) {
+        ClockworkParticipant participant = participants.get(participantUUID);
+        if (participant == null) {
             return;
         }
-        quitDatas.put(quitParticipant.getUniqueId(), quitParticipant.getQuitData());
+        quitDatas.put(participant.getUniqueId(), participant.getQuitData());
         if (descriptionShowing) {
             resetParticipant(participant);
             participants.remove(participant.getUniqueId());
@@ -340,12 +340,12 @@ public class ClockworkGame implements Listener, MCTGame, Configurable {
         if (currentRoundIndex < rounds.size()) {
             ClockworkRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
-                currentRound.onParticipantQuit(quitParticipant);
+                currentRound.onParticipantQuit(participant);
             }
         }
         resetParticipant(participant);
         participants.remove(participant.getUniqueId());
-        onTeamQuit(teams.get(team.getTeamId()));
+        onTeamQuit(teams.get(teamId));
     }
     
     private void cancelAllTasks() {

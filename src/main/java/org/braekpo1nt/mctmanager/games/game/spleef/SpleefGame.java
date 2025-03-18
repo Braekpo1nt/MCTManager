@@ -386,20 +386,20 @@ public class SpleefGame implements Listener, MCTGame, Configurable {
     }
     
     @Override
-    public void onParticipantQuit(Participant participant, Team team) {
+    public void onParticipantQuit(UUID participantUUID, String teamId) {
         if (!gameActive) {
             return;
         }
-        SpleefParticipant quitParticipant = participants.get(participant.getUniqueId());
-        if (quitParticipant == null) {
+        SpleefParticipant participant = participants.get(participantUUID);
+        if (participant == null) {
             return;
         }
-        quitDatas.put(quitParticipant.getUniqueId(), quitParticipant.getQuitData());
-        SpleefTeam spleefTeam = teams.get(team.getTeamId());
+        quitDatas.put(participant.getUniqueId(), participant.getQuitData());
+        SpleefTeam spleefTeam = teams.get(teamId);
         if (currentRoundIndex < rounds.size()) {
             SpleefRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
-                currentRound.onParticipantQuit(quitParticipant, spleefTeam);
+                currentRound.onParticipantQuit(participant, spleefTeam);
             }
         }
         resetParticipant(participant);

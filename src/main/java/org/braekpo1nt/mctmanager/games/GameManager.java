@@ -379,7 +379,7 @@ public class GameManager implements Listener {
         team.quitOnlineMember(participant.getUniqueId());
         onlineParticipants.remove(participant.getUniqueId());
         if (gameIsRunning()) {
-            activeGame.onParticipantQuit(participant, team);
+            activeGame.onParticipantQuit(participant.getUniqueId(), team.getTeamId());
         } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
             eventManager.onParticipantQuit(participant);
         } else if (voteManager.isVoting()) {

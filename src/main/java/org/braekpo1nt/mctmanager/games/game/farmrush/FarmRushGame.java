@@ -458,11 +458,11 @@ public class FarmRushGame implements MCTGame, Configurable, Listener {
     }
     
     @Override
-    public void onParticipantQuit(Participant player, Team team) {
+    public void onParticipantQuit(UUID participantUUID, String teamId) {
         if (state == null) {
             return;
         }
-        FarmRushParticipant participant = participants.get(player.getUniqueId());
+        FarmRushParticipant participant = participants.get(participantUUID);
         if (participant == null) {
             return;
         }

@@ -359,18 +359,18 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
     }
     
     @Override
-    public void onParticipantQuit(Participant participant, Team team) {
-        ParkourParticipant parkourParticipant = participants.get(participant.getUniqueId());
-        if (parkourParticipant == null) {
+    public void onParticipantQuit(UUID participantUUID, String teamId) {
+        ParkourParticipant participant = participants.get(participantUUID);
+        if (participant == null) {
             return;
         }
         if (parkourHasStarted) {
             int unusedSkips = calculateUnusedSkips(participant);
-            quitDatas.put(participant.getUniqueId(), parkourParticipant.getQuitData(unusedSkips));
+            quitDatas.put(participantUUID, participant.getQuitData(unusedSkips));
         }
         resetParticipant(participant);
         participants.remove(participant.getUniqueId());
-        onTeamQuit(teams.get(team.getTeamId()));
+        onTeamQuit(teams.get(teamId));
     }
     
     private void startDescriptionPeriod() {

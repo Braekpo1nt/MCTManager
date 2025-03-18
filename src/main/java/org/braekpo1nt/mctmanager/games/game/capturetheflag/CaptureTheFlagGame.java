@@ -250,15 +250,15 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     }
     
     @Override
-    public void onParticipantQuit(Participant participant, Team team) {
+    public void onParticipantQuit(UUID participantUUID, String teamId) {
         if (state == null) {
             return;
         }
-        CTFParticipant ctfParticipant = participants.get(participant.getUniqueId());
-        if (ctfParticipant == null) {
+        CTFParticipant participant = participants.get(participantUUID);
+        if (participant == null) {
             return;
         }
-        state.onParticipantQuit(ctfParticipant);
+        state.onParticipantQuit(participant);
     }
     
     /**

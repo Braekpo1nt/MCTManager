@@ -279,8 +279,8 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener {
     }
     
     @Override
-    public void onParticipantQuit(Participant participant, Team team) {
-        SurvivalGamesParticipant sgParticipant = participants.get(participant.getUniqueId());
+    public void onParticipantQuit(UUID participantUUID, String teamId) {
+        SurvivalGamesParticipant sgParticipant = participants.get(participantUUID);
         if (sgParticipant == null) {
             return;
         }

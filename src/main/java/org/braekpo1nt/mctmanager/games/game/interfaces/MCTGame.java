@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * An MCT game. 
@@ -19,7 +20,7 @@ public interface MCTGame {
     void stop();
     
     void onParticipantJoin(Participant participant, Team team);
-    void onParticipantQuit(Participant participant, Team team);
+    void onParticipantQuit(UUID participantUUID, String teamId);
     
     void onAdminJoin(Player admin);
     void onAdminQuit(Player admin);
