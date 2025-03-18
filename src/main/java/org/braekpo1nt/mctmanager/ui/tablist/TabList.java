@@ -282,6 +282,24 @@ public class TabList {
     }
     
     /**
+     * Set the scores of the given teams
+     * @param teamIdsToScores the teamIds to update mapped to their new scores. 
+     *                        (Any teamIds not in this TabList will be ignored
+     *                        and a log message will announce the error.)
+     */
+    public void setScores(@NotNull Map<@NotNull String, @NotNull Integer> teamIdsToScores) {
+        for (Map.Entry<String, Integer> entry : teamIdsToScores.entrySet()) {
+            String teamId = entry.getKey();
+            int score = entry.getValue();
+            TeamData teamData = getTeamData(teamId);
+            if (teamData != null) {
+                teamData.setScore(score);
+            }
+        }
+        update();
+    }
+    
+    /**
      * Joins the given participant to the given team so that the name is listed under the team
      * in the TabList. Initialized as alive. <br> 
      * This is not the same as {@link #showPlayer(Player)} because it has nothing

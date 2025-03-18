@@ -378,19 +378,23 @@ public class ClockworkRound implements Listener {
             killed.getInventory().clear();
             ParticipantInitializer.clearStatusEffects(killed);
             ParticipantInitializer.resetHealthAndHunger(killed);
-            Bukkit.getServer().sendMessage(Component.empty()
+            plugin.getServer().sendMessage(Component.empty()
                     .append(killed.displayName())
                     .append(Component.text(" was claimed by time")));
             participantsAreAlive.put(killed.getUniqueId(), false);
             String killedTeamId = gameManager.getTeamId(killed.getUniqueId());
+            
+            List<Player> awardedParticipants = new ArrayList<>();
             for (Player participant : participants) {
                 String teamId = gameManager.getTeamId(participant.getUniqueId());
                 if (participantsAreAlive.get(participant.getUniqueId()) 
                         && !killedParticipants.contains(participant)
                         && !teamId.equals(killedTeamId)) {
-                    gameManager.awardPointsToParticipant(participant, config.getPlayerEliminationScore());
+                    awardedParticipants.add(participant);
                 }
             }
+            gameManager.awardPointsToParticipants(awardedParticipants, config.getPlayerEliminationScore());
+            
             if (!teamsKilledMembers.containsKey(killedTeamId)) {
                 teamsKilledMembers.put(killedTeamId, 1);
             } else {
@@ -413,7 +417,7 @@ public class ClockworkRound implements Listener {
         if (newlyKilledTeams.isEmpty()) {
             return;
         }
-        List<String> allTeams = gameManager.getTeamIds(participants);
+        List<String> allTeamIds = gameManager.getTeamIds(participants);
         for (String newlyKilledTeam : newlyKilledTeams) {
             Component teamDisplayName = gameManager.getFormattedTeamDisplayName(newlyKilledTeam);
             for (Player participant : participants) {
@@ -430,11 +434,13 @@ public class ClockworkRound implements Listener {
                             .color(NamedTextColor.GREEN));
                 }
             }
-            for (String team : allTeams) {
-                if (teamsLivingMembers.get(team) > 0 && !newlyKilledTeams.contains(team)) {
-                    gameManager.awardPointsToTeam(team, config.getTeamEliminationScore());
+            List<String> livingTeamIds = new ArrayList<>();
+            for (String teamId : allTeamIds) {
+                if (teamsLivingMembers.get(teamId) > 0 && !newlyKilledTeams.contains(teamId)) {
+                    livingTeamIds.add(teamId);
                 }
             }
+            gameManager.awardPointsToTeams(livingTeamIds, config.getTeamEliminationScore());
         }
         List<String> livingTeams = getLivingTeams();
         if (livingTeams.isEmpty()) {
