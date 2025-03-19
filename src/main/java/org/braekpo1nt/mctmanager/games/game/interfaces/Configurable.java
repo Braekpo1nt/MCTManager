@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 public interface Configurable {
     /**
      * Load the config file. If the config file fails to load, throws an {@link ConfigException}.
+     * @param configFile the json file (including json extension) that the config is in
      * @throws ConfigInvalidException if the loaded config is invalid
      * @throws ConfigIOException if there are any IO errors when loading the config.
      */

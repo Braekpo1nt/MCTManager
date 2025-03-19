@@ -88,7 +88,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
         this.plugin = plugin;
         this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
-        this.configController = new ParkourPathwayConfigController(plugin.getDataFolder());
+        this.configController = new ParkourPathwayConfigController(plugin.getDataFolder(), getType().getId());
     }
     
     @Override
@@ -114,7 +114,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
     
     @Override
     public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
-        this.config = configController.getConfig();
+        this.config = configController.getConfig(configFile);
     }
     
     @Override

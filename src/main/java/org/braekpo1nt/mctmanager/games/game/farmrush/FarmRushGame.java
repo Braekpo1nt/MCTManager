@@ -114,12 +114,12 @@ public class FarmRushGame implements MCTGame, Configurable, Listener {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.timerManager = new TimerManager(plugin);
-        this.configController = new FarmRushConfigController(plugin.getDataFolder());
+        this.configController = new FarmRushConfigController(plugin.getDataFolder(), getType().getId());
     }
     
     @Override
     public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
-        this.config = configController.getConfig();
+        this.config = configController.getConfig(configFile);
     }
     
     @Override

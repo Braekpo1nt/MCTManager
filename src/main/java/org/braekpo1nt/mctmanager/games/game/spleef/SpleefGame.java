@@ -60,7 +60,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable {
         this.plugin = plugin;
         this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
-        this.configController = new SpleefConfigController(plugin.getDataFolder());
+        this.configController = new SpleefConfigController(plugin.getDataFolder(), getType().getId());
     }
     
     @Override
@@ -86,7 +86,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable {
     
     @Override
     public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
-        this.config = configController.getConfig();
+        this.config = configController.getConfig(configFile);
         if (gameActive) {
             for (SpleefRound round : rounds) {
                 round.setConfig(config);
