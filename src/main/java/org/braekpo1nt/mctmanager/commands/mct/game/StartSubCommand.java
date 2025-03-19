@@ -28,8 +28,8 @@ public class StartSubCommand extends TabSubCommand {
     
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length != 1) {
-            return CommandResult.failure(getUsage().of("<game>"));
+        if (args.length < 1 || args.length > 2) {
+            return CommandResult.failure(getUsage().of("<game>").of("[configFile]"));
         }
         String gameID = args[0];
         GameType gameType = GameType.fromID(gameID);
@@ -42,7 +42,15 @@ public class StartSubCommand extends TabSubCommand {
             return CommandResult.failure(Component.text("Can't manually start a game while an event is active.")
                     .color(NamedTextColor.RED));
         }
-        gameManager.startGame(gameType, sender);
+        
+        String configFile;
+        if (args.length == 2) {
+            configFile = args[1];
+        } else {
+            configFile = "default.json";
+        }
+        
+        gameManager.startGame(gameType, configFile, sender);
         return CommandResult.success();
     }
     
