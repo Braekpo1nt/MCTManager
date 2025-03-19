@@ -238,7 +238,7 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
     }
     
     @Override
-    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
+    public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
         this.config = controller.getConfig();
         if (!editorStarted) {
             return;

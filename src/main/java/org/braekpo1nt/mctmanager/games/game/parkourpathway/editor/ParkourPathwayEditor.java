@@ -151,7 +151,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     }
     
     @Override
-    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
+    public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
         this.config = configController.getConfig();
         if (!editorStarted) {
             return;

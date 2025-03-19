@@ -70,13 +70,13 @@ public class ColossalCombatGame implements Listener, Configurable {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.timerManager = new TimerManager(plugin);
-        this.configController = new ColossalCombatConfigController(plugin.getDataFolder());
+        this.configController = new ColossalCombatConfigController(plugin.getDataFolder(), "colossal_combat");
         this.topbar = new BattleTopbar();
     }
     
     @Override
-    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
-        this.config = configController.getConfig();
+    public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
+        this.config = configController.getConfig(configFile);
         if (gameActive) {
             for (ColossalCombatRound round : rounds) {
                 round.setConfig(this.config);

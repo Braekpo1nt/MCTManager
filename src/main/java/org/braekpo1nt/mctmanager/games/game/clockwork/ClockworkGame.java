@@ -90,7 +90,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable {
     }
     
     @Override
-    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
+    public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
         this.config = configController.getConfig();
         if (gameActive) {
             for (ClockworkRound round : rounds) {

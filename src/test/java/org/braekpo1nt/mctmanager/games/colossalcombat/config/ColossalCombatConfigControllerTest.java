@@ -29,7 +29,7 @@ public class ColossalCombatConfigControllerTest {
         ServerMock server = MockBukkit.mock(new MyCustomServerMock());
         server.getLogger().setLevel(Level.OFF);
         plugin = MockBukkit.load(MockMain.class);
-        controller = new ColossalCombatConfigController(plugin.getDataFolder());
+        controller = new ColossalCombatConfigController(plugin.getDataFolder(), configFileName);
     }
 
     @AfterEach
@@ -39,13 +39,13 @@ public class ColossalCombatConfigControllerTest {
 
     @Test
     void configDoesNotExist() {
-        Assertions.assertThrows(ConfigIOException.class, controller::getConfig);
+        Assertions.assertThrows(ConfigIOException.class, () -> controller.getConfig(configFileName));
     }
 
     @Test
     void malformedJson() {
         TestUtils.createFileInDirectory(plugin.getDataFolder(), configFileName, "{,");
-        Assertions.assertThrows(ConfigInvalidException.class, controller::getConfig);
+        Assertions.assertThrows(ConfigInvalidException.class, () -> controller.getConfig(configFileName));
     }
     
     @Test
@@ -64,12 +64,12 @@ public class ColossalCombatConfigControllerTest {
         JsonObject json = TestUtils.inputStreamToJson(inputStream);
         json.addProperty("version", "0.0.0");
         TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));
-        Assertions.assertThrows(ConfigInvalidException.class, controller::getConfig);
+        Assertions.assertThrows(ConfigInvalidException.class, () -> controller.getConfig(configFileName));
     }
     
     void wellFormedJsonValidData(String filename) {
         InputStream inputStream = controller.getClass().getResourceAsStream(filename);
         TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
-        Assertions.assertDoesNotThrow(controller::getConfig);
+        Assertions.assertDoesNotThrow(() -> controller.getConfig(configFileName));
     }
 }

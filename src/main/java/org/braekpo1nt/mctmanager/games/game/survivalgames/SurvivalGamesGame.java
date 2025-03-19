@@ -112,7 +112,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener {
     }
     
     @Override
-    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
+    public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
         this.config = configController.getConfig();
     }
     

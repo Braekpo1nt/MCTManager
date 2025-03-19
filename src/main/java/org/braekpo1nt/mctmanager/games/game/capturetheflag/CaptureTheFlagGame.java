@@ -99,7 +99,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     }
     
     @Override
-    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
+    public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
         if (state != null) {
             throw new ConfigException("CaptureTheFlagGame does not support loading the config mid-game");
         }

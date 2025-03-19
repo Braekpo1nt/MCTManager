@@ -629,10 +629,6 @@ public class GameManager implements Listener {
         return eventManager;
     }
     
-    public void removeParticipantsFromHub(Map<UUID, Participant> participantsToRemove) {
-        removeParticipantsFromHub(participantsToRemove.values());
-    }
-    
     public void removeParticipantsFromHub(Collection<Participant> participantsToRemove) {
         hubManager.removeParticipantsFromHub(participantsToRemove);
     }
