@@ -29,18 +29,18 @@ public class PlayingGameState implements EventState {
     protected final EventManager context;
     protected final GameManager gameManager;
     
-    public PlayingGameState(EventManager context, GameType gameType) {
+    public PlayingGameState(EventManager context, @NotNull GameType gameType, @NotNull String configFile) {
         this.context = context;
         this.gameManager = context.getGameManager();
-        startGame(context, gameType);
+        startGame(context, gameType, configFile);
     }
     
-    protected void startGame(EventManager context, GameType gameType) {
+    protected void startGame(EventManager context, @NotNull GameType gameType, @NotNull String configFile) {
         createScoreKeeperForGame(gameType);
         context.getSidebar().removeAllPlayers();
         context.getAdminSidebar().removeAllPlayers();
         context.getAdmins().clear();
-        boolean gameStarted = gameManager.startGame(gameType, 
+        boolean gameStarted = gameManager.startGame(gameType, configFile, 
                 context.getPlugin().getServer().getConsoleSender());
         if (!gameStarted) {
             context.messageAllAdmins(Component.text("Unable to start the game ")

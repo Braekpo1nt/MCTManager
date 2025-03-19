@@ -70,7 +70,7 @@ public class ColossalCombatGame implements Listener, Configurable {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.timerManager = new TimerManager(plugin);
-        this.configController = new ColossalCombatConfigController(plugin.getDataFolder(), "colossal_combat");
+        this.configController = new ColossalCombatConfigController(plugin.getDataFolder(), "colossal-combat");
         this.topbar = new BattleTopbar();
     }
     

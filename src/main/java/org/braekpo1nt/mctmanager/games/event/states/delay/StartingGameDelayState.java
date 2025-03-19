@@ -10,11 +10,12 @@ import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
 public class StartingGameDelayState extends DelayState {
-    public StartingGameDelayState(EventManager context, GameType gameType) {
+    public StartingGameDelayState(EventManager context, @NotNull GameType gameType, @NotNull String configFile) {
         super(context);
         context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getStartingGameDuration())
@@ -24,7 +25,7 @@ public class StartingGameDelayState extends DelayState {
                         .append(Component.text(gameType.getTitle()))
                         .append(Component.text(": ")))
                 .onCompletion(() -> {
-                    context.setState(new PlayingGameState(context, gameType));
+                    context.setState(new PlayingGameState(context, gameType, configFile));
                 })
                 .build());
     }

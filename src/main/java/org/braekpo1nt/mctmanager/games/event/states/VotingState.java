@@ -45,9 +45,9 @@ public class VotingState implements EventState {
                 this::startingGameDelay, adminCopy);
     }
     
-    private void startingGameDelay(GameType gameType) {
+    private void startingGameDelay(@NotNull GameType gameType, @NotNull String configFile) {
         context.initializeParticipantsAndAdmins();
-        context.setState(new StartingGameDelayState(context, gameType));
+        context.setState(new StartingGameDelayState(context, gameType, configFile));
     }
     
     @Override

@@ -482,7 +482,7 @@ public class GameManager implements Listener {
      * @throws ConfigIOException if there are any IO errors when loading the config.
      */
     public void loadHubConfig() throws ConfigIOException, ConfigInvalidException {
-        hubManager.loadConfig();
+        hubManager.loadConfig("hubConfig.json");
     }
     
     /**
@@ -490,7 +490,7 @@ public class GameManager implements Listener {
      * @param sender the sender
      * @return false if there is no game running, the game is not configurable, or the config could not be loaded. true if the config was loaded.
      */
-    public boolean loadGameConfig(CommandSender sender) {
+    public boolean loadGameConfig(@NotNull String configFile, @NotNull CommandSender sender) {
         if (!gameIsRunning()) {
             sender.sendMessage(Component.text("No game is running.")
                     .color(NamedTextColor.RED));
@@ -504,7 +504,7 @@ public class GameManager implements Listener {
         }
         
         try {
-            configurable.loadConfig();
+            configurable.loadConfig(configFile);
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, String.format("Error loading config for game %s", activeGame.getType()), e);
             sender.sendMessage(Component.text("Error loading config file for ")
@@ -607,7 +607,7 @@ public class GameManager implements Listener {
                             .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
             return;
         }
-        voteManager.startVote(onlineParticipants.values(), votingPool, duration, (gameType) -> startGame(gameType, sender), onlineAdmins);
+        voteManager.startVote(onlineParticipants.values(), votingPool, duration, (gameType, configFile) -> startGame(gameType, configFile, sender), onlineAdmins);
     }
     
     /**
@@ -636,10 +636,11 @@ public class GameManager implements Listener {
     /**
      * Starts the given game
      * @param gameType The game to start
+     * @param configFile the config file to use for the game
      * @param sender The sender to send messages and alerts to
      * @return true if the game started successfully, false otherwise
      */
-    public boolean startGame(@NotNull GameType gameType, @NotNull CommandSender sender) {
+    public boolean startGame(@NotNull GameType gameType, @NotNull String configFile, @NotNull CommandSender sender) {
         if (voteManager.isVoting()) {
             sender.sendMessage(Component.text("Can't start a game while a vote is going on.")
                     .color(NamedTextColor.RED));
@@ -675,7 +676,7 @@ public class GameManager implements Listener {
         // make sure config loads
         if (selectedGame instanceof Configurable configurable) {
             try {
-                configurable.loadConfig();
+                configurable.loadConfig(configFile);
             } catch (ConfigException e) {
                 Main.logger().log(Level.SEVERE, String.format("Error loading config for game %s", selectedGame.getType()), e);
                 Component message = Component.text("Can't start ")
@@ -828,7 +829,7 @@ public class GameManager implements Listener {
         hubManager.returnParticipantsToHub(onlineParticipants.values(), onlineAdmins, true);
     }
     
-    public void startEditor(GameType gameType, @NotNull CommandSender sender) {
+    public void startEditor(@NotNull GameType gameType, @NotNull String configFile, @NotNull CommandSender sender) {
         if (voteManager.isVoting()) {
             sender.sendMessage(Component.text("Can't start a game while a vote is going on.")
                     .color(NamedTextColor.RED));
@@ -876,7 +877,7 @@ public class GameManager implements Listener {
         
         // make sure config loads
         try {
-            selectedEditor.loadConfig();
+            selectedEditor.loadConfig(configFile);
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, String.format("Error loading config for editor %s", selectedEditor), e);
             Component message = Component.text("Can't start ")
@@ -977,9 +978,9 @@ public class GameManager implements Listener {
                 .color(NamedTextColor.GREEN));
     }
     
-    public void loadEditor(@NotNull CommandSender sender) {
+    public void loadEditor(@NotNull String configFile, @NotNull CommandSender sender) {
         try {
-            activeEditor.loadConfig();
+            activeEditor.loadConfig(configFile);
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, String.format("Error loading config for editor %s", activeEditor.getType()), e);
             Component message = Component.text("Can't start ")
