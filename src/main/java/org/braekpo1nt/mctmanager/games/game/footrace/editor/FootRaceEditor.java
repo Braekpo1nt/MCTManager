@@ -62,7 +62,7 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
     public FootRaceEditor(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.controller = new FootRaceConfigController(plugin.getDataFolder());
+        this.controller = new FootRaceConfigController(plugin.getDataFolder(), getType().getId());
         this.checkpointWand = addWand(
                 Component.text("checkpoint"),
                 List.of(
@@ -227,19 +227,19 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
     }
     
     @Override
-    public boolean configIsValid() {
-        controller.validateConfig(config);
+    public boolean configIsValid(@NotNull String configFile) {
+        controller.validateConfig(config, configFile);
         return true;
     }
     
     @Override
-    public void saveConfig() throws ConfigIOException, ConfigInvalidException {
-        controller.saveConfig(config);
+    public void saveConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
+        controller.saveConfig(config, configFile);
     }
     
     @Override
     public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
-        this.config = controller.getConfig();
+        this.config = controller.getConfig(configFile);
         if (!editorStarted) {
             return;
         }

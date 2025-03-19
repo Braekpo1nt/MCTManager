@@ -29,10 +29,25 @@ public class PlayingGameState implements EventState {
     protected final EventManager context;
     protected final GameManager gameManager;
     
+    /**
+     * Start the given game with the given config file
+     * @param context the context
+     * @param gameType the game type to start
+     * @param configFile the config file to use
+     */
     public PlayingGameState(EventManager context, @NotNull GameType gameType, @NotNull String configFile) {
         this.context = context;
         this.gameManager = context.getGameManager();
         startGame(context, gameType, configFile);
+    }
+    
+    /**
+     * Don't start the game, used by {@link PlayingColossalCombatState}
+     * @param context the context
+     */
+    PlayingGameState(EventManager context) {
+        this.context = context;
+        this.gameManager = context.getGameManager();
     }
     
     protected void startGame(EventManager context, @NotNull GameType gameType, @NotNull String configFile) {

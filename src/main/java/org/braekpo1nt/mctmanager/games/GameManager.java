@@ -909,14 +909,14 @@ public class GameManager implements Listener {
         return activeEditor != null;
     }
     
-    public void validateEditor(@NotNull CommandSender sender) {
+    public void validateEditor(@NotNull CommandSender sender, @NotNull String configFile) {
         if (!editorIsRunning()) {
             sender.sendMessage(Component.text("No editor is running.")
                     .color(NamedTextColor.RED));
             return;
         }
         try {
-            activeEditor.configIsValid();
+            activeEditor.configIsValid(configFile);
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, String.format("Error validating config for editor %s", activeEditor.getType()), e);
             sender.sendMessage(Component.text("Config is not valid for ")
@@ -935,7 +935,7 @@ public class GameManager implements Listener {
      * @param sender the sender
      * @param force if true, validation will be skipped and the config will be saved even if invalid, if false the config will only save if it is valid
      */
-    public void saveEditor(@NotNull CommandSender sender, boolean force) {
+    public void saveEditor(@NotNull CommandSender sender, @NotNull String configFile, boolean force) {
         if (!editorIsRunning()) {
             sender.sendMessage(Component.text("No editor is running.")
                     .color(NamedTextColor.RED));
@@ -943,7 +943,7 @@ public class GameManager implements Listener {
         }
         if (!force) {
             try {
-                activeEditor.configIsValid();
+                activeEditor.configIsValid(configFile);
             } catch (ConfigException e) {
                 Main.logger().log(Level.SEVERE, String.format("Error validating config for editor %s", activeEditor.getType()), e);
                 sender.sendMessage(Component.text("Config is not valid for ")
@@ -963,7 +963,7 @@ public class GameManager implements Listener {
             sender.sendMessage("Skipping validation.");
         }
         try {
-            activeEditor.saveConfig();
+            activeEditor.saveConfig(configFile);
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, String.format("Error saving config for editor %s", activeEditor.getType()), e);
             sender.sendMessage(Component.text("An error occurred while attempting to save the config for ")

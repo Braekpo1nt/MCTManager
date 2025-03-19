@@ -25,7 +25,7 @@ import java.util.logging.Level;
 public class PlayingColossalCombatState extends PlayingGameState {
     
     public PlayingColossalCombatState(EventManager context, @NotNull Team firstTeam, @NotNull Team secondTeam) {
-        super(context, null);
+        super(context);
         boolean success = tryToStartColossalCombat(firstTeam, secondTeam);
         if (!success) {
             context.setState(new WaitingInHubState(context));
@@ -33,13 +33,13 @@ public class PlayingColossalCombatState extends PlayingGameState {
     }
     
     @Override
-    protected void startGame(EventManager context, GameType gameType) {
+    protected void startGame(EventManager context, @NotNull GameType gameType, @NotNull String configFile) {
         // do nothing
     }
     
     private boolean tryToStartColossalCombat(@NotNull Team firstTeam, @NotNull Team secondTeam) {
         try {
-            context.getColossalCombatGame().loadConfig();
+            context.getColossalCombatGame().loadConfig(context.getColossalCombatConfigFile());
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, "Error trying to start Colossal Combat", e);
             context.messageAllAdmins(Component.text("Can't start ")
