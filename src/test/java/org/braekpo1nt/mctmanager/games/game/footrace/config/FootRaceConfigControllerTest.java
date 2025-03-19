@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.TestUtils;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
+import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +31,7 @@ class FootRaceConfigControllerTest {
         ServerMock server = MockBukkit.mock(new MyCustomServerMock());
         server.getLogger().setLevel(Level.OFF);
         plugin = MockBukkit.load(MockMain.class);
-        controller = new FootRaceConfigController(plugin.getDataFolder());
+        controller = new FootRaceConfigController(plugin.getDataFolder(), GameType.FOOT_RACE.getId());
     }
     
     @AfterEach
@@ -40,13 +41,13 @@ class FootRaceConfigControllerTest {
     
     @Test
     void configDoesNotExist() {
-        Assertions.assertThrows(ConfigIOException.class, controller::getConfig);
+        Assertions.assertThrows(ConfigIOException.class, () -> controller.getConfig(configFileName));
     }
     
     @Test
     void malformedJson() {
         TestUtils.createFileInDirectory(plugin.getDataFolder(), configFileName, "{,");
-        Assertions.assertThrows(ConfigInvalidException.class, controller::getConfig);
+        Assertions.assertThrows(ConfigInvalidException.class, () -> controller.getConfig(configFileName));
     }
     
     @Test
@@ -61,13 +62,13 @@ class FootRaceConfigControllerTest {
         JsonObject checkpoints = new JsonObject();
         json.add("checkpoints", checkpoints);
         TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));
-        Assertions.assertThrows(ConfigInvalidException.class, controller::getConfig);
+        Assertions.assertThrows(ConfigInvalidException.class, () -> controller.getConfig(configFileName));
     }
     
     void wellFormedJsonValidData(String filename) {
         InputStream inputStream = controller.getClass().getResourceAsStream(filename);
         TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
-        Assertions.assertDoesNotThrow(controller::getConfig);
+        Assertions.assertDoesNotThrow(() -> controller.getConfig(configFileName));
     }
     
 }
