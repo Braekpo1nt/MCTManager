@@ -25,8 +25,8 @@ public class StartSubCommand extends TabSubCommand {
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
     
-        if (args.length != 1) {
-            return CommandResult.failure(getUsage().of("<game>"));
+        if (args.length != 2) {
+            return CommandResult.failure(getUsage().of("<game>").of("<configFile>"));
         }
     
         String gameID = args[0];
@@ -35,7 +35,10 @@ public class StartSubCommand extends TabSubCommand {
             return CommandResult.failure(Component.text(gameID)
                     .append(Component.text(" is not a valid game")));
         }
-        gameManager.startEditor(gameType, sender);
+        
+        String configFile = args[1];
+        
+        gameManager.startEditor(gameType, configFile, sender);
         return CommandResult.success();
     }
     

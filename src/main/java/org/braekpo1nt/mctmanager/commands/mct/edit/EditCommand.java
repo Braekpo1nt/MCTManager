@@ -33,8 +33,8 @@ public class EditCommand extends CommandManager {
         addSubCommand(new SubCommand("save") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                if (args.length != 0) {
-                    return CommandResult.failure(getUsage());
+                if (args.length > 1) {
+                    return CommandResult.failure(getUsage().of("[true/false]"));
                 }
                 if (!gameManager.editorIsRunning()) {
                     return CommandResult.failure(Component.text("No editor is running."));
@@ -60,13 +60,16 @@ public class EditCommand extends CommandManager {
         addSubCommand(new SubCommand("load") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                if (args.length != 0) {
-                    return CommandResult.failure(getUsage());
+                if (args.length != 1) {
+                    return CommandResult.failure(getUsage().of("<configFile>"));
                 }
                 if (!gameManager.editorIsRunning()) {
                     return CommandResult.failure(Component.text("No editor is running."));
                 }
-                gameManager.loadEditor(sender);
+                
+                String configFile = args[0];
+                
+                gameManager.loadEditor(configFile, sender);
                 return CommandResult.success();
             }
         });
