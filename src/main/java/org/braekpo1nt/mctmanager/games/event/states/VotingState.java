@@ -45,8 +45,13 @@ public class VotingState implements EventState {
                 this::startingGameDelay, adminCopy);
     }
     
-    private void startingGameDelay(@NotNull GameType gameType, @NotNull String configFile) {
+    /**
+     * @param gameType the game to play
+     * @param ignore unused at this time
+     */
+    private void startingGameDelay(@NotNull GameType gameType, @NotNull String ignore) {
         context.initializeParticipantsAndAdmins();
+        String configFile = context.getConfig().getGameConfigs().getOrDefault(gameType, "default.json");
         context.setState(new StartingGameDelayState(context, gameType, configFile));
     }
     
