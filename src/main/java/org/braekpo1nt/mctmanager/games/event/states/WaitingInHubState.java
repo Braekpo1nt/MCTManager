@@ -18,12 +18,17 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class WaitingInHubState implements EventState {
     
@@ -32,8 +37,8 @@ public class WaitingInHubState implements EventState {
     protected final Sidebar sidebar;
     protected final Sidebar adminSidebar;
     protected final Timer waitingInHubTimer;
-
-    private int actionBarTaskId;
+    
+    private final int actionBarTaskId;
     
     public WaitingInHubState(EventManager context) {
         this.context = context;
@@ -46,7 +51,7 @@ public class WaitingInHubState implements EventState {
                 .append(Component.text(scoreMultiplier))
                 .color(NamedTextColor.GOLD));
         waitingInHubTimer = startTimer();
-        startActionBarTips();
+        actionBarTaskId = startActionBarTips();
     }
     
     protected Timer startTimer() {
@@ -62,7 +67,7 @@ public class WaitingInHubState implements EventState {
                 .withSidebar(adminSidebar, "timer")
                 .sidebarPrefix(prefix)
                 .onCompletion(() -> {
-                    cancelAllTasks();
+                    context.getPlugin().getServer().getScheduler().cancelTask(actionBarTaskId);
                     if (context.allGamesHaveBeenPlayed()) {
                         context.setState(new ToColossalCombatDelay(context));
                     } else {
@@ -170,48 +175,53 @@ public class WaitingInHubState implements EventState {
     @Override
     public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
         waitingInHubTimer.cancel();
+        context.getPlugin().getServer().getScheduler().cancelTask(actionBarTaskId);
         context.setState(new PlayingColossalCombatState(
                 context,
                 firstTeam,
                 secondTeam));
-        cancelAllTasks();
     }
 
-    public void startActionBarTips() {
-        List<Player> participants = context.getParticipants();
+    public int startActionBarTips() {
         List<Tip> allTips = context.getConfig().getTips();
         int tipsDisplayTimeSeconds = context.getConfig().getTipsDisplayTimeSeconds();
-
-        if (participants.isEmpty())
-            return;
-
-        Map<String, List<Player>> teamMapping = context.getTeamToOnlinePlayersMapping();
-
-        actionBarTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(context.getPlugin(), () -> {
-            for (List<Player> teamPlayers : teamMapping.values()) {
-                List<Tip> tips = Tip.selectMultipleWeightedRandomTips(allTips, teamPlayers.size());
-
-                for (int i = 0; i < teamPlayers.size(); i++) {
-                    Player player = teamPlayers.get(i);
-                    String tip = tips.get(i).getTip();
-
-                    BukkitTask task = Bukkit.getScheduler().runTaskTimer(context.getPlugin(), () -> {
-                        player.sendActionBar(Component.text(tip).color(NamedTextColor.GOLD));
-                    }, 0L, 20L);
-                    Bukkit.getScheduler().runTaskLater(context.getPlugin(), task::cancel,
-                            tipsDisplayTimeSeconds * 20L);
+        
+        
+        return new BukkitRunnable() {
+            @Override
+            public void run() {
+                Map<String, List<Player>> teamMapping = getTeamMapping();
+                for (List<Player> teamPlayers : teamMapping.values()) {
+                    List<Tip> tips = Tip.selectMultipleWeightedRandomTips(allTips, teamPlayers.size());
+                    
+                    for (int i = 0; i < teamPlayers.size(); i++) {
+                        Player player = teamPlayers.get(i);
+                        String tip = tips.get(i).getTip();
+                        
+                        BukkitTask task = Bukkit.getScheduler().runTaskTimer(context.getPlugin(), () -> {
+                            player.sendActionBar(Component.text(tip).color(NamedTextColor.GOLD));
+                        }, 0L, 20L);
+                        Bukkit.getScheduler().runTaskLater(context.getPlugin(), task::cancel,
+                                tipsDisplayTimeSeconds * 20L);
+                    }
                 }
             }
-        }, 0L, tipsDisplayTimeSeconds * 20L);
+        }.runTaskTimer(context.getPlugin(), 0L, tipsDisplayTimeSeconds * 20L).getTaskId();
     }
-
+    
+    private Map<String, List<Player>> getTeamMapping() {
+        List<String> teamIds = gameManager.getTeamIds(context.getParticipants());
+        Map<String, List<Player>> teamsToParticipants = teamIds.stream().collect(Collectors.toMap(Function.identity(), t -> new ArrayList<>()));
+        for (Player participant : context.getParticipants()) {
+            String teamId = gameManager.getTeamId(participant.getUniqueId());
+            teamsToParticipants.get(teamId).add(participant);
+        }
+        return teamsToParticipants;
+    }
+    
     @Override
     public void cancelAllTasks() {
-        // Stop action bar tips
-        if (actionBarTaskId != -1) {
-            Bukkit.getScheduler().cancelTask(actionBarTaskId);
-            actionBarTaskId = -1;
-        }
+        context.getPlugin().getServer().getScheduler().cancelTask(actionBarTaskId);
     }
 
 }

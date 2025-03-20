@@ -46,6 +46,9 @@ public class MCTDebugCommand implements TabExecutor, Listener {
             return true;
         }
         
+        player.sendActionBar(Component.text("My action bar"));
+        player.sendMessage(Component.text("Sending an action bar"));
+        
         return true;
     }
     
