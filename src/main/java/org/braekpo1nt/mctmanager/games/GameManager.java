@@ -1075,7 +1075,23 @@ public class GameManager implements Listener {
     public boolean hasTeam(String teamId) {
         return gameStateStorageUtil.containsTeam(teamId);
     }
-    
+
+    /**
+     * Returns a mapping of all teamIds to currently online players of those teams
+     *
+     * @return mapping from all teamIds to their currently online players
+     */
+    public Map<String, List<Player>> getTeamPlayerMapping() {
+        Map<String, List<Player>> teamPlayerMap = new HashMap<>();
+        Set<String> teamIds = getTeamIds();
+
+        for (String teamId : teamIds) {
+            List<Player> playersOnTeam = getOnlinePlayersOnTeam(teamId);
+            teamPlayerMap.put(teamId, playersOnTeam);
+        }
+
+        return teamPlayerMap;
+    }
     /**
      * Checs if the player exists in the game state
      * @param playerUniqueId The UUID of the player to check for
