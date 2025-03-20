@@ -15,5 +15,50 @@
     "voting": 20,
     "startingGame": 5,
     "backToHub": 10
+  },
+  "tips": {
+    "displayTimeSeconds": 5,
+    "tips": [
+      {
+        "text": "Work together as a team for maximum points!",
+        "priority": 1
+      },
+      {
+        "text": "Communication is key to victory!",
+        "priority": 2
+      },
+      {
+        "text": "Don't forget to use your abilities strategically!",
+        "priority": 5
+      },
+      {
+        "text": "Keep an eye on the scoreboard – the competition is fierce!",
+        "priority": 3
+      },
+      {
+        "text": "Explore the map to find hidden advantages!",
+        "priority": 2
+      },
+      {
+        "text": "Teamwork makes the dream work!",
+        "priority": 1
+      },
+      {
+        "text": "Use the environment to your advantage!",
+        "priority": 2
+      },
+      {
+        "text": "Every point counts!",
+        "priority": 3
+      },
+      {
+        "text": "Good luck, and have fun!",
+        "priority": 1
+      },
+      {
+        "text": "May the odds be ever in your favor!",
+        "priority": 1
+      }
+    ]
   }
 }

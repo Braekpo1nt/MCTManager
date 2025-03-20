@@ -696,6 +696,10 @@ public class EventManager implements Listener {
     public void messageAllAdmins(Component message) {
         gameManager.messageAdmins(message);
     }
+
+    public Map<String, List<Player>> getTeamToOnlinePlayersMapping() {
+        return gameManager.getTeamPlayerMapping();
+    }
     
     public boolean allGamesHaveBeenPlayed() {
         return currentGameNumber >= maxGames + 1;
