@@ -10,7 +10,7 @@ public class HalftimeBreakState extends WaitingInHubState {
     public HalftimeBreakState(EventManager context) {
         super(context);
     }
-    
+
     @Override
     protected Timer startTimer() {
         return context.getTimerManager().start(Timer.builder()
@@ -21,6 +21,7 @@ public class HalftimeBreakState extends WaitingInHubState {
                 .titleAudience(Audience.audience(context.getParticipants()))
                 .sidebarPrefix(Component.text("Break: ").color(NamedTextColor.YELLOW))
                 .onCompletion(() -> {
+                    cancelAllTasks();
                     gameManager.removeParticipantsFromHub(context.getParticipants());
                     context.setState(new WaitingInHubState(context));
                 })

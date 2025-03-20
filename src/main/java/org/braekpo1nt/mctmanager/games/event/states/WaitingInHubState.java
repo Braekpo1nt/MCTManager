@@ -3,30 +3,38 @@ package org.braekpo1nt.mctmanager.games.event.states;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+
+import java.util.List;
+import java.util.Map;
+
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
+import org.braekpo1nt.mctmanager.games.event.config.Tip;
 import org.braekpo1nt.mctmanager.games.event.states.delay.ToColossalCombatDelay;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class WaitingInHubState implements EventState {
-    
+
     protected final EventManager context;
     protected final GameManager gameManager;
     protected final Sidebar sidebar;
     protected final Sidebar adminSidebar;
     protected final Timer waitingInHubTimer;
-    
+    private int actionBarTaskId;
+
     public WaitingInHubState(EventManager context) {
         this.context = context;
         this.gameManager = context.getGameManager();
@@ -38,8 +46,9 @@ public class WaitingInHubState implements EventState {
                 .append(Component.text(scoreMultiplier))
                 .color(NamedTextColor.GOLD));
         waitingInHubTimer = startTimer();
+        startActionBarTips();
     }
-    
+
     protected Timer startTimer() {
         Component prefix;
         if (context.allGamesHaveBeenPlayed()) {
@@ -53,6 +62,7 @@ public class WaitingInHubState implements EventState {
                 .withSidebar(adminSidebar, "timer")
                 .sidebarPrefix(prefix)
                 .onCompletion(() -> {
+                    cancelAllTasks();
                     if (context.allGamesHaveBeenPlayed()) {
                         context.setState(new ToColossalCombatDelay(context));
                     } else {
@@ -61,7 +71,7 @@ public class WaitingInHubState implements EventState {
                 })
                 .build());
     }
-    
+
     @Override
     public void onParticipantJoin(Player participant) {
         gameManager.returnParticipantToHubInstantly(participant);
@@ -72,7 +82,7 @@ public class WaitingInHubState implements EventState {
             sidebar.updateLine(participant.getUniqueId(), "currentGame", context.getCurrentGameLine());
         }
     }
-    
+
     @Override
     public void onParticipantQuit(Player participant) {
         context.getParticipants().remove(participant);
@@ -80,7 +90,7 @@ public class WaitingInHubState implements EventState {
             sidebar.removePlayer(participant);
         }
     }
-    
+
     @Override
     public void onAdminJoin(Player admin) {
         if (adminSidebar != null) {
@@ -89,7 +99,7 @@ public class WaitingInHubState implements EventState {
             adminSidebar.updateLine(admin.getUniqueId(), "currentGame", context.getCurrentGameLine());
         }
     }
-    
+
     @Override
     public void onAdminQuit(Player admin) {
         context.getAdmins().remove(admin);
@@ -97,39 +107,39 @@ public class WaitingInHubState implements EventState {
             adminSidebar.removePlayer(admin);
         }
     }
-    
+
     @Override
     public void startEvent(@NotNull CommandSender sender, int numberOfGames, int currentGameNumber) {
         sender.sendMessage(Component.text("An event is already running.")
                 .color(NamedTextColor.RED));
     }
-    
+
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
         Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "EventManager.WaitingInHubState.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
-    
+
     @Override
     public void onClickInventory(InventoryClickEvent event) {
         // do nothing
     }
-    
+
     @Override
     public void onDropItem(PlayerDropItemEvent event) {
         // do nothing
     }
-    
+
     @Override
     public void gameIsOver(@NotNull GameType finishedGameType) {
         // do nothing
     }
-    
+
     @Override
     public void colossalCombatIsOver(@Nullable String winningTeam) {
         // do nothing
     }
-    
+
     @Override
     public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
         if (newMaxGames < context.getCurrentGameNumber() - 1) {
@@ -150,19 +160,58 @@ public class WaitingInHubState implements EventState {
         sender.sendMessage(Component.text("Max games has been set to ")
                 .append(Component.text(newMaxGames)));
     }
-    
+
     @Override
     public void stopColossalCombat(@NotNull CommandSender sender) {
         sender.sendMessage(Component.text("Colossal Combat is not running")
                 .color(NamedTextColor.RED));
     }
-    
+
     @Override
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam,
+            @NotNull String secondTeam) {
         waitingInHubTimer.cancel();
         context.setState(new PlayingColossalCombatState(
                 context,
                 firstTeam,
                 secondTeam));
+        cancelAllTasks();
+    }
+
+    public void startActionBarTips() {
+        List<Player> participants = context.getParticipants();
+        List<Tip> allTips = context.getConfig().getTips();
+        int tipsDisplayTimeSeconds = context.getConfig().getTipsDisplayTimeSeconds();
+
+        if (participants.isEmpty())
+            return;
+
+        Map<String, List<Player>> teamMapping = context.getTeamToOnlinePlayersMapping();
+
+        actionBarTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(context.getPlugin(), () -> {
+            for (List<Player> teamPlayers : teamMapping.values()) {
+                List<Tip> tips = Tip.selectMultipleWeightedRandomTips(allTips, teamPlayers.size());
+
+                for (int i = 0; i < teamPlayers.size(); i++) {
+                    Player player = teamPlayers.get(i);
+                    String tip = tips.get(i).getTip();
+
+                    BukkitTask task = Bukkit.getScheduler().runTaskTimer(context.getPlugin(), () -> {
+                        player.sendActionBar(Component.text(tip).color(NamedTextColor.GOLD));
+                    }, 0L, 20L);
+                    Bukkit.getScheduler().runTaskLater(context.getPlugin(), task::cancel,
+                            tipsDisplayTimeSeconds * 20L);
+                }
+            }
+        }, 0L, tipsDisplayTimeSeconds * 20L);
+    }
+
+    @Override
+    public void cancelAllTasks() {
+        // Stop action bar tips
+        if (actionBarTaskId != -1) {
+            Bukkit.getScheduler().cancelTask(actionBarTaskId);
+            actionBarTaskId = -1;
+        }
     }
 }

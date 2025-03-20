@@ -33,11 +33,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Data
 public class EventManager implements Listener {
     private @NotNull EventState state;
-    
+
     private final Main plugin;
     private final GameManager gameManager;
     private final VoteManager voteManager;
@@ -45,14 +46,17 @@ public class EventManager implements Listener {
     private final EventConfigController configController;
     private final List<GameType> playedGames = new ArrayList<>();
     /**
-     * contains the ScoreKeepers for the games played during the event. Cleared on start and end of event. 
+     * contains the ScoreKeepers for the games played during the event. Cleared on
+     * start and end of event.
      * <p>
-     * If a given key doesn't exist, no score was kept for that game. 
+     * If a given key doesn't exist, no score was kept for that game.
      * <p>
-     * If a given key does exist, it is pared with a list of ScoreKeepers which contain the scores
-     * tracked for a given iteration of the game. Iterations are in order of play, first to last.
-     * If a given iteration is null, then no points were tracked for that iteration. 
-     * Otherwise, it contains the scores tracked for the given iteration. 
+     * If a given key does exist, it is pared with a list of ScoreKeepers which
+     * contain the scores
+     * tracked for a given iteration of the game. Iterations are in order of play,
+     * first to last.
+     * If a given iteration is null, then no points were tracked for that iteration.
+     * Otherwise, it contains the scores tracked for the given iteration.
      */
     private final Map<GameType, List<ScoreKeeper>> scoreKeepers = new HashMap<>();
     private final ItemStack crown = new ItemStack(Material.CARVED_PUMPKIN);
@@ -68,7 +72,7 @@ public class EventManager implements Listener {
     private @Nullable String winningTeam;
     private final ReadyUpManager readyUpManager = new ReadyUpManager();
     private final ReadyUpTopbar topbar = new ReadyUpTopbar();
-    
+
     public EventManager(Main plugin, GameManager gameManager, VoteManager voteManager) {
         this.plugin = plugin;
         this.timerManager = new TimerManager(plugin);
@@ -79,9 +83,12 @@ public class EventManager implements Listener {
         this.crown.editMeta(meta -> meta.setCustomModelData(1));
         this.state = new OffState(this);
     }
-    
+
     /**
-     * Add the participants back to the {@link EventManager#participants} list and the {@link EventManager#sidebar}, add the admins back to the {@link EventManager#admins} list and the {@link EventManager#adminSidebar}, and update the scores on all sidebars.
+     * Add the participants back to the {@link EventManager#participants} list and
+     * the {@link EventManager#sidebar}, add the admins back to the
+     * {@link EventManager#admins} list and the {@link EventManager#adminSidebar},
+     * and update the scores on all sidebars.
      */
     public void initializeParticipantsAndAdmins() {
         for (Player participant : gameManager.getOnlineParticipants()) {
@@ -97,18 +104,17 @@ public class EventManager implements Listener {
         sidebar.updateLine("currentGame", getCurrentGameLine());
         adminSidebar.updateLine("currentGame", getCurrentGameLine());
     }
-    
+
     public void updatePersonalScores() {
         for (Player participant : participants) {
             int score = gameManager.getScore(participant.getUniqueId());
             updatePersonalScore(participant, Component.empty()
                     .append(Component.text("Personal: "))
                     .append(Component.text(score))
-                    .color(NamedTextColor.GOLD)
-            );
+                    .color(NamedTextColor.GOLD));
         }
     }
-    
+
     /**
      * @return a line for sidebars saying what the current game is
      */
@@ -126,31 +132,31 @@ public class EventManager implements Listener {
         }
         return Component.text("Final Round");
     }
-    
+
     public boolean colossalCombatIsActive() {
         return colossalCombatGame.isActive();
     }
-    
+
     public void onParticipantJoin(Player participant) {
         state.onParticipantJoin(participant);
     }
-    
+
     public void onParticipantQuit(Player participant) {
         state.onParticipantQuit(participant);
     }
-    
+
     public void onAdminJoin(Player admin) {
         state.onAdminJoin(admin);
     }
-    
+
     public void onAdminQuit(Player admin) {
         state.onAdminQuit(admin);
     }
-    
+
     public void startEvent(CommandSender sender, int numberOfGames, int currentGameNumber) {
         state.startEvent(sender, numberOfGames, currentGameNumber);
     }
-    
+
     public void stopEvent(CommandSender sender) {
         if (state instanceof OffState) {
             sender.sendMessage(Component.text("There is no event running.")
@@ -191,21 +197,21 @@ public class EventManager implements Listener {
         maxGames = 6;
         winningTeam = null;
     }
-    
+
     private void clearSidebar() {
         sidebar.updateTitle(Sidebar.DEFAULT_TITLE);
         sidebar.removeAllPlayers();
         sidebar.deleteAllLines();
         sidebar = null;
     }
-    
+
     private void clearAdminSidebar() {
         adminSidebar.updateTitle(Sidebar.DEFAULT_TITLE);
         adminSidebar.removeAllPlayers();
         adminSidebar.deleteAllLines();
         adminSidebar = null;
     }
-    
+
     public void undoGame(@NotNull CommandSender sender, @NotNull GameType gameType, int iterationIndex) {
         if (state instanceof OffState) {
             sender.sendMessage(Component.text("There isn't an event going on.")
@@ -232,7 +238,7 @@ public class EventManager implements Listener {
         List<ScoreKeeper> gameScoreKeepers = scoreKeepers.get(gameType);
         if (iterationIndex < 0) {
             sender.sendMessage(Component.empty()
-                    .append(Component.text(iterationIndex+1)
+                    .append(Component.text(iterationIndex + 1)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" is not a valid play-through"))
                     .color(NamedTextColor.RED));
@@ -266,7 +272,7 @@ public class EventManager implements Listener {
         sender.sendMessage(report);
         Bukkit.getConsoleSender().sendMessage(report);
     }
-    
+
     public void addGameToVotingPool(@NotNull CommandSender sender, @NotNull GameType gameToAdd) {
         if (state instanceof OffState) {
             sender.sendMessage(Component.text("There isn't an event going on.")
@@ -287,7 +293,7 @@ public class EventManager implements Listener {
         sender.sendMessage(Component.text(gameToAdd.getTitle())
                 .append(Component.text(" has been added to the voting pool.")));
     }
-    
+
     public void removeGameFromVotingPool(@NotNull CommandSender sender, @NotNull GameType gameToRemove) {
         if (state instanceof OffState) {
             sender.sendMessage(Component.text("There isn't an event going on.")
@@ -308,12 +314,15 @@ public class EventManager implements Listener {
         sender.sendMessage(Component.text(gameToRemove.getTitle())
                 .append(Component.text(" has been removed from the voting pool")));
     }
-    
+
     /**
-     * For use with the undo operation. Gets the number of times a game has been played this round.
+     * For use with the undo operation. Gets the number of times a game has been
+     * played this round.
+     * 
      * @param gameType the game to check for the iterations of
-     * @return the game iterations (the number of times a game has been played this event).
-     * -1 if an event isn't active, 0 if the gameType hasn't been played yet
+     * @return the game iterations (the number of times a game has been played this
+     *         event).
+     *         -1 if an event isn't active, 0 if the gameType hasn't been played yet
      */
     public int getGameIterations(GameType gameType) {
         if (state instanceof OffState) {
@@ -324,9 +333,10 @@ public class EventManager implements Listener {
         }
         return scoreKeepers.get(gameType).size();
     }
-    
+
     /**
      * Removes the scores that were tracked by the given ScoreKeeper
+     * 
      * @param scoreKeeper holds the tracked scores to be removed
      */
     private void undoScores(ScoreKeeper scoreKeeper) {
@@ -338,7 +348,7 @@ public class EventManager implements Listener {
                 teamScoreToSubtract = teamCurrentScore;
             }
             gameManager.addScore(teamId, -teamScoreToSubtract);
-            
+
             List<UUID> participantUUIDs = gameManager.getParticipantUUIDsOnTeam(teamId);
             for (UUID participantUUID : participantUUIDs) {
                 int participantScoreToSubtract = scoreKeeper.getScore(participantUUID);
@@ -350,10 +360,11 @@ public class EventManager implements Listener {
             }
         }
     }
-    
+
     /**
      * Creates a report describing the scores associated with the given ScoreKeeper
-     * @param gameType The gameType the ScoreKeeper is associated with
+     * 
+     * @param gameType    The gameType the ScoreKeeper is associated with
      * @param scoreKeeper The scorekeeper describing the given scores
      * @return A component with a report of the ScoreKeeper's scores
      */
@@ -377,7 +388,7 @@ public class EventManager implements Listener {
                             .color(NamedTextColor.GOLD)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text("\n"));
-            
+
             List<UUID> participantUUIDs = gameManager.getParticipantUUIDsOnTeam(teamId);
             for (UUID participantUUID : participantUUIDs) {
                 Player participant = Bukkit.getPlayer(participantUUID);
@@ -396,19 +407,19 @@ public class EventManager implements Listener {
         }
         return reportBuilder.build();
     }
-    
+
     public void readyUpParticipant(@NotNull Player participant) {
         state.readyUpParticipant(participant);
     }
-    
+
     public void unReadyParticipant(@NotNull Player participant) {
         state.unReadyParticipant(participant);
     }
-    
+
     public void listReady(@NotNull CommandSender sender, @Nullable String teamId) {
         state.listReady(sender, teamId);
     }
-    
+
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
         if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
@@ -422,7 +433,7 @@ public class EventManager implements Listener {
         }
         state.onPlayerDamage(event);
     }
-    
+
     @EventHandler
     public void onClickInventory(InventoryClickEvent event) {
         Player participant = ((Player) event.getWhoClicked());
@@ -431,7 +442,7 @@ public class EventManager implements Listener {
         }
         state.onClickInventory(event);
     }
-    
+
     @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
         Player participant = event.getPlayer();
@@ -440,41 +451,43 @@ public class EventManager implements Listener {
         }
         state.onDropItem(event);
     }
-    
+
     /**
-     * To be called when a game is over. The GameManager knows when a game ends, 
+     * To be called when a game is over. The GameManager knows when a game ends,
      * and thus can call this method if an event is running.
+     * 
      * @param finishedGameType The GameType of the game that just ended
      */
     public void gameIsOver(GameType finishedGameType) {
         state.gameIsOver(finishedGameType);
     }
-    
+
     public void colossalCombatIsOver(String winningTeam) {
         state.colossalCombatIsOver(winningTeam);
     }
-    
+
     public void stopColossalCombat(@NotNull CommandSender sender) {
         state.stopColossalCombat(sender);
     }
-    
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
+
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam,
+            @NotNull String secondTeam) {
         state.startColossalCombat(sender, firstTeam, secondTeam);
     }
-    
+
     public boolean eventIsActive() {
         return !(state instanceof OffState);
     }
-    
+
     public void cancelAllTasks() {
         voteManager.cancelVote();
         timerManager.cancel();
         state.cancelAllTasks();
     }
-    
+
     /**
      * @return the event title from the config if the event is active,
-     * or the {@link Sidebar#DEFAULT_TITLE} if not
+     *         or the {@link Sidebar#DEFAULT_TITLE} if not
      */
     public @NotNull Component getTitle() {
         if (eventIsActive()) {
@@ -483,61 +496,71 @@ public class EventManager implements Listener {
             return Sidebar.DEFAULT_TITLE;
         }
     }
-    
+
     public void giveCrown(Player participant) {
         participant.getInventory().setHelmet(crown);
     }
-    
+
     public void removeCrown(Player participant) {
         ItemStack helmet = participant.getInventory().getHelmet();
         if (helmet != null && helmet.equals(crown)) {
             participant.getInventory().setHelmet(null);
         }
     }
-    
+
     /**
      * @return true if the game number should be displayed in-game
      */
     public boolean shouldDisplayGameNumber() {
         return config.shouldDisplayGameNumber();
     }
-    
+
     /**
      * Check if half the games have been played
-     * @return true if the currentGameNumber-1 is half of the maxGames. False if it is lower or higher. 
-     * If maxGames is odd, it must be the greater half (i.e. 2 is half of 3, 1 is not). 
+     * 
+     * @return true if the currentGameNumber-1 is half of the maxGames. False if it
+     *         is lower or higher.
+     *         If maxGames is odd, it must be the greater half (i.e. 2 is half of 3,
+     *         1 is not).
      */
     public boolean isItHalfTime() {
         if (maxGames == 1) {
             return false;
         }
         double half = maxGames / 2.0;
-        return half <= currentGameNumber-1 && currentGameNumber-1 <= Math.ceil(half);
+        return half <= currentGameNumber - 1 && currentGameNumber - 1 <= Math.ceil(half);
     }
-    
+
     /**
-     * Assigns a value to the {@link #maxGames} field. This should not be used unless you know
+     * Assigns a value to the {@link #maxGames} field. This should not be used
+     * unless you know
      * what you're doing. Instead, use {@link #modifyMaxGames(CommandSender, int)}
+     * 
      * @param maxGames the value to set the maxGames to
-     * @see #modifyMaxGames(CommandSender, int) 
+     * @see #modifyMaxGames(CommandSender, int)
      */
     public void setMaxGames(int maxGames) {
         this.maxGames = maxGames;
     }
-    
+
     /**
      * This is used to change the maxGames of the event. This calls state-specific
-     * behavior and can safely be used at any time without causing any errors. The state
+     * behavior and can safely be used at any time without causing any errors. The
+     * state
      * may or may not ignore the value with a message sent to the sender.
-     * @param sender the sender of the modify command
+     * 
+     * @param sender      the sender of the modify command
      * @param newMaxGames the number to set the max games to
      */
     public void modifyMaxGames(@NotNull CommandSender sender, int newMaxGames) {
         state.setMaxGames(sender, newMaxGames);
     }
-    
+
     /**
-     * The nth multiplier is used on the nth game in the event. If there are x multipliers, and we're on game z where z is greater than x, the xth multiplier is used.
+     * The nth multiplier is used on the nth game in the event. If there are x
+     * multipliers, and we're on game z where z is greater than x, the xth
+     * multiplier is used.
+     * 
      * @return a multiplier for the score based on the progression in the match.
      */
     public double matchProgressPointMultiplier() {
@@ -550,7 +573,7 @@ public class EventManager implements Listener {
         }
         return multipliers[currentGameNumber - 1];
     }
-    
+
     public void updateTeamScores() {
         if (sidebar == null) {
             return;
@@ -565,12 +588,11 @@ public class EventManager implements Listener {
             String teamId = sortedTeamIds.get(i);
             Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
             int teamScore = gameManager.getScore(teamId);
-            teamLines[i] = new KeyLine("team"+i, Component.empty()
+            teamLines[i] = new KeyLine("team" + i, Component.empty()
                     .append(teamDisplayName)
                     .append(Component.text(": "))
                     .append(Component.text(teamScore)
-                            .color(NamedTextColor.GOLD))
-            );
+                            .color(NamedTextColor.GOLD)));
         }
         sidebar.updateLines(teamLines);
         if (adminSidebar == null) {
@@ -578,43 +600,41 @@ public class EventManager implements Listener {
         }
         adminSidebar.updateLines(teamLines);
     }
-    
+
     public List<String> sortTeamIds(Set<String> teamIds) {
         List<String> sortedTeamIds = new ArrayList<>(teamIds);
         sortedTeamIds.sort(Comparator.comparing(gameManager::getScore, Comparator.reverseOrder()));
         sortedTeamIds.sort(Comparator
                 .comparing(teamId -> gameManager.getScore((String) teamId))
                 .reversed()
-                .thenComparing(teamId -> ((String) teamId))
-        );
+                .thenComparing(teamId -> ((String) teamId)));
         return sortedTeamIds;
     }
-    
+
     private void reorderTeamLines(List<String> sortedTeamIds) {
         String[] teamKeys = new String[numberOfTeams];
         for (int i = 0; i < numberOfTeams; i++) {
-            teamKeys[i] = "team"+i;
+            teamKeys[i] = "team" + i;
         }
         sidebar.deleteLines(teamKeys);
         adminSidebar.deleteLines(teamKeys);
-        
+
         numberOfTeams = sortedTeamIds.size();
         KeyLine[] teamLines = new KeyLine[numberOfTeams];
         for (int i = 0; i < numberOfTeams; i++) {
             String teamId = sortedTeamIds.get(i);
             Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
             int teamScore = gameManager.getScore(teamId);
-            teamLines[i] = new KeyLine("team"+i, Component.empty()
+            teamLines[i] = new KeyLine("team" + i, Component.empty()
                     .append(teamDisplayName)
                     .append(Component.text(": "))
                     .append(Component.text(teamScore)
-                            .color(NamedTextColor.GOLD))
-            );
+                            .color(NamedTextColor.GOLD)));
         }
         sidebar.addLines(0, teamLines);
         adminSidebar.addLines(0, teamLines);
     }
-    
+
     public void updatePersonalScore(Player participant, Component contents) {
         if (sidebar == null) {
             return;
@@ -624,12 +644,13 @@ public class EventManager implements Listener {
         }
         sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
     }
-    
+
     /**
-     * Track the points earned for the given team in the given game. 
+     * Track the points earned for the given team in the given game.
      * If the event is not active, nothing happens.
-     * @param teamId The team to track points for
-     * @param points the points to add
+     * 
+     * @param teamId   The team to track points for
+     * @param points   the points to add
      * @param gameType the game that the points came from
      */
     public void trackPoints(String teamId, int points, GameType gameType) {
@@ -640,12 +661,13 @@ public class EventManager implements Listener {
         ScoreKeeper iteration = iterationScoreKeepers.getLast();
         iteration.addPoints(teamId, points);
     }
-    
+
     /**
      * Track the points earned for the given teams in the given game
      * If the event is not active, nothing happens.
-     * @param teamIds The teams to track points for
-     * @param points the points to add
+     * 
+     * @param teamIds  The teams to track points for
+     * @param points   the points to add
      * @param gameType the game that the points came from
      */
     public void trackPointsTeams(Collection<String> teamIds, int points, GameType gameType) {
@@ -658,13 +680,14 @@ public class EventManager implements Listener {
             iteration.addPoints(teamId, points);
         }
     }
-    
+
     /**
-     * Track the points earned for the given participant in the given game. 
+     * Track the points earned for the given participant in the given game.
      * If the event is not active, nothing happens.
+     * 
      * @param participantUUID The participant to track points for
-     * @param points the points to add 
-     * @param gameType the game that the points came from
+     * @param points          the points to add
+     * @param gameType        the game that the points came from
      */
     public void trackPoints(UUID participantUUID, int points, GameType gameType) {
         if (state instanceof OffState) {
@@ -674,13 +697,14 @@ public class EventManager implements Listener {
         ScoreKeeper iteration = iterationScoreKeepers.getLast();
         iteration.addPoints(participantUUID, points);
     }
-    
+
     /**
-     * Track the points earned for the given participants in the given game. 
+     * Track the points earned for the given participants in the given game.
      * If the event is not active, nothing happens.
+     * 
      * @param participants The participants to track points for
-     * @param points the points to add 
-     * @param gameType the game that the points came from
+     * @param points       the points to add
+     * @param gameType     the game that the points came from
      */
     public void trackPointsParticipants(Collection<Player> participants, int points, GameType gameType) {
         if (state instanceof OffState) {
@@ -692,11 +716,15 @@ public class EventManager implements Listener {
             iteration.addPoints(participant.getUniqueId(), points);
         }
     }
-    
+
+    public Map<String, List<Player>> getTeamToOnlinePlayersMapping() {
+        return gameManager.getTeamPlayerMapping();
+    }
+
     public void messageAllAdmins(Component message) {
         gameManager.messageAdmins(message);
     }
-    
+
     public boolean allGamesHaveBeenPlayed() {
         return currentGameNumber >= maxGames + 1;
     }
