@@ -12,7 +12,6 @@ import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -23,8 +22,8 @@ import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class WaitingInHubState implements EventState {
     
@@ -179,15 +178,13 @@ public class WaitingInHubState implements EventState {
     }
 
     public void startActionBarTips() {
-        List<Player> participants = context.getParticipants();
         List<Tip> allTips = context.getConfig().getTips();
         int tipsDisplayTimeSeconds = context.getConfig().getTipsDisplayTimeSeconds();
 
         BukkitScheduler scheduler = context.getPlugin().getServer().getScheduler();
 
-        Map<String, List<Player>> teamMapping = context.getTeamToOnlinePlayersMapping();
-
         actionBarTaskId = scheduler.scheduleSyncRepeatingTask(context.getPlugin(), () -> {
+            Map<String, List<Player>> teamMapping = getTeamPlayerMapping();
             for (List<Player> teamPlayers : teamMapping.values()) {
                 List<Tip> tips = Tip.selectMultipleWeightedRandomTips(allTips, teamPlayers.size());
 
@@ -203,6 +200,21 @@ public class WaitingInHubState implements EventState {
                 }
             }
         }, 0L, tipsDisplayTimeSeconds * 20L);
+    }
+
+    /**
+     * Returns a mapping of all teamIds to currently online players of those teams
+     *
+     * @return mapping from all teamIds to their currently online players
+     */
+    public Map<String, List<Player>> getTeamPlayerMapping() {
+        List<Player> participants = context.getParticipants();
+
+        return participants.stream()
+                .collect(Collectors.groupingBy(
+                        participant -> context.getGameManager().getTeamId(participant.getUniqueId()),
+                        Collectors.toList()
+                ));
     }
 
     @Override
