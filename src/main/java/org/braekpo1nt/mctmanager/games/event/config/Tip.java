@@ -1,19 +1,21 @@
 package org.braekpo1nt.mctmanager.games.event.config;
 
+import net.kyori.adventure.text.Component;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 public class Tip {
     private final int priority;
-    private final String tip;
+    private final Component tip;
 
-    public Tip(int priority, String tip) {
+    public Tip(int priority, Component tip) {
         this.priority = priority;
         this.tip = tip;
     }
 
-    public String getTip() {
+    public Component getTip() {
         return tip;
     }
 
@@ -49,7 +51,7 @@ public class Tip {
             }
         }
 
-        return tips.get(0);
+        return tips.getFirst();
     }
 
     /**

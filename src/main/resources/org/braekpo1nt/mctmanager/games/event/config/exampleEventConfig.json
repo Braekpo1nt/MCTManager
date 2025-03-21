@@ -20,43 +20,85 @@
     "displayTimeSeconds": 5,
     "tips": [
       {
-        "text": "Work together as a team for maximum points!",
+        "text": {
+          "text": "Work together as a team for maximum points!",
+          "color": "gold",
+          "bold": true
+        },
         "priority": 1
       },
       {
-        "text": "Communication is key to victory!",
+        "text": {
+          "text": "Communication is key to victory!",
+          "color": "aqua",
+          "italic": true
+        },
         "priority": 2
       },
       {
-        "text": "Don't forget to use your abilities strategically!",
+        "text": {
+          "text": "Don't forget to use your abilities strategically!",
+          "color": "red",
+          "bold": true,
+          "italic": true
+        },
         "priority": 5
       },
       {
-        "text": "Keep an eye on the scoreboard – the competition is fierce!",
+        "text": {
+          "text": "Keep an eye on the scoreboard – the competition is fierce!",
+          "color": "green",
+          "underlined": true
+        },
         "priority": 3
       },
       {
-        "text": "Explore the map to find hidden advantages!",
+        "text": {
+          "text": "Explore the map to find hidden advantages!",
+          "color": "light_purple",
+          "italic": true
+        },
         "priority": 2
       },
       {
-        "text": "Teamwork makes the dream work!",
+        "text": {
+          "text": "Teamwork makes the dream work!",
+          "color": "blue",
+          "bold": true
+        },
         "priority": 1
       },
       {
-        "text": "Use the environment to your advantage!",
+        "text": {
+          "text": "Use the environment to your advantage!",
+          "color": "yellow",
+          "underlined": true
+        },
         "priority": 2
       },
       {
-        "text": "Every point counts!",
+        "text": {
+          "text": "Every point counts!",
+          "color": "dark_green",
+          "bold": true
+        },
         "priority": 3
       },
       {
-        "text": "Good luck, and have fun!",
+        "text": {
+          "text": "Good luck, and have fun!",
+          "color": "dark_aqua",
+          "italic": true
+        },
         "priority": 1
       },
       {
-        "text": "May the odds be ever in your favor!",
+        "text": {
+          "text": "May the odds be ever in your favor!",
+          "color": "dark_purple",
+          "bold": true,
+          "italic": true
+        },
         "priority": 1
       }
     ]

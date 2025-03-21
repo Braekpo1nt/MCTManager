@@ -18,6 +18,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -182,20 +183,22 @@ public class WaitingInHubState implements EventState {
         List<Tip> allTips = context.getConfig().getTips();
         int tipsDisplayTimeSeconds = context.getConfig().getTipsDisplayTimeSeconds();
 
+        BukkitScheduler scheduler = context.getPlugin().getServer().getScheduler();
+
         Map<String, List<Player>> teamMapping = context.getTeamToOnlinePlayersMapping();
 
-        actionBarTaskId = context.getPlugin().getServer().getScheduler().scheduleSyncRepeatingTask(context.getPlugin(), () -> {
+        actionBarTaskId = scheduler.scheduleSyncRepeatingTask(context.getPlugin(), () -> {
             for (List<Player> teamPlayers : teamMapping.values()) {
                 List<Tip> tips = Tip.selectMultipleWeightedRandomTips(allTips, teamPlayers.size());
 
                 for (int i = 0; i < teamPlayers.size(); i++) {
                     Player player = teamPlayers.get(i);
-                    String tip = tips.get(i).getTip();
+                    Component tip = tips.get(i).getTip();
 
-                    BukkitTask task = Bukkit.getScheduler().runTaskTimer(context.getPlugin(), () -> {
-                        player.sendActionBar(Component.text(tip).color(NamedTextColor.GOLD));
+                    BukkitTask task = scheduler.runTaskTimer(context.getPlugin(), () -> {
+                        player.sendActionBar(tip);
                     }, 0L, 20L);
-                    Bukkit.getScheduler().runTaskLater(context.getPlugin(), task::cancel,
+                    scheduler.runTaskLater(context.getPlugin(), task::cancel,
                             tipsDisplayTimeSeconds * 20L);
                 }
             }

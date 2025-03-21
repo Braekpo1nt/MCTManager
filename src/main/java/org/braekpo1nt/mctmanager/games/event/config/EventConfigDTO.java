@@ -1,11 +1,19 @@
 package org.braekpo1nt.mctmanager.games.event.config;
 
+import com.google.gson.JsonParseException;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.jetbrains.annotations.NotNull;
 
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.annotations.JsonAdapter;
+
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -78,12 +86,20 @@ record EventConfigDTO(
     /**
      * Record to hold the information contained in a @Tip object
      *
-     * @param text     the tip text
+     * @param text     the tip text as a component
      * @param priority the tip priority
      */
-    record TipDTO(String text, int priority) {
+    record TipDTO(@JsonAdapter(ComponentDeserializer.class) Component text, int priority) {
     }
 
+    // Helper class to deserialize the "text" field of a Tip in the json config into a Component
+    static class ComponentDeserializer implements JsonDeserializer<Component> {
+        @Override
+        public Component deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            return GsonComponentSerializer.gson().deserializeFromTree(json);
+        }
+    }
     /**
      * All units are seconds, none can be negative.
      * @param waitingInHub the time spent waiting in the hub between games (seconds)
