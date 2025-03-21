@@ -33,7 +33,7 @@ public class WaitingInHubState implements EventState {
     protected final Sidebar adminSidebar;
     protected final Timer waitingInHubTimer;
 
-    private int actionBarTaskId;
+    protected int actionBarTaskId;
     
     public WaitingInHubState(EventManager context) {
         this.context = context;
@@ -62,7 +62,7 @@ public class WaitingInHubState implements EventState {
                 .withSidebar(adminSidebar, "timer")
                 .sidebarPrefix(prefix)
                 .onCompletion(() -> {
-                    cancelAllTasks();
+                    context.getPlugin().getServer().getScheduler().cancelTask(actionBarTaskId);
                     if (context.allGamesHaveBeenPlayed()) {
                         context.setState(new ToColossalCombatDelay(context));
                     } else {
@@ -170,11 +170,11 @@ public class WaitingInHubState implements EventState {
     @Override
     public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
         waitingInHubTimer.cancel();
+        context.getPlugin().getServer().getScheduler().cancelTask(actionBarTaskId);
         context.setState(new PlayingColossalCombatState(
                 context,
                 firstTeam,
                 secondTeam));
-        cancelAllTasks();
     }
 
     public void startActionBarTips() {
@@ -182,12 +182,9 @@ public class WaitingInHubState implements EventState {
         List<Tip> allTips = context.getConfig().getTips();
         int tipsDisplayTimeSeconds = context.getConfig().getTipsDisplayTimeSeconds();
 
-        if (participants.isEmpty())
-            return;
-
         Map<String, List<Player>> teamMapping = context.getTeamToOnlinePlayersMapping();
 
-        actionBarTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(context.getPlugin(), () -> {
+        actionBarTaskId = context.getPlugin().getServer().getScheduler().scheduleSyncRepeatingTask(context.getPlugin(), () -> {
             for (List<Player> teamPlayers : teamMapping.values()) {
                 List<Tip> tips = Tip.selectMultipleWeightedRandomTips(allTips, teamPlayers.size());
 
@@ -208,10 +205,9 @@ public class WaitingInHubState implements EventState {
     @Override
     public void cancelAllTasks() {
         // Stop action bar tips
-        if (actionBarTaskId != -1) {
-            Bukkit.getScheduler().cancelTask(actionBarTaskId);
-            actionBarTaskId = -1;
-        }
+        context.getPlugin().getServer().getScheduler().cancelTask(actionBarTaskId);
+        actionBarTaskId = -1;
+
     }
 
 }
