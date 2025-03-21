@@ -8,6 +8,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
+import java.util.List;
+
 @Data
 @Builder
 public class EventConfig {
@@ -18,6 +20,8 @@ public class EventConfig {
     private int startingGameDuration;
     private int backToHubDuration;
     private double[] multipliers;
+    private List<Tip> tips;
+    private int tipsDisplayTimeSeconds;
     private boolean shouldDisplayGameNumber;
     /**
      * Contains which configs to use for which games. 

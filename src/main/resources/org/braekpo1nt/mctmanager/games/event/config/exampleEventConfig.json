@@ -15,5 +15,92 @@
     "voting": 20,
     "startingGame": 5,
     "backToHub": 10
+  },
+  "tips": {
+    "displayTimeSeconds": 5,
+    "tips": [
+      {
+        "text": {
+          "text": "Work together as a team for maximum points!",
+          "color": "gold",
+          "bold": true
+        },
+        "priority": 1
+      },
+      {
+        "text": {
+          "text": "Communication is key to victory!",
+          "color": "aqua",
+          "italic": true
+        },
+        "priority": 2
+      },
+      {
+        "text": {
+          "text": "Don't forget to use your abilities strategically!",
+          "color": "red",
+          "bold": true,
+          "italic": true
+        },
+        "priority": 5
+      },
+      {
+        "text": {
+          "text": "Keep an eye on the scoreboard – the competition is fierce!",
+          "color": "green",
+          "underlined": true
+        },
+        "priority": 3
+      },
+      {
+        "text": {
+          "text": "Explore the map to find hidden advantages!",
+          "color": "light_purple",
+          "italic": true
+        },
+        "priority": 2
+      },
+      {
+        "text": {
+          "text": "Teamwork makes the dream work!",
+          "color": "blue",
+          "bold": true
+        },
+        "priority": 1
+      },
+      {
+        "text": {
+          "text": "Use the environment to your advantage!",
+          "color": "yellow",
+          "underlined": true
+        },
+        "priority": 2
+      },
+      {
+        "text": {
+          "text": "Every point counts!",
+          "color": "dark_green",
+          "bold": true
+        },
+        "priority": 3
+      },
+      {
+        "text": {
+          "text": "Good luck, and have fun!",
+          "color": "dark_aqua",
+          "italic": true
+        },
+        "priority": 1
+      },
+      {
+        "text": {
+          "text": "May the odds be ever in your favor!",
+          "color": "dark_purple",
+          "bold": true,
+          "italic": true
+        },
+        "priority": 1
+      }
+    ]
   }
 }

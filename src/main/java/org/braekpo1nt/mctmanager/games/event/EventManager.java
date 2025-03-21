@@ -577,7 +577,7 @@ public class EventManager implements Listener {
     public void messageAllAdmins(Component message) {
         gameManager.messageAdmins(message);
     }
-    
+
     public boolean allGamesHaveBeenPlayed() {
         return currentGameNumber >= maxGames + 1;
     }

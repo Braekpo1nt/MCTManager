@@ -1,6 +1,8 @@
 package org.braekpo1nt.mctmanager.games.event.config;
 
+import com.google.gson.JsonParseException;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
@@ -10,6 +12,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Map;
+
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.annotations.JsonAdapter;
+
+import java.lang.reflect.Type;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @param title the title of the event, used in the sidebar and for announcing the winner
@@ -22,6 +33,7 @@ record EventConfigDTO(
         double[] multipliers, 
         boolean shouldDisplayGameNumber,
         @Nullable Map<GameType, String> gameConfigs,
+        TipsConfig tips,
         Durations durations) implements Validatable {
     
     @Override
@@ -35,6 +47,9 @@ record EventConfigDTO(
             validator.validate(!gameConfigs.containsValue(null), "gameConfigs can't contain null values");
         }
         validator.notNull(this.durations, "durations");
+        validator.notNull(this.tips, "tips");
+        validator.notNull(this.tips.displayTimeSeconds, "display time for tips must be specified");
+        validator.validate(!this.tips.tips().isEmpty(), "there must be at least 1 game tip");
         validator.validate(this.durations.waitingInHub() >= 0, "durations.waitingInHub can't be negative");
         validator.validate(this.durations.halftimeBreak() >= 0, "durations.halftimeBreak can't be negative");
         validator.validate(this.durations.voting() >= 0, "durations.voting can't be negative");
@@ -50,12 +65,51 @@ record EventConfigDTO(
                 .startingGameDuration(this.durations.startingGame)
                 .backToHubDuration(this.durations.backToHub)
                 .multipliers(this.multipliers)
+                .tips(convertTips())
+                .tipsDisplayTimeSeconds(this.tips.displayTimeSeconds())
                 .shouldDisplayGameNumber(this.shouldDisplayGameNumber)
                 .gameConfigs(this.gameConfigs != null ? this.gameConfigs : Collections.emptyMap())
                 .title(this.title)
                 .build();
     }
-    
+
+    /**
+     * Converts the Tip records to a List of Tip objects
+     */
+    private List<Tip> convertTips() {
+        return this.tips.tips().stream()
+                .map(tipDto -> new Tip(
+                        tipDto.priority(),
+                        tipDto.text()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Record to hold all configured tips and the tip display time
+     *
+     * @param displayTimeSeconds the amount of seconds to display a tip
+     * @param tips               the tips, consisting of text and a priority
+     */
+    record TipsConfig(int displayTimeSeconds, List<TipDTO> tips) {
+    }
+
+    /**
+     * Record to hold the information contained in a @Tip object
+     *
+     * @param text     the tip text as a component
+     * @param priority the tip priority
+     */
+    record TipDTO(@JsonAdapter(ComponentDeserializer.class) Component text, int priority) {
+    }
+
+    // Helper class to deserialize the "text" field of a Tip in the json config into a Component
+    static class ComponentDeserializer implements JsonDeserializer<Component> {
+        @Override
+        public Component deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            return GsonComponentSerializer.gson().deserializeFromTree(json);
+        }
+    }
     /**
      * All units are seconds, none can be negative.
      * @param waitingInHub the time spent waiting in the hub between games (seconds)
