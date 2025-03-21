@@ -18,7 +18,6 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.scheduler.BukkitScheduler;
-import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,8 +32,9 @@ public class WaitingInHubState implements EventState {
     protected final Sidebar adminSidebar;
     protected final Timer waitingInHubTimer;
 
-    protected int actionBarTaskId;
-    
+    protected Map<Player, Component> playerTips;
+    protected List<Integer> taskIds;
+
     public WaitingInHubState(EventManager context) {
         this.context = context;
         this.gameManager = context.getGameManager();
@@ -62,7 +62,9 @@ public class WaitingInHubState implements EventState {
                 .withSidebar(adminSidebar, "timer")
                 .sidebarPrefix(prefix)
                 .onCompletion(() -> {
-                    context.getPlugin().getServer().getScheduler().cancelTask(actionBarTaskId);
+                    for (Integer taskId : taskIds) {
+                        context.getPlugin().getServer().getScheduler().cancelTask(taskId);
+                    }
                     if (context.allGamesHaveBeenPlayed()) {
                         context.setState(new ToColossalCombatDelay(context));
                     } else {
@@ -170,7 +172,9 @@ public class WaitingInHubState implements EventState {
     @Override
     public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
         waitingInHubTimer.cancel();
-        context.getPlugin().getServer().getScheduler().cancelTask(actionBarTaskId);
+        for (Integer taskId : taskIds) {
+            context.getPlugin().getServer().getScheduler().cancelTask(taskId);
+        }
         context.setState(new PlayingColossalCombatState(
                 context,
                 firstTeam,
@@ -178,28 +182,51 @@ public class WaitingInHubState implements EventState {
     }
 
     public void startActionBarTips() {
+        taskIds = new ArrayList<>();
+        playerTips = new HashMap<>();
         List<Tip> allTips = context.getConfig().getTips();
         int tipsDisplayTimeSeconds = context.getConfig().getTipsDisplayTimeSeconds();
 
         BukkitScheduler scheduler = context.getPlugin().getServer().getScheduler();
 
-        actionBarTaskId = scheduler.scheduleSyncRepeatingTask(context.getPlugin(), () -> {
+        // Task to compute and update tips
+        int updateTipsTaskId = scheduler.scheduleSyncRepeatingTask(context.getPlugin(), () -> {
             Map<String, List<Player>> teamMapping = getTeamPlayerMapping();
+            playerTips.clear();
+
             for (List<Player> teamPlayers : teamMapping.values()) {
                 List<Tip> tips = Tip.selectMultipleWeightedRandomTips(allTips, teamPlayers.size());
 
                 for (int i = 0; i < teamPlayers.size(); i++) {
                     Player player = teamPlayers.get(i);
                     Component tip = tips.get(i).getTip();
-
-                    BukkitTask task = scheduler.runTaskTimer(context.getPlugin(), () -> {
-                        player.sendActionBar(tip);
-                    }, 0L, 20L);
-                    scheduler.runTaskLater(context.getPlugin(), task::cancel,
-                            tipsDisplayTimeSeconds * 20L);
+                    playerTips.put(player, tip);
                 }
             }
         }, 0L, tipsDisplayTimeSeconds * 20L);
+        taskIds.add(updateTipsTaskId);
+
+        // Task to display the tips
+        int displayTipsTaskId = scheduler.scheduleSyncRepeatingTask(context.getPlugin(), () -> {
+            for (Player player : playerTips.keySet()) {
+                player.sendActionBar(playerTips.get(player));
+            }
+        }, 0L, 20L);
+        taskIds.add(displayTipsTaskId);
+
+        // Recurring task to stop and restart display
+        int cycleTaskId = scheduler.scheduleSyncRepeatingTask(context.getPlugin(), () -> {
+            scheduler.cancelTask(displayTipsTaskId);
+            taskIds.remove(Integer.valueOf(displayTipsTaskId));
+
+            int newDisplayTipsTaskId = scheduler.scheduleSyncRepeatingTask(context.getPlugin(), () -> {
+                for (Player player : playerTips.keySet()) {
+                    player.sendActionBar(playerTips.get(player));
+                }
+            }, 0L, 20L);
+            taskIds.add(newDisplayTipsTaskId);
+        }, tipsDisplayTimeSeconds * 20L, tipsDisplayTimeSeconds * 20L);
+        taskIds.add(cycleTaskId);
     }
 
     /**
@@ -220,9 +247,9 @@ public class WaitingInHubState implements EventState {
     @Override
     public void cancelAllTasks() {
         // Stop action bar tips
-        context.getPlugin().getServer().getScheduler().cancelTask(actionBarTaskId);
-        actionBarTaskId = -1;
-
+        for (Integer taskId : taskIds) {
+            context.getPlugin().getServer().getScheduler().cancelTask(taskId);
+        }
     }
 
 }
