@@ -1075,7 +1075,7 @@ public class GameManager implements Listener {
     public boolean hasTeam(String teamId) {
         return gameStateStorageUtil.containsTeam(teamId);
     }
-    
+
     /**
      * Checs if the player exists in the game state
      * @param playerUniqueId The UUID of the player to check for
