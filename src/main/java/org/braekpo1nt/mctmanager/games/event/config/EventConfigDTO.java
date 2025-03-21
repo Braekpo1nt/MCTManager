@@ -33,6 +33,7 @@ record EventConfigDTO(
         double[] multipliers, 
         boolean shouldDisplayGameNumber,
         @Nullable Map<GameType, String> gameConfigs,
+        @Nullable String colossalCombatConfig,
         TipsConfig tips,
         Durations durations) implements Validatable {
     

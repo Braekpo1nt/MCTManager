@@ -68,11 +68,6 @@ public class EventManager implements Listener {
     private @Nullable Team winningTeam;
     private final ReadyUpManager readyUpManager = new ReadyUpManager();
     private final ReadyUpTopbar topbar = new ReadyUpTopbar();
-    /**
-     * The config file to use for colossal combat
-     * // TODO: make this in the config for events
-     */
-    private @NotNull String colossalCombatConfigFile = "default.json";
     
     public Collection<Participant> getParticipants() {
         return gameManager.getOnlineParticipants();

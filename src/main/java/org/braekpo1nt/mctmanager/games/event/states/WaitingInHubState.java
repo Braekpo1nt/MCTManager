@@ -276,11 +276,9 @@ public class WaitingInHubState implements EventState {
         }, tipsDisplayTimeSeconds * 20L, tipsDisplayTimeSeconds * 20L);
         taskIds.add(cycleTaskId);
     }
-
+    
     /**
-     * Returns a mapping of all teamIds to currently online players of those teams
-     *
-     * @return mapping from all teamIds to their currently online players
+     * @return mapping from online team's ids to their online members
      */
     public Map<String, List<Participant>> getTeamPlayerMapping() {
         return context.getParticipants().stream()
