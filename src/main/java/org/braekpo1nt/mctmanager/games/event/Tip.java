@@ -1,27 +1,16 @@
-package org.braekpo1nt.mctmanager.games.event.config;
+package org.braekpo1nt.mctmanager.games.event;
 
+import lombok.Data;
 import net.kyori.adventure.text.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+@Data
 public class Tip {
     private final int priority;
-    private final Component tip;
-
-    public Tip(int priority, Component tip) {
-        this.priority = priority;
-        this.tip = tip;
-    }
-
-    public Component getTip() {
-        return tip;
-    }
-
-    public int getPriority() {
-        return priority;
-    }
+    private final Component body;
 
     /**
      * Selects tips with weighted randomness based on priority

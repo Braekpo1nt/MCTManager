@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.event.config;
 import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.games.event.Tip;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,7 +22,10 @@ public class EventConfig {
     private int backToHubDuration;
     private double[] multipliers;
     private List<Tip> tips;
-    private int tipsDisplayTimeSeconds;
+    /**
+     * how long to display each tip in ticks
+     */
+    private int tipsDisplayTime;
     private boolean shouldDisplayGameNumber;
     /**
      * Contains which configs to use for which games. 

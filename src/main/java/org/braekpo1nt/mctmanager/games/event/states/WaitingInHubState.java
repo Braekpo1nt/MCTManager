@@ -1,12 +1,13 @@
 package org.braekpo1nt.mctmanager.games.event.states;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
-import org.braekpo1nt.mctmanager.games.event.config.Tip;
+import org.braekpo1nt.mctmanager.games.event.Tip;
 import org.braekpo1nt.mctmanager.games.event.states.delay.ToColossalCombatDelay;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
@@ -229,8 +230,6 @@ public class WaitingInHubState implements EventState {
     }
 
     public void startActionBarTips() {
-        int tipsDisplayTimeSeconds = context.getConfig().getTipsDisplayTimeSeconds();
-
         BukkitScheduler scheduler = context.getPlugin().getServer().getScheduler();
 
         // Task to compute and update tips
@@ -243,11 +242,11 @@ public class WaitingInHubState implements EventState {
 
                 for (int i = 0; i < teamPlayers.size(); i++) {
                     Participant participant = teamPlayers.get(i);
-                    Component tip = tips.get(i).getTip();
+                    Component tip = tips.get(i).getBody();
                     playerTips.put(participant.getUniqueId(), tip);
                 }
             }
-        }, 0L, tipsDisplayTimeSeconds * 20L);
+        }, 0L, context.getConfig().getTipsDisplayTime());
         
         // Task to display the tips
         displayTipsTaskId = scheduler.scheduleSyncRepeatingTask(context.getPlugin(), () -> {
@@ -274,6 +273,7 @@ public class WaitingInHubState implements EventState {
     public void cancelAllTasks() {
         context.getPlugin().getServer().getScheduler().cancelTask(updateTipsTaskId);
         context.getPlugin().getServer().getScheduler().cancelTask(displayTipsTaskId);
+        Audience.audience(context.getParticipants()).sendActionBar(Component.empty());
     }
 
 }

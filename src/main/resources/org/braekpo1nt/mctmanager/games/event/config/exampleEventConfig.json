@@ -22,10 +22,10 @@
   },
   "colossalCombatConfig": "default.json",
   "tips": {
-    "displayTimeSeconds": 5,
+    "displayTime": 100,
     "tips": [
       {
-        "text": {
+        "body": {
           "text": "Work together as a team for maximum points!",
           "color": "gold",
           "bold": true
@@ -33,7 +33,7 @@
         "priority": 1
       },
       {
-        "text": {
+        "body": {
           "text": "Communication is key to victory!",
           "color": "aqua",
           "italic": true
@@ -41,7 +41,7 @@
         "priority": 2
       },
       {
-        "text": {
+        "body": {
           "text": "Don't forget to use your abilities strategically!",
           "color": "red",
           "bold": true,
@@ -50,7 +50,7 @@
         "priority": 5
       },
       {
-        "text": {
+        "body": {
           "text": "Keep an eye on the scoreboard – the competition is fierce!",
           "color": "green",
           "underlined": true
@@ -58,7 +58,7 @@
         "priority": 3
       },
       {
-        "text": {
+        "body": {
           "text": "Explore the map to find hidden advantages!",
           "color": "light_purple",
           "italic": true
@@ -66,7 +66,7 @@
         "priority": 2
       },
       {
-        "text": {
+        "body": {
           "text": "Teamwork makes the dream work!",
           "color": "blue",
           "bold": true
@@ -74,7 +74,7 @@
         "priority": 1
       },
       {
-        "text": {
+        "body": {
           "text": "Use the environment to your advantage!",
           "color": "yellow",
           "underlined": true
@@ -82,7 +82,7 @@
         "priority": 2
       },
       {
-        "text": {
+        "body": {
           "text": "Every point counts!",
           "color": "dark_green",
           "bold": true
@@ -90,7 +90,7 @@
         "priority": 3
       },
       {
-        "text": {
+        "body": {
           "text": "Good luck, and have fun!",
           "color": "dark_aqua",
           "italic": true
@@ -98,7 +98,7 @@
         "priority": 1
       },
       {
-        "text": {
+        "body": {
           "text": "May the odds be ever in your favor!",
           "color": "dark_purple",
           "bold": true,
