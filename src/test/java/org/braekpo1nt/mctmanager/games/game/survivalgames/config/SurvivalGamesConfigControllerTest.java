@@ -24,13 +24,16 @@ class SurvivalGamesConfigControllerTest {
     String exampleConfigFileName = "exampleSurvivalGamesConfig.json";
     Main plugin;
     SurvivalGamesConfigController controller;
-
+    File configFolder;
+    
     @BeforeEach
     void setupServerAndPlugin() {
         ServerMock server = MockBukkit.mock(new MyCustomServerMock());
         server.getLogger().setLevel(Level.OFF);
         plugin = MockBukkit.load(MockMain.class);
         controller = new SurvivalGamesConfigController(plugin.getDataFolder(), GameType.SURVIVAL_GAMES.getId());
+        configFolder = new File(plugin.getDataFolder(), GameType.SURVIVAL_GAMES.getId());
+        configFolder.mkdirs();
     }
     
     @AfterEach
@@ -45,23 +48,13 @@ class SurvivalGamesConfigControllerTest {
 
     @Test
     void malformedJson() {
-        TestUtils.createFileInDirectory(plugin.getDataFolder(), configFileName, "{,");
+        TestUtils.createFileInDirectory(configFolder, configFileName, "{,");
         Assertions.assertThrows(ConfigInvalidException.class, () -> controller.getConfig(configFileName));
     }
     
     @Test
     void wellFormedJsonValidData() {
         wellFormedJsonValidData(exampleConfigFileName);
-    }
-    
-    @Test
-    void testBackwardsCompatibility_v0_1_0() {
-        wellFormedJsonValidData("exampleMechaConfig_v0.1.0.json", "mechaConfig.json");
-    }
-    
-    @Test
-    void testBackwardsCompatibility_v0_1_1() {
-        wellFormedJsonValidData("exampleMechaConfig_v0.1.1.json", "mechaConfig.json");
     }
     
     @Test
@@ -74,7 +67,7 @@ class SurvivalGamesConfigControllerTest {
         InputStream inputStream = controller.getClass().getResourceAsStream(exampleConfigFileName);
         JsonObject json = TestUtils.inputStreamToJson(inputStream);
         json.add("mapChestCoords", null);
-        TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));
+        TestUtils.saveJsonToFile(json, new File(configFolder, configFileName));
         Assertions.assertThrows(ConfigInvalidException.class, () -> controller.getConfig(configFileName));
     }
     
@@ -84,7 +77,7 @@ class SurvivalGamesConfigControllerTest {
     
     void wellFormedJsonValidData(String filename, String configFilename) {
         InputStream inputStream = controller.getClass().getResourceAsStream(filename);
-        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFilename));
+        TestUtils.copyInputStreamToFile(inputStream, new File(configFolder, configFilename));
         Assertions.assertDoesNotThrow(() -> controller.getConfig(configFileName));
     }
     

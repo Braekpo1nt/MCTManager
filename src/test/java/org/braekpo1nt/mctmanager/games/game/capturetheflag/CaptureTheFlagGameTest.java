@@ -48,7 +48,9 @@ public class CaptureTheFlagGameTest {
         gameManager = plugin.getGameManager();
         sender = server.getConsoleSender();
         InputStream inputStream = CaptureTheFlagConfigController.class.getResourceAsStream("exampleCaptureTheFlagConfig.json");
-        TestUtils.copyInputStreamToFile(inputStream, new File(new File(plugin.getDataFolder(), GameType.CAPTURE_THE_FLAG.getId()), "captureTheFlagConfig.json"));
+        File configFolder = new File(plugin.getDataFolder(), GameType.CAPTURE_THE_FLAG.getId());
+        configFolder.mkdirs();
+        TestUtils.copyInputStreamToFile(inputStream, new File(configFolder, "captureTheFlagConfig.json"));
     }
     
     @AfterEach

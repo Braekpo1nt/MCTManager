@@ -24,6 +24,7 @@ public class ClockworkConfigControllerTest {
     String exampleConfigFileName = "exampleClockworkConfig.json";
     Main plugin;
     ClockworkConfigController controller;
+    File configFolder;
     
     @BeforeEach
     void setupServerAndPlugin() {
@@ -31,6 +32,8 @@ public class ClockworkConfigControllerTest {
         server.getLogger().setLevel(Level.OFF);
         plugin = MockBukkit.load(MockMain.class);
         controller = new ClockworkConfigController(plugin.getDataFolder(), GameType.CLOCKWORK.getId());
+        configFolder = new File(plugin.getDataFolder(), GameType.CLOCKWORK.getId());
+        configFolder.mkdirs();
     }
     
     @AfterEach
@@ -45,14 +48,14 @@ public class ClockworkConfigControllerTest {
     
     @Test
     void malformedJson() {
-        TestUtils.createFileInDirectory(plugin.getDataFolder(), configFileName, "{,");
+        TestUtils.createFileInDirectory(configFolder, configFileName, "{,");
         Assertions.assertThrows(ConfigInvalidException.class, () -> controller.getConfig(configFileName));
     }
     
     @Test
     void wellFormedJsonValidData() {
         InputStream inputStream = controller.getClass().getResourceAsStream(exampleConfigFileName);
-        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
+        TestUtils.copyInputStreamToFile(inputStream, new File(configFolder, configFileName));
         Assertions.assertDoesNotThrow(() -> controller.getConfig(configFileName));
     }
     
@@ -61,7 +64,7 @@ public class ClockworkConfigControllerTest {
         InputStream inputStream = controller.getClass().getResourceAsStream(exampleConfigFileName);
         JsonObject json = TestUtils.inputStreamToJson(inputStream);
         json.addProperty("rounds", 0);
-        TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));
+        TestUtils.saveJsonToFile(json, new File(configFolder, configFileName));
         Assertions.assertThrows(ConfigInvalidException.class, () -> controller.getConfig(configFileName));
     }
 }

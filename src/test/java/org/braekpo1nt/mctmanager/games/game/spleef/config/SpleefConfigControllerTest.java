@@ -25,6 +25,7 @@ class SpleefConfigControllerTest {
     String exampleConfigFileName = "exampleSpleefConfig.json";
     Main plugin;
     SpleefConfigController controller;
+    File configFolder;
     
     @BeforeEach
     void setupServerAndPlugin() {
@@ -32,6 +33,8 @@ class SpleefConfigControllerTest {
         server.getLogger().setLevel(Level.OFF);
         plugin = MockBukkit.load(MockMain.class);
         controller = new SpleefConfigController(plugin.getDataFolder(), GameType.SPLEEF.getId());
+        configFolder = new File(plugin.getDataFolder(), GameType.SPLEEF.getId());
+        configFolder.mkdirs();
     }
     
     @AfterEach
@@ -46,7 +49,7 @@ class SpleefConfigControllerTest {
 
     @Test
     void malformedJson() {
-        TestUtils.createFileInDirectory(plugin.getDataFolder(), configFileName, "{,");
+        TestUtils.createFileInDirectory(configFolder, configFileName, "{,");
         Assertions.assertThrows(ConfigInvalidException.class, () -> controller.getConfig(configFileName));
     }
     
@@ -72,13 +75,13 @@ class SpleefConfigControllerTest {
         spectatorArea.addProperty("maxY", 0);
         spectatorArea.addProperty("maxZ", 0);
         json.add("spectatorArea", spectatorArea);
-        TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));
+        TestUtils.saveJsonToFile(json, new File(configFolder, configFileName));
         Assertions.assertThrows(ConfigInvalidException.class, () -> controller.getConfig(configFileName));
     }
     
     void wellFormedJsonValidData(String filename) {
         InputStream inputStream = controller.getClass().getResourceAsStream(filename);
-        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
+        TestUtils.copyInputStreamToFile(inputStream, new File(configFolder, configFileName));
         Assertions.assertDoesNotThrow(() -> controller.getConfig(configFileName));
     }
 }

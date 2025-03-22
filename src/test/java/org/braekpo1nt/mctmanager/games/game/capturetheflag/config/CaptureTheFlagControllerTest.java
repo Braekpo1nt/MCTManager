@@ -24,6 +24,7 @@ class CaptureTheFlagControllerTest {
     String exampleConfigFileName = "exampleCaptureTheFlagConfig.json";
     Main plugin;
     CaptureTheFlagConfigController controller;
+    File configFolder;
     
     @BeforeEach
     void setupServerAndPlugin() {
@@ -31,6 +32,8 @@ class CaptureTheFlagControllerTest {
         server.getLogger().setLevel(Level.OFF);
         plugin = MockBukkit.load(MockMain.class);
         controller = new CaptureTheFlagConfigController(plugin.getDataFolder(), GameType.CAPTURE_THE_FLAG.getId());
+        configFolder = new File(plugin.getDataFolder(), GameType.CAPTURE_THE_FLAG.getId());
+        configFolder.mkdirs();
     }
     
     @AfterEach
@@ -45,14 +48,14 @@ class CaptureTheFlagControllerTest {
     
     @Test
     void malformedJson() {
-        TestUtils.createFileInDirectory(plugin.getDataFolder(), configFileName, "{,");
+        TestUtils.createFileInDirectory(configFolder, configFileName, "{,");
         Assertions.assertThrows(ConfigInvalidException.class, () -> controller.getConfig(configFileName));
     }
     
     @Test
     void wellFormedJsonValidData() {
         InputStream inputStream = controller.getClass().getResourceAsStream(exampleConfigFileName);
-        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
+        TestUtils.copyInputStreamToFile(inputStream, new File(configFolder, configFileName));
         Assertions.assertDoesNotThrow(() -> controller.getConfig(configFileName));
     }
     
@@ -68,7 +71,7 @@ class CaptureTheFlagControllerTest {
         spectatorArea.addProperty("maxY", 0);
         spectatorArea.addProperty("maxZ", 0);
         json.add("spectatorArea", spectatorArea);
-        TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));
+        TestUtils.saveJsonToFile(json, new File(configFolder, configFileName));
         Assertions.assertThrows(ConfigInvalidException.class, () -> controller.getConfig(configFileName));
     }
 }

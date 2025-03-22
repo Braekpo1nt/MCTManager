@@ -25,6 +25,7 @@ class FootRaceConfigControllerTest {
     String exampleConfigFileName = "exampleFootRaceConfig.json";
     Main plugin;
     FootRaceConfigController controller;
+    File configFolder;
     
     @BeforeEach
     void setupServerAndPlugin() {
@@ -32,6 +33,8 @@ class FootRaceConfigControllerTest {
         server.getLogger().setLevel(Level.OFF);
         plugin = MockBukkit.load(MockMain.class);
         controller = new FootRaceConfigController(plugin.getDataFolder(), GameType.FOOT_RACE.getId());
+        configFolder = new File(plugin.getDataFolder(), GameType.FOOT_RACE.getId());
+        configFolder.mkdirs();
     }
     
     @AfterEach
@@ -46,7 +49,7 @@ class FootRaceConfigControllerTest {
     
     @Test
     void malformedJson() {
-        TestUtils.createFileInDirectory(plugin.getDataFolder(), configFileName, "{,");
+        TestUtils.createFileInDirectory(configFolder, configFileName, "{,");
         Assertions.assertThrows(ConfigInvalidException.class, () -> controller.getConfig(configFileName));
     }
     
@@ -61,13 +64,13 @@ class FootRaceConfigControllerTest {
         JsonObject json = TestUtils.inputStreamToJson(inputStream);
         JsonObject checkpoints = new JsonObject();
         json.add("checkpoints", checkpoints);
-        TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));
+        TestUtils.saveJsonToFile(json, new File(configFolder, configFileName));
         Assertions.assertThrows(ConfigInvalidException.class, () -> controller.getConfig(configFileName));
     }
     
     void wellFormedJsonValidData(String filename) {
         InputStream inputStream = controller.getClass().getResourceAsStream(filename);
-        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
+        TestUtils.copyInputStreamToFile(inputStream, new File(configFolder, configFileName));
         Assertions.assertDoesNotThrow(() -> controller.getConfig(configFileName));
     }
     

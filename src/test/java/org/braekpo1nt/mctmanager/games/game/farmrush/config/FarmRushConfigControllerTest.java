@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.Level;
 
@@ -24,6 +25,7 @@ public class FarmRushConfigControllerTest {
     String exampleConfigFileName = "exampleFarmRushConfig.json";
     Main plugin;
     FarmRushConfigController controller;
+    File configFolder;
     
     @BeforeEach
     void setupServerAndPlugin() {
@@ -31,6 +33,8 @@ public class FarmRushConfigControllerTest {
         server.getLogger().setLevel(Level.OFF);
         plugin = MockBukkit.load(MockMain.class);
         controller = new FarmRushConfigController(plugin.getDataFolder(), GameType.FARM_RUSH.getId());
+        configFolder = new File(plugin.getDataFolder(), GameType.FARM_RUSH.getId());
+        configFolder.mkdirs();
     }
     
     @AfterEach
@@ -45,17 +49,17 @@ public class FarmRushConfigControllerTest {
     
     @Test
     void malformedJson() {
-        TestUtils.createFileInDirectory(plugin.getDataFolder(), configFileName, "{,");
+        TestUtils.createFileInDirectory(configFolder, configFileName, "{,");
         Assertions.assertThrows(ConfigInvalidException.class, () -> controller.getConfig(configFileName));
     }
     
     @Test
-    void wellFormedJsonValidData() {
+    void wellFormedJsonValidData() throws IOException {
         // TODO: change the exclusion of the materialsBook when MockBukkit implements BookMeta.toBuilder()
         InputStream inputStream = controller.getClass().getResourceAsStream(exampleConfigFileName);
         JsonObject json = TestUtils.inputStreamToJson(inputStream);
         json.addProperty("doNotGiveBookDebug", true);
-        TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));
+        TestUtils.saveJsonToFile(json, new File(configFolder, configFileName));
         Assertions.assertDoesNotThrow(() -> controller.getConfig(configFileName));
     }
     
@@ -64,13 +68,13 @@ public class FarmRushConfigControllerTest {
         InputStream inputStream = controller.getClass().getResourceAsStream(exampleConfigFileName);
         JsonObject json = TestUtils.inputStreamToJson(inputStream);
         json.remove("starterChestContents");
-        TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));
+        TestUtils.saveJsonToFile(json, new File(configFolder, configFileName));
         Assertions.assertThrows(ConfigInvalidException.class, () -> controller.getConfig(configFileName));
     }
     
     void wellFormedJsonValidData(String filename) {
         InputStream inputStream = controller.getClass().getResourceAsStream(filename);
-        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
+        TestUtils.copyInputStreamToFile(inputStream, new File(configFolder, configFileName));
         Assertions.assertDoesNotThrow(() -> controller.getConfig(configFileName));
     }
 }

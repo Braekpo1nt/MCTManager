@@ -23,13 +23,16 @@ public class ColossalCombatConfigControllerTest {
     String exampleConfigFileName = "exampleColossalCombatConfig.json";
     Main plugin;
     ColossalCombatConfigController controller;
+    File configFolder;
     
     @BeforeEach
     void setupServerAndPlugin() {
         ServerMock server = MockBukkit.mock(new MyCustomServerMock());
         server.getLogger().setLevel(Level.OFF);
         plugin = MockBukkit.load(MockMain.class);
-        controller = new ColossalCombatConfigController(plugin.getDataFolder(), configFileName);
+        controller = new ColossalCombatConfigController(plugin.getDataFolder(), "colossal-combat");
+        configFolder = new File(plugin.getDataFolder(), "colossal-combat");
+        configFolder.mkdirs();
     }
 
     @AfterEach
@@ -44,7 +47,7 @@ public class ColossalCombatConfigControllerTest {
 
     @Test
     void malformedJson() {
-        TestUtils.createFileInDirectory(plugin.getDataFolder(), configFileName, "{,");
+        TestUtils.createFileInDirectory(configFolder, configFileName, "{,");
         Assertions.assertThrows(ConfigInvalidException.class, () -> controller.getConfig(configFileName));
     }
     
@@ -63,13 +66,13 @@ public class ColossalCombatConfigControllerTest {
         InputStream inputStream = controller.getClass().getResourceAsStream(exampleConfigFileName);
         JsonObject json = TestUtils.inputStreamToJson(inputStream);
         json.addProperty("version", "0.0.0");
-        TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));
+        TestUtils.saveJsonToFile(json, new File(configFolder, configFileName));
         Assertions.assertThrows(ConfigInvalidException.class, () -> controller.getConfig(configFileName));
     }
     
     void wellFormedJsonValidData(String filename) {
         InputStream inputStream = controller.getClass().getResourceAsStream(filename);
-        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
+        TestUtils.copyInputStreamToFile(inputStream, new File(configFolder, configFileName));
         Assertions.assertDoesNotThrow(() -> controller.getConfig(configFileName));
     }
 }
