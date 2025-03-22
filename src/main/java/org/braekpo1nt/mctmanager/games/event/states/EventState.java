@@ -31,7 +31,7 @@ public interface EventState {
     void colossalCombatIsOver(@Nullable Team winningTeam);
     void setMaxGames(@NotNull CommandSender sender, int newMaxGames);
     void stopColossalCombat(@NotNull CommandSender sender);
-    void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam);
+    void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam, @NotNull String configFile);
     void updatePersonalScores(Collection<Participant> updateParticipants);
     <T extends Team> void updateTeamScores(Collection<T> updateTeams);
     static void reorderTeamLines(List<Team> sortedTeamIds, EventManager context) {

@@ -28,6 +28,10 @@ public enum GameType {
         return title;
     }
     
+    public String getId() {
+        return id;
+    }
+    
     public static final Map<String, GameType> GAME_IDS;
     
     static {

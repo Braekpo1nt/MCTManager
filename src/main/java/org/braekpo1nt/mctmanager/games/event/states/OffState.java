@@ -241,7 +241,7 @@ public class OffState implements EventState {
     }
     
     @Override
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam) {
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam, @NotNull String configFile) {
         if (context.getGameManager().gameIsRunning()) {
             sender.sendMessage(Component.text("Can't start Colossal Combat while a game is running")
                     .color(NamedTextColor.RED));
@@ -253,7 +253,7 @@ public class OffState implements EventState {
             return;
         }
         try {
-            context.getColossalCombatGame().loadConfig();
+            context.getColossalCombatGame().loadConfig(configFile);
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, e.getMessage(), e);
             sender.sendMessage(Component.text("Error loading config file. See console for details.")

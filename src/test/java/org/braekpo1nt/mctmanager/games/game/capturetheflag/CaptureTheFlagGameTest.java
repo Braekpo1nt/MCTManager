@@ -48,7 +48,9 @@ public class CaptureTheFlagGameTest {
         gameManager = plugin.getGameManager();
         sender = server.getConsoleSender();
         InputStream inputStream = CaptureTheFlagConfigController.class.getResourceAsStream("exampleCaptureTheFlagConfig.json");
-        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), "captureTheFlagConfig.json"));
+        File configFolder = new File(plugin.getDataFolder(), GameType.CAPTURE_THE_FLAG.getId());
+        configFolder.mkdirs();
+        TestUtils.copyInputStreamToFile(inputStream, new File(configFolder, "captureTheFlagConfig.json"));
     }
     
     @AfterEach
@@ -83,7 +85,7 @@ public class CaptureTheFlagGameTest {
         createParticipant("Player1", "aqua");
         createParticipant("Player2", "red");
         MyPlayerMock player3 = createParticipant("Player3", "yellow");
-        gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
+        gameManager.startGame(GameType.CAPTURE_THE_FLAG, "captureTheFlagConfig.json", sender);
         CaptureTheFlagGame game = (CaptureTheFlagGame) gameManager.getActiveGame();
         
         gameManager.getTimerManager().skip();

@@ -40,7 +40,9 @@ public class ClockworkGameTest {
         gameManager = plugin.getGameManager();
         sender = server.getConsoleSender();
         InputStream inputStream = ClockworkConfigController.class.getResourceAsStream("exampleClockworkConfig.json");
-        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), "clockworkConfig.json"));
+        File configFolder = new File(plugin.getDataFolder(), GameType.CLOCKWORK.getId());
+        configFolder.mkdirs();
+        TestUtils.copyInputStreamToFile(inputStream, new File(configFolder, "clockworkConfig.json"));
     }
     
     @AfterEach
@@ -67,7 +69,7 @@ public class ClockworkGameTest {
         addTeam("blue", "blue", "blue");
         createParticipant("Player1", "red");
         createParticipant("Player2", "blue");
-        gameManager.startGame(GameType.CLOCKWORK, sender);
+        gameManager.startGame(GameType.CLOCKWORK, "clockworkConfig.json", sender);
         gameManager.getTimerManager().skip();
         gameManager.getTimerManager().skip();
         gameManager.manuallyStopGame(false);

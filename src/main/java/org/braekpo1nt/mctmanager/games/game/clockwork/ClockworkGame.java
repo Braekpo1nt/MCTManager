@@ -65,7 +65,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable {
         this.plugin = plugin;
         this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
-        this.configController = new ClockworkConfigController(plugin.getDataFolder());
+        this.configController = new ClockworkConfigController(plugin.getDataFolder(), getType().getId());
     }
     
     @Override
@@ -90,8 +90,8 @@ public class ClockworkGame implements Listener, MCTGame, Configurable {
     }
     
     @Override
-    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
-        this.config = configController.getConfig();
+    public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
+        this.config = configController.getConfig(configFile);
         if (gameActive) {
             for (ClockworkRound round : rounds) {
                 round.setConfig(config);

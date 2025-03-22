@@ -15,5 +15,97 @@
     "voting": 20,
     "startingGame": 5,
     "backToHub": 10
+  },
+  "gameConfigs": {
+    "FOOT_RACE": "special.json",
+    "CAPTURE_THE_FLAG": "bluemap.json"
+  },
+  "colossalCombatConfig": "default.json",
+  "tips": {
+    "displayTime": 100,
+    "tips": [
+      {
+        "body": {
+          "text": "Work together as a team for maximum points!",
+          "color": "gold",
+          "bold": true
+        },
+        "priority": 1
+      },
+      {
+        "body": {
+          "text": "Communication is key to victory!",
+          "color": "aqua",
+          "italic": true
+        },
+        "priority": 2
+      },
+      {
+        "body": {
+          "text": "Don't forget to use your abilities strategically!",
+          "color": "red",
+          "bold": true,
+          "italic": true
+        },
+        "priority": 5
+      },
+      {
+        "body": {
+          "text": "Keep an eye on the scoreboard – the competition is fierce!",
+          "color": "green",
+          "underlined": true
+        },
+        "priority": 3
+      },
+      {
+        "body": {
+          "text": "Explore the map to find hidden advantages!",
+          "color": "light_purple",
+          "italic": true
+        },
+        "priority": 2
+      },
+      {
+        "body": {
+          "text": "Teamwork makes the dream work!",
+          "color": "blue",
+          "bold": true
+        },
+        "priority": 1
+      },
+      {
+        "body": {
+          "text": "Use the environment to your advantage!",
+          "color": "yellow",
+          "underlined": true
+        },
+        "priority": 2
+      },
+      {
+        "body": {
+          "text": "Every point counts!",
+          "color": "dark_green",
+          "bold": true
+        },
+        "priority": 3
+      },
+      {
+        "body": {
+          "text": "Good luck, and have fun!",
+          "color": "dark_aqua",
+          "italic": true
+        },
+        "priority": 1
+      },
+      {
+        "body": {
+          "text": "May the odds be ever in your favor!",
+          "color": "dark_purple",
+          "bold": true,
+          "italic": true
+        },
+        "priority": 1
+      }
+    ]
   }
 }

@@ -20,29 +20,32 @@ public class EditCommand extends CommandManager {
         addSubCommand(new SubCommand("validate") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                if (args.length != 0) {
-                    return CommandResult.failure(getUsage());
+                if (args.length != 1) {
+                    return CommandResult.failure(getUsage().of("<configFile>"));
                 }
                 if (!gameManager.editorIsRunning()) {
                     return CommandResult.failure(Component.text("No editor is running."));
                 }
-                gameManager.validateEditor(sender);
+                String configFile = args[0];
+                gameManager.validateEditor(sender, configFile);
                 return CommandResult.success();
             }
         });
         addSubCommand(new SubCommand("save") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                if (args.length != 0) {
-                    return CommandResult.failure(getUsage());
+                if (args.length < 1 || args.length > 2) {
+                    return CommandResult.failure(getUsage().of("<configFile>").of("[true/false]"));
                 }
                 if (!gameManager.editorIsRunning()) {
                     return CommandResult.failure(Component.text("No editor is running."));
                 }
-    
+                
+                String configFile = args[0];
+                
                 boolean force = false;
-                if (args.length == 1) {
-                    String forceString = args[0];
+                if (args.length == 2) {
+                    String forceString = args[1];
                     Boolean forceBoolean = CommandUtils.toBoolean(forceString);
                     if (forceBoolean == null) {
                         return CommandResult.failure(Component.empty()
@@ -52,21 +55,24 @@ public class EditCommand extends CommandManager {
                     }
                     force = forceBoolean;
                 }
-    
-                gameManager.saveEditor(sender, force);
+                
+                gameManager.saveEditor(sender, configFile, force);
                 return CommandResult.success();
             }
         });
         addSubCommand(new SubCommand("load") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                if (args.length != 0) {
-                    return CommandResult.failure(getUsage());
+                if (args.length != 1) {
+                    return CommandResult.failure(getUsage().of("<configFile>"));
                 }
                 if (!gameManager.editorIsRunning()) {
                     return CommandResult.failure(Component.text("No editor is running."));
                 }
-                gameManager.loadEditor(sender);
+                
+                String configFile = args[0];
+                
+                gameManager.loadEditor(configFile, sender);
                 return CommandResult.success();
             }
         });

@@ -72,7 +72,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.timerManager = new TimerManager(plugin);
-        this.configController = new CaptureTheFlagConfigController(plugin.getDataFolder());
+        this.configController = new CaptureTheFlagConfigController(plugin.getDataFolder(), getType().getId());
         this.topbar = new BattleTopbar();
         
     }
@@ -99,11 +99,11 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     }
     
     @Override
-    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
+    public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
         if (state != null) {
             throw new ConfigException("CaptureTheFlagGame does not support loading the config mid-game");
         }
-        this.config = configController.getConfig();
+        this.config = configController.getConfig(configFile);
     }
     
     @Override

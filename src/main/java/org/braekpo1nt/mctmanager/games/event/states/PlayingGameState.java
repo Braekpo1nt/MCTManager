@@ -29,18 +29,33 @@ public class PlayingGameState implements EventState {
     protected final EventManager context;
     protected final GameManager gameManager;
     
-    public PlayingGameState(EventManager context, GameType gameType) {
+    /**
+     * Start the given game with the given config file
+     * @param context the context
+     * @param gameType the game type to start
+     * @param configFile the config file to use
+     */
+    public PlayingGameState(EventManager context, @NotNull GameType gameType, @NotNull String configFile) {
         this.context = context;
         this.gameManager = context.getGameManager();
-        startGame(context, gameType);
+        startGame(context, gameType, configFile);
     }
     
-    protected void startGame(EventManager context, GameType gameType) {
+    /**
+     * Don't start the game, used by {@link PlayingColossalCombatState}
+     * @param context the context
+     */
+    PlayingGameState(EventManager context) {
+        this.context = context;
+        this.gameManager = context.getGameManager();
+    }
+    
+    protected void startGame(EventManager context, @NotNull GameType gameType, @NotNull String configFile) {
         createScoreKeeperForGame(gameType);
         context.getSidebar().removeAllPlayers();
         context.getAdminSidebar().removeAllPlayers();
         context.getAdmins().clear();
-        boolean gameStarted = gameManager.startGame(gameType, 
+        boolean gameStarted = gameManager.startGame(gameType, configFile, 
                 context.getPlugin().getServer().getConsoleSender());
         if (!gameStarted) {
             context.messageAllAdmins(Component.text("Unable to start the game ")
@@ -159,7 +174,7 @@ public class PlayingGameState implements EventState {
     }
     
     @Override
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam) {
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam, @NotNull String configFile) {
         sender.sendMessage(Component.text("Can't start Colossal Combat while a game is running")
                 .color(NamedTextColor.RED));
     }

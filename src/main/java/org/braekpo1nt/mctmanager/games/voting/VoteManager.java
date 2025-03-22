@@ -31,7 +31,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 public class VoteManager implements Listener {
     
@@ -49,7 +49,7 @@ public class VoteManager implements Listener {
     private final Component NETHER_STAR_NAME = Component.text("Vote");
     private final ItemStack NETHER_STAR;
     private List<GameType> votingPool = new ArrayList<>();
-    private Consumer<GameType> executeMethod;
+    private BiConsumer<GameType, String> executeMethod;
     private boolean paused = false;
     private final TimerManager timerManager;
     
@@ -72,7 +72,7 @@ public class VoteManager implements Listener {
      *                      is up or all voters have voted). It will be passed the voted for
      *                      GameType.
      */
-    public void startVote(Collection<Participant> newParticipants, List<GameType> votingPool, int duration, Consumer<GameType> executeMethod, List<Player> newAdmins) {
+    public void startVote(Collection<Participant> newParticipants, List<GameType> votingPool, int duration, BiConsumer<GameType, String> executeMethod, List<Player> newAdmins) {
         this.executeMethod = executeMethod;
         this.voteCountDownDuration = duration;
         voting = true;
@@ -401,7 +401,7 @@ public class VoteManager implements Listener {
         clearSidebar();
         admins.clear();
         clearAdminSidebar();
-        executeMethod.accept(gameType);
+        executeMethod.accept(gameType, "default.json");
     }
     
     private void cancelAllTasks() {

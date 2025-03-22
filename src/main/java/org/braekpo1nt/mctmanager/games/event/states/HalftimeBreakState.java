@@ -21,6 +21,8 @@ public class HalftimeBreakState extends WaitingInHubState {
                 .titleAudience(Audience.audience(context.getParticipants()))
                 .sidebarPrefix(Component.text("Break: ").color(NamedTextColor.YELLOW))
                 .onCompletion(() -> {
+                    context.getPlugin().getServer().getScheduler().cancelTask(updateTipsTaskId);
+                    context.getPlugin().getServer().getScheduler().cancelTask(displayTipsTaskId);
                     gameManager.removeParticipantsFromHub(context.getParticipants());
                     context.setState(new WaitingInHubState(context));
                 })

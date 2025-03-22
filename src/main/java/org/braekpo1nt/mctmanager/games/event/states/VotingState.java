@@ -45,9 +45,14 @@ public class VotingState implements EventState {
                 this::startingGameDelay, adminCopy);
     }
     
-    private void startingGameDelay(GameType gameType) {
+    /**
+     * @param gameType the game to play
+     * @param ignore unused at this time
+     */
+    private void startingGameDelay(@NotNull GameType gameType, @NotNull String ignore) {
         context.initializeParticipantsAndAdmins();
-        context.setState(new StartingGameDelayState(context, gameType));
+        String configFile = context.getConfig().getGameConfigs().getOrDefault(gameType, "default.json");
+        context.setState(new StartingGameDelayState(context, gameType, configFile));
     }
     
     @Override
@@ -173,7 +178,7 @@ public class VotingState implements EventState {
     }
     
     @Override
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam) {
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam, @NotNull String configFile) {
         sender.sendMessage(Component.text("Can't start Colossal Combat during voting")
                 .color(NamedTextColor.RED));
     }

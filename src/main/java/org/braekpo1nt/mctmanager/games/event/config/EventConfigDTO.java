@@ -1,10 +1,19 @@
 package org.braekpo1nt.mctmanager.games.event.config;
 
+import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
+import org.braekpo1nt.mctmanager.games.event.Tip;
+import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collections;
+import java.util.Map;
+
+import java.util.List;
 
 /**
  * @param title the title of the event, used in the sidebar and for announcing the winner
@@ -16,6 +25,9 @@ record EventConfigDTO(
         Component title, 
         double[] multipliers, 
         boolean shouldDisplayGameNumber,
+        @Nullable Map<GameType, String> gameConfigs,
+        @Nullable String colossalCombatConfig,
+        Tips tips,
         Durations durations) implements Validatable {
     
     @Override
@@ -25,7 +37,14 @@ record EventConfigDTO(
         validator.notNull(this.title, "title");
         validator.notNull(this.multipliers, "multipliers");
         validator.validate(this.multipliers.length >= 1, "there must be at least 1 multiplier");
+        if (gameConfigs != null) {
+            validator.validate(!gameConfigs.containsValue(null), "gameConfigs can't contain null values");
+        }
         validator.notNull(this.durations, "durations");
+        validator.notNull(this.tips, "tips");
+        tips.validate(validator.path("tips"));
+        validator.notNull(this.tips.displayTime, "display time for tips must be specified");
+        validator.validate(!this.tips.getTips().isEmpty(), "there must be at least 1 game tip");
         validator.validate(this.durations.waitingInHub() >= 0, "durations.waitingInHub can't be negative");
         validator.validate(this.durations.halftimeBreak() >= 0, "durations.halftimeBreak can't be negative");
         validator.validate(this.durations.voting() >= 0, "durations.voting can't be negative");
@@ -41,9 +60,63 @@ record EventConfigDTO(
                 .startingGameDuration(this.durations.startingGame)
                 .backToHubDuration(this.durations.backToHub)
                 .multipliers(this.multipliers)
+                .tips(TipDTO.toTips(this.tips.getTips()))
+                .tipsDisplayTime(this.tips.getDisplayTime())
                 .shouldDisplayGameNumber(this.shouldDisplayGameNumber)
+                .gameConfigs(this.gameConfigs != null ? this.gameConfigs : Collections.emptyMap())
+                .colossalCombatConfig(this.colossalCombatConfig != null ? this.colossalCombatConfig : "default.json")
                 .title(this.title)
                 .build();
+    }
+
+    @Data
+    static class Tips implements Validatable {
+        /**
+         * how long to display each tip in ticks
+         */
+        private int displayTime;
+        /**
+         * the tips, consisting of text and a priority
+         */
+        private List<TipDTO> tips;
+        
+        @Override
+        public void validate(@NotNull Validator validator) {
+            validator.validate(displayTime > 0, "displayTime must be greater than 0");
+            validator.validateList(tips, "tips");
+            
+        }
+    }
+    
+    @Data
+    static class TipDTO implements Validatable {
+        /**
+         * The body of the tip
+         */
+        private Component body;
+        /**
+         * the priority of the tip (higher means more often)
+         */
+        private int priority;
+        
+        @Override
+        public void validate(@NotNull Validator validator) {
+            validator.notNull(body, "body");
+            validator.validate(priority >= 1, "priority must be at least 1");
+        }
+        
+        Tip toTip() {
+            return new Tip(this.priority, this.body);
+        }
+        
+        /**
+         * Converts the Tip records to a List of Tip objects
+         */
+        static List<Tip> toTips(List<TipDTO> dtos) {
+            return dtos.stream()
+                    .map(TipDTO::toTip)
+                    .toList();
+        }
     }
     
     /**

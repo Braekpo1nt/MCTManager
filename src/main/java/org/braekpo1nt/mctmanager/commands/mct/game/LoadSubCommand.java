@@ -24,11 +24,22 @@ public class LoadSubCommand extends SubCommand {
     
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (args.length > 1) {
+            return CommandResult.failure(getUsage().of("[configFile]"));
+        }
+        
         if (!gameManager.gameIsRunning()) {
             return CommandResult.failure(Component.text("No game is running."));
         }
         
-        if (!gameManager.loadGameConfig(sender)) {
+        String configFile;
+        if (args.length == 1) {
+            configFile = args[0];
+        } else {
+            configFile = "default.json";
+        }
+        
+        if (!gameManager.loadGameConfig(configFile, sender)) {
             return CommandResult.success(Component.text("Nothing changed."));
         }
         

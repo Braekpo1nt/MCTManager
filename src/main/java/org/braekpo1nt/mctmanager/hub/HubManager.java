@@ -60,7 +60,7 @@ public class HubManager implements Listener, Configurable {
     }
     
     @Override
-    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
+    public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
         this.config = configController.getConfig();
         for (LeaderboardManager leaderboardManager : leaderboardManagers) {
             leaderboardManager.tearDown();

@@ -1,13 +1,16 @@
 package org.braekpo1nt.mctmanager.games.event.states;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
+import org.braekpo1nt.mctmanager.games.event.Tip;
 import org.braekpo1nt.mctmanager.games.event.states.delay.ToColossalCombatDelay;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -19,11 +22,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.scheduler.BukkitScheduler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class WaitingInHubState implements EventState {
     
@@ -32,6 +37,11 @@ public class WaitingInHubState implements EventState {
     protected final Sidebar sidebar;
     protected final Sidebar adminSidebar;
     protected final Timer waitingInHubTimer;
+    
+    protected final Map<UUID, Component> playerTips = new HashMap<>();
+    protected int updateTipsTaskId;
+    protected int displayTipsTaskId;
+    
     
     public WaitingInHubState(EventManager context) {
         this.context = context;
@@ -44,6 +54,7 @@ public class WaitingInHubState implements EventState {
                 .append(Component.text(scoreMultiplier))
                 .color(NamedTextColor.GOLD));
         waitingInHubTimer = startTimer();
+        startActionBarTips();
     }
     
     protected Timer startTimer() {
@@ -59,6 +70,8 @@ public class WaitingInHubState implements EventState {
                 .withSidebar(adminSidebar, "timer")
                 .sidebarPrefix(prefix)
                 .onCompletion(() -> {
+                    context.getPlugin().getServer().getScheduler().cancelTask(updateTipsTaskId);
+                    context.getPlugin().getServer().getScheduler().cancelTask(displayTipsTaskId);
                     if (context.allGamesHaveBeenPlayed()) {
                         context.setState(new ToColossalCombatDelay(context));
                     } else {
@@ -205,11 +218,62 @@ public class WaitingInHubState implements EventState {
     }
     
     @Override
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam) {
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam, @NotNull String configFile) {
         waitingInHubTimer.cancel();
+        context.getPlugin().getServer().getScheduler().cancelTask(updateTipsTaskId);
+        context.getPlugin().getServer().getScheduler().cancelTask(displayTipsTaskId);
         context.setState(new PlayingColossalCombatState(
                 context,
                 firstTeam,
-                secondTeam));
+                secondTeam, 
+                configFile));
     }
+
+    public void startActionBarTips() {
+        BukkitScheduler scheduler = context.getPlugin().getServer().getScheduler();
+
+        // Task to compute and update tips
+        updateTipsTaskId = scheduler.scheduleSyncRepeatingTask(context.getPlugin(), () -> {
+            Map<String, List<Participant>> teamMapping = getTeamPlayerMapping();
+            playerTips.clear();
+            
+            for (List<Participant> teamPlayers : teamMapping.values()) {
+                List<Tip> tips = Tip.selectMultipleWeightedRandomTips(context.getConfig().getTips(), teamPlayers.size());
+
+                for (int i = 0; i < teamPlayers.size(); i++) {
+                    Participant participant = teamPlayers.get(i);
+                    Component tip = tips.get(i).getBody();
+                    playerTips.put(participant.getUniqueId(), tip);
+                }
+            }
+        }, 0L, context.getConfig().getTipsDisplayTime());
+        
+        // Task to display the tips
+        displayTipsTaskId = scheduler.scheduleSyncRepeatingTask(context.getPlugin(), () -> {
+            for (Participant participant : context.getParticipants()) {
+                Component text = playerTips.getOrDefault(participant.getUniqueId(), Component.empty());
+                participant.sendActionBar(text);
+            }
+        }, 0L, 20L);
+        
+    }
+    
+    /**
+     * @return mapping from online team's ids to their online members
+     */
+    public Map<String, List<Participant>> getTeamPlayerMapping() {
+        return context.getParticipants().stream()
+                .collect(Collectors.groupingBy(
+                        OfflineParticipant::getTeamId,
+                        Collectors.toList()
+                ));
+    }
+
+    @Override
+    public void cancelAllTasks() {
+        context.getPlugin().getServer().getScheduler().cancelTask(updateTipsTaskId);
+        context.getPlugin().getServer().getScheduler().cancelTask(displayTipsTaskId);
+        Audience.audience(context.getParticipants()).sendActionBar(Component.empty());
+    }
+
 }

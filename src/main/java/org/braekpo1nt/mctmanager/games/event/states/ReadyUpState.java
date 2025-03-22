@@ -414,7 +414,7 @@ public class ReadyUpState implements EventState {
     }
     
     @Override
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam) {
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam, @NotNull String configFile) {
         sender.sendMessage(Component.text("Can't start Colossal Combat during Ready Up state")
                 .color(NamedTextColor.RED));
     }

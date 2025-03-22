@@ -98,12 +98,12 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.timerManager = new TimerManager(plugin);
-        this.configController = new FootRaceConfigController(plugin.getDataFolder());
+        this.configController = new FootRaceConfigController(plugin.getDataFolder(), getType().getId());
     }
     
     @Override
-    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
-        this.config = configController.getConfig();
+    public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
+        this.config = configController.getConfig(configFile);
     }
     
     @Override
