@@ -38,8 +38,8 @@ public class WaitingInHubState implements EventState {
     protected final Timer waitingInHubTimer;
     
     protected final Map<UUID, Component> playerTips = new HashMap<>();
-    private int updateTipsTaskId;
-    private int displayTipsTaskId;
+    protected int updateTipsTaskId;
+    protected int displayTipsTaskId;
     
     
     public WaitingInHubState(EventManager context) {
@@ -217,14 +217,15 @@ public class WaitingInHubState implements EventState {
     }
     
     @Override
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam) {
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam, @NotNull String configFile) {
         waitingInHubTimer.cancel();
         context.getPlugin().getServer().getScheduler().cancelTask(updateTipsTaskId);
         context.getPlugin().getServer().getScheduler().cancelTask(displayTipsTaskId);
         context.setState(new PlayingColossalCombatState(
                 context,
                 firstTeam,
-                secondTeam));
+                secondTeam, 
+                configFile));
     }
 
     public void startActionBarTips() {

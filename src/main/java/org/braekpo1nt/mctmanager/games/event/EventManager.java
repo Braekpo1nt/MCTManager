@@ -452,8 +452,8 @@ public class EventManager implements Listener {
         state.stopColossalCombat(sender);
     }
     
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam) {
-        state.startColossalCombat(sender, firstTeam, secondTeam);
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam, @NotNull String configFile) {
+        state.startColossalCombat(sender, firstTeam, secondTeam, configFile);
     }
     
     public boolean eventIsActive() {

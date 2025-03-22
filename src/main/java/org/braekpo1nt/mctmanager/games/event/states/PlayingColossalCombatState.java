@@ -24,9 +24,9 @@ import java.util.logging.Level;
 
 public class PlayingColossalCombatState extends PlayingGameState {
     
-    public PlayingColossalCombatState(EventManager context, @NotNull Team firstTeam, @NotNull Team secondTeam) {
+    public PlayingColossalCombatState(EventManager context, @NotNull Team firstTeam, @NotNull Team secondTeam, @NotNull String configFile) {
         super(context);
-        boolean success = tryToStartColossalCombat(firstTeam, secondTeam);
+        boolean success = tryToStartColossalCombat(firstTeam, secondTeam, configFile);
         if (!success) {
             context.setState(new WaitingInHubState(context));
         }
@@ -37,9 +37,9 @@ public class PlayingColossalCombatState extends PlayingGameState {
         // do nothing
     }
     
-    private boolean tryToStartColossalCombat(@NotNull Team firstTeam, @NotNull Team secondTeam) {
+    private boolean tryToStartColossalCombat(@NotNull Team firstTeam, @NotNull Team secondTeam, @NotNull String configFile) {
         try {
-            context.getColossalCombatGame().loadConfig(context.getConfig().getColossalCombatConfig());
+            context.getColossalCombatGame().loadConfig(configFile);
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, "Error trying to start Colossal Combat", e);
             context.messageAllAdmins(Component.text("Can't start ")
@@ -126,7 +126,7 @@ public class PlayingColossalCombatState extends PlayingGameState {
     }
     
     @Override
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam) {
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam, @NotNull String configFile) {
         sender.sendMessage(Component.text("Colossal Combat is already running").color(NamedTextColor.RED));
     }
     

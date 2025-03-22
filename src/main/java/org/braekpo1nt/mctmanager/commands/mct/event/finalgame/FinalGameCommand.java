@@ -22,8 +22,8 @@ public class FinalGameCommand extends CommandManager {
         addSubCommand(new TabSubCommand("start") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                if (args.length != 2) {
-                    return CommandResult.failure(getUsage().of("<first>").of("<second>"));
+                if (args.length < 2 || args.length > 3) {
+                    return CommandResult.failure(getUsage().of("<first>").of("<second>").of("[configFile]"));
                 }
                 String firstTeamId = args[0];
                 String secondTeamId = args[1];
@@ -44,7 +44,14 @@ public class FinalGameCommand extends CommandManager {
                                     .decorate(TextDecoration.BOLD))
                             .append(Component.text(" is not a valid team name")));
                 }
-                gameManager.getEventManager().startColossalCombat(sender, first, second);
+                
+                String configFile;
+                if (args.length == 3) {
+                    configFile = args[2];
+                } else {
+                    configFile = "default.json";
+                }
+                gameManager.getEventManager().startColossalCombat(sender, first, second, configFile);
                 return CommandResult.success();
             }
             

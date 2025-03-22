@@ -96,12 +96,12 @@ public abstract class DelayState implements EventState {
     
     @Override
     public void colossalCombatIsOver(@Nullable Team winningTeam) {
-        
+        // do nothing
     }
     
     @Override
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam) {
-        
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam, @NotNull String configFile) {
+        // do nothing
     }
     
     @Override

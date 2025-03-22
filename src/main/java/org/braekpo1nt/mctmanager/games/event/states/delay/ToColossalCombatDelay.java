@@ -78,7 +78,8 @@ public class ToColossalCombatDelay extends DelayState {
             context.setState(new PlayingColossalCombatState(
                     context,
                     firstPlace,
-                    secondPlace));
+                    secondPlace,
+                    context.getConfig().getColossalCombatConfig()));
             return true;
         }
         if (firstPlaces.length > 2) {
@@ -142,7 +143,8 @@ public class ToColossalCombatDelay extends DelayState {
         context.setState(new PlayingColossalCombatState(
                 context,
                 firstPlace,
-                secondPlace));
+                secondPlace,
+                context.getConfig().getColossalCombatConfig()));
         return true;
     }
 }
