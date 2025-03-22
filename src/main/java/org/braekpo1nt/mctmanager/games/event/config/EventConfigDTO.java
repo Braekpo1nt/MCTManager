@@ -70,6 +70,7 @@ record EventConfigDTO(
                 .tipsDisplayTimeSeconds(this.tips.displayTimeSeconds())
                 .shouldDisplayGameNumber(this.shouldDisplayGameNumber)
                 .gameConfigs(this.gameConfigs != null ? this.gameConfigs : Collections.emptyMap())
+                .colossalCombatConfig(this.colossalCombatConfig != null ? this.colossalCombatConfig : "default.json")
                 .title(this.title)
                 .build();
     }

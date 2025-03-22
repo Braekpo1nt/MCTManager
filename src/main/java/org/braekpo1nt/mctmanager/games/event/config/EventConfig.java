@@ -29,6 +29,7 @@ public class EventConfig {
      * game, the default will be used.
      */
     private @NotNull Map<GameType, String> gameConfigs;
+    private @NotNull String colossalCombatConfig;
     private Component title;
     
     public boolean shouldDisplayGameNumber() {

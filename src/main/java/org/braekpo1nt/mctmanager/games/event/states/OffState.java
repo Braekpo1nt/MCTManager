@@ -253,7 +253,7 @@ public class OffState implements EventState {
             return;
         }
         try {
-            context.getColossalCombatGame().loadConfig(context.getColossalCombatConfigFile());
+            context.getColossalCombatGame().loadConfig(context.getConfig().getColossalCombatConfig());
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, e.getMessage(), e);
             sender.sendMessage(Component.text("Error loading config file. See console for details.")

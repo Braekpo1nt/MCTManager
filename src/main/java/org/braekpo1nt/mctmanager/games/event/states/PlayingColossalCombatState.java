@@ -39,7 +39,7 @@ public class PlayingColossalCombatState extends PlayingGameState {
     
     private boolean tryToStartColossalCombat(@NotNull Team firstTeam, @NotNull Team secondTeam) {
         try {
-            context.getColossalCombatGame().loadConfig(context.getColossalCombatConfigFile());
+            context.getColossalCombatGame().loadConfig(context.getConfig().getColossalCombatConfig());
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, "Error trying to start Colossal Combat", e);
             context.messageAllAdmins(Component.text("Can't start ")
