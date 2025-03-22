@@ -10,18 +10,15 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 
 public class ColossalCombatConfigController extends ConfigController<ColossalCombatConfigDTO> {
-    //add the field
     /**
      * The directory where all the config files are located for this game
      */
     private final File configDirectory;
     
-    // replace constructor
     public ColossalCombatConfigController(@NotNull File pluginDataFolder, @NotNull String configDirectory) { 
         this.configDirectory = new File(pluginDataFolder, configDirectory);
     }
     
-    // add the javadoc
     /**
      * Gets the config from storage 
      * @param configFile the name of the config file to use
@@ -29,10 +26,9 @@ public class ColossalCombatConfigController extends ConfigController<ColossalCom
      * @throws ConfigInvalidException if the config is invalid
      * @throws ConfigIOException if there is an IO problem getting the config, or the config file doesn't exist
      */
-    // add the argument
     public @NotNull ColossalCombatConfig getConfig(@NotNull String configFile) throws ConfigException {
         ColossalCombatConfigDTO configDTO = loadConfigDTO(new File(configDirectory, configFile), ColossalCombatConfigDTO.class); // replace the file
-        configDTO.validate(new Validator(configFile)); // set validate path to configFile
+        configDTO.validate(new Validator(configFile));
         return configDTO.toConfig();
     }
     
