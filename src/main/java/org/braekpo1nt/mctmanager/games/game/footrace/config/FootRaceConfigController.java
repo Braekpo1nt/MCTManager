@@ -41,6 +41,7 @@ public class FootRaceConfigController extends ConfigController<FootRaceConfigDTO
     }
     
     // add the arg
+    // TODO: this configFile argument is only used as a name, consider removing
     public void validateConfig(@NotNull FootRaceConfig config, @NotNull String configFile) {
         FootRaceConfigDTO configDTO = FootRaceConfigDTO.fromConfig(config);
         configDTO.validate(new Validator(configFile)); // set validate path
