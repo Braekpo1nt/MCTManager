@@ -261,20 +261,6 @@ public class WaitingInHubState implements EventState {
         }, 0L, 20L);
         taskIds.add(displayTipsTaskId);
         
-        // Recurring task to stop and restart display
-        int cycleTaskId = scheduler.scheduleSyncRepeatingTask(context.getPlugin(), () -> {
-            scheduler.cancelTask(displayTipsTaskId);
-            taskIds.remove(Integer.valueOf(displayTipsTaskId));
-
-            int newDisplayTipsTaskId = scheduler.scheduleSyncRepeatingTask(context.getPlugin(), () -> {
-                for (Participant participant : context.getParticipants()) {
-                    Component text = playerTips.getOrDefault(participant.getUniqueId(), Component.empty());
-                    participant.sendActionBar(text);
-                }
-            }, 0L, 20L);
-            taskIds.add(newDisplayTipsTaskId);
-        }, tipsDisplayTimeSeconds * 20L, tipsDisplayTimeSeconds * 20L);
-        taskIds.add(cycleTaskId);
     }
     
     /**

@@ -179,6 +179,7 @@ class FarmRushConfigDTO implements Validatable {
         validator.notNull(Bukkit.getWorld(this.getWorld()), "Could not find world \"%s\"", this.getWorld());
         validator.notNull(adminLocation, "adminLocation");
         validator.notNull(arenaFile, "arenaFile");
+        validator.fileExists(arenaFile, "arenaFile");
         validator.notNull(firstArenaOrigin, "firstArenaOrigin");
         validator.notNull(starterChestContents, "starterChestContents");
         starterChestContents.validate(validator.path("starterChestContents"));
