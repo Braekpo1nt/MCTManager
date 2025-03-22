@@ -37,8 +37,10 @@ public class WaitingInHubState implements EventState {
     protected final Sidebar adminSidebar;
     protected final Timer waitingInHubTimer;
     
-    protected Map<UUID, Component> playerTips;
-    protected List<Integer> taskIds;
+    protected final Map<UUID, Component> playerTips = new HashMap<>();
+    private int updateTipsTaskId;
+    private int displayTipsTaskId;
+    
     
     public WaitingInHubState(EventManager context) {
         this.context = context;
@@ -67,9 +69,8 @@ public class WaitingInHubState implements EventState {
                 .withSidebar(adminSidebar, "timer")
                 .sidebarPrefix(prefix)
                 .onCompletion(() -> {
-                    for (Integer taskId : taskIds) {
-                        context.getPlugin().getServer().getScheduler().cancelTask(taskId);
-                    }
+                    context.getPlugin().getServer().getScheduler().cancelTask(updateTipsTaskId);
+                    context.getPlugin().getServer().getScheduler().cancelTask(displayTipsTaskId);
                     if (context.allGamesHaveBeenPlayed()) {
                         context.setState(new ToColossalCombatDelay(context));
                     } else {
@@ -218,9 +219,8 @@ public class WaitingInHubState implements EventState {
     @Override
     public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam) {
         waitingInHubTimer.cancel();
-        for (Integer taskId : taskIds) {
-            context.getPlugin().getServer().getScheduler().cancelTask(taskId);
-        }
+        context.getPlugin().getServer().getScheduler().cancelTask(updateTipsTaskId);
+        context.getPlugin().getServer().getScheduler().cancelTask(displayTipsTaskId);
         context.setState(new PlayingColossalCombatState(
                 context,
                 firstTeam,
@@ -228,20 +228,17 @@ public class WaitingInHubState implements EventState {
     }
 
     public void startActionBarTips() {
-        taskIds = new ArrayList<>();
-        playerTips = new HashMap<>();
-        List<Tip> allTips = context.getConfig().getTips();
         int tipsDisplayTimeSeconds = context.getConfig().getTipsDisplayTimeSeconds();
 
         BukkitScheduler scheduler = context.getPlugin().getServer().getScheduler();
 
         // Task to compute and update tips
-        int updateTipsTaskId = scheduler.scheduleSyncRepeatingTask(context.getPlugin(), () -> {
+        updateTipsTaskId = scheduler.scheduleSyncRepeatingTask(context.getPlugin(), () -> {
             Map<String, List<Participant>> teamMapping = getTeamPlayerMapping();
             playerTips.clear();
-
+            
             for (List<Participant> teamPlayers : teamMapping.values()) {
-                List<Tip> tips = Tip.selectMultipleWeightedRandomTips(allTips, teamPlayers.size());
+                List<Tip> tips = Tip.selectMultipleWeightedRandomTips(context.getConfig().getTips(), teamPlayers.size());
 
                 for (int i = 0; i < teamPlayers.size(); i++) {
                     Participant participant = teamPlayers.get(i);
@@ -250,16 +247,14 @@ public class WaitingInHubState implements EventState {
                 }
             }
         }, 0L, tipsDisplayTimeSeconds * 20L);
-        taskIds.add(updateTipsTaskId);
         
         // Task to display the tips
-        int displayTipsTaskId = scheduler.scheduleSyncRepeatingTask(context.getPlugin(), () -> {
+        displayTipsTaskId = scheduler.scheduleSyncRepeatingTask(context.getPlugin(), () -> {
             for (Participant participant : context.getParticipants()) {
                 Component text = playerTips.getOrDefault(participant.getUniqueId(), Component.empty());
                 participant.sendActionBar(text);
             }
         }, 0L, 20L);
-        taskIds.add(displayTipsTaskId);
         
     }
     
@@ -276,10 +271,8 @@ public class WaitingInHubState implements EventState {
 
     @Override
     public void cancelAllTasks() {
-        // Stop action bar tips
-        for (Integer taskId : taskIds) {
-            context.getPlugin().getServer().getScheduler().cancelTask(taskId);
-        }
+        context.getPlugin().getServer().getScheduler().cancelTask(updateTipsTaskId);
+        context.getPlugin().getServer().getScheduler().cancelTask(displayTipsTaskId);
     }
 
 }
