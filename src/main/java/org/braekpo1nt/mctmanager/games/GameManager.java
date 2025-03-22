@@ -1442,7 +1442,7 @@ public class GameManager implements Listener {
     private void updateScoreVisuals(Collection<MCTTeam> updateTeams, Collection<Participant> updateParticipants) {
         if (eventManager.eventIsActive()) {
             eventManager.updatePersonalScores(updateParticipants);
-            eventManager.updateTeamScores(updateTeams);
+            eventManager.updateTeamScores();
         }
         hubManager.updateLeaderboards();
         tabList.setScores(updateTeams);

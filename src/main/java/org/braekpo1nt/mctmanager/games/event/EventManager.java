@@ -110,11 +110,7 @@ public class EventManager implements Listener {
     }
     
     public void updateTeamScores() {
-        updateTeamScores(gameManager.getTeams());
-    }
-    
-    public <T extends Team> void updateTeamScores(Collection<T> updateTeams) {
-        state.updateTeamScores(updateTeams);
+        state.updateTeamScores(gameManager.getTeams());
     }
     
     /**

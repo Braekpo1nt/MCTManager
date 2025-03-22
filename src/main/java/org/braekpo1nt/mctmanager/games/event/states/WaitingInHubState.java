@@ -142,7 +142,7 @@ public class WaitingInHubState implements EventState {
     
     @Override
     public <T extends Team> void updateTeamScores(Collection<T> updateTeams) {
-        Main.debugLog(LogType.EVENT_UPDATE_SCORES, "WaitingInHubState updateTeamScores()");
+        Main.debugLog(LogType.EVENT_UPDATE_SCORES, String.format("WaitingInHubState updateTeamScores(%s)", updateTeams.size()));
         if (context.getSidebar() == null) {
             return;
         }
