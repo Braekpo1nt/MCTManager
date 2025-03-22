@@ -13,7 +13,6 @@ import java.io.File;
 
 public class ParkourPathwayConfigController extends ConfigController<ParkourPathwayConfigDTO> {
     
-    //add the field
     /**
      * The directory where all the config files are located for this game
      */
