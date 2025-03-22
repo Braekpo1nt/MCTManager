@@ -16,6 +16,11 @@
     "startingGame": 5,
     "backToHub": 10
   },
+  "gameConfigs": {
+    "FOOT_RACE": "special.json",
+    "CAPTURE_THE_FLAG": "bluemap.json"
+  },
+  "colossalCombatConfig": "default.json",
   "tips": {
     "displayTimeSeconds": 5,
     "tips": [
