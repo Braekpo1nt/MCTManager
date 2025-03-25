@@ -48,6 +48,10 @@ public class TimerManager {
         return register(manager);
     }
     
+    /**
+     * @param manager the manager to register
+     * @return the given manager
+     */
     public TimerManager register(@NotNull TimerManager manager) {
         managers.add(manager);
         manager.setParent(this);
