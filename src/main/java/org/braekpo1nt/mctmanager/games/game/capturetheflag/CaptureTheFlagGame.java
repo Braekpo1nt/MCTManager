@@ -4,16 +4,11 @@ import lombok.Data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfigController;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.CaptureTheFlagState;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
@@ -44,83 +39,56 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 @Data
-public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
+public class CaptureTheFlagGame implements MCTGame, Listener {
     
     public @Nullable CaptureTheFlagState state;
     
     private final Main plugin;
     private final GameManager gameManager;
     private final BattleTopbar topbar;
-    private final Component baseTitle = Component.empty()
-            .append(Component.text("Capture the Flag"))
-            .color(NamedTextColor.BLUE);
     private final TimerManager timerManager;
-    private Component title = baseTitle;
-    private RoundManager roundManager;
-    private Sidebar sidebar;
-    private Sidebar adminSidebar;
-    private CaptureTheFlagConfigController configController;
-    private CaptureTheFlagConfig config;
-    private Map<UUID, CTFParticipant> participants = new HashMap<>();
-    private Map<UUID, CTFParticipant.QuitData> quitDatas = new HashMap<>();
-    private Map<String, CTFTeam> teams = new HashMap<>();
-    private Map<String, CTFTeam> quitTeams = new HashMap<>();
-    private Map<String, CTFTeam.QuitData> teamQuitDatas = new HashMap<>();
-    private List<Player> admins = new ArrayList<>();
+    private final RoundManager roundManager;
+    private final Sidebar sidebar;
+    private final Sidebar adminSidebar;
+    private final CaptureTheFlagConfig config;
+    private final Map<UUID, CTFParticipant> participants;
+    private final Map<UUID, CTFParticipant.QuitData> quitDatas;
+    private final Map<String, CTFTeam> teams;
+    private final Map<String, CTFTeam.QuitData> teamQuitDatas;
+    private final List<Player> admins;
     
-    public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
+    private @NotNull Component title;
+    
+    private final Map<String, CTFTeam> quitTeams = new HashMap<>();
+    
+    public CaptureTheFlagGame(
+            @NotNull Main plugin,
+            @NotNull GameManager gameManager, 
+            @NotNull Component title, 
+            @NotNull CaptureTheFlagConfig config, 
+            @NotNull Collection<Team> newTeams, 
+            @NotNull Collection<Participant> newParticipants, 
+            @NotNull List<Player> newAdmins) {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.timerManager = new TimerManager(plugin);
-        this.configController = new CaptureTheFlagConfigController(plugin.getDataFolder(), getType().getId());
         this.topbar = new BattleTopbar();
-        
-    }
-    
-    @Override
-    public GameType getType() {
-        return GameType.CAPTURE_THE_FLAG;
-    }
-    
-    @Override
-    public void setTitle(@NotNull Component title) {
+        this.sidebar = gameManager.createSidebar();
+        this.adminSidebar = gameManager.createSidebar();
         this.title = title;
-        if (sidebar != null) {
-            sidebar.updateLine("title", title);
-        }
-        if (adminSidebar != null) {
-            adminSidebar.updateLine("title", title);
-        }
-    }
-    
-    @Override
-    public @NotNull Component getBaseTitle() {
-        return baseTitle;
-    }
-    
-    @Override
-    public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
-        if (state != null) {
-            throw new ConfigException("CaptureTheFlagGame does not support loading the config mid-game");
-        }
-        this.config = configController.getConfig(configFile);
-    }
-    
-    @Override
-    public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
+        this.config = config;
+        this.admins = new ArrayList<>(newAdmins.size());
+        this.participants = new HashMap<>(newParticipants.size());
+        this.quitDatas =  new HashMap<>();
+        this.teams = new HashMap<>(newTeams.size());
+        this.teamQuitDatas = new HashMap<>();
+        // start()
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
-        teams = new HashMap<>(newTeams.size());
         for (Team newTeam : newTeams) {
             CTFTeam team = new CTFTeam(newTeam, 0);
             teams.put(team.getTeamId(), team);
         }
-        participants = new HashMap<>(newParticipants.size());
-        this.quitDatas = new HashMap<>();
-        this.teamQuitDatas = new HashMap<>();
-        this.quitTeams = new HashMap<>();
-        sidebar = gameManager.createSidebar();
-        adminSidebar = gameManager.createSidebar();
         Set<String> teamIds = Participant.getTeamIds(newParticipants);
         roundManager = new RoundManager(teamIds, config.getArenas().size());
         for (Participant participant : newParticipants) {
@@ -131,6 +99,18 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         updateRoundLine();
         setState(new DescriptionState(this));
         Main.logger().info("Starting Capture the Flag");
+    }
+    
+    @Override
+    public GameType getType() {
+        return GameType.CAPTURE_THE_FLAG;
+    }
+    
+    @Override
+    public void setTitle(@NotNull Component title) {
+        this.title = title;
+        sidebar.updateLine("title", title);
+        adminSidebar.updateLine("title", title);
     }
     
     public void initializeParticipant(Participant newParticipant) {
@@ -161,7 +141,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     }
     
     private void startAdmins(List<Player> newAdmins) {
-        this.admins = new ArrayList<>(newAdmins.size());
         for (Player admin : newAdmins) {
             initializeAdmin(admin);
         }
@@ -342,7 +321,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     
     private void clearSidebar() {
         sidebar.deleteAllLines();
-        sidebar = null;
         topbar.removeAllTeamPairs();
         topbar.hideAllPlayers();
     }
@@ -357,7 +335,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     
     private void clearAdminSidebar() {
         adminSidebar.deleteAllLines();
-        adminSidebar = null;
     }
     
     public void displayScore(CTFTeam team) {
