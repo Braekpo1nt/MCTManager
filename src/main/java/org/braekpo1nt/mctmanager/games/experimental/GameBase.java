@@ -7,8 +7,10 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.ParticipantData;
 import org.braekpo1nt.mctmanager.participant.ScoredTeamData;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.bukkit.entity.Player;
@@ -25,58 +27,50 @@ import java.util.*;
 @Getter
 @Setter
 public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP, QT>  implements MCTGame {
-    protected final GameType type;
-    // TODO: baseTitle can just be title
-    protected final Component baseTitle;
-    protected final Main plugin;
-    protected final GameManager gameManager;
-    protected final TimerManager timerManager;
-    protected final Sidebar sidebar;
-    protected final Sidebar adminSidebar;
-    protected final Map<UUID, P> participants;
-    protected final Map<UUID, QP> quitDatas;
-    protected final Map<String, T> teams;
-    protected final Map<String, QT> teamQuitDatas;
-    protected final List<Player> admins;
+    protected final @NotNull GameType type;
+    protected final @NotNull Main plugin;
+    protected final @NotNull GameManager gameManager;
+    protected final @NotNull TimerManager timerManager;
+    protected final @NotNull Sidebar sidebar;
+    protected final @NotNull Sidebar adminSidebar;
+    protected final @NotNull Map<UUID, P> participants;
+    protected final @NotNull Map<UUID, QP> quitDatas;
+    protected final @NotNull Map<String, T> teams;
+    protected final @NotNull Map<String, QT> teamQuitDatas;
+    protected final @NotNull List<Player> admins;
     
-    protected Component title;
+    protected @NotNull Component title;
     
-    public GameBase(GameType type, Component baseTitle, Main plugin, GameManager gameManager) {
+    public GameBase(
+            @NotNull GameType type, 
+            @NotNull Main plugin,
+            @NotNull GameManager gameManager,
+            @NotNull Component title,
+            @NotNull Collection<Team> newTeams,
+            @NotNull Collection<Participant> newParticipants,
+            @NotNull List<Player> newAdmins) {
         this.type = type;
-        this.baseTitle = baseTitle;
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.timerManager = new TimerManager(plugin);
         this.sidebar = gameManager.createSidebar();
         this.adminSidebar = gameManager.createSidebar();
-        this.participants = new HashMap<>();
+        this.participants = new HashMap<>(newParticipants.size());
         this.quitDatas = new HashMap<>();
-        this.teams = new HashMap<>();
+        this.teams = new HashMap<>(newTeams.size());
         this.teamQuitDatas = new HashMap<>();
-        this.admins = new ArrayList<>();
-        
-        this.title = this.baseTitle;
+        this.admins = new ArrayList<>(newAdmins.size());
+        this.title = title;
     }
     
     /**
-     * @param title
-     * @deprecated 
+     * @param title the new title to display on the sidebar
      */
-    @Deprecated
     @Override
     public void setTitle(@NotNull Component title) {
         this.title = title;
-        if (sidebar != null) {
-            sidebar.updateLine("title", title);
-        }
-        if (adminSidebar != null) {
-            adminSidebar.updateLine("title", title);
-        }
-    }
-    
-    @Override
-    public @NotNull Component getBaseTitle() {
-        return baseTitle;
+        sidebar.updateLine("title", title);
+        adminSidebar.updateLine("title", title);
     }
     
 }
