@@ -111,10 +111,6 @@ public class ClockworkGame implements Listener, MCTGame {
         return GameType.CLOCKWORK;
     }
     
-    @Override
-    public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
-    }
-    
     private void displayDescription() {
         messageAllParticipants(config.getDescription());
     }
