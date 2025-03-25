@@ -5,14 +5,10 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfig;
-import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfigController;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.states.SurvivalGamesState;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
@@ -57,78 +53,54 @@ import java.util.*;
  * The context for the state pattern
  */
 @Data
-public class SurvivalGamesGame implements MCTGame, Configurable, Listener {
+public class SurvivalGamesGame implements MCTGame, Listener {
     
     private @Nullable SurvivalGamesState state;
     
     private final Main plugin;
     private final GameManager gameManager;
     private final @NotNull ManyBattleTopbar topbar;
-    private final SurvivalGamesConfigController configController;
-    private final Component baseTitle = Component.empty()
-            .append(Component.text("Survival Games"))
-            .color(NamedTextColor.BLUE);
     private final TimerManager timerManager;
     private final GlowManager glowManager;
-    private Sidebar sidebar;
-    private Sidebar adminSidebar;
-    private SurvivalGamesConfig config;
-    public Map<UUID, SurvivalGamesParticipant> participants = new HashMap<>();
-    public Map<UUID, SurvivalGamesParticipant.QuitData> quitDatas = new HashMap<>();
-    public Map<String, SurvivalGamesTeam> teams = new HashMap<>();
-    private Map<String, SurvivalGamesTeam.QuitData> teamQuitDatas = new HashMap<>();
-    private List<Player> admins = new ArrayList<>();
-    private WorldBorder worldBorder;
-    private Component title = baseTitle;
+    private final Sidebar sidebar;
+    private final Sidebar adminSidebar;
+    private final SurvivalGamesConfig config;
+    public final Map<UUID, SurvivalGamesParticipant> participants;
+    public final Map<UUID, SurvivalGamesParticipant.QuitData> quitDatas;
+    public final Map<String, SurvivalGamesTeam> teams;
+    private final Map<String, SurvivalGamesTeam.QuitData> teamQuitDatas;
+    private final List<Player> admins;
+    private final WorldBorder worldBorder;
     
-    public SurvivalGamesGame(Main plugin, GameManager gameManager) {
+    private @NotNull Component title;
+    
+    public SurvivalGamesGame(
+            @NotNull Main plugin,
+            @NotNull GameManager gameManager,
+            @NotNull Component title,
+            @NotNull SurvivalGamesConfig config,
+            @NotNull Collection<Team> newTeams,
+            @NotNull Collection<Participant> newParticipants,
+            @NotNull List<Player> newAdmins) {
         this.plugin = plugin;
         this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
-        this.configController = new SurvivalGamesConfigController(plugin.getDataFolder(), getType().getId());
         this.topbar = new ManyBattleTopbar();
         this.glowManager = new GlowManager(plugin);
-    }
-    
-    @Override
-    public void setTitle(@NotNull Component title) {
+        this.sidebar = gameManager.createSidebar();
+        this.adminSidebar = gameManager.createSidebar();
         this.title = title;
-        if (sidebar != null) {
-            sidebar.updateLine("title", title);
-        }
-        if (adminSidebar != null) {
-            adminSidebar.updateLine("title", title);
-        }
-    }
-    
-    @Override
-    public @NotNull Component getBaseTitle() {
-        return baseTitle;
-    }
-    
-    @Override
-    public GameType getType() {
-        return GameType.SURVIVAL_GAMES;
-    }
-    
-    @Override
-    public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
-        this.config = configController.getConfig(configFile);
-    }
-    
-    @Override
-    public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
+        this.config = config;
+        this.admins = new ArrayList<>(newAdmins.size());
+        this.participants = new HashMap<>(newParticipants.size());
+        this.quitDatas =  new HashMap<>();
         this.teams = new HashMap<>(newTeams.size());
+        this.teamQuitDatas = new HashMap<>();
         for (Team team : newTeams) {
             teams.put(team.getTeamId(), new SurvivalGamesTeam(team, 0));
             topbar.addTeam(team.getTeamId(), team.getColor());
         }
-        this.participants = new HashMap<>(newParticipants.size());
-        this.quitDatas = new HashMap<>();
-        this.teamQuitDatas = new HashMap<>();
         worldBorder = config.getWorld().getWorldBorder();
-        sidebar = gameManager.createSidebar();
-        adminSidebar = gameManager.createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         glowManager.registerListeners();
         gameManager.getTimerManager().register(timerManager);
@@ -144,6 +116,22 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener {
         initializeWorldBorder();
         state = new DescriptionState(this);
         Main.logger().info("Started Survival Games");
+    }
+    
+    @Override
+    public void setTitle(@NotNull Component title) {
+        this.title = title;
+        if (sidebar != null) {
+            sidebar.updateLine("title", title);
+        }
+        if (adminSidebar != null) {
+            adminSidebar.updateLine("title", title);
+        }
+    }
+    
+    @Override
+    public GameType getType() {
+        return GameType.SURVIVAL_GAMES;
     }
     
     /**
@@ -298,7 +286,6 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener {
     }
     
     private void startAdmins(List<Player> newAdmins) {
-        this.admins = new ArrayList<>(newAdmins.size());
         for (Player admin : newAdmins) {
             initializeAdmin(admin);
         }
@@ -345,7 +332,6 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener {
     
     private void clearAdminSidebar() {
         adminSidebar.deleteAllLines();
-        adminSidebar = null;
     }
     
     /**
@@ -569,7 +555,6 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener {
     
     private void clearSidebar() {
         sidebar.deleteAllLines();
-        sidebar = null;
         topbar.removeAllTeams();
         topbar.hideAllPlayers();
     }
