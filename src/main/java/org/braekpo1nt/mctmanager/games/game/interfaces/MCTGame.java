@@ -16,7 +16,6 @@ import java.util.UUID;
  */
 public interface MCTGame {
     GameType getType();
-    void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins);
     void stop();
     
     void onParticipantJoin(Participant participant, Team team);
@@ -24,6 +23,5 @@ public interface MCTGame {
     
     void onAdminJoin(Player admin);
     void onAdminQuit(Player admin);
-    @NotNull Component getBaseTitle();
     void setTitle(@NotNull Component title);
 }
