@@ -709,7 +709,6 @@ public class GameManager implements Listener {
         
         
         Collection<MCTTeam> onlineTeams = MCTTeam.getOnlineTeams(teams);
-        Main.logger().info(String.format("GameManager.startGame(): onlineTeams.size()=%d, onlineParticipants.size()=%d", onlineTeams.size(), onlineParticipants.size()));
         // make sure the player and team count requirements are met
         switch (gameType) {
             case SURVIVAL_GAMES -> {
