@@ -5,15 +5,11 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
-import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfigController;
 import org.braekpo1nt.mctmanager.games.game.footrace.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.footrace.states.FootRaceState;
-import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
@@ -25,7 +21,10 @@ import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Color;
+import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -52,33 +51,24 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Data
-public class FootRaceGame implements Listener, MCTGame, Configurable {
+public class FootRaceGame implements Listener, MCTGame {
     
     private @Nullable FootRaceState state;
     
     public static final long COOL_DOWN_TIME = 3000L;
-    private final FootRaceConfigController configController;
     private final Main plugin;
     private final GameManager gameManager;
     private final PotionEffect SPEED = new PotionEffect(PotionEffectType.SPEED, 10000, 8, true, false, false);
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
-    private final Component baseTitle = Component.empty()
-            .append(Component.text("Foot Race"))
-            .color(NamedTextColor.BLUE);
     private final TimerManager timerManager;
-    private FootRaceConfig config;
-    private Sidebar sidebar;
-    private Sidebar adminSidebar;
-    private int timerRefreshTaskId;
-    private List<Player> admins = new ArrayList<>();
-    
-    private Map<UUID, FootRaceParticipant> participants = new HashMap<>();
-    /**
-     * Holds the data for participants when they have quit mid-round
-     */
-    private Map<UUID, FootRaceParticipant.QuitData> quitDatas = new HashMap<>();
-    private Map<String, FootRaceTeam> teams = new HashMap<>();
-    private Map<String, FootRaceTeam.QuitData> teamQuitDatas = new HashMap<>();
+    private final FootRaceConfig config;
+    private final Sidebar sidebar;
+    private final Sidebar adminSidebar;
+    private final List<Player> admins;
+    private final Map<UUID, FootRaceParticipant> participants;
+    private final Map<UUID, FootRaceParticipant.QuitData> quitDatas;
+    private final Map<String, FootRaceTeam> teams;
+    private final Map<String, FootRaceTeam.QuitData> teamQuitDatas;
     /**
      * what place every participant is in at any given moment in the race
      */
@@ -90,20 +80,51 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
      */
     private int numOfFinishedParticipants = 0;
     private long raceStartTime;
+    private int timerRefreshTaskId;
     private int statusEffectsTaskId;
     private int standingsDisplayTaskId;
-    private Component title = baseTitle;
     
-    public FootRaceGame(Main plugin, GameManager gameManager) {
+    private @NotNull Component title;
+    
+    public FootRaceGame(
+            @NotNull Main plugin,
+            @NotNull GameManager gameManager,
+            @NotNull Component title,
+            @NotNull FootRaceConfig config,
+            @NotNull Collection<Team> newTeams,
+            @NotNull Collection<Participant> newParticipants,
+            @NotNull List<Player> newAdmins) {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.timerManager = new TimerManager(plugin);
-        this.configController = new FootRaceConfigController(plugin.getDataFolder(), getType().getId());
-    }
-    
-    @Override
-    public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
-        this.config = configController.getConfig(configFile);
+        this.sidebar = gameManager.createSidebar();
+        this.adminSidebar = gameManager.createSidebar();
+        this.title = title;
+        this.config = config;
+        this.admins = new ArrayList<>(newAdmins.size());
+        this.quitDatas =  new HashMap<>();
+        this.teamQuitDatas = new HashMap<>();
+        this.participants = new HashMap<>(newParticipants.size());
+        this.teams = new HashMap<>(newTeams.size());
+        for (Team newTeam : newTeams) {
+            FootRaceTeam team = new FootRaceTeam(newTeam, 0);
+            this.teams.put(team.getTeamId(), team);
+        }
+        standings = new ArrayList<>(newParticipants.size());
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        gameManager.getTimerManager().register(timerManager);
+        closeGlassBarrier();
+        for (Participant participant : newParticipants) {
+            initializeParticipant(participant);
+        }
+        startAdmins(newAdmins);
+        initializeSidebar();
+        updateStandings();
+        displayStandings();
+        startStatusEffectsTask();
+        setupTeamOptions();
+        state = new DescriptionState(this);
+        Main.logger().info("Starting Foot Race game");
     }
     
     @Override
@@ -120,41 +141,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
         if (adminSidebar != null) {
             adminSidebar.updateLine("title", title);
         }
-    }
-    
-    @Override
-    public @NotNull Component getBaseTitle() {
-        return baseTitle;
-    }
-    
-    @Override
-    public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
-        this.participants = new HashMap<>(newParticipants.size());
-        this.teams = new HashMap<>(newTeams.size());
-        for (Team newTeam : newTeams) {
-            FootRaceTeam team = new FootRaceTeam(newTeam, 0);
-            this.teams.put(team.getTeamId(), team);
-        }
-        this.quitDatas = new HashMap<>();
-        this.teamQuitDatas = new HashMap<>();
-        standings = new ArrayList<>(newParticipants.size());
-        admins = new ArrayList<>(newAdmins.size());
-        sidebar = gameManager.createSidebar();
-        adminSidebar = gameManager.createSidebar();
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        gameManager.getTimerManager().register(timerManager);
-        closeGlassBarrier();
-        for (Participant participant : newParticipants) {
-            initializeParticipant(participant);
-        }
-        startAdmins(newAdmins);
-        initializeSidebar();
-        updateStandings();
-        displayStandings();
-        startStatusEffectsTask();
-        setupTeamOptions();
-        state = new DescriptionState(this);
-        Main.logger().info("Starting Foot Race game");
     }
     
     public void updateStandings() {
@@ -393,7 +379,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
     }
     
     private void startAdmins(List<Player> newAdmins) {
-        this.admins = new ArrayList<>(newAdmins.size());
         for (Player admin : newAdmins) {
             initializeAdmin(admin);
         }
@@ -446,7 +431,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
     
     private void clearAdminSidebar() {
         adminSidebar.deleteAllLines();
-        adminSidebar = null;
     }
     
     private void initializeSidebar() {
@@ -493,7 +477,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
     
     private void clearSidebar() {
         sidebar.deleteAllLines();
-        sidebar = null;
     }
     
     // EventHandlers
