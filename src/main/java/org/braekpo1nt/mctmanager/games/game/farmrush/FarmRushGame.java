@@ -12,16 +12,12 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfig;
-import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfigController;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupManager;
 import org.braekpo1nt.mctmanager.games.game.farmrush.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.farmrush.states.FarmRushState;
-import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
@@ -72,10 +68,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
-import java.util.List;
 
 @Data
-public class FarmRushGame implements MCTGame, Configurable, Listener {
+public class FarmRushGame implements MCTGame, Listener {
     
     @SuppressWarnings("SpellCheckingInspection")
     public static final NamespacedKey HAS_SCORE_LORE = NamespacedKey.minecraft("hasscorelore");
@@ -94,48 +89,43 @@ public class FarmRushGame implements MCTGame, Configurable, Listener {
     private final Main plugin;
     private final GameManager gameManager;
     private final TimerManager timerManager;
-    private final Component baseTitle = Component.empty()
-            .append(Component.text("Farm Rush"))
-            .color(NamedTextColor.BLUE);
     private final PowerupManager powerupManager = new PowerupManager(this);
-    private Component title = baseTitle;
-    private FarmRushConfig config;
-    private final FarmRushConfigController configController;
-    private final List<Player> admins = new ArrayList<>();
-    private Sidebar sidebar;
-    private Sidebar adminSidebar;
-    private final Map<UUID, FarmRushParticipant> participants = new HashMap<>();
-    private Map<UUID, FarmRushParticipant.QuitData> quitDatas = new HashMap<>();
-    private final Map<String, FarmRushTeam> teams = new HashMap<>();
+    private final FarmRushConfig config;
+    private final List<Player> admins;
+    private final Sidebar sidebar;
+    private final Sidebar adminSidebar;
+    private final Map<UUID, FarmRushParticipant> participants;
+    private final Map<UUID, FarmRushParticipant.QuitData> quitDatas;
+    private final Map<String, FarmRushTeam> teams;
     
-    private @Nullable ItemStack materialBook;
+    private @Nullable final ItemStack materialBook;
     
-    public FarmRushGame(Main plugin, GameManager gameManager) {
+    private @NotNull Component title;
+    
+    public FarmRushGame(
+            @NotNull Main plugin,
+            @NotNull GameManager gameManager,
+            @NotNull Component title,
+            @NotNull FarmRushConfig config,
+            @NotNull Collection<Team> newTeams,
+            @NotNull Collection<Participant> newParticipants,
+            @NotNull List<Player> newAdmins) {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.timerManager = new TimerManager(plugin);
-        this.configController = new FarmRushConfigController(plugin.getDataFolder(), getType().getId());
-    }
-    
-    @Override
-    public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
-        this.config = configController.getConfig(configFile);
-    }
-    
-    @Override
-    public GameType getType() {
-        return GameType.FARM_RUSH;
-    }
-    
-    @Override
-    public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
-        sidebar = gameManager.createSidebar();
-        adminSidebar = gameManager.createSidebar();
+        this.sidebar = gameManager.createSidebar();
+        this.adminSidebar = gameManager.createSidebar();
+        this.title = title;
+        this.config = config;
+        this.admins = new ArrayList<>();
+        this.participants = new HashMap<>(newParticipants.size());
+        this.quitDatas =  new HashMap<>();
+        this.teams = new HashMap<>(newTeams.size());
+        this.materialBook = createMaterialBook();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
         Set<String> teamIds = Team.getTeamIds(newTeams);
         Map<String, Arena> arenas = createArenas(teamIds);
-        materialBook = createMaterialBook();
         addRecipes();
         int arenaOrder = 0;
         for (Team team : newTeams) {
@@ -144,8 +134,6 @@ public class FarmRushGame implements MCTGame, Configurable, Listener {
             arenaOrder++;
             teams.put(farmRushTeam.getTeamId(), farmRushTeam);
         }
-        this.participants.clear();
-        this.quitDatas = new HashMap<>();
         placeArenas(arenas.values());
         for (Participant participant : newParticipants) {
             initializeParticipant(participant, 0);
@@ -155,6 +143,11 @@ public class FarmRushGame implements MCTGame, Configurable, Listener {
         setupTeamOptions();
         state = new DescriptionState(this);
         Main.logger().info("Starting Farm Rush game");
+    }
+    
+    @Override
+    public GameType getType() {
+        return GameType.FARM_RUSH;
     }
     
     private @Nullable ItemStack createMaterialBook() {
@@ -368,7 +361,6 @@ public class FarmRushGame implements MCTGame, Configurable, Listener {
     
     private void clearAdminSidebar() {
         adminSidebar.deleteAllLines();
-        adminSidebar = null;
     }
     
     @Override
@@ -483,11 +475,6 @@ public class FarmRushGame implements MCTGame, Configurable, Listener {
     
     private void resetAdmin(Player admin) {
         adminSidebar.removePlayer(admin);
-    }
-    
-    @Override
-    public @NotNull Component getBaseTitle() {
-        return baseTitle;
     }
     
     @Override
@@ -838,7 +825,6 @@ public class FarmRushGame implements MCTGame, Configurable, Listener {
     
     private void clearSidebar() {
         sidebar.deleteAllLines();
-        sidebar = null;
     }
     
     private void setupTeamOptions() {
