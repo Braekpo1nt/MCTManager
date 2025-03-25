@@ -480,6 +480,8 @@ public class FarmRushGame implements MCTGame, Listener {
     @Override
     public void setTitle(@NotNull Component title) {
         this.title = title;
+        sidebar.updateLine("title", title);
+        adminSidebar.updateLine("title", title);
     }
     
     @EventHandler

@@ -97,12 +97,8 @@ public class SpleefGame implements Listener, MCTGame {
     @Override
     public void setTitle(@NotNull Component title) {
         this.title = title;
-        if (sidebar != null) {
-            sidebar.updateLine("title", title);
-        }
-        if (adminSidebar != null) {
-            adminSidebar.updateLine("title", title);
-        }
+        sidebar.updateLine("title", title);
+        adminSidebar.updateLine("title", title);
     }
     
     @Override
