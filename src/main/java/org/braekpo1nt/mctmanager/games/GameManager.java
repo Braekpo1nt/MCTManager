@@ -14,18 +14,32 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfigController;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
+import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
+import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfigController;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
+import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfig;
+import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfigController;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
+import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
+import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfigController;
 import org.braekpo1nt.mctmanager.games.game.footrace.editor.FootRaceEditor;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfig;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfigController;
+import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
+import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfigController;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourPathwayEditor;
 import org.braekpo1nt.mctmanager.games.game.spleef.SpleefGame;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfig;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfigController;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
@@ -180,17 +194,42 @@ public class GameManager implements Listener {
      * @param gameType the {@link GameType} to instantiate the {@link MCTGame} for
      * @return a new {@link MCTGame} instance for the given type. Null if the given type is null. 
      */
-    @Contract("null -> null")
-    private MCTGame instantiateGame(GameType gameType) {
+    private MCTGame instantiateGame(
+            @NotNull GameType gameType, 
+            Component title, 
+            String configFile, 
+            Collection<Team> newTeams, 
+            Collection<Participant> newParticipants, 
+            List<Player> newAdmins) throws ConfigIOException, ConfigInvalidException {
         return switch (gameType) {
-            case SPLEEF -> new SpleefGame(plugin, this);
-            case CLOCKWORK -> new ClockworkGame(plugin, this);
-            case SURVIVAL_GAMES -> new SurvivalGamesGame(plugin, this);
-            case FARM_RUSH -> new FarmRushGame(plugin, this);
-            case FOOT_RACE -> new FootRaceGame(plugin, this);
-            case PARKOUR_PATHWAY -> new ParkourPathwayGame(plugin, this);
-            case CAPTURE_THE_FLAG -> new CaptureTheFlagGame(plugin, this);
-            case null -> null;
+            case SPLEEF -> {
+                SpleefConfig config = new SpleefConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
+                yield new SpleefGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
+            }
+            case CLOCKWORK -> {
+                ClockworkConfig config = new ClockworkConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
+                yield new ClockworkGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
+            }
+            case SURVIVAL_GAMES -> {
+                SurvivalGamesConfig config = new SurvivalGamesConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
+                yield new SurvivalGamesGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
+            }
+            case FARM_RUSH -> {
+                FarmRushConfig config = new FarmRushConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
+                yield new FarmRushGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
+            }
+            case FOOT_RACE -> {
+                FootRaceConfig config = new FootRaceConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
+                yield new FootRaceGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
+            }
+            case PARKOUR_PATHWAY -> {
+                ParkourPathwayConfig config = new ParkourPathwayConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
+                yield new ParkourPathwayGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
+            }
+            case CAPTURE_THE_FLAG -> {
+                CaptureTheFlagConfig config = new CaptureTheFlagConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
+                yield new CaptureTheFlagGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
+            }
         };
     }
     
@@ -667,32 +706,8 @@ public class GameManager implements Listener {
             return false;
         }
         
-        MCTGame selectedGame = instantiateGame(gameType);
-        if (selectedGame == null) {
-            sender.sendMessage(Component.text("Can't find game for type " + gameType));
-            return false;
-        }
-        
-        // make sure config loads
-        if (selectedGame instanceof Configurable configurable) {
-            try {
-                configurable.loadConfig(configFile);
-            } catch (ConfigException e) {
-                Main.logger().log(Level.SEVERE, String.format("Error loading config for game %s", selectedGame.getType()), e);
-                Component message = Component.text("Can't start ")
-                        .append(Component.text(gameType.name())
-                                .decorate(TextDecoration.BOLD))
-                        .append(Component.text(". Error loading config file. See console for details:\n"))
-                        .append(Component.text(e.getMessage()))
-                        .color(NamedTextColor.RED);
-                sender.sendMessage(message);
-                messageAdmins(message);
-                return false;
-            }
-        }
         
         Collection<MCTTeam> onlineTeams = MCTTeam.getOnlineTeams(teams);
-        Main.logger().info(String.format("GameManager.startGame(): onlineTeams.size()=%d, onlineParticipants.size()=%d", onlineTeams.size(), onlineParticipants.size()));
         // make sure the player and team count requirements are met
         switch (gameType) {
             case SURVIVAL_GAMES -> {
@@ -715,14 +730,23 @@ public class GameManager implements Listener {
             }
         }
         
-        if (eventManager.eventIsActive() && eventManager.shouldDisplayGameNumber()) {
-            Component newTitle = createNewTitle(selectedGame);
-            selectedGame.setTitle(newTitle);
-        }
-        
         hubManager.removeParticipantsFromHub(onlineParticipants.values());
-        selectedGame.start(new HashSet<>(onlineTeams), onlineParticipants.values(), onlineAdmins);
-        activeGame = selectedGame;
+        Component title = createNewTitle(gameType.getTitle());
+        
+        try {
+            activeGame = instantiateGame(gameType, title, configFile, new HashSet<>(onlineTeams), onlineParticipants.values(), onlineAdmins);
+        } catch (ConfigException e) {
+            Main.logger().log(Level.SEVERE, String.format("Error loading config for game %s", gameType), e);
+            Component message = Component.text("Can't start ")
+                    .append(Component.text(gameType.name())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(". Error loading config file. See console for details:\n"))
+                    .append(Component.text(e.getMessage()))
+                    .color(NamedTextColor.RED);
+            sender.sendMessage(message);
+            messageAdmins(message);
+            return false;
+        }
         updateScoreVisuals(onlineTeams, onlineParticipants.values());
         return true;
     }
@@ -767,12 +791,17 @@ public class GameManager implements Listener {
         return teams.get(teamId);
     }
     
-    private @NotNull Component createNewTitle(MCTGame game) {
+    private @NotNull Component createNewTitle(String baseTitle) {
+        if (!eventManager.eventIsActive() || !eventManager.shouldDisplayGameNumber()) {
+            return Component.empty()
+                    .append(Component.text(baseTitle))
+                    .color(NamedTextColor.BLUE);
+        }
         int currentGameNumber = eventManager.getCurrentGameNumber();
         int maxGames = eventManager.getMaxGames();
-        Component baseTitle = game.getBaseTitle();
         return Component.empty()
-                .append(baseTitle)
+                .append(Component.text(baseTitle)
+                        .color(NamedTextColor.BLUE))
                 .append(Component.space())
                 .append(Component.empty()
                         .append(Component.text("["))
@@ -788,7 +817,7 @@ public class GameManager implements Listener {
             return;
         }
         if (eventManager.eventIsActive() && eventManager.shouldDisplayGameNumber()) {
-            Component newTitle = createNewTitle(activeGame);
+            Component newTitle = createNewTitle(activeGame.getType().getTitle());
             activeGame.setTitle(newTitle);
         }
     }

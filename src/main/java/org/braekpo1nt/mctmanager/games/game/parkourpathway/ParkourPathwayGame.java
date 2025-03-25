@@ -4,14 +4,10 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfig;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfigController;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.CheckPoint;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
@@ -55,28 +51,22 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
+public class ParkourPathwayGame implements MCTGame, Listener {
 
     private final Main plugin;
     private final GameManager gameManager;
-    private Sidebar sidebar;
-    private Sidebar adminSidebar;
-    private final ParkourPathwayConfigController configController;
-    private ParkourPathwayConfig config;
-    private final Component baseTitle = Component.empty()
-            .append(Component.text("Parkour Pathway"))
-            .color(NamedTextColor.BLUE);
-    private Component title = baseTitle;
+    private final Sidebar sidebar;
+    private final Sidebar adminSidebar;
+    private final ParkourPathwayConfig config;
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
     private int statusEffectsTaskId;
     private @Nullable Timer mercryRuleCountdown;
-    private boolean gameActive = false;
     private boolean parkourHasStarted = false;
-    private Map<UUID, ParkourParticipant> participants = new HashMap<>();
-    private Map<UUID, ParkourParticipant.QuitData> quitDatas = new HashMap<>();
-    private Map<String, ParkourTeam> teams = new HashMap<>();
-    private Map<String, ParkourTeam.QuitData> teamQuitDatas = new HashMap<>();
-    private List<Player> admins = new ArrayList<>();
+    private final Map<UUID, ParkourParticipant> participants;
+    private final Map<UUID, ParkourParticipant.QuitData> quitDatas;
+    private final Map<String, ParkourTeam> teams;
+    private final Map<String, ParkourTeam.QuitData> teamQuitDatas;
+    private final List<Player> admins;
     /**
      * Holds the {@link TeamSpawn}s for this game
      */
@@ -84,45 +74,28 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
     private boolean descriptionShowing = false;
     private final TimerManager timerManager;
     
-    public ParkourPathwayGame(Main plugin, GameManager gameManager) {
+    private @NotNull Component title;
+    
+    public ParkourPathwayGame(
+            @NotNull Main plugin,
+            @NotNull GameManager gameManager,
+            @NotNull Component title,
+            @NotNull ParkourPathwayConfig config,
+            @NotNull Collection<Team> newTeams,
+            @NotNull Collection<Participant> newParticipants,
+            @NotNull List<Player> newAdmins) {
         this.plugin = plugin;
         this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
-        this.configController = new ParkourPathwayConfigController(plugin.getDataFolder(), getType().getId());
-    }
-    
-    @Override
-    public void setTitle(@NotNull Component title) {
+        this.sidebar = gameManager.createSidebar();
+        this.adminSidebar = gameManager.createSidebar();
         this.title = title;
-        if (sidebar != null) {
-            sidebar.updateLine("title", title);
-        }
-        if (adminSidebar != null) {
-            adminSidebar.updateLine("title", title);
-        }
-    }
-    
-    @Override
-    public @NotNull Component getBaseTitle() {
-        return baseTitle;
-    }
-    
-    @Override
-    public GameType getType() {
-        return GameType.PARKOUR_PATHWAY;
-    }
-    
-    @Override
-    public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
-        this.config = configController.getConfig(configFile);
-    }
-    
-    @Override
-    public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
+        this.config = config;
+        this.admins = new ArrayList<>(newAdmins.size());
         this.participants = new HashMap<>(newParticipants.size());
-        this.quitDatas = new HashMap<>();
-        this.teamQuitDatas = new HashMap<>();
+        this.quitDatas =  new HashMap<>();
         this.teams = new HashMap<>(newTeams.size());
+        this.teamQuitDatas = new HashMap<>();
         for (Team newTeam : newTeams) {
             ParkourTeam team = new ParkourTeam(newTeam, 0);
             this.teams.put(team.getTeamId(), team);
@@ -130,8 +103,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
         teamSpawns = getTeamSpawns(Team.getTeamIds(teams));
         closeTeamSpawns();
         closeGlassBarrier();
-        sidebar = gameManager.createSidebar();
-        adminSidebar = gameManager.createSidebar();
         parkourHasStarted = false;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
@@ -143,9 +114,20 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
         startStatusEffectsTask();
         setupTeamOptions();
         displayDescription();
-        gameActive = true;
         startDescriptionPeriod();
         Main.logger().info("Starting Parkour Pathway game");
+    }
+    
+    @Override
+    public void setTitle(@NotNull Component title) {
+        this.title = title;
+        sidebar.updateLine("title", title);
+        adminSidebar.updateLine("title", title);
+    }
+    
+    @Override
+    public GameType getType() {
+        return GameType.PARKOUR_PATHWAY;
     }
     
     private void displayDescription() {
@@ -171,7 +153,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
     }
     
     private void startAdmins(List<Player> newAdmins) {
-        this.admins = new ArrayList<>(newAdmins.size());
         for (Player admin : newAdmins) {
             initializeAdmin(admin);
         }
@@ -216,7 +197,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
         teamQuitDatas.clear();
         descriptionShowing = false;
         parkourHasStarted = false;
-        gameActive = false;
         gameManager.gameIsOver();
         Main.logger().info("Stopping Parkour Pathway game");
     }
@@ -509,9 +489,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
     
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
@@ -537,9 +514,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
      */
     @EventHandler
     public void onClickInventory(InventoryClickEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (event.getClickedInventory() == null) {
             return;
         }
@@ -557,9 +531,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
      */
     @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
@@ -568,9 +539,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
     
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
-        if (!gameActive) {
-            return;
-        }
         ParkourParticipant participant = participants.get(event.getPlayer().getUniqueId());
         if (participant == null) {
             return;
@@ -636,9 +604,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
     
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        if (!gameActive) {
-            return;
-        }
         ParkourParticipant participant = participants.get(event.getPlayer().getUniqueId());
         if (participant == null) {
             return;
@@ -729,9 +694,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
     
     @EventHandler
     public void onPlayerTeleport(PlayerTeleportEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (config.getSpectatorArea() == null){
             return;
         }
@@ -1085,7 +1047,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
     
     private void clearAdminSidebar() {
         adminSidebar.deleteAllLines();
-        adminSidebar = null;
     }
 
     private void initializeSidebar() {
@@ -1135,7 +1096,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
     
     private void clearSidebar() {
         sidebar.deleteAllLines();
-        sidebar = null;
     }
     
     private void messageAllParticipants(Component message) {
