@@ -4,13 +4,9 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
-import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfigController;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
@@ -39,84 +35,53 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class ClockworkGame implements Listener, MCTGame, Configurable {
+public class ClockworkGame implements Listener, MCTGame {
     private final Main plugin;
     private final GameManager gameManager;
-    private Sidebar sidebar;
-    private Sidebar adminSidebar;
-    private final ClockworkConfigController configController;
-    private ClockworkConfig config;
-    private final Component baseTitle = Component.empty()
-            .append(Component.text("Clockwork"))
-            .color(NamedTextColor.BLUE);
-    private Component title = baseTitle;
-    private Map<UUID, ClockworkParticipant> participants = new HashMap<>();
-    private Map<UUID, ClockworkParticipant.QuitData> quitDatas = new HashMap<>();
-    private Map<String, ClockworkTeam> teams = new HashMap<>();
-    private Map<String, ClockworkTeam.QuitData> teamQuitDatas = new HashMap<>();
-    private List<Player> admins = new ArrayList<>();
-    private List<ClockworkRound> rounds;
+    private final Sidebar sidebar;
+    private final Sidebar adminSidebar;
+    private final ClockworkConfig config;
+    private final Map<UUID, ClockworkParticipant> participants;
+    private final Map<UUID, ClockworkParticipant.QuitData> quitDatas;
+    private final Map<String, ClockworkTeam> teams;
+    private final Map<String, ClockworkTeam.QuitData> teamQuitDatas;
+    private final List<Player> admins = new ArrayList<>();
+    private final List<ClockworkRound> rounds;
     private int currentRoundIndex = 0;
     private boolean descriptionShowing = false;
-    private boolean gameActive = false;
     private final TimerManager timerManager;
     
-    public ClockworkGame(Main plugin, GameManager gameManager) {
+    private @NotNull Component title;
+    
+    public ClockworkGame(
+            @NotNull Main plugin,
+            @NotNull GameManager gameManager,
+            @NotNull Component title,
+            @NotNull ClockworkConfig config,
+            @NotNull Collection<Team> newTeams,
+            @NotNull Collection<Participant> newParticipants,
+            @NotNull List<Player> newAdmins) {
         this.plugin = plugin;
         this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
-        this.configController = new ClockworkConfigController(plugin.getDataFolder(), getType().getId());
-    }
-    
-    @Override
-    public void setTitle(@NotNull Component title) {
         this.title = title;
-        if (sidebar != null) {
-            sidebar.updateLine("title", title);
-        }
-        if (adminSidebar != null) {
-            adminSidebar.updateLine("title", title);
-        }
-    }
-    
-    @Override
-    public @NotNull Component getBaseTitle() {
-        return baseTitle;
-    }
-    
-    @Override
-    public GameType getType() {
-        return GameType.CLOCKWORK;
-    }
-    
-    @Override
-    public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
-        this.config = configController.getConfig(configFile);
-        if (gameActive) {
-            for (ClockworkRound round : rounds) {
-                round.setConfig(config);
-            }
-        }
-    }
-    
-    @Override
-    public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
-        teams = new HashMap<>(newTeams.size());
+        this.config = config;
+        this.teams = new HashMap<>(newTeams.size());
         for (Team team : newTeams) {
             teams.put(team.getTeamId(), new ClockworkTeam(team, 0));
         }
         this.participants = new HashMap<>(newParticipants.size());
         this.quitDatas = new HashMap<>();
         this.teamQuitDatas = new HashMap<>();
-        sidebar = gameManager.createSidebar();
-        adminSidebar = gameManager.createSidebar();
+        this.sidebar = gameManager.createSidebar();
+        this.adminSidebar = gameManager.createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
         for (Participant participant : newParticipants) {
             initializeParticipant(participant, 0);
         }
         initializeSidebar();
-        rounds = new ArrayList<>(config.getRounds());
+        this.rounds = new ArrayList<>(config.getRounds());
         for (int i = 0; i < config.getRounds(); i++) {
             rounds.add(new ClockworkRound(plugin, gameManager, this, config, i+1, sidebar, adminSidebar));
         }
@@ -124,9 +89,20 @@ public class ClockworkGame implements Listener, MCTGame, Configurable {
         setupTeamOptions();
         startAdmins(newAdmins);
         displayDescription();
-        gameActive = true;
         startDescriptionPeriod();
         Main.logger().info("Started clockwork");
+    }
+    
+    @Override
+    public void setTitle(@NotNull Component title) {
+        this.title = title;
+        sidebar.updateLine("title", title);
+        adminSidebar.updateLine("title", title);
+    }
+    
+    @Override
+    public GameType getType() {
+        return GameType.CLOCKWORK;
     }
     
     private void displayDescription() {
@@ -147,7 +123,6 @@ public class ClockworkGame implements Listener, MCTGame, Configurable {
     }
     
     private void startAdmins(List<Player> newAdmins) {
-        this.admins = new ArrayList<>(newAdmins.size());
         for (Player admin : newAdmins) {
             initializeAdmin(admin);
         }
@@ -188,7 +163,6 @@ public class ClockworkGame implements Listener, MCTGame, Configurable {
         cancelAllTasks();
         rounds.clear();
         descriptionShowing = false;
-        gameActive = false;
         saveScores();
         for (Participant participant : participants.values()) {
             resetParticipant(participant);
@@ -285,9 +259,6 @@ public class ClockworkGame implements Listener, MCTGame, Configurable {
     
     @Override
     public void onParticipantJoin(Participant participant, Team team) {
-        if (!gameActive) {
-            return;
-        }
         onTeamJoin(team);
         ClockworkParticipant.QuitData quitData = quitDatas.remove(participant.getUniqueId());
         if (quitData != null) {
@@ -324,9 +295,6 @@ public class ClockworkGame implements Listener, MCTGame, Configurable {
     
     @Override
     public void onParticipantQuit(UUID participantUUID, String teamId) {
-        if (!gameActive) {
-            return;
-        }
         ClockworkParticipant participant = participants.get(participantUUID);
         if (participant == null) {
             return;
@@ -354,9 +322,6 @@ public class ClockworkGame implements Listener, MCTGame, Configurable {
     
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (config.getSpectatorArea() == null){
             return;
         }
@@ -377,9 +342,6 @@ public class ClockworkGame implements Listener, MCTGame, Configurable {
     
     @EventHandler
     public void onPlayerTeleport(PlayerTeleportEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (config.getSpectatorArea() == null){
             return;
         }
@@ -398,9 +360,6 @@ public class ClockworkGame implements Listener, MCTGame, Configurable {
     }
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        if (!gameActive) {
-            return;
-        }
         Block clickedBlock = event.getClickedBlock();
         if (clickedBlock == null) {
             return;
@@ -417,9 +376,6 @@ public class ClockworkGame implements Listener, MCTGame, Configurable {
     
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
@@ -451,9 +407,6 @@ public class ClockworkGame implements Listener, MCTGame, Configurable {
      */
     @EventHandler
     public void onClickInventory(InventoryClickEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (event.getClickedInventory() == null) {
             return;
         }
@@ -471,9 +424,6 @@ public class ClockworkGame implements Listener, MCTGame, Configurable {
      */
     @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
@@ -491,7 +441,6 @@ public class ClockworkGame implements Listener, MCTGame, Configurable {
     
     private void clearAdminSidebar() {
         adminSidebar.deleteAllLines();
-        adminSidebar = null;
     }
     
     private void initializeSidebar() {
@@ -543,7 +492,6 @@ public class ClockworkGame implements Listener, MCTGame, Configurable {
     
     private void clearSidebar() {
         sidebar.deleteAllLines();
-        sidebar = null;
     }
     
     private void updateRoundFastBoard() {

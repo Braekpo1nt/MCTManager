@@ -5,14 +5,10 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
-import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfigController;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
@@ -34,76 +30,46 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class SpleefGame implements Listener, MCTGame, Configurable {
+public class SpleefGame implements Listener, MCTGame {
     private final Main plugin;
     private final GameManager gameManager;
     private final Random random = new Random();
-    private Sidebar sidebar;
-    private Sidebar adminSidebar;
-    private final SpleefConfigController configController;
-    private SpleefConfig config;
-    private final Component baseTitle = Component.empty()
-            .append(Component.text("Spleef"))
-            .color(NamedTextColor.BLUE);
-    private Component title = baseTitle;
-    private Map<UUID, SpleefParticipant> participants = new HashMap<>();
-    private Map<UUID, SpleefParticipant.QuitData> quitDatas = new HashMap<>();
-    private Map<String, SpleefTeam> teams = new HashMap<>();
-    private Map<String, SpleefTeam.QuitData> teamQuitDatas = new HashMap<>();
-    private List<Player> admins = new ArrayList<>();
-    private List<SpleefRound> rounds = new ArrayList<>();
+    private final Sidebar sidebar;
+    private final Sidebar adminSidebar;
+    private final SpleefConfig config;
+    private final Map<UUID, SpleefParticipant> participants;
+    private final Map<UUID, SpleefParticipant.QuitData> quitDatas;
+    private final Map<String, SpleefTeam> teams;
+    private final Map<String, SpleefTeam.QuitData> teamQuitDatas;
+    private final List<Player> admins;
+    private final List<SpleefRound> rounds;
     private int currentRoundIndex = 0;
-    private boolean gameActive = false;
     private final TimerManager timerManager;
     
-    public SpleefGame(Main plugin, GameManager gameManager) {
+    private @NotNull Component title;
+    
+    public SpleefGame(
+            @NotNull Main plugin,
+            @NotNull GameManager gameManager,
+            @NotNull Component title,
+            @NotNull SpleefConfig config,
+            @NotNull Collection<Team> newTeams,
+            @NotNull Collection<Participant> newParticipants,
+            @NotNull List<Player> newAdmins) {
         this.plugin = plugin;
         this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
-        this.configController = new SpleefConfigController(plugin.getDataFolder(), getType().getId());
-    }
-    
-    @Override
-    public @NotNull Component getBaseTitle() {
-        return baseTitle;
-    }
-    
-    @Override
-    public void setTitle(@NotNull Component title) {
+        this.sidebar = gameManager.createSidebar();
+        this.adminSidebar = gameManager.createSidebar();
         this.title = title;
-        if (sidebar != null) {
-            sidebar.updateLine("title", title);
-        }
-        if (adminSidebar != null) {
-            adminSidebar.updateLine("title", title);
-        }
-    }
-    
-    @Override
-    public GameType getType() {
-        return GameType.SPLEEF;
-    }
-    
-    @Override
-    public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
-        this.config = configController.getConfig(configFile);
-        if (gameActive) {
-            for (SpleefRound round : rounds) {
-                round.setConfig(config);
-            }
-        }
-    }
-    
-    @Override
-    public void start(Collection<Team> newTeams, Collection<Participant> newParticipants, List<Player> newAdmins) {
-        participants = new HashMap<>(newParticipants.size());
-        this.quitDatas = new HashMap<>();
+        this.config = config;
+        this.admins = new ArrayList<>(newAdmins.size());
+        this.participants = new HashMap<>(newParticipants.size());
+        this.quitDatas =  new HashMap<>();
+        this.teams = new HashMap<>(newTeams.size());
         this.teamQuitDatas = new HashMap<>();
-        sidebar = gameManager.createSidebar();
-        adminSidebar = gameManager.createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
-        this.teams = new HashMap<>(newTeams.size());
         for (Team newTeam : newTeams) {
             SpleefTeam team = new SpleefTeam(newTeam, 0);
             this.teams.put(team.getTeamId(), team);
@@ -122,9 +88,20 @@ public class SpleefGame implements Listener, MCTGame, Configurable {
         setupTeamOptions();
         startAdmins(newAdmins);
         displayDescription();
-        gameActive = true;
         startNextRound();
         Main.logger().info("Started Spleef");
+    }
+    
+    @Override
+    public void setTitle(@NotNull Component title) {
+        this.title = title;
+        sidebar.updateLine("title", title);
+        adminSidebar.updateLine("title", title);
+    }
+    
+    @Override
+    public GameType getType() {
+        return GameType.SPLEEF;
     }
     
     private void displayDescription() {
@@ -157,7 +134,6 @@ public class SpleefGame implements Listener, MCTGame, Configurable {
     }
     
     private void startAdmins(List<Player> newAdmins) {
-        this.admins = new ArrayList<>(newAdmins.size());
         for (Player admin : newAdmins) {
             initializeAdmin(admin);
         }
@@ -197,7 +173,6 @@ public class SpleefGame implements Listener, MCTGame, Configurable {
             }
         }
         rounds.clear();
-        gameActive = false;
         saveScores();
         for (Participant participant : participants.values()) {
             resetParticipant(participant);
@@ -263,9 +238,6 @@ public class SpleefGame implements Listener, MCTGame, Configurable {
      */
     @EventHandler
     public void onClickInventory(InventoryClickEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (event.getClickedInventory() == null) {
             return;
         }
@@ -283,9 +255,6 @@ public class SpleefGame implements Listener, MCTGame, Configurable {
      */
     @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
@@ -294,9 +263,6 @@ public class SpleefGame implements Listener, MCTGame, Configurable {
     
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (config.getSpectatorArea() == null){
             return;
         }
@@ -317,9 +283,6 @@ public class SpleefGame implements Listener, MCTGame, Configurable {
     
     @EventHandler
     public void onPlayerTeleport(PlayerTeleportEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (config.getSpectatorArea() == null){
             return;
         }
@@ -351,9 +314,6 @@ public class SpleefGame implements Listener, MCTGame, Configurable {
     
     @Override
     public void onParticipantJoin(Participant participant, Team team) {
-        if (!gameActive) {
-            return;
-        }
         onTeamJoin(team);
         SpleefParticipant.QuitData quitData = quitDatas.remove(participant.getUniqueId());
         if (quitData != null) {
@@ -387,9 +347,6 @@ public class SpleefGame implements Listener, MCTGame, Configurable {
     
     @Override
     public void onParticipantQuit(UUID participantUUID, String teamId) {
-        if (!gameActive) {
-            return;
-        }
         SpleefParticipant participant = participants.get(participantUUID);
         if (participant == null) {
             return;
@@ -439,7 +396,6 @@ public class SpleefGame implements Listener, MCTGame, Configurable {
     
     private void clearAdminSidebar() {
         adminSidebar.deleteAllLines();
-        adminSidebar = null;
     }
     
     private void initializeSidebar() {
@@ -495,7 +451,6 @@ public class SpleefGame implements Listener, MCTGame, Configurable {
     
     private void clearSidebar() {
         sidebar.deleteAllLines();
-        sidebar = null;
     }
     
     private void setupTeamOptions() {
