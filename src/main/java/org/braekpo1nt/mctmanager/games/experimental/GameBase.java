@@ -103,7 +103,22 @@ public abstract class GameBase<S extends GameStateBase, P extends ParticipantDat
         for (P participant : participants.values()) {
             _resetParticipant(participant);
         }
+        participants.clear();
+        quitDatas.clear();
+        teams.clear();
+        teamQuitDatas.clear();
+        
+        // admins start
+        for (Player admin : admins) {
+            _resetAdmin(admin);
+        }
+        adminSidebar.deleteAllLines();
+        admins.clear();
+        // admins end
+        
         cleanup();
+        gameManager.gameIsOver();
+        Main.logger().info("Stopping " + type.getTitle());
     }
     
     private void saveScores() {
@@ -229,6 +244,17 @@ public abstract class GameBase<S extends GameStateBase, P extends ParticipantDat
      * <p>Add custom lines to {@link #adminSidebar}</p>
      */
     protected abstract void initializeAdminSidebar();
+    
+    private void _resetAdmin(Player admin) {
+        adminSidebar.removePlayer(admin);
+        resetAdmin(admin);
+    }
+    
+    /**
+     * <p>Reset the admin</p>
+     * @param admin the admin to reset
+     */
+    protected abstract void resetAdmin(Player admin);
     // admin end
     
     // Sidebar start
