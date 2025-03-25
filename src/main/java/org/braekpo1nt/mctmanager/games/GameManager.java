@@ -201,7 +201,7 @@ public class GameManager implements Listener {
             Collection<Team> newTeams, 
             Collection<Participant> newParticipants, 
             List<Player> newAdmins) throws ConfigIOException, ConfigInvalidException {
-        MCTGame game = switch (gameType) {
+        return switch (gameType) {
             case SPLEEF -> {
                 SpleefConfig config = new SpleefConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
                 yield new SpleefGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
@@ -231,7 +231,6 @@ public class GameManager implements Listener {
                 yield new CaptureTheFlagGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
             }
         };
-        return game;
     }
     
     /**

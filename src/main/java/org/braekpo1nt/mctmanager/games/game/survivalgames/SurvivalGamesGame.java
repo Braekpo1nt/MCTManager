@@ -45,7 +45,6 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -55,7 +54,7 @@ import java.util.*;
 @Data
 public class SurvivalGamesGame implements MCTGame, Listener {
     
-    private @Nullable SurvivalGamesState state;
+    private @NotNull SurvivalGamesState state;
     
     private final Main plugin;
     private final GameManager gameManager;
@@ -114,7 +113,7 @@ public class SurvivalGamesGame implements MCTGame, Listener {
         startAdmins(newAdmins);
         initializeGlowManager();
         initializeWorldBorder();
-        state = new DescriptionState(this);
+        this.state = new DescriptionState(this);
         Main.logger().info("Started Survival Games");
     }
     
@@ -208,11 +207,7 @@ public class SurvivalGamesGame implements MCTGame, Listener {
         stopAdmins();
         saveScores();
         for (Participant participant : participants.values()) {
-            if (state != null) {
-                state.resetParticipant(participant);
-            } else {
-                resetParticipant(participant);
-            }
+            state.resetParticipant(participant);
         }
         clearSidebar();
         glowManager.clear();
@@ -221,7 +216,6 @@ public class SurvivalGamesGame implements MCTGame, Listener {
         quitDatas.clear();
         teamQuitDatas.clear();
         gameManager.gameIsOver();
-        state = null;
         Main.logger().info("Stopped Survival Games");
     }
     
@@ -257,9 +251,7 @@ public class SurvivalGamesGame implements MCTGame, Listener {
     
     @Override
     public void onParticipantJoin(Participant participant, Team team) {
-        if (state != null) {
-            state.onParticipantJoin(participant, team);
-        }
+        state.onParticipantJoin(participant, team);
     }
     
     @Override
@@ -268,9 +260,7 @@ public class SurvivalGamesGame implements MCTGame, Listener {
         if (sgParticipant == null) {
             return;
         }
-        if (state != null) {
-            state.onParticipantQuit(sgParticipant);
-        }
+        state.onParticipantQuit(sgParticipant);
     }
     
     public void onTeamQuit(SurvivalGamesTeam team) {
@@ -702,9 +692,6 @@ public class SurvivalGamesGame implements MCTGame, Listener {
     
     @EventHandler
     public void onPlayerOpenInventory(InventoryOpenEvent event) {
-        if (state == null) {
-            return;
-        }
         if (!config.lockOtherInventories()) {
             return;
         }
@@ -728,9 +715,6 @@ public class SurvivalGamesGame implements MCTGame, Listener {
     
     @EventHandler
     public void onPlayerCloseInventory(InventoryCloseEvent event) {
-        if (state == null) {
-            return;
-        }
         if (!event.getInventory().getType().equals(InventoryType.CHEST)) {
             return;
         }
@@ -774,9 +758,6 @@ public class SurvivalGamesGame implements MCTGame, Listener {
     
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
-        if (state == null) {
-            return;
-        }
         if (!participants.containsKey(event.getEntity().getUniqueId())) {
             return;
         }
@@ -785,9 +766,6 @@ public class SurvivalGamesGame implements MCTGame, Listener {
     
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
-        if (state == null) {
-            return;
-        }
         if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }

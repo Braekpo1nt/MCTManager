@@ -84,7 +84,7 @@ public class FarmRushGame implements MCTGame, Listener {
             InventoryType.ENDER_CHEST
     );
     
-    private @Nullable FarmRushState state;
+    private @NotNull FarmRushState state;
     
     private final Main plugin;
     private final GameManager gameManager;
@@ -141,7 +141,7 @@ public class FarmRushGame implements MCTGame, Listener {
         startAdmins(newAdmins);
         initializeSidebar();
         setupTeamOptions();
-        state = new DescriptionState(this);
+        this.state = new DescriptionState(this);
         Main.logger().info("Starting Farm Rush game");
     }
     
@@ -443,17 +443,11 @@ public class FarmRushGame implements MCTGame, Listener {
     
     @Override
     public void onParticipantJoin(Participant participant, Team team) {
-        if (state == null) {
-            return;
-        }
         state.onParticipantJoin(participant, team);
     }
     
     @Override
     public void onParticipantQuit(UUID participantUUID, String teamId) {
-        if (state == null) {
-            return;
-        }
         FarmRushParticipant participant = participants.get(participantUUID);
         if (participant == null) {
             return;
@@ -532,9 +526,7 @@ public class FarmRushGame implements MCTGame, Listener {
         if (!arena.getBounds().contains(event.getTo().toVector())) {
             event.setCancelled(true);
         }
-        if (state != null) {
-            state.onPlayerMove(event, participant);
-        }
+        state.onPlayerMove(event, participant);
     }
     
     @EventHandler
@@ -591,9 +583,6 @@ public class FarmRushGame implements MCTGame, Listener {
         onBlockDestroy(event.getBlock(), event);
     }
     public void onBlockDestroy(Block block, Cancellable event) {
-        if (state == null) {
-            return;
-        }
         for (FarmRushTeam team : teams.values()) {
             Location delivery = team.getArena().getDelivery();
             if (block.getLocation().equals(delivery)) {
@@ -622,9 +611,6 @@ public class FarmRushGame implements MCTGame, Listener {
     
     @EventHandler
     public void onPlayerOpenInventory(InventoryOpenEvent event) {
-        if (state == null) {
-            return;
-        }
         if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
@@ -713,9 +699,6 @@ public class FarmRushGame implements MCTGame, Listener {
     
     @EventHandler
     public void onCloseInventory(InventoryCloseEvent event) {
-        if (state == null) {
-            return;
-        }
         Participant participant = participants.get(event.getPlayer().getUniqueId());
         if (participant == null) {
             return;
@@ -725,9 +708,6 @@ public class FarmRushGame implements MCTGame, Listener {
     
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
-        if (state == null) {
-            return;
-        }
         if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
@@ -743,9 +723,6 @@ public class FarmRushGame implements MCTGame, Listener {
     
     @EventHandler
     public void onPlaceBlock(BlockPlaceEvent event) {
-        if (state == null) {
-            return;
-        }
         Participant participant = participants.get(event.getPlayer().getUniqueId());
         if (participant == null) {
             return;

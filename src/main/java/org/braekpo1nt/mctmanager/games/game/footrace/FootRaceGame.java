@@ -45,7 +45,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -53,7 +52,7 @@ import java.util.stream.Collectors;
 @Data
 public class FootRaceGame implements Listener, MCTGame {
     
-    private @Nullable FootRaceState state;
+    private @NotNull FootRaceState state;
     
     public static final long COOL_DOWN_TIME = 3000L;
     private final Main plugin;
@@ -123,7 +122,7 @@ public class FootRaceGame implements Listener, MCTGame {
         displayStandings();
         startStatusEffectsTask();
         setupTeamOptions();
-        state = new DescriptionState(this);
+        this.state = new DescriptionState(this);
         Main.logger().info("Starting Foot Race game");
     }
     
@@ -349,9 +348,7 @@ public class FootRaceGame implements Listener, MCTGame {
     
     @Override
     public void onParticipantJoin(Participant participant, Team team) {
-        if (state != null) {
-            state.onParticipantJoin(participant, team);
-        }
+        state.onParticipantJoin(participant, team);
     }
     
     public void onTeamQuit(FootRaceTeam team) {
@@ -369,9 +366,7 @@ public class FootRaceGame implements Listener, MCTGame {
             return;
         }
         FootRaceTeam footRaceTeam = teams.get(teamId);
-        if (state != null) {
-            state.onParticipantQuit(footRaceParticipant, footRaceTeam);
-        }
+        state.onParticipantQuit(footRaceParticipant, footRaceTeam);
     }
     
     private void startAdmins(List<Player> newAdmins) {
@@ -570,9 +565,7 @@ public class FootRaceGame implements Listener, MCTGame {
         if (participant == null) {
             return;
         }
-        if (state != null) {
-            state.onParticipantMove(participant);
-        }
+        state.onParticipantMove(participant);
         if (participant.getGameMode().equals(GameMode.SPECTATOR)) {
             keepSpectatorsInArea(participant, event);
         }

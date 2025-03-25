@@ -30,9 +30,11 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 @Data
 public class CaptureTheFlagMatch {
@@ -42,7 +44,7 @@ public class CaptureTheFlagMatch {
         SOUTH
     }
     
-    private @Nullable CaptureTheFlagMatchState state;
+    private @NotNull CaptureTheFlagMatchState state;
     
     private final CaptureTheFlagGame parentContext;
     /**
@@ -98,9 +100,6 @@ public class CaptureTheFlagMatch {
     }
     
     public void nextState() {
-        if (state == null) {
-            return;
-        }
         state.nextState();
     }
     
@@ -163,16 +162,10 @@ public class CaptureTheFlagMatch {
     }
     
     public void onParticipantJoin(CTFParticipant participant) {
-        if (state == null) {
-            return;
-        }
         state.onParticipantJoin(participant);
     }
     
     public void onParticipantQuit(CTFParticipant participant) {
-        if (state == null) {
-            return;
-        }
         CTFMatchParticipant ctfMatchParticipant = allParticipants.get(participant.getUniqueId());
         if (ctfMatchParticipant == null) {
             return;
@@ -236,9 +229,6 @@ public class CaptureTheFlagMatch {
     }
     
     public void stop() {
-        if (state != null) {
-            state.stop();
-        }
         hasNorthFlag = null;
         hasSouthFlag = null;
         resetArena();
@@ -248,7 +238,6 @@ public class CaptureTheFlagMatch {
         allParticipants.clear();
         northParticipants.clear();
         southParticipants.clear();
-        state = null;
         Main.logger().info("Stopping capture the flag match " + matchPairing);
     }
     
@@ -289,9 +278,6 @@ public class CaptureTheFlagMatch {
     }
     
     public void onPlayerDamage(EntityDamageEvent event) {
-        if (state == null) {
-            return;
-        }
         if (!(event.getEntity() instanceof Player participant)) {
             return;
         }
@@ -302,9 +288,6 @@ public class CaptureTheFlagMatch {
     }
     
     public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        if (state == null) {
-            return;
-        }
         Player participant = (Player) event.getEntity();
         if (!allParticipants.containsKey(participant.getUniqueId())) {
             return;
@@ -313,9 +296,6 @@ public class CaptureTheFlagMatch {
     }
     
     public void onPlayerMove(PlayerMoveEvent event) {
-        if (state == null) {
-            return;
-        }
         Player participant = event.getPlayer();
         if (!allParticipants.containsKey(participant.getUniqueId())) {
             return;
@@ -324,9 +304,6 @@ public class CaptureTheFlagMatch {
     }
     
     public void onClickInventory(InventoryClickEvent event) {
-        if (state == null) {
-            return;
-        }
         Player participant = (Player) event.getWhoClicked();
         if (!allParticipants.containsKey(participant.getUniqueId())) {
             return;
@@ -335,9 +312,6 @@ public class CaptureTheFlagMatch {
     }
     
     public void onPlayerDeath(PlayerDeathEvent event) {
-        if (state == null) {
-            return;
-        }
         Player participant = event.getPlayer();
         if (!allParticipants.containsKey(participant.getUniqueId())) {
             return;

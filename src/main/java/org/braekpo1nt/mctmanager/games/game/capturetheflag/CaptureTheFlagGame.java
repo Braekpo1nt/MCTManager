@@ -34,14 +34,13 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 @Data
 public class CaptureTheFlagGame implements MCTGame, Listener {
     
-    public @Nullable CaptureTheFlagState state;
+    public @NotNull CaptureTheFlagState state;
     
     private final Main plugin;
     private final GameManager gameManager;
@@ -97,7 +96,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         initializeSidebar();
         startAdmins(newAdmins);
         updateRoundLine();
-        setState(new DescriptionState(this));
+        this.state = new DescriptionState(this);
         Main.logger().info("Starting Capture the Flag");
     }
     
@@ -164,9 +163,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     public void stop() {
         HandlerList.unregisterAll(this);
         cancelAllTasks();
-        if (state != null) {
-            state.stop();
-        }
+        state.stop();
         saveScores();
         for (CTFParticipant participant : participants.values()) {
             resetParticipant(participant);
@@ -176,7 +173,6 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         teams.clear();
         stopAdmins();
         clearSidebar();
-        state = null;
         gameManager.gameIsOver();
         Main.logger().info("Stopping Capture the Flag");
     }
@@ -221,18 +217,12 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     
     @Override
     public void onParticipantJoin(Participant participant, Team team) {
-        if (state == null) {
-            return;
-        }
         state.onParticipantJoin(participant, team);
         state.updateSidebar(participant, this);
     }
     
     @Override
     public void onParticipantQuit(UUID participantUUID, String teamId) {
-        if (state == null) {
-            return;
-        }
         CTFParticipant participant = participants.get(participantUUID);
         if (participant == null) {
             return;
@@ -361,17 +351,11 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
-        if (state == null) {
-            return;
-        }
         state.onPlayerDeath(event);
     }
     
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
-        if (state == null) {
-            return;
-        }
         if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
@@ -383,9 +367,6 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     
     @EventHandler
     public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        if (state == null) {
-            return;
-        }
         if (!participants.containsKey(event.getEntity().getUniqueId())) {
             return;
         }
@@ -394,12 +375,6 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     
     @EventHandler
     public void onClickInventory(InventoryClickEvent event) {
-        if (state == null) {
-            return;
-        }
-        if (!participants.containsKey(event.getWhoClicked().getUniqueId())) {
-            return;
-        }
         state.onClickInventory(event);
     }
     
@@ -408,9 +383,6 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
      */
     @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
-        if (state == null) {
-            return;
-        }
         if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
@@ -435,9 +407,6 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
-        if (state == null) {
-            return;
-        }
         if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
@@ -473,9 +442,6 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     
     @EventHandler
     public void onPlayerTeleport(PlayerTeleportEvent event) {
-        if (state == null) {
-            return;
-        }
         if (config.getSpectatorArea() == null){
             return;
         }
