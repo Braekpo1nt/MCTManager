@@ -44,7 +44,6 @@ public class SpleefGame implements Listener, MCTGame {
     private final List<Player> admins;
     private final List<SpleefRound> rounds;
     private int currentRoundIndex = 0;
-    private boolean gameActive = false;
     private final TimerManager timerManager;
     
     private @NotNull Component title;
@@ -89,7 +88,6 @@ public class SpleefGame implements Listener, MCTGame {
         setupTeamOptions();
         startAdmins(newAdmins);
         displayDescription();
-        gameActive = true;
         startNextRound();
         Main.logger().info("Started Spleef");
     }
@@ -175,7 +173,6 @@ public class SpleefGame implements Listener, MCTGame {
             }
         }
         rounds.clear();
-        gameActive = false;
         saveScores();
         for (Participant participant : participants.values()) {
             resetParticipant(participant);
@@ -241,9 +238,6 @@ public class SpleefGame implements Listener, MCTGame {
      */
     @EventHandler
     public void onClickInventory(InventoryClickEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (event.getClickedInventory() == null) {
             return;
         }
@@ -261,9 +255,6 @@ public class SpleefGame implements Listener, MCTGame {
      */
     @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
@@ -272,9 +263,6 @@ public class SpleefGame implements Listener, MCTGame {
     
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (config.getSpectatorArea() == null){
             return;
         }
@@ -295,9 +283,6 @@ public class SpleefGame implements Listener, MCTGame {
     
     @EventHandler
     public void onPlayerTeleport(PlayerTeleportEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (config.getSpectatorArea() == null){
             return;
         }
@@ -329,9 +314,6 @@ public class SpleefGame implements Listener, MCTGame {
     
     @Override
     public void onParticipantJoin(Participant participant, Team team) {
-        if (!gameActive) {
-            return;
-        }
         onTeamJoin(team);
         SpleefParticipant.QuitData quitData = quitDatas.remove(participant.getUniqueId());
         if (quitData != null) {
@@ -365,9 +347,6 @@ public class SpleefGame implements Listener, MCTGame {
     
     @Override
     public void onParticipantQuit(UUID participantUUID, String teamId) {
-        if (!gameActive) {
-            return;
-        }
         SpleefParticipant participant = participants.get(participantUUID);
         if (participant == null) {
             return;

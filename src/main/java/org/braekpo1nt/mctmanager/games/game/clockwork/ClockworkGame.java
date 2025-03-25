@@ -49,7 +49,6 @@ public class ClockworkGame implements Listener, MCTGame {
     private final List<ClockworkRound> rounds;
     private int currentRoundIndex = 0;
     private boolean descriptionShowing = false;
-    private boolean gameActive = false;
     private final TimerManager timerManager;
     
     private @NotNull Component title;
@@ -90,7 +89,6 @@ public class ClockworkGame implements Listener, MCTGame {
         setupTeamOptions();
         startAdmins(newAdmins);
         displayDescription();
-        gameActive = true;
         startDescriptionPeriod();
         Main.logger().info("Started clockwork");
     }
@@ -165,7 +163,6 @@ public class ClockworkGame implements Listener, MCTGame {
         cancelAllTasks();
         rounds.clear();
         descriptionShowing = false;
-        gameActive = false;
         saveScores();
         for (Participant participant : participants.values()) {
             resetParticipant(participant);
@@ -262,9 +259,6 @@ public class ClockworkGame implements Listener, MCTGame {
     
     @Override
     public void onParticipantJoin(Participant participant, Team team) {
-        if (!gameActive) {
-            return;
-        }
         onTeamJoin(team);
         ClockworkParticipant.QuitData quitData = quitDatas.remove(participant.getUniqueId());
         if (quitData != null) {
@@ -301,9 +295,6 @@ public class ClockworkGame implements Listener, MCTGame {
     
     @Override
     public void onParticipantQuit(UUID participantUUID, String teamId) {
-        if (!gameActive) {
-            return;
-        }
         ClockworkParticipant participant = participants.get(participantUUID);
         if (participant == null) {
             return;
@@ -331,9 +322,6 @@ public class ClockworkGame implements Listener, MCTGame {
     
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (config.getSpectatorArea() == null){
             return;
         }
@@ -354,9 +342,6 @@ public class ClockworkGame implements Listener, MCTGame {
     
     @EventHandler
     public void onPlayerTeleport(PlayerTeleportEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (config.getSpectatorArea() == null){
             return;
         }
@@ -375,9 +360,6 @@ public class ClockworkGame implements Listener, MCTGame {
     }
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        if (!gameActive) {
-            return;
-        }
         Block clickedBlock = event.getClickedBlock();
         if (clickedBlock == null) {
             return;
@@ -394,9 +376,6 @@ public class ClockworkGame implements Listener, MCTGame {
     
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
@@ -428,9 +407,6 @@ public class ClockworkGame implements Listener, MCTGame {
      */
     @EventHandler
     public void onClickInventory(InventoryClickEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (event.getClickedInventory() == null) {
             return;
         }
@@ -448,9 +424,6 @@ public class ClockworkGame implements Listener, MCTGame {
      */
     @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }

@@ -61,13 +61,12 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
     private int statusEffectsTaskId;
     private @Nullable Timer mercryRuleCountdown;
-    private boolean gameActive = false;
     private boolean parkourHasStarted = false;
     private final Map<UUID, ParkourParticipant> participants;
     private final Map<UUID, ParkourParticipant.QuitData> quitDatas;
     private final Map<String, ParkourTeam> teams;
     private final Map<String, ParkourTeam.QuitData> teamQuitDatas;
-    private List<Player> admins = new ArrayList<>();
+    private final List<Player> admins;
     /**
      * Holds the {@link TeamSpawn}s for this game
      */
@@ -115,7 +114,6 @@ public class ParkourPathwayGame implements MCTGame, Listener {
         startStatusEffectsTask();
         setupTeamOptions();
         displayDescription();
-        gameActive = true;
         startDescriptionPeriod();
         Main.logger().info("Starting Parkour Pathway game");
     }
@@ -155,7 +153,6 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     }
     
     private void startAdmins(List<Player> newAdmins) {
-        this.admins = new ArrayList<>(newAdmins.size());
         for (Player admin : newAdmins) {
             initializeAdmin(admin);
         }
@@ -200,7 +197,6 @@ public class ParkourPathwayGame implements MCTGame, Listener {
         teamQuitDatas.clear();
         descriptionShowing = false;
         parkourHasStarted = false;
-        gameActive = false;
         gameManager.gameIsOver();
         Main.logger().info("Stopping Parkour Pathway game");
     }
@@ -493,9 +489,6 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
@@ -521,9 +514,6 @@ public class ParkourPathwayGame implements MCTGame, Listener {
      */
     @EventHandler
     public void onClickInventory(InventoryClickEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (event.getClickedInventory() == null) {
             return;
         }
@@ -541,9 +531,6 @@ public class ParkourPathwayGame implements MCTGame, Listener {
      */
     @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (!participants.containsKey(event.getPlayer().getUniqueId())) {
             return;
         }
@@ -552,9 +539,6 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
-        if (!gameActive) {
-            return;
-        }
         ParkourParticipant participant = participants.get(event.getPlayer().getUniqueId());
         if (participant == null) {
             return;
@@ -620,9 +604,6 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        if (!gameActive) {
-            return;
-        }
         ParkourParticipant participant = participants.get(event.getPlayer().getUniqueId());
         if (participant == null) {
             return;
@@ -713,9 +694,6 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     
     @EventHandler
     public void onPlayerTeleport(PlayerTeleportEvent event) {
-        if (!gameActive) {
-            return;
-        }
         if (config.getSpectatorArea() == null){
             return;
         }
