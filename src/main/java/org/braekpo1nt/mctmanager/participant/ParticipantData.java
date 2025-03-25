@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.participant;
 
+import lombok.Data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -54,4 +55,5 @@ public abstract class ParticipantData extends Participant {
     public void setScore(int score) {
         this.score = score;
     }
+    
 }

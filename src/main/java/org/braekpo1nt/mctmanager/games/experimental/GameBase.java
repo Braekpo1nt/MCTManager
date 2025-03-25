@@ -6,20 +6,16 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFTeam;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.participant.Participant;
-import org.braekpo1nt.mctmanager.participant.ParticipantData;
-import org.braekpo1nt.mctmanager.participant.ScoredTeamData;
-import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.participant.*;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +29,7 @@ import java.util.*;
  */
 @Getter
 @Setter
-public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP, QT>  implements MCTGame, Listener {
+public abstract class GameBase<S extends GameStateBase, P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase>  implements MCTGame, Listener {
     protected final @NotNull GameType type;
     protected final @NotNull Main plugin;
     protected final @NotNull GameManager gameManager;
@@ -46,6 +42,10 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     protected final @NotNull Map<String, QT> teamQuitDatas;
     protected final @NotNull List<Player> admins;
     
+    /**
+     * The current state of this game
+     */
+    protected @NotNull S state;
     protected @NotNull Component title;
     
     public GameBase(
@@ -82,9 +82,82 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         for (Player admin : newAdmins) {
             _initializeAdmin(admin);
         }
-        initializeAdminSidebar();
+        _initializeAdminSidebar();
         // admin end
+        this.state = getInitialState();
     }
+    
+    /**
+     * @return the first state to be assigned to {@link #state}
+     */
+    protected abstract S getInitialState();
+    
+    // cleanup start
+    @Override
+    public void stop() {
+        HandlerList.unregisterAll(this);
+        _cancelAllTasks();
+        state.cleanup();
+        preCleanup();
+        saveScores();
+        for (P participant : participants.values()) {
+            _resetParticipant(participant);
+        }
+        cleanup();
+    }
+    
+    private void saveScores() {
+        Map<String, Integer> teamScores = new HashMap<>();
+        Map<UUID, Integer> participantScores = new HashMap<>();
+        for (T team : teams.values()) {
+            teamScores.put(team.getTeamId(), team.getScore());
+        }
+        for (P participant : participants.values()) {
+            participantScores.put(participant.getUniqueId(), participant.getScore());
+        }
+        for (Map.Entry<String, QT> entry : teamQuitDatas.entrySet()) {
+            teamScores.put(entry.getKey(), entry.getValue().getScore());
+        }
+        for (Map.Entry<UUID, QP> entry : quitDatas.entrySet()) {
+            participantScores.put(entry.getKey(), entry.getValue().getScore());
+        }
+        gameManager.addScores(teamScores, participantScores);
+    }
+    
+    private void _resetParticipant(P participant) {
+        teams.get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
+        ParticipantInitializer.clearInventory(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
+        participant.setGameMode(GameMode.SPECTATOR);
+        sidebar.removePlayer(participant);
+        resetParticipant(participant);
+    }
+    
+    protected abstract void resetParticipant(P participant);
+    
+    private void _cancelAllTasks() {
+        timerManager.cancel();
+        cancelAllTasks();
+    }
+    
+    /**
+     * <p>Cancel any scheduled tasks or {@link org.bukkit.scheduler.BukkitTask}s</p>
+     */
+    protected abstract void cancelAllTasks();
+    
+    /**
+     * Cleanup tasks for the end of the game before the participants and teams are cleared
+     */
+    protected void preCleanup() {
+        // do nothing
+    }
+    
+    /**
+     * Cleanup tasks for the end of the game
+     */
+    protected abstract void cleanup();
+    // cleanup end
     
     // Participant start
     private void _initializeParticipant(Participant newParticipant) {
@@ -156,7 +229,6 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * <p>Add custom lines to {@link #adminSidebar}</p>
      */
     protected abstract void initializeAdminSidebar();
-    
     // admin end
     
     // Sidebar start
@@ -197,7 +269,6 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
                 .append(Component.text(participant.getScore()))
                 .color(NamedTextColor.GOLD));
     }
-    
     // Sidebar end
     
 }
