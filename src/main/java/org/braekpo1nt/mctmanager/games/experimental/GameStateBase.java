@@ -5,7 +5,7 @@ import org.braekpo1nt.mctmanager.participant.*;
 
 import java.util.UUID;
 
-public abstract class GameStateBase<P extends ParticipantData, T extends ScoredTeamData<P>, C extends GameBase<P, T>> {
+public abstract class GameStateBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase, C extends GameBase<P, T, QP, QT>> {
     
     protected final C context;
     
@@ -20,10 +20,11 @@ public abstract class GameStateBase<P extends ParticipantData, T extends ScoredT
         if (context.getTeams().containsKey(newTeam.getTeamId())) {
             return;
         }
-        T quitTeam = context.getQuitTeams().remove(newTeam.getTeamId());
+        QT quitTeam = context.getTeamQuitDatas().remove(newTeam.getTeamId());
         if (quitTeam != null) {
-            context.getTeams().put(quitTeam.getTeamId(), quitTeam);
-            onTeamRejoin(quitTeam);
+            T team = context.createTeam(newTeam, quitTeam);
+            context.getTeams().put(team.getTeamId(), team);
+            onTeamRejoin(team);
         } else {
             T team = context.createTeam(newTeam);
             context.getTeams().put(team.getTeamId(), team);
@@ -45,10 +46,11 @@ public abstract class GameStateBase<P extends ParticipantData, T extends ScoredT
     
     public void onParticipantJoin(Participant newParticipant) {
         T team = context.getTeams().get(newParticipant.getTeamId());
-        P quitParticipant = context.getQuitParticipants().get(newParticipant.getUniqueId());
-        if (quitParticipant != null) {
-            context.getParticipants().put(quitParticipant.getUniqueId(), quitParticipant);
-            onParticipantRejoin(quitParticipant, team);
+        QP quitData = context.getQuitDatas().get(newParticipant.getUniqueId());
+        if (quitData != null) {
+            P participant = context.createParticipant(newParticipant, quitData);
+            context.getParticipants().put(participant.getUniqueId(), participant);
+            onParticipantRejoin(participant, team);
         } else {
             P participant = context.createParticipant(newParticipant);
             context.getParticipants().put(participant.getUniqueId(), participant);
@@ -76,7 +78,7 @@ public abstract class GameStateBase<P extends ParticipantData, T extends ScoredT
         if (participant == null) {
             return;
         }
-        context.getQuitParticipants().put(participant.getUniqueId(), participant);
+        context.getQuitDatas().put(participant.getUniqueId(), context.getQuitData(participant));
         T team = context.getTeams().get(participant.getTeamId());
         team.removeParticipant(participant.getUniqueId());
         onParticipantQuit(participant, team);
@@ -98,7 +100,7 @@ public abstract class GameStateBase<P extends ParticipantData, T extends ScoredT
             return;
         }
         context.getTeams().remove(team.getTeamId());
-        context.getQuitTeams().put(team.getTeamId(), team);
+        context.getTeamQuitDatas().put(team.getTeamId(), context.getQuitData(team));
         onTeamQuit(team);
     }
     
