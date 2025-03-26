@@ -24,12 +24,10 @@ import java.util.*;
 /**
  * @param <P> the ParticipantData implementation used by this game
  * @param <T> the ScoredTeamData implementation used by this game
- * @param <QP> participant quit data type
- * @param <QT> team quit data type
  */
 @Getter
 @Setter
-public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase>  implements MCTGame, Listener {
+public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamData<P>>  implements MCTGame, Listener {
     protected final @NotNull GameType type;
     protected final @NotNull Main plugin;
     protected final @NotNull GameManager gameManager;
@@ -37,15 +35,15 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     protected final @NotNull Sidebar sidebar;
     protected final @NotNull Sidebar adminSidebar;
     protected final @NotNull Map<UUID, P> participants;
-    protected final @NotNull Map<UUID, QP> quitDatas;
+    protected final @NotNull Map<UUID, P> quitParticipants;
     protected final @NotNull Map<String, T> teams;
-    protected final @NotNull Map<String, QT> teamQuitDatas;
+    protected final @NotNull Map<String, T> quitTeams;
     protected final @NotNull List<Player> admins;
     
     /**
      * The current state of this game
      */
-    protected @NotNull GameStateBase<P, T, QP, QT, GameBase<P, T, QP, QT>> state;
+    protected @NotNull GameStateBase<P, T, GameBase<P, T>> state;
     protected @NotNull Component title;
     
     /**
@@ -72,9 +70,9 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         this.sidebar = gameManager.createSidebar();
         this.adminSidebar = gameManager.createSidebar();
         this.participants = new HashMap<>(newParticipants.size());
-        this.quitDatas = new HashMap<>();
+        this.quitParticipants = new HashMap<>();
         this.teams = new HashMap<>(newTeams.size());
-        this.teamQuitDatas = new HashMap<>();
+        this.quitTeams = new HashMap<>();
         this.title = title;
         this.timerManager = gameManager.getTimerManager().register(new TimerManager(plugin));
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -100,7 +98,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     /**
      * @return the first state to be assigned to {@link #state}
      */
-    protected abstract GameStateBase<P, T, QP, QT, GameBase<P, T, QP, QT>> getInitialState();
+    protected abstract GameStateBase<P, T, GameBase<P, T>> getInitialState();
     
     // cleanup start
     @Override
@@ -114,9 +112,9 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             _resetParticipant(participant);
         }
         participants.clear();
-        quitDatas.clear();
+        quitParticipants.clear();
         teams.clear();
-        teamQuitDatas.clear();
+        quitTeams.clear();
         // admins start
         for (Player admin : admins) {
             _resetAdmin(admin);
@@ -139,10 +137,10 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         for (P participant : participants.values()) {
             participantScores.put(participant.getUniqueId(), participant.getScore());
         }
-        for (Map.Entry<String, QT> entry : teamQuitDatas.entrySet()) {
+        for (Map.Entry<String, T> entry : quitTeams.entrySet()) {
             teamScores.put(entry.getKey(), entry.getValue().getScore());
         }
-        for (Map.Entry<UUID, QP> entry : quitDatas.entrySet()) {
+        for (Map.Entry<UUID, P> entry : quitParticipants.entrySet()) {
             participantScores.put(entry.getKey(), entry.getValue().getScore());
         }
         gameManager.addScores(teamScores, participantScores);
@@ -201,18 +199,11 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     protected abstract void initializeParticipant(P participant, T team);
     
     /**
+     * Create a new team of type {@link T} from the given {@link Team}
      * @param newTeam the team from which to derive the {@link T} type team
      * @return the created {@link T} team 
      */
     public abstract T createTeam(Team newTeam);
-    
-    /**
-     * Create a team from the given quit data
-     * @param newTeam the team from which to derive the {@link T} type team
-     * @param quitData the quit data to use when creating the team
-     * @return the created {@link T} team
-     */
-    public abstract T createTeam(Team newTeam, QT quitData);
     
     private void _resetParticipant(P participant) {
         T team = teams.get(participant.getTeamId());
