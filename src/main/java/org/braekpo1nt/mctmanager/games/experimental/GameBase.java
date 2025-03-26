@@ -29,7 +29,7 @@ import java.util.*;
  */
 @Getter
 @Setter
-public abstract class GameBase<S extends GameStateBase, P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase>  implements MCTGame, Listener {
+public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase>  implements MCTGame, Listener {
     protected final @NotNull GameType type;
     protected final @NotNull Main plugin;
     protected final @NotNull GameManager gameManager;
@@ -45,7 +45,7 @@ public abstract class GameBase<S extends GameStateBase, P extends ParticipantDat
     /**
      * The current state of this game
      */
-    protected @NotNull S state;
+    protected @NotNull GameStateBase<P, T, QP, QT, GameBase<P, T, QP, QT>> state;
     protected @NotNull Component title;
     
     /**
@@ -100,7 +100,7 @@ public abstract class GameBase<S extends GameStateBase, P extends ParticipantDat
     /**
      * @return the first state to be assigned to {@link #state}
      */
-    protected abstract S getInitialState();
+    protected abstract GameStateBase<P, T, QP, QT, GameBase<P, T, QP, QT>> getInitialState();
     
     // cleanup start
     @Override
@@ -204,7 +204,15 @@ public abstract class GameBase<S extends GameStateBase, P extends ParticipantDat
      * @param newTeam the team from which to derive the {@link T} type team
      * @return the created {@link T} team 
      */
-    protected abstract T createTeam(Team newTeam);
+    public abstract T createTeam(Team newTeam);
+    
+    /**
+     * Create a team from the given quit data
+     * @param newTeam the team from which to derive the {@link T} type team
+     * @param quitData the quit data to use when creating the team
+     * @return the created {@link T} team
+     */
+    public abstract T createTeam(Team newTeam, QT quitData);
     
     private void _resetParticipant(P participant) {
         T team = teams.get(participant.getTeamId());
@@ -226,6 +234,19 @@ public abstract class GameBase<S extends GameStateBase, P extends ParticipantDat
      */
     protected abstract void resetParticipant(P participant, T team);
     // Participant end
+    
+    // quit/join start
+    private void _onTeamJoin(Team newTeam) {
+        state._onTeamJoin(newTeam);
+    }
+    
+    @Override
+    public void onParticipantJoin(Participant participant, Team team) {
+        _onTeamJoin(team);
+        state._onParticipantJoin(participant, team);
+    }
+    
+    // quit/join end
     
     /**
      * @param title the new title to display on the sidebar
