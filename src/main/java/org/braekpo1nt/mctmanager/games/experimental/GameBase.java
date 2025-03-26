@@ -227,14 +227,24 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     // Participant end
     
     // quit/join start
-    private void _onTeamJoin(Team newTeam) {
-        state._onTeamJoin(newTeam);
+    @Override
+    public void onTeamJoin(Team team) {
+        state.onTeamJoin(team);
     }
     
     @Override
-    public void onParticipantJoin(Participant participant, Team team) {
-        _onTeamJoin(team);
-        state._onParticipantJoin(participant, team);
+    public void onParticipantJoin(Participant participant) {
+        state.onParticipantJoin(participant);
+    }
+    
+    @Override
+    public void onParticipantQuit(UUID participantUUID) {
+        state.onParticipantQuit(participantUUID);
+    }
+    
+    @Override
+    public void onTeamQuit(String teamId) {
+        state.onTeamQuit(teamId);
     }
     
     // quit/join end
