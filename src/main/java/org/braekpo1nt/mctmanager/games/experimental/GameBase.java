@@ -148,18 +148,6 @@ public abstract class GameBase<S extends GameStateBase, P extends ParticipantDat
         gameManager.addScores(teamScores, participantScores);
     }
     
-    private void _resetParticipant(P participant) {
-        teams.get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
-        ParticipantInitializer.clearInventory(participant);
-        ParticipantInitializer.resetHealthAndHunger(participant);
-        ParticipantInitializer.clearStatusEffects(participant);
-        participant.setGameMode(GameMode.SPECTATOR);
-        sidebar.removePlayer(participant);
-        resetParticipant(participant);
-    }
-    
-    protected abstract void resetParticipant(P participant);
-    
     private void _cancelAllTasks() {
         timerManager.cancel();
         cancelAllTasks();
@@ -171,14 +159,15 @@ public abstract class GameBase<S extends GameStateBase, P extends ParticipantDat
     protected abstract void cancelAllTasks();
     
     /**
-     * Cleanup tasks for the end of the game before the participants and teams are cleared
+     * <p>Cleanup tasks for the end of the game before 
+     * the participants and teams are cleared</p>
      */
     protected void preCleanup() {
         // do nothing
     }
     
     /**
-     * Cleanup tasks for the end of the game
+     * <p>Cleanup tasks for the end of the game</p>
      */
     protected abstract void cleanup();
     // cleanup end
@@ -199,7 +188,7 @@ public abstract class GameBase<S extends GameStateBase, P extends ParticipantDat
     
     /**
      * @param participant the participant from which to derive the {@link P} type participant
-     * @return the created {@link P}
+     * @return the created {@link P} participant
      */
     protected abstract P createParticipant(Participant participant);
     
@@ -207,7 +196,7 @@ public abstract class GameBase<S extends GameStateBase, P extends ParticipantDat
      * <p>Prepare the participant for the game</p>
      * <p>This is for any game-specific preparations</p>
      * @param participant the participant
-     * @param team their team
+     * @param team the participant's team
      */
     protected abstract void initializeParticipant(P participant, T team);
     
@@ -216,6 +205,27 @@ public abstract class GameBase<S extends GameStateBase, P extends ParticipantDat
      * @return the created {@link T} team 
      */
     protected abstract T createTeam(Team newTeam);
+    
+    private void _resetParticipant(P participant) {
+        T team = teams.get(participant.getTeamId());
+        team.removeParticipant(participant.getUniqueId());
+        ParticipantInitializer.clearInventory(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
+        participant.setGameMode(GameMode.SPECTATOR);
+        sidebar.removePlayer(participant);
+        resetParticipant(participant, team);
+    }
+    
+    /**
+     * <p>Reset the participant, removing all game-specific state</p>
+     * <p>This is called after default reset behavior, 
+     * and is only needed for implementation-specific reset behavior.</p>
+     * @param participant the participant to reset
+     * @param team the participant's team
+     */
+    protected abstract void resetParticipant(P participant, T team);
+    // Participant end
     
     /**
      * @param title the new title to display on the sidebar
@@ -226,7 +236,6 @@ public abstract class GameBase<S extends GameStateBase, P extends ParticipantDat
         sidebar.updateLine("title", title);
         adminSidebar.updateLine("title", title);
     }
-    // Participant end
     
     // admin start
     private void _initializeAdmin(Player admin) {
@@ -238,6 +247,8 @@ public abstract class GameBase<S extends GameStateBase, P extends ParticipantDat
     
     /**
      * <p>Prepare the admin for the game</p>
+     * <p>This is called after default initialization, and is only needed for
+     * implementation-specific initialization.</p>
      * @param admin the admin
      */
     protected abstract void initializeAdmin(Player admin);
@@ -287,6 +298,11 @@ public abstract class GameBase<S extends GameStateBase, P extends ParticipantDat
      */
     protected abstract void initializeSidebar();
     
+    /**
+     * Display the score of the given team on the {@link #sidebar}s of all the
+     * team's members.
+     * @param team the team to display the score of. Uses {@link T#getScore()}.
+     */
     public void displayScore(T team) {
         Component contents = Component.empty()
                 .append(team.getFormattedDisplayName())
@@ -298,6 +314,10 @@ public abstract class GameBase<S extends GameStateBase, P extends ParticipantDat
         }
     }
     
+    /**
+     * Display the score of the given participant on their personal {@link #sidebar}.
+     * @param participant the participant to display the score of. Uses {@link P#getScore()}.
+     */
     public void displayScore(P participant) {
         sidebar.updateLine(participant.getUniqueId(), "personalScore", Component.empty()
                 .append(Component.text("Personal: "))
