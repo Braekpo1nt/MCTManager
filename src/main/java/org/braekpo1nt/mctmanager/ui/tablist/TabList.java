@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIException;
+import org.braekpo1nt.mctmanager.ui.UIManager;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.logging.Level;
 
-public class TabList {
+public class TabList implements UIManager {
     
     private static final int TEAM_LINE_CHARACTERS = 45;
     private static final int PARTICIPANT_LINE_CHARACTERS = 45;
@@ -418,6 +419,16 @@ public class TabList {
         }
         playerData.setVisible(visible);
         update(playerData);
+    }
+    
+    /**
+     * Hide this TabList from the player with the given UUID
+     * @param player the player to hide this TabList from. Must be a player
+     *             viewing this TabList. 
+     */
+    @Override
+    public void hidePlayer(@NotNull Player player) {
+        hidePlayer(player.getUniqueId());   
     }
     
     /**

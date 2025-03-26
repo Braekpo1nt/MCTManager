@@ -12,14 +12,16 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.ui.UIManager;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class GlowManager extends SimplePacketListenerAbstract {
+public class GlowManager extends SimplePacketListenerAbstract implements UIManager {
     
     private final Plugin plugin;
     
@@ -165,16 +167,25 @@ public class GlowManager extends SimplePacketListenerAbstract {
     /**
      * Add a participant to this manager to be referenced as a viewer or target
      * @param participant the participant to add to this manager
+     * @deprecated use {@link #showPlayer(Participant)}
      */
+    @Deprecated
     public void addPlayer(Participant participant) {
-        addPlayer(participant.getPlayer());
+        showPlayer(participant.getPlayer());
     }
     
     /**
      * Add a player to this manager to be referenced as a viewer or target
      * @param player the player to add to this manager
+     * @deprecated use {@link #showPlayer(Player)}
      */
+    @Deprecated
     public void addPlayer(Player player) {
+        showPlayer(player);
+    }
+    
+    @Override
+    public void showPlayer(@NotNull Player player) {
         if (playerDatas.containsKey(player.getUniqueId())) {
             UIUtils.logUIError("Player %s already exists in this manager", player.getName());
             return;
@@ -299,17 +310,26 @@ public class GlowManager extends SimplePacketListenerAbstract {
      * Remove the given participant from this manager. They will stop glowing and stop
      * seeing others glow.
      * @param participant the participant to remove
+     * @deprecated use {@link #hidePlayer(Participant)}
      */
+    @Deprecated
     public void removePlayer(Participant participant) {
-        removePlayer(participant.getPlayer());
+        hidePlayer(participant.getPlayer());
     }
     
     /**
      * Remove the given player from this manager. They will stop glowing and stop
      * seeing others glow.
      * @param player the player to remove
+     * @deprecated use {@link #hidePlayer(Player)}
      */
+    @Deprecated
     public void removePlayer(Player player) {
+        hidePlayer(player);
+    }
+    
+    @Override
+    public void hidePlayer(@NotNull Player player) {
         PlayerData removedPlayerData = playerDatas.remove(player.getUniqueId());
         if (removedPlayerData == null) {
             UIUtils.logUIError("Player %s does not exist in this manager", player.getName());
