@@ -55,30 +55,28 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param plugin the plugin
      * @param gameManager the GameManager
      * @param title the game's initial title, displayed in the sidebar
-     * @param newTeams the teams participating in the game
-     * @param newParticipants the participants of the game
-     * @param newAdmins the admins
      */
     public GameBase(
             @NotNull GameType type, 
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
-            @NotNull Component title,
-            @NotNull Collection<Team> newTeams,
-            @NotNull Collection<Participant> newParticipants,
-            @NotNull List<Player> newAdmins) {
+            @NotNull Component title) {
         this.type = type;
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.sidebar = gameManager.createSidebar();
         this.adminSidebar = gameManager.createSidebar();
-        this.participants = new HashMap<>(newParticipants.size());
+        this.participants = new HashMap<>();
         this.quitDatas = new HashMap<>();
-        this.teams = new HashMap<>(newTeams.size());
+        this.teams = new HashMap<>();
         this.teamQuitDatas = new HashMap<>();
         this.title = title;
         this.uiManagers = createUIManagers();
         this.timerManager = gameManager.getTimerManager().register(new TimerManager(plugin));
+        this.admins = new ArrayList<>();
+    }
+    
+    protected void init(@NotNull Collection<Team> newTeams, @NotNull Collection<Participant> newParticipants, @NotNull List<Player> newAdmins) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Team newTeam : newTeams) {
             T team = createTeam(newTeam);
@@ -90,7 +88,6 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         _initializeSidebar();
         
         // admin start
-        this.admins = new ArrayList<>(newAdmins.size());
         for (Player admin : newAdmins) {
             _initializeAdmin(admin);
         }
@@ -226,18 +223,20 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     
     /**
      * Create a new team of type {@link T} from the given {@link Team} and {@link QT} quitData
-     * @param newTeam the team from which to derive the {@link T} type team
+     *
+     * @param team     the team from which to derive the {@link T} type team
      * @param quitData the quitData to use in creating the team
-     * @return the created {@link T} team 
+     * @return the created {@link T} team
      */
-    public abstract T createTeam(Team newTeam, QT quitData);
+    public abstract T createTeam(Team team, QT quitData);
     
     /**
      * Create a new team of type {@link T} from the given {@link Team}
-     * @param newTeam the team from which to derive the {@link T} type team
-     * @return the created {@link T} team 
+     *
+     * @param team the team from which to derive the {@link T} type team
+     * @return the created {@link T} team
      */
-    public abstract T createTeam(Team newTeam);
+    public abstract T createTeam(Team team);
     
     /**
      * Create quitData from the given team
@@ -269,6 +268,20 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     // Participant end
     
     // quit/join start
+    
+    
+    @Override
+    public void onParticipantJoin(Participant participant, Team team) {
+        onTeamJoin(team);
+        onParticipantJoin(participant);
+    }
+    
+    @Override
+    public void onParticipantQuit(UUID participantUUID, String teamId) {
+        onParticipantQuit(participantUUID);
+        onTeamQuit(teamId);
+    }
+    
     @Override
     public void onTeamJoin(Team team) {
         state.onTeamJoin(team);
