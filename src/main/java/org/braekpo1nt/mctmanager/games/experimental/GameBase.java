@@ -48,6 +48,16 @@ public abstract class GameBase<S extends GameStateBase, P extends ParticipantDat
     protected @NotNull S state;
     protected @NotNull Component title;
     
+    /**
+     * Initialize data and start the game
+     * @param type the type associated with this game
+     * @param plugin the plugin
+     * @param gameManager the GameManager
+     * @param title the game's initial title, displayed in the sidebar
+     * @param newTeams the teams participating in the game
+     * @param newParticipants the participants of the game
+     * @param newAdmins the admins
+     */
     public GameBase(
             @NotNull GameType type, 
             @NotNull Main plugin,
@@ -107,7 +117,6 @@ public abstract class GameBase<S extends GameStateBase, P extends ParticipantDat
         quitDatas.clear();
         teams.clear();
         teamQuitDatas.clear();
-        
         // admins start
         for (Player admin : admins) {
             _resetAdmin(admin);
@@ -115,7 +124,7 @@ public abstract class GameBase<S extends GameStateBase, P extends ParticipantDat
         adminSidebar.deleteAllLines();
         admins.clear();
         // admins end
-        
+        sidebar.deleteAllLines();
         cleanup();
         gameManager.gameIsOver();
         Main.logger().info("Stopping " + type.getTitle());
