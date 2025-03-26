@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.*;
+import org.braekpo1nt.mctmanager.ui.UIManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
@@ -40,6 +41,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     protected final @NotNull Map<String, T> teams;
     protected final @NotNull Map<String, QT> teamQuitDatas;
     protected final @NotNull List<Player> admins;
+    protected final @NotNull List<UIManager> uiManagers;
     
     /**
      * The current state of this game
@@ -75,6 +77,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         this.teams = new HashMap<>(newTeams.size());
         this.teamQuitDatas = new HashMap<>();
         this.title = title;
+        this.uiManagers = createUIManagers();
         this.timerManager = gameManager.getTimerManager().register(new TimerManager(plugin));
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Team newTeam : newTeams) {
@@ -95,6 +98,11 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         // admin end
         this.state = getInitialState();
     }
+    
+    /**
+     * @return the UIManagers for this game
+     */
+    protected abstract List<UIManager> createUIManagers();
     
     /**
      * @return the first state to be assigned to {@link #state}
@@ -176,6 +184,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         P participant = createParticipant(newParticipant);
         participants.put(participant.getUniqueId(), participant);
         sidebar.addPlayer(participant);
+        uiManagers.forEach(uiManager -> uiManager.showPlayer(participant));
         T team = teams.get(participant.getTeamId());
         team.addParticipant(participant);
         participant.setGameMode(GameMode.ADVENTURE);
@@ -245,6 +254,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         ParticipantInitializer.clearStatusEffects(participant);
         participant.setGameMode(GameMode.SPECTATOR);
         sidebar.removePlayer(participant);
+        uiManagers.forEach(uiManager -> uiManager.hidePlayer(participant));
         resetParticipant(participant, team);
     }
     
@@ -328,6 +338,19 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param admin the admin to reset
      */
     protected abstract void resetAdmin(Player admin);
+    
+    @Override
+    public void onAdminJoin(Player admin) {
+        _initializeAdmin(admin);
+        adminSidebar.updateLine(admin.getUniqueId(), "title", title);
+    }
+    
+    @Override
+    public void onAdminQuit(Player admin) {
+        _resetAdmin(admin);
+        admins.remove(admin);
+    }
+    
     // admin end
     
     // Sidebar start

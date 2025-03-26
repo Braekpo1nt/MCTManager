@@ -1,7 +1,9 @@
 package org.braekpo1nt.mctmanager.games.experimental;
 
 
+import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.*;
+import org.bukkit.GameMode;
 
 import java.util.UUID;
 
@@ -47,15 +49,30 @@ public abstract class GameStateBase<P extends ParticipantData, T extends ScoredT
     public void onParticipantJoin(Participant newParticipant) {
         T team = context.getTeams().get(newParticipant.getTeamId());
         QP quitData = context.getQuitDatas().get(newParticipant.getUniqueId());
-        if (quitData != null) {
-            P participant = context.createParticipant(newParticipant, quitData);
-            context.getParticipants().put(participant.getUniqueId(), participant);
+        boolean rejoin = quitData != null;
+        P participant;
+        if (rejoin) {
+            participant = context.createParticipant(newParticipant, quitData);
+        } else {
+            participant = context.createParticipant(newParticipant);
+        }
+        _initializeParticipant(participant, team);
+        if (rejoin) {
             onParticipantRejoin(participant, team);
         } else {
-            P participant = context.createParticipant(newParticipant);
-            context.getParticipants().put(participant.getUniqueId(), participant);
             onNewParticipantJoin(participant, team);
         }
+    }
+    
+    protected void _initializeParticipant(P participant, T team) {
+        team.addParticipant(participant);
+        context.getSidebar().addPlayer(participant);
+        context.getUiManagers().forEach(uiManager -> uiManager.showPlayer(participant));
+        context.getParticipants().put(participant.getUniqueId(), participant);
+        participant.setGameMode(GameMode.ADVENTURE);
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.clearInventory(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
     /**
@@ -80,8 +97,18 @@ public abstract class GameStateBase<P extends ParticipantData, T extends ScoredT
         }
         context.getQuitDatas().put(participant.getUniqueId(), context.getQuitData(participant));
         T team = context.getTeams().get(participant.getTeamId());
-        team.removeParticipant(participant.getUniqueId());
+        _resetParticipant(participant, team);
         onParticipantQuit(participant, team);
+    }
+    
+    protected void _resetParticipant(P participant, T team) {
+        team.removeParticipant(participant.getUniqueId());
+        ParticipantInitializer.clearInventory(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
+        participant.setGameMode(GameMode.SPECTATOR);
+        context.getSidebar().removePlayer(participant);
+        context.getUiManagers().forEach(uiManager -> uiManager.hidePlayer(participant));
     }
     
     /**
