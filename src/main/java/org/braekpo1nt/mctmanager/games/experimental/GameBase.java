@@ -74,7 +74,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         this.uiManagers = new ArrayList<>();
         this.timerManager = gameManager.getTimerManager().register(new TimerManager(plugin));
         this.admins = new ArrayList<>();
-        this.state = new EmptyState(this);
+//        this.state = new EmptyState(this);
     }
     
     /**
@@ -90,7 +90,9 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             teams.put(team.getTeamId(), team);
         }
         for (Participant newParticipant : newParticipants) {
-            _initializeParticipant(newParticipant);
+            P participant = createParticipant(newParticipant);
+            T team = teams.get(participant.getTeamId());
+            _initializeParticipant(participant, team);
         }
         _initializeSidebar();
         
@@ -122,7 +124,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         preCleanup();
         saveScores();
         for (P participant : participants.values()) {
-            _resetParticipant(participant);
+            _resetParticipant(participant, teams.get(participant.getTeamId()));
         }
         participants.clear();
         quitDatas.clear();
@@ -184,13 +186,11 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     // cleanup end
     
     // Participant start
-    private void _initializeParticipant(Participant newParticipant) {
-        P participant = createParticipant(newParticipant);
+    private void _initializeParticipant(P participant, T team) {
         participants.put(participant.getUniqueId(), participant);
+        team.addParticipant(participant);
         sidebar.addPlayer(participant);
         uiManagers.forEach(uiManager -> uiManager.showPlayer(participant));
-        T team = teams.get(participant.getTeamId());
-        team.addParticipant(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.clearInventory(participant);
@@ -218,7 +218,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param participant the participant to get the quitData from
      * @return a new {@link QP} quitData from the given {@link P} participant's data
      */
-    public abstract QP getQuitData(P participant);
+    protected abstract QP getQuitData(P participant);
     
     /**
      * <p>Prepare the participant for the game</p>
@@ -235,7 +235,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param quitData the quitData to use in creating the team
      * @return the created {@link T} team
      */
-    public abstract T createTeam(Team team, QT quitData);
+    protected abstract T createTeam(Team team, QT quitData);
     
     /**
      * Create a new team of type {@link T} from the given {@link Team}
@@ -243,17 +243,16 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param team the team from which to derive the {@link T} type team
      * @return the created {@link T} team
      */
-    public abstract T createTeam(Team team);
+    protected abstract T createTeam(Team team);
     
     /**
      * Create quitData from the given team
      * @param team the team to get the quitData from
      * @return a new {@link QT} quitData from the given {@link T} team's data
      */
-    public abstract QT getQuitData(T team);
+    protected abstract QT getQuitData(T team);
     
-    private void _resetParticipant(P participant) {
-        T team = teams.get(participant.getTeamId());
+    protected void _resetParticipant(P participant, T team) {
         team.removeParticipant(participant.getUniqueId());
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -276,13 +275,20 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     
     // quit/join start
     
-    
+    /**
+     * {@inheritDoc}
+     */
+    @Deprecated
     @Override
     public void onParticipantJoin(Participant participant, Team team) {
         onTeamJoin(team);
         onParticipantJoin(participant);
     }
     
+    /**
+     * {@inheritDoc}
+     */
+    @Deprecated
     @Override
     public void onParticipantQuit(UUID participantUUID, String teamId) {
         onParticipantQuit(participantUUID);
@@ -290,23 +296,74 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     @Override
-    public void onTeamJoin(Team team) {
-        state.onTeamJoin(team);
+    public void onTeamJoin(Team newTeam) {
+        if (teams.containsKey(newTeam.getTeamId())) {
+            return;
+        }
+        QT quitTeam = teamQuitDatas.remove(newTeam.getTeamId());
+        if (quitTeam != null) {
+            T team = createTeam(newTeam, quitTeam);
+            teams.put(team.getTeamId(), team);
+            state.onTeamRejoin(team);
+        } else {
+            T team = createTeam(newTeam);
+            teams.put(team.getTeamId(), team);
+            state.onNewTeamJoin(team);
+        }
     }
     
     @Override
-    public void onParticipantJoin(Participant participant) {
-        state.onParticipantJoin(participant);
+    public void onParticipantJoin(Participant newParticipant) {
+        T team = teams.get(newParticipant.getTeamId());
+        QP quitData = quitDatas.get(newParticipant.getUniqueId());
+        P participant;
+        if (quitData != null) {
+            participant = createParticipant(newParticipant, quitData);
+            _onParticipantRejoin(participant, team);
+        } else {
+            participant = createParticipant(newParticipant);
+            _onNewParticipantJoin(participant, team);
+        }
+        updateSidebar(participant, team);
+    }
+    
+    protected void updateSidebar(P participant, T team) {
+        sidebar.updateLine(participant.getUniqueId(), "title", title);
+        displayScore(participant);
+        displayScore(team);
+    }
+    
+    protected void _onParticipantRejoin(P participant, T team) {
+        _initializeParticipant(participant, team);
+        state.onParticipantRejoin(participant, team);
+    }
+    
+    protected void _onNewParticipantJoin(P participant, T team) {
+        _initializeParticipant(participant, team);
+        state.onNewParticipantJoin(participant, team);
     }
     
     @Override
     public void onParticipantQuit(UUID participantUUID) {
-        state.onParticipantQuit(participantUUID);
+        P participant = participants.remove(participantUUID);
+        if (participant == null) {
+            return;
+        }
+        T team = teams.get(participant.getTeamId());
+        state.onParticipantQuit(participant, team);
+        quitDatas.put(participant.getUniqueId(), getQuitData(participant));
+        _resetParticipant(participant, team);
     }
     
     @Override
     public void onTeamQuit(String teamId) {
-        state.onTeamQuit(teamId);
+        T team = teams.get(teamId);
+        if (team.size() > 0) {
+            return;
+        }
+        state.onTeamQuit(team);
+        teams.remove(team.getTeamId());
+        teamQuitDatas.put(team.getTeamId(), getQuitData(team));
     }
     // quit/join end
     
@@ -422,55 +479,55 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     // Sidebar end
     
-    /**
-     * Empty state which does nothing
-     */
-    private class EmptyState extends GameStateBase<P, T, QP, QT> {
-        private final GameBase<P, T, QP, QT> context;
-        
-        public EmptyState(GameBase<P, T, QP, QT> context) {
-            this.context = context;
-        }
-        
-        @Override
-        protected GameBase<P, T, QP, QT> getContext() {
-            return context;
-        }
-        
-        @Override
-        public void cleanup() {
-            
-        }
-        
-        @Override
-        protected void onTeamRejoin(T team) {
-            
-        }
-        
-        @Override
-        protected void onNewTeamJoin(T team) {
-            
-        }
-        
-        @Override
-        protected void onParticipantRejoin(P participant, T team) {
-            
-        }
-        
-        @Override
-        protected void onNewParticipantJoin(P participant, T team) {
-            
-        }
-        
-        @Override
-        protected void onParticipantQuit(P participant, T team) {
-            
-        }
-        
-        @Override
-        protected void onTeamQuit(T team) {
-            
-        }
-    }
+//    /**
+//     * Empty state which does nothing
+//     */
+//    private class EmptyState extends GameStateBase<P, T, QP, QT> {
+//        private final GameBase<P, T, QP, QT> context;
+//        
+//        public EmptyState(GameBase<P, T, QP, QT> context) {
+//            this.context = context;
+//        }
+//        
+//        @Override
+//        protected GameBase<P, T, QP, QT> getContext() {
+//            return context;
+//        }
+//        
+//        @Override
+//        public void cleanup() {
+//            
+//        }
+//        
+//        @Override
+//        protected void onTeamRejoin(T team) {
+//            
+//        }
+//        
+//        @Override
+//        protected void onNewTeamJoin(T team) {
+//            
+//        }
+//        
+//        @Override
+//        protected void onParticipantRejoin(P participant, T team) {
+//            
+//        }
+//        
+//        @Override
+//        protected void onNewParticipantJoin(P participant, T team) {
+//            
+//        }
+//        
+//        @Override
+//        protected void onParticipantQuit(P participant, T team) {
+//            
+//        }
+//        
+//        @Override
+//        protected void onTeamQuit(T team) {
+//            
+//        }
+//    }
     
 }
