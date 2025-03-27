@@ -49,22 +49,24 @@ public abstract class GameStateBase<P extends ParticipantData, T extends ScoredT
     public void onParticipantJoin(Participant newParticipant) {
         T team = context.getTeams().get(newParticipant.getTeamId());
         QP quitData = context.getQuitDatas().get(newParticipant.getUniqueId());
-        boolean rejoin = quitData != null;
         P participant;
-        if (rejoin) {
+        if (quitData != null) {
             participant = context.createParticipant(newParticipant, quitData);
+            _onParticipantRejoin(participant, team);
         } else {
             participant = context.createParticipant(newParticipant);
+            _onNewParticipantJoin(participant, team);
         }
-        _initializeParticipant(participant, team);
-        if (rejoin) {
-            onParticipantRejoin(participant, team);
-        } else {
-            onNewParticipantJoin(participant, team);
-        }
+        updateSidebar(participant, team);
     }
     
-    protected void _initializeParticipant(P participant, T team) {
+    protected void updateSidebar(P participant, T team) {
+        context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
+        context.displayScore(participant);
+        context.displayScore(team);
+    }
+    
+    protected void initializeParticipant(P participant, T team) {
         team.addParticipant(participant);
         context.getSidebar().addPlayer(participant);
         context.getUiManagers().forEach(uiManager -> uiManager.showPlayer(participant));
@@ -75,12 +77,22 @@ public abstract class GameStateBase<P extends ParticipantData, T extends ScoredT
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
+    protected void _onParticipantRejoin(P participant, T team) {
+        initializeParticipant(participant, team);
+        onParticipantRejoin(participant, team);
+    }
+    
     /**
      * 
      * @param participant the participant who is rejoining
      * @param team the participant's team
      */
     protected abstract void onParticipantRejoin(P participant, T team);
+    
+    protected void _onNewParticipantJoin(P participant, T team) {
+        initializeParticipant(participant, team);
+        onNewParticipantJoin(participant, team);
+    }
     
     /**
      * 
