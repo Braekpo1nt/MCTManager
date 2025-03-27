@@ -300,7 +300,8 @@ public class SpleefGame implements Listener, MCTGame {
         }
     }
     
-    private void onTeamJoin(Team team) {
+    @Override
+    public void onTeamJoin(Team team) {
         if (teams.containsKey(team.getTeamId())) {
             return;
         }

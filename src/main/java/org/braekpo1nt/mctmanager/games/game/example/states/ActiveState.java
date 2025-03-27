@@ -12,7 +12,7 @@ public class ActiveState extends ExampleState {
                 Audience.audience(context.getParticipants().values()),
                 Audience.audience(context.getAdmins())
         ).sendMessage(Component.empty()
-                .append(Component.text("The ActiveState has begin")));
+                .append(Component.text("The ActiveState has begun")));
         context.getTimerManager().start(Timer.builder()
                 .duration(60)
                 .withSidebar(context.getSidebar(), "timer")

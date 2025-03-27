@@ -96,12 +96,12 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
     
     @Override
     protected void resetParticipant(ExampleParticipant participant, ExampleTeam team) {
-        
+        // custom participant resetting
     }
     
     @Override
     protected void initializeAdmin(Player admin) {
-        
+        // custom admin initialization
     }
     
     @Override

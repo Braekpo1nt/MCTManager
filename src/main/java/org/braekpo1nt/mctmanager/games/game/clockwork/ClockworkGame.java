@@ -245,7 +245,8 @@ public class ClockworkGame implements Listener, MCTGame {
         updateRoundFastBoard();
     }
     
-    private void onTeamJoin(Team team) {
+    @Override
+    public void onTeamJoin(Team team) {
         if (teams.containsKey(team.getTeamId())) {
             return;
         }
