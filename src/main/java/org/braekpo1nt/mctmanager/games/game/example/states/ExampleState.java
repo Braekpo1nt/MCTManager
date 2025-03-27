@@ -1,16 +1,22 @@
 package org.braekpo1nt.mctmanager.games.game.example.states;
 
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.experimental.GameBase;
 import org.braekpo1nt.mctmanager.games.experimental.GameStateBase;
 import org.braekpo1nt.mctmanager.games.game.example.ExampleGame;
 import org.braekpo1nt.mctmanager.games.game.example.ExampleParticipant;
 import org.braekpo1nt.mctmanager.games.game.example.ExampleTeam;
 
-public abstract class ExampleState extends GameStateBase<ExampleParticipant, ExampleTeam, ExampleParticipant.QuitData, ExampleTeam.QuitData, GameBase<ExampleParticipant, ExampleTeam, ExampleParticipant.QuitData, ExampleTeam.QuitData>> {
+public abstract class ExampleState extends GameStateBase<ExampleParticipant, ExampleTeam, ExampleParticipant.QuitData, ExampleTeam.QuitData> {
+    
+    private final ExampleGame context;
     
     public ExampleState(ExampleGame context) {
-        super(context);
+        this.context = context;
+    }
+    
+    @Override
+    protected ExampleGame getContext() {
+        return context;
     }
     
     @Override

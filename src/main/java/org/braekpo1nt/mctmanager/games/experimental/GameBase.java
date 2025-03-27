@@ -46,7 +46,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     /**
      * The current state of this game
      */
-    protected @NotNull GameStateBase<P, T, QP, QT, GameBase<P, T, QP, QT>> state;
+    protected @NotNull GameStateBase<P, T, QP, QT> state;
     protected @NotNull Component title;
     
     /**
@@ -111,7 +111,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     /**
      * @return the first state to be assigned to {@link #state}
      */
-    protected abstract GameStateBase<P, T, QP, QT, GameBase<P, T, QP, QT>> getInitialState();
+    protected abstract GameStateBase<P, T, QP, QT> getInitialState();
     
     // cleanup start
     @Override
@@ -425,9 +425,16 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     /**
      * Empty state which does nothing
      */
-    private class EmptyState extends GameStateBase<P, T, QP, QT, GameBase<P, T, QP, QT>> {
+    private class EmptyState extends GameStateBase<P, T, QP, QT> {
+        private final GameBase<P, T, QP, QT> context;
+        
         public EmptyState(GameBase<P, T, QP, QT> context) {
-            super(context);
+            this.context = context;
+        }
+        
+        @Override
+        protected GameBase<P, T, QP, QT> getContext() {
+            return context;
         }
         
         @Override

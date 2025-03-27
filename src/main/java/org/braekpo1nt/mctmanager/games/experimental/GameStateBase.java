@@ -7,29 +7,25 @@ import org.bukkit.GameMode;
 
 import java.util.UUID;
 
-public abstract class GameStateBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase, C extends GameBase<P, T, QP, QT>> {
+public abstract class GameStateBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase> {
     
-    protected final C context;
-    
-    public GameStateBase(C context) {
-        this.context = context;
-    }
+    protected abstract GameBase<P, T, QP, QT> getContext();
     
     public abstract void cleanup();
     
     // join start
     public void onTeamJoin(Team newTeam) {
-        if (context.getTeams().containsKey(newTeam.getTeamId())) {
+        if (getContext().getTeams().containsKey(newTeam.getTeamId())) {
             return;
         }
-        QT quitTeam = context.getTeamQuitDatas().remove(newTeam.getTeamId());
+        QT quitTeam = getContext().getTeamQuitDatas().remove(newTeam.getTeamId());
         if (quitTeam != null) {
-            T team = context.createTeam(newTeam, quitTeam);
-            context.getTeams().put(team.getTeamId(), team);
+            T team = getContext().createTeam(newTeam, quitTeam);
+            getContext().getTeams().put(team.getTeamId(), team);
             onTeamRejoin(team);
         } else {
-            T team = context.createTeam(newTeam);
-            context.getTeams().put(team.getTeamId(), team);
+            T team = getContext().createTeam(newTeam);
+            getContext().getTeams().put(team.getTeamId(), team);
             onNewTeamJoin(team);
         }
     }
@@ -47,30 +43,30 @@ public abstract class GameStateBase<P extends ParticipantData, T extends ScoredT
     protected abstract void onNewTeamJoin(T team);
     
     public void onParticipantJoin(Participant newParticipant) {
-        T team = context.getTeams().get(newParticipant.getTeamId());
-        QP quitData = context.getQuitDatas().get(newParticipant.getUniqueId());
+        T team = getContext().getTeams().get(newParticipant.getTeamId());
+        QP quitData = getContext().getQuitDatas().get(newParticipant.getUniqueId());
         P participant;
         if (quitData != null) {
-            participant = context.createParticipant(newParticipant, quitData);
+            participant = getContext().createParticipant(newParticipant, quitData);
             _onParticipantRejoin(participant, team);
         } else {
-            participant = context.createParticipant(newParticipant);
+            participant = getContext().createParticipant(newParticipant);
             _onNewParticipantJoin(participant, team);
         }
         updateSidebar(participant, team);
     }
     
     protected void updateSidebar(P participant, T team) {
-        context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
-        context.displayScore(participant);
-        context.displayScore(team);
+        getContext().getSidebar().updateLine(participant.getUniqueId(), "title", getContext().getTitle());
+        getContext().displayScore(participant);
+        getContext().displayScore(team);
     }
     
     protected void initializeParticipant(P participant, T team) {
         team.addParticipant(participant);
-        context.getSidebar().addPlayer(participant);
-        context.getUiManagers().forEach(uiManager -> uiManager.showPlayer(participant));
-        context.getParticipants().put(participant.getUniqueId(), participant);
+        getContext().getSidebar().addPlayer(participant);
+        getContext().getUiManagers().forEach(uiManager -> uiManager.showPlayer(participant));
+        getContext().getParticipants().put(participant.getUniqueId(), participant);
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.clearInventory(participant);
@@ -103,12 +99,12 @@ public abstract class GameStateBase<P extends ParticipantData, T extends ScoredT
     // join end
     
     public void onParticipantQuit(UUID participantUUID) {
-        P participant = context.getParticipants().remove(participantUUID);
+        P participant = getContext().getParticipants().remove(participantUUID);
         if (participant == null) {
             return;
         }
-        context.getQuitDatas().put(participant.getUniqueId(), context.getQuitData(participant));
-        T team = context.getTeams().get(participant.getTeamId());
+        getContext().getQuitDatas().put(participant.getUniqueId(), getContext().getQuitData(participant));
+        T team = getContext().getTeams().get(participant.getTeamId());
         _resetParticipant(participant, team);
         onParticipantQuit(participant, team);
     }
@@ -119,8 +115,8 @@ public abstract class GameStateBase<P extends ParticipantData, T extends ScoredT
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         participant.setGameMode(GameMode.SPECTATOR);
-        context.getSidebar().removePlayer(participant);
-        context.getUiManagers().forEach(uiManager -> uiManager.hidePlayer(participant));
+        getContext().getSidebar().removePlayer(participant);
+        getContext().getUiManagers().forEach(uiManager -> uiManager.hidePlayer(participant));
     }
     
     /**
@@ -134,12 +130,12 @@ public abstract class GameStateBase<P extends ParticipantData, T extends ScoredT
     protected abstract void onParticipantQuit(P participant, T team);
     
     public void onTeamQuit(String teamId) {
-        T team = context.getTeams().get(teamId);
+        T team = getContext().getTeams().get(teamId);
         if (team.size() > 0) {
             return;
         }
-        context.getTeams().remove(team.getTeamId());
-        context.getTeamQuitDatas().put(team.getTeamId(), context.getQuitData(team));
+        getContext().getTeams().remove(team.getTeamId());
+        getContext().getTeamQuitDatas().put(team.getTeamId(), getContext().getQuitData(team));
         onTeamQuit(team);
     }
     
