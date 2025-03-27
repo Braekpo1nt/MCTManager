@@ -28,7 +28,7 @@ import java.util.*;
  */
 @Getter
 @Setter
-// TODO: this could be simplified by making QT and QP be T and P instead. In other words, quitDatas should be Map<UUID, P> quitParticipants, and teamQuitDatas should be Map<String, T> quitTeams. GameStateBase would need to change to make sure you are not re-using the previously stored Player object from when the player quit.
+// TODO: this could be simplified by making QT and QP be T and P instead. In other words, quitDatas should be Map<UUID, P> quitParticipants, and teamQuitDatas should be Map<String, T> quitTeams. GameStateBase would need to change to make sure you are not re-using the previously stored Player object from when the player quit. Also take this opportunity to differentiate between players rejoining on the same or a different team from that which they quit as a member of. 
 public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase>  implements MCTGame, Listener {
     protected final @NotNull GameType type;
     protected final @NotNull Main plugin;
@@ -71,12 +71,19 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         this.teams = new HashMap<>();
         this.teamQuitDatas = new HashMap<>();
         this.title = title;
-        this.uiManagers = createUIManagers();
+        this.uiManagers = new ArrayList<>();
         this.timerManager = gameManager.getTimerManager().register(new TimerManager(plugin));
         this.admins = new ArrayList<>();
+        this.state = new EmptyState(this);
     }
     
-    protected void init(@NotNull Collection<Team> newTeams, @NotNull Collection<Participant> newParticipants, @NotNull List<Player> newAdmins) {
+    /**
+     * Start the game after all fields have been initialized, and instantiate the initial state.
+     * @param newTeams the teams going into the game
+     * @param newParticipants the participants going into the game
+     * @param newAdmins the admins going into the game
+     */
+    protected void start(@NotNull Collection<Team> newTeams, @NotNull Collection<Participant> newParticipants, @NotNull List<Player> newAdmins) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Team newTeam : newTeams) {
             T team = createTeam(newTeam);
@@ -96,10 +103,10 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         this.state = getInitialState();
     }
     
-    /**
-     * @return the UIManagers for this game
-     */
-    protected abstract List<UIManager> createUIManagers();
+    protected <U extends UIManager> U addUIManager(U uiManager) {
+        this.uiManagers.add(uiManager);
+        return uiManager;
+    }
     
     /**
      * @return the first state to be assigned to {@link #state}
@@ -414,5 +421,49 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
                 .color(NamedTextColor.GOLD));
     }
     // Sidebar end
+    
+    /**
+     * Empty state which does nothing
+     */
+    private class EmptyState extends GameStateBase<P, T, QP, QT, GameBase<P, T, QP, QT>> {
+        public EmptyState(GameBase<P, T, QP, QT> context) {
+            super(context);
+        }
+        
+        @Override
+        public void cleanup() {
+            
+        }
+        
+        @Override
+        protected void onTeamRejoin(T team) {
+            
+        }
+        
+        @Override
+        protected void onNewTeamJoin(T team) {
+            
+        }
+        
+        @Override
+        protected void onParticipantRejoin(P participant, T team) {
+            
+        }
+        
+        @Override
+        protected void onNewParticipantJoin(P participant, T team) {
+            
+        }
+        
+        @Override
+        protected void onParticipantQuit(P participant, T team) {
+            
+        }
+        
+        @Override
+        protected void onTeamQuit(T team) {
+            
+        }
+    }
     
 }

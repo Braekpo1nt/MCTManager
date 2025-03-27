@@ -41,6 +41,8 @@ public abstract class ExampleState extends GameStateBase<ExampleParticipant, Exa
     protected void onNewParticipantJoin(ExampleParticipant participant, ExampleTeam team) {
         // custom participant join code
         Main.logf("%s joined the game for the first time", participant.getName());
+        // TODO: this is not avoiding casting
+        participant.teleport(((ExampleGame) context).getConfig().getStartingLocation());
     }
     
     @Override

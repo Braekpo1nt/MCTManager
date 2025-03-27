@@ -1,5 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.example;
 
+import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -10,17 +12,19 @@ import org.braekpo1nt.mctmanager.games.game.example.states.DescriptionSate;
 import org.braekpo1nt.mctmanager.games.game.example.states.ExampleState;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
-import org.braekpo1nt.mctmanager.ui.UIManager;
+import org.braekpo1nt.mctmanager.ui.topbar.BasicTopbar;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
+@Getter
+@Setter
 public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, ExampleParticipant.QuitData, ExampleTeam.QuitData> {
     
     private final ExampleConfig config;
+    private final BasicTopbar topbar;
     
     /**
      * Initialize data and start the game
@@ -35,12 +39,8 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
     public ExampleGame(@NotNull Main plugin, @NotNull GameManager gameManager, @NotNull Component title, @NotNull ExampleConfig config, @NotNull Collection<Team> newTeams, @NotNull Collection<Participant> newParticipants, @NotNull List<Player> newAdmins) {
         super(GameType.EXAMPLE, plugin, gameManager, title);
         this.config = config;
-        init(newTeams, newParticipants, newAdmins);
-    }
-    
-    @Override
-    protected List<UIManager> createUIManagers() {
-        return Collections.emptyList();
+        this.topbar = addUIManager(new BasicTopbar());
+        start(newTeams, newParticipants, newAdmins);
     }
     
     @Override
