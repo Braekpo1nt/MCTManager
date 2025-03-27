@@ -20,6 +20,9 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfigController;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.game.example.ExampleGame;
+import org.braekpo1nt.mctmanager.games.game.example.config.ExampleConfig;
+import org.braekpo1nt.mctmanager.games.game.example.config.ExampleConfigController;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfig;
 import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfigController;
@@ -229,6 +232,10 @@ public class GameManager implements Listener {
             case CAPTURE_THE_FLAG -> {
                 CaptureTheFlagConfig config = new CaptureTheFlagConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
                 yield new CaptureTheFlagGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
+            }
+            case EXAMPLE -> {
+                ExampleConfig config = new ExampleConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
+                yield new ExampleGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
             }
         };
     }

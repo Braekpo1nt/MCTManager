@@ -25,7 +25,6 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
     /**
      * Initialize data and start the game
      *
-     * @param type            the type associated with this game
      * @param plugin          the plugin
      * @param gameManager     the GameManager
      * @param title           the game's initial title, displayed in the sidebar
@@ -33,8 +32,8 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
      * @param newParticipants the participants of the game
      * @param newAdmins       the admins
      */
-    public ExampleGame(@NotNull GameType type, @NotNull Main plugin, @NotNull GameManager gameManager, @NotNull Component title, @NotNull ExampleConfig config, @NotNull Collection<Team> newTeams, @NotNull Collection<Participant> newParticipants, @NotNull List<Player> newAdmins) {
-        super(type, plugin, gameManager, title);
+    public ExampleGame(@NotNull Main plugin, @NotNull GameManager gameManager, @NotNull Component title, @NotNull ExampleConfig config, @NotNull Collection<Team> newTeams, @NotNull Collection<Participant> newParticipants, @NotNull List<Player> newAdmins) {
+        super(GameType.EXAMPLE, plugin, gameManager, title);
         this.config = config;
         init(newTeams, newParticipants, newAdmins);
     }
