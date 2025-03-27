@@ -21,7 +21,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, ExampleParticipant.QuitData, ExampleTeam.QuitData> {
+public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, ExampleParticipant.QuitData, ExampleTeam.QuitData, ExampleState> {
     
     private final ExampleConfig config;
     private final BasicTopbar topbar;
@@ -44,7 +44,7 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
     }
     
     @Override
-    protected ExampleState getInitialState() {
+    protected @NotNull ExampleState getInitialState() {
         return new DescriptionSate(this);
     }
     

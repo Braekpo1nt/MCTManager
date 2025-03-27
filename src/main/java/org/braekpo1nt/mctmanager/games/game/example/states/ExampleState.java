@@ -6,17 +6,12 @@ import org.braekpo1nt.mctmanager.games.game.example.ExampleGame;
 import org.braekpo1nt.mctmanager.games.game.example.ExampleParticipant;
 import org.braekpo1nt.mctmanager.games.game.example.ExampleTeam;
 
-public abstract class ExampleState extends GameStateBase<ExampleParticipant, ExampleTeam, ExampleParticipant.QuitData, ExampleTeam.QuitData> {
+public abstract class ExampleState implements GameStateBase<ExampleParticipant, ExampleTeam> {
     
     private final ExampleGame context;
     
     public ExampleState(ExampleGame context) {
         this.context = context;
-    }
-    
-    @Override
-    protected ExampleGame getContext() {
-        return context;
     }
     
     @Override
@@ -26,39 +21,38 @@ public abstract class ExampleState extends GameStateBase<ExampleParticipant, Exa
     }
     
     @Override
-    protected void onTeamRejoin(ExampleTeam team) {
+    public void onTeamRejoin(ExampleTeam team) {
         // custom team rejoin code
         Main.logf("First team member of re-joining team %s joined", team.getTeamId());
     }
     
     @Override
-    protected void onNewTeamJoin(ExampleTeam team) {
+    public void onNewTeamJoin(ExampleTeam team) {
         // custom team join code
         Main.logf("First team member of new team %s joined", team.getTeamId());
     }
     
     @Override
-    protected void onParticipantRejoin(ExampleParticipant participant, ExampleTeam team) {
+    public void onParticipantRejoin(ExampleParticipant participant, ExampleTeam team) {
         // custom participant rejoin code
         Main.logf("%s re-joined the game, after quitting", participant.getName());
     }
     
     @Override
-    protected void onNewParticipantJoin(ExampleParticipant participant, ExampleTeam team) {
+    public void onNewParticipantJoin(ExampleParticipant participant, ExampleTeam team) {
         // custom participant join code
         Main.logf("%s joined the game for the first time", participant.getName());
-        // TODO: this is not avoiding casting
-        participant.teleport(((ExampleGame) context).getConfig().getStartingLocation());
+        participant.teleport(context.getConfig().getStartingLocation());
     }
     
     @Override
-    protected void onParticipantQuit(ExampleParticipant participant, ExampleTeam team) {
+    public void onParticipantQuit(ExampleParticipant participant, ExampleTeam team) {
         // custom participant quit code
         Main.logf("%s quit the game", participant.getName());
     }
     
     @Override
-    protected void onTeamQuit(ExampleTeam team) {
+    public void onTeamQuit(ExampleTeam team) {
         // custom team quit code
         Main.logf("Last team member of %s quit", team.getTeamId());
     }

@@ -8,11 +8,13 @@ import org.braekpo1nt.mctmanager.ui.timer.Timer;
 public class DescriptionSate extends ExampleState{
     public DescriptionSate(ExampleGame context) {
         super(context);
-        Audience.audience(
+        Audience audience = Audience.audience(
                 Audience.audience(context.getParticipants().values()),
                 Audience.audience(context.getAdmins())
-        ).sendMessage(Component.empty()
+        );
+        audience.sendMessage(Component.empty()
                 .append(Component.text("The DescriptionState has begin")));
+        audience.sendMessage(context.getConfig().getDescription());
         context.getTimerManager().start(Timer.builder()
                 .duration(10)
                 .withSidebar(context.getSidebar(), "timer")

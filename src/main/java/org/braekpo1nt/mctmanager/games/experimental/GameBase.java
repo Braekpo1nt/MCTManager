@@ -28,8 +28,9 @@ import java.util.*;
  */
 @Getter
 @Setter
-// TODO: this could be simplified by making QT and QP be T and P instead. In other words, quitDatas should be Map<UUID, P> quitParticipants, and teamQuitDatas should be Map<String, T> quitTeams. GameStateBase would need to change to make sure you are not re-using the previously stored Player object from when the player quit. Also take this opportunity to differentiate between players rejoining on the same or a different team from that which they quit as a member of. 
-public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase>  implements MCTGame, Listener {
+// TODO: this could be simplified by making QT and QP be T and P instead. In other words, quitDatas should be Map<UUID, P> quitParticipants, and teamQuitDatas should be Map<String, T> quitTeams. GameStateBase would need to change to make sure you are not re-using the previously stored Player object from when the player quit. 
+// TODO: Differentiate between players rejoining on the same or a different team from that which they quit as a member of. 
+public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase, S extends GameStateBase<P, T>>  implements MCTGame, Listener {
     protected final @NotNull GameType type;
     protected final @NotNull Main plugin;
     protected final @NotNull GameManager gameManager;
@@ -46,7 +47,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     /**
      * The current state of this game
      */
-    protected @NotNull GameStateBase<P, T, QP, QT> state;
+    protected @NotNull S state;
     protected @NotNull Component title;
     
     /**
@@ -74,7 +75,6 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         this.uiManagers = new ArrayList<>();
         this.timerManager = gameManager.getTimerManager().register(new TimerManager(plugin));
         this.admins = new ArrayList<>();
-//        this.state = new EmptyState(this);
     }
     
     /**
@@ -111,9 +111,17 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     /**
-     * @return the first state to be assigned to {@link #state}
+     * @return the first state to be assigned to {@link #state},
+     * after the initialization
      */
-    protected abstract GameStateBase<P, T, QP, QT> getInitialState();
+    protected abstract @NotNull S getInitialState();
+    
+    /**
+     * @param state assign a state to this game
+     */
+    public void setState(@NotNull S state) {
+        this.state = state;
+    }
     
     // cleanup start
     @Override
@@ -121,7 +129,6 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         HandlerList.unregisterAll(this);
         _cancelAllTasks();
         state.cleanup();
-        preCleanup();
         saveScores();
         for (P participant : participants.values()) {
             _resetParticipant(participant, teams.get(participant.getTeamId()));
@@ -152,11 +159,11 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         for (P participant : participants.values()) {
             participantScores.put(participant.getUniqueId(), participant.getScore());
         }
-        for (Map.Entry<String, QT> entry : teamQuitDatas.entrySet()) {
-            teamScores.put(entry.getKey(), entry.getValue().getScore());
+        for (String teamId : teamQuitDatas.keySet()) {
+            teamScores.put(teamId, teamQuitDatas.get(teamId).getScore());
         }
-        for (Map.Entry<UUID, QP> entry : quitDatas.entrySet()) {
-            participantScores.put(entry.getKey(), entry.getValue().getScore());
+        for (UUID uuid : quitDatas.keySet()) {
+            participantScores.put(uuid, quitDatas.get(uuid).getScore());
         }
         gameManager.addScores(teamScores, participantScores);
     }
@@ -167,17 +174,9 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     /**
-     * <p>Cancel any scheduled tasks or {@link org.bukkit.scheduler.BukkitTask}s</p>
+     * <p>Cancel any scheduled tasks, such as {@link org.bukkit.scheduler.BukkitTask}s</p>
      */
     protected abstract void cancelAllTasks();
-    
-    /**
-     * <p>Cleanup tasks for the end of the game before 
-     * the participants and teams are cleared</p>
-     */
-    protected void preCleanup() {
-        // do nothing
-    }
     
     /**
      * <p>Cleanup tasks for the end of the game</p>
