@@ -79,6 +79,11 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
     }
     
     @Override
+    protected void initializeTeam(ExampleTeam team) {
+        // custom team initialization
+    }
+    
+    @Override
     public ExampleTeam createTeam(Team team, ExampleTeam.QuitData quitData) {
         return new ExampleTeam(team, quitData.getScore());
     }

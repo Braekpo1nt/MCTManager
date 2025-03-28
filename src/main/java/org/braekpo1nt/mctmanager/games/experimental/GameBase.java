@@ -88,11 +88,17 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         for (Team newTeam : newTeams) {
             T team = createTeam(newTeam);
             teams.put(team.getTeamId(), team);
+            initializeTeam(team);
         }
         for (Participant newParticipant : newParticipants) {
             P participant = createParticipant(newParticipant);
             T team = teams.get(participant.getTeamId());
-            _initializeParticipant(participant, team);
+            addParticipant(participant, team);
+            participant.setGameMode(GameMode.ADVENTURE);
+            ParticipantInitializer.clearStatusEffects(participant);
+            ParticipantInitializer.clearInventory(participant);
+            ParticipantInitializer.resetHealthAndHunger(participant);
+            initializeParticipant(participant, team);
         }
         _initializeSidebar();
         
@@ -184,16 +190,16 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     // cleanup end
     
     // Participant start
-    protected void _initializeParticipant(P participant, T team) {
+    /**
+     * Add the participant to the game, and to their team
+     * @param participant the participant to add
+     * @param team the team to add the participant to
+     */
+    protected void addParticipant(P participant, T team) {
         participants.put(participant.getUniqueId(), participant);
         team.addParticipant(participant);
         sidebar.addPlayer(participant);
         uiManagers.forEach(uiManager -> uiManager.showPlayer(participant));
-        participant.setGameMode(GameMode.ADVENTURE);
-        ParticipantInitializer.clearStatusEffects(participant);
-        ParticipantInitializer.clearInventory(participant);
-        ParticipantInitializer.resetHealthAndHunger(participant);
-        initializeParticipant(participant, team);
     }
     
     /**
@@ -219,12 +225,19 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     protected abstract QP getQuitData(P participant);
     
     /**
-     * <p>Prepare the participant for the game</p>
-     * <p>This is for any game-specific preparations</p>
+     * <p>Prepare the participant for the game during initialization.</p>
+     * <p>This is for any game-specific preparations, called once in the constructor.</p>
      * @param participant the participant
      * @param team the participant's team
      */
     protected abstract void initializeParticipant(P participant, T team);
+    
+    /**
+     * <p>Prepare the team for the game during initialization.</p>
+     * <p>This is called before participants are added to their teams, once in the constructor.</p>
+     * @param team the team
+     */
+    protected abstract void initializeTeam(T team);
     
     /**
      * Create a new team of type {@link T} from the given {@link Team} and {@link QT} quitData
@@ -332,12 +345,12 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     protected void _onParticipantRejoin(P participant, T team) {
-        _initializeParticipant(participant, team);
+        addParticipant(participant, team);
         state.onParticipantRejoin(participant, team);
     }
     
     protected void _onNewParticipantJoin(P participant, T team) {
-        _initializeParticipant(participant, team);
+        addParticipant(participant, team);
         state.onNewParticipantJoin(participant, team);
     }
     
@@ -429,7 +442,12 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     // admin end
     
     // Sidebar start
-    private void _initializeSidebar() {
+    
+    /**
+     * Add the appropriate default lines to the sidebar
+     * and display the participant and team scores
+     */
+    protected void _initializeSidebar() {
         sidebar.addLines(
                 new KeyLine("personalTeam", ""),
                 new KeyLine("personalScore", ""),
@@ -445,7 +463,9 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     /**
-     * Add custom lines to the {@link #sidebar}
+     * <p>Add custom lines to the {@link #sidebar}</p>
+     * <p>Called after initial lines are added 
+     * and before team and participant scores are initially displayed.</p>
      */
     protected abstract void initializeSidebar();
     
@@ -476,56 +496,5 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
                 .color(NamedTextColor.GOLD));
     }
     // Sidebar end
-    
-//    /**
-//     * Empty state which does nothing
-//     */
-//    private class EmptyState extends GameStateBase<P, T, QP, QT> {
-//        private final GameBase<P, T, QP, QT> context;
-//        
-//        public EmptyState(GameBase<P, T, QP, QT> context) {
-//            this.context = context;
-//        }
-//        
-//        @Override
-//        protected GameBase<P, T, QP, QT> getContext() {
-//            return context;
-//        }
-//        
-//        @Override
-//        public void cleanup() {
-//            
-//        }
-//        
-//        @Override
-//        protected void onTeamRejoin(T team) {
-//            
-//        }
-//        
-//        @Override
-//        protected void onNewTeamJoin(T team) {
-//            
-//        }
-//        
-//        @Override
-//        protected void onParticipantRejoin(P participant, T team) {
-//            
-//        }
-//        
-//        @Override
-//        protected void onNewParticipantJoin(P participant, T team) {
-//            
-//        }
-//        
-//        @Override
-//        protected void onParticipantQuit(P participant, T team) {
-//            
-//        }
-//        
-//        @Override
-//        protected void onTeamQuit(T team) {
-//            
-//        }
-//    }
     
 }

@@ -21,14 +21,14 @@ public interface GameStateBase<P extends ParticipantData, T extends ScoredTeamDa
     void onNewTeamJoin(T team);
     
     /**
-     *
+     * Called when a participant rejoins the game after having quit
      * @param participant the participant who is rejoining
      * @param team the participant's team
      */
     void onParticipantRejoin(P participant, T team);
     
     /**
-     * 
+     * Called when a participant joins the game for the first time
      * @param participant the participant who is joining for the first time
      * @param team the participant's team
      */
