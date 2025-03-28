@@ -99,6 +99,13 @@ public class OfflineParticipant implements AudienceDelegate {
     }
     
     /**
+     * @return a ParticipantID with this participant's UUID and teamId
+     */
+    public @NotNull ParticipantID getParticipantID() {
+        return new ParticipantID(getUniqueId(), getTeamId());
+    }
+    
+    /**
      * @return the Player associated with this participant if they are online, null if they are not
      */
     public @Nullable Player getPlayer() {

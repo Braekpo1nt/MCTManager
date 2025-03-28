@@ -38,7 +38,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     protected final @NotNull Sidebar sidebar;
     protected final @NotNull Sidebar adminSidebar;
     protected final @NotNull Map<UUID, P> participants;
-    protected final @NotNull Map<UUID, QP> quitDatas;
+    protected final @NotNull Map<ParticipantID, QP> quitDatas;
     protected final @NotNull Map<String, T> teams;
     protected final @NotNull Map<String, QT> teamQuitDatas;
     protected final @NotNull List<Player> admins;
@@ -102,7 +102,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
         _initializeAdminSidebar();
         // admin end
-        this.state = getInitialState();
+        this.state = getStartState();
     }
     
     protected <U extends UIManager> U addUIManager(U uiManager) {
@@ -111,10 +111,9 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     /**
-     * @return the first state to be assigned to {@link #state},
-     * after the initialization
+     * @return the state to be instantiated after initialization
      */
-    protected abstract @NotNull S getInitialState();
+    protected abstract @NotNull S getStartState();
     
     /**
      * @param state assign a state to this game
@@ -162,8 +161,8 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         for (String teamId : teamQuitDatas.keySet()) {
             teamScores.put(teamId, teamQuitDatas.get(teamId).getScore());
         }
-        for (UUID uuid : quitDatas.keySet()) {
-            participantScores.put(uuid, quitDatas.get(uuid).getScore());
+        for (ParticipantID pid : quitDatas.keySet()) {
+            participantScores.put(pid.uuid(), quitDatas.get(pid).getScore());
         }
         gameManager.addScores(teamScores, participantScores);
     }
@@ -185,7 +184,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     // cleanup end
     
     // Participant start
-    private void _initializeParticipant(P participant, T team) {
+    protected void _initializeParticipant(P participant, T team) {
         participants.put(participant.getUniqueId(), participant);
         team.addParticipant(participant);
         sidebar.addPlayer(participant);
@@ -314,7 +313,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     @Override
     public void onParticipantJoin(Participant newParticipant) {
         T team = teams.get(newParticipant.getTeamId());
-        QP quitData = quitDatas.get(newParticipant.getUniqueId());
+        QP quitData = quitDatas.get(newParticipant.getParticipantID());
         P participant;
         if (quitData != null) {
             participant = createParticipant(newParticipant, quitData);
@@ -350,7 +349,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
         T team = teams.get(participant.getTeamId());
         state.onParticipantQuit(participant, team);
-        quitDatas.put(participant.getUniqueId(), getQuitData(participant));
+        quitDatas.put(participant.getParticipantID(), getQuitData(participant));
         _resetParticipant(participant, team);
     }
     

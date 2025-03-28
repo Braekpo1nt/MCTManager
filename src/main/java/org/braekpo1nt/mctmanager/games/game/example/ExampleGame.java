@@ -44,7 +44,7 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
     }
     
     @Override
-    protected @NotNull ExampleState getInitialState() {
+    protected @NotNull ExampleState getStartState() {
         return new DescriptionSate(this);
     }
     

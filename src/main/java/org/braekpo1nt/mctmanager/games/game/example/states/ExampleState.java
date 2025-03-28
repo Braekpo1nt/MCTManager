@@ -8,7 +8,7 @@ import org.braekpo1nt.mctmanager.games.game.example.ExampleTeam;
 
 public abstract class ExampleState implements GameStateBase<ExampleParticipant, ExampleTeam> {
     
-    private final ExampleGame context;
+    protected final ExampleGame context;
     
     public ExampleState(ExampleGame context) {
         this.context = context;
