@@ -191,7 +191,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     
     // Participant start
     /**
-     * Add the participant to the game, and to their team
+     * <p>Add the participant to the game, to their team, and to UI managers</p>
      * @param participant the participant to add
      * @param team the team to add the participant to
      */
@@ -203,7 +203,9 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     /**
-     * Create a participant from the given {@link Participant} and {@link QP} quitData
+     * <p>Create a participant from the given {@link Participant} and {@link QP} quitData.</p>
+     * <p>Called after setting the participant to the defaults. 
+     * Add additional setup logic here for every time a participant is created, with the given quitData.</p>
      * @param participant the participant from which to derive the {@link P} type participant
      * @param quitData the quitData to use in creating the participant
      * @return the created {@link P} participant
@@ -211,11 +213,14 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     protected abstract P createParticipant(Participant participant, QP quitData);
     
     /**
-     * Create a participant from the given {@link Participant}
-     * @param participant the participant from which to derive the {@link P} type participant
+     * <p>Create a participant from the given {@link Participant}.</p>
+     * <p>Called after setting the participant to the defaults.
+     * Add additional setup logic here for every time a participant is created.</p>
+     *
+     * @param fromParticipant the participant from which to derive the {@link P} type participant
      * @return the created {@link P} participant
      */
-    protected abstract P createParticipant(Participant participant);
+    protected abstract P createParticipant(Participant fromParticipant);
     
     /**
      * Create quitData from the given participant
@@ -327,31 +332,24 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     public void onParticipantJoin(Participant newParticipant) {
         T team = teams.get(newParticipant.getTeamId());
         QP quitData = quitDatas.get(newParticipant.getParticipantID());
+        newParticipant.setGameMode(GameMode.ADVENTURE);
+        ParticipantInitializer.clearStatusEffects(newParticipant);
+        ParticipantInitializer.clearInventory(newParticipant);
+        ParticipantInitializer.resetHealthAndHunger(newParticipant);
         P participant;
         if (quitData != null) {
             participant = createParticipant(newParticipant, quitData);
-            _onParticipantRejoin(participant, team);
+            addParticipant(participant, team);
+            state.onParticipantRejoin(participant, team);
         } else {
             participant = createParticipant(newParticipant);
-            _onNewParticipantJoin(participant, team);
+            addParticipant(participant, team);
+            state.onNewParticipantJoin(participant, team);
         }
-        updateSidebar(participant, team);
-    }
-    
-    protected void updateSidebar(P participant, T team) {
+        // update the UI
         sidebar.updateLine(participant.getUniqueId(), "title", title);
         displayScore(participant);
         displayScore(team);
-    }
-    
-    protected void _onParticipantRejoin(P participant, T team) {
-        addParticipant(participant, team);
-        state.onParticipantRejoin(participant, team);
-    }
-    
-    protected void _onNewParticipantJoin(P participant, T team) {
-        addParticipant(participant, team);
-        state.onNewParticipantJoin(participant, team);
     }
     
     @Override

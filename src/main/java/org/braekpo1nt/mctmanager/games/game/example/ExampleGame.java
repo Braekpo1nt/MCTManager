@@ -60,12 +60,14 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
     
     @Override
     protected ExampleParticipant createParticipant(Participant participant, ExampleParticipant.QuitData quitData) {
+        // use the quitData to create a new participant, including setup that happens regardless of state
         return new ExampleParticipant(participant, quitData.getScore());
     }
     
     @Override
-    protected ExampleParticipant createParticipant(Participant participant) {
-        return new ExampleParticipant(participant, 0);
+    protected ExampleParticipant createParticipant(Participant fromParticipant) {
+        // create a new participant, including setup that happens regardless of state
+        return new ExampleParticipant(fromParticipant, 0);
     }
     
     @Override

@@ -5,6 +5,8 @@ import org.braekpo1nt.mctmanager.games.experimental.GameStateBase;
 import org.braekpo1nt.mctmanager.games.game.example.ExampleGame;
 import org.braekpo1nt.mctmanager.games.game.example.ExampleParticipant;
 import org.braekpo1nt.mctmanager.games.game.example.ExampleTeam;
+import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.bukkit.GameMode;
 
 public abstract class ExampleState implements GameStateBase<ExampleParticipant, ExampleTeam> {
     

@@ -33,6 +33,7 @@ public interface GameStateBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param team the participant's team
      */
     void onNewParticipantJoin(P participant, T team);
+    
     // join end
     
     /**
