@@ -29,7 +29,6 @@ import java.util.*;
 @Getter
 @Setter
 // TODO: this could be simplified by making QT and QP be T and P instead. In other words, quitDatas should be Map<UUID, P> quitParticipants, and teamQuitDatas should be Map<String, T> quitTeams. GameStateBase would need to change to make sure you are not re-using the previously stored Player object from when the player quit. 
-// TODO: Differentiate between players rejoining on the same or a different team from that which they quit as a member of. 
 public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase, S extends GameStateBase<P, T>>  implements MCTGame, Listener {
     protected final @NotNull GameType type;
     protected final @NotNull Main plugin;
