@@ -5,9 +5,9 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.experimental.DamageListener;
+import org.braekpo1nt.mctmanager.games.experimental.ParticipantDamageListener;
 import org.braekpo1nt.mctmanager.games.experimental.GameBase;
-import org.braekpo1nt.mctmanager.games.experimental.MovementListener;
+import org.braekpo1nt.mctmanager.games.experimental.ParticipantMoveListener;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.example.config.ExampleConfig;
 import org.braekpo1nt.mctmanager.games.game.example.states.DescriptionSate;
@@ -45,16 +45,16 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
         super(GameType.EXAMPLE, plugin, gameManager, title);
         this.config = config;
         this.topbar = addUIManager(new BasicTopbar());
-        addListener(new MovementListener<>(this) {
+        addListener(new ParticipantMoveListener<>(this) {
             @Override
-            public void playerMoveEvent(PlayerMoveEvent event, @NotNull ExampleParticipant participant) {
-                Main.logf("%s moved", participant.getName());
+            public void onParticipantMove(@NotNull PlayerMoveEvent event, @NotNull ExampleParticipant participant) {
+                state.onParticipantMove(event, participant);
             }
         });
-        addListener(new DamageListener<>(this) {
+        addListener(new ParticipantDamageListener<>(this) {
             @Override
-            protected void entityDamageEvent(EntityDamageEvent event, @NotNull ExampleParticipant participant) {
-                
+            protected void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull ExampleParticipant participant) {
+                state.onParticipantDamage(event, participant);
             }
         });
         start(newTeams, newParticipants, newAdmins);

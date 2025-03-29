@@ -29,7 +29,7 @@ public class ActiveState extends ExampleState {
     }
     
     @Override
-    public void onPlayerMove(PlayerMoveEvent event, ExampleParticipant participant) {
+    public void onParticipantMove(PlayerMoveEvent event, ExampleParticipant participant) {
         int fromY = event.getFrom().getBlockY();
         int toY = event.getTo().getBlockY();
         if (toY - fromY < 1) {
@@ -39,7 +39,7 @@ public class ActiveState extends ExampleState {
     }
     
     @Override
-    public void onPlayerDamage(EntityDamageEvent event, ExampleParticipant participant) {
+    public void onParticipantDamage(EntityDamageEvent event, ExampleParticipant participant) {
         // do nothing
         Main.logf("%s was damaged %s", participant.getName(), event.getDamage());
     }

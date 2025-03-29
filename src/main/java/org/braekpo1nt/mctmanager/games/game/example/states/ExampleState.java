@@ -5,9 +5,7 @@ import org.braekpo1nt.mctmanager.games.experimental.GameStateBase;
 import org.braekpo1nt.mctmanager.games.game.example.ExampleGame;
 import org.braekpo1nt.mctmanager.games.game.example.ExampleParticipant;
 import org.braekpo1nt.mctmanager.games.game.example.ExampleTeam;
-import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.utils.LogType;
-import org.bukkit.GameMode;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
@@ -62,11 +60,11 @@ public abstract class ExampleState implements GameStateBase<ExampleParticipant, 
         Main.logf("Last team member of %s quit", team.getTeamId());
     }
     
-    public void onPlayerMove(PlayerMoveEvent event, ExampleParticipant participant) {
+    public void onParticipantMove(PlayerMoveEvent event, ExampleParticipant participant) {
         // do nothing
     }
     
-    public void onPlayerDamage(EntityDamageEvent event, ExampleParticipant participant) {
+    public void onParticipantDamage(EntityDamageEvent event, ExampleParticipant participant) {
         Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "ExampleState.onPlayerDamage()");
         event.setCancelled(true);
     }

@@ -4,19 +4,19 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class DamageListener<P> extends GameListener<P> {
-    public DamageListener(@NotNull GameData<P> gameData) {
+public abstract class ParticipantDamageListener<P> extends GameListener<P> {
+    public ParticipantDamageListener(@NotNull GameData<P> gameData) {
         super(gameData);
     }
     
     @EventHandler
-    public void entityDamageEvent(EntityDamageEvent event) {
+    public void onEntityDamage(EntityDamageEvent event) {
         P participant = gameData.getParticipant(event.getEntity().getUniqueId());
         if (participant == null) {
             return;
         }
-        entityDamageEvent(event, participant);
+        onParticipantDamage(event, participant);
     }
     
-    protected abstract void entityDamageEvent(EntityDamageEvent event, @NotNull P participant);
+    protected abstract void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull P participant);
 }

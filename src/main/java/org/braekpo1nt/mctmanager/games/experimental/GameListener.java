@@ -5,6 +5,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * The basic requirements for a game listener. Used in {@link GameBase} to
+ * reduce boilerplate.
+ * @param <P> the type of the participant used in the {@link GameBase}
+ */
 public abstract class GameListener<P> implements Listener {
     
     protected final @NotNull GameData<P> gameData;
