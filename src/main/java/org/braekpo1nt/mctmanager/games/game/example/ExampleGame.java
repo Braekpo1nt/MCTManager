@@ -5,6 +5,7 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.experimental.DamageListener;
 import org.braekpo1nt.mctmanager.games.experimental.GameBase;
 import org.braekpo1nt.mctmanager.games.experimental.MovementListener;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
@@ -15,6 +16,7 @@ import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.topbar.BasicTopbar;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +26,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, ExampleParticipant.QuitData, ExampleTeam.QuitData, ExampleState> implements MovementListener<ExampleParticipant> {
+public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, ExampleParticipant.QuitData, ExampleTeam.QuitData, ExampleState> implements MovementListener<ExampleParticipant>, DamageListener<ExampleParticipant> {
     
     private final ExampleConfig config;
     private final BasicTopbar topbar;
@@ -135,6 +137,11 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
     
     @Override
     public void playerMoveEvent(PlayerMoveEvent event, ExampleParticipant participant) {
-        Main.logger().info(String.format("%s moved", event.getPlayer().getName()));
+        Main.logger().info(String.format("%s moved", participant.getName()));
+    }
+    
+    @Override
+    public void entityDamageEvent(EntityDamageEvent event, ExampleParticipant participant) {
+        Main.logger().info(String.format("%s was damaged", participant.getName()));
     }
 }
