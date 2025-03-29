@@ -29,7 +29,7 @@ import java.util.*;
 @Getter
 @Setter
 // TODO: this could be simplified by making QT and QP be T and P instead. In other words, quitDatas should be Map<UUID, P> quitParticipants, and teamQuitDatas should be Map<String, T> quitTeams. GameStateBase would need to change to make sure you are not re-using the previously stored Player object from when the player quit. 
-public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase, S extends GameStateBase<P, T>>  implements MCTGame, Listener {
+public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase, S extends GameStateBase<P, T>>  implements MCTGame, Listener, GameData<P> {
     protected final @NotNull GameType type;
     protected final @NotNull Main plugin;
     protected final @NotNull GameManager gameManager;
@@ -42,6 +42,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     protected final @NotNull Map<String, QT> teamQuitDatas;
     protected final @NotNull List<Player> admins;
     protected final @NotNull List<UIManager> uiManagers;
+    protected final @NotNull List<GameListener<P>> listeners;
     
     /**
      * The current state of this game
@@ -74,6 +75,11 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         this.uiManagers = new ArrayList<>();
         this.timerManager = gameManager.getTimerManager().register(new TimerManager(plugin));
         this.admins = new ArrayList<>();
+        this.listeners = new ArrayList<>();
+    }
+    
+    protected void addListener(GameListener<P> listener) {
+        this.listeners.add(listener);
     }
     
     /**
@@ -84,6 +90,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      */
     protected void start(@NotNull Collection<Team> newTeams, @NotNull Collection<Participant> newParticipants, @NotNull List<Player> newAdmins) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        listeners.forEach(listener -> listener.register(plugin));
         for (Team newTeam : newTeams) {
             T team = createTeam(newTeam);
             teams.put(team.getTeamId(), team);
@@ -131,6 +138,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     @Override
     public void stop() {
         HandlerList.unregisterAll(this);
+        listeners.forEach(GameListener::unregister);
         _cancelAllTasks();
         state.cleanup();
         saveScores();

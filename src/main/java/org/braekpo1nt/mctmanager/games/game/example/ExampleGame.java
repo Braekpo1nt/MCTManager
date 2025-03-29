@@ -26,7 +26,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, ExampleParticipant.QuitData, ExampleTeam.QuitData, ExampleState> implements MovementListener<ExampleParticipant>, DamageListener<ExampleParticipant> {
+public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, ExampleParticipant.QuitData, ExampleTeam.QuitData, ExampleState> {
     
     private final ExampleConfig config;
     private final BasicTopbar topbar;
@@ -45,6 +45,18 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
         super(GameType.EXAMPLE, plugin, gameManager, title);
         this.config = config;
         this.topbar = addUIManager(new BasicTopbar());
+        addListener(new MovementListener<>(this) {
+            @Override
+            public void playerMoveEvent(PlayerMoveEvent event, @NotNull ExampleParticipant participant) {
+                Main.logf("%s moved", participant.getName());
+            }
+        });
+        addListener(new DamageListener<>(this) {
+            @Override
+            protected void entityDamageEvent(EntityDamageEvent event, @NotNull ExampleParticipant participant) {
+                
+            }
+        });
         start(newTeams, newParticipants, newAdmins);
     }
     
@@ -133,15 +145,5 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
     @Override
     public ExampleParticipant getParticipant(UUID uuid) {
         return participants.get(uuid);
-    }
-    
-    @Override
-    public void playerMoveEvent(PlayerMoveEvent event, ExampleParticipant participant) {
-        Main.logger().info(String.format("%s moved", participant.getName()));
-    }
-    
-    @Override
-    public void entityDamageEvent(EntityDamageEvent event, ExampleParticipant participant) {
-        Main.logger().info(String.format("%s was damaged", participant.getName()));
     }
 }
