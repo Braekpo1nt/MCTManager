@@ -45,13 +45,13 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
         super(GameType.EXAMPLE, plugin, gameManager, title);
         this.config = config;
         this.topbar = addUIManager(new BasicTopbar());
-        addListener(new ParticipantMoveListener<>(this) {
+        registerListener(new ParticipantMoveListener<>(this) {
             @Override
             public void onParticipantMove(@NotNull PlayerMoveEvent event, @NotNull ExampleParticipant participant) {
                 state.onParticipantMove(event, participant);
             }
         });
-        addListener(new ParticipantDamageListener<>(this) {
+        registerListener(new ParticipantDamageListener<>(this) {
             @Override
             protected void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull ExampleParticipant participant) {
                 state.onParticipantDamage(event, participant);
