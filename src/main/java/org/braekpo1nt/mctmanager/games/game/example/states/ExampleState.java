@@ -7,7 +7,9 @@ import org.braekpo1nt.mctmanager.games.game.example.ExampleParticipant;
 import org.braekpo1nt.mctmanager.games.game.example.ExampleTeam;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class ExampleState implements GameStateBase<ExampleParticipant, ExampleTeam> {
@@ -69,5 +71,15 @@ public abstract class ExampleState implements GameStateBase<ExampleParticipant, 
     public void onParticipantDamage(EntityDamageEvent event, ExampleParticipant participant) {
         Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "ExampleState.onPlayerDamage()");
         event.setCancelled(true);
+    }
+    
+    @Override
+    public void onParticipantInteract(@NotNull PlayerInteractEvent event, @NotNull ExampleParticipant participant) {
+        // do nothing
+    }
+    
+    @Override
+    public void onParticipantTeleport(@NotNull PlayerTeleportEvent event, @NotNull ExampleParticipant participant) {
+        // do nothing
     }
 }

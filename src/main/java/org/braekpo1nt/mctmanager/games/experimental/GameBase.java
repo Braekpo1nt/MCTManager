@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.experimental;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
@@ -16,10 +17,13 @@ import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
@@ -569,5 +573,35 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         if (!event.isCancelled() && getSpectatorBoundary() != null && participant.getGameMode().equals(GameMode.SPECTATOR)) {
             keepSpectatorInArea(event, getSpectatorBoundary(), participant);
         }
+    }
+    
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        P participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        state.onParticipantInteract(event, participant);
+        Block clickedBlock = event.getClickedBlock();
+        if (clickedBlock != null && shouldPreventInteractions(clickedBlock.getType())) {
+            event.setCancelled(true);
+        }
+    }
+    
+    /**
+     * @param type the block type to check if it should be interacted with in this game
+     * @return true if interactions with the given block type should be prevented, false if they should be allowed. 
+     */
+    protected abstract boolean shouldPreventInteractions(@NotNull Material type);
+    
+    /**
+     * Convenience method to send the same message to all participants and admins
+     * @param message the message to send
+     */
+    public void messageAllParticipants(@NotNull Component message) {
+        Audience.audience(
+                Audience.audience(admins),
+                Audience.audience(participants.values())
+        ).sendMessage(message);
     }
 }
