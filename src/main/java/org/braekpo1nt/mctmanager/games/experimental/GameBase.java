@@ -148,6 +148,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     public void stop() {
         HandlerList.unregisterAll(this);
         listeners.forEach(GameListener::unregister);
+        listeners.clear();
         _cancelAllTasks();
         state.cleanup();
         saveScores();
