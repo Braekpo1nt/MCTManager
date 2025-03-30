@@ -575,17 +575,29 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
     }
     
+    /**
+     * <p>Default behavior for {@link PlayerInteractEvent}. 
+     * First checks to see if the triggering player is a participant in this game.
+     * Then, checks to see if interactions with any interacted blocks 
+     * should be prevented (see 
+     * {@link #shouldPreventInteractions(Material)}) and if so, 
+     * cancels the event and does not pass to the implementing game class. 
+     * Otherwise, the event and participant is passed to 
+     * {@link GameStateBase#onParticipantInteract(PlayerInteractEvent, ParticipantData)}.</p>
+     * @param event the event
+     */
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         P participant = participants.get(event.getPlayer().getUniqueId());
         if (participant == null) {
             return;
         }
-        state.onParticipantInteract(event, participant);
         Block clickedBlock = event.getClickedBlock();
         if (clickedBlock != null && shouldPreventInteractions(clickedBlock.getType())) {
             event.setCancelled(true);
+            return;
         }
+        state.onParticipantInteract(event, participant);
     }
     
     /**

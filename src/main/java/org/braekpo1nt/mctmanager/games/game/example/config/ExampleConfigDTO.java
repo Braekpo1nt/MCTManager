@@ -9,9 +9,14 @@ import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collections;
+import java.util.List;
 
 @Data
 public class ExampleConfigDTO implements Validatable {
@@ -19,6 +24,7 @@ public class ExampleConfigDTO implements Validatable {
     private String world;
     private LocationDTO startingLocation;
     private BoundingBox spectatorArea;
+    private @Nullable List<Material> preventInteractions;
     private Component description;
     
     @Override
@@ -40,6 +46,7 @@ public class ExampleConfigDTO implements Validatable {
                 .startingLocation(locationLocation)
                 .description(this.description)
                 .spectatorBoundary(new SpectatorBoundary(this.spectatorArea, locationLocation))
+                .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .build();
     }
 }

@@ -15,6 +15,7 @@ import org.braekpo1nt.mctmanager.games.game.example.states.ExampleState;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.topbar.BasicTopbar;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -135,6 +136,11 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
     @Override
     protected @Nullable SpectatorBoundary getSpectatorBoundary() {
         return config.getSpectatorBoundary();
+    }
+    
+    @Override
+    protected boolean shouldPreventInteractions(@NotNull Material type) {
+        return config.getPreventInteractions().contains(type);
     }
     
     @Override

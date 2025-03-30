@@ -5,7 +5,10 @@ import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
+
+import java.util.List;
 
 @Data
 @Builder
@@ -14,4 +17,5 @@ public class ExampleConfig {
     private Location startingLocation;
     private Component description;
     private SpectatorBoundary spectatorBoundary;
+    private List<Material> preventInteractions;
 }
