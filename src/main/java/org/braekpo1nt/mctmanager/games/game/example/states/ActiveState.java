@@ -33,10 +33,11 @@ public class ActiveState extends ExampleState {
     public void onParticipantMove(@NotNull PlayerMoveEvent event, @NotNull ExampleParticipant participant) {
         int fromY = event.getFrom().getBlockY();
         int toY = event.getTo().getBlockY();
-        if (toY - fromY < 1) {
+        int diff = toY - fromY;
+        if (diff < 1) {
             return;
         }
-        Main.logf("%s jumped one block", participant.getName());
+        Main.logf("%s jumped %d block(s)", participant.getName(), diff);
     }
     
     @Override

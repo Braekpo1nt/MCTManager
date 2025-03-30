@@ -21,7 +21,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.util.BoundingBox;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -534,7 +534,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
         state.onParticipantMove(event, participant);
         if (!event.isCancelled() && getSpectatorBoundary() != null && participant.getGameMode().equals(GameMode.SPECTATOR)) {
-            keepSpectatorsInArea(event, getSpectatorBoundary(), participant);
+            keepSpectatorInArea(event, getSpectatorBoundary(), participant);
         }
     }
     
@@ -544,7 +544,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param boundary the boundary to prevent the given spectator from leaving
      * @param event the event which may be cancelled in order to keep the given participant in the spectator area
      */
-    private void keepSpectatorsInArea(PlayerMoveEvent event, @NotNull SpectatorBoundary boundary, @NotNull Participant spectator) {
+    private void keepSpectatorInArea(PlayerMoveEvent event, @NotNull SpectatorBoundary boundary, @NotNull Participant spectator) {
         if (!boundary.contains(event.getFrom().toVector())) {
             boundary.teleportToSpawn(spectator);
             return;
@@ -554,6 +554,20 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
     }
     
+    /**
+     * @return the {@link SpectatorBoundary} to keep spectators in
+     */
     protected abstract @Nullable SpectatorBoundary getSpectatorBoundary();
     
+    @EventHandler
+    public void onPlayerTeleport(PlayerTeleportEvent event) {
+        P participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        state.onParticipantTeleport(event, participant);
+        if (!event.isCancelled() && getSpectatorBoundary() != null && participant.getGameMode().equals(GameMode.SPECTATOR)) {
+            keepSpectatorInArea(event, getSpectatorBoundary(), participant);
+        }
+    }
 }

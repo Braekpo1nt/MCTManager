@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.experimental;
 
 import org.braekpo1nt.mctmanager.participant.*;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 
 public interface GameStateBase<P extends ParticipantData, T extends ScoredTeamData<P>> {
@@ -35,7 +36,6 @@ public interface GameStateBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param team the participant's team
      */
     void onNewParticipantJoin(P participant, T team);
-    
     // join end
     
     /**
@@ -57,4 +57,6 @@ public interface GameStateBase<P extends ParticipantData, T extends ScoredTeamDa
     
     // Listeners
     void onParticipantMove(@NotNull PlayerMoveEvent event, @NotNull P participant);
+    
+    void onParticipantTeleport(@NotNull PlayerTeleportEvent event, @NotNull P participant);
 }
