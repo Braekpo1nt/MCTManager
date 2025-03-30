@@ -2,6 +2,8 @@ package org.braekpo1nt.mctmanager.games.experimental;
 
 
 import org.braekpo1nt.mctmanager.participant.*;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.jetbrains.annotations.NotNull;
 
 public interface GameStateBase<P extends ParticipantData, T extends ScoredTeamData<P>> {
     
@@ -52,4 +54,7 @@ public interface GameStateBase<P extends ParticipantData, T extends ScoredTeamDa
      *             (Will not be found in {@link GameBase#getTeams()}.)
      */
     void onTeamQuit(T team);
+    
+    // Listeners
+    void onParticipantMove(@NotNull PlayerMoveEvent event, @NotNull P participant);
 }

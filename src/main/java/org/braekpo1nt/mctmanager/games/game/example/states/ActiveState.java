@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.games.game.example.ExampleParticipant;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class ActiveState extends ExampleState {
     public ActiveState(ExampleGame context) {
@@ -29,7 +30,7 @@ public class ActiveState extends ExampleState {
     }
     
     @Override
-    public void onParticipantMove(PlayerMoveEvent event, ExampleParticipant participant) {
+    public void onParticipantMove(@NotNull PlayerMoveEvent event, @NotNull ExampleParticipant participant) {
         int fromY = event.getFrom().getBlockY();
         int toY = event.getTo().getBlockY();
         if (toY - fromY < 1) {

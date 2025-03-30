@@ -5,6 +5,7 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
@@ -16,9 +17,13 @@ import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -511,5 +516,44 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
                 .color(NamedTextColor.GOLD));
     }
     // Sidebar end
+    
+    /**
+     * <p>The default behavior for {@link PlayerMoveEvent}s. Checks if the triggering player is 
+     * a participant in this game, and if so passes the event (and the participant) to the 
+     * {@link GameStateBase#onParticipantMove(PlayerMoveEvent, ParticipantData)}.</p>
+     * <p>After the state handles the move event, if the event isn't cancelled and 
+     * {@link #getSpectatorBoundary()} is not null, keeps participants in spectator 
+     * mode inside the specified boundary.</p>
+     * @param event the event
+     */
+    @EventHandler
+    public void playerMoveEvent(PlayerMoveEvent event) {
+        P participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        state.onParticipantMove(event, participant);
+        if (!event.isCancelled() && getSpectatorBoundary() != null && participant.getGameMode().equals(GameMode.SPECTATOR)) {
+            keepSpectatorsInArea(event, getSpectatorBoundary(), participant);
+        }
+    }
+    
+    /**
+     * Prevent spectators from leaving the spectatorArea
+     * @param spectator the spectator to stop from leaving the spectatorBoundary
+     * @param boundary the boundary to prevent the given spectator from leaving
+     * @param event the event which may be cancelled in order to keep the given participant in the spectator area
+     */
+    private void keepSpectatorsInArea(PlayerMoveEvent event, @NotNull SpectatorBoundary boundary, @NotNull Participant spectator) {
+        if (!boundary.contains(event.getFrom().toVector())) {
+            boundary.teleportToSpawn(spectator);
+            return;
+        }
+        if (!boundary.contains(event.getTo().toVector())) {
+            event.setCancelled(true);
+        }
+    }
+    
+    protected abstract @Nullable SpectatorBoundary getSpectatorBoundary();
     
 }

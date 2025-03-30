@@ -4,10 +4,10 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.experimental.ParticipantDamageListener;
 import org.braekpo1nt.mctmanager.games.experimental.GameBase;
-import org.braekpo1nt.mctmanager.games.experimental.ParticipantMoveListener;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.example.config.ExampleConfig;
 import org.braekpo1nt.mctmanager.games.game.example.states.DescriptionSate;
@@ -19,6 +19,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -45,12 +46,6 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
         super(GameType.EXAMPLE, plugin, gameManager, title);
         this.config = config;
         this.topbar = addUIManager(new BasicTopbar());
-        registerListener(new ParticipantMoveListener<>(this) {
-            @Override
-            public void onParticipantMove(@NotNull PlayerMoveEvent event, @NotNull ExampleParticipant participant) {
-                state.onParticipantMove(event, participant);
-            }
-        });
         registerListener(new ParticipantDamageListener<>(this) {
             @Override
             protected void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull ExampleParticipant participant) {
@@ -135,6 +130,11 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
     @Override
     protected void resetAdmin(Player admin) {
         // custom admin resetting
+    }
+    
+    @Override
+    protected @Nullable SpectatorBoundary getSpectatorBoundary() {
+        return config.getSpectatorBoundary();
     }
     
     @Override

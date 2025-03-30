@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.games.game.example.ExampleTeam;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class ExampleState implements GameStateBase<ExampleParticipant, ExampleTeam> {
     
@@ -60,7 +61,8 @@ public abstract class ExampleState implements GameStateBase<ExampleParticipant, 
         Main.logf("Last team member of %s quit", team.getTeamId());
     }
     
-    public void onParticipantMove(PlayerMoveEvent event, ExampleParticipant participant) {
+    @Override
+    public void onParticipantMove(@NotNull PlayerMoveEvent event, @NotNull ExampleParticipant participant) {
         // do nothing
     }
     
