@@ -45,8 +45,8 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
         super(GameType.EXAMPLE, plugin, gameManager, title);
         this.config = config;
         this.topbar = addUIManager(new BasicTopbar());
-        registerListener(new PreventHungerLoss<>(this));
         start(newTeams, newParticipants, newAdmins);
+        registerListener(new PreventHungerLoss<>(this));
     }
     
     @Override

@@ -34,6 +34,7 @@ public class ExampleConfigDTO implements Validatable {
         validator.notNull(Bukkit.getWorld(this.world), "Could not find world \"%s\"", this.world);
         validator.notNull(this.startingLocation, "startingLocation");
         validator.notNull(this.spectatorArea, "spectatorArea");
+        validator.validate(this.spectatorArea.contains(this.startingLocation.toVector()), "spectatorArea must contain startingLocation");
         validator.notNull(this.description, "description");
         validator.notNull(this.scores, "scores");
         this.scores.validate(validator.path("scores"));
@@ -50,17 +51,17 @@ public class ExampleConfigDTO implements Validatable {
                 .description(this.description)
                 .spectatorBoundary(new SpectatorBoundary(this.spectatorArea, locationLocation))
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
-                .jumpScore(this.scores.getJumpScore())
+                .jumpScore(this.scores.getJump())
                 .build();
     }
     
     @Data
     static class Scores implements Validatable {
-        private int jumpScore;
+        private int jump;
         
         @Override
         public void validate(@NotNull Validator validator) {
-            validator.validate(jumpScore >= 0, "jumpScore can't be negative");
+            validator.validate(jump >= 0, "jump can't be negative");
         }
     }
 }
