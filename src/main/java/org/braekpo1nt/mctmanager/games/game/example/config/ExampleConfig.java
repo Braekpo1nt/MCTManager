@@ -17,5 +17,6 @@ public class ExampleConfig {
     private Location startingLocation;
     private Component description;
     private SpectatorBoundary spectatorBoundary;
+    private int jumpScore;
     private List<Material> preventInteractions;
 }

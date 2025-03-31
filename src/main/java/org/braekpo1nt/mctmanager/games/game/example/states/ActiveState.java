@@ -37,6 +37,7 @@ public class ActiveState extends ExampleState {
         if (diff < 1) {
             return;
         }
+        context.awardPoints(participant, context.getConfig().getJumpScore());
         Main.logf("%s jumped %d block(s)", participant.getName(), diff);
     }
     

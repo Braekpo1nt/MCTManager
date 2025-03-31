@@ -26,6 +26,7 @@ public class ExampleConfigDTO implements Validatable {
     private BoundingBox spectatorArea;
     private @Nullable List<Material> preventInteractions;
     private Component description;
+    private Scores scores;
     
     @Override
     public void validate(@NotNull Validator validator) {
@@ -34,6 +35,8 @@ public class ExampleConfigDTO implements Validatable {
         validator.notNull(this.startingLocation, "startingLocation");
         validator.notNull(this.spectatorArea, "spectatorArea");
         validator.notNull(this.description, "description");
+        validator.notNull(this.scores, "scores");
+        this.scores.validate(validator.path("scores"));
     }
     
     public ExampleConfig toConfig() {
@@ -47,6 +50,17 @@ public class ExampleConfigDTO implements Validatable {
                 .description(this.description)
                 .spectatorBoundary(new SpectatorBoundary(this.spectatorArea, locationLocation))
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
+                .jumpScore(this.scores.getJumpScore())
                 .build();
+    }
+    
+    @Data
+    static class Scores implements Validatable {
+        private int jumpScore;
+        
+        @Override
+        public void validate(@NotNull Validator validator) {
+            validator.validate(jumpScore >= 0, "jumpScore can't be negative");
+        }
     }
 }
