@@ -83,5 +83,10 @@ public interface GameStateBase<P extends ParticipantData, T extends ScoredTeamDa
      */
     void onParticipantInteract(@NotNull PlayerInteractEvent event, @NotNull P participant);
     
+    /**
+     * <p>State-specific behavior for {@link EntityDamageEvent}. Called by {@link GameBase#onEntityDamage(EntityDamageEvent)} if the triggering entity is also a participant in this game.</p>
+     * @param event the event
+     * @param participant the participant who triggered the event.
+     */
     void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull P participant);
 }
