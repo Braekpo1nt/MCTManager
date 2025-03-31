@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.experimental;
 
 
 import org.braekpo1nt.mctmanager.participant.*;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -62,4 +63,6 @@ public interface GameStateBase<P extends ParticipantData, T extends ScoredTeamDa
     void onParticipantTeleport(@NotNull PlayerTeleportEvent event, @NotNull P participant);
     
     void onParticipantInteract(@NotNull PlayerInteractEvent event, @NotNull P participant);
+    
+    void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull P participant);
 }

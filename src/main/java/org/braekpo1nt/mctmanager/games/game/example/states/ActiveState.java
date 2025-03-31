@@ -41,7 +41,7 @@ public class ActiveState extends ExampleState {
     }
     
     @Override
-    public void onParticipantDamage(EntityDamageEvent event, ExampleParticipant participant) {
+    public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull ExampleParticipant participant) {
         // do nothing
         Main.logf("%s was damaged %s", participant.getName(), event.getDamage());
     }

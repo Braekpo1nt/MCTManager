@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.*;
 import org.braekpo1nt.mctmanager.ui.UIManager;
@@ -23,6 +24,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -605,6 +607,25 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @return true if interactions with the given block type should be prevented, false if they should be allowed. 
      */
     protected abstract boolean shouldPreventInteractions(@NotNull Material type);
+    
+    /**
+     * <p>Default behavior for {@link EntityDamageEvent}. If the entity is a participant in 
+     * this game, the event and participant is passed to 
+     * {@link GameStateBase#onParticipantDamage(EntityDamageEvent, ParticipantData)}. 
+     * Otherwise it is ignored.</p>
+     * @param event the event
+     */
+    @EventHandler
+    public void onEntityDamage(EntityDamageEvent event) {
+        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
+            return;
+        }
+        P participant = participants.get(event.getEntity().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        state.onParticipantDamage(event, participant);
+    }
     
     /**
      * Convenience method to send the same message to all participants and admins

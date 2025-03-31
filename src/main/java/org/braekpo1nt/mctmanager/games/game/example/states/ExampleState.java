@@ -68,7 +68,8 @@ public abstract class ExampleState implements GameStateBase<ExampleParticipant, 
         // do nothing
     }
     
-    public void onParticipantDamage(EntityDamageEvent event, ExampleParticipant participant) {
+    @Override
+    public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull ExampleParticipant participant) {
         Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "ExampleState.onPlayerDamage()");
         event.setCancelled(true);
     }
