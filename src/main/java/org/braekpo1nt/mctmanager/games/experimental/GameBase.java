@@ -596,6 +596,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
         Block clickedBlock = event.getClickedBlock();
         if (clickedBlock != null && shouldPreventInteractions(clickedBlock.getType())) {
+            // TODO: Use the event.setUseInteractedBlock(Result) method instead, and don't fail out. Adjust javadoc (including state javadoc)
             event.setCancelled(true);
             return;
         }

@@ -58,10 +58,29 @@ public interface GameStateBase<P extends ParticipantData, T extends ScoredTeamDa
     void onTeamQuit(T team);
     
     // Listeners
+    
+    /**
+     * <p>State-specific behavior for {@link PlayerMoveEvent}. Called by {@link GameBase#playerMoveEvent(PlayerMoveEvent)}.</p>
+     * <p>This is called before spectator management.</p>
+     * @param event the event
+     * @param participant the participant who triggered the event.
+     */
     void onParticipantMove(@NotNull PlayerMoveEvent event, @NotNull P participant);
     
+    /**
+     * <p>State-specific behavior for {@link PlayerTeleportEvent}. Called by {@link GameBase#onPlayerTeleport(PlayerTeleportEvent)}.</p>
+     * <p>This is called before spectator management.</p>
+     * @param event the event
+     * @param participant the participant who triggered the event.
+     */
     void onParticipantTeleport(@NotNull PlayerTeleportEvent event, @NotNull P participant);
     
+    /**
+     * <p>State-specific behavior for {@link PlayerInteractEvent}. Called by {@link GameBase#onPlayerInteract(PlayerInteractEvent)}.</p>
+     * <p>This is called after a check to see if the interacted block should be prevented.</p>
+     * @param event the event
+     * @param participant the participant who triggered the event.
+     */
     void onParticipantInteract(@NotNull PlayerInteractEvent event, @NotNull P participant);
     
     void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull P participant);
