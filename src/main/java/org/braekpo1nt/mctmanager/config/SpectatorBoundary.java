@@ -8,6 +8,9 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Represents the boundary that spectators must stay in during a game
+ */
 @AllArgsConstructor
 public class SpectatorBoundary {
     
