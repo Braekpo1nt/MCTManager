@@ -6,7 +6,7 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.experimental.ParticipantDamageListener;
+import org.braekpo1nt.mctmanager.games.experimental.PreventHungerLoss;
 import org.braekpo1nt.mctmanager.games.experimental.GameBase;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.example.config.ExampleConfig;
@@ -18,7 +18,6 @@ import org.braekpo1nt.mctmanager.ui.topbar.BasicTopbar;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,12 +46,7 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
         super(GameType.EXAMPLE, plugin, gameManager, title);
         this.config = config;
         this.topbar = addUIManager(new BasicTopbar());
-        registerListener(new ParticipantDamageListener<>(this) {
-            @Override
-            protected void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull ExampleParticipant participant) {
-                state.onParticipantDamage(event, participant);
-            }
-        });
+        registerListener(new PreventHungerLoss<>(this));
         start(newTeams, newParticipants, newAdmins);
     }
     
