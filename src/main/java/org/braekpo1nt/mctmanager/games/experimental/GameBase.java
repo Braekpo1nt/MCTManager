@@ -523,6 +523,40 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     // Sidebar end
     
+    // Award Points start
+    
+    /**
+     * <p>Award the given points to the given participant. The points will be multiplied by 
+     * {@link GameManager#getMultiplier()} before being awarded, and points will be reflected 
+     * in the participant's team as well.</p>
+     * <p>{@link #sidebar} will also be updated to reflect the score. </p>
+     * @param participant the participant to be awarded personal points
+     * @param points the points to be awarded (un-multiplied, base points)
+     */
+    public void awardPoints(P participant, int points) {
+        int multiplied = (int) (points * gameManager.getMultiplier());
+        participant.awardPoints(multiplied);
+        T team = teams.get(participant.getTeamId());
+        team.addPoints(multiplied);
+        displayScore(participant);
+        displayScore(team);
+    }
+    
+    /**
+     * <p>Award the given points to the given team. The points will be multiplied by 
+     * {@link GameManager#getMultiplier()} before being awarded.</p>
+     * <p>{@link #sidebar} will also be updated to reflect the score</p>
+     * @param team the team to award the points to
+     * @param points the points to be awarded (un-multiplied, base points)
+     */
+    public void awardPoints(T team, int points) {
+        int multiplied = (int) (points * gameManager.getMultiplier());
+        team.awardPoints(multiplied);
+        displayScore(team);
+    }
+    // Award Points end
+    
+    // EventHandlers start
     /**
      * <p>The default behavior for {@link PlayerMoveEvent}s. Checks if the triggering player is 
      * a participant in this game, and if so passes the event (and the participant) to the 
@@ -627,6 +661,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
         state.onParticipantDamage(event, participant);
     }
+    // EventHandlers end
     
     /**
      * Convenience method to send the same message to all participants and admins

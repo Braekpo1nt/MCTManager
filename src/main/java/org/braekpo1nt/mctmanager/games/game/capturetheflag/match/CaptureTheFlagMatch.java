@@ -348,6 +348,8 @@ public class CaptureTheFlagMatch {
     }
     
     public void syncScores(CTFMatchParticipant participant) {
+        // TODO: does this need to include parentContext.displayScore(ctfTeam)?
+        // TODO: see MatchActiveState.onParticipantGetKill()
         CTFParticipant ctfParticipant = parentContext.getParticipants().get(participant.getUniqueId());
         ctfParticipant.setScore(participant.getScore());
         parentContext.displayScore(ctfParticipant);

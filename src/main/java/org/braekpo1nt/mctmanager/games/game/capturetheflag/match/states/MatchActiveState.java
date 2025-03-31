@@ -152,6 +152,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
             context.syncScores(context.getSouthTeam());
         }
         context.syncScores(killer);
+        // TODO: does this need to also include context.syncScores(team)?
     }
     
     @Override
