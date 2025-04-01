@@ -173,12 +173,13 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     
     // cleanup start
     @Override
-    public void stop() {
+    // TODO: remove final
+    public final void stop() {
         // TODO: make sure everything is cleared, all fields etc.
         HandlerList.unregisterAll(this);
         listeners.forEach(GameListener::unregister);
         listeners.clear();
-        _cancelAllTasks();
+        timerManager.cancel();
         state.cleanup();
         saveScores();
         for (P participant : participants.values()) {
@@ -188,12 +189,12 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         quitDatas.clear();
         teams.clear();
         teamQuitDatas.clear();
-        uiManagers.forEach(UIManager::clear);
-        uiManagers.clear();
         // admins start
         for (Player admin : admins) {
             _resetAdmin(admin);
         }
+        uiManagers.forEach(UIManager::cleanup);
+        uiManagers.clear();
         adminSidebar.deleteAllLines();
         admins.clear();
         // admins end
@@ -203,7 +204,10 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         Main.logger().info("Stopping " + type.getTitle());
     }
     
-    private void saveScores() {
+    /**
+     * Save the scores of the participants
+     */
+    protected final void saveScores() {
         Map<String, Integer> teamScores = new HashMap<>();
         Map<UUID, Integer> participantScores = new HashMap<>();
         for (T team : teams.values()) {
@@ -215,21 +219,12 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         for (String teamId : teamQuitDatas.keySet()) {
             teamScores.put(teamId, teamQuitDatas.get(teamId).getScore());
         }
+        // TODO: differentiate between ParticipantID for players who left one team and joined another, and earned scores on both teams
         for (ParticipantID pid : quitDatas.keySet()) {
             participantScores.put(pid.uuid(), quitDatas.get(pid).getScore());
         }
         gameManager.addScores(teamScores, participantScores);
     }
-    
-    private void _cancelAllTasks() {
-        timerManager.cancel();
-        cancelAllTasks();
-    }
-    
-    /**
-     * <p>Cancel any scheduled tasks, such as {@link org.bukkit.scheduler.BukkitTask}s</p>
-     */
-    protected abstract void cancelAllTasks();
     
     /**
      * <p>Cleanup tasks for the end of the game</p>
@@ -335,16 +330,23 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param team the participant's team
      */
     protected abstract void resetParticipant(P participant, T team);
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public @Nullable P getParticipant(@NotNull UUID uuid) {
+        return participants.get(uuid);
+    }
     // Participant end
     
     // quit/join start
-    
     /**
      * {@inheritDoc}
      */
     @Deprecated
     @Override
-    public void onParticipantJoin(Participant participant, Team team) {
+    public final void onParticipantJoin(Participant participant, Team team) {
         onTeamJoin(team);
         onParticipantJoin(participant);
     }
@@ -354,13 +356,14 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      */
     @Deprecated
     @Override
-    public void onParticipantQuit(UUID participantUUID, String teamId) {
+    public final void onParticipantQuit(UUID participantUUID, String teamId) {
         onParticipantQuit(participantUUID);
         onTeamQuit(teamId);
     }
     
     @Override
-    public void onTeamJoin(Team newTeam) {
+    // TODO: remove final
+    public final void onTeamJoin(Team newTeam) {
         if (teams.containsKey(newTeam.getTeamId())) {
             return;
         }
@@ -377,7 +380,8 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     @Override
-    public void onParticipantJoin(Participant newParticipant) {
+    // TODO: remove final
+    public final void onParticipantJoin(Participant newParticipant) {
         T team = teams.get(newParticipant.getTeamId());
         QP quitData = quitDatas.get(newParticipant.getParticipantID());
         newParticipant.setGameMode(GameMode.ADVENTURE);
@@ -401,7 +405,8 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     @Override
-    public void onParticipantQuit(UUID participantUUID) {
+    // TODO: remove final
+    public final void onParticipantQuit(UUID participantUUID) {
         P participant = participants.remove(participantUUID);
         if (participant == null) {
             return;
@@ -413,7 +418,8 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     @Override
-    public void onTeamQuit(String teamId) {
+    // TODO: remove final
+    public final void onTeamQuit(String teamId) {
         T team = teams.get(teamId);
         if (team.size() > 0) {
             return;
@@ -440,6 +446,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         adminSidebar.addPlayer(admin);
         admin.setGameMode(GameMode.SPECTATOR);
         initializeAdmin(admin);
+        // TODO: add admins to uiManagers
     }
     
     /**
@@ -465,6 +472,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     private void _resetAdmin(Player admin) {
         adminSidebar.removePlayer(admin);
         resetAdmin(admin);
+        // TODO: remove admins from uiManagers
     }
     
     /**
@@ -480,6 +488,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     @Override
+    // TODO: remove final
     public void onAdminQuit(Player admin) {
         _resetAdmin(admin);
         admins.remove(admin);
@@ -585,7 +594,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param event the event
      */
     @EventHandler
-    public void playerMoveEvent(PlayerMoveEvent event) {
+    public void onPlayerMove(PlayerMoveEvent event) {
         P participant = participants.get(event.getPlayer().getUniqueId());
         if (participant == null) {
             return;
@@ -694,6 +703,8 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     // helping with migration start
+    // TODO: remove these methods once all games extend GameBase
+    
     @Deprecated
     public final void resetParticipant(Participant participant) {
         throw new UnsupportedOperationException("don't use this");
@@ -701,6 +712,22 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     
     @Deprecated
     public final void initializeParticipant(Participant participant) {
+        throw new UnsupportedOperationException("don't use this");
+    }
+    
+    /**
+     * @deprecated put what was in here in {@link #cleanup()}, excluding UIManager clears and sidebar.deleteAllLines
+     */
+    @Deprecated
+    protected void clearSidebar() {
+        throw new UnsupportedOperationException("don't use this");
+    }
+    
+    /**
+     * @deprecated this doesn't need to be implemented, games can perform all cleanup operations in their {@link GameStateBase#cleanup()} and {@link #cleanup()} methods
+     */
+    @Deprecated
+    protected final void cancelAllTasks() {
         throw new UnsupportedOperationException("don't use this");
     }
     // helping with migration end

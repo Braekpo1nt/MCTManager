@@ -60,7 +60,7 @@ public interface GameStateBase<P extends ParticipantData, T extends ScoredTeamDa
     // Listeners
     
     /**
-     * <p>State-specific behavior for {@link PlayerMoveEvent}. Called by {@link GameBase#playerMoveEvent(PlayerMoveEvent)}.</p>
+     * <p>State-specific behavior for {@link PlayerMoveEvent}. Called by {@link GameBase#onPlayerMove(PlayerMoveEvent)}.</p>
      * <p>This is called before spectator management.</p>
      * @param event the event
      * @param participant the participant who triggered the event.
