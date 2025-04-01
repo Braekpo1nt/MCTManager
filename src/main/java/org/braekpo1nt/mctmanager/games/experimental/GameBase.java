@@ -73,7 +73,8 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             @NotNull GameType type,
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
-            @NotNull Component title) {
+            @NotNull Component title,
+            @NotNull S initialState) {
         this.type = type;
         this.plugin = plugin;
         this.gameManager = gameManager;
@@ -88,6 +89,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         this.timerManager = gameManager.getTimerManager().register(new TimerManager(plugin));
         this.admins = new ArrayList<>();
         this.listeners = new ArrayList<>();
+        this.state = initialState;
     }
     
     /**
@@ -110,6 +112,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param newAdmins the admins going into the game
      */
     protected void start(@NotNull Collection<Team> newTeams, @NotNull Collection<Participant> newParticipants, @NotNull List<Player> newAdmins) {
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Team newTeam : newTeams) {
             T team = createTeam(newTeam);
             teams.put(team.getTeamId(), team);
@@ -133,7 +136,6 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
         _initializeAdminSidebar();
         // admin end
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.state = getStartState();
     }
     

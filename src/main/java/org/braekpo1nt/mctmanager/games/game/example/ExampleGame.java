@@ -42,11 +42,13 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
      * @param newAdmins       the admins
      */
     public ExampleGame(@NotNull Main plugin, @NotNull GameManager gameManager, @NotNull Component title, @NotNull ExampleConfig config, @NotNull Collection<Team> newTeams, @NotNull Collection<Participant> newParticipants, @NotNull List<Player> newAdmins) {
-        super(GameType.EXAMPLE, plugin, gameManager, title);
+        super(GameType.EXAMPLE, plugin, gameManager, title, new ExampleState(null) {
+            // do nothing
+        });
         this.config = config;
         this.topbar = addUIManager(new BasicTopbar());
-        start(newTeams, newParticipants, newAdmins);
         registerListener(new PreventHungerLoss<>(this));
+        start(newTeams, newParticipants, newAdmins);
     }
     
     @Override
