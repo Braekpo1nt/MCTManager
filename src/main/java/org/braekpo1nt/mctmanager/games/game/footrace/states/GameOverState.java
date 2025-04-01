@@ -13,11 +13,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class GameOverState extends FootRaceStateBase {
     
-    private final @NotNull FootRaceGame context;
-    
     public GameOverState(@NotNull FootRaceGame context) {
         super(context);
-        this.context = context;
         Audience.audience(context.getParticipants().values()).showTitle(UIUtils.gameOverTitle());
         context.getSidebar().addLine("over", Component.empty());
         context.getAdminSidebar().addLine("over", Component.empty());
@@ -33,31 +30,4 @@ public class GameOverState extends FootRaceStateBase {
                 .build());
     }
     
-    @Override
-    public void onParticipantJoin(Participant newParticipant, Team team) {
-        // do nothing
-    }
-    
-    @Override
-    public void onParticipantQuit(FootRaceParticipant participant, FootRaceTeam team) {
-        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
-        resetParticipant(participant);
-        context.getParticipants().remove(participant.getUniqueId());
-        context.onTeamQuit(team);
-    }
-    
-    @Override
-    public void initializeParticipant(Participant participant) {
-        context.initializeParticipant(participant);
-    }
-    
-    @Override
-    public void resetParticipant(FootRaceParticipant participant) {
-        context.resetParticipant(participant);
-    }
-    
-    @Override
-    public void onParticipantMove(FootRaceParticipant participant) {
-        // do nothing
-    }
 }

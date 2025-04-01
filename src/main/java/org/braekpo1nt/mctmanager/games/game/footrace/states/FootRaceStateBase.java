@@ -56,6 +56,12 @@ public abstract class FootRaceStateBase implements FootRaceState {
         context.giveBoots(participant);
         context.updateStandings();
         context.displayStandings();
+        context.getSidebar().updateLine(participant.getUniqueId(), "lap",
+                Component.empty()
+                        .append(Component.text("Lap: "))
+                        .append(Component.text(participant.getLap()))
+                        .append(Component.text("/"))
+                        .append(Component.text(context.getConfig().getLaps())));
     }
     
     @Override
