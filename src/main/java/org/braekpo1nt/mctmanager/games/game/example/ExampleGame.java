@@ -60,11 +60,6 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
     }
     
     @Override
-    protected void cancelAllTasks() {
-        // cancel BukkitTasks here
-    }
-    
-    @Override
     protected void cleanup() {
         // custom stop code
     }
@@ -148,8 +143,4 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
         sidebar.addLine("timer", Component.empty());
     }
     
-    @Override
-    public ExampleParticipant getParticipant(UUID uuid) {
-        return participants.get(uuid);
-    }
 }
