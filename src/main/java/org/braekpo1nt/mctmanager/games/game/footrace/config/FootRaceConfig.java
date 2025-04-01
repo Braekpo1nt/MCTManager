@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.footrace.config;
 import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -34,7 +35,7 @@ public class FootRaceConfig {
      * pass through all of these in order to be considered a lap.
      */
     private List<BoundingBox> checkpoints;
-    private @Nullable BoundingBox spectatorArea;
+    private @Nullable SpectatorBoundary spectatorBoundary;
     private Component description;
     
 }

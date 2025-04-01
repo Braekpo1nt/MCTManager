@@ -246,16 +246,6 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     /**
-     * <p>Create a participant from the given {@link Participant} and {@link QP} quitData.</p>
-     * <p>Called after setting the participant to the defaults. 
-     * Add additional setup logic here for every time a participant is created, with the given quitData.</p>
-     * @param participant the participant from which to derive the {@link P} type participant
-     * @param quitData the quitData to use in creating the participant
-     * @return the created {@link P} participant
-     */
-    protected abstract P createParticipant(Participant participant, QP quitData);
-    
-    /**
      * <p>Create a participant from the given {@link Participant}.</p>
      * <p>Called after setting the participant to the defaults.
      * Add additional setup logic here for every time a participant is created.</p>
@@ -264,6 +254,16 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @return the created {@link P} participant
      */
     protected abstract P createParticipant(Participant newParticipant);
+    
+    /**
+     * <p>Create a participant from the given {@link Participant} and {@link QP} quitData.</p>
+     * <p>Called after setting the participant to the defaults. 
+     * Add additional setup logic here for every time a participant is created, with the given quitData.</p>
+     * @param participant the participant from which to derive the {@link P} type participant
+     * @param quitData the quitData to use in creating the participant
+     * @return the created {@link P} participant
+     */
+    protected abstract P createParticipant(Participant participant, QP quitData);
     
     /**
      * Create quitData from the given participant
@@ -288,6 +288,14 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     protected abstract void initializeTeam(T team);
     
     /**
+     * Create a new team of type {@link T} from the given {@link Team}
+     *
+     * @param team the team from which to derive the {@link T} type team
+     * @return the created {@link T} team
+     */
+    protected abstract T createTeam(Team team);
+    
+    /**
      * Create a new team of type {@link T} from the given {@link Team} and {@link QT} quitData
      *
      * @param team     the team from which to derive the {@link T} type team
@@ -295,14 +303,6 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @return the created {@link T} team
      */
     protected abstract T createTeam(Team team, QT quitData);
-    
-    /**
-     * Create a new team of type {@link T} from the given {@link Team}
-     *
-     * @param team the team from which to derive the {@link T} type team
-     * @return the created {@link T} team
-     */
-    protected abstract T createTeam(Team team);
     
     /**
      * Create quitData from the given team

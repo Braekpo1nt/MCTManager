@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.config;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -17,6 +18,7 @@ public class SpectatorBoundary {
     /**
      * The bounding box that the spectators should be kept inside
      */
+    @Getter
     private final @NotNull BoundingBox area;
     
     /**

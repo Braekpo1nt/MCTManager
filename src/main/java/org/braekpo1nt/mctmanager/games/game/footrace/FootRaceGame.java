@@ -2,10 +2,10 @@ package org.braekpo1nt.mctmanager.games.game.footrace;
 
 import lombok.Getter;
 import lombok.Setter;
-import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.experimental.GameBase;
 import org.braekpo1nt.mctmanager.games.experimental.PreventHungerLoss;
@@ -15,31 +15,15 @@ import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
 import org.braekpo1nt.mctmanager.games.game.footrace.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.footrace.states.FootRaceState;
 import org.braekpo1nt.mctmanager.games.game.footrace.states.InitialState;
-import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
-import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
-import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
-import org.braekpo1nt.mctmanager.utils.LogType;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
-import org.bukkit.GameMode;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffect;
@@ -48,8 +32,11 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
@@ -230,6 +217,11 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
         giveBoots(participant);
     }
     
+    @Override
+    protected void initializeTeam(FootRaceTeam team) {
+        // do nothing
+    }
+    
     public void giveBoots(Participant participant) {
         Color teamColor = gameManager.getTeam(participant).getBukkitColor();
         ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
@@ -249,6 +241,21 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
     }
     
     @Override
+    protected FootRaceParticipant createParticipant(Participant newParticipant) {
+        return new FootRaceParticipant(newParticipant, 0, 0);
+    }
+    
+    @Override
+    protected FootRaceParticipant createParticipant(Participant participant, FootRaceParticipant.QuitData quitData) {
+        return new FootRaceParticipant(participant, quitData);
+    }
+    
+    @Override
+    protected FootRaceParticipant.QuitData getQuitData(FootRaceParticipant participant) {
+        return participant.getQuitData();
+    }
+    
+    @Override
     protected void resetParticipant(FootRaceParticipant participant, FootRaceTeam team) {
         
     }
@@ -256,6 +263,11 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
     @Override
     protected FootRaceTeam createTeam(Team team) {
         return new FootRaceTeam(team, 0);
+    }
+    
+    @Override
+    protected FootRaceTeam.QuitData getQuitData(FootRaceTeam team) {
+        return team.getQuitData();
     }
     
     @Override
@@ -274,6 +286,11 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
                 new KeyLine("standing4", Component.empty()),
                 new KeyLine("standing5", Component.empty())
         );
+    }
+    
+    @Override
+    protected void resetAdmin(Player admin) {
+        // do nothing
     }
     
     @Override
@@ -301,6 +318,11 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
                 new KeyLine("standing4", Component.empty()),
                 new KeyLine("standing5", Component.empty())
         );
+    }
+    
+    @Override
+    protected @Nullable SpectatorBoundary getSpectatorBoundary() {
+        return config.getSpectatorBoundary();
     }
     
     @Override
