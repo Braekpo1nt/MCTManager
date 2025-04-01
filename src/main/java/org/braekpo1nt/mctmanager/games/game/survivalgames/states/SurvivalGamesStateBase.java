@@ -47,6 +47,11 @@ public abstract class SurvivalGamesStateBase implements SurvivalGamesState {
     }
     
     @Override
+    public void onParticipantQuit(SurvivalGamesParticipant participant, SurvivalGamesTeam team) {
+        // do nothing
+    }
+    
+    @Override
     public void onTeamQuit(SurvivalGamesTeam team) {
         context.getTopbar().removeTeam(team.getTeamId());
     }
@@ -66,8 +71,4 @@ public abstract class SurvivalGamesStateBase implements SurvivalGamesState {
         
     }
     
-    @Override
-    public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull SurvivalGamesParticipant participant) {
-        
-    }
 }

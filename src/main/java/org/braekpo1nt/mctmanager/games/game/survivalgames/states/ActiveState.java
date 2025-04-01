@@ -207,13 +207,11 @@ public class ActiveState extends SurvivalGamesStateBase {
                     DamageSource.builder(DamageType.GENERIC).build(), drops, droppedExp, deathMessage);
             this.onParticipantDeath(fakeDeathEvent);
         }
+        context.getTopbar().unlinkFromTeam(participant.getUniqueId());
     }
     
     @Override
-    public void onPlayerDamage(EntityDamageEvent event) {
-        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
-            return;
-        }
+    public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull SurvivalGamesParticipant participant) {
         if (gracePeriod) {
             Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "SurvivalGames.ActiveState.onPlayerDamage()->invulnerable cancelled");
             event.setCancelled(true);

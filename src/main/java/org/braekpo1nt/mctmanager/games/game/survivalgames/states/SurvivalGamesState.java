@@ -10,6 +10,4 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 
 public interface SurvivalGamesState extends GameStateBase<SurvivalGamesParticipant, SurvivalGamesTeam> {
     void onParticipantDeath(PlayerDeathEvent event);
-    
-    void onPlayerDamage(EntityDamageEvent event);
 }

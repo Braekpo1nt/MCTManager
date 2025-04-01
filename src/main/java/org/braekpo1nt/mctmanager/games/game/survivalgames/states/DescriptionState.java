@@ -15,12 +15,10 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class DescriptionState implements SurvivalGamesState {
-    
-    protected final @NotNull SurvivalGamesGame context;
+public class DescriptionState extends SurvivalGamesStateBase {
     
     public DescriptionState(@NotNull SurvivalGamesGame context) {
-        this.context = context;
+        super(context);
         startTimer();
     }
     
@@ -35,51 +33,26 @@ public class DescriptionState implements SurvivalGamesState {
                 .build());
     }
     
-    private void onTeamJoin(Team team) {
-        if (context.getTeams().containsKey(team.getTeamId())) {
-            return;
-        }
-        context.getTeams().put(team.getTeamId(), new SurvivalGamesTeam(team, 0));
+    @Override
+    public void onNewParticipantJoin(SurvivalGamesParticipant participant, SurvivalGamesTeam team) {
+        super.onNewParticipantJoin(participant, team);
         context.createPlatformsAndTeleportTeams();
-        context.getTopbar().addTeam(team.getTeamId(), team.getColor());
     }
     
     @Override
-    public void onParticipantJoin(Participant participant, Team team) {
-        onTeamJoin(team);
-        context.initializeParticipant(participant);
+    public void onParticipantRejoin(SurvivalGamesParticipant participant, SurvivalGamesTeam team) {
+        super.onParticipantRejoin(participant, team);
         context.createPlatformsAndTeleportTeams();
-        context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
-        context.initializeGlowing(participant);
     }
     
     @Override
-    public void onParticipantQuit(SurvivalGamesParticipant participant) {
-        context.getParticipants().remove(participant.getUniqueId());
-        SurvivalGamesTeam team = context.getTeams().get(participant.getTeamId());
-        context.updateAliveCount(team);
+    public void onParticipantQuit(SurvivalGamesParticipant participant, SurvivalGamesTeam team) {
         context.getTopbar().unlinkFromTeam(participant.getUniqueId());
-        resetParticipant(participant);
-        context.onTeamQuit(context.getTeams().get(participant.getTeamId()));
+        context.updateAliveCount(team);
     }
     
     @Override
-    public void resetParticipant(Participant participant) {
-        context.getTeams().get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
-        ParticipantInitializer.clearInventory(participant);
-        ParticipantInitializer.clearStatusEffects(participant);
-        ParticipantInitializer.resetHealthAndHunger(participant);
-        context.getSidebar().removePlayer(participant.getUniqueId());
-        context.getTopbar().hidePlayer(participant.getUniqueId());
-        context.getGlowManager().removePlayer(participant);
-    }
-    
-    @Override
-    public void onPlayerDamage(EntityDamageEvent event) {
-        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
-            return;
-        }
-        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "SurvivalGames.DescriptionState.onPlayerDamage() cancelled");
+    public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull SurvivalGamesParticipant participant) {
         event.setCancelled(true);
     }
     
