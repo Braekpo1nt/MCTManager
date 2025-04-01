@@ -110,7 +110,9 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     /**
-     * Start the game after all fields have been initialized, and instantiate the initial state.
+     * <p>Call this after all fields have been initialized. 
+     * This initializes all the participants and teams, 
+     * and finally assigns {@link #getStartState()} to {@link #state}.</p>
      * @param newTeams the teams going into the game
      * @param newParticipants the participants going into the game
      * @param newAdmins the admins going into the game
@@ -143,12 +145,21 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         this.state = getStartState();
     }
     
+    /**
+     * Add a new {@link UIManager} to this game
+     * @param uiManager the {@link UIManager} to add
+     * @return the newly added manager, for convenience
+     * @param <U> the type of UIManager you input (so that it can be returned
+     *           as the same type).
+     */
     protected <U extends UIManager> U addUIManager(U uiManager) {
         this.uiManagers.add(uiManager);
         return uiManager;
     }
     
     /**
+     * <p>This will be assigned to {@link #state} at the end of 
+     * {@link #start(Collection, Collection, List)}. This state should kick off the game loop.</p>
      * @return the state to be instantiated after initialization
      */
     protected abstract @NotNull S getStartState();
@@ -470,11 +481,9 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         _resetAdmin(admin);
         admins.remove(admin);
     }
-    
     // admin end
     
     // Sidebar start
-    
     /**
      * Add the appropriate default lines to the sidebar
      * and display the participant and team scores
@@ -636,7 +645,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
         Block clickedBlock = event.getClickedBlock();
         if (clickedBlock != null && shouldPreventInteractions(clickedBlock.getType())) {
-            // TODO: Use the event.setUseInteractedBlock(Result) method instead, and don't fail out. Adjust javadoc (including state javadoc)
+            // TODO: Use the event.setUseInteractedBlock(Result) method instead, and don't return. Adjust javadoc (including state javadoc)
             event.setCancelled(true);
             return;
         }
