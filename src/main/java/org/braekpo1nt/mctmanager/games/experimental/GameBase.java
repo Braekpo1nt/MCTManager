@@ -68,6 +68,10 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param plugin the plugin
      * @param gameManager the GameManager
      * @param title the game's initial title, displayed in the sidebar
+     * @param initialState the initialization state, should not contain any game functionality.
+     *                     The state must never be null, so this is what the state should be
+     *                     as the game is being initialized to prevent null-pointer
+     *                     exceptions. 
      */
     public GameBase(
             @NotNull GameType type,

@@ -5,7 +5,7 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.example.ExampleGame;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 
-public class DescriptionSate extends ExampleState{
+public class DescriptionSate extends ExampleStateBase {
     public DescriptionSate(ExampleGame context) {
         super(context);
         Audience audience = Audience.audience(

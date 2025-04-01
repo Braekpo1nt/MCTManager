@@ -5,7 +5,7 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.example.ExampleGame;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 
-public class GameOverState extends ExampleState {
+public class GameOverState extends ExampleStateBase {
     public GameOverState(ExampleGame context) {
         super(context);
         Audience.audience(

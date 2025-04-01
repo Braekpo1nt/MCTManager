@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.example.config.ExampleConfig;
 import org.braekpo1nt.mctmanager.games.game.example.states.DescriptionSate;
 import org.braekpo1nt.mctmanager.games.game.example.states.ExampleState;
+import org.braekpo1nt.mctmanager.games.game.example.states.InitialState;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.topbar.BasicTopbar;
@@ -42,9 +43,7 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
      * @param newAdmins       the admins
      */
     public ExampleGame(@NotNull Main plugin, @NotNull GameManager gameManager, @NotNull Component title, @NotNull ExampleConfig config, @NotNull Collection<Team> newTeams, @NotNull Collection<Participant> newParticipants, @NotNull List<Player> newAdmins) {
-        super(GameType.EXAMPLE, plugin, gameManager, title, new ExampleState(null) {
-            // do nothing
-        });
+        super(GameType.EXAMPLE, plugin, gameManager, title, new InitialState());
         this.config = config;
         this.topbar = addUIManager(new BasicTopbar());
         registerListener(new PreventHungerLoss<>(this));

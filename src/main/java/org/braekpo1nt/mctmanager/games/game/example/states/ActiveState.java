@@ -10,7 +10,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class ActiveState extends ExampleState {
+public class ActiveState extends ExampleStateBase {
     public ActiveState(ExampleGame context) {
         super(context);
         Audience.audience(
