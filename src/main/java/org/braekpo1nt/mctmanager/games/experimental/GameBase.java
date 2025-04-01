@@ -97,15 +97,12 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     /**
-     * <p>Register a new {@link GameListener}. This will be unregistered on {@link #stop()}
-     * automatically.</p>
-     * <p>This flexibility allows you to register new listeners as your game progresses.
-     * To unregister listeners simply retain a reference to your {@link GameListener}
-     * instance to call {@link GameListener#unregister()}</p>
+     * <p>Add a new {@link GameListener} component to this game.
+     * This will be registered on {@link #start(Collection, Collection, List)},
+     * and will be unregistered on {@link #stop()}.</p>
      * @param listener the listener to register
      */
-    public void registerListener(GameListener<P> listener) {
-        listener.register(plugin);
+    public void addListener(GameListener<P> listener) {
         this.listeners.add(listener);
     }
     
@@ -119,6 +116,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      */
     protected void start(@NotNull Collection<Team> newTeams, @NotNull Collection<Participant> newParticipants, @NotNull List<Player> newAdmins) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        listeners.forEach(listener -> listener.register(plugin));
         for (Team newTeam : newTeams) {
             T team = createTeam(newTeam);
             teams.put(team.getTeamId(), team);

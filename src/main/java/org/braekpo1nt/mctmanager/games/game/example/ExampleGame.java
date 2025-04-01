@@ -48,8 +48,8 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
         super(GameType.EXAMPLE, plugin, gameManager, title, new InitialState());
         this.config = config;
         this.topbar = addUIManager(new BasicTopbar());
-        registerListener(new PreventHungerLoss<>(this));
-        registerListener(new PreventItemDrop<>(this, true));
+        addListener(new PreventHungerLoss<>(this));
+        addListener(new PreventItemDrop<>(this, true));
         start(newTeams, newParticipants, newAdmins);
     }
     
