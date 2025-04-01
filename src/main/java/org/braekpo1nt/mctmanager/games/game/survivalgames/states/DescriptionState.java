@@ -46,6 +46,12 @@ public class DescriptionState extends SurvivalGamesStateBase {
     }
     
     @Override
+    public void onTeamQuit(SurvivalGamesTeam team) {
+        context.createPlatformsAndTeleportTeams();
+        super.onTeamQuit(team);
+    }
+    
+    @Override
     public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull SurvivalGamesParticipant participant) {
         event.setCancelled(true);
     }

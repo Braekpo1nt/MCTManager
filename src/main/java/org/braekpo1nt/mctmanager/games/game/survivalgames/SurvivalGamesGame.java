@@ -71,11 +71,14 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
         worldBorder = config.getWorld().getWorldBorder();
         glowManager.registerListeners();
         fillAllChests();
-        createPlatformsAndTeleportTeams();
         setUpTeamOptions();
         initializeGlowManager();
-        initializeWorldBorder();
         start(newTeams, newParticipants, newAdmins);
+        for (SurvivalGamesTeam team : teams.values()) {
+            updateAliveCount(team);
+        }
+        initializeWorldBorder();
+        createPlatformsAndTeleportTeams();
         Main.logger().info("Started Survival Games");
     }
     
@@ -313,7 +316,6 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     @Override
     protected void initializeParticipant(SurvivalGamesParticipant participant, SurvivalGamesTeam team) {
         topbar.linkToTeam(participant.getUniqueId(), participant.getTeamId());
-        updateAliveCount(team);
         initializeKillCount(participant);
     }
     
@@ -339,7 +341,7 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     
     @Override
     protected void resetParticipant(SurvivalGamesParticipant participant, SurvivalGamesTeam team) {
-        topbar.unlinkFromTeam(participant.getUniqueId());
+        // do nothing
     }
     
     private void clearFloorItems() {

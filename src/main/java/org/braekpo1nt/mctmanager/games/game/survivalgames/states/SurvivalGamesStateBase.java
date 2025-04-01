@@ -3,7 +3,6 @@ package org.braekpo1nt.mctmanager.games.game.survivalgames.states;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesParticipant;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesTeam;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -36,6 +35,7 @@ public abstract class SurvivalGamesStateBase implements SurvivalGamesState {
     public void onParticipantRejoin(SurvivalGamesParticipant participant, SurvivalGamesTeam team) {
         context.getTopbar().linkToTeam(participant.getUniqueId(), participant.getTeamId());
         context.initializeKillCount(participant);
+        context.updateAliveCount(team);
         context.initializeGlowing(participant);
     }
     
@@ -43,6 +43,7 @@ public abstract class SurvivalGamesStateBase implements SurvivalGamesState {
     public void onNewParticipantJoin(SurvivalGamesParticipant participant, SurvivalGamesTeam team) {
         context.getTopbar().linkToTeam(participant.getUniqueId(), participant.getTeamId());
         context.initializeKillCount(participant);
+        context.updateAliveCount(team);
         context.initializeGlowing(participant);
     }
     
