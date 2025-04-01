@@ -19,6 +19,8 @@ public class DescriptionSate extends ExampleStateBase {
                 .duration(10)
                 .withSidebar(context.getSidebar(), "timer")
                 .withSidebar(context.getAdminSidebar(), "timer")
+                .withTopbar(context.getTopbar())
+                .topbarPrefix(Component.text("Starting in: "))
                 .sidebarPrefix(Component.text("Starting in: "))
                 .onCompletion(() -> {
                     context.setState(new ActiveState(context));

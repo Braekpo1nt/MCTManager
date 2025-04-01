@@ -13,7 +13,6 @@ import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.LogType;
-import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -581,7 +580,7 @@ public class VoteManager implements Listener {
         ));
         farmRush.setItemMeta(farmRushMeta);
         
-        Inventory newGui = Bukkit.createInventory(null, 9, TITLE);
+        Inventory newGui = plugin.getServer().createInventory(null, 9, TITLE);
         Map<GameType, ItemStack> votingItems = new HashMap<>();
         votingItems.put(GameType.FOOT_RACE, footRace);
         votingItems.put(GameType.SURVIVAL_GAMES, survivalGames);
@@ -595,6 +594,18 @@ public class VoteManager implements Listener {
             newGui.addItem(votingItems.get(mctGame));
         }
         participant.openInventory(newGui);
+    }
+    
+    public static List<String> votableGameIds() {
+        return List.of(
+                GameType.FOOT_RACE.getId(),
+                GameType.SURVIVAL_GAMES.getId(),
+                GameType.CAPTURE_THE_FLAG.getId(),
+                GameType.SPLEEF.getId(),
+                GameType.PARKOUR_PATHWAY.getId(),
+                GameType.CLOCKWORK.getId(),
+                GameType.FARM_RUSH.getId()
+        );
     }
     
     private void messageAllVoters(Component message) {
