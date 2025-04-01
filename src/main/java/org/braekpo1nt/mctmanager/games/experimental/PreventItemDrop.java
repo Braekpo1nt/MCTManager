@@ -7,10 +7,21 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Prevent items from being dropped out of participant's inventories, either
+ * by pressing the Q button or clicking and dragging out of the inventory edges.
+ * Optionally also prevents participants from removing their armor. 
+ * @param <P>
+ */
 public class PreventItemDrop<P> extends GameListener<P> {
     
     private final boolean stickyArmor;
     
+    /**
+     * @param gameData the gameData containing the participant list
+     * @param stickyArmor true if players should be unable to remove their armor,
+     *                    false otherwise.
+     */
     public PreventItemDrop(@NotNull GameData<P> gameData, boolean stickyArmor) {
         super(gameData);
         this.stickyArmor = stickyArmor;

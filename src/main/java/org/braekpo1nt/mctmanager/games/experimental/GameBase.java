@@ -100,6 +100,8 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * <p>Add a new {@link GameListener} component to this game.
      * This will be registered on {@link #start(Collection, Collection, List)},
      * and will be unregistered on {@link #stop()}.</p>
+     * <p>Note: Calling after {@link #start(Collection, Collection, List)} 
+     * won't register the listener.</p>
      * @param listener the listener to register
      */
     public void addListener(GameListener<P> listener) {
