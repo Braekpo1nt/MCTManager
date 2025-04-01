@@ -596,7 +596,7 @@ public class GameManager implements Listener {
         Map<UUID, Player> onlinePlayers = plugin.getServer().getOnlinePlayers().stream()
                 .collect(Collectors.toMap(Player::getUniqueId, Function.identity()));
         // TabList start
-        tabList.clear();
+        tabList.cleanup();
         for (MCTTeam team : teams.values()) {
             int teamScore = gameStateStorageUtil.getTeamScore(team.getTeamId());
             tabList.addTeam(team.getTeamId(), team.getDisplayName(), team.getColor());
