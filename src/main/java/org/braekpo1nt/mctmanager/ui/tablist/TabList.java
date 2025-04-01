@@ -450,6 +450,7 @@ public class TabList implements UIManager {
      * Remove all teams, remove all participants, remove all viewing players, clear all viewing players'
      * tab headers. 
      */
+    @Override
     public void clear() {
         teamDatas.clear();
         participantDatas.clear();

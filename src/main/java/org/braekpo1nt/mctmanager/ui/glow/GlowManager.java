@@ -125,6 +125,7 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
         PacketEvents.getAPI().getEventManager().unregisterListener(this);
     }
     
+    @Override
     public void clear() {
         for (PlayerData playerData : playerDatas.values()) {
             Player target = playerData.getPlayer();

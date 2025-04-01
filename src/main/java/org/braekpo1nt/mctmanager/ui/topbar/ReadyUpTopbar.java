@@ -72,7 +72,9 @@ public class ReadyUpTopbar implements Topbar {
     
     /**
      * Removes all teams from this Topbar
+     * @deprecated use {@link #clear()}
      */
+    @Deprecated
     public void removeAllTeams() {
         teamsReadyUpComponent.removeAllTeams();
         update();
@@ -104,6 +106,12 @@ public class ReadyUpTopbar implements Topbar {
         update(newPlayerData);
     }
     
+    @Override
+    public void clear() {
+        removeAllTeams();
+        hideAllPlayers();
+    }
+    
     /**
      * {@inheritDoc}
      */
@@ -129,7 +137,9 @@ public class ReadyUpTopbar implements Topbar {
     
     /**
      * {@inheritDoc}
+     * @deprecated use {@link #clear()}
      */
+    @Deprecated
     @Override
     public void hideAllPlayers() {
         for (PlayerData playerData : playerDatas.values()) {

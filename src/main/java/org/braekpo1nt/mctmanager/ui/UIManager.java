@@ -18,4 +18,6 @@ public interface UIManager {
     
     void hidePlayer(@NotNull Player player);
     
+    void clear();
+    
 }

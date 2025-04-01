@@ -187,7 +187,9 @@ public class BattleTopbar implements Topbar {
     /**
      * Removes all the team pairs from this Topbar, and unlinks all
      * players from their teamIds
+     * @deprecated use {@link #clear()}
      */
+    @Deprecated
     public void removeAllTeamPairs() {
         teamDatas.clear();
         allBattles.clear();
@@ -285,6 +287,12 @@ public class BattleTopbar implements Topbar {
         update(playerData);
     }
     
+    @Override
+    public void clear() {
+        hideAllPlayers();
+        removeAllTeamPairs();
+    }
+    
     /**
      * Link the given player to the given team, so that they are viewing the appropriate
      * components in their BossBar ui and so that they are updated when values relating to 
@@ -368,6 +376,10 @@ public class BattleTopbar implements Topbar {
         }
     }
     
+    /**
+     * @deprecated use {@link #clear()}
+     */
+    @Deprecated
     public void hideAllPlayers() {
         for (PlayerData playerData : playerDatas.values()) {
             playerData.getBossBar().hide();

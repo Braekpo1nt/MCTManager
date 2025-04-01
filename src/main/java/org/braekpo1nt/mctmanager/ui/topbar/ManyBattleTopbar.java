@@ -133,7 +133,9 @@ public class ManyBattleTopbar implements Topbar {
     /**
      * Removes all the teams from this Topbar, and unlinks all players from 
      * their teamIds
+     * @deprecated use {@link #clear()}
      */
+    @Deprecated
     public void removeAllTeams() {
         teamDatas.clear();
         for (PlayerData playerData : playerDatas.values()) {
@@ -241,6 +243,12 @@ public class ManyBattleTopbar implements Topbar {
         update(playerData);
     }
     
+    @Override
+    public void clear() {
+        hideAllPlayers();
+        removeAllTeams();
+    }
+    
     /**
      * Make the given player no longer see this BattleTopbar
      * @param playerUUID the UUID of the player to hide
@@ -270,6 +278,10 @@ public class ManyBattleTopbar implements Topbar {
         }
     }
     
+    /**
+     * @deprecated use {@link #clear()}
+     */
+    @Deprecated
     public void hideAllPlayers() {
         for (PlayerData playerData : playerDatas.values()) {
             playerData.getBossBar().hide();
