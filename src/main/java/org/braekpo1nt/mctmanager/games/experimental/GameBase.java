@@ -174,6 +174,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     // cleanup start
     @Override
     public void stop() {
+        // TODO: make sure everything is cleared, all fields etc.
         HandlerList.unregisterAll(this);
         listeners.forEach(GameListener::unregister);
         listeners.clear();
@@ -187,6 +188,8 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         quitDatas.clear();
         teams.clear();
         teamQuitDatas.clear();
+        uiManagers.forEach(UIManager::clear);
+        uiManagers.clear();
         // admins start
         for (Player admin : admins) {
             _resetAdmin(admin);
@@ -262,10 +265,10 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * <p>Called after setting the participant to the defaults.
      * Add additional setup logic here for every time a participant is created.</p>
      *
-     * @param fromParticipant the participant from which to derive the {@link P} type participant
+     * @param newParticipant the participant from which to derive the {@link P} type participant
      * @return the created {@link P} participant
      */
-    protected abstract P createParticipant(Participant fromParticipant);
+    protected abstract P createParticipant(Participant newParticipant);
     
     /**
      * Create quitData from the given participant
@@ -682,10 +685,23 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * Convenience method to send the same message to all participants and admins
      * @param message the message to send
      */
-    public void messageAllParticipants(@NotNull Component message) {
+    // TODO: remove final
+    public final void messageAllParticipants(@NotNull Component message) {
         Audience.audience(
                 Audience.audience(admins),
                 Audience.audience(participants.values())
         ).sendMessage(message);
     }
+    
+    // helping with migration start
+    @Deprecated
+    public final void resetParticipant(Participant participant) {
+        throw new UnsupportedOperationException("don't use this");
+    }
+    
+    @Deprecated
+    public final void initializeParticipant(Participant participant) {
+        throw new UnsupportedOperationException("don't use this");
+    }
+    // helping with migration end
 }

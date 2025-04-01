@@ -51,6 +51,7 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
         addListener(new PreventHungerLoss<>(this));
         addListener(new PreventItemDrop<>(this, true));
         start(newTeams, newParticipants, newAdmins);
+        Main.logger().info("Started Example Game");
     }
     
     @Override
@@ -75,9 +76,9 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
     }
     
     @Override
-    protected ExampleParticipant createParticipant(Participant fromParticipant) {
+    protected ExampleParticipant createParticipant(Participant newParticipant) {
         // create a new participant, including setup that happens regardless of state
-        return new ExampleParticipant(fromParticipant, 0);
+        return new ExampleParticipant(newParticipant, 0);
     }
     
     @Override

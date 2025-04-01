@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.example;
 
+import lombok.Data;
 import org.braekpo1nt.mctmanager.participant.QuitDataBase;
 import org.braekpo1nt.mctmanager.participant.ScoredTeamData;
 import org.braekpo1nt.mctmanager.participant.Team;
@@ -13,9 +14,8 @@ public class ExampleTeam extends ScoredTeamData<ExampleParticipant> {
         return new QuitData(getScore());
     }
     
-    public static class QuitData extends QuitDataBase {
-        public QuitData(int score) {
-            super(score);
-        }
+    @Data
+    public static class QuitData implements QuitDataBase {
+        private final int score;
     }
 }
