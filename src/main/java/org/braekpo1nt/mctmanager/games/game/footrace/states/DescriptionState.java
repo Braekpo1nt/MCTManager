@@ -14,6 +14,7 @@ public class DescriptionState extends FootRaceStateBase {
     protected final @NotNull FootRaceGame context;
     
     public DescriptionState(@NotNull FootRaceGame context) {
+        super(context);
         this.context = context;
         startTimer();
     }

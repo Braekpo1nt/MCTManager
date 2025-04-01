@@ -56,7 +56,6 @@ public interface GameStateBase<P extends ParticipantData, T extends ScoredTeamDa
     void onTeamQuit(T team);
     
     // Listeners
-    
     /**
      * <p>State-specific behavior for {@link PlayerMoveEvent}. Called by {@link GameBase#onPlayerMove(PlayerMoveEvent)}.</p>
      * <p>This is called before spectator management.</p>

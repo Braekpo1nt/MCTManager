@@ -16,6 +16,7 @@ public class GameOverState extends FootRaceStateBase {
     private final @NotNull FootRaceGame context;
     
     public GameOverState(@NotNull FootRaceGame context) {
+        super(context);
         this.context = context;
         Audience.audience(context.getParticipants().values()).showTitle(UIUtils.gameOverTitle());
         context.getSidebar().addLine("over", Component.empty());

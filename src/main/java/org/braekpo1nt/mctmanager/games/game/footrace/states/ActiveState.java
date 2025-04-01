@@ -9,8 +9,6 @@ import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceParticipant;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceTeam;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
-import org.braekpo1nt.mctmanager.participant.Participant;
-import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -19,6 +17,7 @@ import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +27,6 @@ import java.util.UUID;
 
 public class ActiveState extends FootRaceStateBase {
     
-    private final @NotNull FootRaceGame context;
     private final FootRaceConfig config;
     private final GameManager gameManager;
     private final Sidebar sidebar;
@@ -37,7 +35,7 @@ public class ActiveState extends FootRaceStateBase {
     private @Nullable Timer endRaceTimer;
     
     public ActiveState(@NotNull FootRaceGame context) {
-        this.context = context;
+        super(context);
         this.gameManager = context.getGameManager();
         this.config = context.getConfig();
         this.sidebar = context.getSidebar();
@@ -80,42 +78,11 @@ public class ActiveState extends FootRaceStateBase {
     }
     
     @Override
-    public void onParticipantJoin(Participant newParticipant, Team team) {
-        context.onTeamJoin(team);
-        FootRaceParticipant.QuitData quitData = context.getQuitDatas().remove(newParticipant.getUniqueId());
-        if (quitData != null) {
-            FootRaceParticipant rejoinedParticipant = new FootRaceParticipant(newParticipant, quitData);
-            rejoinParticipant(rejoinedParticipant);
-        } else {
-            initializeParticipant(newParticipant);
-        }
-        FootRaceParticipant participant = context.getParticipants().get(newParticipant.getUniqueId());
-        sidebar.updateLine(participant.getUniqueId(), "title", context.getTitle());
-        
-        if (participant.getLap() > context.getConfig().getLaps()) {
-            showRaceCompleteFastBoard(participant);
-        } else {
-            sidebar.updateLine(participant.getUniqueId(), "lap", 
-                    Component.empty()
-                        .append(Component.text("Lap: "))
-                        .append(Component.text(participant.getLap()))
-                        .append(Component.text("/"))
-                        .append(Component.text(config.getLaps())));
-        }
-        context.updateStandings();
-        context.displayStandings();
-        context.displayScore(context.getParticipants().get(participant.getUniqueId()));
-        context.displayScore(context.getTeams().get(team.getTeamId()));
-    }
-    
-    private void rejoinParticipant(FootRaceParticipant participant) {
-        context.getParticipants().put(participant.getUniqueId(), participant);
-        sidebar.addPlayer(participant);
-        context.getStandings().add(participant);
+    public void onParticipantRejoin(FootRaceParticipant participant, FootRaceTeam team) {
+        super.onParticipantRejoin(participant, team);
         if (participant.isFinished()) {
             showRaceCompleteFastBoard(participant);
         }
-        context.giveBoots(participant);
     }
     
     private void showRaceCompleteFastBoard(FootRaceParticipant participant) {
@@ -132,27 +99,6 @@ public class ActiveState extends FootRaceStateBase {
         context.displayStandings();
     }
     
-    @Override
-    public void onParticipantQuit(FootRaceParticipant participant, FootRaceTeam team) {
-        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
-        resetParticipant(participant);
-        context.getParticipants().remove(participant.getUniqueId());
-        context.getStandings().remove(participant);
-        context.updateStandings();
-        context.displayStandings();
-        context.onTeamQuit(team);
-    }
-    
-    @Override
-    public void initializeParticipant(Participant participant) {
-        context.initializeParticipant(participant);
-    }
-    
-    @Override
-    public void resetParticipant(FootRaceParticipant participant) {
-        context.resetParticipant(participant);
-    }
-    
     private void startStandingsUpdateTask() {
         context.setStandingsDisplayTaskId(new BukkitRunnable() {
             @Override
@@ -164,7 +110,7 @@ public class ActiveState extends FootRaceStateBase {
     }
     
     @Override
-    public void onParticipantMove(FootRaceParticipant participant) {
+    public void onParticipantMove(@NotNull PlayerMoveEvent event, @NotNull FootRaceParticipant participant) {
         if (participant.isFinished()) {
             return;
         }

@@ -1,5 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.footrace.states;
 
+import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceParticipant;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceTeam;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -9,6 +11,13 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class FootRaceStateBase implements FootRaceState {
+    
+    protected final @NotNull FootRaceGame context;
+    
+    protected FootRaceStateBase(@NotNull FootRaceGame context) {
+        this.context = context;
+    }
+    
     @Override
     public void cleanup() {
         
@@ -26,17 +35,32 @@ public abstract class FootRaceStateBase implements FootRaceState {
     
     @Override
     public void onParticipantRejoin(FootRaceParticipant participant, FootRaceTeam team) {
-        
+        context.getStandings().add(participant);
+        context.giveBoots(participant);
+        participant.setRespawnLocation(context.getConfig().getStartingLocation(), true);
+        context.updateStandings();
+        context.displayStandings();
+        context.getSidebar().updateLine(participant.getUniqueId(), "lap",
+                Component.empty()
+                        .append(Component.text("Lap: "))
+                        .append(Component.text(participant.getLap()))
+                        .append(Component.text("/"))
+                        .append(Component.text(context.getConfig().getLaps())));
     }
     
     @Override
     public void onNewParticipantJoin(FootRaceParticipant participant, FootRaceTeam team) {
-        
+        context.getStandings().add(participant);
+        participant.teleport(context.getConfig().getStartingLocation());
+        participant.setRespawnLocation(context.getConfig().getStartingLocation(), true);
+        context.giveBoots(participant);
+        context.updateStandings();
+        context.displayStandings();
     }
     
     @Override
     public void onParticipantQuit(FootRaceParticipant participant, FootRaceTeam team) {
-        
+        context.getStandings().remove(participant);
     }
     
     @Override
@@ -46,7 +70,7 @@ public abstract class FootRaceStateBase implements FootRaceState {
     
     @Override
     public void onParticipantMove(@NotNull PlayerMoveEvent event, @NotNull FootRaceParticipant participant) {
-        
+        // do nothing
     }
     
     @Override
