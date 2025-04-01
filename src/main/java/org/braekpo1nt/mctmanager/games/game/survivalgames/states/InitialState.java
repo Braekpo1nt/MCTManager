@@ -16,11 +16,6 @@ public class InitialState implements SurvivalGamesState {
     }
     
     @Override
-    public void onPlayerDamage(EntityDamageEvent event) {
-        
-    }
-    
-    @Override
     public void cleanup() {
         
     }
