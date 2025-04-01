@@ -207,7 +207,6 @@ public class ActiveState extends SurvivalGamesStateBase {
                     DamageSource.builder(DamageType.GENERIC).build(), drops, droppedExp, deathMessage);
             this.onParticipantDeath(fakeDeathEvent);
         }
-        context.getTopbar().unlinkFromTeam(participant.getUniqueId());
     }
     
     @Override

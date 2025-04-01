@@ -46,12 +46,6 @@ public class DescriptionState extends SurvivalGamesStateBase {
     }
     
     @Override
-    public void onParticipantQuit(SurvivalGamesParticipant participant, SurvivalGamesTeam team) {
-        context.getTopbar().unlinkFromTeam(participant.getUniqueId());
-        context.updateAliveCount(team);
-    }
-    
-    @Override
     public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull SurvivalGamesParticipant participant) {
         event.setCancelled(true);
     }

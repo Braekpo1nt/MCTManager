@@ -26,7 +26,6 @@ import org.bukkit.block.Chest;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -340,7 +339,7 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     
     @Override
     protected void resetParticipant(SurvivalGamesParticipant participant, SurvivalGamesTeam team) {
-        // no additional reset
+        topbar.unlinkFromTeam(participant.getUniqueId());
     }
     
     private void clearFloorItems() {
@@ -558,16 +557,6 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
                 .filter(Objects::nonNull)
                 .filter(SurvivalGamesParticipant::isAlive)
                 .count();
-    }
-    
-    // State-specific callers
-    
-    @EventHandler
-    public void onPlayerDamage(EntityDamageEvent event) {
-        if (!participants.containsKey(event.getEntity().getUniqueId())) {
-            return;
-        }
-        state.onPlayerDamage(event);
     }
     
     @EventHandler
