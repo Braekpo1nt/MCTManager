@@ -131,18 +131,9 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
         worldBorder.reset();
     }
     
-    public void onTeamQuit(SurvivalGamesTeam team) {
-        if (team.size() > 0) {
-            return;
-        }
-        SurvivalGamesTeam removed = teams.remove(team.getTeamId());
-        teamQuitDatas.put(team.getTeamId(), removed.getQuitData());
-    }
-    
     @Override
     public void onAdminJoin(Player admin) {
-        initializeAdmin(admin);
-        adminSidebar.updateLine(admin.getUniqueId(), "title", title);
+        super.onAdminJoin(admin);
         for (Participant participant : participants.values()) {
             glowManager.showGlowing(admin.getUniqueId(), participant.getUniqueId());
         }

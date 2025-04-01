@@ -407,12 +407,14 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     @Override
     // TODO: remove final
     public final void onParticipantQuit(UUID participantUUID) {
-        P participant = participants.remove(participantUUID);
+        P participant = participants.get(participantUUID);
         if (participant == null) {
             return;
         }
         T team = teams.get(participant.getTeamId());
         state.onParticipantQuit(participant, team);
+        participants.remove(participantUUID);
+        team.removeParticipant(participantUUID);
         quitDatas.put(participant.getParticipantID(), getQuitData(participant));
         _resetParticipant(participant, team);
     }
@@ -728,6 +730,11 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      */
     @Deprecated
     protected final void cancelAllTasks() {
+        throw new UnsupportedOperationException("don't use this");
+    }
+    
+    @Deprecated
+    protected final void onTeamQuit(T team) {
         throw new UnsupportedOperationException("don't use this");
     }
     // helping with migration end

@@ -41,12 +41,10 @@ public interface GameStateBase<P extends ParticipantData, T extends ScoredTeamDa
     // join end
     
     /**
-     * 
+     * <p>This is called before removing the participant from {@link GameBase#getParticipants()},
+     * and before removing them from their {@link T} team.</p>
      * @param participant the participant who quit. 
-     *                    (Will not be found in {@link GameBase#getParticipants()}.)
-     * @param team the participant's old team.
-     *             (The participant is no longer found in that team's 
-     *             {@link ScoredTeamData#getParticipants()}).
+     * @param team the participant's team.
      */
     void onParticipantQuit(P participant, T team);
     

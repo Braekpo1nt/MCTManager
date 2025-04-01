@@ -12,7 +12,6 @@ import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesCo
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
-import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -32,14 +31,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class ActiveState implements SurvivalGamesState {
+public class ActiveState extends SurvivalGamesStateBase {
     
-    private final @NotNull SurvivalGamesGame context;
     private final Main plugin;
     private final GameManager gameManager;
     private final TimerManager timerManager;
     private final SurvivalGamesConfig config;
-    private final Sidebar sidebar;
     private final Sidebar adminSidebar;
     private final ManyBattleTopbar topbar;
     private final WorldBorder worldBorder;
@@ -53,12 +50,11 @@ public class ActiveState implements SurvivalGamesState {
     private @Nullable Timer gracePeriodTimer;
     
     public ActiveState(@NotNull SurvivalGamesGame context) {
-        this.context = context;
+        super(context);
         this.plugin = context.getPlugin();
         this.gameManager = context.getGameManager();
         this.timerManager = context.getTimerManager();
         this.config = context.getConfig();
-        this.sidebar = context.getSidebar();
         this.adminSidebar = context.getAdminSidebar();
         this.topbar = context.getTopbar();
         this.worldBorder = context.getWorldBorder();
@@ -185,40 +181,20 @@ public class ActiveState implements SurvivalGamesState {
     }
     
     @Override
-    public void onParticipantJoin(Participant participant, Team team) {
-        context.onTeamJoin(team);
-        SurvivalGamesParticipant.QuitData quitData = context.getQuitDatas().remove(participant.getUniqueId());
-        if (quitData != null) {
-            SurvivalGamesParticipant sgParticipant = new SurvivalGamesParticipant(
-                    participant,
-                    quitData
-            );
-            rejoinParticipant(sgParticipant);
-        } else {
-            context.getTopbar().addTeam(participant.getTeamId(), team.getColor());
-            context.initializeParticipant(participant);
-            participant.teleport(config.getPlatformSpawns().getFirst());
-            participant.setRespawnLocation(config.getPlatformSpawns().getFirst(), true);
-        }
-        sidebar.updateLine(participant.getUniqueId(), "title", context.getTitle());
-        context.initializeGlowing(participant);
-        context.displayScore(context.getParticipants().get(participant.getUniqueId()));
-        context.displayScore(context.getTeams().get(team.getTeamId()));
-    }
-    
-    private void rejoinParticipant(SurvivalGamesParticipant participant) {
-        context.getParticipants().put(participant.getUniqueId(), participant);
-        context.getTeams().get(participant.getTeamId()).addParticipant(participant);
+    public void onParticipantRejoin(SurvivalGamesParticipant participant, SurvivalGamesTeam team) {
+        super.onParticipantRejoin(participant, team);
         participant.setGameMode(GameMode.SPECTATOR);
-        sidebar.addPlayer(participant);
-        topbar.showPlayer(participant);
-        context.initializeKillCount(participant);
-        topbar.linkToTeam(participant.getUniqueId(), participant.getTeamId());
-        context.getGlowManager().addPlayer(participant);
     }
     
     @Override
-    public void onParticipantQuit(SurvivalGamesParticipant participant) {
+    public void onNewParticipantJoin(SurvivalGamesParticipant participant, SurvivalGamesTeam team) {
+        super.onNewParticipantJoin(participant, team);
+        participant.teleport(config.getPlatformSpawns().getFirst());
+        participant.setRespawnLocation(config.getPlatformSpawns().getFirst(), true);
+    }
+    
+    @Override
+    public void onParticipantQuit(SurvivalGamesParticipant participant, SurvivalGamesTeam team) {
         if (participant.isAlive()) {
             List<ItemStack> drops = Arrays.stream(participant.getInventory().getContents())
                     .filter(Objects::nonNull)
@@ -231,21 +207,6 @@ public class ActiveState implements SurvivalGamesState {
                     DamageSource.builder(DamageType.GENERIC).build(), drops, droppedExp, deathMessage);
             this.onParticipantDeath(fakeDeathEvent);
         }
-        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
-        resetParticipant(participant);
-        context.getParticipants().remove(participant.getUniqueId());
-        context.onTeamQuit(context.getTeams().get(participant.getTeamId()));
-    }
-    
-    @Override
-    public void resetParticipant(Participant participant) {
-        context.getTeams().get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
-        ParticipantInitializer.clearInventory(participant);
-        ParticipantInitializer.clearStatusEffects(participant);
-        ParticipantInitializer.resetHealthAndHunger(participant);
-        context.getSidebar().removePlayer(participant.getUniqueId());
-        context.getTopbar().hidePlayer(participant.getUniqueId());
-        context.getGlowManager().removePlayer(participant);
     }
     
     @Override

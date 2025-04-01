@@ -131,6 +131,22 @@ public class ManyBattleTopbar implements Topbar {
     }
     
     /**
+     * Remove the given team from this TopBar. updates appropriate BossBar displays.
+     * @param teamId the teamId to remove.
+     */
+    public void removeTeam(@NotNull String teamId) {
+        TeamData teamData = teamDatas.remove(teamId);
+        if (teamData == null) {
+            UIUtils.logUIError("team %s does not exist in this BattleTopbar", teamId);
+            return;
+        }
+        for (TeamData opponentTeamData : teamDatas.values()) {
+            opponentTeamData.getVersusManyComponent().getOpponents().removeTeam(teamId);
+        }
+        update();
+    }
+    
+    /**
      * Removes all the teams from this Topbar, and unlinks all players from 
      * their teamIds
      * @deprecated use {@link #cleanup()}
