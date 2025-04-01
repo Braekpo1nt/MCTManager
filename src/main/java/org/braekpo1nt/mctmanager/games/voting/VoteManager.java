@@ -384,7 +384,10 @@ public class VoteManager implements Listener {
         voting = false;
         paused = false;
         GameType gameType = getVotedForGame();
-        Audience.audience(voters.values()).showTitle(UIUtils.defaultTitle(
+        Audience.audience(
+                Audience.audience(voters.values()),
+                Audience.audience(admins)
+        ).showTitle(UIUtils.defaultTitle(
                 Component.empty()
                         .append(Component.text(gameType.getTitle()))
                         .color(NamedTextColor.BLUE),
@@ -596,15 +599,15 @@ public class VoteManager implements Listener {
         participant.openInventory(newGui);
     }
     
-    public static List<String> votableGameIds() {
+    public static List<GameType> votableGames() {
         return List.of(
-                GameType.FOOT_RACE.getId(),
-                GameType.SURVIVAL_GAMES.getId(),
-                GameType.CAPTURE_THE_FLAG.getId(),
-                GameType.SPLEEF.getId(),
-                GameType.PARKOUR_PATHWAY.getId(),
-                GameType.CLOCKWORK.getId(),
-                GameType.FARM_RUSH.getId()
+                GameType.FOOT_RACE,
+                GameType.SURVIVAL_GAMES,
+                GameType.CAPTURE_THE_FLAG,
+                GameType.SPLEEF,
+                GameType.PARKOUR_PATHWAY,
+                GameType.CLOCKWORK,
+                GameType.FARM_RUSH
         );
     }
     

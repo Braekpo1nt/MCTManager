@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -73,7 +74,7 @@ public class VoteSubCommand extends TabSubCommand {
     private List<String> getGamesNotInArgs(String[] args) {
         List<String> gamesNotInArgs = new ArrayList<>();
         
-        for (String game : GameType.GAME_IDS.keySet()) {
+        for (String game : VoteManager.votableGames().stream().map(GameType::getId).toList()) {
             if (!argsContains(args, game)) {
                 gamesNotInArgs.add(game);
             }

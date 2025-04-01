@@ -35,7 +35,7 @@ public class VotingState implements EventState {
         this.context = context;
         this.gameManager = context.getGameManager();
         this.voteManager = context.getVoteManager();
-        List<GameType> votingPool = new ArrayList<>(List.of(GameType.values()));
+        List<GameType> votingPool = new ArrayList<>(VoteManager.votableGames());
         votingPool.removeAll(context.getPlayedGames());
         context.getSidebar().removeAllPlayers();
         context.getAdminSidebar().removeAllPlayers();

@@ -34,7 +34,7 @@ public class VoteCommand extends CommandManager {
                                     .decorate(TextDecoration.BOLD))
                             .append(Component.text(" is not a recognized game")));
                 }
-                if (!VoteManager.votableGameIds().contains(gameId)) {
+                if (!VoteManager.votableGames().contains(gameToAdd)) {
                     return CommandResult.failure(Component.text("")
                             .append(Component.text(gameId)
                                     .decorate(TextDecoration.BOLD))
@@ -48,7 +48,7 @@ public class VoteCommand extends CommandManager {
             @Override
             public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
                 if (args.length == 1) {
-                    return VoteManager.votableGameIds();
+                    return VoteManager.votableGames().stream().map(GameType::getId).toList();
                 }
                 return null;
             }
@@ -76,7 +76,7 @@ public class VoteCommand extends CommandManager {
             @Override
             public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
                 if (args.length == 1) {
-                    return VoteManager.votableGameIds();
+                    return VoteManager.votableGames().stream().map(GameType::getId).toList();
                 }
                 return null;
             }
