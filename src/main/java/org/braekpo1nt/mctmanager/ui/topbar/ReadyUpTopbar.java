@@ -72,7 +72,7 @@ public class ReadyUpTopbar implements Topbar {
     
     /**
      * Removes all teams from this Topbar
-     * @deprecated use {@link #clear()}
+     * @deprecated use {@link #cleanup()}
      */
     @Deprecated
     public void removeAllTeams() {
@@ -107,7 +107,7 @@ public class ReadyUpTopbar implements Topbar {
     }
     
     @Override
-    public void clear() {
+    public void cleanup() {
         removeAllTeams();
         hideAllPlayers();
     }
@@ -137,7 +137,7 @@ public class ReadyUpTopbar implements Topbar {
     
     /**
      * {@inheritDoc}
-     * @deprecated use {@link #clear()}
+     * @deprecated use {@link #cleanup()}
      */
     @Deprecated
     @Override

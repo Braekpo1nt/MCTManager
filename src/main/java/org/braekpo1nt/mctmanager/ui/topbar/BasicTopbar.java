@@ -46,7 +46,7 @@ public class BasicTopbar implements Topbar {
     }
     
     @Override
-    public void clear() {
+    public void cleanup() {
         this.hideAllPlayers();
     }
     

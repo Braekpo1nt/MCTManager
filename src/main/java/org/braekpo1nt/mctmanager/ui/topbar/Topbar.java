@@ -12,17 +12,10 @@ import java.util.UUID;
 public interface Topbar extends UIManager {
     
     /**
-     * Show this Topbar to the given participant
-     * @param participant the participant to show this Topbar to
-     */
-    default void showPlayer(@NotNull Participant participant) {
-        showPlayer(participant.getPlayer());
-    }
-    
-    /**
      * Show this Topbar to the given player
      * @param player the player to show this Topbar to
      */
+    @Override
     void showPlayer(@NotNull Player player);
     
     @Override

@@ -386,17 +386,10 @@ public class TabList implements UIManager {
     }
     
     /**
-     * Show the given participant this TabList
-     * @param participant the participant to view the TabList. Must not already be a viewer.
-     */
-    public void showPlayer(@NotNull Participant participant) {
-        showPlayer(participant.getPlayer());
-    }
-    
-    /**
      * Show the given player this TabList
      * @param player the player to view the TabList. Must not already be a viewer.
      */
+    @Override
     public void showPlayer(@NotNull Player player) {
         if (playerDatas.containsKey(player.getUniqueId())) {
             logUIError("Player with UUID \"%s\" and name \"%s\" is already contained in this TabList", player.getUniqueId(), player.getName());
@@ -451,7 +444,7 @@ public class TabList implements UIManager {
      * tab headers. 
      */
     @Override
-    public void clear() {
+    public void cleanup() {
         teamDatas.clear();
         participantDatas.clear();
         for (PlayerData playerData : playerDatas.values()) {

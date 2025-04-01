@@ -133,7 +133,7 @@ public class ManyBattleTopbar implements Topbar {
     /**
      * Removes all the teams from this Topbar, and unlinks all players from 
      * their teamIds
-     * @deprecated use {@link #clear()}
+     * @deprecated use {@link #cleanup()}
      */
     @Deprecated
     public void removeAllTeams() {
@@ -231,6 +231,7 @@ public class ManyBattleTopbar implements Topbar {
      * to make the appropriate association.
      * @param player the player to show this Topbar to
      */
+    @Override
     public void showPlayer(@NotNull Player player) {
         if (playerDatas.containsKey(player.getUniqueId())) {
             UIUtils.logUIError("player with UUID \"%s\" already exists in this ManyBattleTopbar", player.getUniqueId());
@@ -244,7 +245,7 @@ public class ManyBattleTopbar implements Topbar {
     }
     
     @Override
-    public void clear() {
+    public void cleanup() {
         hideAllPlayers();
         removeAllTeams();
     }
@@ -279,7 +280,7 @@ public class ManyBattleTopbar implements Topbar {
     }
     
     /**
-     * @deprecated use {@link #clear()}
+     * @deprecated use {@link #cleanup()}
      */
     @Deprecated
     public void hideAllPlayers() {

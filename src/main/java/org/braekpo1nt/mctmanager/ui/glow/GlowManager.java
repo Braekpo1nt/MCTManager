@@ -121,12 +121,12 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
         PacketEvents.getAPI().getEventManager().registerListener(this);
     }
     
-    public void unregisterListeners() {
+    private void unregisterListeners() {
         PacketEvents.getAPI().getEventManager().unregisterListener(this);
     }
     
     @Override
-    public void clear() {
+    public void cleanup() {
         for (PlayerData playerData : playerDatas.values()) {
             Player target = playerData.getPlayer();
             List<EntityData> entityMetadata = getEntityMetadata(target, false);
@@ -135,6 +135,7 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
                 sendGlowingPacket(viewer, target.getEntityId(), entityMetadata);
             }
         }
+        unregisterListeners();
         mapper.clear();
     }
     

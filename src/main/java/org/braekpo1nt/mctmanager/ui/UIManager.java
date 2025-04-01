@@ -18,6 +18,12 @@ public interface UIManager {
     
     void hidePlayer(@NotNull Player player);
     
-    void clear();
+    /**
+     * <p>This method should reset this {@link UIManager} such that it will not
+     * be used again.</p>
+     * <p>Remove all viewers/players/admins, clear all contents, 
+     * remove all listeners, stop all tasks, etc.</p>
+     */
+    void cleanup();
     
 }
