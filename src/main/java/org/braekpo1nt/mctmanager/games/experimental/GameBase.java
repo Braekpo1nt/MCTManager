@@ -210,18 +210,18 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     protected final void saveScores() {
         Map<String, Integer> teamScores = new HashMap<>();
         Map<UUID, Integer> participantScores = new HashMap<>();
-        for (T team : teams.values()) {
-            teamScores.put(team.getTeamId(), team.getScore());
-        }
-        for (P participant : participants.values()) {
-            participantScores.put(participant.getUniqueId(), participant.getScore());
-        }
         for (String teamId : teamQuitDatas.keySet()) {
             teamScores.put(teamId, teamQuitDatas.get(teamId).getScore());
         }
         // TODO: differentiate between ParticipantID for players who left one team and joined another, and earned scores on both teams
         for (ParticipantID pid : quitDatas.keySet()) {
             participantScores.put(pid.uuid(), quitDatas.get(pid).getScore());
+        }
+        for (T team : teams.values()) {
+            teamScores.put(team.getTeamId(), team.getScore());
+        }
+        for (P participant : participants.values()) {
+            participantScores.put(participant.getUniqueId(), participant.getScore());
         }
         gameManager.addScores(teamScores, participantScores);
     }
@@ -383,7 +383,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     // TODO: remove final
     public final void onParticipantJoin(Participant newParticipant) {
         T team = teams.get(newParticipant.getTeamId());
-        QP quitData = quitDatas.get(newParticipant.getParticipantID());
+        QP quitData = quitDatas.remove(newParticipant.getParticipantID());
         newParticipant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(newParticipant);
         ParticipantInitializer.clearInventory(newParticipant);
