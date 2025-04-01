@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.mockito.Mockito.mock;
@@ -87,6 +89,28 @@ class ParticipantTest {
         Assertions.assertEquals(participant, ctfParticipant);
         Assertions.assertEquals(participant, ctfMatchParticipant);
         Assertions.assertEquals(ctfMatchParticipant, ctfParticipant);
+    }
+    
+    @Test
+    void participantID() {
+        ParticipantID participantID = participant.getParticipantID();
+        ParticipantID identical = new ParticipantID(participant.getUniqueId(), "yellow");
+        ParticipantID differentUUID = new ParticipantID(UUID.randomUUID(), "yellow");
+        ParticipantID differentTeam = new ParticipantID(participant.getUniqueId(), "red");
+        
+        Assertions.assertEquals(participantID, identical);
+        Assertions.assertNotEquals(participantID, differentUUID);
+        Assertions.assertNotEquals(participantID, differentTeam);
+        
+        Map<ParticipantID, Integer> map = new HashMap<>();
+        map.put(participantID, 1);
+        map.put(identical, 2);
+        
+        Assertions.assertEquals(map.get(participantID), 2);
+        
+        map.put(differentUUID, 3);
+        Assertions.assertEquals(map.get(participantID), 2);
+        Assertions.assertEquals(map.get(differentUUID), 3);
     }
     
 }
