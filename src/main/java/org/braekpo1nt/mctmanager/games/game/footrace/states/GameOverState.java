@@ -11,7 +11,7 @@ import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.jetbrains.annotations.NotNull;
 
-public class GameOverState implements FootRaceState {
+public class GameOverState extends FootRaceStateBase {
     
     private final @NotNull FootRaceGame context;
     

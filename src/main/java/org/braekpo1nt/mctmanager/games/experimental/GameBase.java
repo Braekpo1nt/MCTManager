@@ -522,6 +522,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * <p>Called after initial lines are added 
      * and before team and participant scores are initially displayed.</p>
      */
+    // TODO: make sure implementations aren't re-calling displayScore() (see above)
     protected abstract void initializeSidebar();
     
     /**
@@ -529,7 +530,8 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * team's members.
      * @param team the team to display the score of. Uses {@link T#getScore()}.
      */
-    public void displayScore(T team) {
+    // TODO: remove final
+    public final void displayScore(T team) {
         Component contents = Component.empty()
                 .append(team.getFormattedDisplayName())
                 .append(Component.text(": "))
@@ -544,7 +546,8 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * Display the score of the given participant on their personal {@link #sidebar}.
      * @param participant the participant to display the score of. Uses {@link P#getScore()}.
      */
-    public void displayScore(P participant) {
+    // TODO: remove final
+    public final void displayScore(P participant) {
         sidebar.updateLine(participant.getUniqueId(), "personalScore", Component.empty()
                 .append(Component.text("Personal: "))
                 .append(Component.text(participant.getScore()))
@@ -717,11 +720,16 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         throw new UnsupportedOperationException("don't use this");
     }
     
+    @Deprecated
+    public final void resetParticipant(P participant) {
+        throw new UnsupportedOperationException("don't use this");
+    }
+    
     /**
      * @deprecated put what was in here in {@link #cleanup()}, excluding UIManager clears and sidebar.deleteAllLines
      */
     @Deprecated
-    protected void clearSidebar() {
+    protected final void clearSidebar() {
         throw new UnsupportedOperationException("don't use this");
     }
     

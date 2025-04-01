@@ -9,7 +9,7 @@ import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.jetbrains.annotations.NotNull;
 
-public class DescriptionState implements FootRaceState {
+public class DescriptionState extends FootRaceStateBase {
     
     protected final @NotNull FootRaceGame context;
     

@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public class ActiveState implements FootRaceState {
+public class ActiveState extends FootRaceStateBase {
     
     private final @NotNull FootRaceGame context;
     private final FootRaceConfig config;
