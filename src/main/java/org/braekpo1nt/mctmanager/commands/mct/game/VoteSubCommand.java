@@ -57,6 +57,12 @@ public class VoteSubCommand extends TabSubCommand {
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(" is not a recognized game name.")));
             }
+            if (!VoteManager.votableGames().contains(gameType)) {
+                return CommandResult.failure(Component.text("")
+                        .append(Component.text(gameID)
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" is not a votable game")));
+            }
             votingPool.add(gameType);
         }
         gameManager.manuallyStartVote(sender, votingPool, duration);

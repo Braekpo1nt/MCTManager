@@ -38,7 +38,7 @@ public class VoteCommand extends CommandManager {
                     return CommandResult.failure(Component.text("")
                             .append(Component.text(gameId)
                                     .decorate(TextDecoration.BOLD))
-                            .append(Component.text(" is votable game")));
+                            .append(Component.text(" is not a votable game")));
                 }
                 
                 gameManager.getEventManager().addGameToVotingPool(sender, gameToAdd);
