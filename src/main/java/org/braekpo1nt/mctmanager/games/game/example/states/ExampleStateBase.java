@@ -5,10 +5,12 @@ import org.braekpo1nt.mctmanager.games.game.example.ExampleGame;
 import org.braekpo1nt.mctmanager.games.game.example.ExampleParticipant;
 import org.braekpo1nt.mctmanager.games.game.example.ExampleTeam;
 import org.braekpo1nt.mctmanager.utils.LogType;
+import org.bukkit.Material;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -44,12 +46,16 @@ public abstract class ExampleStateBase implements ExampleState {
     public void onParticipantRejoin(ExampleParticipant participant, ExampleTeam team) {
         // custom participant rejoin code
         Main.logf("%s re-joined the game, after quitting", participant.getName());
+        participant.getEquipment().setChestplate(new ItemStack(Material.IRON_CHESTPLATE));
+        participant.getInventory().addItem(new ItemStack(Material.STICK));
     }
     
     @Override
     public void onNewParticipantJoin(ExampleParticipant participant, ExampleTeam team) {
         // custom participant join code
         Main.logf("%s joined the game for the first time", participant.getName());
+        participant.getEquipment().setChestplate(new ItemStack(Material.IRON_CHESTPLATE));
+        participant.getInventory().addItem(new ItemStack(Material.STICK));
         participant.teleport(context.getConfig().getStartingLocation());
     }
     

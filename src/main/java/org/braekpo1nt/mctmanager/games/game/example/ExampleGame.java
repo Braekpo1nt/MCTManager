@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.experimental.PreventHungerLoss;
 import org.braekpo1nt.mctmanager.games.experimental.GameBase;
+import org.braekpo1nt.mctmanager.games.experimental.PreventItemDrop;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.example.config.ExampleConfig;
 import org.braekpo1nt.mctmanager.games.game.example.states.DescriptionSate;
@@ -18,6 +19,7 @@ import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.topbar.BasicTopbar;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,7 +36,7 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
     
     /**
      * Initialize data and start the game
-     *
+     * 
      * @param plugin          the plugin
      * @param gameManager     the GameManager
      * @param title           the game's initial title, displayed in the sidebar
@@ -47,6 +49,7 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
         this.config = config;
         this.topbar = addUIManager(new BasicTopbar());
         registerListener(new PreventHungerLoss<>(this));
+        registerListener(new PreventItemDrop<>(this, true));
         start(newTeams, newParticipants, newAdmins);
     }
     
@@ -84,6 +87,8 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
     
     @Override
     protected void initializeParticipant(ExampleParticipant participant, ExampleTeam team) {
+        participant.getEquipment().setChestplate(new ItemStack(Material.IRON_CHESTPLATE));
+        participant.getInventory().addItem(new ItemStack(Material.STICK));
         participant.teleport(config.getStartingLocation());
     }
     
