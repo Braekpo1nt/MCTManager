@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.survivalgames;
 
 import lombok.*;
+import org.braekpo1nt.mctmanager.participant.QuitDataBase;
 import org.braekpo1nt.mctmanager.participant.ScoredTeamData;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.participant.TeamData;
@@ -30,7 +31,7 @@ public class SurvivalGamesTeam extends ScoredTeamData<SurvivalGamesParticipant> 
     }
     
     @Data
-    public static class QuitData {
+    public static class QuitData implements QuitDataBase {
         private final int score;
     }
     

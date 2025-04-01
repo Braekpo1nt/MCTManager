@@ -1,11 +1,9 @@
 package org.braekpo1nt.mctmanager.games.game.survivalgames;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.ParticipantData;
+import org.braekpo1nt.mctmanager.participant.QuitDataBase;
 import org.jetbrains.annotations.NotNull;
 
 @ToString(callSuper = true)
@@ -41,7 +39,7 @@ public class SurvivalGamesParticipant extends ParticipantData {
     }
     
     @Data
-    public static class QuitData {
+    public static class QuitData implements QuitDataBase {
         private final int score;
         private final boolean alive;
         private final int kills;
