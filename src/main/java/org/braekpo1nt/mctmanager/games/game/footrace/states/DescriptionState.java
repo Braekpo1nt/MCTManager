@@ -4,8 +4,6 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceParticipant;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceTeam;
-import org.braekpo1nt.mctmanager.participant.Participant;
-import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,5 +23,17 @@ public class DescriptionState extends FootRaceStateBase {
                 .sidebarPrefix(Component.text("Starting soon: "))
                 .onCompletion(() -> context.setState(new StartingState(context)))
                 .build());
+    }
+    
+    @Override
+    public void onParticipantRejoin(FootRaceParticipant participant, FootRaceTeam team) {
+        super.onParticipantRejoin(participant, team);
+        context.getSidebar().updateLine("elapsedTime", "00:00:000");
+    }
+    
+    @Override
+    public void onNewParticipantJoin(FootRaceParticipant participant, FootRaceTeam team) {
+        super.onNewParticipantJoin(participant, team);
+        context.getSidebar().updateLine("elapsedTime", "00:00:000");
     }
 }

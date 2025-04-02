@@ -181,6 +181,7 @@ public class ActiveState extends FootRaceStateBase {
         participant.setFinished(true);
         int placement = context.getNumOfFinishedParticipants() + 1;
         context.setNumOfFinishedParticipants(placement);
+        participant.setPlacement(placement);
         showRaceCompleteFastBoard(participant);
         int points = calculatePointsForPlacement(placement);
         int multiplied = (int) (gameManager.getMultiplier() * points);

@@ -10,7 +10,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class FootRaceStateBase implements FootRaceState {
+public class FootRaceStateBase implements FootRaceState {
     
     protected final @NotNull FootRaceGame context;
     
