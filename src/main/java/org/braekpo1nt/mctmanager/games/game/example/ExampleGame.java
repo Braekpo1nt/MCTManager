@@ -44,7 +44,14 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
      * @param newParticipants the participants of the game
      * @param newAdmins       the admins
      */
-    public ExampleGame(@NotNull Main plugin, @NotNull GameManager gameManager, @NotNull Component title, @NotNull ExampleConfig config, @NotNull Collection<Team> newTeams, @NotNull Collection<Participant> newParticipants, @NotNull List<Player> newAdmins) {
+    public ExampleGame(
+            @NotNull Main plugin, 
+            @NotNull GameManager gameManager, 
+            @NotNull Component title, 
+            @NotNull ExampleConfig config, 
+            @NotNull Collection<Team> newTeams, 
+            @NotNull Collection<Participant> newParticipants, 
+            @NotNull List<Player> newAdmins) {
         super(GameType.EXAMPLE, plugin, gameManager, title, new InitialState());
         this.config = config;
         this.topbar = addUIManager(new BasicTopbar());

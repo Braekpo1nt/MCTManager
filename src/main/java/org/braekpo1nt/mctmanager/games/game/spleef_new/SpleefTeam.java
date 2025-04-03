@@ -1,0 +1,29 @@
+package org.braekpo1nt.mctmanager.games.game.spleef_new;
+
+import lombok.Data;
+import org.braekpo1nt.mctmanager.participant.QuitDataBase;
+import org.braekpo1nt.mctmanager.participant.ScoredTeamData;
+import org.braekpo1nt.mctmanager.participant.Team;
+
+public class SpleefTeam extends ScoredTeamData<SpleefParticipant> {
+    
+    public SpleefTeam(Team team, int score) {
+        super(team, score);
+    }
+    
+    /**
+     * @return true if at least one team member is alive, false otherwise
+     */
+    public boolean isAlive() {
+        return getParticipants().stream().anyMatch(SpleefParticipant::isAlive);
+    }
+    
+    public QuitData getQuitData() {
+        return new QuitData(getScore());
+    }
+    
+    @Data
+    public static class QuitData implements QuitDataBase {
+        private final int score;
+    }
+}
