@@ -656,6 +656,13 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         displayTeamScores(awardedTeams);
     }
     
+    /**
+     * <p>Award the given points to the given teams. The points will be multiplied by 
+     * {@link GameManager#getMultiplier()} before being awarded.</p>
+     * <p>{@link #sidebar} will also be updated to reflect the score</p>
+     * @param awardedTeams the teams to award the points to
+     * @param points the points to be awarded (un-multiplied, base points)
+     */
     public void awardTeamPoints(Collection<T> awardedTeams, int points) {
         int multiplied = (int) (points * gameManager.getMultiplier());
         for (T team : awardedTeams) {
