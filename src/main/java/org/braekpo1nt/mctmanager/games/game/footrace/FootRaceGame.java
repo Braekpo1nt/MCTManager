@@ -29,7 +29,6 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -74,7 +73,6 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
         this.title = title;
         this.config = config;
         standings = new ArrayList<>(newParticipants.size());
-        setupTeamOptions();
         startStatusEffectsTask();
         closeGlassBarrier();
         addListener(new PreventItemDrop<>(this, true));
@@ -198,15 +196,13 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
         }.runTaskTimer(plugin, 0L, 60L).getTaskId();
     }
     
-    private void setupTeamOptions() {
-        Scoreboard mctScoreboard = gameManager.getMctScoreboard();
-        for (org.bukkit.scoreboard.Team team : mctScoreboard.getTeams()) {
-            team.setAllowFriendlyFire(false);
-            team.setCanSeeFriendlyInvisibles(true);
-            team.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
-            team.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
-            team.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.NEVER);
-        }
+    @Override
+    protected void setupTeamOptions(org.bukkit.scoreboard.@NotNull Team scoreboardTeam, @NotNull FootRaceTeam team) {
+        scoreboardTeam.setAllowFriendlyFire(false);
+        scoreboardTeam.setCanSeeFriendlyInvisibles(true);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.NEVER);
     }
     
     @Override
@@ -241,8 +237,8 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
     }
     
     @Override
-    protected FootRaceParticipant createParticipant(Participant newParticipant) {
-        return new FootRaceParticipant(newParticipant, 0, 0);
+    protected FootRaceParticipant createParticipant(Participant participant) {
+        return new FootRaceParticipant(participant, 0, 0);
     }
     
     @Override

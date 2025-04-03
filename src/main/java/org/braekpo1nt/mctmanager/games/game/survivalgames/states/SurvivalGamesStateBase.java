@@ -71,5 +71,4 @@ public abstract class SurvivalGamesStateBase implements SurvivalGamesState {
     public void onParticipantInteract(@NotNull PlayerInteractEvent event, @NotNull SurvivalGamesParticipant participant) {
         
     }
-    
 }

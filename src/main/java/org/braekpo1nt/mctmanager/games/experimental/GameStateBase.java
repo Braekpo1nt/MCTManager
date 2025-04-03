@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.experimental;
 
 import org.braekpo1nt.mctmanager.participant.*;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -86,4 +87,11 @@ public interface GameStateBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param participant the participant who triggered the event.
      */
     void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull P participant);
+    
+    /**
+     * <p>State-specific behavior for {@link PlayerDeathEvent}. Called by {@link GameBase#onPlayerDeath(PlayerDeathEvent)} if the triggering entity is also a participant in this game.</p>
+     * @param event the event
+     * @param participant the participant who triggered the event.
+     */
+    void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull P participant);
 }

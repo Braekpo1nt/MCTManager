@@ -23,7 +23,6 @@ public class RoundOverState implements CaptureTheFlagState {
     public RoundOverState(CaptureTheFlagGame context) {
         this.context = context;
         Audience.audience(context.getParticipants().values()).showTitle(UIUtils.roundOverTitle());
-        Main.logger().info("Starting RoundOverState timer");
         context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getRoundOverDuration())
                 .withTopbar(context.getTopbar())

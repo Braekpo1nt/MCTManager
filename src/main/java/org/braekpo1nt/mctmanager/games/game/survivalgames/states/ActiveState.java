@@ -4,13 +4,11 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesParticipant;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesTeam;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
-import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
@@ -34,7 +32,6 @@ import java.util.*;
 public class ActiveState extends SurvivalGamesStateBase {
     
     private final Main plugin;
-    private final GameManager gameManager;
     private final TimerManager timerManager;
     private final SurvivalGamesConfig config;
     private final Sidebar adminSidebar;
@@ -52,7 +49,6 @@ public class ActiveState extends SurvivalGamesStateBase {
     public ActiveState(@NotNull SurvivalGamesGame context) {
         super(context);
         this.plugin = context.getPlugin();
-        this.gameManager = context.getGameManager();
         this.timerManager = context.getTimerManager();
         this.config = context.getConfig();
         this.adminSidebar = context.getAdminSidebar();
@@ -205,7 +201,7 @@ public class ActiveState extends SurvivalGamesStateBase {
                     .append(Component.text(" left early. Their life is forfeit."));
             PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant.getPlayer(), 
                     DamageSource.builder(DamageType.GENERIC).build(), drops, droppedExp, deathMessage);
-            this.onParticipantDeath(fakeDeathEvent);
+            this.onParticipantDeath(fakeDeathEvent, participant);
         }
     }
     
@@ -218,11 +214,7 @@ public class ActiveState extends SurvivalGamesStateBase {
     }
     
     @Override
-    public void onParticipantDeath(PlayerDeathEvent event) {
-        SurvivalGamesParticipant killed = context.getParticipants().get(event.getPlayer().getUniqueId());
-        if (killed == null) {
-            return;
-        }
+    public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull SurvivalGamesParticipant killed) {
         killed.setGameMode(GameMode.SPECTATOR);
         dropInventory(killed, event.getDrops());
         Main.debugLog(LogType.CANCEL_PLAYER_DEATH_EVENT, "SurvivalGamesGame.ActiveState.onPlayerDeath() cancelled");

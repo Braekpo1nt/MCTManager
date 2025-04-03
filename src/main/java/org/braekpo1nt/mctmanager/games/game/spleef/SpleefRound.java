@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.PowerupManager;
+import org.braekpo1nt.mctmanager.games.game.spleef_new.SpleefInterfaceDeleteMe;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -39,7 +40,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class SpleefRound implements Listener {
+public class SpleefRound implements Listener, SpleefInterfaceDeleteMe {
     private final Main plugin;
     private final GameManager gameManager;
     private final Sidebar sidebar;
@@ -51,14 +52,14 @@ public class SpleefRound implements Listener {
     private Map<String, SpleefRoundTeam> teams = new HashMap<>();
     private boolean spleefHasStarted = false;
     private boolean roundActive = false;
-    private final SpleefGame spleefGame;
+    private final SpleefGameOld spleefGame;
     private final DecayManager decayManager;
     private final PowerupManager powerupManager;
     private boolean descriptionShowing = false;
     private boolean firstRound = false;
     private final TimerManager timerManager;
     
-    public SpleefRound(Main plugin, GameManager gameManager, SpleefGame spleefGame, SpleefConfig config, Sidebar sidebar, Sidebar adminSidebar) {
+    public SpleefRound(Main plugin, GameManager gameManager, SpleefGameOld spleefGame, SpleefConfig config, Sidebar sidebar, Sidebar adminSidebar) {
         this.plugin = plugin;
         this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
@@ -495,14 +496,16 @@ public class SpleefRound implements Listener {
         timerManager.cancel();
     }
     
-    void messageAllParticipants(Component message) {
+    @Override
+    public void messageAllParticipants(@NotNull Component message) {
         gameManager.messageAdmins(message);
         for (Participant participant : participants.values()) {
             participant.sendMessage(message);
         }
     }
     
-    public void showTitle(@NotNull Title title) {
+    @Override
+    public void titleAllParticipants(@NotNull Title title) {
         spleefGame.showTitle(title);
     }
     
@@ -516,6 +519,7 @@ public class SpleefRound implements Listener {
     /**
      * @param shouldGivePowerups true means powerups should be given, false means they should not
      */
+    @Override
     public void setShouldGivePowerups(boolean shouldGivePowerups) {
         powerupManager.setShouldGivePowerups(shouldGivePowerups);
     }

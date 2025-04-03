@@ -40,7 +40,7 @@ import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfigController
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourPathwayEditor;
-import org.braekpo1nt.mctmanager.games.game.spleef.SpleefGame;
+import org.braekpo1nt.mctmanager.games.game.spleef.SpleefGameOld;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfig;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfigController;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
@@ -207,7 +207,7 @@ public class GameManager implements Listener {
         return switch (gameType) {
             case SPLEEF -> {
                 SpleefConfig config = new SpleefConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-                yield new SpleefGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
+                yield new SpleefGameOld(plugin, this, title, config, newTeams, newParticipants, newAdmins);
             }
             case CLOCKWORK -> {
                 ClockworkConfig config = new ClockworkConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);

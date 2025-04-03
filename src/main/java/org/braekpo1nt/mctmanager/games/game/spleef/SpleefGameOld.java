@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class SpleefGame implements Listener, MCTGame {
+public class SpleefGameOld implements Listener, MCTGame {
     private final Main plugin;
     private final GameManager gameManager;
     private final Random random = new Random();
@@ -48,7 +48,7 @@ public class SpleefGame implements Listener, MCTGame {
     
     private @NotNull Component title;
     
-    public SpleefGame(
+    public SpleefGameOld(
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
             @NotNull Component title,
@@ -263,7 +263,7 @@ public class SpleefGame implements Listener, MCTGame {
     
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
-        if (config.getSpectatorArea() == null){
+        if (config.getSpectatorBoundary() == null){
             return;
         }
         if (!participants.containsKey(event.getPlayer().getUniqueId())) {
@@ -272,18 +272,18 @@ public class SpleefGame implements Listener, MCTGame {
         if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
             return;
         }
-        if (!config.getSpectatorArea().contains(event.getFrom().toVector())) {
+        if (!config.getSpectatorBoundary().contains(event.getFrom().toVector())) {
             event.getPlayer().teleport(config.getStartingLocations().getFirst());
             return;
         }
-        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
+        if (!config.getSpectatorBoundary().contains(event.getTo().toVector())) {
             event.setCancelled(true);
         }
     }
     
     @EventHandler
     public void onPlayerTeleport(PlayerTeleportEvent event) {
-        if (config.getSpectatorArea() == null){
+        if (config.getSpectatorBoundary() == null){
             return;
         }
         if (!participants.containsKey(event.getPlayer().getUniqueId())) {
@@ -295,7 +295,7 @@ public class SpleefGame implements Listener, MCTGame {
         if (!event.getCause().equals(PlayerTeleportEvent.TeleportCause.SPECTATE)) {
             return;
         }
-        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
+        if (!config.getSpectatorBoundary().contains(event.getTo().toVector())) {
             event.setCancelled(true);
         }
     }

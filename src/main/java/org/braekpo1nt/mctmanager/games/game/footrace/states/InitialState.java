@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.footrace.states;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceParticipant;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceTeam;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -61,6 +62,11 @@ public class InitialState implements FootRaceState{
     
     @Override
     public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull FootRaceParticipant participant) {
+        
+    }
+    
+    @Override
+    public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull FootRaceParticipant participant) {
         
     }
 }

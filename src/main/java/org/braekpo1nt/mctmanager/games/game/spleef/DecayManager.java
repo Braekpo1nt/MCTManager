@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.spleef;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
+import org.braekpo1nt.mctmanager.games.game.spleef_new.SpleefInterfaceDeleteMe;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.Bukkit;
@@ -30,7 +31,7 @@ public class DecayManager implements Listener {
     
     private final Main plugin;
     private SpleefConfig config;
-    private final SpleefRound spleefRound;
+    private final SpleefInterfaceDeleteMe context;
     private final Random random = new Random();
     private int decayTaskId;
     /**
@@ -54,10 +55,10 @@ public class DecayManager implements Listener {
      */
     private int secondsLeft;
     
-    public DecayManager(Main plugin, SpleefConfig config, SpleefRound spleefRound) {
+    public DecayManager(Main plugin, SpleefConfig config, SpleefInterfaceDeleteMe context) {
         this.plugin = plugin;
         this.config = config;
-        this.spleefRound = spleefRound;
+        this.context = context;
     }
     
     public void setConfig(SpleefConfig config) {
@@ -131,12 +132,12 @@ public class DecayManager implements Listener {
         }
         secondsLeft = currentStage.getDuration();
         if (currentStage.getStartMessage() != null) {
-            spleefRound.messageAllParticipants(currentStage.getStartMessage());
+            context.messageAllParticipants(currentStage.getStartMessage());
         }
         if (currentStage.getStartSubtitle() != null) {
-            spleefRound.showTitle(UIUtils.defaultTitle(Component.empty(), currentStage.getStartSubtitle()));
+            context.titleAllParticipants(UIUtils.defaultTitle(Component.empty(), currentStage.getStartSubtitle()));
         }
-        spleefRound.setShouldGivePowerups(currentStage.shouldGivePowerups());
+        context.setShouldGivePowerups(currentStage.shouldGivePowerups());
     }
     
     /**

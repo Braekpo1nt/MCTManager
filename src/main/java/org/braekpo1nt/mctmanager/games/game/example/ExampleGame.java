@@ -25,7 +25,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -78,9 +77,9 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
     }
     
     @Override
-    protected ExampleParticipant createParticipant(Participant newParticipant) {
+    protected ExampleParticipant createParticipant(Participant participant) {
         // create a new participant, including setup that happens regardless of state
-        return new ExampleParticipant(newParticipant, 0);
+        return new ExampleParticipant(participant, 0);
     }
     
     @Override
@@ -150,4 +149,12 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
         sidebar.addLine("timer", Component.empty());
     }
     
+    @Override
+    protected void setupTeamOptions(org.bukkit.scoreboard.@NotNull Team scoreboardTeam, @NotNull ExampleTeam team) {
+        scoreboardTeam.setAllowFriendlyFire(false);
+        scoreboardTeam.setCanSeeFriendlyInvisibles(true);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.NEVER);
+    }
 }

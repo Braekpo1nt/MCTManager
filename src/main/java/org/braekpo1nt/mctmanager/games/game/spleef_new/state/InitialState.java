@@ -2,7 +2,9 @@ package org.braekpo1nt.mctmanager.games.game.spleef_new.state;
 
 import org.braekpo1nt.mctmanager.games.game.spleef_new.SpleefParticipant;
 import org.braekpo1nt.mctmanager.games.game.spleef_new.SpleefTeam;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -61,6 +63,16 @@ public class InitialState implements SpleefState {
     
     @Override
     public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull SpleefParticipant participant) {
+        
+    }
+    
+    @Override
+    public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull SpleefParticipant participant) {
+        
+    }
+    
+    @Override
+    public void onParticipantBreakBlock(BlockBreakEvent event, SpleefParticipant participant) {
         
     }
 }

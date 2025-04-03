@@ -5,6 +5,7 @@ import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -21,10 +22,12 @@ import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -32,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.logging.Level;
 
 /**
  * @param <P> the ParticipantData implementation used by this game
@@ -122,6 +126,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         for (Team newTeam : newTeams) {
             T team = createTeam(newTeam);
             teams.put(team.getTeamId(), team);
+            setupTeamOptions(team);
             initializeTeam(team);
         }
         for (Participant newParticipant : newParticipants) {
@@ -250,10 +255,10 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * <p>Called after setting the participant to the defaults.
      * Add additional setup logic here for every time a participant is created.</p>
      *
-     * @param newParticipant the participant from which to derive the {@link P} type participant
+     * @param participant the participant from which to derive the {@link P} type participant
      * @return the created {@link P} participant
      */
-    protected abstract P createParticipant(Participant newParticipant);
+    protected abstract P createParticipant(Participant participant);
     
     /**
      * <p>Create a participant from the given {@link Participant} and {@link QP} quitData.</p>
@@ -338,6 +343,26 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     public @Nullable P getParticipant(@NotNull UUID uuid) {
         return participants.get(uuid);
     }
+    
+    // TODO: remove final
+    protected final void setupTeamOptions(T team) {
+        org.bukkit.scoreboard.Team scoreboardTeam = gameManager.getMctScoreboard().getTeam(team.getTeamId());
+        if (scoreboardTeam != null) {
+            setupTeamOptions(scoreboardTeam, team);
+        } else {
+            Main.logger().log(Level.SEVERE,
+                    String.format("MCT scoreboard could not find team with id %s", team.getTeamId()),
+                    new IllegalStateException(
+                            String.format("Scoreboard does not contain teamId %s", team.getTeamId())));
+        }
+    }
+    
+    /**
+     * Set up the scoreboard options for the given team, such as collisions
+     * @param scoreboardTeam the scoreboard team to set the options for
+     * @param team the team representing the options team
+     */
+    protected abstract void setupTeamOptions(@NotNull org.bukkit.scoreboard.Team scoreboardTeam, @NotNull T team);
     // Participant end
     
     // quit/join start
@@ -371,10 +396,12 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         if (quitTeam != null) {
             T team = createTeam(newTeam, quitTeam);
             teams.put(team.getTeamId(), team);
+            setupTeamOptions(team);
             state.onTeamRejoin(team);
         } else {
             T team = createTeam(newTeam);
             teams.put(team.getTeamId(), team);
+            setupTeamOptions(team);
             state.onNewTeamJoin(team);
         }
     }
@@ -543,6 +570,17 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     /**
+     * Display the scores of the given teams on the {@link #sidebar}s of all the
+     * team's members.
+     * @param theTeams the teams to display the scores of. Uses {@link T#getScore()}.
+     */
+    public final void displayTeamScores(Collection<T> theTeams) {
+        for (T team : theTeams) {
+            displayScore(team);
+        }
+    }
+    
+    /**
      * Display the score of the given participant on their personal {@link #sidebar}.
      * @param participant the participant to display the score of. Uses {@link P#getScore()}.
      */
@@ -552,6 +590,17 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
                 .append(Component.text("Personal: "))
                 .append(Component.text(participant.getScore()))
                 .color(NamedTextColor.GOLD));
+    }
+    
+    /**
+     * Display the scores of the given participants on their personal {@link #sidebar}s
+     * @param theParticipants the participants to display the scores of. Uses {@link P#getScore()}
+     */
+    // TODO: remove final
+    public final void displayParticipantScores(Collection<P> theParticipants) {
+        for (P participant : theParticipants) {
+            displayScore(participant);
+        }
     }
     // Sidebar end
     
@@ -586,9 +635,38 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         team.awardPoints(multiplied);
         displayScore(team);
     }
+    
+    /**
+     * <p>Award the given points to the given participant. The points will be multiplied by 
+     * {@link GameManager#getMultiplier()} before being awarded, and points will be reflected 
+     * in the participant's team as well.</p>
+     * <p>{@link #sidebar} will also be updated to reflect the score. </p>
+     * @param awardedParticipants the participants to be awarded personal points
+     * @param points the points to be awarded (un-multiplied, base points)
+     */
+    public void awardPoints(Collection<P> awardedParticipants, int points) {
+        int multiplied = (int) (points * gameManager.getMultiplier());
+        Set<T> awardedTeams = new HashSet<>();
+        for (P participant : awardedParticipants) {
+            participant.awardPoints(multiplied);
+            T team = teams.get(participant.getTeamId());
+            team.addPoints(multiplied);
+        }
+        displayParticipantScores(awardedParticipants);
+        displayTeamScores(awardedTeams);
+    }
+    
+    public void awardTeamPoints(Collection<T> awardedTeams, int points) {
+        int multiplied = (int) (points * gameManager.getMultiplier());
+        for (T team : awardedTeams) {
+            team.awardPoints(multiplied);
+        }
+        displayTeamScores(awardedTeams);
+    }
     // Award Points end
     
     // EventHandlers start
+    // TODO: make sure no games override these unnecessarily 
     /**
      * <p>The default behavior for {@link PlayerMoveEvent}s. Checks if the triggering player is 
      * a participant in this game, and if so passes the event (and the participant) to the 
@@ -651,7 +729,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * {@link #shouldPreventInteractions(Material)}) and if so, 
      * cancels the event and does not pass to the implementing game class. 
      * Otherwise, the event and participant is passed to 
-     * {@link GameStateBase#onParticipantInteract(PlayerInteractEvent, ParticipantData)}.</p>
+     * {@link GameStateBase#onParticipantInteract(PlayerInteractEvent, P)}.</p>
      * @param event the event
      */
     @EventHandler
@@ -662,9 +740,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
         Block clickedBlock = event.getClickedBlock();
         if (clickedBlock != null && shouldPreventInteractions(clickedBlock.getType())) {
-            // TODO: Use the event.setUseInteractedBlock(Result) method instead, and don't return. Adjust javadoc (including state javadoc)
-            event.setCancelled(true);
-            return;
+            event.setUseInteractedBlock(Event.Result.DENY);
         }
         state.onParticipantInteract(event, participant);
     }
@@ -678,7 +754,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     /**
      * <p>Default behavior for {@link EntityDamageEvent}. If the entity is a participant in 
      * this game, the event and participant is passed to 
-     * {@link GameStateBase#onParticipantDamage(EntityDamageEvent, ParticipantData)}. 
+     * {@link GameStateBase#onParticipantDamage(EntityDamageEvent, P)}. 
      * Otherwise it is ignored.</p>
      * @param event the event
      */
@@ -693,6 +769,22 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
         state.onParticipantDamage(event, participant);
     }
+    
+    /**
+     * <p>Default behavior for {@link PlayerDeathEvent}. If the entity is a participant in 
+     * this game, the event and participant is passed to 
+     * {@link GameStateBase#onParticipantDeath(PlayerDeathEvent, P)}. 
+     * Otherwise it is ignored.</p>
+     * @param event the event
+     */
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        P participant = participants.get(event.getEntity().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        state.onParticipantDeath(event, participant);
+    }
     // EventHandlers end
     
     /**
@@ -705,6 +797,17 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
                 Audience.audience(admins),
                 Audience.audience(participants.values())
         ).sendMessage(message);
+    }
+    
+    /**
+     * Convenience method to send the same title to all participants and admins
+     * @param title the title to send
+     */
+    public final void titleAllParticipants(@NotNull Title title) {
+        Audience.audience(
+                Audience.audience(admins),
+                Audience.audience(participants.values())
+        ).showTitle(title);
     }
     
     // helping with migration start
@@ -743,6 +846,11 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     
     @Deprecated
     protected final void onTeamQuit(T team) {
+        throw new UnsupportedOperationException("don't use this");
+    }
+    
+    @Deprecated
+    protected final void setupTeamOptions() {
         throw new UnsupportedOperationException("don't use this");
     }
     // helping with migration end

@@ -57,7 +57,7 @@ public class DescriptionState extends SurvivalGamesStateBase {
     }
     
     @Override
-    public void onParticipantDeath(PlayerDeathEvent event) {
+    public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull SurvivalGamesParticipant participant) {
         Main.debugLog(LogType.CANCEL_PLAYER_DEATH_EVENT, "SurvivalGamesGame.DescriptionState.onPlayerDeath() cancelled");
         event.setCancelled(true);
     }

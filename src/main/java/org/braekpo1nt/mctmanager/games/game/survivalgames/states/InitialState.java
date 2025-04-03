@@ -11,11 +11,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class InitialState implements SurvivalGamesState {
     @Override
-    public void onParticipantDeath(PlayerDeathEvent event) {
-        
-    }
-    
-    @Override
     public void cleanup() {
         
     }
@@ -67,6 +62,11 @@ public class InitialState implements SurvivalGamesState {
     
     @Override
     public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull SurvivalGamesParticipant participant) {
+        
+    }
+    
+    @Override
+    public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull SurvivalGamesParticipant participant) {
         
     }
 }

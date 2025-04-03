@@ -1,9 +1,14 @@
 package org.braekpo1nt.mctmanager.games.game.spleef_new.state;
 
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.spleef_new.SpleefGame;
 import org.braekpo1nt.mctmanager.games.game.spleef_new.SpleefParticipant;
 import org.braekpo1nt.mctmanager.games.game.spleef_new.SpleefTeam;
+import org.braekpo1nt.mctmanager.geometry.CompositeGeometry;
+import org.braekpo1nt.mctmanager.utils.LogType;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -54,7 +59,17 @@ public class SpleefStateBase implements SpleefState {
     
     @Override
     public void onParticipantMove(@NotNull PlayerMoveEvent event, @NotNull SpleefParticipant participant) {
-        
+        CompositeGeometry safetyArea = context.getConfig().getSafetyArea();
+        if (safetyArea == null) {
+            return;
+        }
+        if (!safetyArea.contains(event.getFrom().toVector())) {
+            participant.teleport(context.getConfig().getStartingLocations().getFirst());
+            return;
+        }
+        if (!safetyArea.contains(event.getTo().toVector())) {
+            event.setCancelled(true);
+        }
     }
     
     @Override
@@ -69,6 +84,17 @@ public class SpleefStateBase implements SpleefState {
     
     @Override
     public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull SpleefParticipant participant) {
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "SpleefStateBase.onParticipantDamage() cancelled");
+        event.setCancelled(true);
+    }
+    
+    @Override
+    public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull SpleefParticipant participant) {
+        
+    }
+    
+    @Override
+    public void onParticipantBreakBlock(BlockBreakEvent event, SpleefParticipant participant) {
         event.setCancelled(true);
     }
 }

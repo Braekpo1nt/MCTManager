@@ -71,7 +71,6 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
         worldBorder = config.getWorld().getWorldBorder();
         glowManager.registerListeners();
         fillAllChests();
-        setUpTeamOptions();
         initializeGlowManager();
         start(newTeams, newParticipants, newAdmins);
         for (SurvivalGamesTeam team : teams.values()) {
@@ -259,16 +258,13 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
         );
     }
     
-    // TODO: move this to the BaseGame level
-    private void setUpTeamOptions() {
-        Scoreboard mctScoreboard = gameManager.getMctScoreboard();
-        for (org.bukkit.scoreboard.Team team : mctScoreboard.getTeams()) {
-            team.setAllowFriendlyFire(false);
-            team.setCanSeeFriendlyInvisibles(true);
-            team.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
-            team.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
-            team.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
-        }
+    @Override
+    protected void setupTeamOptions(org.bukkit.scoreboard.@NotNull Team scoreboardTeam, @NotNull SurvivalGamesTeam team) {
+        scoreboardTeam.setAllowFriendlyFire(false);
+        scoreboardTeam.setCanSeeFriendlyInvisibles(true);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
     }
     
     private void initializeWorldBorder() {
@@ -304,8 +300,8 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     }
     
     @Override
-    protected SurvivalGamesParticipant createParticipant(Participant newParticipant) {
-        return new SurvivalGamesParticipant(newParticipant, 0);
+    protected SurvivalGamesParticipant createParticipant(Participant participant) {
+        return new SurvivalGamesParticipant(participant, 0);
     }
     
     @Override
@@ -559,14 +555,6 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
                 .filter(Objects::nonNull)
                 .filter(SurvivalGamesParticipant::isAlive)
                 .count();
-    }
-    
-    @EventHandler
-    public void onPlayerDeath(PlayerDeathEvent event) {
-        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
-            return;
-        }
-        state.onParticipantDeath(event);
     }
     
     @Override
