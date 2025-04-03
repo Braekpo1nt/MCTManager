@@ -74,7 +74,7 @@ public class SpleefStateBase implements SpleefState {
     
     @Override
     public void onParticipantTeleport(@NotNull PlayerTeleportEvent event, @NotNull SpleefParticipant participant) {
-        
+        // do nothing
     }
     
     @Override

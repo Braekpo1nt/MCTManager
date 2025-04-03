@@ -26,6 +26,7 @@ public class RoundOverState extends SpleefStateBase {
                 .onCompletion(() -> {
                     if (context.getCurrentRound() < context.getConfig().getRounds()) {
                         context.setCurrentRound(context.getCurrentRound() + 1);
+                        context.placeLayers(true);
                         context.setState(new PreRoundState(context));
                     } else {
                         context.setState(new GameOverState(context));

@@ -431,7 +431,7 @@ public class ColossalCombatGame implements Listener, Configurable {
     
     @EventHandler
     public void onSpectatorGetDamaged(EntityDamageEvent event) {
-        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
+        if (GameManagerUtils.EXCLUDED_DAMAGE_CAUSES.contains(event.getCause())) {
             return;
         }
         if (!spectators.containsKey(event.getEntity().getUniqueId())) {

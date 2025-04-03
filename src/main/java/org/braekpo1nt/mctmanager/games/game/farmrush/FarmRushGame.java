@@ -708,7 +708,7 @@ public class FarmRushGame implements MCTGame, Listener {
     
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
-        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
+        if (GameManagerUtils.EXCLUDED_DAMAGE_CAUSES.contains(event.getCause())) {
             return;
         }
         if (!(event.getEntity() instanceof Player player)) {

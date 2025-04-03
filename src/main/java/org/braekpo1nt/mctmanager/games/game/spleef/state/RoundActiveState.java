@@ -31,8 +31,14 @@ public class RoundActiveState extends SpleefStateBase {
         context.getDecayManager().setAlivePercent(1.0);
     }
     
-    private void stop() {
+    @Override
+    public void cleanup() {
         context.getDecayManager().stop();
+        context.getPowerupManager().stop();
+    }
+    
+    private void stop() {
+        cleanup();
         context.setState(new RoundOverState(context));
     }
     

@@ -18,6 +18,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -32,9 +33,15 @@ public class GameManagerUtils {
     
     public static final String TEAM_NAME_REGEX = "[-+\\._A-Za-z0-9]+";
     
-    public final static List<EntityDamageEvent.DamageCause> EXCLUDED_CAUSES = List.of(
+    public final static Set<EntityDamageEvent.DamageCause> EXCLUDED_DAMAGE_CAUSES = Set.of(
             EntityDamageEvent.DamageCause.VOID,
             EntityDamageEvent.DamageCause.KILL
+    );
+    
+    public final static Set<PlayerTeleportEvent.TeleportCause> EXCLUDED_TELEPORT_CAUSES = Set.of(
+            PlayerTeleportEvent.TeleportCause.COMMAND,
+            PlayerTeleportEvent.TeleportCause.PLUGIN,
+            PlayerTeleportEvent.TeleportCause.UNKNOWN
     );
     
     public static final List<Material> SIGNS = List.of(

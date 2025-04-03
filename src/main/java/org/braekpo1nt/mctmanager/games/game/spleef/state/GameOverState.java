@@ -17,6 +17,7 @@ public class GameOverState extends SpleefStateBase {
             ParticipantInitializer.clearInventory(participant);
             participant.setAlive(true);
         }
+        context.placeLayers(false);
         context.titleAllParticipants(UIUtils.gameOverTitle());
         context.getSidebar().updateLine("round", Component.empty());
         context.getTimerManager().start(Timer.builder()

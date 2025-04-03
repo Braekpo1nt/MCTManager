@@ -674,10 +674,16 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * <p>After the state handles the move event, if the event isn't cancelled and 
      * {@link #getSpectatorBoundary()} is not null, keeps participants in spectator 
      * mode inside the specified boundary.</p>
+     * <p>If the triggering player's Y level is in the void, this will not be called.</p>
      * @param event the event
      */
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
+        int worldMinY = event.getPlayer().getWorld().getMinHeight();
+        if (event.getFrom().getY() < worldMinY
+                || event.getTo().getY() < worldMinY) {
+            return;
+        }
         P participant = participants.get(event.getPlayer().getUniqueId());
         if (participant == null) {
             return;
@@ -711,6 +717,13 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     
     @EventHandler
     public void onPlayerTeleport(PlayerTeleportEvent event) {
+        if (GameManagerUtils.EXCLUDED_TELEPORT_CAUSES.contains(event.getCause())) {
+            return;
+        }
+        int worldMinY = event.getPlayer().getWorld().getMinHeight();
+        if (event.getFrom().getY() < worldMinY) {
+            return;
+        }
         P participant = participants.get(event.getPlayer().getUniqueId());
         if (participant == null) {
             return;
@@ -760,7 +773,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      */
     @EventHandler
     public void onEntityDamage(EntityDamageEvent event) {
-        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
+        if (GameManagerUtils.EXCLUDED_DAMAGE_CAUSES.contains(event.getCause())) {
             return;
         }
         P participant = participants.get(event.getEntity().getUniqueId());

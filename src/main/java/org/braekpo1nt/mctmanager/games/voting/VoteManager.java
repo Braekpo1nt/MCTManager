@@ -306,7 +306,7 @@ public class VoteManager implements Listener {
         if (!voting) {
             return;
         }
-        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
+        if (GameManagerUtils.EXCLUDED_DAMAGE_CAUSES.contains(event.getCause())) {
             return;
         }
         Participant participant = voters.get(event.getEntity().getUniqueId());

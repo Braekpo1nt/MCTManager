@@ -304,7 +304,7 @@ public class ClockworkRound implements Listener {
         if (!roundActive) {
             return;
         }
-        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
+        if (GameManagerUtils.EXCLUDED_DAMAGE_CAUSES.contains(event.getCause())) {
             return;
         }
         if (!participants.containsKey(participant.getUniqueId())) {
