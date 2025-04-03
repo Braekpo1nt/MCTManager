@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.game.spleef;
+package org.braekpo1nt.mctmanager.games.game.spleef_old;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;

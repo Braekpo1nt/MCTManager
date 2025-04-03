@@ -1,14 +1,13 @@
-package org.braekpo1nt.mctmanager.games.game.spleef_new.state;
+package org.braekpo1nt.mctmanager.games.game.spleef.state;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.game.spleef_new.SpleefGame;
-import org.braekpo1nt.mctmanager.games.game.spleef_new.SpleefParticipant;
-import org.braekpo1nt.mctmanager.games.game.spleef_new.SpleefTeam;
+import org.braekpo1nt.mctmanager.games.game.spleef.SpleefGame;
+import org.braekpo1nt.mctmanager.games.game.spleef.SpleefParticipant;
+import org.braekpo1nt.mctmanager.games.game.spleef.SpleefTeam;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
-import org.bukkit.block.Block;
 import org.bukkit.event.Event;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;

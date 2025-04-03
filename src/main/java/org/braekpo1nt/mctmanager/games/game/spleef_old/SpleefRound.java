@@ -1,13 +1,14 @@
-package org.braekpo1nt.mctmanager.games.game.spleef;
+package org.braekpo1nt.mctmanager.games.game.spleef_old;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.game.spleef.DecayManager;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.PowerupManager;
-import org.braekpo1nt.mctmanager.games.game.spleef_new.SpleefInterfaceDeleteMe;
+import org.braekpo1nt.mctmanager.games.game.spleef.SpleefInterfaceDeleteMe;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;

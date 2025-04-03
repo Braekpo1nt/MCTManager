@@ -1,8 +1,8 @@
-package org.braekpo1nt.mctmanager.games.game.spleef_new.state;
+package org.braekpo1nt.mctmanager.games.game.spleef.state;
 
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.games.game.spleef_new.SpleefGame;
-import org.braekpo1nt.mctmanager.games.game.spleef_new.SpleefParticipant;
+import org.braekpo1nt.mctmanager.games.game.spleef.SpleefGame;
+import org.braekpo1nt.mctmanager.games.game.spleef.SpleefParticipant;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;

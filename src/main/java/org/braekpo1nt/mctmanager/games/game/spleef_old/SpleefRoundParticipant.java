@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.game.spleef;
+package org.braekpo1nt.mctmanager.games.game.spleef_old;
 
 import lombok.Data;
 import lombok.Getter;

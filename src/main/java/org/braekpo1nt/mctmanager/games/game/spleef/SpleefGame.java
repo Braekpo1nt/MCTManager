@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.game.spleef_new;
+package org.braekpo1nt.mctmanager.games.game.spleef;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -10,12 +10,11 @@ import org.braekpo1nt.mctmanager.games.experimental.GameBase;
 import org.braekpo1nt.mctmanager.games.experimental.PreventHungerLoss;
 import org.braekpo1nt.mctmanager.games.experimental.PreventItemDrop;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.game.spleef.DecayManager;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.PowerupManager;
-import org.braekpo1nt.mctmanager.games.game.spleef_new.state.DescriptionState;
-import org.braekpo1nt.mctmanager.games.game.spleef_new.state.InitialState;
-import org.braekpo1nt.mctmanager.games.game.spleef_new.state.SpleefState;
+import org.braekpo1nt.mctmanager.games.game.spleef.state.DescriptionState;
+import org.braekpo1nt.mctmanager.games.game.spleef.state.InitialState;
+import org.braekpo1nt.mctmanager.games.game.spleef.state.SpleefState;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;

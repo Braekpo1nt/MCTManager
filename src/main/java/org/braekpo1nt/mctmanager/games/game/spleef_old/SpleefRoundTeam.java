@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.game.spleef;
+package org.braekpo1nt.mctmanager.games.game.spleef_old;
 
 import org.braekpo1nt.mctmanager.participant.ScoredTeamData;
 

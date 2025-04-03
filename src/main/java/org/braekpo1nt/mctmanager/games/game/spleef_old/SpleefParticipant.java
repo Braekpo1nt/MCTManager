@@ -1,12 +1,8 @@
-package org.braekpo1nt.mctmanager.games.game.spleef_new;
+package org.braekpo1nt.mctmanager.games.game.spleef_old;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.ParticipantData;
-import org.braekpo1nt.mctmanager.participant.QuitDataBase;
 import org.jetbrains.annotations.NotNull;
 
 @ToString(callSuper = true)
@@ -14,25 +10,20 @@ import org.jetbrains.annotations.NotNull;
 @Setter
 public class SpleefParticipant extends ParticipantData {
     
-    private boolean alive;
-    
     public SpleefParticipant(@NotNull Participant participant, int score) {
         super(participant, score);
-        alive = true;
     }
     
     public SpleefParticipant(@NotNull Participant participant, QuitData quitData) {
         super(participant, quitData.getScore());
-        alive = quitData.isAlive();
     }
     
     public QuitData getQuitData() {
-        return new QuitData(this.alive, getScore());
+        return new QuitData(getScore());
     }
     
     @Data
-    public static class QuitData implements QuitDataBase {
-        private final boolean alive;
+    public static class QuitData {
         private final int score;
     }
 }
