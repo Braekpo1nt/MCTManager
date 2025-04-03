@@ -163,7 +163,7 @@ public class SpleefGame extends GameBase<SpleefParticipant, SpleefTeam, SpleefPa
     
     @Override
     protected void initializeSidebar() {
-        adminSidebar.addLines(
+        sidebar.addLines(
                 new KeyLine("round", Component.empty()
                         .append(Component.text("Round 1/"))
                         .append(Component.text(config.getRounds()))),
