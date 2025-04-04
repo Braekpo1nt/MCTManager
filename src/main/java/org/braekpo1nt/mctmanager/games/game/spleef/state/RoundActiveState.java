@@ -29,6 +29,8 @@ public class RoundActiveState extends SpleefStateBase {
         }
         context.getDecayManager().setAliveCount(context.getParticipants().size());
         context.getDecayManager().setAlivePercent(1.0);
+        context.getDecayManager().start();
+        context.getPowerupManager().start(context.getParticipants().values());
     }
     
     @Override
@@ -48,6 +50,17 @@ public class RoundActiveState extends SpleefStateBase {
      */
     private void giveTool(SpleefParticipant participant) {
         participant.getInventory().addItem(context.getConfig().getTool());
+    }
+    
+    @Override
+    public void onParticipantRejoin(SpleefParticipant participant, SpleefTeam team) {
+        super.onParticipant Rejoin(participant, team);
+        
+    }
+    
+    @Override
+    public void onNewParticipantJoin(SpleefParticipant participant, SpleefTeam team) {
+        super.onNewParticipant Join(participant, team);
     }
     
     @Override
