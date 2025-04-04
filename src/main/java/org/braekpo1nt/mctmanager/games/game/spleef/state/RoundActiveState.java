@@ -1,10 +1,10 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.state;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.game.spleef.SpleefGame;
-import org.braekpo1nt.mctmanager.games.game.spleef.SpleefParticipant;
-import org.braekpo1nt.mctmanager.games.game.spleef.SpleefTeam;
+import org.braekpo1nt.mctmanager.games.game.spleef.*;
+import org.braekpo1nt.mctmanager.games.game.spleef.powerup.PowerupManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
@@ -22,24 +22,30 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
 
-public class RoundActiveState extends SpleefStateBase {
+public class RoundActiveState extends SpleefStateBase implements SpleefInterface {
+    
+    private final DecayManager decayManager;
+    private final PowerupManager powerupManager;
+    
     public RoundActiveState(@NotNull SpleefGame context) {
         super(context);
+        this.decayManager = new DecayManager(context.getPlugin(), context.getConfig(), this);
+        this.powerupManager = new PowerupManager(context.getPlugin(), context.getConfig());
         for (SpleefParticipant participant : context.getParticipants().values()) {
             giveTool(participant);
             participant.setAlive(true);
             participant.setGameMode(GameMode.SURVIVAL);
         }
-        context.getDecayManager().setAliveCount(context.getParticipants().size());
-        context.getDecayManager().setAlivePercent(1.0);
-        context.getDecayManager().start();
-        context.getPowerupManager().start(context.getParticipants().values());
+        decayManager.setAliveCount(context.getParticipants().size());
+        decayManager.setAlivePercent(1.0);
+        decayManager.start();
+        powerupManager.start(context.getParticipants().values());
     }
     
     @Override
     public void cleanup() {
-        context.getDecayManager().stop();
-        context.getPowerupManager().stop();
+        decayManager.stop();
+        powerupManager.stop();
     }
     
     private void stop() {
@@ -69,7 +75,7 @@ public class RoundActiveState extends SpleefStateBase {
         participant.setAlive(true);
         participant.setGameMode(GameMode.SURVIVAL);
         giveTool(participant);
-        context.getPowerupManager().addParticipant(participant);
+        powerupManager.addParticipant(participant);
         updateAliveCount();
     }
     
@@ -97,6 +103,9 @@ public class RoundActiveState extends SpleefStateBase {
     
     @Override
     public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull SpleefParticipant killed) {
+        if (!killed.isAlive()) {
+            return;
+        }
         killed.setGameMode(GameMode.SPECTATOR);
         Main.debugLog(LogType.CANCEL_PLAYER_DEATH_EVENT, "SpleefRound.onPlayerDeath() cancelled");
         event.setCancelled(true);
@@ -138,16 +147,17 @@ public class RoundActiveState extends SpleefStateBase {
                 .append(Component.text(aliveCount));
         context.getSidebar().updateLine("alive", alive);
         context.getAdminSidebar().updateLine("alive", alive);
-        context.getDecayManager().setAliveCount(aliveCount);
-        context.getDecayManager().setAlivePercent(aliveCount / (double) context.getParticipants().size());
+        decayManager.setAliveCount(aliveCount);
+        decayManager.setAlivePercent(aliveCount / (double) context.getParticipants().size());
     }
     
     private void onParticipantDeath(SpleefParticipant killed) {
+        context.teleportToRandomStartingPosition(killed);
         ParticipantInitializer.clearStatusEffects(killed);
         ParticipantInitializer.resetHealthAndHunger(killed);
         killed.getInventory().clear();
         killed.setAlive(false);
-        context.getPowerupManager().removeParticipant(killed);
+        powerupManager.removeParticipant(killed);
         List<SpleefParticipant> awardedParticipants = context.getParticipants().values().stream()
                 .filter(SpleefParticipant::isAlive)
                 .filter(participant -> !participant.getTeamId().equals(killed.getTeamId()))
@@ -171,7 +181,22 @@ public class RoundActiveState extends SpleefStateBase {
     
     @Override
     public void onParticipantBreakBlock(BlockBreakEvent event, SpleefParticipant participant) {
-        context.getPowerupManager().onParticipantBreakBlock(participant);
+        powerupManager.onParticipantBreakBlock(participant);
         event.setDropItems(false);
+    }
+    
+    @Override
+    public void messageAllParticipants(@NotNull Component message) {
+        context.messageAllParticipants(message);
+    }
+    
+    @Override
+    public void titleAllParticipants(@NotNull Title title) {
+        context.titleAllParticipants(title);
+    }
+    
+    @Override
+    public void setShouldGivePowerups(boolean shouldGivePowerups) {
+        context.setShouldGivePowerups(shouldGivePowerups);
     }
 }

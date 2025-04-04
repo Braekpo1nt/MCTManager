@@ -8,7 +8,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.spleef.DecayManager;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.PowerupManager;
-import org.braekpo1nt.mctmanager.games.game.spleef.SpleefInterfaceDeleteMe;
+import org.braekpo1nt.mctmanager.games.game.spleef.SpleefInterface;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -41,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class SpleefRound implements Listener, SpleefInterfaceDeleteMe {
+public class SpleefRound implements Listener, SpleefInterface {
     private final Main plugin;
     private final GameManager gameManager;
     private final Sidebar sidebar;

@@ -30,7 +30,7 @@ public class DecayManager implements Listener {
     
     private final Main plugin;
     private SpleefConfig config;
-    private final SpleefInterfaceDeleteMe context;
+    private final SpleefInterface context;
     private final Random random = new Random();
     private int decayTaskId;
     /**
@@ -54,7 +54,7 @@ public class DecayManager implements Listener {
      */
     private int secondsLeft;
     
-    public DecayManager(Main plugin, SpleefConfig config, SpleefInterfaceDeleteMe context) {
+    public DecayManager(Main plugin, SpleefConfig config, SpleefInterface context) {
         this.plugin = plugin;
         this.config = config;
         this.context = context;

@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.state;
 
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.spleef.SpleefGame;
 import org.braekpo1nt.mctmanager.games.game.spleef.SpleefParticipant;
@@ -42,12 +43,24 @@ public class SpleefStateBase implements SpleefState {
     public void onParticipantRejoin(SpleefParticipant participant, SpleefTeam team) {
         participant.setGameMode(GameMode.ADVENTURE);
         context.teleportToRandomStartingPosition(participant);
+        Component roundLine = Component.empty()
+                .append(Component.text("Round "))
+                .append(Component.text(context.getCurrentRound()))
+                .append(Component.text("/"))
+                .append(Component.text(context.getConfig().getRounds()));
+        context.getSidebar().updateLine(participant.getUniqueId(), "round", roundLine);
     }
     
     @Override
     public void onNewParticipantJoin(SpleefParticipant participant, SpleefTeam team) {
         participant.setGameMode(GameMode.ADVENTURE);
         context.teleportToRandomStartingPosition(participant);
+        Component roundLine = Component.empty()
+                .append(Component.text("Round "))
+                .append(Component.text(context.getCurrentRound()))
+                .append(Component.text("/"))
+                .append(Component.text(context.getConfig().getRounds()));
+        context.getSidebar().updateLine(participant.getUniqueId(), "round", roundLine);
     }
     
     @Override

@@ -11,7 +11,6 @@ import org.braekpo1nt.mctmanager.games.experimental.PreventHungerLoss;
 import org.braekpo1nt.mctmanager.games.experimental.PreventItemDrop;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
-import org.braekpo1nt.mctmanager.games.game.spleef.powerup.PowerupManager;
 import org.braekpo1nt.mctmanager.games.game.spleef.state.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.spleef.state.InitialState;
 import org.braekpo1nt.mctmanager.games.game.spleef.state.SpleefState;
@@ -36,12 +35,10 @@ import java.util.Random;
 
 @Getter
 @Setter
-public class SpleefGame extends GameBase<SpleefParticipant, SpleefTeam, SpleefParticipant.QuitData, SpleefTeam.QuitData, SpleefState> implements SpleefInterfaceDeleteMe {
+public class SpleefGame extends GameBase<SpleefParticipant, SpleefTeam, SpleefParticipant.QuitData, SpleefTeam.QuitData, SpleefState> {
     
     private final @NotNull SpleefConfig config;
     private final Random random = new Random();
-    private final DecayManager decayManager;
-    private final PowerupManager powerupManager;
     
     private int currentRound;
     private boolean shouldGivePowerups;
@@ -56,8 +53,6 @@ public class SpleefGame extends GameBase<SpleefParticipant, SpleefTeam, SpleefPa
             @NotNull List<Player> newAdmins) {
         super(GameType.SPLEEF, plugin, gameManager, title, new InitialState());
         this.config = config;
-        this.decayManager = new DecayManager(plugin, config, this);
-        this.powerupManager = new PowerupManager(plugin, config);
         this.currentRound = 1;
         this.shouldGivePowerups = false;
         placeLayers(true);
@@ -86,7 +81,7 @@ public class SpleefGame extends GameBase<SpleefParticipant, SpleefTeam, SpleefPa
     
     @Override
     protected void cleanup() {
-        
+        placeLayers(false);
     }
     
     @Override
