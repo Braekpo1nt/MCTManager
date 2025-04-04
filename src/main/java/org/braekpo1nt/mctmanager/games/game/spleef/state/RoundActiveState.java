@@ -51,6 +51,8 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
     
     private void stop() {
         cleanup();
+        context.getSidebar().updateLine("alive", Component.empty());
+        context.getAdminSidebar().updateLine("alive", Component.empty());
         context.setState(new RoundOverState(context));
     }
     
