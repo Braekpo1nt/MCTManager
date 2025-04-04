@@ -17,6 +17,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -102,21 +103,27 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
     }
     
     @Override
-    public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull SpleefParticipant killed) {
-        if (!killed.isAlive()) {
+    public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull SpleefParticipant participant) {
+        if (!participant.isAlive()) {
             return;
         }
-        killed.setGameMode(GameMode.SPECTATOR);
-        Main.debugLog(LogType.CANCEL_PLAYER_DEATH_EVENT, "SpleefRound.onPlayerDeath() cancelled");
-        event.setCancelled(true);
         Component deathMessage = event.deathMessage();
         if (deathMessage != null) {
             context.getPlugin().getServer().sendMessage(deathMessage);
         }
-        onParticipantDeath(killed);
+        onParticipantDeath(participant);
         if (lessThanTwoParticipantsAreAlive() || exactlyOneTeamIsAlive()) {
             stop();
         }
+    }
+    
+    @Override
+    public void onParticipantRespawn(PlayerRespawnEvent event, SpleefParticipant participant) {
+        event.setRespawnLocation(context.getRandomStartingPosition());
+        participant.setGameMode(GameMode.SPECTATOR);
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        participant.getInventory().clear();
     }
     
     /**
@@ -152,10 +159,6 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
     }
     
     private void onParticipantDeath(SpleefParticipant killed) {
-        context.teleportToRandomStartingPosition(killed);
-        ParticipantInitializer.clearStatusEffects(killed);
-        ParticipantInitializer.resetHealthAndHunger(killed);
-        killed.getInventory().clear();
         killed.setAlive(false);
         powerupManager.removeParticipant(killed);
         List<SpleefParticipant> awardedParticipants = context.getParticipants().values().stream()

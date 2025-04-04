@@ -686,18 +686,25 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      */
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
-        int worldMinY = event.getPlayer().getWorld().getMinHeight();
-        if (event.getFrom().getY() < worldMinY
-                || event.getTo().getY() < worldMinY) {
-            return;
-        }
+//        int worldMinY = event.getPlayer().getWorld().getMinHeight();
+//        if (event.getFrom().getY() < worldMinY
+//                || event.getTo().getY() < worldMinY) {
+//            Main.logf("%s moved from (%s) or to (%s) the void", 
+//                    event.getPlayer().getName(),
+//                    event.getFrom().toVector(),
+//                    event.getTo().toVector());
+//            return;
+//        }
         P participant = participants.get(event.getPlayer().getUniqueId());
         if (participant == null) {
             return;
         }
         state.onParticipantMove(event, participant);
-        if (!event.isCancelled() && getSpectatorBoundary() != null && participant.getGameMode().equals(GameMode.SPECTATOR)) {
-            keepSpectatorInArea(event, getSpectatorBoundary(), participant);
+        if (!event.isCancelled() && 
+                getSpectatorBoundary() != null && 
+                participant.getGameMode().equals(GameMode.SPECTATOR) &&
+                !participant.getPlayer().isDead()) {
+            keepSpectatorInAreaMove(event, getSpectatorBoundary(), participant);
         }
     }
     
@@ -707,12 +714,32 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param boundary the boundary to prevent the given spectator from leaving
      * @param event the event which may be cancelled in order to keep the given participant in the spectator area
      */
-    private void keepSpectatorInArea(PlayerMoveEvent event, @NotNull SpectatorBoundary boundary, @NotNull Participant spectator) {
+    private void keepSpectatorInAreaMove(PlayerMoveEvent event, @NotNull SpectatorBoundary boundary, @NotNull Participant spectator) {
+//        if (!boundary.contains(event.getFrom().toVector())) {
+//            event.setCancelled(true);
+//            boundary.teleportToSpawn(spectator);
+//            Main.logf("keepSpectatorInAreaMove teleportToSpawn");
+//            return;
+//        }
         if (!boundary.contains(event.getFrom().toVector())) {
-            boundary.teleportToSpawn(spectator);
             return;
         }
         if (!boundary.contains(event.getTo().toVector())) {
+            Main.logf("keepSpectatorInAreaMove cancel move");
+            event.setCancelled(true);
+        }
+    }
+    
+    private void keepSpectatorInAreaTeleport(PlayerTeleportEvent event, @NotNull SpectatorBoundary boundary, @NotNull Participant spectator) {
+//        if (!boundary.contains(event.getFrom().toVector()) && 
+//                !boundary.contains(event.getTo().toVector())) {
+//            event.setCancelled(true);
+//            boundary.teleportToSpawn(spectator);
+//            Main.logf("keepSpectatorInAreaTeleport cancel tp and teleportToSpawn");
+//            return;
+//        }
+        if (!boundary.contains(event.getTo().toVector())) {
+            Main.logf("keepSpectatorInAreaTeleport cancel tp");
             event.setCancelled(true);
         }
     }
@@ -724,20 +751,24 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     
     @EventHandler
     public void onPlayerTeleport(PlayerTeleportEvent event) {
-        if (GameManagerUtils.EXCLUDED_TELEPORT_CAUSES.contains(event.getCause())) {
-            return;
-        }
-        int worldMinY = event.getPlayer().getWorld().getMinHeight();
-        if (event.getFrom().getY() < worldMinY) {
-            return;
-        }
+//        if (GameManagerUtils.EXCLUDED_TELEPORT_CAUSES.contains(event.getCause())) {
+//            return;
+//        }
+//        int worldMinY = event.getPlayer().getWorld().getMinHeight();
+//        if (event.getFrom().getY() < worldMinY) {
+//            return;
+//        }
         P participant = participants.get(event.getPlayer().getUniqueId());
         if (participant == null) {
             return;
         }
         state.onParticipantTeleport(event, participant);
-        if (!event.isCancelled() && getSpectatorBoundary() != null && participant.getGameMode().equals(GameMode.SPECTATOR)) {
-            keepSpectatorInArea(event, getSpectatorBoundary(), participant);
+        if (!event.isCancelled() && 
+                event.getCause().equals(PlayerTeleportEvent.TeleportCause.SPECTATE) &&
+                getSpectatorBoundary() != null && 
+                participant.getGameMode().equals(GameMode.SPECTATOR) &&
+                !participant.getPlayer().isDead()) {
+            keepSpectatorInAreaTeleport(event, getSpectatorBoundary(), participant);
         }
     }
     

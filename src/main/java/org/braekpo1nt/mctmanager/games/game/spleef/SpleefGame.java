@@ -18,12 +18,14 @@ import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
@@ -105,9 +107,14 @@ public class SpleefGame extends GameBase<SpleefParticipant, SpleefTeam, SpleefPa
     }
     
     public void teleportToRandomStartingPosition(Participant participant) {
+        Location location = getRandomStartingPosition();
+        participant.teleport(location);
+        participant.setRespawnLocation(location, true);
+    }
+    
+    public Location getRandomStartingPosition() {
         int index = random.nextInt(config.getStartingLocations().size());
-        participant.teleport(config.getStartingLocations().get(index));
-        participant.setRespawnLocation(config.getStartingLocations().get(index), true);
+        return config.getStartingLocations().get(index);
     }
     
     @Override
@@ -193,5 +200,14 @@ public class SpleefGame extends GameBase<SpleefParticipant, SpleefTeam, SpleefPa
             return;
         }
         state.onParticipantBreakBlock(event, participant);
+    }
+    
+    @EventHandler
+    public void onPlayerRespawn(PlayerRespawnEvent event) {
+        SpleefParticipant participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        state.onParticipantRespawn(event, participant);
     }
 }

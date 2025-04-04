@@ -7,6 +7,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -73,6 +74,11 @@ public class InitialState implements SpleefState {
     
     @Override
     public void onParticipantBreakBlock(BlockBreakEvent event, SpleefParticipant participant) {
+        
+    }
+    
+    @Override
+    public void onParticipantRespawn(PlayerRespawnEvent event, SpleefParticipant participant) {
         
     }
 }
