@@ -109,6 +109,7 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
         if (!participant.isAlive()) {
             return;
         }
+        event.getDrops().clear();
         onParticipantDeath(participant);
         if (lessThanTwoParticipantsAreAlive() || exactlyOneTeamIsAlive()) {
             stop();
