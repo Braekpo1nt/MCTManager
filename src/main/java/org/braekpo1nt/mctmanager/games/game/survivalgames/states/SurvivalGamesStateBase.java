@@ -5,6 +5,7 @@ import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesParticipa
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesTeam;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -69,6 +70,11 @@ public abstract class SurvivalGamesStateBase implements SurvivalGamesState {
     
     @Override
     public void onParticipantInteract(@NotNull PlayerInteractEvent event, @NotNull SurvivalGamesParticipant participant) {
+        
+    }
+    
+    @Override
+    public void onParticipantRespawn(PlayerRespawnEvent event, SurvivalGamesParticipant participant) {
         
     }
 }

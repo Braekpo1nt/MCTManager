@@ -6,6 +6,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -94,4 +95,7 @@ public interface GameStateBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param participant the participant who triggered the event.
      */
     void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull P participant);
+    
+    
+    void onParticipantRespawn(PlayerRespawnEvent event, P participant);
 }

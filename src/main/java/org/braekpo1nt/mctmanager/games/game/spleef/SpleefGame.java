@@ -201,13 +201,4 @@ public class SpleefGame extends GameBase<SpleefParticipant, SpleefTeam, SpleefPa
         }
         state.onParticipantBreakBlock(event, participant);
     }
-    
-    @EventHandler
-    public void onPlayerRespawn(PlayerRespawnEvent event) {
-        SpleefParticipant participant = participants.get(event.getPlayer().getUniqueId());
-        if (participant == null) {
-            return;
-        }
-        state.onParticipantRespawn(event, participant);
-    }
 }

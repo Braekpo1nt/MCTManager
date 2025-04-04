@@ -30,6 +30,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -830,11 +831,20 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      */
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
-        P participant = participants.get(event.getEntity().getUniqueId());
+        P participant = participants.get(event.getPlayer().getUniqueId());
         if (participant == null) {
             return;
         }
         state.onParticipantDeath(event, participant);
+    }
+    
+    @EventHandler
+    public void onPlayerRespawn(PlayerRespawnEvent event) {
+        P participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        state.onParticipantRespawn(event, participant);
     }
     // EventHandlers end
     

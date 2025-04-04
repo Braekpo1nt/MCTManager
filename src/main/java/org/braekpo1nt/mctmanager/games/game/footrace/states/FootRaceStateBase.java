@@ -8,6 +8,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -98,5 +99,10 @@ public class FootRaceStateBase implements FootRaceState {
     @Override
     public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull FootRaceParticipant participant) {
         event.setCancelled(true);
+    }
+    
+    @Override
+    public void onParticipantRespawn(PlayerRespawnEvent event, FootRaceParticipant participant) {
+        
     }
 }
