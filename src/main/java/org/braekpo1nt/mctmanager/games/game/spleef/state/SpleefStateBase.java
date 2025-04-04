@@ -5,6 +5,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.spleef.SpleefGame;
 import org.braekpo1nt.mctmanager.games.game.spleef.SpleefParticipant;
 import org.braekpo1nt.mctmanager.games.game.spleef.SpleefTeam;
+import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.geometry.CompositeGeometry;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
@@ -112,7 +113,11 @@ public class SpleefStateBase implements SpleefState {
     
     @Override
     public void onParticipantRespawn(PlayerRespawnEvent event, SpleefParticipant participant) {
-        
+        event.setRespawnLocation(context.getRandomStartingPosition());
+        participant.setGameMode(GameMode.SPECTATOR);
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        participant.getInventory().clear();
     }
     
     @Override

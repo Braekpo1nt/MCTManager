@@ -113,15 +113,6 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
         }
     }
     
-    @Override
-    public void onParticipantRespawn(PlayerRespawnEvent event, SpleefParticipant participant) {
-        event.setRespawnLocation(context.getRandomStartingPosition());
-        participant.setGameMode(GameMode.SPECTATOR);
-        ParticipantInitializer.clearStatusEffects(participant);
-        ParticipantInitializer.resetHealthAndHunger(participant);
-        participant.getInventory().clear();
-    }
-    
     /**
      * @return true if exactly one team is alive, false otherwise
      */
