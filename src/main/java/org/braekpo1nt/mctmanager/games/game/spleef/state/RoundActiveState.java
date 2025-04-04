@@ -107,10 +107,6 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
         if (!participant.isAlive()) {
             return;
         }
-        Component deathMessage = event.deathMessage();
-        if (deathMessage != null) {
-            context.getPlugin().getServer().sendMessage(deathMessage);
-        }
         onParticipantDeath(participant);
         if (lessThanTwoParticipantsAreAlive() || exactlyOneTeamIsAlive()) {
             stop();
