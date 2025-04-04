@@ -91,12 +91,12 @@ public class SpleefGame extends GameBase<SpleefParticipant, SpleefTeam, SpleefPa
     
     @Override
     protected SpleefParticipant createParticipant(Participant participant) {
-        return new SpleefParticipant(participant, 0);
+        return new SpleefParticipant(participant, 0, true);
     }
     
     @Override
     protected SpleefParticipant createParticipant(Participant participant, SpleefParticipant.QuitData quitData) {
-        return new SpleefParticipant(participant, quitData);
+        return new SpleefParticipant(participant, quitData.getScore(), true);
     }
     
     @Override

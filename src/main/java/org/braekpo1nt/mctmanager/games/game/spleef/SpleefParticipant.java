@@ -16,23 +16,17 @@ public class SpleefParticipant extends ParticipantData {
     
     private boolean alive;
     
-    public SpleefParticipant(@NotNull Participant participant, int score) {
+    public SpleefParticipant(@NotNull Participant participant, int score, boolean alive) {
         super(participant, score);
-        alive = true;
-    }
-    
-    public SpleefParticipant(@NotNull Participant participant, QuitData quitData) {
-        super(participant, quitData.getScore());
-        alive = quitData.isAlive();
+        this.alive = alive;
     }
     
     public QuitData getQuitData() {
-        return new QuitData(this.alive, getScore());
+        return new QuitData(getScore());
     }
     
     @Data
     public static class QuitData implements QuitDataBase {
-        private final boolean alive;
         private final int score;
     }
 }

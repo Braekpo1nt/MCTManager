@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.games.game.spleef.SpleefParticipant;
 import org.braekpo1nt.mctmanager.games.game.spleef.SpleefTeam;
 import org.braekpo1nt.mctmanager.geometry.CompositeGeometry;
 import org.braekpo1nt.mctmanager.utils.LogType;
+import org.bukkit.GameMode;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -39,12 +40,14 @@ public class SpleefStateBase implements SpleefState {
     
     @Override
     public void onParticipantRejoin(SpleefParticipant participant, SpleefTeam team) {
-        
+        participant.setGameMode(GameMode.ADVENTURE);
+        context.teleportToRandomStartingPosition(participant);
     }
     
     @Override
     public void onNewParticipantJoin(SpleefParticipant participant, SpleefTeam team) {
-        
+        participant.setGameMode(GameMode.ADVENTURE);
+        context.teleportToRandomStartingPosition(participant);
     }
     
     @Override

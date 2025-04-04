@@ -54,13 +54,20 @@ public class RoundActiveState extends SpleefStateBase {
     
     @Override
     public void onParticipantRejoin(SpleefParticipant participant, SpleefTeam team) {
-        super.onParticipant Rejoin(participant, team);
-        
+        super.onParticipantRejoin(participant, team);
+        participant.setAlive(false);
+        participant.setGameMode(GameMode.SPECTATOR);
+        updateAliveCount();
     }
     
     @Override
     public void onNewParticipantJoin(SpleefParticipant participant, SpleefTeam team) {
-        super.onNewParticipant Join(participant, team);
+        super.onNewParticipantJoin(participant, team);
+        participant.setAlive(true);
+        participant.setGameMode(GameMode.SURVIVAL);
+        giveTool(participant);
+        context.getPowerupManager().addParticipant(participant);
+        updateAliveCount();
     }
     
     @Override
@@ -109,6 +116,17 @@ public class RoundActiveState extends SpleefStateBase {
         return context.getParticipants().values().stream().filter(SpleefParticipant::isAlive).count();
     }
     
+    private void updateAliveCount() {
+        long aliveCount = getAliveCount();
+        Component alive = Component.empty()
+                .append(Component.text("Alive: "))
+                .append(Component.text(aliveCount));
+        context.getSidebar().updateLine("alive", alive);
+        context.getAdminSidebar().updateLine("alive", alive);
+        context.getDecayManager().setAliveCount(aliveCount);
+        context.getDecayManager().setAlivePercent(aliveCount / (double) context.getParticipants().size());
+    }
+    
     private void onParticipantDeath(SpleefParticipant killed) {
         ParticipantInitializer.clearStatusEffects(killed);
         ParticipantInitializer.resetHealthAndHunger(killed);
@@ -121,14 +139,7 @@ public class RoundActiveState extends SpleefStateBase {
                 .toList();
         context.awardPoints(awardedParticipants, context.getConfig().getSurviveScore());
         
-        long aliveCount = getAliveCount();
-        Component alive = Component.empty()
-                .append(Component.text("Alive: "))
-                .append(Component.text(aliveCount));
-        context.getSidebar().updateLine("alive", alive);
-        context.getAdminSidebar().updateLine("alive", alive);
-        context.getDecayManager().setAliveCount(aliveCount);
-        context.getDecayManager().setAlivePercent(aliveCount / (double) context.getParticipants().size());
+        updateAliveCount();
     }
     
     @Override
