@@ -18,6 +18,7 @@ import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.structure.Mirror;
@@ -25,7 +26,6 @@ import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
@@ -60,6 +60,7 @@ public class SpleefGame extends GameBase<SpleefParticipant, SpleefTeam, SpleefPa
         placeLayers(true);
         addListener(new PreventHungerLoss<>(this));
         addListener(new PreventItemDrop<>(this, true));
+        this.config.getWorld().setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
         start(newTeams, newParticipants, newAdmins);
         Main.logger().info("Started Spleef");
     }
