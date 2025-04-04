@@ -8,6 +8,8 @@ import org.braekpo1nt.mctmanager.games.game.spleef.SpleefTeam;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
+import org.bukkit.damage.DamageSource;
+import org.bukkit.damage.DamageType;
 import org.bukkit.event.Event;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -17,6 +19,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.List;
 
 public class RoundActiveState extends SpleefStateBase {
@@ -68,6 +71,18 @@ public class RoundActiveState extends SpleefStateBase {
         giveTool(participant);
         context.getPowerupManager().addParticipant(participant);
         updateAliveCount();
+    }
+    
+    @Override
+    public void onParticipantQuit(SpleefParticipant participant, SpleefTeam team) {
+        if (participant.isAlive()) {
+            Component deathMessage = Component.empty()
+                    .append(Component.text(participant.getName()))
+                    .append(Component.text(" left early. Their life is forfeit."));
+            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant.getPlayer(),
+                    DamageSource.builder(DamageType.GENERIC).build(), Collections.emptyList(), 0, deathMessage);
+            onParticipantDeath(fakeDeathEvent, participant);
+        }
     }
     
     @Override
