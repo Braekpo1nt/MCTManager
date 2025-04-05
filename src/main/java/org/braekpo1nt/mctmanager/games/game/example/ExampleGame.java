@@ -18,6 +18,7 @@ import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.topbar.BasicTopbar;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -63,6 +64,11 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
     @Override
     protected @NotNull ExampleState getStartState() {
         return new DescriptionSate(this);
+    }
+    
+    @Override
+    protected @NotNull World getWorld() {
+        return config.getWorld();
     }
     
     @Override

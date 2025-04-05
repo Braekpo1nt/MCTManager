@@ -23,6 +23,7 @@ import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -86,6 +87,11 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
     @Override
     protected @NotNull FootRaceState getStartState() {
         return new DescriptionState(this);
+    }
+    
+    @Override
+    protected @NotNull World getWorld() {
+        return config.getWorld();
     }
     
     public void updateStandings() {

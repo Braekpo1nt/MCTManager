@@ -21,6 +21,7 @@ import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.entity.Player;
@@ -60,7 +61,7 @@ public class SpleefGame extends GameBase<SpleefParticipant, SpleefTeam, SpleefPa
         placeLayers(true);
         addListener(new PreventHungerLoss<>(this));
         addListener(new PreventItemDrop<>(this, true));
-        this.config.getWorld().setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
+        setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
         start(newTeams, newParticipants, newAdmins);
         Main.logger().info("Started Spleef");
     }
@@ -68,6 +69,11 @@ public class SpleefGame extends GameBase<SpleefParticipant, SpleefTeam, SpleefPa
     @Override
     protected @NotNull SpleefState getStartState() {
         return new DescriptionState(this);
+    }
+    
+    @Override
+    protected @NotNull World getWorld() {
+        return config.getWorld();
     }
     
     public void placeLayers(boolean replaceStencil) {

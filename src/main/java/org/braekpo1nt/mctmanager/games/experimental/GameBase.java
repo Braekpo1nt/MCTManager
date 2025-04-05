@@ -19,7 +19,9 @@ import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.bukkit.GameMode;
+import org.bukkit.GameRule;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -60,6 +62,12 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     protected final @NotNull List<Player> admins;
     protected final @NotNull List<UIManager> uiManagers;
     protected final @NotNull List<GameListener<P>> listeners;
+    /**
+     * <p>The game rules that were changed by {@link #setGameRule(GameRule, Object)},
+     * and so must be restored to their state before the game started.
+     * The resetting is done in {@link #stop()}.</p>
+     */
+    protected final @NotNull List<StoredGameRule<?>> storedGameRules;
     
     /**
      * The current state of this game
@@ -98,6 +106,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         this.timerManager = gameManager.getTimerManager().register(new TimerManager(plugin));
         this.admins = new ArrayList<>();
         this.listeners = new ArrayList<>();
+        this.storedGameRules = new ArrayList<>();
         this.state = initialState;
     }
     
@@ -112,6 +121,22 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     public void addListener(GameListener<P> listener) {
         this.listeners.add(listener);
     }
+    
+    /**
+     * <p>Set the game rule of {@link #getWorld()} using the given rule and value.
+     * Each rule set in this way will be reset to the value it was before
+     * this game started (see {@link #stop()}).</p>
+     * @param rule the game rule
+     * @param value the value
+     * @param <G> the type that the game rule's value should be
+     */
+    protected <G> void setGameRule(@NotNull GameRule<G> rule, @NotNull G value) {
+        G oldValue = getWorld().getGameRuleValue(rule);
+        storedGameRules.add(new StoredGameRule<>(rule, oldValue));
+        getWorld().setGameRule(rule, value);
+    }
+    
+    protected abstract @NotNull World getWorld();
     
     /**
      * <p>Call this after all fields have been initialized. 
@@ -205,9 +230,23 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         admins.clear();
         // admins end
         sidebar.deleteAllLines();
+        for (StoredGameRule<?> stored : storedGameRules) {
+            restore(stored);
+        }
         cleanup();
         gameManager.gameIsOver();
         Main.logger().info("Stopping " + type.getTitle());
+    }
+    
+    /**
+     * Because of the {@code ?} used in {@link #storedGameRules}, this
+     * method helps tell the compiler that {@link StoredGameRule#rule()}'s
+     * type parameter and {@link StoredGameRule#value()} are the same type.
+     * @param stored the stored rule
+     * @param <G> the type of the rule's type parameter and value.
+     */
+    private <G> void restore(StoredGameRule<G> stored) {
+        getWorld().setGameRule(stored.rule(), stored.value());
     }
     
     /**
