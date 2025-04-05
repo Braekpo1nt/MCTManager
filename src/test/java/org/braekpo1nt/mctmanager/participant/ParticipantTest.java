@@ -6,7 +6,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchPartici
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceParticipant;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourParticipant;
-import org.braekpo1nt.mctmanager.games.game.spleef_old.SpleefParticipant;
+import org.braekpo1nt.mctmanager.games.game.spleef.SpleefParticipant;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesParticipant;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Assertions;
@@ -62,7 +62,7 @@ class ParticipantTest {
     
     @Test
     void spleefParticipantEquals() {
-        SpleefParticipant subParticipant = new SpleefParticipant(participant, 0);
+        SpleefParticipant subParticipant = new SpleefParticipant(participant, 0, true);
         
         Assertions.assertEquals(participant, subParticipant);
     }
