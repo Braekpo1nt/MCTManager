@@ -605,7 +605,7 @@ public class GameManager implements Listener {
         }
         for (OfflineParticipant participant : allParticipants.values()) {
             boolean grey = !onlinePlayers.containsKey(participant.getUniqueId());
-            tabList.joinParticipant(participant.getUniqueId(), participant.getName(), participant.getTeamId(), grey);
+            tabList.joinParticipant(participant.getParticipantID(), participant.getName(), participant.getTeamId(), grey);
         }
         // TabList stop
         
@@ -1217,7 +1217,7 @@ public class GameManager implements Listener {
         allParticipants.put(offlineParticipant.getUniqueId(), offlineParticipant);
         team.joinMember(offlineParticipant.getUniqueId());
         tabList.joinParticipant(
-                offlineParticipant.getUniqueId(), 
+                offlineParticipant.getParticipantID(), 
                 offlineParticipant.getName(), 
                 offlineParticipant.getTeamId(), 
                 false);
@@ -1289,7 +1289,7 @@ public class GameManager implements Listener {
                     .color(NamedTextColor.RED));
         }
         hubManager.updateLeaderboards();
-        tabList.leaveParticipant(offlineParticipant.getUniqueId());
+        tabList.leaveParticipant(offlineParticipant.getParticipantID());
         sender.sendMessage(Component.text("Removed ")
                 .append(offlineParticipant.displayName())
                 .append(Component.text(" from team "))

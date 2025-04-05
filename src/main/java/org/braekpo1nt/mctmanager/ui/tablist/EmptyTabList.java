@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.ui.tablist;
 
 import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.participant.ParticipantID;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -52,25 +53,27 @@ public class EmptyTabList extends TabList {
     
     /**
      * Joins the given participant to the given team so that the name is listed under the team
-     * in the TabList. Initialized as alive. <br> 
+     * in the TabList. Initialized as alive. <br>
      * This is not the same as {@link #showPlayer(Player)} because it has nothing
      * to do with who is viewing the TabList. Instead, it has to do with what data is being displayed
-     * via the TabList. 
-     * @param uuid the participant's uuid
-     * @param name the participant's name
+     * via the TabList.
+     *
+     * @param pid    the participant's uuid
+     * @param name   the participant's name
      * @param teamId the team to join the participant to
-     * @param grey whether the participant's name should be grey, or the color of their team
+     * @param grey   whether the participant's name should be grey, or the color of their team
      */
     @Override
-    public void joinParticipant(@NotNull UUID uuid, @NotNull String name, @NotNull String teamId, boolean grey) {
+    public void joinParticipant(@NotNull ParticipantID pid, @NotNull String name, @NotNull String teamId, boolean grey) {
     }
     
     /**
      * Leave the given participant from their team
-     * @param uuid the UUID of the participant to leave. Must be a valid UUID contained in this TabList.
+     *
+     * @param pid the UUID of the participant to leave. Must be a valid UUID contained in this TabList.
      */
     @Override
-    public void leaveParticipant(@NotNull UUID uuid) {
+    public void leaveParticipant(@NotNull ParticipantID pid) {
     }
     
     /**

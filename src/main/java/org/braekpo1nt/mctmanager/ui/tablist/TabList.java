@@ -7,7 +7,7 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.ParticipantID;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIException;
 import org.braekpo1nt.mctmanager.ui.UIManager;
@@ -146,7 +146,7 @@ public class TabList implements UIManager {
     }
     
     private final Map<String, TeamData> teamDatas = new HashMap<>();
-    private final Map<UUID, ParticipantData> participantDatas = new HashMap<>();
+    private final Map<ParticipantID, ParticipantData> participantDatas = new HashMap<>();
     private final Map<UUID, PlayerData> playerDatas = new HashMap<>();
     
     private final Main plugin;
@@ -331,19 +331,20 @@ public class TabList implements UIManager {
     
     /**
      * Joins the given participant to the given team so that the name is listed under the team
-     * in the TabList. Initialized as alive. <br> 
+     * in the TabList. Initialized as alive. <br>
      * This is not the same as {@link #showPlayer(Player)} because it has nothing
      * to do with who is viewing the TabList. Instead, it has to do with what data is being displayed
-     * via the TabList. 
-     * @param uuid the participant's uuid
-     * @param name the participant's name
+     * via the TabList.
+     *
+     * @param pid    the participant's uuid
+     * @param name   the participant's name
      * @param teamId the team to join the participant to
-     * @param grey whether the participant's name should be grey, or the color of their team
+     * @param grey   whether the participant's name should be grey, or the color of their team
      */
-    public void joinParticipant(@NotNull UUID uuid, @NotNull String name, @NotNull String teamId, boolean grey) {
-        ParticipantData existingParticipantData = participantDatas.get(uuid);
+    public void joinParticipant(@NotNull ParticipantID pid, @NotNull String name, @NotNull String teamId, boolean grey) {
+        ParticipantData existingParticipantData = participantDatas.get(pid);
         if (existingParticipantData != null) {
-            logUIError("Participant with UUID \"%s\" and name \"%s\" is already contained in this TabList, joined to team with id \"%s\"", uuid, existingParticipantData.getName(), existingParticipantData.getTeamId());
+            logUIError("Participant with UUID \"%s\" and name \"%s\" is already contained in this TabList, joined to team with id \"%s\"", pid, existingParticipantData.getName(), existingParticipantData.getTeamId());
             return;
         }
         TeamData teamData = getTeamData(teamId);
@@ -352,18 +353,19 @@ public class TabList implements UIManager {
         }
         ParticipantData newParticipantData = new ParticipantData(name, teamId, grey);
         teamData.getParticipants().add(newParticipantData);
-        participantDatas.put(uuid, newParticipantData);
+        participantDatas.put(pid, newParticipantData);
         update();
     }
     
     /**
      * Leave the given participant from their team
-     * @param uuid the UUID of the participant to leave. Must be a valid UUID contained in this TabList.
+     *
+     * @param pid the UUID of the participant to leave. Must be a valid UUID contained in this TabList.
      */
-    public void leaveParticipant(@NotNull UUID uuid) {
-        ParticipantData participantData = participantDatas.remove(uuid);
+    public void leaveParticipant(@NotNull ParticipantID pid) {
+        ParticipantData participantData = participantDatas.remove(pid);
         if (participantData == null) {
-            logUIError("Participant with UUID \"%s\" is not contained in this TabList", uuid);
+            logUIError("Participant with UUID \"%s\" is not contained in this TabList", pid);
             return;
         }
         TeamData teamData = teamDatas.get(participantData.getTeamId());

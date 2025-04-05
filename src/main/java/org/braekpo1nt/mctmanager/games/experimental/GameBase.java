@@ -294,7 +294,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         team.addParticipant(participant);
         sidebar.addPlayer(participant);
         tabList.showPlayer(participant);
-        tabList.joinParticipant(participant.getUniqueId(), participant.getName(), participant.getTeamId(), false);
+        tabList.joinParticipant(participant.getParticipantID(), participant.getName(), participant.getTeamId(), false);
         uiManagers.forEach(uiManager -> uiManager.showPlayer(participant));
     }
     
@@ -372,7 +372,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         participant.setGameMode(GameMode.ADVENTURE);
         sidebar.removePlayer(participant);
         tabList.hidePlayer(participant);
-        tabList.leaveParticipant(participant.getUniqueId());
+        tabList.leaveParticipant(participant.getParticipantID());
         uiManagers.forEach(uiManager -> uiManager.hidePlayer(participant));
         resetParticipant(participant, team);
     }
