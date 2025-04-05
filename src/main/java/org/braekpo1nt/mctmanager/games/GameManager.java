@@ -53,6 +53,7 @@ import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
+import org.braekpo1nt.mctmanager.ui.tablist.EmptyTabList;
 import org.braekpo1nt.mctmanager.ui.tablist.TabList;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
@@ -132,7 +133,7 @@ public class GameManager implements Listener {
         this.gameStateStorageUtil = new GameStateStorageUtil(plugin);
         this.voteManager = new VoteManager(this, plugin);
         this.timerManager = new TimerManager(plugin);
-        this.tabList = new TabList(plugin);
+        this.tabList = new EmptyTabList(plugin);
         this.sidebarFactory = new SidebarFactory();
         this.hubManager = initializeHubManager(plugin, this);
         this.eventManager = new EventManager(plugin, this, voteManager);
