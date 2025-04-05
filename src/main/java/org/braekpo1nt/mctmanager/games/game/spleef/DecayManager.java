@@ -139,7 +139,7 @@ public class DecayManager implements Listener {
      * Changes n blocks in the given list to the decaying material, where n is the given count. Each randomly chosen block is removed from the solidBlocks list and added to the decayingBlocks list.
      * @param solidBlocks the list to decay a random subset of
      * @param decayingBlocks the list to add the decaying block to
-     * @param count how many blocks to decay from the given list. If count is less than solidBlocks.size(), , then all the blocks that are left will be decayed. 
+     * @param count how many blocks to decay from the given list. If count is less than solidBlocks.size(), then all the blocks that are left will be decayed. 
      */
     private void randomlyDecaySolidBlocks(List<Block> solidBlocks, List<Block> decayingBlocks, int count) {
         for (int i = 0; i < Math.min(count, solidBlocks.size()); i++) {
