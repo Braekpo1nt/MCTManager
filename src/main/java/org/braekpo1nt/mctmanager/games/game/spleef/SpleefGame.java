@@ -44,7 +44,6 @@ public class SpleefGame extends GameBase<SpleefParticipant, SpleefTeam, SpleefPa
     private final Random random = new Random();
     
     private int currentRound;
-    private boolean shouldGivePowerups;
     
     public SpleefGame(
             @NotNull Main plugin,
@@ -57,7 +56,6 @@ public class SpleefGame extends GameBase<SpleefParticipant, SpleefTeam, SpleefPa
         super(GameType.SPLEEF, plugin, gameManager, title, new InitialState());
         this.config = config;
         this.currentRound = 1;
-        this.shouldGivePowerups = false;
         placeLayers(true);
         addListener(new PreventHungerLoss<>(this));
         addListener(new PreventItemDrop<>(this, true));

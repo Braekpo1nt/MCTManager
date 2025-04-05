@@ -29,7 +29,7 @@ import java.util.Random;
 public class DecayManager implements Listener {
     
     private final Main plugin;
-    private SpleefConfig config;
+    private final SpleefConfig config;
     private final SpleefInterface context;
     private final Random random = new Random();
     private int decayTaskId;
@@ -58,10 +58,6 @@ public class DecayManager implements Listener {
         this.plugin = plugin;
         this.config = config;
         this.context = context;
-    }
-    
-    public void setConfig(SpleefConfig config) {
-        this.config = config;
     }
     
     public void start() {

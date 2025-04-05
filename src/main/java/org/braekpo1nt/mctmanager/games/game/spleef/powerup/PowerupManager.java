@@ -32,7 +32,7 @@ public class PowerupManager implements Listener {
     private static final String PLAYER_SWAPPER_METADATA_VALUE = "player_swapper";
     private static final String BLOCK_BREAKER_METADATA_VALUE = "block_breaker";
     private final Main plugin;
-    private SpleefConfig config;
+    private final SpleefConfig config;
     private Map<UUID, Participant> participants = new HashMap<>();
     /**
      * for each participant UUID, the system time of the moment they last received a powerup
@@ -94,10 +94,6 @@ public class PowerupManager implements Listener {
     
     public PowerupManager(Main plugin, SpleefConfig config) {
         this.plugin = plugin;
-        this.config = config;
-    }
-    
-    public void setConfig(SpleefConfig config) {
         this.config = config;
     }
     

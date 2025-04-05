@@ -74,8 +74,6 @@ public class SpleefRound implements Listener, SpleefInterface {
     
     public void setConfig(SpleefConfig config) {
         this.config = config;
-        this.decayManager.setConfig(config);
-        this.powerupManager.setConfig(config);
     }
     
     public void start(Collection<SpleefParticipant> newParticipants, Collection<SpleefTeam> newTeams) {

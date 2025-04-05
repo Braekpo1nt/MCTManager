@@ -24,12 +24,7 @@ public class PreRoundState extends SpleefStateBase {
                 .append(Component.text(context.getConfig().getRounds()));
         context.getSidebar().updateLine("round", roundLine);
         context.getAdminSidebar().updateLine("round", roundLine);
-        context.titleAllParticipants(UIUtils.defaultTitle(
-                Component.empty()
-                    .append(Component.text("Round "))
-                    .append(Component.text(context.getCurrentRound())),
-                Component.empty()
-        ));
+        context.titleAllParticipants(UIUtils.roundXTitle(context.getCurrentRound()));
         context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getRoundStartingDuration())
                 .withSidebar(context.getSidebar(), "timer")

@@ -33,12 +33,6 @@ Required plugins. Read this or you will get errors.
 # Adding to your server
 Download the latest official build from the [releases](https://github.com/Braekpo1nt/MCTManager/releases) page and add it to your Minecraft Paper server's `plugins/` directory.
 
-# Minecraft Game Rules
-|Rule|Value|
-|---|---|
-|`doImmidateRespawn`|`true`|
-
-
 # Development/Contributions
 
 To participate, reach out to Braekpo1nt on [YouTube](https://www.youtube.com/@braekpo1nt), [twitter](https://twitter.com/braekpo1nt), [facebook](https://www.facebook.com/Braekpo1nt/), or [instagram](https://www.instagram.com/braekpo1nt/).

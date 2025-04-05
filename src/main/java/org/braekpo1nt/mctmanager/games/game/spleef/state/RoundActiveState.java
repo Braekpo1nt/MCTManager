@@ -5,7 +5,6 @@ import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.spleef.*;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.PowerupManager;
-import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
 import org.bukkit.damage.DamageSource;
@@ -17,7 +16,6 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -188,8 +186,12 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
         context.titleAllParticipants(title);
     }
     
+    /**
+     * Allows decay stages to determine whether powerups should be given while they are active.
+     * @param shouldGivePowerups true if powerups should be given, false otherwise
+     */
     @Override
     public void setShouldGivePowerups(boolean shouldGivePowerups) {
-        context.setShouldGivePowerups(shouldGivePowerups);
+        powerupManager.setShouldGivePowerups(shouldGivePowerups);
     }
 }

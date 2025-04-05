@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.ui;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
@@ -29,6 +30,7 @@ import java.time.Duration;
 import java.util.logging.Level;
 
 public class UIUtils {
+    
     private static final Component KILL_PREFIX = Component.empty()
             .append(Component.text("["))
             .append(Component.text("k")
@@ -169,6 +171,34 @@ public class UIUtils {
                         .append(Component.text("Match Over!"))
                         .color(NamedTextColor.RED),
                 Component.empty(),
+                DEFAULT_TIMES
+        );
+    }
+    
+    /**
+     * @param x the number of the round
+     * @return the default "Round X" title, used everywhere
+     */
+    public static Title roundXTitle(int x) {
+        return Title.title(
+                Component.empty()
+                        .append(Component.text("Round "))
+                        .append(Component.text(x))
+                        .color(NamedTextColor.WHITE),
+                Component.empty(),
+                DEFAULT_TIMES
+        );
+    }
+    
+    /**
+     * @return the default GO! title, used everywhere
+     */
+    public static Title goTitle() {
+        return Title.title(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("Go!"))
+                        .color(NamedTextColor.GREEN),
                 DEFAULT_TIMES
         );
     }
