@@ -14,6 +14,7 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.states.InitialState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -117,7 +118,12 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
     
     @Override
     protected void initializeAdminSidebar() {
-        
+        adminSidebar.addLines(
+                new KeyLine("round", Component.empty()
+                        .append(Component.text("Round 1/"))
+                        .append(Component.text(config.getRounds()))),
+                new KeyLine("timer", "")
+        );
     }
     
     @Override
@@ -127,7 +133,12 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
     
     @Override
     protected void initializeSidebar() {
-        
+        sidebar.addLines(
+                new KeyLine("round", Component.empty()
+                        .append(Component.text("Round 1/"))
+                        .append(Component.text(config.getRounds()))),
+                new KeyLine("timer", "")
+        );
     }
     
     @Override
