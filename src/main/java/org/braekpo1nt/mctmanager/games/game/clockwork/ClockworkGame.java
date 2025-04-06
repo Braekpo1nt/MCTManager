@@ -18,11 +18,14 @@ import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.Scoreboard;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Random;
+import java.util.logging.Level;
 
 @Getter
 @Setter
@@ -30,8 +33,10 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
     
     private final @NotNull ClockworkConfig config;
     private final @NotNull ChaosManager chaosManager;
+    private final @NotNull Random random = new Random();
     
     private int currentRound;
+    private long chimeInterval;
     
     public ClockworkGame(
             @NotNull Main plugin,
@@ -156,5 +161,14 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
     @Override
     protected boolean shouldPreventInteractions(@NotNull Material type) {
         return config.getPreventInteractions().contains(type);
+    }
+    
+    public void setTeamOption(@NotNull ClockworkTeam team, @NotNull org.bukkit.scoreboard.Team.Option option, @NotNull org.bukkit.scoreboard.Team.OptionStatus status) {
+        org.bukkit.scoreboard.Team scoreboardTeam = gameManager.getMctScoreboard().getTeam(team.getTeamId());
+        if (scoreboardTeam != null) {
+            scoreboardTeam.setOption(option, status);
+        } else {
+            Main.logger().log(Level.SEVERE, String.format("Could not find scoreboard team with teamId %s", team.getTeamId()), new IllegalStateException("Scoreboard team does not exist"));
+        }
     }
 }
