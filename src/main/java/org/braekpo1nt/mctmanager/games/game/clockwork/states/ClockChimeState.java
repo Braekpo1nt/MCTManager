@@ -19,7 +19,7 @@ public class ClockChimeState extends ClockworkStateBase {
         this.config = context.getConfig();
         context.getSidebar().updateLine("timer", "Chiming...");
         context.getAdminSidebar().updateLine("timer", "Chiming...");
-        int numberOfChimes = context.getRandom().nextInt(1, 13);
+        context.setNumberOfChimes(context.getRandom().nextInt(1, 13));
         turnOffCollisions();
         for (ClockworkParticipant participant : context.getParticipants().values()) {
             if (participant.isAlive()) {
@@ -28,7 +28,7 @@ public class ClockChimeState extends ClockworkStateBase {
             }
         }
         clockChimeTaskId = new BukkitRunnable() {
-            int count = numberOfChimes;
+            int count = context.getNumberOfChimes();
             @Override
             public void run() {
                 if (count <= 0) {
@@ -39,7 +39,7 @@ public class ClockChimeState extends ClockworkStateBase {
                 playChimeSound();
                 count--;
             }
-        }.runTaskTimer(context.getPlugin(), 0L, context.getChimeInterval()).getTaskId();
+        }.runTaskTimer(context.getPlugin(), 0L, (long) context.getChimeInterval()).getTaskId();
     }
     
     @Override

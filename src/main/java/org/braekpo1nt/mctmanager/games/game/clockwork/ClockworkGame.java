@@ -36,7 +36,8 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
     private final @NotNull Random random = new Random();
     
     private int currentRound;
-    private long chimeInterval;
+    private int numberOfChimes;
+    private double chimeInterval;
     
     public ClockworkGame(
             @NotNull Main plugin,
@@ -161,6 +162,14 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
     @Override
     protected boolean shouldPreventInteractions(@NotNull Material type) {
         return config.getPreventInteractions().contains(type);
+    }
+    
+    public void incrementChaos() {
+        chimeInterval -= config.getChimeIntervalDecrement();
+        if (chimeInterval < 0) {
+            chimeInterval = 0;
+        }
+        chaosManager.incrementChaos();
     }
     
     public void setTeamOption(@NotNull ClockworkTeam team, @NotNull org.bukkit.scoreboard.Team.Option option, @NotNull org.bukkit.scoreboard.Team.OptionStatus status) {
