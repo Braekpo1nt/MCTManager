@@ -39,7 +39,7 @@ public class ClockworkRound implements Listener {
     private final GameManager gameManager;
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
-    private final ClockworkGame clockworkGame;
+    private final ClockworkGameOld clockworkGame;
     private ClockworkConfig config;
     private final ChaosManager chaosManager;
     private final int roundNumber;
@@ -62,7 +62,7 @@ public class ClockworkRound implements Listener {
     private boolean clockIsChiming = false;
     private final TimerManager timerManager;
     
-    public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGame clockworkGame, ClockworkConfig config, int roundNumber, Sidebar sidebar, Sidebar adminSidebar) {
+    public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGameOld clockworkGame, ClockworkConfig config, int roundNumber, Sidebar sidebar, Sidebar adminSidebar) {
         this.plugin = plugin;
         this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;

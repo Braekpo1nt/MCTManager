@@ -35,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class ClockworkGame implements Listener, MCTGame {
+public class ClockworkGameOld implements Listener, MCTGame {
     private final Main plugin;
     private final GameManager gameManager;
     private final Sidebar sidebar;
@@ -53,7 +53,7 @@ public class ClockworkGame implements Listener, MCTGame {
     
     private @NotNull Component title;
     
-    public ClockworkGame(
+    public ClockworkGameOld(
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
             @NotNull Component title,

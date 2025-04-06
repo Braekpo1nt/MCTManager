@@ -108,7 +108,11 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
     
     @Override
     protected void setupTeamOptions(org.bukkit.scoreboard.@NotNull Team scoreboardTeam, @NotNull ClockworkTeam team) {
-        
+        scoreboardTeam.setAllowFriendlyFire(false);
+        scoreboardTeam.setCanSeeFriendlyInvisibles(true);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
     }
     
     @Override
@@ -122,6 +126,7 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
                 new KeyLine("round", Component.empty()
                         .append(Component.text("Round 1/"))
                         .append(Component.text(config.getRounds()))),
+                new KeyLine("playerCount", ""),
                 new KeyLine("timer", "")
         );
     }
@@ -137,6 +142,7 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
                 new KeyLine("round", Component.empty()
                         .append(Component.text("Round 1/"))
                         .append(Component.text(config.getRounds()))),
+                new KeyLine("playerCount", ""),
                 new KeyLine("timer", "")
         );
     }
