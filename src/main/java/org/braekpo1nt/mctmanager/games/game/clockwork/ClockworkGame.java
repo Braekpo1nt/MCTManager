@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.experimental.GameBase;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
 import org.braekpo1nt.mctmanager.games.game.clockwork.states.ClockworkState;
+import org.braekpo1nt.mctmanager.games.game.clockwork.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.clockwork.states.InitialState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -28,6 +29,8 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
     
     @NotNull
     private final ClockworkConfig config;
+    
+    private int currentRound;
     
     public ClockworkGame(
             @NotNull Main plugin,
@@ -49,7 +52,7 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
     
     @Override
     protected @NotNull ClockworkState getStartState() {
-        return null;
+        return new DescriptionState(this);
     }
     
     @Override

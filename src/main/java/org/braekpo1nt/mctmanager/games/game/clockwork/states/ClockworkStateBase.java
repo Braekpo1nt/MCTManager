@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class ClockworkStateBase implements ClockworkState{
     
-    private final @NotNull ClockworkGame context;
+    protected final @NotNull ClockworkGame context;
     
     public ClockworkStateBase(@NotNull ClockworkGame context) {
         this.context = context;
