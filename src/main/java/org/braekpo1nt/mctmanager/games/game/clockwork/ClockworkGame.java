@@ -129,11 +129,11 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
     
     @Override
     protected @Nullable SpectatorBoundary getSpectatorBoundary() {
-        return null;
+        return config.getSpectatorBoundary();
     }
     
     @Override
     protected boolean shouldPreventInteractions(@NotNull Material type) {
-        return false;
+        return config.getPreventInteractions().contains(type);
     }
 }
