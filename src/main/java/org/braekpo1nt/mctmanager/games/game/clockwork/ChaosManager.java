@@ -28,7 +28,7 @@ import java.util.Random;
 public class ChaosManager implements Listener {
     private final BlockData sandBlockData = Material.SAND.createBlockData();
     private final BlockData anvilBlockData = Material.ANVIL.createBlockData();
-    private ClockworkConfig config;
+    private final ClockworkConfig config;
     private double minArrows;
     private double maxArrows;
     private double minFallingBlocks;
@@ -49,10 +49,6 @@ public class ChaosManager implements Listener {
         maxFallingBlocks = config.getChaos().fallingBlocks().initial().max();
         minDelay += config.getChaos().summonDelay().initial().min();
         maxDelay += config.getChaos().summonDelay().initial().max();
-    }
-    
-    public void setConfig(ClockworkConfig config) {
-        this.config = config;
     }
     
     public void incrementChaos() {

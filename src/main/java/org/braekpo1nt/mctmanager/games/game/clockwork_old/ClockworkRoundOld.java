@@ -32,7 +32,7 @@ import org.bukkit.util.Vector;
 
 import java.util.*;
 
-public class ClockworkRound implements Listener {
+public class ClockworkRoundOld implements Listener {
     
     
     private final Main plugin;
@@ -62,7 +62,7 @@ public class ClockworkRound implements Listener {
     private boolean clockIsChiming = false;
     private final TimerManager timerManager;
     
-    public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGameOld clockworkGame, ClockworkConfig config, int roundNumber, Sidebar sidebar, Sidebar adminSidebar) {
+    public ClockworkRoundOld(Main plugin, GameManager gameManager, ClockworkGameOld clockworkGame, ClockworkConfig config, int roundNumber, Sidebar sidebar, Sidebar adminSidebar) {
         this.plugin = plugin;
         this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
@@ -76,7 +76,6 @@ public class ClockworkRound implements Listener {
     
     public void setConfig(ClockworkConfig config) {
         this.config = config;
-        chaosManager.setConfig(config);
     }
     
     public boolean isActive() {

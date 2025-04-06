@@ -28,8 +28,8 @@ import java.util.List;
 @Setter
 public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam, ClockworkParticipant.QuitData, ClockworkTeam.QuitData, ClockworkState> {
     
-    @NotNull
-    private final ClockworkConfig config;
+    private final @NotNull ClockworkConfig config;
+    private final @NotNull ChaosManager chaosManager;
     
     private int currentRound;
     
@@ -43,6 +43,7 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
             @NotNull List<Player> newAdmins) {
         super(GameType.CLOCKWORK, plugin, gameManager, title, new InitialState());
         this.config = config;
+        this.chaosManager = new ChaosManager(plugin, config);
         start(newTeams, newParticipants, newAdmins);
     }
     

@@ -46,7 +46,7 @@ public class ClockworkGameOld implements Listener, MCTGame {
     private final Map<String, ClockworkTeam> teams;
     private final Map<String, ClockworkTeam.QuitData> teamQuitDatas;
     private final List<Player> admins = new ArrayList<>();
-    private final List<ClockworkRound> rounds;
+    private final List<ClockworkRoundOld> rounds;
     private int currentRoundIndex = 0;
     private boolean descriptionShowing = false;
     private final TimerManager timerManager;
@@ -83,7 +83,7 @@ public class ClockworkGameOld implements Listener, MCTGame {
         initializeSidebar();
         this.rounds = new ArrayList<>(config.getRounds());
         for (int i = 0; i < config.getRounds(); i++) {
-            rounds.add(new ClockworkRound(plugin, gameManager, this, config, i+1, sidebar, adminSidebar));
+            rounds.add(new ClockworkRoundOld(plugin, gameManager, this, config, i+1, sidebar, adminSidebar));
         }
         currentRoundIndex = 0;
         setupTeamOptions();
@@ -154,7 +154,7 @@ public class ClockworkGameOld implements Listener, MCTGame {
     @Override
     public void stop() {
         if (currentRoundIndex < rounds.size()) {
-            ClockworkRound currentRound = rounds.get(currentRoundIndex);
+            ClockworkRoundOld currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
                 currentRound.stop();
             }
@@ -240,7 +240,7 @@ public class ClockworkGameOld implements Listener, MCTGame {
     }
     
     public void startNextRound() {
-        ClockworkRound nextRound = rounds.get(currentRoundIndex);
+        ClockworkRoundOld nextRound = rounds.get(currentRoundIndex);
         nextRound.start(teams.values(), participants.values());
         updateRoundFastBoard();
     }
@@ -279,7 +279,7 @@ public class ClockworkGameOld implements Listener, MCTGame {
             return;
         }
         if (currentRoundIndex < rounds.size()) {
-            ClockworkRound currentRound = rounds.get(currentRoundIndex);
+            ClockworkRoundOld currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
                 currentRound.onParticipantJoin(clockworkParticipant, clockworkTeam);
             }
@@ -307,7 +307,7 @@ public class ClockworkGameOld implements Listener, MCTGame {
             return;
         }
         if (currentRoundIndex < rounds.size()) {
-            ClockworkRound currentRound = rounds.get(currentRoundIndex);
+            ClockworkRoundOld currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
                 currentRound.onParticipantQuit(participant);
             }
@@ -389,7 +389,7 @@ public class ClockworkGameOld implements Listener, MCTGame {
             event.setCancelled(true);
             return;
         }
-        ClockworkRound round = rounds.get(currentRoundIndex);
+        ClockworkRoundOld round = rounds.get(currentRoundIndex);
         round.onPlayerDamage(participant, event);
     }
     
