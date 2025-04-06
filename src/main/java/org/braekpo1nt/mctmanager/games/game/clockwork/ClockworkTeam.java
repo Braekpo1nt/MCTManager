@@ -14,6 +14,13 @@ public class ClockworkTeam extends ScoredTeamData<ClockworkParticipant> {
         return new QuitData(getScore());
     }
     
+    /**
+     * @return true if at least one member is alive, false otherwise
+     */
+    public boolean isAlive() {
+        return getParticipants().stream().anyMatch(ClockworkParticipant::isAlive);
+    }
+    
     @Data
     public static class QuitData implements QuitDataBase {
         private final int score;
