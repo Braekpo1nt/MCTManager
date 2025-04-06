@@ -25,6 +25,9 @@ public class ClockworkConfig {
     private int playerEliminationScore;
     private int teamEliminationScore;
     private int winRoundScore;
+    private int roundStartingDuration;
+    private int roundOverDuration;
+    private int gameOverDuration;
     private int breatherDuration;
     private int getToWedgeDuration;
     private int stayOnWedgeDuration;

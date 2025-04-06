@@ -71,6 +71,9 @@ record ClockworkConfigDTO(
         validator.validate(this.durations.breather() >= 0, "durations.breather can't be negative");
         validator.validate(this.durations.getToWedge() >= 0, "durations.getToWedge can't be negative");
         validator.validate(this.durations.stayOnWedge() >= 0, "durations.stayOnWedge can't be negative");
+        validator.validate(this.durations.roundStarting() >= 0, "durations.roundStarting can't be negative");
+        validator.validate(this.durations.roundOver() >= 0, "durations.roundOver can't be negative");
+        validator.validate(this.durations.gameOver() >= 0, "durations.gameOver can't be negative");
         validator.notNull(this.description, "description");
     }
     
@@ -92,6 +95,9 @@ record ClockworkConfigDTO(
                 .breatherDuration(this.durations.breather)
                 .getToWedgeDuration(this.durations.getToWedge)
                 .stayOnWedgeDuration(this.durations.stayOnWedge)
+                .roundStartingDuration(this.durations.roundStarting)
+                .roundOverDuration(this.durations.roundOver)
+                .gameOverDuration(this.durations.gameOver)
                 .initialChimeInterval(this.initialChimeInterval)
                 .chimeIntervalDecrement(this.chimeIntervalDecrement)
                 .clockChimeSound(this.clockChime.getKey())
@@ -115,7 +121,14 @@ record ClockworkConfigDTO(
     record Scores(int playerElimination, int teamElimination, int winRound) {
     }
     
-    record Durations(int breather, int getToWedge, int stayOnWedge, int description) {
+    record Durations(
+            int breather, 
+            int getToWedge, 
+            int stayOnWedge, 
+            int description,
+            int roundStarting,
+            int roundOver,
+            int gameOver) {
     }
     
 }
