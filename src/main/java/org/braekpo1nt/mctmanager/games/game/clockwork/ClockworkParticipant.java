@@ -21,12 +21,16 @@ public class ClockworkParticipant extends ParticipantData {
         this.alive = alive;
     }
     
+    public ClockworkParticipant(@NotNull Participant participant, QuitData quitData) {
+        this(participant, quitData.getScore(), true);
+    }
+    
     public QuitData getQuitData() {
         return new QuitData(getScore());
     }
     
     @Data
-    public class QuitData implements QuitDataBase {
+    public static class QuitData implements QuitDataBase {
         private final int score;
     }
 }

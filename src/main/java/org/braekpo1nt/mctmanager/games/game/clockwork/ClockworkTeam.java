@@ -15,7 +15,7 @@ public class ClockworkTeam extends ScoredTeamData<ClockworkParticipant> {
     }
     
     @Data
-    public class QuitData implements QuitDataBase {
+    public static class QuitData implements QuitDataBase {
         private final int score;
     }
 }
