@@ -323,7 +323,7 @@ public class ClockworkGame implements Listener, MCTGame {
     
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
-        if (config.getSpectatorArea() == null){
+        if (config.getSpectatorBoundary() == null){
             return;
         }
         if (!participants.containsKey(event.getPlayer().getUniqueId())) {
@@ -332,18 +332,18 @@ public class ClockworkGame implements Listener, MCTGame {
         if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
             return;
         }
-        if (!config.getSpectatorArea().contains(event.getFrom().toVector())) {
+        if (!config.getSpectatorBoundary().contains(event.getFrom().toVector())) {
             event.getPlayer().teleport(config.getStartingLocation());
             return;
         }
-        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
+        if (!config.getSpectatorBoundary().contains(event.getTo().toVector())) {
             event.setCancelled(true);
         }
     }
     
     @EventHandler
     public void onPlayerTeleport(PlayerTeleportEvent event) {
-        if (config.getSpectatorArea() == null){
+        if (config.getSpectatorBoundary() == null){
             return;
         }
         if (!participants.containsKey(event.getPlayer().getUniqueId())) {
@@ -355,7 +355,7 @@ public class ClockworkGame implements Listener, MCTGame {
         if (!event.getCause().equals(PlayerTeleportEvent.TeleportCause.SPECTATE)) {
             return;
         }
-        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
+        if (!config.getSpectatorBoundary().contains(event.getTo().toVector())) {
             event.setCancelled(true);
         }
     }
