@@ -1,12 +1,10 @@
-package org.braekpo1nt.mctmanager.games.game.clockwork;
+package org.braekpo1nt.mctmanager.games.game.clockwork_old;
 
 import lombok.ToString;
 import org.braekpo1nt.mctmanager.participant.ScoredTeamData;
-import org.braekpo1nt.mctmanager.participant.Team;
-import org.braekpo1nt.mctmanager.participant.TeamData;
 
 @ToString(callSuper = true)
-public class ClockworkRoundTeam extends ScoredTeamData<ClockworkRoundParticipant> {
+class ClockworkRoundTeam extends ScoredTeamData<ClockworkRoundParticipant> {
     
     public ClockworkRoundTeam(ClockworkTeam team) {
         super(team, team.getScore());

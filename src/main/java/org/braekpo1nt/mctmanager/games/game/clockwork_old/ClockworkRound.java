@@ -1,10 +1,12 @@
-package org.braekpo1nt.mctmanager.games.game.clockwork;
+package org.braekpo1nt.mctmanager.games.game.clockwork_old;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.game.clockwork.ChaosManager;
+import org.braekpo1nt.mctmanager.games.game.clockwork.Wedge;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;

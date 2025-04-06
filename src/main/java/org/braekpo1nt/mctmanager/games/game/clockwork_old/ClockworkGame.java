@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.game.clockwork;
+package org.braekpo1nt.mctmanager.games.game.clockwork_old;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;

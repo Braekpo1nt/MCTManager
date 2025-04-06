@@ -16,7 +16,7 @@ import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfigController;
-import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
+import org.braekpo1nt.mctmanager.games.game.clockwork_old.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfigController;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
