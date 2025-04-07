@@ -1,10 +1,12 @@
-package org.braekpo1nt.mctmanager.games.game.clockwork;
+package org.braekpo1nt.mctmanager.games.game.clockwork_old;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.game.clockwork.ChaosManager;
+import org.braekpo1nt.mctmanager.games.game.clockwork.Wedge;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
@@ -30,14 +32,14 @@ import org.bukkit.util.Vector;
 
 import java.util.*;
 
-public class ClockworkRound implements Listener {
+public class ClockworkRoundOld implements Listener {
     
     
     private final Main plugin;
     private final GameManager gameManager;
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
-    private final ClockworkGame clockworkGame;
+    private final ClockworkGameOld clockworkGame;
     private ClockworkConfig config;
     private final ChaosManager chaosManager;
     private final int roundNumber;
@@ -60,7 +62,7 @@ public class ClockworkRound implements Listener {
     private boolean clockIsChiming = false;
     private final TimerManager timerManager;
     
-    public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGame clockworkGame, ClockworkConfig config, int roundNumber, Sidebar sidebar, Sidebar adminSidebar) {
+    public ClockworkRoundOld(Main plugin, GameManager gameManager, ClockworkGameOld clockworkGame, ClockworkConfig config, int roundNumber, Sidebar sidebar, Sidebar adminSidebar) {
         this.plugin = plugin;
         this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
@@ -74,7 +76,6 @@ public class ClockworkRound implements Listener {
     
     public void setConfig(ClockworkConfig config) {
         this.config = config;
-        chaosManager.setConfig(config);
     }
     
     public boolean isActive() {
@@ -348,7 +349,7 @@ public class ClockworkRound implements Listener {
         }
     }
     
-    public void killParticipants(Collection<ClockworkRoundParticipant> participantsToKill) {
+    private void killParticipants(Collection<ClockworkRoundParticipant> participantsToKill) {
         // teams which were already dead
         List<ClockworkRoundTeam> existingDeadTeams = teams.values().stream()
                 .filter(ClockworkRoundTeam::isDead).toList();

@@ -268,7 +268,7 @@ record SpleefConfigDTO(
     }
     
     record Durations(int roundStarting,
-                     @SerializedName(value = "roundOver", alternate = {"roundEnding"}) int roundOver, 
+                     int roundOver, 
                      int description, 
                      int gameOver) {
     }

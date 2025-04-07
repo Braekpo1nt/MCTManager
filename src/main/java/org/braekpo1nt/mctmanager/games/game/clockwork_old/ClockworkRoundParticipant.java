@@ -1,17 +1,15 @@
-package org.braekpo1nt.mctmanager.games.game.clockwork;
+package org.braekpo1nt.mctmanager.games.game.clockwork_old;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.ParticipantData;
 import org.jetbrains.annotations.NotNull;
 
 @ToString(callSuper = true)
 @Getter
 @Setter
-public class ClockworkRoundParticipant extends ParticipantData {
+class ClockworkRoundParticipant extends ParticipantData {
     
     private boolean alive;
     

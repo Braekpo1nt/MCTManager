@@ -16,7 +16,7 @@ import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfigController;
-import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
+import org.braekpo1nt.mctmanager.games.game.clockwork_old.ClockworkGameOld;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfigController;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
@@ -212,7 +212,7 @@ public class GameManager implements Listener {
             }
             case CLOCKWORK -> {
                 ClockworkConfig config = new ClockworkConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-                yield new ClockworkGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
+                yield new ClockworkGameOld(plugin, this, title, config, newTeams, newParticipants, newAdmins);
             }
             case SURVIVAL_GAMES -> {
                 SurvivalGamesConfig config = new SurvivalGamesConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);

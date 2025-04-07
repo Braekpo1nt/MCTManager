@@ -4,12 +4,14 @@ package org.braekpo1nt.mctmanager.games.game.clockwork.config;
 import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.config.dto.net.kyori.adventure.sound.SoundDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.clockwork.Chaos;
 import org.braekpo1nt.mctmanager.games.game.clockwork.Wedge;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.scoreboard.Team;
@@ -69,6 +71,9 @@ record ClockworkConfigDTO(
         validator.validate(this.durations.breather() >= 0, "durations.breather can't be negative");
         validator.validate(this.durations.getToWedge() >= 0, "durations.getToWedge can't be negative");
         validator.validate(this.durations.stayOnWedge() >= 0, "durations.stayOnWedge can't be negative");
+        validator.validate(this.durations.roundStarting() >= 0, "durations.roundStarting can't be negative");
+        validator.validate(this.durations.roundOver() >= 0, "durations.roundOver can't be negative");
+        validator.validate(this.durations.gameOver() >= 0, "durations.gameOver can't be negative");
         validator.notNull(this.description, "description");
     }
     
@@ -79,9 +84,10 @@ record ClockworkConfigDTO(
         for (ClockworkConfigDTO.WedgeDTO wedgeDTO : this.wedges) {
             newWedges.add(new Wedge(wedgeDTO.detectionArea()));
         }
+        Location startLoc = this.startingLocation.toLocation(newWorld);
         return ClockworkConfig.builder()
                 .world(newWorld)
-                .startingLocation(this.startingLocation.toLocation(newWorld))
+                .startingLocation(startLoc)
                 .rounds(this.rounds)
                 .playerEliminationScore(this.scores.playerElimination)
                 .teamEliminationScore(this.scores.teamElimination)
@@ -89,6 +95,9 @@ record ClockworkConfigDTO(
                 .breatherDuration(this.durations.breather)
                 .getToWedgeDuration(this.durations.getToWedge)
                 .stayOnWedgeDuration(this.durations.stayOnWedge)
+                .roundStartingDuration(this.durations.roundStarting)
+                .roundOverDuration(this.durations.roundOver)
+                .gameOverDuration(this.durations.gameOver)
                 .initialChimeInterval(this.initialChimeInterval)
                 .chimeIntervalDecrement(this.chimeIntervalDecrement)
                 .clockChimeSound(this.clockChime.getKey())
@@ -99,7 +108,8 @@ record ClockworkConfigDTO(
                 .wedges(newWedges)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .descriptionDuration(this.durations.description)
-                .spectatorArea(this.spectatorArea)
+                .spectatorBoundary(this.spectatorArea == null ? null :
+                        new SpectatorBoundary(this.spectatorArea, startLoc))
                 .getToWedgeMessage(getToWedgeMessage)
                 .description(this.description)
                 .build();
@@ -111,7 +121,14 @@ record ClockworkConfigDTO(
     record Scores(int playerElimination, int teamElimination, int winRound) {
     }
     
-    record Durations(int breather, int getToWedge, int stayOnWedge, int description) {
+    record Durations(
+            int breather, 
+            int getToWedge, 
+            int stayOnWedge, 
+            int description,
+            int roundStarting,
+            int roundOver,
+            int gameOver) {
     }
     
 }
