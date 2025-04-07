@@ -708,7 +708,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param awardedParticipants the participants to be awarded personal points
      * @param points the points to be awarded (un-multiplied, base points)
      */
-    public void awardPoints(Collection<P> awardedParticipants, int points) {
+    public void awardParticipantPoints(Collection<P> awardedParticipants, int points) {
         int multiplied = (int) (points * gameManager.getMultiplier());
         Set<T> awardedTeams = new HashSet<>();
         for (P participant : awardedParticipants) {

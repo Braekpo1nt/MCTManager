@@ -349,7 +349,7 @@ public class ClockworkRoundOld implements Listener {
         }
     }
     
-    public void killParticipants(Collection<ClockworkRoundParticipant> participantsToKill) {
+    private void killParticipants(Collection<ClockworkRoundParticipant> participantsToKill) {
         // teams which were already dead
         List<ClockworkRoundTeam> existingDeadTeams = teams.values().stream()
                 .filter(ClockworkRoundTeam::isDead).toList();
