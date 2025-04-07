@@ -78,11 +78,12 @@ public class EmptyTabList extends TabList {
     
     /**
      * Set the alive status of the {@link TabList.ParticipantData} associated with the given UUID
-     * @param uuid the UUID of the {@link TabList.ParticipantData}
+     *
+     * @param pid  the UUID of the {@link ParticipantData}
      * @param grey true makes the player name grey, false makes it their team color
      */
     @Override
-    public void setParticipantGrey(@NotNull UUID uuid, boolean grey) {
+    public void setParticipantGrey(@NotNull ParticipantID pid, boolean grey) {
     }
     
     /**

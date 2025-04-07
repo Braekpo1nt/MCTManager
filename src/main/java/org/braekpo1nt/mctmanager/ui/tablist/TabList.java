@@ -168,13 +168,13 @@ public class TabList implements UIManager {
     }
     
     /**
-     * @param uuid the UUID of the ParticipantData. Must be a valid key in {@link #participantDatas}
+     * @param pid the UUID of the ParticipantData. Must be a valid key in {@link #participantDatas}
      * @return the {@link TabList.ParticipantData} associated with this UUID
      */
-    private @Nullable ParticipantData getParticipantData(@NotNull UUID uuid) {
-        ParticipantData participantData = participantDatas.get(uuid);
+    private @Nullable ParticipantData getParticipantData(@NotNull ParticipantID pid) {
+        ParticipantData participantData = participantDatas.get(pid);
         if (participantData == null) {
-            logUIError("participant with UUID \"%s\" is not contained in this TabList", uuid);
+            logUIError("participant with UUID \"%s\" is not contained in this TabList", pid);
         }
         return participantData;
     }
@@ -375,11 +375,12 @@ public class TabList implements UIManager {
     
     /**
      * Set the alive status of the {@link TabList.ParticipantData} associated with the given UUID
-     * @param uuid the UUID of the {@link TabList.ParticipantData}
+     *
+     * @param pid  the UUID of the {@link ParticipantData}
      * @param grey true makes the player name grey, false makes it their team color
      */
-    public void setParticipantGrey(@NotNull UUID uuid, boolean grey) {
-        ParticipantData participantData = getParticipantData(uuid);
+    public void setParticipantGrey(@NotNull ParticipantID pid, boolean grey) {
+        ParticipantData participantData = getParticipantData(pid);
         if (participantData == null) {
             return;
         }

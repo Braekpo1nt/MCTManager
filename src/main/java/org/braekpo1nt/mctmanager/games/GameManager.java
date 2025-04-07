@@ -439,7 +439,7 @@ public class GameManager implements Listener {
         participant.getPlayer().playerListName(displayName);
         GameManagerUtils.deColorLeatherArmor(participant.getInventory());
         tabList.hidePlayer(participant.getUniqueId());
-        tabList.setParticipantGrey(participant.getUniqueId(), true);
+        tabList.setParticipantGrey(participant.getParticipantID(), true);
     }
     
     @EventHandler
@@ -504,7 +504,7 @@ public class GameManager implements Listener {
         }
         GameManagerUtils.colorLeatherArmor(this, participant);
         tabList.showPlayer(participant);
-        tabList.setParticipantGrey(participant.getUniqueId(), false);
+        tabList.setParticipantGrey(participant.getParticipantID(), false);
         updateScoreVisuals(Collections.singletonList(team), Collections.singletonList(participant));
     }
     

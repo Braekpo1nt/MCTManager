@@ -157,13 +157,12 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             teams.put(team.getTeamId(), team);
             setupTeamOptions(team);
             tabList.addTeam(team.getTeamId(), team.getDisplayName(), team.getColor());
-            // TODO: does the score need to be set at the beginning if the team's score is 0?
-//            tabList.setScore(team.getTeamId(), team.getScore());
             initializeTeam(team);
         }
         for (Participant newParticipant : newParticipants) {
             P participant = createParticipant(newParticipant);
             T team = teams.get(participant.getTeamId());
+            tabList.joinParticipant(participant.getParticipantID(), participant.getName(), participant.getTeamId(), false);
             addParticipant(participant, team);
             participant.setGameMode(GameMode.ADVENTURE);
             ParticipantInitializer.clearStatusEffects(participant);
@@ -236,6 +235,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         admins.clear();
         // admins end
         sidebar.deleteAllLines();
+        tabList.cleanup();
         for (StoredGameRule<?> stored : storedGameRules) {
             restore(stored);
         }
@@ -294,7 +294,6 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         team.addParticipant(participant);
         sidebar.addPlayer(participant);
         tabList.showPlayer(participant);
-        tabList.joinParticipant(participant.getParticipantID(), participant.getName(), participant.getTeamId(), false);
         uiManagers.forEach(uiManager -> uiManager.showPlayer(participant));
     }
     
@@ -372,7 +371,6 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         participant.setGameMode(GameMode.ADVENTURE);
         sidebar.removePlayer(participant);
         tabList.hidePlayer(participant);
-        tabList.leaveParticipant(participant.getParticipantID());
         uiManagers.forEach(uiManager -> uiManager.hidePlayer(participant));
         resetParticipant(participant, team);
     }
@@ -447,7 +445,6 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             T team = createTeam(newTeam, quitTeam);
             teams.put(team.getTeamId(), team);
             setupTeamOptions(team);
-            tabList.addTeam(team.getTeamId(), team.getDisplayName(), team.getColor());
             state.onTeamRejoin(team);
         } else {
             T team = createTeam(newTeam);
@@ -470,10 +467,12 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         P participant;
         if (quitData != null) {
             participant = createParticipant(newParticipant, quitData);
+            tabList.setParticipantGrey(participant.getParticipantID(), false);
             addParticipant(participant, team);
             state.onParticipantRejoin(participant, team);
         } else {
             participant = createParticipant(newParticipant);
+            tabList.joinParticipant(participant.getParticipantID(), participant.getName(), participant.getTeamId(), false);
             addParticipant(participant, team);
             state.onNewParticipantJoin(participant, team);
         }
@@ -495,6 +494,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         participants.remove(participantUUID);
         team.removeParticipant(participantUUID);
         quitDatas.put(participant.getParticipantID(), getQuitData(participant));
+        tabList.setParticipantGrey(participant.getParticipantID(), true);
         _resetParticipant(participant, team);
     }
     
@@ -508,7 +508,6 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         state.onTeamQuit(team);
         teams.remove(team.getTeamId());
         teamQuitDatas.put(team.getTeamId(), getQuitData(team));
-        tabList.removeTeam(team.getTeamId()); // tabList
     }
     // quit/join end
     
