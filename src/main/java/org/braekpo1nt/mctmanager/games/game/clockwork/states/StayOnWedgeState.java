@@ -8,8 +8,6 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkParticipant;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkTeam;
 import org.braekpo1nt.mctmanager.games.game.clockwork.Wedge;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
-import org.braekpo1nt.mctmanager.games.game.clockwork_old.ClockworkParticipant;
-import org.braekpo1nt.mctmanager.games.game.clockwork_old.ClockworkTeam;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
@@ -35,7 +33,7 @@ public class StayOnWedgeState extends ClockworkStateBase {
                     List<ClockworkTeam> livingTeams = context.getTeams().values().stream()
                             .filter(ClockworkTeam::isAlive).toList();
                     if (livingTeams.size() == 1) {
-                        onTeamWinsRound(livingcontext.getTeams().getFirst());
+                        onTeamWinsRound(livingTeams.getFirst());
                     } else {
                         context.incrementChaos();
                         context.setState(new BreatherState(context));
@@ -89,7 +87,7 @@ public class StayOnWedgeState extends ClockworkStateBase {
         List<ClockworkTeam> existingDeadTeams = context.getTeams().values().stream()
                 .filter(ClockworkTeam::isDead).toList();
         // participants who will be left alive once participantsToKill are killed
-        List<ClockworkParticipant> newLivingParticipants = participants.values().stream()
+        List<ClockworkParticipant> newLivingParticipants = context.getParticipants().values().stream()
                 .filter(ClockworkParticipant::isAlive)
                 .filter(p -> !participantsToKill.contains(p))
                 .toList();
@@ -100,7 +98,7 @@ public class StayOnWedgeState extends ClockworkStateBase {
             ParticipantInitializer.clearStatusEffects(toKill);
             ParticipantInitializer.resetHealthAndHunger(toKill);
             toKill.setAlive(false);
-            plugin.getServer().sendMessage(Component.empty()
+            context.getPlugin().getServer().sendMessage(Component.empty()
                     .append(toKill.displayName())
                     .append(Component.text(" was claimed by time")));
             String killedTeamId = toKill.getTeamId();
@@ -109,7 +107,7 @@ public class StayOnWedgeState extends ClockworkStateBase {
             List<ClockworkParticipant> awardedParticipants = newLivingParticipants.stream()
                     .filter(p -> !p.getTeamId().equals(killedTeamId))
                     .toList();
-            context.awardPariticpantPoints(awardedParticipants, config.getPlayerEliminationScore());
+            context.awardParticipantPoints(awardedParticipants, config.getPlayerEliminationScore());
             // award living participants end
         }
         // who are now dead, which weren't at the start of this method

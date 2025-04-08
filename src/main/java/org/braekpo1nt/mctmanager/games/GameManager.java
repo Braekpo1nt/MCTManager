@@ -53,7 +53,6 @@ import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
-import org.braekpo1nt.mctmanager.ui.tablist.EmptyTabList;
 import org.braekpo1nt.mctmanager.ui.tablist.TabList;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
@@ -133,7 +132,7 @@ public class GameManager implements Listener {
         this.gameStateStorageUtil = new GameStateStorageUtil(plugin);
         this.voteManager = new VoteManager(this, plugin);
         this.timerManager = new TimerManager(plugin);
-        this.tabList = new EmptyTabList(plugin);
+        this.tabList = new TabList(plugin);
         this.sidebarFactory = new SidebarFactory();
         this.hubManager = initializeHubManager(plugin, this);
         this.eventManager = new EventManager(plugin, this, voteManager);
@@ -429,8 +428,12 @@ public class GameManager implements Listener {
             activeGame.onParticipantQuit(participant.getUniqueId(), team.getTeamId());
         } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
             eventManager.onParticipantQuit(participant);
+            tabList.hidePlayer(participant.getUniqueId());
         } else if (voteManager.isVoting()) {
             voteManager.onParticipantQuit(participant);
+            tabList.hidePlayer(participant.getUniqueId());
+        } else {
+            tabList.hidePlayer(participant.getUniqueId());
         }
         hubManager.onParticipantQuit(participant);
         Component displayName = Component.text(participant.getName(), 
@@ -438,7 +441,6 @@ public class GameManager implements Listener {
         participant.getPlayer().displayName(displayName);
         participant.getPlayer().playerListName(displayName);
         GameManagerUtils.deColorLeatherArmor(participant.getInventory());
-        tabList.hidePlayer(participant.getUniqueId());
         tabList.setParticipantGrey(participant.getParticipantID(), true);
     }
     
@@ -499,12 +501,15 @@ public class GameManager implements Listener {
         } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
             eventManager.onParticipantJoin(participant);
+            tabList.showPlayer(participant);
         } else if (voteManager.isVoting()) {
             voteManager.onParticipantJoin(participant);
+            tabList.showPlayer(participant);
+        } else {
+            tabList.showPlayer(participant);
         }
-        GameManagerUtils.colorLeatherArmor(this, participant);
-        tabList.showPlayer(participant);
         tabList.setParticipantGrey(participant.getParticipantID(), false);
+        GameManagerUtils.colorLeatherArmor(this, participant);
         updateScoreVisuals(Collections.singletonList(team), Collections.singletonList(participant));
     }
     
@@ -740,6 +745,9 @@ public class GameManager implements Listener {
         
         hubManager.removeParticipantsFromHub(onlineParticipants.values());
         Component title = createNewTitle(gameType.getTitle());
+        for (Participant participant : onlineParticipants.values()) {
+            tabList.hidePlayer(participant);
+        }
         
         try {
             activeGame = instantiateGame(gameType, title, configFile, new HashSet<>(onlineTeams), onlineParticipants.values(), onlineAdmins);
@@ -753,6 +761,9 @@ public class GameManager implements Listener {
                     .color(NamedTextColor.RED);
             sender.sendMessage(message);
             messageAdmins(message);
+            for (Participant participant : onlineParticipants.values()) {
+                tabList.showPlayer(participant);
+            }
             return false;
         }
         updateScoreVisuals(onlineTeams, onlineParticipants.values());
@@ -853,6 +864,9 @@ public class GameManager implements Listener {
      * If an event is running, calls {@link EventManager#gameIsOver(GameType)}
      */
     public void gameIsOver() {
+        for (Participant participant : onlineParticipants.values()) {
+            tabList.showPlayer(participant);
+        }
         if (eventManager.eventIsActive()) {
             eventManager.gameIsOver(activeGame.getType());
             activeGame = null;

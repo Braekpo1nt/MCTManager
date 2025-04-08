@@ -7,6 +7,8 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.experimental.GameBase;
+import org.braekpo1nt.mctmanager.games.experimental.PreventHungerLoss;
+import org.braekpo1nt.mctmanager.games.experimental.PreventItemDrop;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
 import org.braekpo1nt.mctmanager.games.game.clockwork.states.ClockworkState;
 import org.braekpo1nt.mctmanager.games.game.clockwork.states.DescriptionState;
@@ -15,10 +17,10 @@ import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
+import org.bukkit.GameRule;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.scoreboard.Scoreboard;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,7 +38,13 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
     private final @NotNull Random random = new Random();
     
     private int currentRound;
+    /**
+     * How many times the clock chimed, determining which wedge is correct
+     */
     private int numberOfChimes;
+    /**
+     * How much time (in ticks) between chimes
+     */
     private double chimeInterval;
     
     public ClockworkGame(
@@ -50,6 +58,9 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
         super(GameType.CLOCKWORK, plugin, gameManager, title, new InitialState());
         this.config = config;
         this.chaosManager = new ChaosManager(plugin, config);
+        addListener(new PreventItemDrop<>(this, true));
+        addListener(new PreventHungerLoss<>(this));
+        setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
         start(newTeams, newParticipants, newAdmins);
     }
     
@@ -65,7 +76,7 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
     
     @Override
     protected void cleanup() {
-        
+        chaosManager.stop();
     }
     
     @Override
@@ -85,7 +96,7 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
     
     @Override
     protected void initializeParticipant(ClockworkParticipant participant, ClockworkTeam team) {
-        
+        participant.teleport(config.getStartingLocation());
     }
     
     @Override
