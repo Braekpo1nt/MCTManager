@@ -39,3 +39,6 @@ commands:
     description: Send a message to your teammates
     permission: mctmanager.t
     permission-message: "You do not have permission to use this command"
+  bugreport:
+    description: Report a bug
+    usage: "/bugreport <options>"
