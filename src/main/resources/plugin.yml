@@ -41,4 +41,7 @@ commands:
     permission-message: "You do not have permission to use this command"
   bugreport:
     description: Report a bug
-    usage: "/bugreport <options>"
+    usage: "/bugreport <description>"
+  notready:
+    description: Indicate your are not ready for the event to continue
+    usage: "/notready <reason>"
