@@ -49,7 +49,7 @@ public class BugReportCommand implements TabExecutor {
         });
 
         // TODO: Logs the bug and the timestamp to a file
-        Main.logger().warning(description);
+        Main.logger().warning(sender.getName() + "reported a bug: " + description);
 
         return true;
     }
