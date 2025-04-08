@@ -16,7 +16,7 @@ import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfigController;
-import org.braekpo1nt.mctmanager.games.game.clockwork_old.ClockworkGameOld;
+import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfigController;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
@@ -33,14 +33,14 @@ import org.braekpo1nt.mctmanager.games.game.footrace.editor.FootRaceEditor;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfig;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfigController;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourPathwayEditor;
+import org.braekpo1nt.mctmanager.games.game.spleef.SpleefGame;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfigController;
-import org.braekpo1nt.mctmanager.games.game.spleef.SpleefGame;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourPathwayEditor;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfig;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfigController;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
@@ -56,7 +56,8 @@ import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.ui.tablist.TabList;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
-import org.bukkit.*;
+import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -211,7 +212,7 @@ public class GameManager implements Listener {
             }
             case CLOCKWORK -> {
                 ClockworkConfig config = new ClockworkConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-                yield new ClockworkGameOld(plugin, this, title, config, newTeams, newParticipants, newAdmins);
+                yield new ClockworkGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
             }
             case SURVIVAL_GAMES -> {
                 SurvivalGamesConfig config = new SurvivalGamesConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);

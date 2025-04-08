@@ -15,6 +15,9 @@ public class PreRoundState extends ClockworkStateBase {
         for (ClockworkParticipant participant : context.getParticipants().values()) {
             participant.teleport(context.getConfig().getStartingLocation());
             ParticipantInitializer.clearInventory(participant);
+            ParticipantInitializer.clearStatusEffects(participant);
+            ParticipantInitializer.resetHealthAndHunger(participant);
+            participant.setArrowsInBody(0);
             participant.setGameMode(GameMode.ADVENTURE);
         }
         Component roundLine = Component.empty()
@@ -30,7 +33,11 @@ public class PreRoundState extends ClockworkStateBase {
                 .withSidebar(context.getSidebar(), "timer")
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .sidebarPrefix(Component.text("Round Starting: "))
-                .onCompletion(() -> context.setState(new RoundActiveState(context)))
+                .onCompletion(() -> {
+                    context.startInvisible();
+                    context.getChaosManager().start();
+                    context.setState(new BreatherState(context));
+                })
                 .build());
     }
 }

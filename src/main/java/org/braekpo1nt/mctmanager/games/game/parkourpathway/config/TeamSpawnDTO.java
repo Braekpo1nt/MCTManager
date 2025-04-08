@@ -5,7 +5,7 @@ import lombok.Data;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway_old.TeamSpawn;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;

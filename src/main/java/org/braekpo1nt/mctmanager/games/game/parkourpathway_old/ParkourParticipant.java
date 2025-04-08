@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.game.parkourpathway;
+package org.braekpo1nt.mctmanager.games.game.parkourpathway_old;
 
 import lombok.Data;
 import lombok.Getter;
@@ -6,13 +6,12 @@ import lombok.Setter;
 import lombok.ToString;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.ParticipantData;
-import org.braekpo1nt.mctmanager.participant.QuitDataBase;
 import org.jetbrains.annotations.NotNull;
 
 @ToString(callSuper = true)
 @Getter
 @Setter
-public class ParkourParticipant extends ParticipantData {
+class ParkourParticipant extends ParticipantData {
     
     /**
      * True if the participant has finished the last puzzle
@@ -53,7 +52,7 @@ public class ParkourParticipant extends ParticipantData {
     }
     
     @Data
-    public static class QuitData implements QuitDataBase {
+    public static class QuitData {
         private final int score;
         private final boolean finished;
         private final int currentPuzzle;

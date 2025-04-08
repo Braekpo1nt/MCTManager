@@ -4,9 +4,10 @@ import com.google.common.base.Preconditions;
 import lombok.*;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway_old.TeamSpawn;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -112,6 +113,7 @@ class ParkourPathwayConfigDTO implements Validatable {
         validator.validate(this.getDurations().getTimeLimit() >= 2, "durations.timeLimit (%s) can't be less than 2", this.getDurations().getTimeLimit());
         validator.validate(this.getDurations().getCheckpointCounter() >= 1, "durations.checkpointCounter (%s) can't be less than 1", this.getDurations().getCheckpointCounter());
         validator.validate(this.getDurations().getCheckpointCounterAlert() >= 1 && this.getDurations().getCheckpointCounter() >= this.getDurations().getCheckpointCounterAlert(), "durations.checkpointCounterAlert (%s) can't be less than 0 or greater than durations.checkpointCounter", this.getDurations().getCheckpointCounterAlert());
+        validator.validate(this.getDurations().getGameOver() >= 0, "durations.gameOver can't be negative");
     
         validator.notNull(this.getPuzzles(), "puzzles");
         validator.validate(this.getPuzzles().size() >= 3, "puzzles must have at least 3 puzzles");
@@ -170,7 +172,8 @@ class ParkourPathwayConfigDTO implements Validatable {
         ParkourPathwayConfig.ParkourPathwayConfigBuilder builder = ParkourPathwayConfig.builder()
                 .world(newWorld)
                 .startingLocation(newStartingLocation)
-                .spectatorArea(this.spectatorArea)
+                .spectatorBoundary(this.spectatorArea == null ? null : 
+                        new SpectatorBoundary(this.spectatorArea, newStartingLocation))
                 .teamSpawns(newTeamSpawns)
                 .puzzles(newPuzzles)
                 .glassBarrier(newGlassBarrier)
@@ -181,6 +184,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                 .teamSpawnsDuration(this.durations.teamSpawn)
                 .mercyRuleDuration(this.durations.checkpointCounter)
                 .mercyRuleAlertDuration(this.durations.checkpointCounterAlert)
+                .gameOverDuration(this.durations.gameOver)
                 .checkpointScore(this.scores.checkpoint)
                 .winScore(this.scores.win)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
@@ -218,7 +222,8 @@ class ParkourPathwayConfigDTO implements Validatable {
                 .teamSpawns(config.getTeamSpawns() != null ? TeamSpawnDTO.fromTeamSpawns(config.getTeamSpawns()) : null)
                 .teamSpawnsOpenMessage(config.getTeamSpawnsOpenMessage())
                 .puzzles(PuzzleDTO.fromPuzzles(config.getPuzzles()))
-                .spectatorArea(config.getSpectatorArea())
+                .spectatorArea(config.getSpectatorBoundary() == null ? null : 
+                        config.getSpectatorBoundary().getArea())
                 .scores(new Scores(config.getCheckpointScore(), config.getWinScore()))
                 .preventInteractions(config.getPreventInteractions())
                 .skips(new Skips(config.getNumOfSkips(), 
@@ -232,6 +237,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                         config.getTimeLimitDuration(), 
                         config.getMercyRuleDuration(), 
                         config.getMercyRuleAlertDuration(), 
+                        config.getGameOverDuration(),
                         config.getDescriptionDuration()))
                 .description(config.getDescription())
                 .build();
@@ -266,6 +272,7 @@ class ParkourPathwayConfigDTO implements Validatable {
         private int timeLimit;
         private int checkpointCounter;
         private int checkpointCounterAlert;
+        private int gameOver;
         private int description = 0;
     }
     

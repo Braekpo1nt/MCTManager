@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork.states;
 
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkParticipant;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkTeam;
@@ -36,12 +37,24 @@ public class ClockworkStateBase implements ClockworkState{
     
     @Override
     public void onParticipantRejoin(ClockworkParticipant participant, ClockworkTeam team) {
-        
+        Component roundLine = Component.empty()
+                .append(Component.text("Round "))
+                .append(Component.text(context.getCurrentRound()))
+                .append(Component.text("/"))
+                .append(Component.text(context.getConfig().getRounds()));
+        context.getSidebar().updateLine(participant.getUniqueId(), "round", roundLine);
+        participant.teleport(context.getConfig().getStartingLocation());
     }
     
     @Override
     public void onNewParticipantJoin(ClockworkParticipant participant, ClockworkTeam team) {
-        
+        Component roundLine = Component.empty()
+                .append(Component.text("Round "))
+                .append(Component.text(context.getCurrentRound()))
+                .append(Component.text("/"))
+                .append(Component.text(context.getConfig().getRounds()));
+        context.getSidebar().updateLine(participant.getUniqueId(), "round", roundLine);
+        participant.teleport(context.getConfig().getStartingLocation());
     }
     
     @Override
@@ -71,7 +84,7 @@ public class ClockworkStateBase implements ClockworkState{
     
     @Override
     public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull ClockworkParticipant participant) {
-        
+        event.setCancelled(true);
     }
     
     @Override
@@ -81,6 +94,6 @@ public class ClockworkStateBase implements ClockworkState{
     
     @Override
     public void onParticipantRespawn(PlayerRespawnEvent event, ClockworkParticipant participant) {
-        
+        event.setRespawnLocation(context.getConfig().getStartingLocation());
     }
 }

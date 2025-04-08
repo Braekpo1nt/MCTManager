@@ -3,7 +3,8 @@ package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
+import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway_old.TeamSpawn;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -19,7 +20,7 @@ import java.util.List;
 public class ParkourPathwayConfig {
     private World world;
     private Location startingLocation;
-    private @Nullable BoundingBox spectatorArea;
+    private @Nullable SpectatorBoundary spectatorBoundary;
     private List<Puzzle> puzzles;
     private @Nullable List<TeamSpawn> teamSpawns;
     private @Nullable BoundingBox glassBarrier;
@@ -30,6 +31,7 @@ public class ParkourPathwayConfig {
     private int teamSpawnsDuration;
     private int mercyRuleDuration;
     private int mercyRuleAlertDuration;
+    private int gameOverDuration;
     private int[] checkpointScore;
     private int[] winScore;
     /** the number of skips each player gets. 0 or negative means no skips. */

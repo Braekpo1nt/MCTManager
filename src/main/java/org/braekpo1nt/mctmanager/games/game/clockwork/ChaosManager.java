@@ -36,6 +36,7 @@ public class ChaosManager implements Listener {
     private double minDelay;
     private double maxDelay;
     private int scheduleArrowsSummonTaskId;
+    private boolean paused;
     private final Random random = new Random();
     
     private final Main plugin;
@@ -49,6 +50,7 @@ public class ChaosManager implements Listener {
         maxFallingBlocks = config.getChaos().fallingBlocks().initial().max();
         minDelay += config.getChaos().summonDelay().initial().min();
         maxDelay += config.getChaos().summonDelay().initial().max();
+        paused = false;
     }
     
     public void incrementChaos() {
@@ -85,6 +87,20 @@ public class ChaosManager implements Listener {
         scheduleSummonTask();
     }
     
+    /**
+     * Pause all chaos
+     */
+    public void pause() {
+        this.paused = true;
+    }
+    
+    /**
+     * Resume all chaos
+     */
+    public void resume() {
+        this.paused = false;
+    }
+    
     public void stop() {
         // the order of these three lines is very important
         cancelAllTasks();
@@ -102,6 +118,9 @@ public class ChaosManager implements Listener {
         this.scheduleArrowsSummonTaskId = new BukkitRunnable() {
             @Override
             public void run() {
+                if (paused) {
+                    return;
+                }
                 summonArrows();
                 summonFallingBlocks();
                 scheduleSummonTask();

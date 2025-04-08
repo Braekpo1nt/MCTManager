@@ -17,6 +17,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -228,6 +229,13 @@ public class Participant extends OfflineParticipant implements AudienceDelegate 
      */
     public void addPotionEffect(PotionEffect potionEffect) {
         player.addPotionEffect(potionEffect);
+    }
+    
+    /**
+     * Delegate for {@link Player#removePotionEffect(PotionEffectType)}
+     */
+    public void removePotionEffect(@NotNull PotionEffectType type) {
+        player.removePotionEffect(type);
     }
     
     /**

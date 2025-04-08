@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.game.parkourpathway;
+package org.braekpo1nt.mctmanager.games.game.parkourpathway_old;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,7 +9,6 @@ import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
 
 @Setter

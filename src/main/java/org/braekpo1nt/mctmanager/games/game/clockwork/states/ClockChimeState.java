@@ -5,11 +5,14 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkParticipant;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkTeam;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.bukkit.Location;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
-public class ClockChimeState extends ClockworkStateBase {
+public class ClockChimeState extends RoundActiveState {
     
     private final @NotNull ClockworkConfig config;
     private final int clockChimeTaskId;
@@ -20,13 +23,6 @@ public class ClockChimeState extends ClockworkStateBase {
         context.getSidebar().updateLine("timer", "Chiming...");
         context.getAdminSidebar().updateLine("timer", "Chiming...");
         context.setNumberOfChimes(context.getRandom().nextInt(1, 13));
-        turnOffCollisions();
-        for (ClockworkParticipant participant : context.getParticipants().values()) {
-            if (participant.isAlive()) {
-                participant.teleport(config.getStartingLocation());
-                participant.setArrowsInBody(0);
-            }
-        }
         clockChimeTaskId = new BukkitRunnable() {
             int count = context.getNumberOfChimes();
             @Override
@@ -45,12 +41,6 @@ public class ClockChimeState extends ClockworkStateBase {
     @Override
     public void cleanup() {
         context.getPlugin().getServer().getScheduler().cancelTask(clockChimeTaskId);
-    }
-    
-    private void turnOffCollisions() {
-        for (ClockworkTeam team : context.getTeams().values()) {
-            context.setTeamOption(team, Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
-        }
     }
     
     private void playChimeSound() {
@@ -74,5 +64,17 @@ public class ClockChimeState extends ClockworkStateBase {
     public void onNewTeamJoin(ClockworkTeam team) {
         super.onNewTeamJoin(team);
         context.setTeamOption(team, Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
+    }
+    
+    @Override
+    public void onParticipantMove(@NotNull PlayerMoveEvent event, @NotNull ClockworkParticipant participant) {
+        if (!participant.isAlive()) {
+            return;
+        }
+        Location stayLoc = event.getTo();
+        Vector position = context.getConfig().getStartingLocation().toVector();
+        if (!stayLoc.toVector().equals(position)) {
+            participant.teleport(position.toLocation(stayLoc.getWorld(), stayLoc.getYaw(), stayLoc.getPitch()));
+        }
     }
 }

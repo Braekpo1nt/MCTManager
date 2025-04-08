@@ -21,6 +21,9 @@ import org.bukkit.GameRule;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,7 +39,16 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
     private final @NotNull ClockworkConfig config;
     private final @NotNull ChaosManager chaosManager;
     private final @NotNull Random random = new Random();
+    private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
     
+    /**
+     * the task id of the status effect loop
+     */
+    private final int statusEffectTaskId;
+    /**
+     * True means participants are visible, false means they are invisible
+     */
+    private boolean participantsVisible;
     private int currentRound;
     /**
      * How many times the clock chimed, determining which wedge is correct
@@ -57,11 +69,51 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
             @NotNull List<Player> newAdmins) {
         super(GameType.CLOCKWORK, plugin, gameManager, title, new InitialState());
         this.config = config;
+        this.currentRound = 1;
         this.chaosManager = new ChaosManager(plugin, config);
+        this.chimeInterval = config.getInitialChimeInterval();
         addListener(new PreventItemDrop<>(this, true));
         addListener(new PreventHungerLoss<>(this));
         setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
+        this.participantsVisible = true;
+        this.statusEffectTaskId = startStatusEffectTask();
         start(newTeams, newParticipants, newAdmins);
+    }
+    
+    /**
+     * Makes participants invisible if {@link #participantsVisible} is true
+     * @return the task id of the BukkitRunnable
+     */
+    private int startStatusEffectTask() {
+        return new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (!participantsVisible) {
+                    participants.values().forEach(participant ->
+                            participant.addPotionEffect(INVISIBILITY));
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 60L).getTaskId();
+    }
+    
+    /**
+     * Make participants invisible, and stay invisible until {@link #stopInvisible()} is
+     * called
+     */
+    public void startInvisible() {
+        participantsVisible = false;
+        participants.values().forEach(participant ->
+                participant.addPotionEffect(INVISIBILITY));
+    }
+    
+    /**
+     * Make participants visible, and stay visible until {@link #startInvisible()} is 
+     * called
+     */
+    public void stopInvisible() {
+        participantsVisible = true;
+        participants.values().forEach(participant ->
+                participant.removePotionEffect(INVISIBILITY.getType()));
     }
     
     @Override
@@ -76,6 +128,7 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
     
     @Override
     protected void cleanup() {
+        plugin.getServer().getScheduler().cancelTask(statusEffectTaskId);
         chaosManager.stop();
     }
     

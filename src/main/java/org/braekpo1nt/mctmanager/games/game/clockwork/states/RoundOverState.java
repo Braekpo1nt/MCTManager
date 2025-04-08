@@ -24,6 +24,7 @@ public class RoundOverState extends ClockworkStateBase {
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .sidebarPrefix(Component.text("Round Over: "))
                 .onCompletion(() -> {
+                    context.stopInvisible();
                     if (context.getCurrentRound() < context.getConfig().getRounds()) {
                         context.setCurrentRound(context.getCurrentRound() + 1);
                         context.setState(new PreRoundState(context));
