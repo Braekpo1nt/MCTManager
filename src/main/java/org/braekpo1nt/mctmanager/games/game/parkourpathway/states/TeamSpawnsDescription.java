@@ -41,6 +41,7 @@ public class TeamSpawnsDescription extends ParkourPathwayStateBase {
                         teamSpawn.open();
                     }
                     context.setState(new CountdownState(context));
+                    teamsToSpawns.clear();
                 })
                 .build());
     }
@@ -50,6 +51,7 @@ public class TeamSpawnsDescription extends ParkourPathwayStateBase {
         for (TeamSpawn teamSpawn : teamsToSpawns.values()) {
             teamSpawn.open();
         }
+        teamsToSpawns.clear();
     }
     
     /**

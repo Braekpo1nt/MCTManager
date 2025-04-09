@@ -2,8 +2,11 @@ package org.braekpo1nt.mctmanager.games.game.parkourpathway.states;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourParticipant;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourTeam;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
 
 public class CountdownState extends ParkourPathwayStateBase {
@@ -25,4 +28,20 @@ public class CountdownState extends ParkourPathwayStateBase {
                 .build());
     }
     
+    @Override
+    public void onParticipantRejoin(ParkourParticipant participant, ParkourTeam team) {
+        Location respawn = context.getConfig()
+                .getPuzzle(participant.getCurrentPuzzle())
+                .checkPoints().get(participant.getCurrentPuzzleCheckpoint())
+                .respawn();
+        participant.teleport(respawn);
+        context.giveBoots(participant);
+        context.updateCheckpointSidebar(participant);
+    }
+    
+    @Override
+    public void onNewParticipantJoin(ParkourParticipant participant, ParkourTeam team) {
+        super.onNewParticipantJoin(participant, team);
+        context.giveSkipItem(participant, context.getConfig().getNumOfSkips());
+    }
 }

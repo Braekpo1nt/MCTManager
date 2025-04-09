@@ -19,10 +19,12 @@ import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -92,7 +94,21 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
     
     @Override
     protected ParkourParticipant createParticipant(Participant participant, ParkourParticipant.QuitData quitData) {
+        if (quitData.getNumOfSkips() > 0) {
+            giveSkipItem(participant, quitData.getNumOfSkips());
+        }
         return new ParkourParticipant(participant, quitData);
+    }
+    
+    /**
+     * Gives the appropriate number of skips to the given participant
+     * @param participant the participant to receive skips
+     */
+    public void giveSkipItem(Participant participant, int numOfSkips) {
+        if (numOfSkips <= 0) {
+            return;
+        }
+        participant.getInventory().setItem(8, config.getSkipItem().asQuantity(numOfSkips));
     }
     
     @Override
@@ -140,7 +156,16 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
     
     @Override
     protected void initializeParticipant(ParkourParticipant participant, ParkourTeam team) {
-        
+        giveBoots(participant);
+    }
+    
+    public void giveBoots(Participant participant) {
+        Color teamColor = gameManager.getTeam(participant).getBukkitColor();
+        ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
+        LeatherArmorMeta meta = (LeatherArmorMeta) boots.getItemMeta();
+        meta.setColor(teamColor);
+        boots.setItemMeta(meta);
+        participant.getEquipment().setBoots(boots);
     }
     
     @Override
@@ -184,6 +209,15 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
                 new KeyLine("timer", ""),
                 new KeyLine("ending", "")
         );
+    }
+    
+    public void updateCheckpointSidebar(ParkourParticipant participant) {
+        int lastCheckpoint = config.getPuzzlesSize()-1;
+        sidebar.updateLine(participant.getUniqueId(), "checkpoint",
+                Component.empty()
+                        .append(Component.text(participant.getCurrentPuzzle()))
+                        .append(Component.text("/"))
+                        .append(Component.text(lastCheckpoint)));
     }
     
     @Override

@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.parkourpathway.states;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourParticipant;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourTeam;
+import org.bukkit.Location;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -36,12 +37,16 @@ public class ParkourPathwayStateBase implements ParkourPathwayState {
     
     @Override
     public void onParticipantRejoin(ParkourParticipant participant, ParkourTeam team) {
-        
+        participant.teleport(context.getConfig().getStartingLocation());
+        context.giveBoots(participant);
+        context.updateCheckpointSidebar(participant);
     }
     
     @Override
     public void onNewParticipantJoin(ParkourParticipant participant, ParkourTeam team) {
-        
+        participant.teleport(context.getConfig().getStartingLocation());
+        context.giveBoots(participant);
+        context.updateCheckpointSidebar(participant);
     }
     
     @Override
@@ -81,6 +86,10 @@ public class ParkourPathwayStateBase implements ParkourPathwayState {
     
     @Override
     public void onParticipantRespawn(PlayerRespawnEvent event, ParkourParticipant participant) {
-        
+        Location respawn = context.getConfig()
+                .getPuzzle(participant.getCurrentPuzzle())
+                .checkPoints().get(participant.getCurrentPuzzleCheckpoint())
+                .respawn();
+        participant.teleport(respawn);
     }
 }
