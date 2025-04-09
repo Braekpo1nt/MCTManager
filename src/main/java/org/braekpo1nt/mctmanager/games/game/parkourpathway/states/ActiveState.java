@@ -4,18 +4,14 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourParticipant;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourTeam;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfig;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.GameMode;
-import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ActiveState extends ParkourPathwayStateBase {
-    private final ParkourPathwayConfig config;
+public class ActiveState extends ActiveStateBase {
     private final Timer mainTimer;
     /**
      * a countdown that restarts every time a player reaches a new checkpoint.
@@ -29,7 +25,6 @@ public class ActiveState extends ParkourPathwayStateBase {
     
     public ActiveState(@NotNull ParkourPathwayGame context) {
         super(context);
-        this.config = context.getConfig();
         restartMercyRuleCountdown();
         for (ParkourParticipant participant : context.getParticipants().values()) {
             context.giveSkipItem(participant, config.getNumOfSkips());
@@ -50,6 +45,7 @@ public class ActiveState extends ParkourPathwayStateBase {
     
     @Override
     public void cleanup() {
+        super.cleanup();
         if (this.mercyRuleTimer != null) {
             this.mercyRuleTimer.cancel();
         }
@@ -111,22 +107,5 @@ public class ActiveState extends ParkourPathwayStateBase {
                     context.setState(new GameOverState(context));
                 })
                 .build().start(context.getPlugin());
-    }
-    
-    @Override
-    public void onParticipantRejoin(ParkourParticipant participant, ParkourTeam team) {
-        Location respawn = context.getConfig()
-                .getPuzzle(participant.getCurrentPuzzle())
-                .checkPoints().get(participant.getCurrentPuzzleCheckpoint())
-                .respawn();
-        participant.teleport(respawn);
-        context.giveBoots(participant);
-        context.updateCheckpointSidebar(participant);
-    }
-    
-    @Override
-    public void onNewParticipantJoin(ParkourParticipant participant, ParkourTeam team) {
-        super.onNewParticipantJoin(participant, team);
-        context.giveSkipItem(participant, config.getNumOfSkips());
     }
 }
