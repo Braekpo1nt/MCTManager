@@ -368,7 +368,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
-        participant.setGameMode(GameMode.ADVENTURE);
+        participant.setGameMode(GameMode.SPECTATOR);
         sidebar.removePlayer(participant);
         tabList.hidePlayer(participant);
         uiManagers.forEach(uiManager -> uiManager.hidePlayer(participant));

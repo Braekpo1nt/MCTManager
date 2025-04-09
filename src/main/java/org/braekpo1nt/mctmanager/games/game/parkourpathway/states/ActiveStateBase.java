@@ -32,8 +32,7 @@ abstract class ActiveStateBase extends ParkourPathwayStateBase {
     
     @Override
     public void onParticipantRejoin(ParkourParticipant participant, ParkourTeam team) {
-        context.giveSkipItem(participant, config.getNumOfSkips());
-        participant.setUnusedSkips(config.getNumOfSkips());
+        context.giveSkipItem(participant, participant.getUnusedSkips());
         Location respawn = context.getConfig()
                 .getPuzzle(participant.getCurrentPuzzle())
                 .checkPoints().get(participant.getCurrentPuzzleCheckpoint())

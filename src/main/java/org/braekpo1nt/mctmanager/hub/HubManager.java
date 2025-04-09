@@ -102,7 +102,9 @@ public class HubManager implements Listener, Configurable {
         final Sidebar sidebar = gameManager.createSidebar();
         sidebar.addPlayers(newParticipants);
         sidebar.addPlayers(newAdmins);
-        sidebar.addLine("backToHub", String.format("Back to Hub: %s", duration));
+        sidebar.addLine("backToHub", Component.empty()
+                .append(Component.text("Back to Hub: "))
+                .append(Component.text(duration)));
         timerManager.start(Timer.builder()
                 .duration(duration)
                 .withSidebar(sidebar, "backToHub")
