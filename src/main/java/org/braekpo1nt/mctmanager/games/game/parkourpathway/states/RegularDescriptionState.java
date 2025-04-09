@@ -20,7 +20,7 @@ public class RegularDescriptionState extends ParkourPathwayStateBase {
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .sidebarPrefix(Component.text("Starting soon: "))
                 .onCompletion(() -> {
-                    context.setState(new CountdownState(context));
+                    context.setState(new CountDownState(context));
                 })
                 .build());
     }

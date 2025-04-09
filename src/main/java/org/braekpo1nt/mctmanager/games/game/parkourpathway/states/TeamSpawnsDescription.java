@@ -40,7 +40,7 @@ public class TeamSpawnsDescription extends ParkourPathwayStateBase {
                     for (TeamSpawn teamSpawn : teamsToSpawns.values()) {
                         teamSpawn.open();
                     }
-                    context.setState(new CountdownState(context));
+                    context.setState(new CountDownState(context));
                     teamsToSpawns.clear();
                 })
                 .build());

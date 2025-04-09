@@ -6,8 +6,8 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.jetbrains.annotations.NotNull;
 
-public class CountdownState extends ActiveStateBase {
-    public CountdownState(@NotNull ParkourPathwayGame context) {
+public class CountDownState extends ParkourPathwayStateBase {
+    public CountDownState(@NotNull ParkourPathwayGame context) {
         super(context);
         context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getStartingDuration())
@@ -23,15 +23,5 @@ public class CountdownState extends ActiveStateBase {
                     context.setState(new ActiveState(context));
                 })
                 .build());
-    }
-    
-    @Override
-    protected void restartMercyRuleCountdown() {
-        // do nothing
-    }
-    
-    @Override
-    protected void stop() {
-        context.setState(new GameOverState(context));
     }
 }

@@ -8,7 +8,7 @@ import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.GameMode;
 import org.jetbrains.annotations.NotNull;
 
-public class EndingState extends ParkourPathwayStateBase {
+public class EndingState extends ActiveStateBase {
     
     public EndingState(@NotNull ParkourPathwayGame context) {
         super(context);
@@ -26,5 +26,15 @@ public class EndingState extends ParkourPathwayStateBase {
                     context.setState(new GameOverState(context));
                 })
                 .build());
+    }
+    
+    @Override
+    protected void restartMercyRuleCountdown() {
+        // do nothing
+    }
+    
+    @Override
+    protected void stop() {
+        context.setState(new GameOverState(context));
     }
 }
