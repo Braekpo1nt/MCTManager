@@ -11,7 +11,10 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.event.Event;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -219,5 +222,78 @@ abstract class ActiveStateBase extends ParkourPathwayStateBase {
         } else {
             return winScores[winScores.length - 1];
         }
+    }
+    
+    @Override
+    public void onParticipantInteract(@NotNull PlayerInteractEvent event, @NotNull ParkourParticipant participant) {
+        if (event.useItemInHand().equals(Event.Result.DENY)) {
+            return;
+        }
+        ItemStack item = event.getItem();
+        if (item == null) {
+            return;
+        }
+        if (item.getItemMeta().equals(config.getSkipItem().getItemMeta())) {
+            performCheckpointSkip(participant);
+        }
+    }
+    
+    private void performCheckpointSkip(ParkourParticipant participant) {
+        if (participant.isFinished()) {
+            return;
+        }
+        int currentPuzzleIndex = participant.getCurrentPuzzle();
+        int nextPuzzleIndex = currentPuzzleIndex + 1;
+        if (nextPuzzleIndex >= config.getPuzzlesSize()) {
+            // should not occur because of above check
+            return;
+        }
+        participant.getInventory().removeItemAnySlot(config.getSkipItem());
+        onParticipantSkippedToCheckpoint(participant, nextPuzzleIndex);
+    }
+    
+    private void onParticipantSkippedToCheckpoint(ParkourParticipant participant, int puzzleIndex) {
+        participant.setCurrentPuzzle(puzzleIndex);
+        participant.setCurrentPuzzleCheckpoint(0);
+        context.updateCheckpointSidebar(participant);
+        Puzzle newPuzzle = config.getPuzzle(puzzleIndex);
+        participant.teleport(newPuzzle.checkPoints().getFirst().respawn());
+        if (puzzleIndex >= config.getPuzzlesSize()-1) {
+            onParticipantFinish(participant, false);
+        } else {
+            Component checkpointNum = Component.empty()
+                    .append(Component.text(puzzleIndex))
+                    .append(Component.text("/"))
+                    .append(Component.text(config.getPuzzlesSize()-1));
+            context.messageAllParticipants(Component.empty()
+                    .append(participant.displayName())
+                    .append(Component.text(" skipped to checkpoint "))
+                    .append(checkpointNum));
+            participant.showTitle(UIUtils.defaultTitle(
+                    Component.empty(),
+                    Component.empty()
+                            .append(Component.text("Checkpoint "))
+                            .append(checkpointNum)
+                            .color(NamedTextColor.YELLOW)
+            ));
+            
+            if (config.getMaxSkipPuzzle() > 0) {
+                if (puzzleIndex == config.getMaxSkipPuzzle()) {
+                    participant.sendMessage(Component.empty()
+                            .append(Component.text("Skips are not allowed after checkpoint "))
+                            .append(Component.text(config.getMaxSkipPuzzle())));
+                    context.awardPointsForUnusedSkips(participant);
+                }
+            }
+        }
+        if (allParticipantsHaveFinished()) {
+            for (ParkourParticipant p : context.getParticipants().values()) {
+                context.awardPointsForUnusedSkips(p);
+                p.setGameMode(GameMode.SPECTATOR);
+            }
+            stop();
+            return;
+        }
+        restartMercyRuleCountdown();
     }
 }
