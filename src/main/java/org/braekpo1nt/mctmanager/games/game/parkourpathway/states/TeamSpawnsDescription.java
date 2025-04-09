@@ -66,10 +66,8 @@ public class TeamSpawnsDescription extends ParkourPathwayStateBase {
             TeamSpawn teamSpawn = teamSpawns.get(teamSpawnIndex);
             teamSpawn.setBarrierMaterial(context.getGameManager().getTeamStainedGlassColor(teamId));
             result.put(teamId, teamSpawn);
-            i++;
-        }
-        for (TeamSpawn teamSpawn : result.values()) {
             teamSpawn.close();
+            i++;
         }
         return result;
     }
@@ -77,7 +75,13 @@ public class TeamSpawnsDescription extends ParkourPathwayStateBase {
     @Override
     public void onNewTeamJoin(ParkourTeam team) {
         super.onNewTeamJoin(team);
+        for (TeamSpawn teamSpawn : teamsToSpawns.values()) {
+            teamSpawn.open();
+        }
         this.teamsToSpawns = createTeamSpawns();
+        for (ParkourParticipant participant : context.getParticipants().values()) {
+            teamsToSpawns.get(participant.getTeamId()).teleport(participant);
+        }
     }
     
     
