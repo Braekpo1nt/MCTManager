@@ -45,13 +45,19 @@ public class ActiveState extends ActiveStateBase {
     
     @Override
     public void cleanup() {
-        super.cleanup();
         if (this.mercyRuleTimer != null) {
             this.mercyRuleTimer.cancel();
         }
     }
     
-    private void restartMercyRuleCountdown() {
+    @Override
+    protected void stop() {
+        cleanup();
+        context.setState(new GameOverState(context));
+    }
+    
+    @Override
+    protected void restartMercyRuleCountdown() {
         if (this.mercyRuleTimer != null) {
             this.mercyRuleTimer.cancel();
         }

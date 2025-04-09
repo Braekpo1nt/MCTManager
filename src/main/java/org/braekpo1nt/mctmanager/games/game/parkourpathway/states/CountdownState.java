@@ -24,4 +24,14 @@ public class CountdownState extends ActiveStateBase {
                 })
                 .build());
     }
+    
+    @Override
+    protected void restartMercyRuleCountdown() {
+        // do nothing
+    }
+    
+    @Override
+    protected void stop() {
+        context.setState(new GameOverState(context));
+    }
 }

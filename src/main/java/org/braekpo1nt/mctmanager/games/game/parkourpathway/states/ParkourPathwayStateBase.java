@@ -76,7 +76,7 @@ public class ParkourPathwayStateBase implements ParkourPathwayState {
     
     @Override
     public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull ParkourParticipant participant) {
-        
+        event.setCancelled(true);
     }
     
     @Override
