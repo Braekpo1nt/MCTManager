@@ -94,9 +94,6 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
     
     @Override
     protected ParkourParticipant createParticipant(Participant participant, ParkourParticipant.QuitData quitData) {
-        if (quitData.getNumOfSkips() > 0) {
-            giveSkipItem(participant, quitData.getNumOfSkips());
-        }
         return new ParkourParticipant(participant, quitData);
     }
     
@@ -113,7 +110,7 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
     
     @Override
     protected ParkourParticipant.QuitData getQuitData(ParkourParticipant participant) {
-        return participant.getQuitData(calculateUnusedSkips(participant));
+        return participant.getQuitData();
     }
     
     /**
@@ -137,20 +134,15 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         if (config.getUnusedSkipScore() <= 0.0) {
             return;
         }
-        int unusedSkips = calculateUnusedSkips(participant);
-        if (unusedSkips > 0) {
+        if (participant.getUnusedSkips() > 0) {
             participant.sendMessage(Component.empty()
-                    .append(Component.text(unusedSkips))
+                    .append(Component.text(participant.getUnusedSkips()))
                     .append(Component.text(" unused skips"))
                     .color(NamedTextColor.GREEN));
-            int multiplied = (int) (gameManager.getMultiplier() *
-                    unusedSkips * config.getUnusedSkipScore());
-            participant.awardPoints(multiplied);
-            ParkourTeam team = teams.get(participant.getTeamId());
-            team.addPoints(multiplied);
-            displayScore(participant);
-            displayScore(team);
+            this.awardPoints(participant, 
+                    participant.getUnusedSkips() * config.getUnusedSkipScore());
         }
+        participant.setUnusedSkips(0);
         ParticipantInitializer.clearInventory(participant);
     }
     

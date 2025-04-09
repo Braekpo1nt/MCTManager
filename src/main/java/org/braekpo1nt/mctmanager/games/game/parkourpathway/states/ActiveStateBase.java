@@ -32,6 +32,8 @@ abstract class ActiveStateBase extends ParkourPathwayStateBase {
     
     @Override
     public void onParticipantRejoin(ParkourParticipant participant, ParkourTeam team) {
+        context.giveSkipItem(participant, config.getNumOfSkips());
+        participant.setUnusedSkips(config.getNumOfSkips());
         Location respawn = context.getConfig()
                 .getPuzzle(participant.getCurrentPuzzle())
                 .checkPoints().get(participant.getCurrentPuzzleCheckpoint())
@@ -45,6 +47,7 @@ abstract class ActiveStateBase extends ParkourPathwayStateBase {
     public void onNewParticipantJoin(ParkourParticipant participant, ParkourTeam team) {
         super.onNewParticipantJoin(participant, team);
         context.giveSkipItem(participant, config.getNumOfSkips());
+        participant.setUnusedSkips(config.getNumOfSkips());
     }
     
     @Override
@@ -226,6 +229,9 @@ abstract class ActiveStateBase extends ParkourPathwayStateBase {
     
     @Override
     public void onParticipantInteract(@NotNull PlayerInteractEvent event, @NotNull ParkourParticipant participant) {
+        if (participant.getUnusedSkips() <= 0) {
+            return;
+        }
         if (event.useItemInHand().equals(Event.Result.DENY)) {
             return;
         }
@@ -249,6 +255,7 @@ abstract class ActiveStateBase extends ParkourPathwayStateBase {
             return;
         }
         participant.getInventory().removeItemAnySlot(config.getSkipItem());
+        participant.setUnusedSkips(participant.getUnusedSkips() - 1);
         onParticipantSkippedToCheckpoint(participant, nextPuzzleIndex);
     }
     

@@ -28,6 +28,7 @@ public class ActiveState extends ActiveStateBase {
         restartMercyRuleCountdown();
         for (ParkourParticipant participant : context.getParticipants().values()) {
             context.giveSkipItem(participant, config.getNumOfSkips());
+            participant.setUnusedSkips(config.getNumOfSkips());
         }
         mainTimer = context.getTimerManager().start(Timer.builder()
                 .duration(config.getTimeLimitDuration())
