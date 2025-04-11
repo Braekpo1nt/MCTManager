@@ -188,9 +188,7 @@ public class BattleTopbar implements Topbar {
     /**
      * Removes all the team pairs from this Topbar, and unlinks all
      * players from their teamIds
-     * @deprecated use {@link #cleanup()}
      */
-    @Deprecated
     public void removeAllTeamPairs() {
         teamDatas.clear();
         allBattles.clear();

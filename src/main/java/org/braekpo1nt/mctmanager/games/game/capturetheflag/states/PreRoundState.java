@@ -82,7 +82,7 @@ public class PreRoundState extends CaptureTheFlagStateBase {
     
     private void setUpTopbarForRound() {
         List<MatchPairing> roundMatchPairings = roundManager.getCurrentRound();
-        topbar.cleanup();
+        topbar.removeAllTeamPairs();
         for (MatchPairing mp : roundMatchPairings) {
             TextColor northColor = gameManager.getTeamColor(mp.northTeam());
             TextColor southColor = gameManager.getTeamColor(mp.southTeam());
