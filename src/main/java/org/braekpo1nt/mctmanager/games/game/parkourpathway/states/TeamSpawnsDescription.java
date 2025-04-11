@@ -4,7 +4,7 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourParticipant;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourTeam;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway_old.TeamSpawn;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.MathUtils;

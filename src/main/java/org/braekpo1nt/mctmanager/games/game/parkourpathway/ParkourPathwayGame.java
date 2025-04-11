@@ -88,12 +88,12 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
     }
     
     @Override
-    protected ParkourParticipant createParticipant(Participant participant) {
+    protected @NotNull ParkourParticipant createParticipant(Participant participant) {
         return new ParkourParticipant(participant, 0);
     }
     
     @Override
-    protected ParkourParticipant createParticipant(Participant participant, ParkourParticipant.QuitData quitData) {
+    protected @NotNull ParkourParticipant createParticipant(Participant participant, ParkourParticipant.QuitData quitData) {
         return new ParkourParticipant(participant, quitData);
     }
     
@@ -109,7 +109,7 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
     }
     
     @Override
-    protected ParkourParticipant.QuitData getQuitData(ParkourParticipant participant) {
+    protected @NotNull ParkourParticipant.QuitData getQuitData(ParkourParticipant participant) {
         return participant.getQuitData();
     }
     
@@ -166,17 +166,17 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
     }
     
     @Override
-    protected ParkourTeam createTeam(Team team) {
+    protected @NotNull ParkourTeam createTeam(Team team) {
         return new ParkourTeam(team, 0);
     }
     
     @Override
-    protected ParkourTeam createTeam(Team team, ParkourTeam.QuitData quitData) {
+    protected @NotNull ParkourTeam createTeam(Team team, ParkourTeam.QuitData quitData) {
         return new ParkourTeam(team, quitData.getScore());
     }
     
     @Override
-    protected ParkourTeam.QuitData getQuitData(ParkourTeam team) {
+    protected @NotNull ParkourTeam.QuitData getQuitData(ParkourTeam team) {
         return team.getQuitData();
     }
     

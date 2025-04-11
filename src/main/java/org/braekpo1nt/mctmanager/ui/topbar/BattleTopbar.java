@@ -4,6 +4,7 @@ package org.braekpo1nt.mctmanager.ui.topbar;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
+import org.braekpo1nt.mctmanager.Main; // TODO: remove
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.topbar.components.KillDeathComponent;
 import org.braekpo1nt.mctmanager.ui.topbar.components.ManyVersusComponent;
@@ -280,7 +281,7 @@ public class BattleTopbar implements Topbar {
             UIUtils.logUIError("player with UUID \"%s\" already exists in this BattleTopbar", player.getUniqueId());
             return;
         }
-        
+        Main.logf("showPlayer %s BattleTopbar"); // TODO: remove
         FormattedBar bossBar = new FormattedBar(player);
         bossBar.show();
         PlayerData playerData = new PlayerData(bossBar);
@@ -302,6 +303,7 @@ public class BattleTopbar implements Topbar {
      * @param teamId the teamId to link this player to (must be a teamId which is already in this Topbar)
      */
     public void linkToTeam(@NotNull UUID playerUUID, @NotNull String teamId) {
+        Main.logf("link to team %s", teamId); // TODO: remove
         TeamData teamData = getTeamData(teamId);
         if (teamData == null) {
             return;

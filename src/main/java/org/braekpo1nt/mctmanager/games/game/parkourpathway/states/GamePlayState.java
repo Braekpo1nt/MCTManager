@@ -22,10 +22,10 @@ import org.jetbrains.annotations.NotNull;
  * Shared functionality for the states where participants are
  * actively performing parkour
  */
-abstract class ActiveStateBase extends ParkourPathwayStateBase {
+abstract class GamePlayState extends ParkourPathwayStateBase {
     protected final ParkourPathwayConfig config;
     
-    public ActiveStateBase(@NotNull ParkourPathwayGame context) {
+    public GamePlayState(@NotNull ParkourPathwayGame context) {
         super(context);
         this.config = context.getConfig();
     }

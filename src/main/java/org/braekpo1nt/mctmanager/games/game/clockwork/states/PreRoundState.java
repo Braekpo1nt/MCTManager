@@ -35,7 +35,7 @@ public class PreRoundState extends ClockworkStateBase {
                 .sidebarPrefix(Component.text("Round Starting: "))
                 .onCompletion(() -> {
                     context.startInvisible();
-                    context.getChaosManager().start();
+                    context.getChaosManager().start(true);
                     context.setState(new BreatherState(context));
                 })
                 .build());

@@ -243,17 +243,17 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
     }
     
     @Override
-    protected FootRaceParticipant createParticipant(Participant participant) {
+    protected @NotNull FootRaceParticipant createParticipant(Participant participant) {
         return new FootRaceParticipant(participant, 0, 0);
     }
     
     @Override
-    protected FootRaceParticipant createParticipant(Participant participant, FootRaceParticipant.QuitData quitData) {
+    protected @NotNull FootRaceParticipant createParticipant(Participant participant, FootRaceParticipant.QuitData quitData) {
         return new FootRaceParticipant(participant, quitData);
     }
     
     @Override
-    protected FootRaceParticipant.QuitData getQuitData(FootRaceParticipant participant) {
+    protected @NotNull FootRaceParticipant.QuitData getQuitData(FootRaceParticipant participant) {
         return participant.getQuitData();
     }
     
@@ -263,17 +263,17 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
     }
     
     @Override
-    protected FootRaceTeam createTeam(Team team) {
+    protected @NotNull FootRaceTeam createTeam(Team team) {
         return new FootRaceTeam(team, 0);
     }
     
     @Override
-    protected FootRaceTeam.QuitData getQuitData(FootRaceTeam team) {
+    protected @NotNull FootRaceTeam.QuitData getQuitData(FootRaceTeam team) {
         return team.getQuitData();
     }
     
     @Override
-    protected FootRaceTeam createTeam(Team team, FootRaceTeam.QuitData quitData) {
+    protected @NotNull FootRaceTeam createTeam(Team team, FootRaceTeam.QuitData quitData) {
         return new FootRaceTeam(team, quitData.getScore());
     }
     

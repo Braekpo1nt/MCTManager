@@ -299,17 +299,17 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     }
     
     @Override
-    protected SurvivalGamesParticipant createParticipant(Participant participant, SurvivalGamesParticipant.QuitData quitData) {
+    protected @NotNull SurvivalGamesParticipant createParticipant(Participant participant, SurvivalGamesParticipant.QuitData quitData) {
         return new SurvivalGamesParticipant(participant, quitData);
     }
     
     @Override
-    protected SurvivalGamesParticipant createParticipant(Participant participant) {
+    protected @NotNull SurvivalGamesParticipant createParticipant(Participant participant) {
         return new SurvivalGamesParticipant(participant, 0);
     }
     
     @Override
-    protected SurvivalGamesParticipant.QuitData getQuitData(SurvivalGamesParticipant participant) {
+    protected @NotNull SurvivalGamesParticipant.QuitData getQuitData(SurvivalGamesParticipant participant) {
         return participant.getQuitData();
     }
     
@@ -325,17 +325,17 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     }
     
     @Override
-    protected SurvivalGamesTeam createTeam(Team team, SurvivalGamesTeam.QuitData quitData) {
+    protected @NotNull SurvivalGamesTeam createTeam(Team team, SurvivalGamesTeam.QuitData quitData) {
         return new SurvivalGamesTeam(team, quitData.getScore());
     }
     
     @Override
-    protected SurvivalGamesTeam createTeam(Team team) {
+    protected @NotNull SurvivalGamesTeam createTeam(Team team) {
         return new SurvivalGamesTeam(team, 0);
     }
     
     @Override
-    protected SurvivalGamesTeam.QuitData getQuitData(SurvivalGamesTeam team) {
+    protected @NotNull SurvivalGamesTeam.QuitData getQuitData(SurvivalGamesTeam team) {
         return team.getQuitData();
     }
     

@@ -14,7 +14,6 @@ import org.jetbrains.annotations.NotNull;
 public class GetToWedgeState extends RoundActiveState {
     public GetToWedgeState(@NotNull ClockworkGame context) {
         super(context);
-        context.getChaosManager().resume();
         turnOnCollisions();
         if (context.getConfig().getGetToWedgeMessage() != null) {
             context.titleAllParticipants(UIUtils.defaultTitle(
@@ -22,6 +21,7 @@ public class GetToWedgeState extends RoundActiveState {
                     context.getConfig().getGetToWedgeMessage()
             ));
         }
+        context.getChaosManager().resume();
         context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getGetToWedgeDuration())
                 .withSidebar(context.getSidebar(), "timer")

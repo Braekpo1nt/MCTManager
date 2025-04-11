@@ -16,4 +16,8 @@ public class CTFMatchTeam extends ScoredTeamData<CTFMatchParticipant> {
         super(ctfTeam, ctfTeam.getScore());
         this.affiliation = affiliation;
     }
+    
+    public int getAlive() {
+        return ((int) getParticipants().stream().filter(CTFMatchParticipant::isAlive).count());
+    }
 }

@@ -1,32 +1,47 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.braekpo1nt.mctmanager.participant.QuitDataBase;
 import org.braekpo1nt.mctmanager.participant.ScoredTeamData;
 import org.braekpo1nt.mctmanager.participant.Team;
-import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
 @Setter
 @ToString(callSuper = true)
 public class FarmRushTeam extends ScoredTeamData<FarmRushParticipant> {
     private final Arena arena;
-    /**
-     * Used to keep track of the physical lineup of arenas, so that
-     * when a new team is added you can always add it on to the end
-     * of the line
-     */
-    private final int arenaOrder;
-    private final List<Location> cropGrowers = new ArrayList<>();
     
-    public FarmRushTeam(@NotNull Team team, @NotNull Arena arena, int arenaOrder, int score) {
+    public FarmRushTeam(
+            @NotNull Team team, 
+            @NotNull Arena arena, 
+            int score) {
         super(team, score);
         this.arena = arena;
-        this.arenaOrder = arenaOrder;
+    }
+    
+    public FarmRushTeam(
+            @NotNull Team team,
+            @NotNull QuitData quitData) {
+        this(
+                team, 
+                quitData.getArena(), 
+                quitData.getScore()
+        );
+    }
+    
+    public QuitData getQuitData() {
+        return new QuitData(
+                this.arena,
+                getScore());
+    }
+    
+    @Data
+    public static class QuitData implements QuitDataBase {
+        private final Arena arena;
+        private final int score;
     }
 }

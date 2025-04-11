@@ -77,19 +77,19 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
     }
     
     @Override
-    protected ExampleParticipant createParticipant(Participant participant, ExampleParticipant.QuitData quitData) {
+    protected @NotNull ExampleParticipant createParticipant(Participant participant, ExampleParticipant.QuitData quitData) {
         // use the quitData to create a new participant, including setup that happens regardless of state
         return new ExampleParticipant(participant, quitData.getScore());
     }
     
     @Override
-    protected ExampleParticipant createParticipant(Participant participant) {
+    protected @NotNull ExampleParticipant createParticipant(Participant participant) {
         // create a new participant, including setup that happens regardless of state
         return new ExampleParticipant(participant, 0);
     }
     
     @Override
-    public ExampleParticipant.QuitData getQuitData(ExampleParticipant participant) {
+    public @NotNull ExampleParticipant.QuitData getQuitData(ExampleParticipant participant) {
         return participant.getQuitData();
     }
     
@@ -106,17 +106,17 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
     }
     
     @Override
-    public ExampleTeam createTeam(Team team, ExampleTeam.QuitData quitData) {
+    public @NotNull ExampleTeam createTeam(Team team, ExampleTeam.QuitData quitData) {
         return new ExampleTeam(team, quitData.getScore());
     }
     
     @Override
-    public ExampleTeam createTeam(Team team) {
+    public @NotNull ExampleTeam createTeam(Team team) {
         return new ExampleTeam(team, 0);
     }
     
     @Override
-    public ExampleTeam.QuitData getQuitData(ExampleTeam team) {
+    public @NotNull ExampleTeam.QuitData getQuitData(ExampleTeam team) {
         return team.getQuitData();
     }
     

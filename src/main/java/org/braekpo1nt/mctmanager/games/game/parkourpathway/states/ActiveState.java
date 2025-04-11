@@ -11,7 +11,7 @@ import org.bukkit.GameMode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ActiveState extends ActiveStateBase {
+public class ActiveState extends GamePlayState {
     private final Timer mainTimer;
     /**
      * a countdown that restarts every time a player reaches a new checkpoint.

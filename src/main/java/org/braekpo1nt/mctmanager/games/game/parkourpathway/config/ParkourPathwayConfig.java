@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway_old.TeamSpawn;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.bukkit.Location;
 import org.bukkit.Material;

@@ -219,6 +219,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         state.cleanup();
         saveScores();
         for (P participant : participants.values()) {
+            participant.setGameMode(GameMode.SPECTATOR);
             _resetParticipant(participant, teams.get(participant.getTeamId()));
         }
         participants.clear();
@@ -305,24 +306,26 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param participant the participant from which to derive the {@link P} type participant
      * @return the created {@link P} participant
      */
-    protected abstract P createParticipant(Participant participant);
+    protected abstract @NotNull P createParticipant(Participant participant);
     
     /**
      * <p>Create a participant from the given {@link Participant} and {@link QP} quitData.</p>
-     * <p>Called after setting the participant to the defaults. 
+     * <p>Called after setting the participant to the defaults.
      * Add additional setup logic here for every time a participant is created, with the given quitData.</p>
+     *
      * @param participant the participant from which to derive the {@link P} type participant
-     * @param quitData the quitData to use in creating the participant
+     * @param quitData    the quitData to use in creating the participant
      * @return the created {@link P} participant
      */
-    protected abstract P createParticipant(Participant participant, QP quitData);
+    protected abstract @NotNull P createParticipant(Participant participant, QP quitData);
     
     /**
      * Create quitData from the given participant
+     *
      * @param participant the participant to get the quitData from
      * @return a new {@link QP} quitData from the given {@link P} participant's data
      */
-    protected abstract QP getQuitData(P participant);
+    protected abstract @NotNull QP getQuitData(P participant);
     
     /**
      * <p>Prepare the participant for the game during initialization.</p>
@@ -345,7 +348,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param team the team from which to derive the {@link T} type team
      * @return the created {@link T} team
      */
-    protected abstract T createTeam(Team team);
+    protected abstract @NotNull T createTeam(Team team);
     
     /**
      * Create a new team of type {@link T} from the given {@link Team} and {@link QT} quitData
@@ -354,21 +357,21 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param quitData the quitData to use in creating the team
      * @return the created {@link T} team
      */
-    protected abstract T createTeam(Team team, QT quitData);
+    protected abstract @NotNull T createTeam(Team team, QT quitData);
     
     /**
      * Create quitData from the given team
+     *
      * @param team the team to get the quitData from
      * @return a new {@link QT} quitData from the given {@link T} team's data
      */
-    protected abstract QT getQuitData(T team);
+    protected abstract @NotNull QT getQuitData(T team);
     
     protected void _resetParticipant(P participant, T team) {
         team.removeParticipant(participant.getUniqueId());
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
-        participant.setGameMode(GameMode.SPECTATOR);
         sidebar.removePlayer(participant);
         tabList.hidePlayer(participant);
         uiManagers.forEach(uiManager -> uiManager.hidePlayer(participant));
@@ -495,6 +498,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         team.removeParticipant(participantUUID);
         quitDatas.put(participant.getParticipantID(), getQuitData(participant));
         tabList.setParticipantGrey(participant.getParticipantID(), true);
+        participant.setGameMode(GameMode.ADVENTURE);
         _resetParticipant(participant, team);
     }
     

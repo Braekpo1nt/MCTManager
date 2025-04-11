@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
-import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.ParticipantData;
 import org.jetbrains.annotations.NotNull;
 

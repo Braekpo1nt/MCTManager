@@ -6,18 +6,15 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushParticipant;
-import org.braekpo1nt.mctmanager.participant.Participant;
-import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushTeam;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class DescriptionState implements FarmRushState {
-    
-    protected final @NotNull FarmRushGame context;
+public class DescriptionState extends FarmRushStateBase {
     
     public DescriptionState(@NotNull FarmRushGame context) {
-        this.context = context;
+        super(context);
         startTimer();
     }
     
@@ -42,21 +39,20 @@ public class DescriptionState implements FarmRushState {
     }
     
     @Override
-    public void onParticipantJoin(Participant player, Team team) {
-        context.onTeamJoin(team);
-        context.initializeParticipant(player, 0);
-        context.getSidebar().updateLine(player.getUniqueId(), "title", context.getTitle());
-        player.sendMessage(context.getConfig().getDescription());
+    public void onParticipantRejoin(FarmRushParticipant participant, FarmRushTeam team) {
+        super.onParticipantRejoin(participant, team);
+        participant.sendMessage(context.getConfig().getDescription());
     }
     
     @Override
-    public void onParticipantQuit(FarmRushParticipant participant) {
-        context.resetParticipant(participant);
-        context.getParticipants().remove(participant.getUniqueId());
+    public void onNewParticipantJoin(FarmRushParticipant participant, FarmRushTeam team) {
+        super.onNewParticipantJoin(participant, team);
+        participant.sendMessage(context.getConfig().getDescription());
     }
     
     @Override
-    public void onPlayerMove(PlayerMoveEvent event, Participant participant) {
+    public void onParticipantMove(@NotNull PlayerMoveEvent event, @NotNull FarmRushParticipant participant) {
+        super.onParticipantMove(event, participant);
         Arena arena = context.getTeams().get(participant.getTeamId()).getArena();
         if (!arena.getBarn().contains(event.getFrom().toVector())) {
             participant.teleport(arena.getSpawn());

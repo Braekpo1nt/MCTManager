@@ -133,17 +133,17 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
     }
     
     @Override
-    protected ClockworkParticipant createParticipant(Participant participant) {
+    protected @NotNull ClockworkParticipant createParticipant(Participant participant) {
         return new ClockworkParticipant(participant, 0, true);
     }
     
     @Override
-    protected ClockworkParticipant createParticipant(Participant participant, ClockworkParticipant.QuitData quitData) {
+    protected @NotNull ClockworkParticipant createParticipant(Participant participant, ClockworkParticipant.QuitData quitData) {
         return new ClockworkParticipant(participant, quitData);
     }
     
     @Override
-    protected ClockworkParticipant.QuitData getQuitData(ClockworkParticipant participant) {
+    protected @NotNull ClockworkParticipant.QuitData getQuitData(ClockworkParticipant participant) {
         return participant.getQuitData();
     }
     
@@ -158,17 +158,17 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
     }
     
     @Override
-    protected ClockworkTeam createTeam(Team team) {
+    protected @NotNull ClockworkTeam createTeam(Team team) {
         return new ClockworkTeam(team, 0);
     }
     
     @Override
-    protected ClockworkTeam createTeam(Team team, ClockworkTeam.QuitData quitData) {
+    protected @NotNull ClockworkTeam createTeam(Team team, ClockworkTeam.QuitData quitData) {
         return new ClockworkTeam(team, quitData.getScore());
     }
     
     @Override
-    protected ClockworkTeam.QuitData getQuitData(ClockworkTeam team) {
+    protected @NotNull ClockworkTeam.QuitData getQuitData(ClockworkTeam team) {
         return team.getQuitData();
     }
     

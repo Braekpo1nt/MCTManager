@@ -109,7 +109,7 @@ public class ClassPicker implements Listener {
         teamMates.remove(teamMate.getUniqueId());
     }
     
-    @EventHandler
+    // TODO: remove listener and accept participant as arg
     public void onClickInventory(InventoryClickEvent event) {
         if (!classPickingActive) {
             return;

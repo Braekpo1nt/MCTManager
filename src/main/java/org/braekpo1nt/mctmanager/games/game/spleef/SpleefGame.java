@@ -92,17 +92,17 @@ public class SpleefGame extends GameBase<SpleefParticipant, SpleefTeam, SpleefPa
     }
     
     @Override
-    protected SpleefParticipant createParticipant(Participant participant) {
+    protected @NotNull SpleefParticipant createParticipant(Participant participant) {
         return new SpleefParticipant(participant, 0, true);
     }
     
     @Override
-    protected SpleefParticipant createParticipant(Participant participant, SpleefParticipant.QuitData quitData) {
+    protected @NotNull SpleefParticipant createParticipant(Participant participant, SpleefParticipant.QuitData quitData) {
         return new SpleefParticipant(participant, quitData.getScore(), true);
     }
     
     @Override
-    protected SpleefParticipant.QuitData getQuitData(SpleefParticipant participant) {
+    protected @NotNull SpleefParticipant.QuitData getQuitData(SpleefParticipant participant) {
         return participant.getQuitData();
     }
     
@@ -128,17 +128,17 @@ public class SpleefGame extends GameBase<SpleefParticipant, SpleefTeam, SpleefPa
     }
     
     @Override
-    protected SpleefTeam createTeam(Team team) {
+    protected @NotNull SpleefTeam createTeam(Team team) {
         return new SpleefTeam(team, 0);
     }
     
     @Override
-    protected SpleefTeam createTeam(Team team, SpleefTeam.QuitData quitData) {
+    protected @NotNull SpleefTeam createTeam(Team team, SpleefTeam.QuitData quitData) {
         return new SpleefTeam(team, quitData.getScore());
     }
     
     @Override
-    protected SpleefTeam.QuitData getQuitData(SpleefTeam team) {
+    protected @NotNull SpleefTeam.QuitData getQuitData(SpleefTeam team) {
         return team.getQuitData();
     }
     

@@ -7,7 +7,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway_old.TeamSpawn;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;

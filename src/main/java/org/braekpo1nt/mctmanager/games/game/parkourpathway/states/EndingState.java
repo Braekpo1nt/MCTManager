@@ -8,7 +8,7 @@ import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.GameMode;
 import org.jetbrains.annotations.NotNull;
 
-public class EndingState extends ActiveStateBase {
+public class EndingState extends GamePlayState {
     
     public EndingState(@NotNull ParkourPathwayGame context) {
         super(context);

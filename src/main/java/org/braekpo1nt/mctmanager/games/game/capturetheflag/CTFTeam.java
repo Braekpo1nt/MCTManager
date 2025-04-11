@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
 import lombok.Data;
+import org.braekpo1nt.mctmanager.participant.QuitDataBase;
 import org.braekpo1nt.mctmanager.participant.ScoredTeamData;
 import org.braekpo1nt.mctmanager.participant.Team;
 
@@ -13,12 +14,12 @@ public class CTFTeam extends ScoredTeamData<CTFParticipant> {
         super(team, quitData.getScore());
     }
     
-    @Data
-    public static class QuitData {
-        private final int score;
-    }
-    
     public QuitData getQuitData() {
         return new QuitData(getScore());
+    }
+    
+    @Data
+    public static class QuitData implements QuitDataBase {
+        private final int score;
     }
 }

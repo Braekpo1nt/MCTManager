@@ -42,6 +42,15 @@ public class PreventItemDrop<P> extends GameListener<P> {
         if (participant == null) {
             return;
         }
+        onParticipantClickInventory(event, participant);
+    }
+    
+    /**
+     * Called when a participant from {@link #gameData} triggers an {@link InventoryClickEvent} 
+     * @param event the event
+     * @param participant the participant who triggered the event
+     */
+    public void onParticipantClickInventory(@NotNull InventoryClickEvent event, @NotNull P participant) {
         // don't let them drop items from their inventory
         if (GameManagerUtils.INV_REMOVE_ACTIONS.contains(event.getAction())) {
             event.setCancelled(true);

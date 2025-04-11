@@ -35,7 +35,7 @@ public class ChaosManager implements Listener {
     private double maxFallingBlocks;
     private double minDelay;
     private double maxDelay;
-    private int scheduleArrowsSummonTaskId;
+    private int summonTaskId;
     private boolean paused;
     private final Random random = new Random();
     
@@ -44,13 +44,16 @@ public class ChaosManager implements Listener {
     public ChaosManager(Main plugin, ClockworkConfig config) {
         this.plugin = plugin;
         this.config = config;
+        paused = true;
+    }
+    
+    private void initializeValues() {
         minArrows = config.getChaos().arrows().initial().min();
         maxArrows = config.getChaos().arrows().initial().max();
         minFallingBlocks = config.getChaos().fallingBlocks().initial().min();
         maxFallingBlocks = config.getChaos().fallingBlocks().initial().max();
         minDelay += config.getChaos().summonDelay().initial().min();
         maxDelay += config.getChaos().summonDelay().initial().max();
-        paused = false;
     }
     
     public void incrementChaos() {
@@ -82,8 +85,14 @@ public class ChaosManager implements Listener {
         }
     }
     
-    public void start() {
+    /**
+     * Start the chaos manager
+     * @param paused true if this should start in a paused state, false otherwise
+     */
+    public void start(boolean paused) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        initializeValues();
+        this.paused = paused;
         scheduleSummonTask();
     }
     
@@ -115,14 +124,13 @@ public class ChaosManager implements Listener {
             return;
         }
         long randomDelay = random.nextLong((long) minDelay, (long) maxDelay + 1);
-        this.scheduleArrowsSummonTaskId = new BukkitRunnable() {
+        this.summonTaskId = new BukkitRunnable() {
             @Override
             public void run() {
-                if (paused) {
-                    return;
+                if (!paused) {
+                    summonArrows();
+                    summonFallingBlocks();
                 }
-                summonArrows();
-                summonFallingBlocks();
                 scheduleSummonTask();
             }
         }.runTaskLater(plugin, randomDelay).getTaskId();
@@ -189,7 +197,7 @@ public class ChaosManager implements Listener {
     }
     
     private void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(scheduleArrowsSummonTaskId);
+        Bukkit.getScheduler().cancelTask(summonTaskId);
     }
     
     private void removeArrowsAndFallingBlocks() {

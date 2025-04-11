@@ -7,7 +7,6 @@ import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushParticipant;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushTeam;
 import org.braekpo1nt.mctmanager.games.game.farmrush.ItemSale;
 import org.braekpo1nt.mctmanager.participant.Participant;
-import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -29,41 +28,17 @@ import java.util.*;
  * Contains logic common across all gameplay states, namely
  * {@link ActiveState} and {@link GracePeriodState}
  */
-public abstract class GameplayState implements FarmRushState {
+public abstract class GameplayState extends FarmRushStateBase {
     
-    protected final @NotNull FarmRushGame context;
     protected final GameManager gameManager;
     
     public GameplayState(@NotNull FarmRushGame context) {
-        this.context = context;
+        super(context);
         this.gameManager = context.getGameManager();
     }
     
     @Override
-    public void onParticipantJoin(Participant participant, Team team) {
-        context.onTeamJoin(team);
-        context.getTeams().get(participant.getTeamId()).getArena().openBarnDoor();
-        FarmRushParticipant.QuitData quitData = context.getQuitDatas().remove(participant.getUniqueId());
-        if (quitData != null) {
-            context.initializeParticipant(participant, quitData.getScore());
-        } else {
-            context.initializeParticipant(participant, 0);
-        }
-        participant.setGameMode(GameMode.SURVIVAL);
-        context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
-        context.displayScore(context.getParticipants().get(participant.getUniqueId()));
-        context.displayScore(context.getTeams().get(team.getTeamId()));
-    }
-    
-    @Override
-    public void onParticipantQuit(FarmRushParticipant participant) {
-        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
-        context.resetParticipant(participant);
-        context.getParticipants().remove(participant.getUniqueId());
-    }
-    
-    @Override
-    public void onParticipantDamage(EntityDamageEvent event) {
+    public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull FarmRushParticipant participant) {
         // do nothing
     }
     
@@ -170,13 +145,31 @@ public abstract class GameplayState implements FarmRushState {
     }
     
     @Override
-    public void onPlaceBlock(BlockPlaceEvent event, Participant participant) {
+    public void onParticipantPlaceBlock(BlockPlaceEvent event, FarmRushParticipant participant) {
         context.getPowerupManager().onPlaceBlock(event);
     }
     
     @Override
-    public void onPlayerOpenInventory(InventoryOpenEvent event) {
+    public void onParticipantOpenInventory(InventoryOpenEvent event, FarmRushParticipant participant) {
         context.getPowerupManager().onPlayerOpenInventory(event);
+    }
+    
+    @Override
+    public void onNewTeamJoin(FarmRushTeam team) {
+        super.onNewTeamJoin(team);
+        team.getArena().openBarnDoor();
+    }
+    
+    @Override
+    public void onNewParticipantJoin(FarmRushParticipant participant, FarmRushTeam team) {
+        super.onNewParticipantJoin(participant, team);
+        participant.setGameMode(GameMode.SURVIVAL);
+    }
+    
+    @Override
+    public void onParticipantRejoin(FarmRushParticipant participant, FarmRushTeam team) {
+        super.onParticipantRejoin(participant, team);
+        participant.setGameMode(GameMode.SURVIVAL);
     }
     
     /**
