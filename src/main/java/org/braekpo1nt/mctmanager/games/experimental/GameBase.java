@@ -209,8 +209,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     
     // cleanup start
     @Override
-    // TODO: remove final
-    public final void stop() {
+    public void stop() {
         // TODO: make sure everything is cleared, all fields etc.
         HandlerList.unregisterAll(this);
         listeners.forEach(GameListener::unregister);
@@ -395,8 +394,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         return participants.get(uuid);
     }
     
-    // TODO: remove final
-    protected final void setupTeamOptions(T team) {
+    protected void setupTeamOptions(T team) {
         org.bukkit.scoreboard.Team scoreboardTeam = gameManager.getMctScoreboard().getTeam(team.getTeamId());
         if (scoreboardTeam != null) {
             setupTeamOptions(scoreboardTeam, team);
@@ -438,8 +436,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     @Override
-    // TODO: remove final
-    public final void onTeamJoin(Team newTeam) {
+    public void onTeamJoin(Team newTeam) {
         if (teams.containsKey(newTeam.getTeamId())) {
             return;
         }
@@ -459,8 +456,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     @Override
-    // TODO: remove final
-    public final void onParticipantJoin(Participant newParticipant) {
+    public void onParticipantJoin(Participant newParticipant) {
         T team = teams.get(newParticipant.getTeamId());
         QP quitData = quitDatas.remove(newParticipant.getParticipantID());
         newParticipant.setGameMode(GameMode.ADVENTURE);
@@ -486,8 +482,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     @Override
-    // TODO: remove final
-    public final void onParticipantQuit(UUID participantUUID) {
+    public void onParticipantQuit(UUID participantUUID) {
         P participant = participants.get(participantUUID);
         if (participant == null) {
             return;
@@ -503,8 +498,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     @Override
-    // TODO: remove final
-    public final void onTeamQuit(String teamId) {
+    public void onTeamQuit(String teamId) {
         T team = teams.get(teamId);
         if (team.size() > 0) {
             return;
@@ -526,7 +520,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     // admin start
-    private void _initializeAdmin(Player admin) {
+    protected void _initializeAdmin(Player admin) {
         admins.add(admin);
         adminSidebar.addPlayer(admin);
         tabList.showPlayer(admin);
@@ -543,7 +537,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      */
     protected abstract void initializeAdmin(Player admin);
     
-    private void _initializeAdminSidebar() {
+    protected void _initializeAdminSidebar() {
         adminSidebar.addLines(
                 new KeyLine("title", title)
         );
@@ -575,7 +569,6 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     @Override
-    // TODO: remove final
     public void onAdminQuit(Player admin) {
         _resetAdmin(admin);
         admins.remove(admin);
@@ -615,8 +608,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * team's members.
      * @param team the team to display the score of. Uses {@link T#getScore()}.
      */
-    // TODO: remove final
-    public final void displayScore(T team) {
+    public void displayScore(T team) {
         Component contents = Component.empty()
                 .append(team.getFormattedDisplayName())
                 .append(Component.text(": "))
@@ -651,8 +643,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * Display the score of the given participant on their personal {@link #sidebar}.
      * @param participant the participant to display the score of. Uses {@link P#getScore()}.
      */
-    // TODO: remove final
-    public final void displayScore(P participant) {
+    public void displayScore(P participant) {
         sidebar.updateLine(participant.getUniqueId(), "personalScore", Component.empty()
                 .append(Component.text("Personal: "))
                 .append(Component.text(participant.getScore()))
@@ -663,8 +654,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * Display the scores of the given participants on their personal {@link #sidebar}s
      * @param theParticipants the participants to display the scores of. Uses {@link P#getScore()}
      */
-    // TODO: remove final
-    public final void displayParticipantScores(Collection<P> theParticipants) {
+    public void displayParticipantScores(Collection<P> theParticipants) {
         for (P participant : theParticipants) {
             displayScore(participant);
         }
@@ -869,8 +859,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * Convenience method to send the same message to all participants and admins
      * @param message the message to send
      */
-    // TODO: remove final
-    public final void messageAllParticipants(@NotNull Component message) {
+    public void messageAllParticipants(@NotNull Component message) {
         Audience.audience(
                 Audience.audience(admins),
                 Audience.audience(participants.values())
@@ -881,55 +870,10 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * Convenience method to send the same title to all participants and admins
      * @param title the title to send
      */
-    public final void titleAllParticipants(@NotNull Title title) {
+    public void titleAllParticipants(@NotNull Title title) {
         Audience.audience(
                 Audience.audience(admins),
                 Audience.audience(participants.values())
         ).showTitle(title);
     }
-    
-    // helping with migration start
-    // TODO: remove these methods once all games extend GameBase
-    
-    @Deprecated
-    public final void resetParticipant(Participant participant) {
-        throw new UnsupportedOperationException("don't use this");
-    }
-    
-    @Deprecated
-    public final void initializeParticipant(Participant participant) {
-        throw new UnsupportedOperationException("don't use this");
-    }
-    
-    @Deprecated
-    public final void resetParticipant(P participant) {
-        throw new UnsupportedOperationException("don't use this");
-    }
-    
-    /**
-     * @deprecated put what was in here in {@link #cleanup()}, excluding UIManager clears and sidebar.deleteAllLines
-     */
-    @Deprecated
-    protected final void clearSidebar() {
-        throw new UnsupportedOperationException("don't use this");
-    }
-    
-    /**
-     * @deprecated this doesn't need to be implemented, games can perform all cleanup operations in their {@link GameStateBase#cleanup()} and {@link #cleanup()} methods
-     */
-    @Deprecated
-    protected final void cancelAllTasks() {
-        throw new UnsupportedOperationException("don't use this");
-    }
-    
-    @Deprecated
-    protected final void onTeamQuit(T team) {
-        throw new UnsupportedOperationException("don't use this");
-    }
-    
-    @Deprecated
-    protected final void setupTeamOptions() {
-        throw new UnsupportedOperationException("don't use this");
-    }
-    // helping with migration end
 }
