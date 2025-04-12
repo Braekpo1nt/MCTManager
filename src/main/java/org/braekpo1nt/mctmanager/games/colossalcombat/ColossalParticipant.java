@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 @Getter
 @Setter
 @ToString(callSuper = true)
-public class ColossalParticipant extends Participant {
+class ColossalParticipant extends Participant {
     
     private int kills;
     private int deaths;

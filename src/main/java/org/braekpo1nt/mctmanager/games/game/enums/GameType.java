@@ -11,7 +11,8 @@ public enum GameType {
     PARKOUR_PATHWAY("Parkour Pathway", "parkour-pathway"),
     CLOCKWORK("Clockwork", "clockwork"),
     FARM_RUSH("Farm Rush", "farm-rush"), 
-    EXAMPLE("Example", "example");
+    EXAMPLE("Example", "example"), 
+    FINAL("Final", "final");
     
     GameType(String title, String id) {
         this.title = title;
