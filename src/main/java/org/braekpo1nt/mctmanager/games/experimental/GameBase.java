@@ -480,7 +480,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     @Override
     public void onTeamQuit(String teamId) {
         T team = teams.get(teamId);
-        if (team.size() > 0) {
+        if (team == null || team.size() > 0) {
             return;
         }
         state.onTeamQuit(team);

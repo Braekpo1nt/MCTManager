@@ -31,6 +31,16 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
         this.southTeam = southTeam;
     }
     
+    public @Nullable T getTeam(@NotNull String teamId) {
+        if (northTeam.getTeamId().equals(teamId)) {
+            return northTeam;
+        } else if (southTeam.getTeamId().equals(teamId)) {
+            return southTeam;
+        } else {
+            return null;
+        }
+    }
+    
     public @Nullable Affiliated.Affiliation getAffiliation(@NotNull String teamId) {
         if (northTeam.getTeamId().equals(teamId)) {
             return Affiliated.Affiliation.NORTH;
@@ -116,18 +126,20 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
     
     @Override
     public void onTeamQuit(String teamId) {
+        T team = getTeam(teamId);
+        if (team == null || team.size() > 0) {
+            return;
+        }
         Affiliated.Affiliation affiliation = getAffiliation(teamId);
         switch (affiliation) {
             case NORTH -> {
-                setupTeamOptions(northTeam);
                 state.onTeamQuit(northTeam);
             }
             case SOUTH -> {
-                setupTeamOptions(southTeam);
                 state.onTeamQuit(southTeam);
             }
             // TODO: if there were a spectator, this is where that team would go
             case null -> {}
         }
-    }
+    }`
 }
