@@ -21,6 +21,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlag
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfigController;
+import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalCombatGame;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.example.ExampleGame;
 import org.braekpo1nt.mctmanager.games.game.example.config.ExampleConfig;
@@ -241,7 +242,10 @@ public class GameManager implements Listener {
                 yield new ExampleGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
             }
             case FINAL -> {
-                ColossalCombatConfig config = new ColossalCombatConfigController(plugin.getDataFolder(), gameType.getId());
+                ColossalCombatConfig config = new ColossalCombatConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
+                // TODO: change how this is chosen
+                List<Team> sortedTeams = newTeams.stream().sorted(Comparator.comparingInt(Team::getScore)).toList();
+                yield new ColossalCombatGame(plugin, this, title, config, sortedTeams.getFirst(), sortedTeams.get(1), newParticipants, newAdmins);
             }
         };
     }
