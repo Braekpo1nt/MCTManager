@@ -141,5 +141,5 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
             // TODO: if there were a spectator, this is where that team would go
             case null -> {}
         }
-    }`
+    }
 }
