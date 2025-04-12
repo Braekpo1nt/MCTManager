@@ -12,6 +12,8 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
+import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatConfig;
+import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatConfigController;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
@@ -237,6 +239,9 @@ public class GameManager implements Listener {
             case EXAMPLE -> {
                 ExampleConfig config = new ExampleConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
                 yield new ExampleGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
+            }
+            case FINAL -> {
+                ColossalCombatConfig config = new ColossalCombatConfigController(plugin.getDataFolder(), gameType.getId());
             }
         };
     }

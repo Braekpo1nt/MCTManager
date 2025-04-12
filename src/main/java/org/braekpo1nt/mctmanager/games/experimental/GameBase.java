@@ -237,7 +237,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         sidebar.deleteAllLines();
         tabList.cleanup();
         for (StoredGameRule<?> stored : storedGameRules) {
-            restore(stored);
+            restoreGameRules(stored);
         }
         cleanup();
         gameManager.gameIsOver();
@@ -251,7 +251,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param stored the stored rule
      * @param <G> the type of the rule's type parameter and value.
      */
-    private <G> void restore(StoredGameRule<G> stored) {
+    protected <G> void restoreGameRules(StoredGameRule<G> stored) {
         getWorld().setGameRule(stored.rule(), stored.value());
     }
     
