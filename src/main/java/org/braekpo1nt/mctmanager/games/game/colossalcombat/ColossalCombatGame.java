@@ -21,6 +21,8 @@ import java.util.Collection;
 import java.util.List;
 
 public class ColossalCombatGame extends GameBase<ColossalParticipant, ColossalTeam, ColossalParticipant.QuitData, ColossalTeam.QuitData, ColossalCombatState> {
+    private final @NotNull ColossalCombatConfig config;
+    
     public ColossalCombatGame(
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
@@ -31,6 +33,7 @@ public class ColossalCombatGame extends GameBase<ColossalParticipant, ColossalTe
             @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
         super(GameType.FINAL, plugin, gameManager, title, new InitialState());
+        this.config = config;
     }
     
     @Override
