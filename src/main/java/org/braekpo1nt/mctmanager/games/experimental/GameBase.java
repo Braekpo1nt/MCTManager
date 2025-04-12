@@ -415,26 +415,6 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     // Participant end
     
     // quit/join start
-    /**
-     * {@inheritDoc}
-     */
-    @Deprecated
-    @Override
-    public final void onParticipantJoin(Participant participant, Team team) {
-        onTeamJoin(team);
-        onParticipantJoin(participant);
-    }
-    
-    /**
-     * {@inheritDoc}
-     */
-    @Deprecated
-    @Override
-    public final void onParticipantQuit(UUID participantUUID, String teamId) {
-        onParticipantQuit(participantUUID);
-        onTeamQuit(teamId);
-    }
-    
     @Override
     public void onTeamJoin(Team newTeam) {
         if (teams.containsKey(newTeam.getTeamId())) {

@@ -435,7 +435,8 @@ public class GameManager implements Listener {
         team.quitOnlineMember(participant.getUniqueId());
         onlineParticipants.remove(participant.getUniqueId());
         if (gameIsRunning()) {
-            activeGame.onParticipantQuit(participant.getUniqueId(), team.getTeamId());
+            activeGame.onParticipantQuit(participant.getUniqueId());
+            activeGame.onTeamQuit(team.getTeamId());
         } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
             eventManager.onParticipantQuit(participant);
             tabList.hidePlayer(participant.getUniqueId());
@@ -507,7 +508,8 @@ public class GameManager implements Listener {
         hubManager.onParticipantJoin(participant);
         if (gameIsRunning()) {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
-            activeGame.onParticipantJoin(participant, team);
+            activeGame.onTeamJoin(team);
+            activeGame.onParticipantJoin(participant);
         } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
             eventManager.onParticipantJoin(participant);
