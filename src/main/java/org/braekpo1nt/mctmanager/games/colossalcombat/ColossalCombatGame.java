@@ -513,7 +513,7 @@ public class ColossalCombatGame implements Listener, Configurable {
         if (!gameActive) {
             return;
         }
-        if (config.getSpectatorArea() == null){
+        if (config.getSpectatorBoundary() == null){
             return;
         }
         Player participant = event.getPlayer();
@@ -525,11 +525,11 @@ public class ColossalCombatGame implements Listener, Configurable {
         if (!participant.getGameMode().equals(GameMode.SPECTATOR)) {
             return;
         }
-        if (!config.getSpectatorArea().contains(event.getFrom().toVector())) {
+        if (!config.getSpectatorBoundary().contains(event.getFrom().toVector())) {
             participant.teleport(config.getSpectatorSpawn());
             return;
         }
-        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
+        if (!config.getSpectatorBoundary().contains(event.getTo().toVector())) {
             event.setCancelled(true);
         }
     }
@@ -539,7 +539,7 @@ public class ColossalCombatGame implements Listener, Configurable {
         if (!gameActive) {
             return;
         }
-        if (config.getSpectatorArea() == null){
+        if (config.getSpectatorBoundary() == null){
             return;
         }
         Player participant = event.getPlayer();
@@ -554,7 +554,7 @@ public class ColossalCombatGame implements Listener, Configurable {
         if (!event.getCause().equals(PlayerTeleportEvent.TeleportCause.SPECTATE)) {
             return;
         }
-        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
+        if (!config.getSpectatorBoundary().contains(event.getTo().toVector())) {
             event.setCancelled(true);
         }
     }

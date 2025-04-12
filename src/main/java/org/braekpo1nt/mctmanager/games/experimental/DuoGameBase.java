@@ -52,12 +52,10 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
     
     /**
      * Convenience method for implementations. Calls {@link #start(Collection, Collection, List)}, but makes a list of two elements (the north and south teams)
-     * @param northTeam the northTeam
-     * @param southTeam the southTeam
      * @param newParticipants the newParticipants
      * @param newAdmins the newAdmins
      */
-    protected void start(@NotNull T northTeam, @NotNull T southTeam, @NotNull Collection<Participant> newParticipants, @NotNull List<Player> newAdmins) {
+    protected void start(@NotNull Collection<Participant> newParticipants, @NotNull List<Player> newAdmins) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         listeners.forEach(listener -> listener.register(plugin));
         
@@ -101,7 +99,7 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
     protected @NotNull T createTeam(Team team) {
         throw new UnsupportedOperationException("don't use createTeam() in DuoGameBase");
     }
-    
+
     @Override
     protected @NotNull T createTeam(Team team, QT quitData) {
         throw new UnsupportedOperationException("don't use createTeam() in DuoGameBase");

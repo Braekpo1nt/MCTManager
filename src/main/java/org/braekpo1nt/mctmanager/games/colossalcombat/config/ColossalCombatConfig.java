@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.colossalcombat.config;
 import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -21,7 +22,7 @@ public class ColossalCombatConfig {
     private Location firstPlaceSpawn;
     private Location secondPlaceSpawn;
     private Location spectatorSpawn;
-    private @Nullable BoundingBox spectatorArea;
+    private @Nullable SpectatorBoundary spectatorBoundary;
     /**
      * each index corresponds to an index in the itemDropsList
      */
