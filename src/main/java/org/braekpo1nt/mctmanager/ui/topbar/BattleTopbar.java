@@ -279,7 +279,6 @@ public class BattleTopbar implements Topbar {
             UIUtils.logUIError("player with UUID \"%s\" already exists in this BattleTopbar", player.getUniqueId());
             return;
         }
-        Main.logf("showPlayer %s BattleTopbar"); // TODO: remove
         FormattedBar bossBar = new FormattedBar(player);
         bossBar.show();
         PlayerData playerData = new PlayerData(bossBar);
@@ -301,7 +300,6 @@ public class BattleTopbar implements Topbar {
      * @param teamId the teamId to link this player to (must be a teamId which is already in this Topbar)
      */
     public void linkToTeam(@NotNull UUID playerUUID, @NotNull String teamId) {
-        Main.logf("link to team %s", teamId); // TODO: remove
         TeamData teamData = getTeamData(teamId);
         if (teamData == null) {
             return;

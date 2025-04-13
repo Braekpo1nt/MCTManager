@@ -32,4 +32,10 @@ public class RoundOverState extends CaptureTheFlagStateBase {
                 })
                 .build());
     }
+    
+    @Override
+    public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull CTFParticipant participant) {
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "RoundOverState.onParticipantDamage() cancelled");
+        event.setCancelled(true);
+    }
 }

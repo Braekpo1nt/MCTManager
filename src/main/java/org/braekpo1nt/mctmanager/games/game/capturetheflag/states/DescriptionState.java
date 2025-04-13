@@ -19,6 +19,7 @@ public class DescriptionState extends CaptureTheFlagStateBase {
     
     public DescriptionState(CaptureTheFlagGame context) {
         super(context);
+        Main.logger().info("starting DescriptionState");
         startTimer();
     }
     
@@ -36,4 +37,9 @@ public class DescriptionState extends CaptureTheFlagStateBase {
                 .build());
     }
     
+    @Override
+    public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull CTFParticipant participant) {
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "DescriptionState.onParticipantDamage() cancelled");
+        event.setCancelled(true);
+    }
 }

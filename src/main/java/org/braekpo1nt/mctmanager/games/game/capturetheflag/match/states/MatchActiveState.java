@@ -201,7 +201,11 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     
     @Override
     public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull CTFMatchParticipant participant) {
+        if (!participant.isAlive()) {
+            return;
+        }
         participant.setAlive(false);
+        event.getDrops().clear();
         if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
             if (hasSouthFlag(participant)) {
                 dropSouthFlag(participant);

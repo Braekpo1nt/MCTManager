@@ -1,12 +1,9 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.states;
 
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFTeam;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.participant.Team;
-import org.braekpo1nt.mctmanager.utils.LogType;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -16,7 +13,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class CaptureTheFlagStateBase implements CaptureTheFlagState {
+public abstract class CaptureTheFlagStateBase implements CaptureTheFlagState {
     
     protected final @NotNull CaptureTheFlagGame context;
     
@@ -31,7 +28,7 @@ public class CaptureTheFlagStateBase implements CaptureTheFlagState {
     
     @Override
     public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull CTFParticipant participant) {
-        // do nothing
+        event.getDrops().clear();
     }
     
     @Override
@@ -68,11 +65,11 @@ public class CaptureTheFlagStateBase implements CaptureTheFlagState {
         event.setRespawnLocation(context.getConfig().getSpawnObservatory());
     }
     
-    @Override
-    public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull CTFParticipant participant) {
-        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "CaptureTheFlagStateBase.onParticipantDamage() cancelled");
-        event.setCancelled(true);
-    }
+//    @Override
+//    public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull CTFParticipant participant) {
+//        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "CaptureTheFlagStateBase.onParticipantDamage() cancelled");
+//        event.setCancelled(true);
+//    }
     
     @Override
     public void onParticipantFoodLevelChange(@NotNull FoodLevelChangeEvent event, @NotNull CTFParticipant participant) {

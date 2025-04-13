@@ -42,6 +42,7 @@ public class RoundActiveState extends CaptureTheFlagStateBase {
     
     public RoundActiveState(CaptureTheFlagGame context) {
         super(context);
+        Main.logger().info("starting RoundActiveState");
         this.roundManger = context.getRoundManager();
         
         List<MatchPairing> currentRound = roundManger.getCurrentRound();

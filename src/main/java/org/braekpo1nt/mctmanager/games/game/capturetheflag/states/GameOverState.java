@@ -38,4 +38,10 @@ public class GameOverState extends CaptureTheFlagStateBase {
                 .build());
     }
     
+    @Override
+    public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull CTFParticipant participant) {
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "GameOverState.onParticipantDamage() cancelled");
+        event.setCancelled(true);
+    }
+    
 }

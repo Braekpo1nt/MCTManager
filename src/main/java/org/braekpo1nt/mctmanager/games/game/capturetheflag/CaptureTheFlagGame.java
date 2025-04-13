@@ -33,8 +33,6 @@ import java.util.*;
 @Setter
 public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFParticipant.QuitData, CTFTeam.QuitData, CaptureTheFlagState> {
     
-    public @NotNull CaptureTheFlagState state;
-    
     private final BattleTopbar topbar;
     private final RoundManager roundManager;
     private final CaptureTheFlagConfig config;

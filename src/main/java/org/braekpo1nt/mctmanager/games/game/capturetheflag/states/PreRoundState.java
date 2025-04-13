@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag.states;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
@@ -13,6 +14,9 @@ import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
+import org.braekpo1nt.mctmanager.utils.LogType;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -24,6 +28,7 @@ public class PreRoundState extends CaptureTheFlagStateBase {
     
     public PreRoundState(CaptureTheFlagGame context) {
         super(context);
+        Main.logger().info("starting PreRoundState");
         this.gameManager = context.getGameManager();
         this.topbar = context.getTopbar();
         this.roundManager = context.getRoundManager();
@@ -42,6 +47,12 @@ public class PreRoundState extends CaptureTheFlagStateBase {
                     context.setState(new RoundActiveState(context));
                 })
                 .build());
+    }
+    
+    @Override
+    public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull CTFParticipant participant) {
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "PreRoundState.onParticipantDamage() cancelled");
+        event.setCancelled(true);
     }
     
     private void announceMatchToParticipant(Participant participant) {

@@ -96,15 +96,11 @@ public class CaptureTheFlagMatchStateBase implements CaptureTheFlagMatchState{
     
     @Override
     public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull CTFMatchParticipant participant) {
-        
+        event.getDrops().clear();
     }
     
     @Override
     public void onParticipantRespawn(PlayerRespawnEvent event, CTFMatchParticipant participant) {
-        if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
-            event.setRespawnLocation(context.getArena().northSpawn());
-        } else {
-            event.setRespawnLocation(context.getArena().southSpawn());
-        }
+        event.setRespawnLocation(context.getConfig().getSpawnObservatory());
     }
 }
