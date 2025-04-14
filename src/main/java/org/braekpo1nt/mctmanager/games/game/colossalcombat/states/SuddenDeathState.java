@@ -6,8 +6,8 @@ import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalCombatGame;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.jetbrains.annotations.NotNull;
 
-public class CTFState extends GameplayState {
-    public CTFState(@NotNull ColossalCombatGame context) {
+public class SuddenDeathState extends GameplayState {
+    public SuddenDeathState(@NotNull ColossalCombatGame context) {
         super(context);
         context.titleAllParticipants(UIUtils.defaultTitle(
                 Component.empty()
