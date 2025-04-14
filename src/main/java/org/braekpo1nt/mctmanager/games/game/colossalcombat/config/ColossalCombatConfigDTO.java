@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.colossalcombat.config;
+package org.braekpo1nt.mctmanager.games.game.colossalcombat.config;
 
 import com.google.common.base.Preconditions;
 import lombok.Data;

@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.TestUtils;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
+import org.braekpo1nt.mctmanager.games.game.colossalcombat.config.ColossalCombatConfigController;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
