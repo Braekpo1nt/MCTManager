@@ -6,5 +6,6 @@ import org.jetbrains.annotations.NotNull;
 public class RoundActiveState extends ColossalCombatStateBase {
     public RoundActiveState(@NotNull ColossalCombatGame context) {
         super(context);
+        
     }
 }

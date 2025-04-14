@@ -13,6 +13,7 @@ import org.braekpo1nt.mctmanager.games.game.colossalcombat.states.ColossalCombat
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.states.InitialState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.Material;
@@ -154,5 +155,10 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
     @Override
     protected boolean shouldPreventInteractions(@NotNull Material type) {
         return config.getPreventInteractions().contains(type);
+    }
+    
+    public void giveLoadout(ColossalParticipant participant) {
+        participant.getInventory().setContents(config.getLoadout());
+        GameManagerUtils.colorLeatherArmor(gameManager, participant);
     }
 }

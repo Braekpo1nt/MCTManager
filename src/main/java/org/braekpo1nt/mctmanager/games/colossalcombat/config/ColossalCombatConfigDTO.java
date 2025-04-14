@@ -115,6 +115,8 @@ record ColossalCombatConfigDTO(
     
         validator.notNull(this.durations, "durations");
         validator.validate(this.durations.roundStarting() >= 1, "durations.roundStarting must be at least 1");
+        validator.validate(this.durations.roundOver() >= 0, "durations.roundOver can't be negative");
+        validator.validate(this.durations.gameOver() >= 0, "durations.gameOver can't be negative");
         validator.validate(this.durations.antiSuffocation() >= 0, "durations.antiSuffocation can't be negative");
         validator.notNull(this.description, "description");
     }
@@ -156,6 +158,8 @@ record ColossalCombatConfigDTO(
                 .southSupport(this.secondPlaceSupport)
                 .antiSuffocationDuration(this.durations.antiSuffocation)
                 .roundStartingDuration(this.durations.roundStarting)
+                .roundOverDuration(this.durations.roundOver)
+                .gameOverDuration(this.durations.gameOver)
                 .descriptionDuration(this.durations.description)
                 .itemDrops(newItemDrops)
                 .itemDropLocations(newItemDropLocations)
@@ -267,6 +271,6 @@ record ColossalCombatConfigDTO(
      *                        long enough the players will suffocate, and if it's too long they'll get frustrated. 
      *                        TODO: implement a more automated version of this. 
      */
-    record Durations(int roundStarting, long antiSuffocation, int description) {
+    record Durations(int roundStarting, int roundOver, int gameOver, long antiSuffocation, int description) {
     }
 }
