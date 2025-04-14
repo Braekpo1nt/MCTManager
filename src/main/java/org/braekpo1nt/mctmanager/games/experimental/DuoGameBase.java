@@ -46,58 +46,27 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
     }
     
     /**
-     * Convenience method for implementations. Calls {@link #start(Collection, Collection, List)}, but makes a list of two elements (the north and south teams)
+     * 
      * @param newParticipants the newParticipants
      * @param newAdmins the newAdmins
      */
-    protected void start(@NotNull Collection<Participant> newParticipants, @NotNull List<Player> newAdmins) {
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        listeners.forEach(listener -> listener.register(plugin));
-        
-        teams.put(northTeam.getTeamId(), northTeam);
-        teams.put(southTeam.getTeamId(), southTeam);
-        setupTeamOptions(northTeam);
-        setupTeamOptions(southTeam);
-        tabList.addTeam(northTeam.getTeamId(), northTeam.getDisplayName(), northTeam.getColor());
-        tabList.addTeam(southTeam.getTeamId(), southTeam.getDisplayName(), southTeam.getColor());
-        initializeTeam(northTeam);
-        initializeTeam(southTeam);
-        
-        for (Participant newParticipant : newParticipants) {
-            P participant = createParticipant(newParticipant);
-            T team = teams.get(participant.getTeamId());
-            tabList.joinParticipant(participant.getParticipantID(), participant.getName(), participant.getTeamId(), false);
-            addParticipant(participant, team);
-            participant.setGameMode(GameMode.ADVENTURE);
-            ParticipantInitializer.clearStatusEffects(participant);
-            ParticipantInitializer.clearInventory(participant);
-            ParticipantInitializer.resetHealthAndHunger(participant);
-            initializeParticipant(participant, team);
-        }
-        _initializeSidebar();
-        
-        // admin start
-        for (Player admin : newAdmins) {
-            _initializeAdmin(admin);
-        }
-        _initializeAdminSidebar();
-        // admin end
-        this.state = getStartState();
-    }
-    
     @Override
     protected void start(@NotNull Collection<Team> newTeams, @NotNull Collection<Participant> newParticipants, @NotNull List<Player> newAdmins) {
-        throw new UnsupportedOperationException("don't use this in DuoGameBase implementations, use start(T,T,Collection,List)");
-    }
-    
-    @Override
-    protected @NotNull T createTeam(Team team) {
-        throw new UnsupportedOperationException("don't use createTeam() in DuoGameBase");
-    }
-
-    @Override
-    protected @NotNull T createTeam(Team team, QT quitData) {
-        throw new UnsupportedOperationException("don't use createTeam() in DuoGameBase");
+        teams.put(northTeam.getTeamId(), northTeam);
+        setupTeamOptions(northTeam);
+        tabList.addTeam(northTeam.getTeamId(), northTeam.getDisplayName(), northTeam.getColor());
+        initializeTeam(northTeam);
+        
+        teams.put(southTeam.getTeamId(), southTeam);
+        setupTeamOptions(southTeam);
+        tabList.addTeam(southTeam.getTeamId(), southTeam.getDisplayName(), southTeam.getColor());
+        initializeTeam(southTeam);
+        
+        List<Team> spectatorTeams = newTeams.stream().filter(team -> {
+            String teamId = team.getTeamId();
+            return !teamId.equals(northTeam.getTeamId()) && !teamId.equals(southTeam.getTeamId());
+        }).toList();
+        super.start(spectatorTeams, newParticipants, newAdmins);
     }
     
     @Override

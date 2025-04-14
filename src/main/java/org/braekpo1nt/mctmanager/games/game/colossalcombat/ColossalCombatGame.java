@@ -23,7 +23,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 @Getter
 @Setter
@@ -35,8 +34,9 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
             @NotNull GameManager gameManager,
             @NotNull Component title,
             @NotNull ColossalCombatConfig config,
-            @NotNull Team newFirst,
-            @NotNull Team newSecond,
+            @NotNull Team newNorth,
+            @NotNull Team newSouth,
+            @NotNull Collection<Team> newTeams,
             @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
         super(
@@ -45,10 +45,10 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
                 gameManager, 
                 title, 
                 new InitialState(), 
-                new ColossalTeam(newFirst, 0, Affiliation.NORTH), 
-                new ColossalTeam(newSecond, 0, Affiliation.SOUTH));
+                new ColossalTeam(newNorth, 0, Affiliation.NORTH), 
+                new ColossalTeam(newSouth, 0, Affiliation.SOUTH));
         this.config = config;
-        start(newParticipants, newAdmins);
+        start(newTeams, newParticipants, newAdmins);
     }
     
     @Override
@@ -68,7 +68,7 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
     
     @Override
     protected @NotNull ColossalParticipant createParticipant(Participant participant) {
-        Affiliation affiliation = Objects.requireNonNull(getAffiliation(participant.getTeamId()), "tried to make a ColossalParticipant out of a participant who's not on north or south teams");
+        Affiliation affiliation = getAffiliation(participant.getTeamId());
         return new ColossalParticipant(participant, 0, affiliation);
     }
     
@@ -84,16 +84,27 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
     
     @Override
     protected void initializeParticipant(ColossalParticipant participant, ColossalTeam team) {
-        if (participant.getAffiliation() == Affiliation.NORTH) {
-            participant.teleport(config.getFirstPlaceSpawn());
-        } else {
-            participant.teleport(config.getSecondPlaceSpawn());
+        switch (participant.getAffiliation()) {
+            case NORTH -> participant.teleport(config.getFirstPlaceSpawn());
+            case SOUTH -> participant.teleport(config.getSecondPlaceSpawn());
+            case SPECTATOR -> participant.teleport(config.getSpectatorSpawn());
         }
     }
     
     @Override
     protected void initializeTeam(ColossalTeam team) {
         
+    }
+    
+    @Override
+    protected @NotNull ColossalTeam createTeam(Team team) {
+        Affiliation affiliation = getAffiliation(team.getTeamId());
+        return new ColossalTeam(team, 0, affiliation);
+    }
+    
+    @Override
+    protected @NotNull ColossalTeam createTeam(Team team, ColossalTeam.QuitData quitData) {
+        return new ColossalTeam(team, quitData);
     }
     
     @Override
@@ -108,12 +119,16 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
     
     @Override
     protected void setupTeamOptions(org.bukkit.scoreboard.@NotNull Team scoreboardTeam, @NotNull ColossalTeam team) {
-        // TODO: set team options
+        scoreboardTeam.setAllowFriendlyFire(false);
+        scoreboardTeam.setCanSeeFriendlyInvisibles(true);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.NEVER);
     }
     
     @Override
     protected void initializeAdmin(Player admin) {
-        
+        admin.teleport(config.getSpectatorSpawn());
     }
     
     @Override
@@ -138,6 +153,6 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
     
     @Override
     protected boolean shouldPreventInteractions(@NotNull Material type) {
-        return false;
+        return config.getPreventInteractions().contains(type);
     }
 }

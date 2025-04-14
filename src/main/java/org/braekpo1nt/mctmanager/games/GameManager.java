@@ -245,7 +245,7 @@ public class GameManager implements Listener {
                 ColossalCombatConfig config = new ColossalCombatConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
                 // TODO: change how this is chosen
                 List<Team> sortedTeams = newTeams.stream().sorted(Comparator.comparingInt(Team::getScore)).toList();
-                yield new ColossalCombatGame(plugin, this, title, config, sortedTeams.getFirst(), sortedTeams.get(1), newParticipants, newAdmins);
+                yield new ColossalCombatGame(plugin, this, title, config, sortedTeams.getFirst(), sortedTeams.get(1), sortedTeams, newParticipants, newAdmins);
             }
         };
     }
