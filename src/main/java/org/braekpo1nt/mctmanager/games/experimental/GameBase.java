@@ -529,7 +529,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      */
     protected abstract void initializeAdminSidebar();
     
-    private void _resetAdmin(Player admin) {
+    protected void _resetAdmin(Player admin) {
         adminSidebar.removePlayer(admin);
         tabList.hidePlayer(admin);
         resetAdmin(admin);
