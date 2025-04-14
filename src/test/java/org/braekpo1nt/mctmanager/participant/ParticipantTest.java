@@ -83,7 +83,7 @@ class ParticipantTest {
     
     @Test
     void ctfParticipantEquals() {
-        CTFParticipant ctfParticipant = new CTFParticipant(participant);
+        CTFParticipant ctfParticipant = new CTFParticipant(participant, 0, 0, 0);
         CTFMatchParticipant ctfMatchParticipant = new CTFMatchParticipant(ctfParticipant, CaptureTheFlagMatch.Affiliation.NORTH, true);
         
         Assertions.assertEquals(participant, ctfParticipant);

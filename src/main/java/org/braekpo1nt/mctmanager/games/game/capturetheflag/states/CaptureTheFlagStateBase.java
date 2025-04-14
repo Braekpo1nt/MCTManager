@@ -67,12 +67,6 @@ public abstract class CaptureTheFlagStateBase implements CaptureTheFlagState {
         event.setRespawnLocation(context.getConfig().getSpawnObservatory());
     }
     
-//    @Override
-//    public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull CTFParticipant participant) {
-//        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "CaptureTheFlagStateBase.onParticipantDamage() cancelled");
-//        event.setCancelled(true);
-//    }
-    
     @Override
     public void onParticipantFoodLevelChange(@NotNull FoodLevelChangeEvent event, @NotNull CTFParticipant participant) {
         event.setCancelled(true);
