@@ -37,7 +37,8 @@ public class PreRoundState extends ColossalCombatStateBase {
                 .duration(context.getConfig().getRoundStartingDuration())
                 .withTopbar(context.getTopbar())
                 .withSidebar(context.getAdminSidebar(), "timer")
-                .sidebarPrefix(Component.text("Round Starting: "))
+                .sidebarPrefix(Component.text("Gates Opening: "))
+                .topbarPrefix(Component.text("Gates Opening: "))
                 .onCompletion(() -> context.setState(new GatesOpeningState(context)))
                 .build());
     }

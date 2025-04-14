@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.experimental.Affiliation;
 import org.braekpo1nt.mctmanager.games.experimental.DuoGameBase;
+import org.braekpo1nt.mctmanager.games.experimental.PreventItemDrop;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.config.ColossalCombatConfig;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.states.ColossalCombatState;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.states.DescriptionState;
@@ -58,6 +59,7 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
         this.config = config;
         this.topbar = addUIManager(new BattleTopbar());
         this.currentRound = 1;
+        addListener(new PreventItemDrop<>(this, true));
         topbar.addTeam(northTeam.getTeamId(), northTeam.getColor());
         topbar.addTeam(southTeam.getTeamId(), southTeam.getColor());
         start(newTeams, newParticipants, newAdmins);

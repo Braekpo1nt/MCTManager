@@ -6,5 +6,8 @@ import org.jetbrains.annotations.NotNull;
 public class FightingState extends GameplayState {
     public FightingState(@NotNull ColossalCombatGame context) {
         super(context);
+        
     }
+    
+    
 }
