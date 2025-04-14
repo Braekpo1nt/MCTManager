@@ -85,8 +85,8 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
     @Override
     protected void initializeParticipant(ColossalParticipant participant, ColossalTeam team) {
         switch (participant.getAffiliation()) {
-            case NORTH -> participant.teleport(config.getFirstPlaceSpawn());
-            case SOUTH -> participant.teleport(config.getSecondPlaceSpawn());
+            case NORTH -> participant.teleport(config.getNorthSpawn());
+            case SOUTH -> participant.teleport(config.getSouthSpawn());
             case SPECTATOR -> participant.teleport(config.getSpectatorSpawn());
         }
     }

@@ -142,8 +142,8 @@ public class ColossalCombatGame implements Listener, Configurable {
         ColossalParticipant participant = new ColossalParticipant(newParticipant, kills, deaths, ColossalCombatRound.Affiliation.FIRST);
         firstPlaceParticipants.put(participant.getUniqueId(), participant);
         first.addParticipant(participant);
-        participant.teleport(config.getFirstPlaceSpawn());
-        participant.setRespawnLocation(config.getFirstPlaceSpawn(), true);
+        participant.teleport(config.getNorthSpawn());
+        participant.setRespawnLocation(config.getNorthSpawn(), true);
         initializeParticipant(participant);
         initializeKillCount(participant);
     }
@@ -160,8 +160,8 @@ public class ColossalCombatGame implements Listener, Configurable {
         ColossalParticipant participant = new ColossalParticipant(newParticipant, kills, deaths, ColossalCombatRound.Affiliation.SECOND);
         second.addParticipant(participant);
         secondPlaceParticipants.put(participant.getUniqueId(), participant);
-        participant.teleport(config.getSecondPlaceSpawn());
-        participant.setRespawnLocation(config.getSecondPlaceSpawn(), true);
+        participant.teleport(config.getSouthSpawn());
+        participant.setRespawnLocation(config.getSouthSpawn(), true);
         initializeParticipant(participant);
         initializeKillCount(participant);
     }
@@ -638,15 +638,15 @@ public class ColossalCombatGame implements Listener, Configurable {
     
     void closeGates() {
         closeGate(
-                config.getFirstPlaceClearArea(), 
-                config.getFirstPlaceStone(), 
-                config.getFirstPlacePlaceArea(), 
+                config.getNorthClearArea(), 
+                config.getNorthStone(), 
+                config.getNorthPlaceArea(), 
                 gameManager.getTeamPowderColor(first.getTeamId())
         );
         closeGate(
-                config.getSecondPlaceClearArea(), 
-                config.getSecondPlaceStone(), 
-                config.getSecondPlacePlaceArea(), 
+                config.getSouthClearArea(), 
+                config.getSouthStone(), 
+                config.getSouthPlaceArea(), 
                 gameManager.getTeamPowderColor(second.getTeamId())
         );
         placeConcrete();
@@ -656,12 +656,12 @@ public class ColossalCombatGame implements Listener, Configurable {
         if (config.shouldReplaceWithConcrete()) {
             BlockPlacementUtils.createCubeReplace(
                     config.getWorld(),
-                    config.getFirstPlaceFlagReplaceArea(),
+                    config.getNorthFlagReplaceArea(),
                     config.getReplaceBlock(),
                     gameManager.getTeamConcreteColor(first.getTeamId()));
             BlockPlacementUtils.createCubeReplace(
                     config.getWorld(),
-                    config.getSecondPlaceFlagReplaceArea(),
+                    config.getSouthFlagReplaceArea(),
                     config.getReplaceBlock(),
                     gameManager.getTeamConcreteColor(second.getTeamId()));
         }
@@ -671,12 +671,12 @@ public class ColossalCombatGame implements Listener, Configurable {
         if (config.shouldReplaceWithConcrete()) {
             BlockPlacementUtils.createCubeReplace(
                     config.getWorld(),
-                    config.getFirstPlaceFlagReplaceArea(),
+                    config.getNorthFlagReplaceArea(),
                     gameManager.getTeamConcreteColor(first.getTeamId()),
                     config.getReplaceBlock());
             BlockPlacementUtils.createCubeReplace(
                     config.getWorld(),
-                    config.getSecondPlaceFlagReplaceArea(),
+                    config.getSouthFlagReplaceArea(),
                     gameManager.getTeamConcreteColor(second.getTeamId()),
                     config.getReplaceBlock());
         }

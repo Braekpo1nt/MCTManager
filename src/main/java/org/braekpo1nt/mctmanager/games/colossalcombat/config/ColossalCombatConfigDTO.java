@@ -136,24 +136,24 @@ record ColossalCombatConfigDTO(
         
         ColossalCombatConfig.ColossalCombatConfigBuilder builder = ColossalCombatConfig.builder()
                 .world(newWorld)
-                .firstPlaceSpawn(this.firstPlaceSpawn.toLocation(newWorld))
-                .secondPlaceSpawn(this.secondPlaceSpawn.toLocation(newWorld))
+                .northSpawn(this.firstPlaceSpawn.toLocation(newWorld))
+                .southSpawn(this.secondPlaceSpawn.toLocation(newWorld))
                 .spectatorSpawn(this.spectatorSpawn.toLocation(newWorld))
                 .spectatorBoundary(this.spectatorArea == null ? null :
                         new SpectatorBoundary(this.spectatorArea, this.spectatorSpawn.toLocation(newWorld)))
                 .requiredWins(this.requiredWins)
                 .loadout(this.loadout != null ? this.loadout.toInventoryContents() : getDefaultLoadout())
-                .firstPlaceClearArea(this.firstPlaceGate.clearArea)
-                .firstPlacePlaceArea(this.firstPlaceGate.placeArea)
-                .firstPlaceStone(this.firstPlaceGate.stone)
-                .firstPlaceAntiSuffocationArea(this.firstPlaceGate.antiSuffocationArea)
-                .secondPlaceClearArea(this.secondPlaceGate.clearArea)
-                .secondPlacePlaceArea(this.secondPlaceGate.placeArea)
-                .secondPlaceStone(this.secondPlaceGate.stone)
-                .secondPlaceAntiSuffocationArea(this.secondPlaceGate.antiSuffocationArea)
+                .northClearArea(this.firstPlaceGate.clearArea)
+                .northPlaceArea(this.firstPlaceGate.placeArea)
+                .northStone(this.firstPlaceGate.stone)
+                .northAntiSuffocationArea(this.firstPlaceGate.antiSuffocationArea)
+                .southClearArea(this.secondPlaceGate.clearArea)
+                .southPlaceArea(this.secondPlaceGate.placeArea)
+                .southStone(this.secondPlaceGate.stone)
+                .southAntiSuffocationArea(this.secondPlaceGate.antiSuffocationArea)
                 .removeArea(this.removeArea)
-                .firstPlaceSupport(this.firstPlaceSupport)
-                .secondPlaceSupport(this.secondPlaceSupport)
+                .northSupport(this.firstPlaceSupport)
+                .southSupport(this.secondPlaceSupport)
                 .antiSuffocationDuration(this.durations.antiSuffocation)
                 .roundStartingDuration(this.durations.roundStarting)
                 .descriptionDuration(this.durations.description)
@@ -165,8 +165,8 @@ record ColossalCombatConfigDTO(
         
         if (captureTheFlag != null) {
             builder.shouldStartCaptureTheFlag(true)
-                    .firstPlaceFlagGoal(this.captureTheFlag.firstPlaceGoal)
-                    .secondPlaceFlagGoal(this.captureTheFlag.secondPlaceGoal)
+                    .northFlagGoal(this.captureTheFlag.firstPlaceGoal)
+                    .southFlagGoal(this.captureTheFlag.secondPlaceGoal)
                     .flagMaterial(this.captureTheFlag.flagMaterial)
                     .initialFlagDirection(this.captureTheFlag.flagDirection)
                     .flagLocation(this.captureTheFlag.flagLocation.toLocation(newWorld))
@@ -174,8 +174,8 @@ record ColossalCombatConfigDTO(
                     .captureTheFlagMaximumPlayers(this.captureTheFlag.maxPlayers)
                     .captureTheFlagDuration(this.captureTheFlag.countdown)
                     .replaceBlock(this.captureTheFlag.replaceBlock)
-                    .firstPlaceFlagReplaceArea(this.captureTheFlag.firstPlaceReplaceArea)
-                    .secondPlaceFlagReplaceArea(this.captureTheFlag.secondPlaceReplaceArea);
+                    .northFlagReplaceArea(this.captureTheFlag.firstPlaceReplaceArea)
+                    .southFlagReplaceArea(this.captureTheFlag.secondPlaceReplaceArea);
         } else {
             builder.shouldStartCaptureTheFlag(false);
         }

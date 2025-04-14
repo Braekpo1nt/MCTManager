@@ -117,8 +117,8 @@ public class ColossalCombatRound implements Listener {
         ColossalRoundParticipant participant = new ColossalRoundParticipant(newParticipant, alive);
         first.addParticipant(participant);
         firstPlaceParticipants.put(participant.getUniqueId(), participant);
-        participant.teleport(config.getFirstPlaceSpawn());
-        participant.setRespawnLocation(config.getFirstPlaceSpawn(), true);
+        participant.teleport(config.getNorthSpawn());
+        participant.setRespawnLocation(config.getNorthSpawn(), true);
         participant.getInventory().clear();
         participant.setGameMode(alive ? GameMode.ADVENTURE : GameMode.SPECTATOR);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -135,8 +135,8 @@ public class ColossalCombatRound implements Listener {
         ColossalRoundParticipant participant = new ColossalRoundParticipant(newParticipant, alive);
         second.addParticipant(participant);
         secondPlaceParticipants.put(participant.getUniqueId(), participant);
-        participant.teleport(config.getSecondPlaceSpawn());
-        participant.setRespawnLocation(config.getSecondPlaceSpawn(), true);
+        participant.teleport(config.getSouthSpawn());
+        participant.setRespawnLocation(config.getSouthSpawn(), true);
         participant.getInventory().clear();
         participant.setGameMode(alive ? GameMode.ADVENTURE : GameMode.SPECTATOR);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -489,9 +489,9 @@ public class ColossalCombatRound implements Listener {
         antiSuffocation = true;
         this.antiSuffocationTaskId = Bukkit.getScheduler().runTaskLater(plugin, () -> antiSuffocation = false, config.getAntiSuffocationDuration()).getTaskId();
         //first
-        BlockPlacementUtils.createCube(config.getWorld(), config.getFirstPlaceStone(), Material.AIR);
+        BlockPlacementUtils.createCube(config.getWorld(), config.getNorthStone(), Material.AIR);
         //second
-        BlockPlacementUtils.createCube(config.getWorld(), config.getSecondPlaceStone(), Material.AIR);
+        BlockPlacementUtils.createCube(config.getWorld(), config.getSouthStone(), Material.AIR);
     }
     
     @EventHandler
@@ -513,7 +513,7 @@ public class ColossalCombatRound implements Listener {
     private void onFirstPlaceParticipantMove(ColossalRoundParticipant participant, PlayerMoveEvent event) {
         if (antiSuffocation) {
             Location to = event.getTo();
-            if (config.getFirstPlaceAntiSuffocationArea().contains(to.toVector())) {
+            if (config.getNorthAntiSuffocationArea().contains(to.toVector())) {
                 event.setCancelled(true);
             }
             return;
@@ -537,7 +537,7 @@ public class ColossalCombatRound implements Listener {
     private void onSecondPlaceParticipantMove(ColossalRoundParticipant participant, PlayerMoveEvent event) {
         if (antiSuffocation) {
             Location to = event.getTo();
-            if (config.getSecondPlaceAntiSuffocationArea().contains(to.toVector())) {
+            if (config.getSouthAntiSuffocationArea().contains(to.toVector())) {
                 event.setCancelled(true);
             }
             return;
@@ -600,7 +600,7 @@ public class ColossalCombatRound implements Listener {
             return false;
         }
         Location location = first.getLocation();
-        return config.getFirstPlaceFlagGoal().contains(location.toVector());
+        return config.getNorthFlagGoal().contains(location.toVector());
     }
     
     private boolean canDeliverFlagToSecond(Participant second) {
@@ -608,7 +608,7 @@ public class ColossalCombatRound implements Listener {
             return false;
         }
         Location location = second.getLocation();
-        return config.getSecondPlaceFlagGoal().contains(location.toVector());
+        return config.getSouthFlagGoal().contains(location.toVector());
     }
     
     private void deliverFlagToFirst() {

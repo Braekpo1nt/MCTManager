@@ -37,18 +37,18 @@ public class ColossalCombatStateBase implements ColossalCombatState {
     @Override
     public void onParticipantRejoin(ColossalParticipant participant, ColossalTeam team) {
         if (participant.getAffiliation() == Affiliation.NORTH) {
-            participant.teleport(context.getConfig().getFirstPlaceSpawn());
+            participant.teleport(context.getConfig().getNorthSpawn());
         } else {
-            participant.teleport(context.getConfig().getSecondPlaceSpawn());
+            participant.teleport(context.getConfig().getSouthSpawn());
         }
     }
     
     @Override
     public void onNewParticipantJoin(ColossalParticipant participant, ColossalTeam team) {
         if (participant.getAffiliation() == Affiliation.NORTH) {
-            participant.teleport(context.getConfig().getFirstPlaceSpawn());
+            participant.teleport(context.getConfig().getNorthSpawn());
         } else {
-            participant.teleport(context.getConfig().getSecondPlaceSpawn());
+            participant.teleport(context.getConfig().getSouthSpawn());
         }
     }
     
