@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.colossalcombat.config;
+package org.braekpo1nt.mctmanager.games.colossalcombat;
 
 import com.google.common.base.Preconditions;
 import lombok.Data;
@@ -42,7 +42,7 @@ import java.util.List;
  * @param durations
  * @param description
  */
-record ColossalCombatConfigDTO(
+record ColossalCombatConfigDTOOld(
         String version, 
         String world, 
         @Nullable BoundingBox spectatorArea, 
@@ -115,11 +115,13 @@ record ColossalCombatConfigDTO(
     
         validator.notNull(this.durations, "durations");
         validator.validate(this.durations.roundStarting() >= 1, "durations.roundStarting must be at least 1");
+        validator.validate(this.durations.roundOver() >= 0, "durations.roundOver can't be negative");
+        validator.validate(this.durations.gameOver() >= 0, "durations.gameOver can't be negative");
         validator.validate(this.durations.antiSuffocation() >= 0, "durations.antiSuffocation can't be negative");
         validator.notNull(this.description, "description");
     }
     
-    public ColossalCombatConfig toConfig() {
+    public ColossalCombatConfigOld toConfig() {
         World newWorld = Bukkit.getWorld(this.world);
         Preconditions.checkState(newWorld != null, "Could not find world \"%s\"", this.world);
         
@@ -134,28 +136,30 @@ record ColossalCombatConfigDTO(
             }
         }
         
-        ColossalCombatConfig.ColossalCombatConfigBuilder builder = ColossalCombatConfig.builder()
+        ColossalCombatConfigOld.ColossalCombatConfigOldBuilder builder = ColossalCombatConfigOld.builder()
                 .world(newWorld)
-                .firstPlaceSpawn(this.firstPlaceSpawn.toLocation(newWorld))
-                .secondPlaceSpawn(this.secondPlaceSpawn.toLocation(newWorld))
+                .northSpawn(this.firstPlaceSpawn.toLocation(newWorld))
+                .southSpawn(this.secondPlaceSpawn.toLocation(newWorld))
                 .spectatorSpawn(this.spectatorSpawn.toLocation(newWorld))
                 .spectatorBoundary(this.spectatorArea == null ? null :
                         new SpectatorBoundary(this.spectatorArea, this.spectatorSpawn.toLocation(newWorld)))
                 .requiredWins(this.requiredWins)
                 .loadout(this.loadout != null ? this.loadout.toInventoryContents() : getDefaultLoadout())
-                .firstPlaceClearArea(this.firstPlaceGate.clearArea)
-                .firstPlacePlaceArea(this.firstPlaceGate.placeArea)
-                .firstPlaceStone(this.firstPlaceGate.stone)
-                .firstPlaceAntiSuffocationArea(this.firstPlaceGate.antiSuffocationArea)
-                .secondPlaceClearArea(this.secondPlaceGate.clearArea)
-                .secondPlacePlaceArea(this.secondPlaceGate.placeArea)
-                .secondPlaceStone(this.secondPlaceGate.stone)
-                .secondPlaceAntiSuffocationArea(this.secondPlaceGate.antiSuffocationArea)
+                .northClearArea(this.firstPlaceGate.clearArea)
+                .northPlaceArea(this.firstPlaceGate.placeArea)
+                .northStone(this.firstPlaceGate.stone)
+                .northAntiSuffocationArea(this.firstPlaceGate.antiSuffocationArea)
+                .southClearArea(this.secondPlaceGate.clearArea)
+                .southPlaceArea(this.secondPlaceGate.placeArea)
+                .southStone(this.secondPlaceGate.stone)
+                .southAntiSuffocationArea(this.secondPlaceGate.antiSuffocationArea)
                 .removeArea(this.removeArea)
-                .firstPlaceSupport(this.firstPlaceSupport)
-                .secondPlaceSupport(this.secondPlaceSupport)
+                .northSupport(this.firstPlaceSupport)
+                .southSupport(this.secondPlaceSupport)
                 .antiSuffocationDuration(this.durations.antiSuffocation)
                 .roundStartingDuration(this.durations.roundStarting)
+                .roundOverDuration(this.durations.roundOver)
+                .gameOverDuration(this.durations.gameOver)
                 .descriptionDuration(this.durations.description)
                 .itemDrops(newItemDrops)
                 .itemDropLocations(newItemDropLocations)
@@ -165,8 +169,8 @@ record ColossalCombatConfigDTO(
         
         if (captureTheFlag != null) {
             builder.shouldStartCaptureTheFlag(true)
-                    .firstPlaceFlagGoal(this.captureTheFlag.firstPlaceGoal)
-                    .secondPlaceFlagGoal(this.captureTheFlag.secondPlaceGoal)
+                    .northFlagGoal(this.captureTheFlag.firstPlaceGoal)
+                    .southFlagGoal(this.captureTheFlag.secondPlaceGoal)
                     .flagMaterial(this.captureTheFlag.flagMaterial)
                     .initialFlagDirection(this.captureTheFlag.flagDirection)
                     .flagLocation(this.captureTheFlag.flagLocation.toLocation(newWorld))
@@ -174,8 +178,8 @@ record ColossalCombatConfigDTO(
                     .captureTheFlagMaximumPlayers(this.captureTheFlag.maxPlayers)
                     .captureTheFlagDuration(this.captureTheFlag.countdown)
                     .replaceBlock(this.captureTheFlag.replaceBlock)
-                    .firstPlaceFlagReplaceArea(this.captureTheFlag.firstPlaceReplaceArea)
-                    .secondPlaceFlagReplaceArea(this.captureTheFlag.secondPlaceReplaceArea);
+                    .northFlagReplaceArea(this.captureTheFlag.firstPlaceReplaceArea)
+                    .southFlagReplaceArea(this.captureTheFlag.secondPlaceReplaceArea);
         } else {
             builder.shouldStartCaptureTheFlag(false);
         }
@@ -267,6 +271,6 @@ record ColossalCombatConfigDTO(
      *                        long enough the players will suffocate, and if it's too long they'll get frustrated. 
      *                        TODO: implement a more automated version of this. 
      */
-    record Durations(int roundStarting, long antiSuffocation, int description) {
+    record Durations(int roundStarting, int roundOver, int gameOver, long antiSuffocation, int description) {
     }
 }

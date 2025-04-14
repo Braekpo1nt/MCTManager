@@ -48,8 +48,7 @@ import java.util.logging.Level;
 @Getter
 @Setter
 // TODO: this could be simplified by making QT and QP be T and P instead. In other words, quitDatas should be Map<UUID, P> quitParticipants, and teamQuitDatas should be Map<String, T> quitTeams. GameStateBase would need to change to make sure you are not re-using the previously stored Player object from when the player quit. 
-// TODO: move GameData to GameStateBase? 
-public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase, S extends GameStateBase<P, T>>  implements MCTGame, Listener, GameData<P> {
+public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase, S extends GameStateBase<P, T>>  implements MCTGame, Listener {
     protected final @NotNull GameType type;
     protected final @NotNull Main plugin;
     protected final @NotNull GameManager gameManager;
@@ -387,9 +386,9 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     protected abstract void resetParticipant(P participant, T team);
     
     /**
-     * {@inheritDoc}
+     * @param uuid the UUID of the participant to get
+     * @return the participant with the given UUID (or null if no participant exists)
      */
-    @Override
     public @Nullable P getParticipant(@NotNull UUID uuid) {
         return participants.get(uuid);
     }
@@ -478,7 +477,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     @Override
-    public void onTeamQuit(String teamId) {
+    public void onTeamQuit(@NotNull String teamId) {
         T team = teams.get(teamId);
         if (team == null || team.size() > 0) {
             return;

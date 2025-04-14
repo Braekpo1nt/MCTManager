@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.colossalcombat.config;
+package org.braekpo1nt.mctmanager.games.game.colossalcombat.config;
 
 import org.braekpo1nt.mctmanager.config.ConfigController;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;

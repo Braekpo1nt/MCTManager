@@ -12,8 +12,6 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
-import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatConfig;
-import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatConfigController;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
@@ -22,6 +20,8 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfigController;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalCombatGame;
+import org.braekpo1nt.mctmanager.games.game.colossalcombat.config.ColossalCombatConfig;
+import org.braekpo1nt.mctmanager.games.game.colossalcombat.config.ColossalCombatConfigController;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.example.ExampleGame;
 import org.braekpo1nt.mctmanager.games.game.example.config.ExampleConfig;
@@ -245,7 +245,7 @@ public class GameManager implements Listener {
                 ColossalCombatConfig config = new ColossalCombatConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
                 // TODO: change how this is chosen
                 List<Team> sortedTeams = newTeams.stream().sorted(Comparator.comparingInt(Team::getScore)).toList();
-                yield new ColossalCombatGame(plugin, this, title, config, sortedTeams.getFirst(), sortedTeams.get(1), newParticipants, newAdmins);
+                yield new ColossalCombatGame(plugin, this, title, config, sortedTeams.getFirst(), sortedTeams.get(1), sortedTeams, newParticipants, newAdmins);
             }
         };
     }

@@ -56,11 +56,13 @@ public class CaptureTheFlagMatchStateBase implements CaptureTheFlagMatchState{
     @Override
     public void onParticipantRejoin(CTFMatchParticipant participant, CTFMatchTeam team) {
         context.getTopbar().linkToTeam(participant.getUniqueId(), participant.getTeamId());
+        context.getTopbar().setKillsAndDeaths(participant.getUniqueId(), participant.getKills(), participant.getDeaths());
     }
     
     @Override
     public void onNewParticipantJoin(CTFMatchParticipant participant, CTFMatchTeam team) {
         context.getTopbar().linkToTeam(participant.getUniqueId(), participant.getTeamId());
+        context.getTopbar().setKillsAndDeaths(participant.getUniqueId(), participant.getKills(), participant.getDeaths());
     }
     
     @Override
@@ -97,6 +99,7 @@ public class CaptureTheFlagMatchStateBase implements CaptureTheFlagMatchState{
     @Override
     public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull CTFMatchParticipant participant) {
         event.getDrops().clear();
+        event.setDroppedExp(0);
     }
     
     @Override

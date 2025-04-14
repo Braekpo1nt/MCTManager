@@ -31,12 +31,6 @@ public class GameOverState extends SurvivalGamesStateBase {
     }
     
     @Override
-    public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull SurvivalGamesParticipant participant) {
-        Main.debugLog(LogType.CANCEL_PLAYER_DEATH_EVENT, "SurvivalGamesGame.GameOverState.onPlayerDeath() cancelled");
-        event.setCancelled(true);
-    }
-    
-    @Override
     public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull SurvivalGamesParticipant participant) {
         Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "SurvivalGamesGame.GameOverState.onParticipantDamage() cancelled");
         event.setCancelled(true);

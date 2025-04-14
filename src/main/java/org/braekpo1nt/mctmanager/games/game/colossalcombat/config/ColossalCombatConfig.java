@@ -1,9 +1,10 @@
-package org.braekpo1nt.mctmanager.games.colossalcombat.config;
+package org.braekpo1nt.mctmanager.games.game.colossalcombat.config;
 
 import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
+import org.braekpo1nt.mctmanager.games.game.colossalcombat.Gate;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -19,8 +20,6 @@ import java.util.List;
 @Builder
 public class ColossalCombatConfig {
     private World world;
-    private Location firstPlaceSpawn;
-    private Location secondPlaceSpawn;
     private Location spectatorSpawn;
     private @Nullable SpectatorBoundary spectatorBoundary;
     /**
@@ -34,19 +33,11 @@ public class ColossalCombatConfig {
     private List<Boolean> glowingItemDrops;
     private int requiredWins;
     private @NotNull ItemStack[] loadout;
-    private BoundingBox firstPlaceClearArea;
-    private BoundingBox firstPlacePlaceArea;
-    private BoundingBox firstPlaceStone;
-    private BoundingBox firstPlaceAntiSuffocationArea;
-    private BoundingBox firstPlaceFlagGoal;
-    private BoundingBox secondPlaceClearArea;
-    private BoundingBox secondPlacePlaceArea;
-    private BoundingBox secondPlaceStone;
-    private BoundingBox secondPlaceAntiSuffocationArea;
-    private BoundingBox secondPlaceFlagGoal;
+    private Gate northGate;
+    private Gate southGate;
     private BoundingBox removeArea;
-    private BoundingBox firstPlaceSupport;
-    private BoundingBox secondPlaceSupport;
+    private BoundingBox northSupport;
+    private BoundingBox southSupport;
     private Material flagMaterial;
     private BlockFace initialFlagDirection;
     private Location flagLocation;
@@ -64,13 +55,15 @@ public class ColossalCombatConfig {
     /**
      * The area to replace with the concrete of the team's color. At the start of the game, the {@link ColossalCombatConfig#replaceBlock} material will be replaced with the concrete of the team's color, and at the end of the game it will be returned to what it was before.
      */
-    private BoundingBox firstPlaceFlagReplaceArea;
+    private BoundingBox northFlagReplaceArea;
     /**
-     * The same as {@link ColossalCombatConfig#firstPlaceFlagReplaceArea}, but for second place
+     * The same as {@link ColossalCombatConfig#northFlagReplaceArea}, but for second place
      */
-    private BoundingBox secondPlaceFlagReplaceArea;
+    private BoundingBox southFlagReplaceArea;
     private long antiSuffocationDuration;
     private int roundStartingDuration;
+    private int roundOverDuration;
+    private int gameOverDuration;
     private List<Material> preventInteractions;
     private int descriptionDuration;
     private Component description;

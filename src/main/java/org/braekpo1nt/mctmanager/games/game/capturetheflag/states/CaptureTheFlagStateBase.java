@@ -29,6 +29,7 @@ public abstract class CaptureTheFlagStateBase implements CaptureTheFlagState {
     @Override
     public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull CTFParticipant participant) {
         event.getDrops().clear();
+        event.setDroppedExp(0);
     }
     
     @Override

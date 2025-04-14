@@ -3,6 +3,9 @@ package org.braekpo1nt.mctmanager.games.game.survivalgames.states;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesParticipant;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesTeam;
+import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.bukkit.GameMode;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -74,7 +77,16 @@ public abstract class SurvivalGamesStateBase implements SurvivalGamesState {
     }
     
     @Override
-    public void onParticipantRespawn(PlayerRespawnEvent event, SurvivalGamesParticipant participant) {
+    public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull SurvivalGamesParticipant participant) {
         
+    }
+    
+    @Override
+    public void onParticipantRespawn(PlayerRespawnEvent event, SurvivalGamesParticipant participant) {
+        event.setRespawnLocation(participant.getLocation());
+        participant.setGameMode(GameMode.SPECTATOR);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.clearInventory(participant);
     }
 }

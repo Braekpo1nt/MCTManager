@@ -71,6 +71,7 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
         glowManager.registerListeners();
         fillAllChests();
         initializeGlowManager();
+        setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
         start(newTeams, newParticipants, newAdmins);
         for (SurvivalGamesTeam team : teams.values()) {
             updateAliveCount(team);

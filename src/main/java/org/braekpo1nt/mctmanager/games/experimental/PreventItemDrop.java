@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.experimental;
 
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.participant.ParticipantData;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
@@ -13,23 +14,23 @@ import org.jetbrains.annotations.NotNull;
  * Optionally also prevents participants from removing their armor. 
  * @param <P>
  */
-public class PreventItemDrop<P> extends GameListener<P> {
+public class PreventItemDrop<P extends ParticipantData> extends GameListener<P> {
     
     private final boolean stickyArmor;
     
     /**
-     * @param gameData the gameData containing the participant list
+     * @param context the context
      * @param stickyArmor true if players should be unable to remove their armor,
      *                    false otherwise.
      */
-    public PreventItemDrop(@NotNull GameData<P> gameData, boolean stickyArmor) {
-        super(gameData);
+    public PreventItemDrop(@NotNull GameBase<P, ?, ?, ?, ?> context, boolean stickyArmor) {
+        super(context);
         this.stickyArmor = stickyArmor;
     }
     
     @EventHandler
     public void onPlayerDropItem(PlayerDropItemEvent event) {
-        P participant = gameData.getParticipant(event.getPlayer().getUniqueId());
+        P participant = context.getParticipant(event.getPlayer().getUniqueId());
         if (participant == null) {
             return;
         }
@@ -38,7 +39,7 @@ public class PreventItemDrop<P> extends GameListener<P> {
     
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        P participant = gameData.getParticipant(event.getWhoClicked().getUniqueId());
+        P participant = context.getParticipant(event.getWhoClicked().getUniqueId());
         if (participant == null) {
             return;
         }
@@ -46,7 +47,7 @@ public class PreventItemDrop<P> extends GameListener<P> {
     }
     
     /**
-     * Called when a participant from {@link #gameData} triggers an {@link InventoryClickEvent} 
+     * Called when a participant from {@link #context} triggers an {@link InventoryClickEvent} 
      * @param event the event
      * @param participant the participant who triggered the event
      */
