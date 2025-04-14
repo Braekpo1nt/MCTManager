@@ -9,7 +9,7 @@ import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesTeam;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
-import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -23,6 +23,7 @@ import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -215,17 +216,7 @@ public class ActiveState extends SurvivalGamesStateBase {
     
     @Override
     public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull SurvivalGamesParticipant killed) {
-        killed.setGameMode(GameMode.SPECTATOR);
-        dropInventory(killed, event.getDrops());
-        Main.debugLog(LogType.CANCEL_PLAYER_DEATH_EVENT, "SurvivalGamesGame.ActiveState.onPlayerDeath() cancelled");
-        event.setCancelled(true);
-        if (event.getDeathSound() != null && event.getDeathSoundCategory() != null) {
-            killed.getWorld().playSound(killed.getLocation(), event.getDeathSound(), event.getDeathSoundCategory(), event.getDeathSoundVolume(), event.getDeathSoundPitch());
-        }
-        Component deathMessage = event.deathMessage();
-        if (deathMessage != null) {
-            plugin.getServer().sendMessage(deathMessage);
-        }
+        event.setDroppedExp(0);
         if (killed.getKiller() != null) {
             SurvivalGamesParticipant killer = context.getParticipants().get(killed.getKiller().getUniqueId());
             if (killer != null) {
@@ -233,12 +224,6 @@ public class ActiveState extends SurvivalGamesStateBase {
             }
         }
         onParticipantDeath(killed);
-    }
-    
-    private void dropInventory(Participant killed, List<ItemStack> drops) {
-        for (ItemStack item : drops) {
-            config.getWorld().dropItemNaturally(killed.getLocation(), item);
-        }
     }
     
     private void onParticipantGetKill(@NotNull SurvivalGamesParticipant killer, @NotNull SurvivalGamesParticipant killed) {
@@ -270,12 +255,11 @@ public class ActiveState extends SurvivalGamesStateBase {
         topbar.setDeaths(participant.getUniqueId(), newDeathCount);
     }
     
-    private void onParticipantDeath(SurvivalGamesParticipant killed) {
-        killed.getInventory().clear();
-        killed.setAlive(false);
-        String teamId = killed.getTeamId();
+    private void onParticipantDeath(SurvivalGamesParticipant participant) {
+        participant.setAlive(false);
+        String teamId = participant.getTeamId();
+        addDeath(participant);
         SurvivalGamesTeam team = context.getTeams().get(teamId);
-        addDeath(killed);
         context.updateAliveCount(team);
         if (!team.isAlive()) {
             onTeamDeath(context.getTeams().get(teamId));

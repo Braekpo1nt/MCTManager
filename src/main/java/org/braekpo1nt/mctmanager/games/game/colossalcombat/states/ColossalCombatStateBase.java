@@ -98,7 +98,7 @@ public class ColossalCombatStateBase implements ColossalCombatState {
     
     @Override
     public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull ColossalParticipant participant) {
-        
+        event.setCancelled(true);
     }
     
     @Override

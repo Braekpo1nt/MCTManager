@@ -206,6 +206,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         }
         participant.setAlive(false);
         event.getDrops().clear();
+        event.setDroppedExp(0);
         if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
             if (hasSouthFlag(participant)) {
                 dropSouthFlag(participant);

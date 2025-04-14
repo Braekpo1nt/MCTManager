@@ -11,8 +11,10 @@ import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
+import org.bukkit.GameMode;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class DescriptionState extends SurvivalGamesStateBase {
@@ -57,8 +59,11 @@ public class DescriptionState extends SurvivalGamesStateBase {
     }
     
     @Override
-    public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull SurvivalGamesParticipant participant) {
-        Main.debugLog(LogType.CANCEL_PLAYER_DEATH_EVENT, "SurvivalGamesGame.DescriptionState.onPlayerDeath() cancelled");
-        event.setCancelled(true);
+    public void onParticipantRespawn(PlayerRespawnEvent event, SurvivalGamesParticipant participant) {
+        event.setRespawnLocation(participant.getLocation());
+        participant.setGameMode(GameMode.ADVENTURE);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.clearInventory(participant);
     }
 }
