@@ -4,7 +4,6 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.game.colossalcombat.config.ColossalCombatConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -42,12 +41,12 @@ public class ColossalCombatRound implements Listener {
     
     private final Main plugin;
     private final GameManager gameManager;
-    private final ColossalCombatGame colossalCombatGame;
+    private final ColossalCombatGameOld colossalCombatGame;
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
     private final BattleTopbar topbar;
     private final TimerManager timerManager;
-    private ColossalCombatConfig config;
+    private ColossalCombatConfigOld config;
     private ColossalRoundTeam first;
     private ColossalRoundTeam second;
     private Map<UUID, ColossalRoundParticipant> firstPlaceParticipants = new HashMap<>();
@@ -61,7 +60,7 @@ public class ColossalCombatRound implements Listener {
     private Location flagPosition = null;
     private Participant hasFlag = null;
     
-    public ColossalCombatRound(Main plugin, GameManager gameManager, ColossalCombatGame colossalCombatGame, ColossalCombatConfig config, Sidebar sidebar, Sidebar adminSidebar, @NotNull BattleTopbar topbar) {
+    public ColossalCombatRound(Main plugin, GameManager gameManager, ColossalCombatGameOld colossalCombatGame, ColossalCombatConfigOld config, Sidebar sidebar, Sidebar adminSidebar, @NotNull BattleTopbar topbar) {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.colossalCombatGame = colossalCombatGame;
@@ -72,7 +71,7 @@ public class ColossalCombatRound implements Listener {
         this.timerManager = new TimerManager(plugin);
     }
     
-    public void setConfig(ColossalCombatConfig config) {
+    public void setConfig(ColossalCombatConfigOld config) {
         this.config = config;
     }
     

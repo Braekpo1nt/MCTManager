@@ -7,7 +7,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.colossalcombat.ColossalCombatGame;
+import org.braekpo1nt.mctmanager.games.colossalcombat.ColossalCombatGameOld;
 import org.braekpo1nt.mctmanager.games.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.event.config.EventConfigController;
 import org.braekpo1nt.mctmanager.games.event.states.*;
@@ -42,7 +42,7 @@ public class EventManager implements Listener {
     private final Main plugin;
     private final GameManager gameManager;
     private final VoteManager voteManager;
-    private final ColossalCombatGame colossalCombatGame;
+    private final ColossalCombatGameOld colossalCombatGame;
     private final EventConfigController configController;
     private final List<GameType> playedGames = new ArrayList<>();
     /**
@@ -79,7 +79,7 @@ public class EventManager implements Listener {
         this.gameManager = gameManager;
         this.voteManager = voteManager;
         this.configController = new EventConfigController(plugin.getDataFolder());
-        this.colossalCombatGame = new ColossalCombatGame(plugin, gameManager);
+        this.colossalCombatGame = new ColossalCombatGameOld(plugin, gameManager);
         this.crown.editMeta(meta -> meta.setCustomModelData(1));
         this.state = new OffState(this);
     }

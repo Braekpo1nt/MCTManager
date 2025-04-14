@@ -6,8 +6,6 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.game.colossalcombat.config.ColossalCombatConfig;
-import org.braekpo1nt.mctmanager.games.game.colossalcombat.config.ColossalCombatConfigController;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
@@ -41,15 +39,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class ColossalCombatGame implements Listener, Configurable {
+public class ColossalCombatGameOld implements Listener, Configurable {
     
     private final Main plugin;
     private final GameManager gameManager;
     private Sidebar sidebar;
     private Sidebar adminSidebar;
     private final @NotNull BattleTopbar topbar;
-    private final ColossalCombatConfigController configController;
-    private ColossalCombatConfig config;
+    private final ColossalCombatConfigControllerOld configController;
+    private ColossalCombatConfigOld config;
     private final Component title = Component.text("Colossal Combat").color(NamedTextColor.BLUE);
     private Map<UUID, ColossalParticipant> firstPlaceParticipants = new HashMap<>();
     private Map<UUID, ColossalParticipant> secondPlaceParticipants = new HashMap<>();
@@ -66,11 +64,11 @@ public class ColossalCombatGame implements Listener, Configurable {
     private boolean gameActive = false;
     private final TimerManager timerManager;
     
-    public ColossalCombatGame(Main plugin, GameManager gameManager) {
+    public ColossalCombatGameOld(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.timerManager = new TimerManager(plugin);
-        this.configController = new ColossalCombatConfigController(plugin.getDataFolder(), "colossal-combat");
+        this.configController = new ColossalCombatConfigControllerOld(plugin.getDataFolder(), "colossal-combat");
         this.topbar = new BattleTopbar();
     }
     

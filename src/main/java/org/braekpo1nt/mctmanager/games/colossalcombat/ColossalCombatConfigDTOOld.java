@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.game.colossalcombat.config;
+package org.braekpo1nt.mctmanager.games.colossalcombat;
 
 import com.google.common.base.Preconditions;
 import lombok.Data;
@@ -6,12 +6,11 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.ItemStackDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.PlayerInventoryDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
-import org.braekpo1nt.mctmanager.games.game.colossalcombat.Gate;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -26,16 +25,35 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-record ColossalCombatConfigDTO(
+/**
+ * 
+ * @param version
+ * @param world
+ * @param spectatorArea
+ * @param firstPlaceSpawn
+ * @param secondPlaceSpawn
+ * @param spectatorSpawn
+ * @param requiredWins
+ * @param firstPlaceGate
+ * @param secondPlaceGate
+ * @param removeArea the area to remove all items from in between rounds
+ * @param firstPlaceSupport
+ * @param secondPlaceSupport
+ * @param durations
+ * @param description
+ */
+record ColossalCombatConfigDTOOld(
         String version, 
         String world, 
         @Nullable BoundingBox spectatorArea, 
+        LocationDTO firstPlaceSpawn, 
+        LocationDTO secondPlaceSpawn, 
         LocationDTO spectatorSpawn, 
         int requiredWins, 
         List<ItemDrop> itemDrops,
         @Nullable PlayerInventoryDTO loadout, 
-        GateDTO northGate, 
-        GateDTO southGate, 
+        Gate firstPlaceGate, 
+        Gate secondPlaceGate, 
         BoundingBox removeArea, 
         BoundingBox firstPlaceSupport, 
         BoundingBox secondPlaceSupport, 
@@ -55,7 +73,8 @@ record ColossalCombatConfigDTO(
             validator.validate(spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
         }
     
-        
+        validator.notNull(this.firstPlaceSpawn, "firstPlaceSpawn");
+        validator.notNull(this.secondPlaceSpawn, "secondPlaceSpawn");
         validator.notNull(this.spectatorSpawn, "spectatorSpawn");
         validator.validate(this.requiredWins > 0, "requiredWins must be greater than 0");
     
@@ -67,10 +86,19 @@ record ColossalCombatConfigDTO(
             this.loadout.validate(validator.path("loadout"));
         }
     
-        validator.notNull(this.northGate, "northGate");
-        this.northGate.validate(validator.path("northGate"));
-        validator.notNull(this.southGate, "southGate");
-        this.southGate.validate(validator.path("southGate"));
+        validator.notNull(this.firstPlaceGate, "firstPlaceGate");
+        validator.notNull(this.firstPlaceGate.clearArea(), "firstPlaceGate.clearArea");
+        validator.notNull(this.firstPlaceGate.placeArea(), "firstPlaceGate.placeArea");
+        validator.notNull(this.firstPlaceGate.stone(), "firstPlaceGate.stone");
+        validator.notNull(this.firstPlaceGate.antiSuffocationArea(), "firstPlaceGate.antiSuffocationArea");
+        validator.validate(this.firstPlaceGate.antiSuffocationArea().getVolume() != 0.0, "firstPlaceGate.antiSuffocationArea volume can't be 0.0");
+    
+        validator.notNull(this.secondPlaceGate, "secondPlaceGate");
+        validator.notNull(this.secondPlaceGate.clearArea(), "secondPlaceGate.clearArea");
+        validator.notNull(this.secondPlaceGate.placeArea(), "secondPlaceGate.placeArea");
+        validator.notNull(this.secondPlaceGate.stone(), "secondPlaceGate.stone");
+        validator.notNull(this.secondPlaceGate.antiSuffocationArea(), "secondPlaceGate.antiSuffocationArea");
+        validator.validate(this.secondPlaceGate.antiSuffocationArea().getVolume() != 0.0, "secondPlaceGate.antiSuffocationArea volume can't be 0.0");
     
         validator.notNull(this.removeArea, "removeArea");
         validator.validate(this.removeArea.getVolume() >= 2.0, "boundingBox (%s) volume (%s) must be at least 2.0", removeArea, removeArea.getVolume());
@@ -81,8 +109,9 @@ record ColossalCombatConfigDTO(
         validator.validate(this.secondPlaceSupport.getVolume() > 0, "secondPlaceSupport volume (%s) must be greater than 0", secondPlaceSupport.getVolume());
         validator.validate(!firstPlaceSupport.overlaps(secondPlaceSupport), "firstPlaceSupport and secondPlaceSupport can't overlap");
         
-        validator.notNull(captureTheFlag, "captureTheFlag");
-        captureTheFlag.validate(validator.path("captureTheFlag"));
+        if (captureTheFlag != null) {
+            captureTheFlag.validate(validator.path("captureTheFlag"));
+        }
     
         validator.notNull(this.durations, "durations");
         validator.validate(this.durations.roundStarting() >= 1, "durations.roundStarting must be at least 1");
@@ -92,7 +121,7 @@ record ColossalCombatConfigDTO(
         validator.notNull(this.description, "description");
     }
     
-    public ColossalCombatConfig toConfig() {
+    public ColossalCombatConfigOld toConfig() {
         World newWorld = Bukkit.getWorld(this.world);
         Preconditions.checkState(newWorld != null, "Could not find world \"%s\"", this.world);
         
@@ -107,16 +136,24 @@ record ColossalCombatConfigDTO(
             }
         }
         
-        ColossalCombatConfig.ColossalCombatConfigBuilder builder = ColossalCombatConfig.builder()
+        ColossalCombatConfigOld.ColossalCombatConfigOldBuilder builder = ColossalCombatConfigOld.builder()
                 .world(newWorld)
+                .northSpawn(this.firstPlaceSpawn.toLocation(newWorld))
+                .southSpawn(this.secondPlaceSpawn.toLocation(newWorld))
                 .spectatorSpawn(this.spectatorSpawn.toLocation(newWorld))
                 .spectatorBoundary(this.spectatorArea == null ? null :
                         new SpectatorBoundary(this.spectatorArea, this.spectatorSpawn.toLocation(newWorld)))
                 .requiredWins(this.requiredWins)
                 .loadout(this.loadout != null ? this.loadout.toInventoryContents() : getDefaultLoadout())
+                .northClearArea(this.firstPlaceGate.clearArea)
+                .northPlaceArea(this.firstPlaceGate.placeArea)
+                .northStone(this.firstPlaceGate.stone)
+                .northAntiSuffocationArea(this.firstPlaceGate.antiSuffocationArea)
+                .southClearArea(this.secondPlaceGate.clearArea)
+                .southPlaceArea(this.secondPlaceGate.placeArea)
+                .southStone(this.secondPlaceGate.stone)
+                .southAntiSuffocationArea(this.secondPlaceGate.antiSuffocationArea)
                 .removeArea(this.removeArea)
-                .northGate(this.northGate.toGate(newWorld))
-                .southGate(this.southGate.toGate(newWorld))
                 .northSupport(this.firstPlaceSupport)
                 .southSupport(this.secondPlaceSupport)
                 .antiSuffocationDuration(this.durations.antiSuffocation)
@@ -132,6 +169,8 @@ record ColossalCombatConfigDTO(
         
         if (captureTheFlag != null) {
             builder.shouldStartCaptureTheFlag(true)
+                    .northFlagGoal(this.captureTheFlag.firstPlaceGoal)
+                    .southFlagGoal(this.captureTheFlag.secondPlaceGoal)
                     .flagMaterial(this.captureTheFlag.flagMaterial)
                     .initialFlagDirection(this.captureTheFlag.flagDirection)
                     .flagLocation(this.captureTheFlag.flagLocation.toLocation(newWorld))
@@ -222,35 +261,7 @@ record ColossalCombatConfigDTO(
         }
     }
     
-    @Data
-    static class GateDTO implements Validatable {
-        private LocationDTO spawn;
-        private BoundingBox clearArea;
-        private BoundingBox placeArea;
-        private BoundingBox stone;
-        private BoundingBox antiSuffocationArea;
-        private BoundingBox flagGoal;
-        
-        public Gate toGate(World world) {
-            return Gate.builder()
-                    .spawn(this.spawn.toLocation(world))
-                    .clearArea(this.clearArea)
-                    .placeArea(this.placeArea)
-                    .stone(this.stone)
-                    .antiSuffocationArea(this.antiSuffocationArea)
-                    .flagGoal(this.flagGoal)
-                    .build();
-        }
-        
-        @Override
-        public void validate(@NotNull Validator validator) {
-            validator.notNull(spawn, "spawn");
-            validator.notNull(clearArea, "clearArea");
-            validator.notNull(placeArea, "placeArea");
-            validator.notNull(stone, "stone");
-            validator.notNull(antiSuffocationArea, "antiSuffocationArea");
-            validator.notNull(flagGoal, "flagGoal");
-        }
+    record Gate(BoundingBox clearArea, BoundingBox placeArea, BoundingBox stone, BoundingBox antiSuffocationArea) {
     }
     
     /**

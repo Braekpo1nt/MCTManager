@@ -7,9 +7,9 @@ import net.kyori.adventure.text.TextComponent;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.game.colossalcombat.config.ColossalCombatConfig;
 import org.braekpo1nt.mctmanager.games.experimental.Affiliation;
 import org.braekpo1nt.mctmanager.games.experimental.DuoGameBase;
+import org.braekpo1nt.mctmanager.games.game.colossalcombat.config.ColossalCombatConfig;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.states.ColossalCombatState;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.states.InitialState;
@@ -26,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -93,8 +92,8 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
     @Override
     protected void initializeParticipant(ColossalParticipant participant, ColossalTeam team) {
         switch (participant.getAffiliation()) {
-            case NORTH -> participant.teleport(config.getNorthSpawn());
-            case SOUTH -> participant.teleport(config.getSouthSpawn());
+            case NORTH -> participant.teleport(config.getNorthGate().getSpawn());
+            case SOUTH -> participant.teleport(config.getSouthGate().getSpawn());
             case SPECTATOR -> participant.teleport(config.getSpectatorSpawn());
         }
     }

@@ -1,10 +1,9 @@
-package org.braekpo1nt.mctmanager.games.game.colossalcombat.config;
+package org.braekpo1nt.mctmanager.games.colossalcombat;
 
 import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
-import org.braekpo1nt.mctmanager.games.game.colossalcombat.Gate;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -18,8 +17,10 @@ import java.util.List;
 
 @Data
 @Builder
-public class ColossalCombatConfig {
+class ColossalCombatConfigOld {
     private World world;
+    private Location northSpawn;
+    private Location southSpawn;
     private Location spectatorSpawn;
     private @Nullable SpectatorBoundary spectatorBoundary;
     /**
@@ -33,8 +34,16 @@ public class ColossalCombatConfig {
     private List<Boolean> glowingItemDrops;
     private int requiredWins;
     private @NotNull ItemStack[] loadout;
-    private Gate northGate;
-    private Gate southGate;
+    private BoundingBox northClearArea;
+    private BoundingBox northPlaceArea;
+    private BoundingBox northStone;
+    private BoundingBox northAntiSuffocationArea;
+    private BoundingBox northFlagGoal;
+    private BoundingBox southClearArea;
+    private BoundingBox southPlaceArea;
+    private BoundingBox southStone;
+    private BoundingBox southAntiSuffocationArea;
+    private BoundingBox southFlagGoal;
     private BoundingBox removeArea;
     private BoundingBox northSupport;
     private BoundingBox southSupport;
@@ -53,11 +62,11 @@ public class ColossalCombatConfig {
      */
     private @Nullable Material replaceBlock;
     /**
-     * The area to replace with the concrete of the team's color. At the start of the game, the {@link ColossalCombatConfig#replaceBlock} material will be replaced with the concrete of the team's color, and at the end of the game it will be returned to what it was before.
+     * The area to replace with the concrete of the team's color. At the start of the game, the {@link ColossalCombatConfigOld#replaceBlock} material will be replaced with the concrete of the team's color, and at the end of the game it will be returned to what it was before.
      */
     private BoundingBox northFlagReplaceArea;
     /**
-     * The same as {@link ColossalCombatConfig#northFlagReplaceArea}, but for second place
+     * The same as {@link ColossalCombatConfigOld#northFlagReplaceArea}, but for second place
      */
     private BoundingBox southFlagReplaceArea;
     private long antiSuffocationDuration;
