@@ -11,7 +11,7 @@ public class DescriptionState extends ColossalCombatStateBase {
         context.messageAllParticipants(context.getConfig().getDescription());
         context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getDescriptionDuration())
-                .withSidebar(context.getSidebar(), "timer")
+                .withTopbar(context.getTopbar())
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .sidebarPrefix(Component.text("Starting soon: "))
                 .onCompletion(() -> {

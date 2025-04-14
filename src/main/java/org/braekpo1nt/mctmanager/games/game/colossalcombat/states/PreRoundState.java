@@ -14,7 +14,7 @@ public class PreRoundState extends ColossalCombatStateBase {
         for (ColossalParticipant participant : context.getParticipants().values()) {
             switch (participant.getAffiliation()) {
                 case NORTH -> {
-                    participant.teleport(context.getConfig().getNorthSpawn());
+                    participant.teleport(context.getConfig().getNorthGate().getSpawn());
                     context.giveLoadout(participant);
                     ParticipantInitializer.clearStatusEffects(participant);
                     ParticipantInitializer.resetHealthAndHunger(participant);
@@ -22,7 +22,7 @@ public class PreRoundState extends ColossalCombatStateBase {
                     participant.setGameMode(GameMode.ADVENTURE);
                 }
                 case SOUTH -> {
-                    participant.teleport(context.getConfig().getSouthSpawn());
+                    participant.teleport(context.getConfig().getSouthGate().getSpawn());
                     context.giveLoadout(participant);
                     ParticipantInitializer.clearStatusEffects(participant);
                     ParticipantInitializer.resetHealthAndHunger(participant);
@@ -32,10 +32,10 @@ public class PreRoundState extends ColossalCombatStateBase {
                 case SPECTATOR -> {}
             }
         }
-        // TODO: update round sidebar
+        context.updateRoundSidebar();
         context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getRoundStartingDuration())
-                .withSidebar(context.getSidebar(), "timer")
+                .withTopbar(context.getTopbar())
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .sidebarPrefix(Component.text("Round Starting: "))
                 .onCompletion(() -> context.setState(new RoundActiveState(context)))

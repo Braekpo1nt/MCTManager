@@ -252,7 +252,6 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
     @Override
     protected void initializeSidebar() {
         sidebar.addLines(
-                new KeyLine("timer", Component.empty()),
                 new KeyLine("northWinCount", Component.empty()
                         .append(northTeam.getFormattedDisplayName())
                         .append(Component.text(": 0/"))

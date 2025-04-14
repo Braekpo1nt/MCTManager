@@ -25,16 +25,11 @@ public class RoundOverState extends ColossalCombatStateBase {
         context.titleAllParticipants(UIUtils.roundOverTitle());
         context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getRoundOverDuration())
-                .withSidebar(context.getSidebar(), "timer")
+                .withTopbar(context.getTopbar())
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .sidebarPrefix(Component.text("Round Over: "))
                 .onCompletion(() -> {
-                    // TODO: check if there is another round
-                    if () {
-                        context.setState(new PreRoundState(context));
-                    } else {
-                        context.setState(new GameOverState(context));
-                    }
+                    context.setState(new PreRoundState(context));
                 })
                 .build());
     }
