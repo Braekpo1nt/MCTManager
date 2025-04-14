@@ -45,8 +45,10 @@ public class ClassSelectionState extends CaptureTheFlagMatchStateBase {
         super.onParticipantRejoin(participant, team);
         if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
             northClassPicker.addTeamMate(participant);
+            participant.teleport(context.getArena().northSpawn());
         } else {
             southClassPicker.addTeamMate(participant);
+            participant.teleport(context.getArena().southSpawn());
         }
     }
     
@@ -56,8 +58,10 @@ public class ClassSelectionState extends CaptureTheFlagMatchStateBase {
         participant.setAlive(true);
         if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
             northClassPicker.addTeamMate(participant);
+            participant.teleport(context.getArena().northSpawn());
         } else {
             southClassPicker.addTeamMate(participant);
+            participant.teleport(context.getArena().southSpawn());
         }
     }
     

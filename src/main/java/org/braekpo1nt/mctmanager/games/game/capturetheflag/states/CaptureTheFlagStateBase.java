@@ -52,11 +52,13 @@ public abstract class CaptureTheFlagStateBase implements CaptureTheFlagState {
     
     @Override
     public void onParticipantRejoin(CTFParticipant participant, CTFTeam team) {
+        participant.teleport(context.getConfig().getSpawnObservatory());
         context.updateRoundLine(participant.getUniqueId());
     }
     
     @Override
     public void onNewParticipantJoin(CTFParticipant participant, CTFTeam team) {
+        participant.teleport(context.getConfig().getSpawnObservatory());
         context.updateRoundLine(participant.getUniqueId());
     }
     
