@@ -9,7 +9,6 @@ import org.braekpo1nt.mctmanager.participant.*;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -27,27 +26,23 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
             @NotNull T northTeam,
             @NotNull T southTeam) {
         super(type, plugin, gameManager, title, initialState);
+        if (northTeam.getAffiliation() != Affiliated.Affiliation.NORTH) {
+            throw new IllegalArgumentException("northTeam.getAffiliation() must be NORTH");
+        }
+        if (southTeam.getAffiliation() != Affiliated.Affiliation.SOUTH) {
+            throw new IllegalArgumentException("southTeam.getAffiliation() must be SOUTH");
+        }
         this.northTeam = northTeam;
         this.southTeam = southTeam;
     }
     
-    public @Nullable T getTeam(@NotNull String teamId) {
-        if (northTeam.getTeamId().equals(teamId)) {
-            return northTeam;
-        } else if (southTeam.getTeamId().equals(teamId)) {
-            return southTeam;
-        } else {
-            return null;
-        }
-    }
-    
-    public @Nullable Affiliated.Affiliation getAffiliation(@NotNull String teamId) {
+    public @NotNull Affiliated.Affiliation getAffiliation(@NotNull String teamId) {
         if (northTeam.getTeamId().equals(teamId)) {
             return Affiliated.Affiliation.NORTH;
         } else if (southTeam.getTeamId().equals(teamId)) {
             return Affiliated.Affiliation.SOUTH;
         }
-        return null;
+        return Affiliated.Affiliation.SPECTATOR;
     }
     
     /**
@@ -107,24 +102,35 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
     
     @Override
     public void onTeamJoin(Team newTeam) {
+        if (teams.containsKey(newTeam.getTeamId())) {
+            return;
+        }
         Affiliated.Affiliation affiliation = getAffiliation(newTeam.getTeamId());
         switch (affiliation) {
             case NORTH -> {
+                teams.put(northTeam.getTeamId(), northTeam);
                 setupTeamOptions(northTeam);
                 state.onTeamRejoin(northTeam);
             }
             case SOUTH -> {
+                teams.put(southTeam.getTeamId(), southTeam);
                 setupTeamOptions(southTeam);
                 state.onTeamRejoin(southTeam);
             }
-            // TODO: if there were a spectator, this is where that team would go
-            case null -> {}
+            case SPECTATOR -> {
+                super.onTeamJoin(newTeam);
+            }
         }
     }
     
+    /**
+     * QuitData is not stored for the north or south teams when they quit.
+     * Otherwise, this is the same as {@link super#onTeamQuit(String)}
+     * @param teamId the teamId that quit
+     */
     @Override
-    public void onTeamQuit(String teamId) {
-        T team = getTeam(teamId);
+    public void onTeamQuit(@NotNull String teamId) {
+        T team = teams.get(teamId);
         if (team == null || team.size() > 0) {
             return;
         }
@@ -132,12 +138,17 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
         switch (affiliation) {
             case NORTH -> {
                 state.onTeamQuit(northTeam);
+                teams.remove(team.getTeamId());
             }
             case SOUTH -> {
                 state.onTeamQuit(southTeam);
+                teams.remove(team.getTeamId());
             }
-            // TODO: if there were a spectator, this is where that team would go
-            case null -> {}
+            case SPECTATOR -> {
+                super.onTeamQuit(teamId);
+            }
         }
     }
+    
+    
 }
