@@ -1,6 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.colossalcombat.states;
 
-import org.braekpo1nt.mctmanager.games.experimental.Affiliated;
+import org.braekpo1nt.mctmanager.games.experimental.Affiliation;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalCombatGame;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalParticipant;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalTeam;
@@ -36,7 +36,7 @@ public class ColossalCombatStateBase implements ColossalCombatState {
     
     @Override
     public void onParticipantRejoin(ColossalParticipant participant, ColossalTeam team) {
-        if (participant.getAffiliation() == Affiliated.Affiliation.NORTH) {
+        if (participant.getAffiliation() == Affiliation.NORTH) {
             participant.teleport(context.getConfig().getFirstPlaceSpawn());
         } else {
             participant.teleport(context.getConfig().getSecondPlaceSpawn());
@@ -45,7 +45,7 @@ public class ColossalCombatStateBase implements ColossalCombatState {
     
     @Override
     public void onNewParticipantJoin(ColossalParticipant participant, ColossalTeam team) {
-        if (participant.getAffiliation() == Affiliated.Affiliation.NORTH) {
+        if (participant.getAffiliation() == Affiliation.NORTH) {
             participant.teleport(context.getConfig().getFirstPlaceSpawn());
         } else {
             participant.teleport(context.getConfig().getSecondPlaceSpawn());

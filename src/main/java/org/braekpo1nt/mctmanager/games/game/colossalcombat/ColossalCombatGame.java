@@ -7,7 +7,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatConfig;
-import org.braekpo1nt.mctmanager.games.experimental.Affiliated;
+import org.braekpo1nt.mctmanager.games.experimental.Affiliation;
 import org.braekpo1nt.mctmanager.games.experimental.DuoGameBase;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.states.ColossalCombatState;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.states.DescriptionState;
@@ -45,8 +45,8 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
                 gameManager, 
                 title, 
                 new InitialState(), 
-                new ColossalTeam(newFirst, 0, Affiliated.Affiliation.NORTH), 
-                new ColossalTeam(newSecond, 0, Affiliated.Affiliation.SOUTH));
+                new ColossalTeam(newFirst, 0, Affiliation.NORTH), 
+                new ColossalTeam(newSecond, 0, Affiliation.SOUTH));
         this.config = config;
         start(newParticipants, newAdmins);
     }
@@ -68,7 +68,7 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
     
     @Override
     protected @NotNull ColossalParticipant createParticipant(Participant participant) {
-        Affiliated.Affiliation affiliation = Objects.requireNonNull(getAffiliation(participant.getTeamId()), "tried to make a ColossalParticipant out of a participant who's not on north or south teams");
+        Affiliation affiliation = Objects.requireNonNull(getAffiliation(participant.getTeamId()), "tried to make a ColossalParticipant out of a participant who's not on north or south teams");
         return new ColossalParticipant(participant, 0, affiliation);
     }
     
@@ -84,7 +84,7 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
     
     @Override
     protected void initializeParticipant(ColossalParticipant participant, ColossalTeam team) {
-        if (participant.getAffiliation() == Affiliated.Affiliation.NORTH) {
+        if (participant.getAffiliation() == Affiliation.NORTH) {
             participant.teleport(config.getFirstPlaceSpawn());
         } else {
             participant.teleport(config.getSecondPlaceSpawn());

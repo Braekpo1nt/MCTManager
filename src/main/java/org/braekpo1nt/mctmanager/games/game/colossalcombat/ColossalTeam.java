@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.colossalcombat;
 import lombok.Data;
 import lombok.Getter;
 import org.braekpo1nt.mctmanager.games.experimental.Affiliated;
+import org.braekpo1nt.mctmanager.games.experimental.Affiliation;
 import org.braekpo1nt.mctmanager.participant.QuitDataBase;
 import org.braekpo1nt.mctmanager.participant.ScoredTeamData;
 import org.braekpo1nt.mctmanager.participant.Team;
@@ -11,9 +12,9 @@ import org.jetbrains.annotations.NotNull;
 @Getter
 public class ColossalTeam extends ScoredTeamData<ColossalParticipant> implements Affiliated {
     
-    private final @NotNull Affiliated.Affiliation affiliation;
+    private final @NotNull Affiliation affiliation;
     
-    public ColossalTeam(@NotNull Team team, int score, @NotNull Affiliated.Affiliation affiliation) {
+    public ColossalTeam(@NotNull Team team, int score, @NotNull Affiliation affiliation) {
         super(team, score);
         this.affiliation = affiliation;
     }

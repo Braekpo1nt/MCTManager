@@ -26,23 +26,23 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
             @NotNull T northTeam,
             @NotNull T southTeam) {
         super(type, plugin, gameManager, title, initialState);
-        if (northTeam.getAffiliation() != Affiliated.Affiliation.NORTH) {
+        if (northTeam.getAffiliation() != Affiliation.NORTH) {
             throw new IllegalArgumentException("northTeam.getAffiliation() must be NORTH");
         }
-        if (southTeam.getAffiliation() != Affiliated.Affiliation.SOUTH) {
+        if (southTeam.getAffiliation() != Affiliation.SOUTH) {
             throw new IllegalArgumentException("southTeam.getAffiliation() must be SOUTH");
         }
         this.northTeam = northTeam;
         this.southTeam = southTeam;
     }
     
-    public @NotNull Affiliated.Affiliation getAffiliation(@NotNull String teamId) {
+    public @NotNull Affiliation getAffiliation(@NotNull String teamId) {
         if (northTeam.getTeamId().equals(teamId)) {
-            return Affiliated.Affiliation.NORTH;
+            return Affiliation.NORTH;
         } else if (southTeam.getTeamId().equals(teamId)) {
-            return Affiliated.Affiliation.SOUTH;
+            return Affiliation.SOUTH;
         }
-        return Affiliated.Affiliation.SPECTATOR;
+        return Affiliation.SPECTATOR;
     }
     
     /**
@@ -105,7 +105,7 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
         if (teams.containsKey(newTeam.getTeamId())) {
             return;
         }
-        Affiliated.Affiliation affiliation = getAffiliation(newTeam.getTeamId());
+        Affiliation affiliation = getAffiliation(newTeam.getTeamId());
         switch (affiliation) {
             case NORTH -> {
                 teams.put(northTeam.getTeamId(), northTeam);
@@ -134,7 +134,7 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
         if (team == null || team.size() > 0) {
             return;
         }
-        Affiliated.Affiliation affiliation = getAffiliation(teamId);
+        Affiliation affiliation = getAffiliation(teamId);
         switch (affiliation) {
             case NORTH -> {
                 state.onTeamQuit(northTeam);

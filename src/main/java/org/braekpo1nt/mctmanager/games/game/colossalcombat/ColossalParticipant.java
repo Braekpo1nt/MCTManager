@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.colossalcombat;
 import lombok.Data;
 import lombok.Getter;
 import org.braekpo1nt.mctmanager.games.experimental.Affiliated;
+import org.braekpo1nt.mctmanager.games.experimental.Affiliation;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.ParticipantData;
 import org.braekpo1nt.mctmanager.participant.QuitDataBase;
