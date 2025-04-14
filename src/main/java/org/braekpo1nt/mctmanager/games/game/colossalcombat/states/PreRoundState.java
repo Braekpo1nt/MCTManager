@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.colossalcombat.states;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalCombatGame;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalParticipant;
@@ -39,6 +40,7 @@ public class PreRoundState extends ColossalCombatStateBase {
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .sidebarPrefix(Component.text("Gates Opening: "))
                 .topbarPrefix(Component.text("Gates Opening: "))
+                .titleAudience(Audience.audience(context.getParticipants().values()))
                 .onCompletion(() -> context.setState(new GatesOpeningState(context)))
                 .build());
     }

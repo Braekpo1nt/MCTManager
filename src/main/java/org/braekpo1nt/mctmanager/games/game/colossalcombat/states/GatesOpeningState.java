@@ -8,7 +8,6 @@ import org.jetbrains.annotations.NotNull;
 public class GatesOpeningState extends GameplayState {
     public GatesOpeningState(@NotNull ColossalCombatGame context) {
         super(context);
-        
         context.getPlugin().getServer().getScheduler().runTaskLater(context.getPlugin(), 
                 () -> context.setState(new FightingState(context)), 
                 config.getAntiSuffocationDuration());
