@@ -65,18 +65,8 @@ public class RoundActiveState extends CaptureTheFlagStateBase {
         for (int i = 0; i < currentRound.size(); i++) {
             MatchPairing matchPairing = currentRound.get(i);
             List<CTFParticipant> newParticipants = matchParticipants.get(matchPairing);
-            CTFTeam northTeam;
-            if (context.getTeams().containsKey(matchPairing.northTeam())) {
-                northTeam = context.getTeams().get(matchPairing.northTeam());
-            } else {
-                northTeam = context.getQuitTeams().get(matchPairing.northTeam());
-            }
-            CTFTeam southTeam;
-            if (context.getTeams().containsKey(matchPairing.southTeam())) {
-                southTeam = context.getTeams().get(matchPairing.southTeam());
-            } else {
-                southTeam = context.getQuitTeams().get(matchPairing.southTeam());
-            }
+            CTFTeam northTeam = context.getTeamOrQuitTeam(matchPairing.northTeam());
+            CTFTeam southTeam = context.getTeamOrQuitTeam(matchPairing.southTeam());
             CaptureTheFlagMatch match = new CaptureTheFlagMatch(
                     context,
                     this::matchIsOver,

@@ -116,6 +116,23 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
         return team.getQuitData();
     }
     
+    /**
+     * @param teamId the teamId of the team which might have quit, or might be online
+     * @return the team with the given id if they are online or if they quit, null if no
+     * such team ever joined.
+     */
+    public @NotNull CTFTeam getTeamOrQuitTeam(@NotNull String teamId) {
+        CTFTeam ctfTeam = teams.get(teamId);
+        if (ctfTeam != null) {
+            return ctfTeam;
+        }
+        CTFTeam quitTeam = quitTeams.get(teamId);
+        if (quitTeam != null) {
+            return quitTeam;
+        }
+        throw new IllegalStateException(String.format("Attempted to access a team which never joined (id %s", teamId));
+    }
+    
     @Override
     protected void resetParticipant(CTFParticipant participant, CTFTeam team) {
         

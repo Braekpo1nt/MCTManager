@@ -59,12 +59,12 @@ public class PreRoundState extends CaptureTheFlagStateBase {
         List<MatchPairing> currentRound = roundManager.getCurrentRound();
         TeamData<CTFParticipant> team = context.getTeams().get(participant.getTeamId());
         String oppositeTeamId = RoundManager.getOppositeTeam(team.getTeamId(), currentRound);
-        TeamData<CTFParticipant> oppositeTeam = context.getTeams().get(oppositeTeamId);
         Component roundDisplay = Component.empty()
                 .append(Component.text("Round "))
                 .append(Component.text(roundManager.getPlayedRounds() + 1))
                 .append(Component.text(":"));
-        if (oppositeTeam != null) {
+        if (oppositeTeamId != null) {
+            TeamData<CTFParticipant> oppositeTeam = context.getTeamOrQuitTeam(oppositeTeamId);
             participant.sendMessage(Component.empty()
                     .append(team.getFormattedDisplayName())
                     .append(Component.text(" is competing against "))
