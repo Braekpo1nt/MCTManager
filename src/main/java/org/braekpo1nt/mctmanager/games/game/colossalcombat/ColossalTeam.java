@@ -31,6 +31,10 @@ public class ColossalTeam extends ScoredTeamData<ColossalParticipant> implements
         return new QuitData(getScore(), this.affiliation);
     }
     
+    public int getAlive() {
+        return ((int) getParticipants().stream().filter(ColossalParticipant::isAlive).count());
+    }
+    
     @Data
     public static class QuitData implements QuitDataBase {
         private final int score;

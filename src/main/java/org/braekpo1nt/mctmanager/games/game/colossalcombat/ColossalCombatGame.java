@@ -18,6 +18,7 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
+import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -32,6 +33,7 @@ import java.util.List;
 public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, ColossalTeam, ColossalParticipant.QuitData, ColossalTeam.QuitData, ColossalCombatState> {
     
     private final @NotNull ColossalCombatConfig config;
+    private final @NotNull BattleTopbar topbar;
     
     private int currentRound;
     
@@ -54,8 +56,42 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
                 new ColossalTeam(newNorth, 0, Affiliation.NORTH), 
                 new ColossalTeam(newSouth, 0, Affiliation.SOUTH));
         this.config = config;
+        this.topbar = addUIManager(new BattleTopbar());
         this.currentRound = 1;
+        topbar.addTeam(northTeam.getTeamId(), northTeam.getColor());
+        topbar.addTeam(southTeam.getTeamId(), southTeam.getColor());
         start(newTeams, newParticipants, newAdmins);
+        updateAliveStatus(Affiliation.NORTH);
+        updateAliveStatus(Affiliation.SOUTH);
+    }
+    
+    public void updateAliveStatus(Affiliation affiliation) {
+        switch (affiliation) {
+            case NORTH -> {
+                int alive = northTeam.getAlive();
+                int dead = northTeam.size() - alive;
+                topbar.setMembers(northTeam.getTeamId(), alive, dead);
+            }
+            case SOUTH -> {
+                int alive = southTeam.getAlive();
+                int dead = southTeam.size() - alive;
+                topbar.setMembers(southTeam.getTeamId(), alive, dead);
+            }
+        }
+    }
+    
+    public void addKill(@NotNull ColossalParticipant participant) {
+        int oldKillCount = participant.getKills();
+        int newKillCount = oldKillCount + 1;
+        participant.setKills(newKillCount);
+        topbar.setKills(participant.getUniqueId(), newKillCount);
+    }
+    
+    public void addDeath(@NotNull ColossalParticipant participant) {
+        int oldDeathCount = participant.getDeaths();
+        int newDeathCount = oldDeathCount + 1;
+        participant.setDeaths(newDeathCount);
+        topbar.setDeaths(participant.getUniqueId(), newDeathCount);
     }
     
     @Override
@@ -76,12 +112,12 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
     @Override
     protected @NotNull ColossalParticipant createParticipant(Participant participant) {
         Affiliation affiliation = getAffiliation(participant.getTeamId());
-        return new ColossalParticipant(participant, 0, affiliation);
+        return new ColossalParticipant(participant, affiliation, true, 0, 0, 0);
     }
     
     @Override
     protected @NotNull ColossalParticipant createParticipant(Participant participant, ColossalParticipant.QuitData quitData) {
-        return new ColossalParticipant(participant, quitData);
+        return new ColossalParticipant(participant, true, quitData);
     }
     
     @Override
@@ -92,8 +128,16 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
     @Override
     protected void initializeParticipant(ColossalParticipant participant, ColossalTeam team) {
         switch (participant.getAffiliation()) {
-            case NORTH -> participant.teleport(config.getNorthGate().getSpawn());
-            case SOUTH -> participant.teleport(config.getSouthGate().getSpawn());
+            case NORTH -> {
+                topbar.setKillsAndDeaths(participant.getUniqueId(), 0, 0);
+                topbar.linkToTeam(participant.getUniqueId(), participant.getTeamId());
+                participant.teleport(config.getNorthGate().getSpawn());
+            }
+            case SOUTH -> {
+                topbar.setKillsAndDeaths(participant.getUniqueId(), 0, 0);
+                topbar.linkToTeam(participant.getUniqueId(), participant.getTeamId());
+                participant.teleport(config.getSouthGate().getSpawn());
+            }
             case SPECTATOR -> participant.teleport(config.getSpectatorSpawn());
         }
     }
