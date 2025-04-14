@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.colossalcombat;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -16,6 +17,7 @@ import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -24,11 +26,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
 public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, ColossalTeam, ColossalParticipant.QuitData, ColossalTeam.QuitData, ColossalCombatState> {
+    
     private final @NotNull ColossalCombatConfig config;
+    
+    private int currentRound;
     
     public ColossalCombatGame(
             @NotNull Main plugin,
@@ -49,6 +55,7 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
                 new ColossalTeam(newNorth, 0, Affiliation.NORTH), 
                 new ColossalTeam(newSouth, 0, Affiliation.SOUTH));
         this.config = config;
+        this.currentRound = 1;
         start(newTeams, newParticipants, newAdmins);
     }
     
@@ -134,7 +141,18 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
     
     @Override
     protected void initializeAdminSidebar() {
-        adminSidebar.addLine("timer", Component.empty());
+        adminSidebar.addLines(
+                new KeyLine("timer", Component.empty()),
+                new KeyLine("northWinCount", Component.empty()
+                        .append(northTeam.getFormattedDisplayName())
+                        .append(Component.text(": 0/"))
+                        .append(Component.text(config.getRequiredWins()))),
+                new KeyLine("southWinCount", Component.empty()
+                        .append(southTeam.getFormattedDisplayName())
+                        .append(Component.text(": 0/"))
+                        .append(Component.text(config.getRequiredWins()))),
+                new KeyLine("round", Component.text("Round: 1"))
+        );
     }
     
     @Override
@@ -142,9 +160,66 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
         
     }
     
+    public void updateRoundSidebar(@NotNull Player admin) {
+        adminSidebar.updateLines(admin.getUniqueId(),
+                new KeyLine("northWinCount", toWinCountLine(northTeam)),
+                new KeyLine("southWinCount", toWinCountLine(southTeam)),
+                new KeyLine("round", Component.empty()
+                        .append(Component.text("Round: "))
+                        .append(Component.text(currentRound)))
+        );
+    }
+    
+    public void updateRoundSidebar(@NotNull ColossalParticipant participant) {
+        sidebar.updateLines(participant.getUniqueId(), 
+                new KeyLine("northWinCount", toWinCountLine(northTeam)),
+                new KeyLine("southWinCount", toWinCountLine(southTeam)),
+                new KeyLine("round", Component.empty()
+                        .append(Component.text("Round: "))
+                        .append(Component.text(currentRound)))
+        );
+    }
+    
+    public void updateRoundSidebar() {
+        Component northLine = toWinCountLine(northTeam);
+        Component southLine = toWinCountLine(southTeam);
+        Component roundLine = Component.empty()
+                .append(Component.text("Round: "))
+                .append(Component.text(currentRound));
+        sidebar.updateLines(
+                new KeyLine("northWinCount", northLine),
+                new KeyLine("southWinCount", southLine),
+                new KeyLine("round", roundLine)
+        );
+        adminSidebar.updateLines(
+                new KeyLine("northWinCount", northLine),
+                new KeyLine("southWinCount", southLine),
+                new KeyLine("round", roundLine)
+        );
+    }
+    
+    private @NotNull TextComponent toWinCountLine(ColossalTeam team) {
+        return Component.empty()
+                .append(team.getFormattedDisplayName())
+                .append(Component.text(": "))
+                .append(Component.text(team.getWins()))
+                .append(Component.text(config.getRequiredWins()));
+    }
+    
     @Override
     protected void initializeSidebar() {
-        sidebar.addLine("timer", Component.empty());
+        sidebar.addLines(
+                new KeyLine("timer", Component.empty()),
+                new KeyLine("northWinCount", Component.empty()
+                        .append(northTeam.getFormattedDisplayName())
+                        .append(Component.text(": 0/"))
+                        .append(Component.text(config.getRequiredWins()))),
+                new KeyLine("southWinCount", Component.empty()
+                        .append(southTeam.getFormattedDisplayName())
+                        .append(Component.text(": 0/"))
+                        .append(Component.text(config.getRequiredWins()))),
+                new KeyLine("round", Component.text("Round: 1"))
+        );
     }
     
     @Override

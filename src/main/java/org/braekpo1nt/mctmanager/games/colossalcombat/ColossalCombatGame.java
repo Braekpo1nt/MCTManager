@@ -60,8 +60,8 @@ public class ColossalCombatGame implements Listener, Configurable {
     private int currentRoundIndex = 0;
     private int firstPlaceRoundWins = 0;
     private int secondPlaceRoundWins = 0;
-    private ColossalTeam first;
-    private ColossalTeam second;
+    private ColossalTeam northTeam;
+    private ColossalTeam southTeam;
     private boolean descriptionShowing = false;
     private boolean gameActive = false;
     private final TimerManager timerManager;
@@ -93,8 +93,8 @@ public class ColossalCombatGame implements Listener, Configurable {
      * @param newAdmins                  The admins
      */
     public void start(Team newFirst, Team newSecond, Collection<Participant> newFirstPlaceParticipants, Collection<Participant> newSecondPlaceParticipants, Collection<Participant> newSpectators, List<Player> newAdmins) {
-        this.first = new ColossalTeam(newFirst);
-        this.second = new ColossalTeam(newSecond);
+        this.northTeam = new ColossalTeam(newFirst);
+        this.southTeam = new ColossalTeam(newSecond);
         firstPlaceRoundWins = 0;
         secondPlaceRoundWins = 0;
         closeGates();
@@ -141,7 +141,7 @@ public class ColossalCombatGame implements Listener, Configurable {
     private void initializeFirstPlaceParticipant(Participant newParticipant, int kills, int deaths) {
         ColossalParticipant participant = new ColossalParticipant(newParticipant, kills, deaths, ColossalCombatRound.Affiliation.FIRST);
         firstPlaceParticipants.put(participant.getUniqueId(), participant);
-        first.addParticipant(participant);
+        northTeam.addParticipant(participant);
         participant.teleport(config.getNorthSpawn());
         participant.setRespawnLocation(config.getNorthSpawn(), true);
         initializeParticipant(participant);
@@ -158,7 +158,7 @@ public class ColossalCombatGame implements Listener, Configurable {
     
     private void initializeSecondPlaceParticipant(Participant newParticipant, int kills, int deaths) {
         ColossalParticipant participant = new ColossalParticipant(newParticipant, kills, deaths, ColossalCombatRound.Affiliation.SECOND);
-        second.addParticipant(participant);
+        southTeam.addParticipant(participant);
         secondPlaceParticipants.put(participant.getUniqueId(), participant);
         participant.teleport(config.getSouthSpawn());
         participant.setRespawnLocation(config.getSouthSpawn(), true);
@@ -233,34 +233,34 @@ public class ColossalCombatGame implements Listener, Configurable {
     private void startNextRound() {
         ColossalCombatRound nextRound = rounds.get(currentRoundIndex);
         setUpTopbarForRound();
-        nextRound.start(firstPlaceParticipants.values(), secondPlaceParticipants.values(), spectators.values(), first, second);
+        nextRound.start(firstPlaceParticipants.values(), secondPlaceParticipants.values(), spectators.values(), northTeam, southTeam);
         sidebar.updateLine("round", String.format("Round: %s", currentRoundIndex+1));
         adminSidebar.updateLine("round", String.format("Round: %s", currentRoundIndex+1));
     }
     
     private void setUpTopbarForRound() {
         topbar.removeAllTeamPairs();
-        topbar.addTeam(first.getTeamId(), first.getColor());
-        topbar.addTeam(second.getTeamId(), second.getColor());
-        topbar.linkTeamPair(first.getTeamId(), second.getTeamId());
+        topbar.addTeam(northTeam.getTeamId(), northTeam.getColor());
+        topbar.addTeam(southTeam.getTeamId(), southTeam.getColor());
+        topbar.linkTeamPair(northTeam.getTeamId(), southTeam.getTeamId());
         for (Participant firstPlaceParticipant : firstPlaceParticipants.values()) {
-            topbar.linkToTeam(firstPlaceParticipant.getUniqueId(), first.getTeamId());
+            topbar.linkToTeam(firstPlaceParticipant.getUniqueId(), northTeam.getTeamId());
         }
         for (Participant secondPlaceParticipant : secondPlaceParticipants.values()) {
-            topbar.linkToTeam(secondPlaceParticipant.getUniqueId(), second.getTeamId());
+            topbar.linkToTeam(secondPlaceParticipant.getUniqueId(), southTeam.getTeamId());
         }
         for (Participant spectator : spectators.values()) {
-            topbar.linkToTeam(spectator.getUniqueId(), first.getTeamId());
+            topbar.linkToTeam(spectator.getUniqueId(), northTeam.getTeamId());
         }
-        topbar.setMembers(first.getTeamId(), firstPlaceParticipants.size(), 0);
-        topbar.setMembers(second.getTeamId(), secondPlaceParticipants.size(), 0);
+        topbar.setMembers(northTeam.getTeamId(), firstPlaceParticipants.size(), 0);
+        topbar.setMembers(southTeam.getTeamId(), secondPlaceParticipants.size(), 0);
     }
     
     public void onFirstPlaceWinRound() {
         firstPlaceRoundWins++;
         updateRoundWinSidebar();
         if (firstPlaceRoundWins >= config.getRequiredWins()) {
-            stop(first);
+            stop(northTeam);
             return;
         }
         currentRoundIndex++;
@@ -271,7 +271,7 @@ public class ColossalCombatGame implements Listener, Configurable {
         secondPlaceRoundWins++;
         updateRoundWinSidebar();
         if (secondPlaceRoundWins >= config.getRequiredWins()) {
-            stop(second);
+            stop(southTeam);
             return;
         }
         currentRoundIndex++;
@@ -293,12 +293,12 @@ public class ColossalCombatGame implements Listener, Configurable {
         removeConcrete();
         for (Participant participant : firstPlaceParticipants.values()) {
             resetParticipant(participant);
-            first.removeParticipant(participant.getUniqueId());
+            northTeam.removeParticipant(participant.getUniqueId());
         }
         firstPlaceParticipants.clear();
         for (Participant participant : secondPlaceParticipants.values()) {
             resetParticipant(participant);
-            second.removeParticipant(participant.getUniqueId());
+            southTeam.removeParticipant(participant.getUniqueId());
         }
         secondPlaceParticipants.clear();
         for (Participant participant : spectators.values()) {
@@ -342,9 +342,9 @@ public class ColossalCombatGame implements Listener, Configurable {
             return;
         }
         ColossalCombatRound.Affiliation affiliation;
-        if (first.getTeamId().equals(participant.getTeamId())) {
+        if (northTeam.getTeamId().equals(participant.getTeamId())) {
             affiliation = ColossalCombatRound.Affiliation.FIRST;
-        } else if (second.getTeamId().equals(participant.getTeamId())) {
+        } else if (southTeam.getTeamId().equals(participant.getTeamId())) {
             affiliation = ColossalCombatRound.Affiliation.SECOND;
         } else {
             affiliation = null;
@@ -381,7 +381,7 @@ public class ColossalCombatGame implements Listener, Configurable {
         } else {
             initializeSpectator(participant);
             if (!descriptionShowing) {
-                topbar.linkToTeam(participant.getUniqueId(), first.getTeamId());
+                topbar.linkToTeam(participant.getUniqueId(), northTeam.getTeamId());
             }
             if ( 0 <= currentRoundIndex && currentRoundIndex < rounds.size()) {
                 ColossalCombatRound currentRound = rounds.get(currentRoundIndex);
@@ -409,9 +409,9 @@ public class ColossalCombatGame implements Listener, Configurable {
             }
         }
         ColossalParticipant ccParticipant;
-        if (first.getTeamId().equals(participant.getTeamId())) {
+        if (northTeam.getTeamId().equals(participant.getTeamId())) {
             ccParticipant = firstPlaceParticipants.get(participant.getUniqueId());
-        } else if (second.getTeamId().equals(participant.getTeamId())) {
+        } else if (southTeam.getTeamId().equals(participant.getTeamId())) {
             ccParticipant = secondPlaceParticipants.get(participant.getUniqueId());
         } else {
             resetParticipant(participant);
@@ -422,10 +422,10 @@ public class ColossalCombatGame implements Listener, Configurable {
         resetParticipant(ccParticipant);
         if (ccParticipant.getAffiliation() == ColossalCombatRound.Affiliation.FIRST) {
             firstPlaceParticipants.remove(participant.getUniqueId());
-            first.removeParticipant(participant.getUniqueId());
+            northTeam.removeParticipant(participant.getUniqueId());
         } else {
             secondPlaceParticipants.remove(participant.getUniqueId());
-            second.removeParticipant(participant.getUniqueId());
+            southTeam.removeParticipant(participant.getUniqueId());
         }
     }
     
@@ -560,10 +560,10 @@ public class ColossalCombatGame implements Listener, Configurable {
     }
     
     private void updateRoundWinSidebar() {
-        sidebar.updateLine("firstWinCount", toWinCountComponent(first.getFormattedDisplayName(), firstPlaceRoundWins));
-        sidebar.updateLine("secondWinCount", toWinCountComponent(second.getFormattedDisplayName(), secondPlaceRoundWins));
-        adminSidebar.updateLine("firstWinCount", toWinCountComponent(first.getFormattedDisplayName(), firstPlaceRoundWins));
-        adminSidebar.updateLine("secondWinCount", toWinCountComponent(second.getFormattedDisplayName(), secondPlaceRoundWins));
+        sidebar.updateLine("northWinCount", toWinCountComponent(northTeam.getFormattedDisplayName(), firstPlaceRoundWins));
+        sidebar.updateLine("southWinCount", toWinCountComponent(southTeam.getFormattedDisplayName(), secondPlaceRoundWins));
+        adminSidebar.updateLine("northWinCount", toWinCountComponent(northTeam.getFormattedDisplayName(), firstPlaceRoundWins));
+        adminSidebar.updateLine("southWinCount", toWinCountComponent(southTeam.getFormattedDisplayName(), secondPlaceRoundWins));
     }
     
     private Component toWinCountComponent(Component teamDisplayName, int roundWins) {
@@ -579,12 +579,12 @@ public class ColossalCombatGame implements Listener, Configurable {
     private void initializeAdminSidebar() {
         adminSidebar.addLines(
                 new KeyLine("title", title),
-                new KeyLine("firstWinCount", Component.empty()
-                        .append(first.getFormattedDisplayName())
+                new KeyLine("northWinCount", Component.empty()
+                        .append(northTeam.getFormattedDisplayName())
                         .append(Component.text(": 0/"))
                         .append(Component.text(config.getRequiredWins()))),
-                new KeyLine("secondWinCount", Component.empty()
-                        .append(second.getFormattedDisplayName())
+                new KeyLine("southWinCount", Component.empty()
+                        .append(southTeam.getFormattedDisplayName())
                         .append(Component.text(": 0/"))
                         .append(Component.text(config.getRequiredWins()))),
                 new KeyLine("round", Component.text("Round: 1")),
@@ -600,12 +600,12 @@ public class ColossalCombatGame implements Listener, Configurable {
     private void initializeSidebar() {
         sidebar.addLines(
                 new KeyLine("title", title),
-                new KeyLine("firstWinCount", Component.empty()
-                        .append(first.getFormattedDisplayName())
+                new KeyLine("northWinCount", Component.empty()
+                        .append(northTeam.getFormattedDisplayName())
                         .append(Component.text(": 0/"))
                         .append(Component.text(config.getRequiredWins()))),
-                new KeyLine("secondWinCount", Component.empty()
-                        .append(second.getFormattedDisplayName())
+                new KeyLine("southWinCount", Component.empty()
+                        .append(southTeam.getFormattedDisplayName())
                         .append(Component.text(": 0/"))
                         .append(Component.text(config.getRequiredWins()))),
                 new KeyLine("round", Component.text("Round: 1"))
@@ -641,13 +641,13 @@ public class ColossalCombatGame implements Listener, Configurable {
                 config.getNorthClearArea(), 
                 config.getNorthStone(), 
                 config.getNorthPlaceArea(), 
-                gameManager.getTeamPowderColor(first.getTeamId())
+                gameManager.getTeamPowderColor(northTeam.getTeamId())
         );
         closeGate(
                 config.getSouthClearArea(), 
                 config.getSouthStone(), 
                 config.getSouthPlaceArea(), 
-                gameManager.getTeamPowderColor(second.getTeamId())
+                gameManager.getTeamPowderColor(southTeam.getTeamId())
         );
         placeConcrete();
     }
@@ -658,12 +658,12 @@ public class ColossalCombatGame implements Listener, Configurable {
                     config.getWorld(),
                     config.getNorthFlagReplaceArea(),
                     config.getReplaceBlock(),
-                    gameManager.getTeamConcreteColor(first.getTeamId()));
+                    gameManager.getTeamConcreteColor(northTeam.getTeamId()));
             BlockPlacementUtils.createCubeReplace(
                     config.getWorld(),
                     config.getSouthFlagReplaceArea(),
                     config.getReplaceBlock(),
-                    gameManager.getTeamConcreteColor(second.getTeamId()));
+                    gameManager.getTeamConcreteColor(southTeam.getTeamId()));
         }
     }
     
@@ -672,12 +672,12 @@ public class ColossalCombatGame implements Listener, Configurable {
             BlockPlacementUtils.createCubeReplace(
                     config.getWorld(),
                     config.getNorthFlagReplaceArea(),
-                    gameManager.getTeamConcreteColor(first.getTeamId()),
+                    gameManager.getTeamConcreteColor(northTeam.getTeamId()),
                     config.getReplaceBlock());
             BlockPlacementUtils.createCubeReplace(
                     config.getWorld(),
                     config.getSouthFlagReplaceArea(),
-                    gameManager.getTeamConcreteColor(second.getTeamId()),
+                    gameManager.getTeamConcreteColor(southTeam.getTeamId()),
                     config.getReplaceBlock());
         }
     }
