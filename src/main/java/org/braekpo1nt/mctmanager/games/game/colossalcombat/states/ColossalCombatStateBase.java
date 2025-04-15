@@ -74,7 +74,10 @@ public class ColossalCombatStateBase implements ColossalCombatState {
     
     @Override
     public void onParticipantQuit(ColossalParticipant participant, ColossalTeam team) {
-        
+        if (participant.getAffiliation() == Affiliation.SPECTATOR) {
+            return;
+        }
+        context.updateAliveStatus(participant.getAffiliation());
     }
     
     @Override

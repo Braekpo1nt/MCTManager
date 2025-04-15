@@ -35,6 +35,10 @@ public abstract class GameplayState extends ColossalCombatStateBase {
         }
         event.getDrops().clear();
         event.setDroppedExp(0);
+        onParticipantDeath(participant);
+    }
+    
+    private void onParticipantDeath(@NotNull ColossalParticipant participant) {
         participant.setAlive(false);
         context.updateAliveStatus(participant.getAffiliation());
         context.addDeath(participant);
@@ -123,5 +127,14 @@ public abstract class GameplayState extends ColossalCombatStateBase {
         participant.setAlive(false);
         participant.setGameMode(GameMode.SPECTATOR);
         context.updateAliveStatus(participant.getAffiliation());
+    }
+    
+    @Override
+    public void onParticipantQuit(ColossalParticipant participant, ColossalTeam team) {
+        context.messageAllParticipants(Component.empty()
+                .append(participant.displayName())
+                .append(Component.text(" left early. Their life is forfeit.")));
+        onParticipantDeath(participant);
+        super.onParticipantQuit(participant, team);
     }
 }
