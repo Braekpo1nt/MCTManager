@@ -1,11 +1,13 @@
 package org.braekpo1nt.mctmanager.games.game.colossalcombat.states;
 
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.experimental.Affiliation;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalCombatGame;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalParticipant;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalTeam;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.config.ColossalCombatConfig;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -46,7 +48,10 @@ public abstract class GameplayState extends ColossalCombatStateBase {
         context.addKill(killerParticipant);
         context.updateAliveStatus(participant.getAffiliation());
         if (context.getTeams().get(participant.getTeamId()).isDead()) {
-            
+            switch (participant.getAffiliation()) {
+                case NORTH -> onTeamWinRound(southTeam);
+                case SOUTH -> onTeamWinRound(northTeam);
+            }
         }
     }
     
@@ -54,7 +59,30 @@ public abstract class GameplayState extends ColossalCombatStateBase {
      * Called when a given team wins
      * @param winner the team which won
      */
-    protected abstract void onTeamWin(ColossalTeam winner);
+    protected void onTeamWinRound(@NotNull ColossalTeam winner) {
+        cleanup();
+        winner.setWins(winner.getWins() + 1);
+        context.updateRoundSidebar();
+        if (winner.getWins() >= config.getRequiredWins()) {
+            // declare overall winner
+            context.messageAllParticipants(Component.empty()
+                    .append(winner.getFormattedDisplayName())
+                    .append(Component.text("wins the game!")));
+            context.titleAllParticipants(UIUtils.defaultTitle(
+                    Component.empty()
+                            .append(winner.getFormattedDisplayName()),
+                    Component.empty()
+                            .append(Component.text("wins"))
+            ));
+            context.setState(new GameOverState(context));
+        } else {
+            // declare winner of round
+            context.messageAllParticipants(Component.empty()
+                    .append(winner.getFormattedDisplayName())
+                    .append(Component.text(" won this round!")));
+            context.setState(new RoundOverState(context));
+        }
+    }
     
     @Override
     public void onParticipantRespawn(PlayerRespawnEvent event, ColossalParticipant participant) {

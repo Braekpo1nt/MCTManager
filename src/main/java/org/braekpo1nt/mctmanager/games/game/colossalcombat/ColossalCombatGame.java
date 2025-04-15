@@ -21,10 +21,13 @@ import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
+import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.GameRule;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -283,5 +286,42 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
     public void giveLoadout(ColossalParticipant participant) {
         participant.getInventory().setContents(config.getLoadout());
         GameManagerUtils.colorLeatherArmor(gameManager, participant);
+    }
+    
+    public void closeGates() {
+        closeGate(config.getNorthGate(), gameManager.getTeamConcreteColor(northTeam.getTeamId()));
+        closeGate(config.getSouthGate(), gameManager.getTeamConcreteColor(southTeam.getTeamId()));
+        placeConcrete();
+    }
+    
+    private void placeConcrete() {
+        if (config.shouldReplaceWithConcrete()) {
+            BlockPlacementUtils.createCubeReplace(
+                    config.getWorld(),
+                    config.getNorthFlagReplaceArea(),
+                    config.getReplaceBlock(),
+                    gameManager.getTeamConcreteColor(northTeam.getTeamId()));
+            BlockPlacementUtils.createCubeReplace(
+                    config.getWorld(),
+                    config.getSouthFlagReplaceArea(),
+                    config.getReplaceBlock(),
+                    gameManager.getTeamConcreteColor(southTeam.getTeamId()));
+        }
+    }
+    
+    private void closeGate(Gate gate, Material teamPowderColor) {
+        //replace powder with air
+        for (Material powderColor : ColorMap.getAllConcretePowderColors()) {
+            BlockPlacementUtils.createCubeReplace(config.getWorld(), gate.getClearArea(), powderColor, Material.AIR);
+        }
+        //place stone under the powder area
+        BlockPlacementUtils.createCube(config.getWorld(), gate.getStone(), Material.STONE);
+        //replace air with team powder color
+        BlockPlacementUtils.createCubeReplace(config.getWorld(), gate.getPlaceArea(), Material.AIR, teamPowderColor);
+    }
+    
+    public void openGates() {
+        BlockPlacementUtils.createCube(config.getWorld(), config.getNorthGate().getStone(), Material.AIR);
+        BlockPlacementUtils.createCube(config.getWorld(), config.getSouthGate().getStone(), Material.AIR);
     }
 }

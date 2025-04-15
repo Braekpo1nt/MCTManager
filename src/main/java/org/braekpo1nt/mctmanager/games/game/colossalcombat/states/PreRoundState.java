@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 public class PreRoundState extends ColossalCombatStateBase {
     public PreRoundState(@NotNull ColossalCombatGame context) {
         super(context);
+        context.closeGates();
         for (ColossalParticipant participant : context.getParticipants().values()) {
             switch (participant.getAffiliation()) {
                 case NORTH -> {

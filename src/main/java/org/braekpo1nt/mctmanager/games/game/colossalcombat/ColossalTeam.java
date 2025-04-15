@@ -15,6 +15,9 @@ import org.jetbrains.annotations.NotNull;
 public class ColossalTeam extends ScoredTeamData<ColossalParticipant> implements Affiliated {
     
     private final @NotNull Affiliation affiliation;
+    /**
+     * How many rounds this team has won
+     */
     private int wins;
     
     public ColossalTeam(@NotNull Team team, int score, @NotNull Affiliation affiliation) {
