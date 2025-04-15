@@ -13,6 +13,7 @@ import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
@@ -41,12 +42,10 @@ public class NotReadyCommand implements TabExecutor {
 
         String reason = String.join(" ", args);
 
-        gameManager.playSoundForAdmins(Sound.BLOCK_NOTE_BLOCK_PLING.name().toLowerCase(), 1, 1);
-        gameManager.getOnlineAdmins().forEach(admin -> {
-            admin.showTitle(Title.title(
-                    Component.text(""),
-                    Component.text(sender.getName() + " is not ready to continue the event")));
-        });
+        gameManager.playSoundForAdmins(Sound.BLOCK_NOTE_BLOCK_PLING.key().value(), 1, 1);
+        Audience.audience(gameManager.getOnlineAdmins()).showTitle(Title.title(
+            Component.text(""),
+            Component.text(sender.getName() + " is not ready to continue the event")));
         gameManager.messageAdmins(
                 Component.text(sender.getName() + " is not ready to continue the event. Reason: " + reason));
 

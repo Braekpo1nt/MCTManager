@@ -13,6 +13,7 @@ import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
@@ -41,15 +42,14 @@ public class BugReportCommand implements TabExecutor {
 
         String description = String.join(" ", args);
 
-        gameManager.playSoundForAdmins(Sound.BLOCK_NOTE_BLOCK_PLING.name().toLowerCase(), 1, 1);
-        gameManager.getOnlineAdmins().forEach(admin -> {
-            admin.showTitle(Title.title(
-                    Component.text(""),
-                    Component.text(sender.getName() + " reported a bug")));
-        });
+        gameManager.playSoundForAdmins(Sound.BLOCK_NOTE_BLOCK_PLING.key().value(), 1, 1);
+        Audience.audience(gameManager.getOnlineAdmins()).showTitle(Title.title(
+            Component.text(""),
+            Component.text(sender.getName() + " reported a bug")));
 
         // TODO: Logs the bug and the timestamp to a file
         Main.logger().warning(sender.getName() + "reported a bug: " + description);
+        gameManager.messageAdmins(Component.text(sender.getName() + "reported a bug: " + description));
 
         return true;
     }

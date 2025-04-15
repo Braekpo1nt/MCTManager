@@ -39,7 +39,7 @@ import java.util.logging.Logger;
 public class Main extends JavaPlugin {
 
     public static final List<String> VALID_CONFIG_VERSIONS = List.of("0.1.0", "0.1.1", "0.1.2");
-
+    
     /**
      * A default Gson instance for general use
      */
@@ -50,37 +50,32 @@ public class Main extends JavaPlugin {
     public static final Gson GSON_PRETTY = new GsonBuilder().setPrettyPrinting().create();
     private GameManager gameManager;
     private boolean saveGameStateOnDisable = true;
-    public final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false,
-            false);
+    public final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
     private MCTCommand mctCommand;
     /**
-     * This should be the application-wide logger used to print logs to the console
-     * or standard out.
-     * Initialized to Lombok log value so that tests don't trigger
-     * NullPointerExceptions
+     * This should be the application-wide logger used to print logs to the console or standard out. 
+     * Initialized to Lombok log value so that tests don't trigger NullPointerExceptions
      */
     private static Logger logger = log;
     private static final Map<LogType, @NotNull Boolean> logTypeActive = new HashMap<>();
-
+    
     protected GameManager initialGameManager(Scoreboard mctScoreboard) {
         return new GameManager(this, mctScoreboard);
     }
-
+    
     /**
      * @return the plugin's logger
      */
     public static Logger logger() {
         return Main.logger;
     }
-
+    
     public static void setLogTypeActive(@NotNull LogType logType, boolean active) {
         logTypeActive.put(logType, active);
     }
-
+    
     /**
-     * Logs the message if the given {@link LogType} should be logged (as determined
-     * by {@link #logTypeActive})
-     * 
+     * Logs the message if the given {@link LogType} should be logged (as determined by {@link #logTypeActive})
      * @param logType the {@link LogType} of the message
      * @param message the message to log
      * @see #setLogTypeActive(LogType, boolean)
@@ -90,47 +85,42 @@ public class Main extends JavaPlugin {
             Main.logger().info(message);
         }
     }
-
+    
     /**
-     * Logs the message if the given {@link LogType} should be logged (as determined
-     * by {@link #logTypeActive})
-     * 
+     * Logs the message if the given {@link LogType} should be logged (as determined by {@link #logTypeActive})
      * @param logType the {@link LogType} of the message
-     * @param message the message to log.
-     *                Must be a valid {@link Logger#log(Level, String, Object[])}
-     *                string.
+     * @param message the message to log. 
+     *                Must be a valid {@link Logger#log(Level, String, Object[])} string. 
      *                The provided args will be used as the {code Object...}
      *                arguments of the format string.
-     * @param args    the args the arguments of the
-     *                {@link Logger#log(Level, String, Object[])} which
-     *                uses the message as the pattern.
+     * @param args the args the arguments of the {@link Logger#log(Level, String, Object[])} which 
+     *             uses the message as the pattern.
      */
     public static void debugLog(@NotNull LogType logType, @NotNull String message, Object... args) {
         if (logTypeActive.get(logType)) {
             Main.logger.log(Level.INFO, message, args);
         }
     }
-
+    
     @Override
     public void onLoad() {
         PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
         PacketEvents.getAPI().load();
     }
-
+    
     @Override
     public void onEnable() {
         Main.logger = this.getLogger();
         Scoreboard mctScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
-        ParticipantInitializer.setPlugin(this); // TODO: remove this in favor of death and respawn combination
-
+        ParticipantInitializer.setPlugin(this); //TODO: remove this in favor of death and respawn combination 
+        
         PacketEvents.getAPI().init();
-
+        
         gameManager = initialGameManager(mctScoreboard);
         try {
             gameManager.loadHubConfig();
         } catch (ConfigException e) {
-            Main.logger().severe(String.format("[MCTManager] Could not load hub config, see console for details. %s",
-                    e.getMessage()));
+            Main.logger().severe(String.format("[MCTManager] Could not load hub config, see console for details. %s", e.getMessage()));
             e.printStackTrace();
             saveGameStateOnDisable = false;
             Bukkit.getPluginManager().disablePlugin(this);
@@ -143,10 +133,10 @@ public class Main extends JavaPlugin {
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
-
+        
         // Listeners
         BlockEffectsListener blockEffectsListener = new BlockEffectsListener(this);
-
+        
         // Commands
         new MCTDebugCommand(this);
         mctCommand = new MCTCommand(this, gameManager, blockEffectsListener);
@@ -157,14 +147,14 @@ public class Main extends JavaPlugin {
         new TeamMsgCommand(this, gameManager);
         new BugReportCommand(this, gameManager);
         new NotReadyCommand(this, gameManager);
-
+    
         alwaysGiveNightVision();
     }
-
+    
     public MCTCommand getMctCommand() {
         return mctCommand;
     }
-
+    
     private void alwaysGiveNightVision() {
         Main.logger().info("[MCTManager] Night vision activated");
         new BukkitRunnable() {
@@ -176,10 +166,10 @@ public class Main extends JavaPlugin {
             }
         }.runTaskTimer(this, 0L, 60L);
     }
-
+    
     @Override
     public void onDisable() {
-        ParticipantInitializer.setPlugin(null); // TODO: remove this in favor of death and respawn combination
+        ParticipantInitializer.setPlugin(null); //TODO: remove this in favor of death and respawn combination 
         PacketEvents.getAPI().terminate();
         if (saveGameStateOnDisable && gameManager != null) {
             gameManager.cancelVote();
@@ -201,9 +191,9 @@ public class Main extends JavaPlugin {
             Main.logger().info("[MCTManager] Skipping save game state.");
         }
     }
-
+    
     // Testing methods for mocking components
-
+    
     public GameManager getGameManager() {
         return gameManager;
     }
