@@ -36,17 +36,15 @@ public abstract class GameplayState extends ColossalCombatStateBase {
         event.getDrops().clear();
         event.setDroppedExp(0);
         participant.setAlive(false);
+        context.updateAliveStatus(participant.getAffiliation());
         context.addDeath(participant);
         Player killer = participant.getKiller();
-        if (killer == null) {
-            return;
+        if (killer != null) {
+            ColossalParticipant killerParticipant = context.getParticipants().get(killer.getUniqueId());
+            if (killerParticipant != null) {
+                context.addKill(killerParticipant);
+            }
         }
-        ColossalParticipant killerParticipant = context.getParticipants().get(killer.getUniqueId());
-        if (killerParticipant == null) {
-            return;
-        }
-        context.addKill(killerParticipant);
-        context.updateAliveStatus(participant.getAffiliation());
         if (context.getTeams().get(participant.getTeamId()).isDead()) {
             switch (participant.getAffiliation()) {
                 case NORTH -> onTeamWinRound(southTeam);
@@ -67,7 +65,7 @@ public abstract class GameplayState extends ColossalCombatStateBase {
             // declare overall winner
             context.messageAllParticipants(Component.empty()
                     .append(winner.getFormattedDisplayName())
-                    .append(Component.text("wins the game!")));
+                    .append(Component.text(" wins the game!")));
             context.titleAllParticipants(UIUtils.defaultTitle(
                     Component.empty()
                             .append(winner.getFormattedDisplayName()),

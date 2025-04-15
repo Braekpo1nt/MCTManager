@@ -255,6 +255,7 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
                 .append(team.getFormattedDisplayName())
                 .append(Component.text(": "))
                 .append(Component.text(team.getWins()))
+                .append(Component.text("/"))
                 .append(Component.text(config.getRequiredWins()));
     }
     
