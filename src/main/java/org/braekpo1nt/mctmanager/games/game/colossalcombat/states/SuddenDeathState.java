@@ -21,4 +21,6 @@ public class SuddenDeathState extends GameplayState {
                 .append(Component.text("Sudden death has begun. Capture the flag to win!"))
                 .color(NamedTextColor.DARK_PURPLE));
     }
+    
+    
 }

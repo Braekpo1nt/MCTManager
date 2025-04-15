@@ -102,4 +102,26 @@ public abstract class GameplayState extends ColossalCombatStateBase {
             event.setCancelled(true);
         }
     }
+    
+    @Override
+    public void onParticipantRejoin(ColossalParticipant participant, ColossalTeam team) {
+        super.onParticipantRejoin(participant, team);
+        if (participant.getAffiliation() == Affiliation.SPECTATOR) {
+            return;
+        }
+        participant.setAlive(false);
+        participant.setGameMode(GameMode.SPECTATOR);
+        context.updateAliveStatus(participant.getAffiliation());
+    }
+    
+    @Override
+    public void onNewParticipantJoin(ColossalParticipant participant, ColossalTeam team) {
+        super.onNewParticipantJoin(participant, team);
+        if (participant.getAffiliation() == Affiliation.SPECTATOR) {
+            return;
+        }
+        participant.setAlive(false);
+        participant.setGameMode(GameMode.SPECTATOR);
+        context.updateAliveStatus(participant.getAffiliation());
+    }
 }
