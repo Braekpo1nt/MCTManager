@@ -27,7 +27,6 @@ import org.bukkit.GameRule;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -69,6 +68,7 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
         addListener(new PreventPickupArrow<>(this));
         topbar.addTeam(northTeam.getTeamId(), northTeam.getColor());
         topbar.addTeam(southTeam.getTeamId(), southTeam.getColor());
+        topbar.linkTeamPair(northTeam.getTeamId(), southTeam.getTeamId());
         start(newTeams, newParticipants, newAdmins);
         updateAliveStatus(Affiliation.NORTH);
         updateAliveStatus(Affiliation.SOUTH);
