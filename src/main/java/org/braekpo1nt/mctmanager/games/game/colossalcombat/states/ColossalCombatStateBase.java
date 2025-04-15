@@ -4,6 +4,7 @@ import org.braekpo1nt.mctmanager.games.experimental.Affiliation;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalCombatGame;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalParticipant;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalTeam;
+import org.bukkit.GameMode;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -48,6 +49,7 @@ public class ColossalCombatStateBase implements ColossalCombatState {
                 participant.teleport(context.getConfig().getSouthGate().getSpawn());
             }
         }
+        participant.setGameMode(GameMode.ADVENTURE);
         context.getTopbar().linkToTeam(participant.getUniqueId(), participant.getTeamId());
         context.getTopbar().setKillsAndDeaths(participant.getUniqueId(), participant.getKills(), participant.getDeaths());
         context.updateAliveStatus(participant.getAffiliation());
