@@ -289,8 +289,8 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
     }
     
     public void closeGates() {
-        closeGate(config.getNorthGate(), gameManager.getTeamConcreteColor(northTeam.getTeamId()));
-        closeGate(config.getSouthGate(), gameManager.getTeamConcreteColor(southTeam.getTeamId()));
+        closeGate(config.getNorthGate(), gameManager.getTeamPowderColor(northTeam.getTeamId()));
+        closeGate(config.getSouthGate(), gameManager.getTeamPowderColor(southTeam.getTeamId()));
         placeConcrete();
     }
     

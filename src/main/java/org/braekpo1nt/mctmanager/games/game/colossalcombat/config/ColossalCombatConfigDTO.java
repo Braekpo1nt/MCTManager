@@ -192,8 +192,6 @@ record ColossalCombatConfigDTO(
          * Defaults to 60.
          */
         private int countdown = 60;
-        private BoundingBox firstPlaceGoal;
-        private BoundingBox secondPlaceGoal;
         /**
          * the block to replace with concrete of the team's color. Defaults to null. If null, no blocks will be replaced.
          */
@@ -213,10 +211,6 @@ record ColossalCombatConfigDTO(
             validator.notNull(flagDirection, "flagDirection");
             validator.notNull(flagLocation, "flagLocation");
             validator.notNull(flagSpawnMessage, "flagSpawnMessage");
-            validator.notNull(firstPlaceGoal, "firstPlaceGoal");
-            validator.validate(firstPlaceGoal.getVolume() >= 1, "firstPlaceGoal must have a volume of at least 1");
-            validator.notNull(secondPlaceGoal, "secondPlaceGoal");
-            validator.validate(secondPlaceGoal.getVolume() >= 1, "secondPlaceGoal must have a volume of at least 1");
             validator.notNull(firstPlaceReplaceArea, "firstPlaceReplaceArea");
             validator.notNull(secondPlaceReplaceArea, "secondPlaceReplaceArea");
         }
@@ -250,6 +244,7 @@ record ColossalCombatConfigDTO(
             validator.notNull(stone, "stone");
             validator.notNull(antiSuffocationArea, "antiSuffocationArea");
             validator.notNull(flagGoal, "flagGoal");
+            validator.validate(flagGoal.getVolume() >= 1, "flagGoal must have a volume of at least 1");
         }
     }
     
