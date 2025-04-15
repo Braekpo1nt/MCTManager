@@ -39,3 +39,13 @@ commands:
     description: Send a message to your teammates
     permission: mctmanager.t
     permission-message: "You do not have permission to use this command"
+  bugreport:
+    description: Report a bug
+    usage: "/bugreport <description>"
+    permission: mctmanager.bugreport
+    permission-message: "You do not have permission to use this command"
+  notready:
+    description: Indicate your are not ready for the event to continue
+    usage: "/notready <reason>"
+    permission: mctmanager.notready
+    permission-message: "You do not have permission to use this command"

@@ -5,9 +5,12 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import lombok.extern.java.Log;
+
+import org.braekpo1nt.mctmanager.commands.bugreport.BugReportCommand;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.commands.mct.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.mctdebug.MCTDebugCommand;
+import org.braekpo1nt.mctmanager.commands.notready.NotReadyCommand;
 import org.braekpo1nt.mctmanager.commands.readyup.ReadyUpCommand;
 import org.braekpo1nt.mctmanager.commands.readyup.UnReadyCommand;
 import org.braekpo1nt.mctmanager.commands.teammsg.TeamMsgCommand;
@@ -142,6 +145,8 @@ public class Main extends JavaPlugin {
         new UnReadyCommand(this, gameManager);
         new TopCommand(this, gameManager);
         new TeamMsgCommand(this, gameManager);
+        new BugReportCommand(this, gameManager);
+        new NotReadyCommand(this, gameManager);
     
         alwaysGiveNightVision();
     }
