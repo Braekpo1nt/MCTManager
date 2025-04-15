@@ -42,6 +42,7 @@ public abstract class GameplayState extends ColossalCombatStateBase {
         if (killer != null) {
             ColossalParticipant killerParticipant = context.getParticipants().get(killer.getUniqueId());
             if (killerParticipant != null) {
+                UIUtils.showKillTitle(killerParticipant, participant);
                 context.addKill(killerParticipant);
             }
         }
