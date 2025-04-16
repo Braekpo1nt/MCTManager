@@ -38,6 +38,10 @@ public abstract class GameplayState extends ColossalCombatStateBase {
         onParticipantDeath(participant);
     }
     
+    /**
+     * Only called when a non-{@link Affiliation#SPECTATOR} dies
+     * @param participant a non-spectator who died
+     */
     private void onParticipantDeath(@NotNull ColossalParticipant participant) {
         participant.setAlive(false);
         context.updateAliveStatus(participant.getAffiliation());
@@ -131,10 +135,12 @@ public abstract class GameplayState extends ColossalCombatStateBase {
     
     @Override
     public void onParticipantQuit(ColossalParticipant participant, ColossalTeam team) {
-        context.messageAllParticipants(Component.empty()
-                .append(participant.displayName())
-                .append(Component.text(" left early. Their life is forfeit.")));
-        onParticipantDeath(participant);
+        if (participant.getAffiliation() != Affiliation.SPECTATOR) {
+            context.messageAllParticipants(Component.empty()
+                    .append(participant.displayName())
+                    .append(Component.text(" left early. Their life is forfeit.")));
+            onParticipantDeath(participant);
+        }
         super.onParticipantQuit(participant, team);
     }
 }
