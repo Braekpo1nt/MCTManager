@@ -37,8 +37,8 @@ record ColossalCombatConfigDTO(
         GateDTO northGate, 
         GateDTO southGate, 
         BoundingBox removeArea, 
-        BoundingBox firstPlaceSupport, 
-        BoundingBox secondPlaceSupport, 
+        BoundingBox northSupport, 
+        BoundingBox southSupport, 
         CaptureTheFlag captureTheFlag,
         @Nullable List<Material> preventInteractions,
         Durations durations, 
@@ -75,11 +75,11 @@ record ColossalCombatConfigDTO(
         validator.notNull(this.removeArea, "removeArea");
         validator.validate(this.removeArea.getVolume() >= 2.0, "boundingBox (%s) volume (%s) must be at least 2.0", removeArea, removeArea.getVolume());
     
-        validator.notNull(this.firstPlaceSupport, "firstPlaceSupport");
-        validator.validate(this.firstPlaceSupport.getVolume() > 0, "firstPlaceSupport volume (%s) must be greater than 0", firstPlaceSupport.getVolume());
-        validator.notNull(this.secondPlaceSupport, "secondPlaceSupport");
-        validator.validate(this.secondPlaceSupport.getVolume() > 0, "secondPlaceSupport volume (%s) must be greater than 0", secondPlaceSupport.getVolume());
-        validator.validate(!firstPlaceSupport.overlaps(secondPlaceSupport), "firstPlaceSupport and secondPlaceSupport can't overlap");
+        validator.notNull(this.northSupport, "northSupport");
+        validator.validate(this.northSupport.getVolume() > 0, "northSupport volume (%s) must be greater than 0", northSupport.getVolume());
+        validator.notNull(this.southSupport, "southSupport");
+        validator.validate(this.southSupport.getVolume() > 0, "southSupport volume (%s) must be greater than 0", southSupport.getVolume());
+        validator.validate(!northSupport.overlaps(southSupport), "northSupport and southSupport can't overlap");
         
         validator.notNull(captureTheFlag, "captureTheFlag");
         captureTheFlag.validate(validator.path("captureTheFlag"));
@@ -117,8 +117,8 @@ record ColossalCombatConfigDTO(
                 .removeArea(this.removeArea)
                 .northGate(this.northGate.toGate(newWorld))
                 .southGate(this.southGate.toGate(newWorld))
-                .northSupport(this.firstPlaceSupport)
-                .southSupport(this.secondPlaceSupport)
+                .northSupport(this.northSupport)
+                .southSupport(this.southSupport)
                 .antiSuffocationDuration(this.durations.antiSuffocation)
                 .roundStartingDuration(this.durations.roundStarting)
                 .roundOverDuration(this.durations.roundOver)
@@ -192,8 +192,6 @@ record ColossalCombatConfigDTO(
          * Defaults to 60.
          */
         private int countdown = 60;
-        private BoundingBox firstPlaceGoal;
-        private BoundingBox secondPlaceGoal;
         /**
          * the block to replace with concrete of the team's color. Defaults to null. If null, no blocks will be replaced.
          */
@@ -213,10 +211,6 @@ record ColossalCombatConfigDTO(
             validator.notNull(flagDirection, "flagDirection");
             validator.notNull(flagLocation, "flagLocation");
             validator.notNull(flagSpawnMessage, "flagSpawnMessage");
-            validator.notNull(firstPlaceGoal, "firstPlaceGoal");
-            validator.validate(firstPlaceGoal.getVolume() >= 1, "firstPlaceGoal must have a volume of at least 1");
-            validator.notNull(secondPlaceGoal, "secondPlaceGoal");
-            validator.validate(secondPlaceGoal.getVolume() >= 1, "secondPlaceGoal must have a volume of at least 1");
             validator.notNull(firstPlaceReplaceArea, "firstPlaceReplaceArea");
             validator.notNull(secondPlaceReplaceArea, "secondPlaceReplaceArea");
         }
@@ -250,6 +244,7 @@ record ColossalCombatConfigDTO(
             validator.notNull(stone, "stone");
             validator.notNull(antiSuffocationArea, "antiSuffocationArea");
             validator.notNull(flagGoal, "flagGoal");
+            validator.validate(flagGoal.getVolume() >= 1, "flagGoal must have a volume of at least 1");
         }
     }
     

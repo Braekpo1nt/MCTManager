@@ -15,6 +15,9 @@ import org.jetbrains.annotations.NotNull;
 public class ColossalTeam extends ScoredTeamData<ColossalParticipant> implements Affiliated {
     
     private final @NotNull Affiliation affiliation;
+    /**
+     * How many rounds this team has won
+     */
     private int wins;
     
     public ColossalTeam(@NotNull Team team, int score, @NotNull Affiliation affiliation) {
@@ -31,10 +34,19 @@ public class ColossalTeam extends ScoredTeamData<ColossalParticipant> implements
         return new QuitData(getScore(), this.affiliation);
     }
     
+    /**
+     * @return the number of members who are alive
+     */
     public int getAlive() {
         return ((int) getParticipants().stream().filter(ColossalParticipant::isAlive).count());
     }
     
+    /**
+     * @return true if every member of the team is dead, false otherwise
+     */
+    public boolean isDead() {
+        return getParticipants().stream().noneMatch(ColossalParticipant::isAlive);
+    }
     @Data
     public static class QuitData implements QuitDataBase {
         private final int score;

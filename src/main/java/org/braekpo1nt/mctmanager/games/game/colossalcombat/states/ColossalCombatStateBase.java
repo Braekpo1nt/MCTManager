@@ -1,8 +1,10 @@
 package org.braekpo1nt.mctmanager.games.game.colossalcombat.states;
 
+import org.braekpo1nt.mctmanager.games.experimental.Affiliation;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalCombatGame;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalParticipant;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalTeam;
+import org.bukkit.GameMode;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -35,45 +37,49 @@ public class ColossalCombatStateBase implements ColossalCombatState {
     
     @Override
     public void onParticipantRejoin(ColossalParticipant participant, ColossalTeam team) {
+        if (participant.getAffiliation() == Affiliation.SPECTATOR) {
+            participant.teleport(context.getConfig().getSpectatorSpawn());
+            return;
+        }
         switch (participant.getAffiliation()) {
             case NORTH -> {
                 participant.teleport(context.getConfig().getNorthGate().getSpawn());
-                context.getTopbar().linkToTeam(participant.getUniqueId(), participant.getTeamId());
-                context.getTopbar().setKillsAndDeaths(participant.getUniqueId(), participant.getKills(), participant.getDeaths());
             }
             case SOUTH -> {
-                context.getTopbar().linkToTeam(participant.getUniqueId(), participant.getTeamId());
                 participant.teleport(context.getConfig().getSouthGate().getSpawn());
-                context.getTopbar().setKillsAndDeaths(participant.getUniqueId(), participant.getKills(), participant.getDeaths());
-            }
-            case SPECTATOR -> {
-                participant.teleport(context.getConfig().getSpectatorSpawn());
             }
         }
+        participant.setGameMode(GameMode.ADVENTURE);
+        context.getTopbar().linkToTeam(participant.getUniqueId(), participant.getTeamId());
+        context.getTopbar().setKillsAndDeaths(participant.getUniqueId(), participant.getKills(), participant.getDeaths());
+        context.updateAliveStatus(participant.getAffiliation());
     }
     
     @Override
     public void onNewParticipantJoin(ColossalParticipant participant, ColossalTeam team) {
+        if (participant.getAffiliation() == Affiliation.SPECTATOR) {
+            participant.teleport(context.getConfig().getSpectatorSpawn());
+            return;
+        }
         switch (participant.getAffiliation()) {
             case NORTH -> {
                 participant.teleport(context.getConfig().getNorthGate().getSpawn());
-                context.getTopbar().linkToTeam(participant.getUniqueId(), participant.getTeamId());
-                context.getTopbar().setKillsAndDeaths(participant.getUniqueId(), participant.getKills(), participant.getDeaths());
             }
             case SOUTH -> {
-                context.getTopbar().linkToTeam(participant.getUniqueId(), participant.getTeamId());
                 participant.teleport(context.getConfig().getSouthGate().getSpawn());
-                context.getTopbar().setKillsAndDeaths(participant.getUniqueId(), participant.getKills(), participant.getDeaths());
-            }
-            case SPECTATOR -> {
-                participant.teleport(context.getConfig().getSpectatorSpawn());
             }
         }
+        context.getTopbar().linkToTeam(participant.getUniqueId(), participant.getTeamId());
+        context.getTopbar().setKillsAndDeaths(participant.getUniqueId(), participant.getKills(), participant.getDeaths());
+        context.updateAliveStatus(participant.getAffiliation());
     }
     
     @Override
     public void onParticipantQuit(ColossalParticipant participant, ColossalTeam team) {
-        
+        if (participant.getAffiliation() == Affiliation.SPECTATOR) {
+            return;
+        }
+        context.updateAliveStatus(participant.getAffiliation());
     }
     
     @Override
@@ -108,6 +114,10 @@ public class ColossalCombatStateBase implements ColossalCombatState {
     
     @Override
     public void onParticipantRespawn(PlayerRespawnEvent event, ColossalParticipant participant) {
-        
+        switch (participant.getAffiliation()) {
+            case NORTH -> event.setRespawnLocation(context.getConfig().getNorthGate().getSpawn());
+            case SOUTH -> event.setRespawnLocation(context.getConfig().getSouthGate().getSpawn());
+            case SPECTATOR -> event.setRespawnLocation(context.getConfig().getSpectatorSpawn());
+        }
     }
 }

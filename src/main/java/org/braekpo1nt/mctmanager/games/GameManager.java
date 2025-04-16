@@ -244,7 +244,8 @@ public class GameManager implements Listener {
             case FINAL -> {
                 ColossalCombatConfig config = new ColossalCombatConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
                 // TODO: change how this is chosen
-                List<Team> sortedTeams = newTeams.stream().sorted(Comparator.comparingInt(Team::getScore)).toList();
+                List<Team> sortedTeams = newTeams.stream()
+                        .sorted(Comparator.comparingInt(Team::getScore)).toList();
                 yield new ColossalCombatGame(plugin, this, title, config, sortedTeams.getFirst(), sortedTeams.get(1), sortedTeams, newParticipants, newAdmins);
             }
         };
@@ -751,6 +752,13 @@ public class GameManager implements Listener {
                 if (onlineTeams.size() < 2) {
                     sender.sendMessage(Component.text("Capture the Flag needs at least 2 teams online to play.").color(NamedTextColor.RED));
                     return false;
+                }
+            }
+            case FINAL -> {
+                if (onlineTeams.size() < 2) {
+                    sender.sendMessage(Component.empty()
+                            .append(Component.text(GameType.FINAL.getTitle()))
+                            .append(Component.text(" needs at least 2 teams online to play")));
                 }
             }
         }

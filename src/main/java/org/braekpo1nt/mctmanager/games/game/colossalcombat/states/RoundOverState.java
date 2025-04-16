@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.GameMode;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class RoundOverState extends ColossalCombatStateBase {
@@ -32,5 +33,17 @@ public class RoundOverState extends ColossalCombatStateBase {
                     context.setState(new PreRoundState(context));
                 })
                 .build());
+    }
+    
+    @Override
+    public void onParticipantRespawn(PlayerRespawnEvent event, ColossalParticipant participant) {
+        super.onParticipantRespawn(event, participant);
+        if (participant.getAffiliation() == Affiliation.SPECTATOR) {
+            return;
+        }
+        participant.setGameMode(GameMode.SPECTATOR);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.clearInventory(participant);
     }
 }
