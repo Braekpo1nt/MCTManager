@@ -37,6 +37,7 @@ public class ColossalCombatStateBase implements ColossalCombatState {
     
     @Override
     public void onParticipantRejoin(ColossalParticipant participant, ColossalTeam team) {
+        context.updateRoundSidebar(participant);
         if (participant.getAffiliation() == Affiliation.SPECTATOR) {
             participant.teleport(context.getConfig().getSpectatorSpawn());
             return;
@@ -57,6 +58,7 @@ public class ColossalCombatStateBase implements ColossalCombatState {
     
     @Override
     public void onNewParticipantJoin(ColossalParticipant participant, ColossalTeam team) {
+        context.updateRoundSidebar(participant);
         if (participant.getAffiliation() == Affiliation.SPECTATOR) {
             participant.teleport(context.getConfig().getSpectatorSpawn());
             return;
