@@ -95,22 +95,6 @@ public abstract class DelayState implements EventState {
     }
     
     @Override
-    public void colossalCombatIsOver(@Nullable Team winningTeam) {
-        // do nothing
-    }
-    
-    @Override
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam, @NotNull String configFile) {
-        // do nothing
-    }
-    
-    @Override
-    public void stopColossalCombat(@NotNull CommandSender sender) {
-        sender.sendMessage(Component.text("Colossal Combat is not running")
-                .color(NamedTextColor.RED));
-    }
-    
-    @Override
     public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
         sender.sendMessage(Component.text("Can't change the max games during transition period.")
                 .color(NamedTextColor.RED));

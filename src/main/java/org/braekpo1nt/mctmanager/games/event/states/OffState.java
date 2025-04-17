@@ -1,11 +1,7 @@
 package org.braekpo1nt.mctmanager.games.event.states;
 
-import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
-import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -13,7 +9,6 @@ import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
-import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.command.CommandSender;
@@ -202,110 +197,9 @@ public class OffState implements EventState {
     }
     
     @Override
-    public void colossalCombatIsOver(@Nullable Team winningTeam) {
-        if (winningTeam == null) {
-            Component message = Component.text("No winner declared.");
-            context.messageAllAdmins(message);
-            gameManager.messageOnlineParticipants(message);
-            gameManager.returnAllParticipantsToHub();
-            return;
-        }
-        Component message = Component.empty()
-                .append(winningTeam.getFormattedDisplayName())
-                .append(Component.text(" wins!"))
-                .color(winningTeam.getColor())
-                .decorate(TextDecoration.BOLD);
-        context.messageAllAdmins(message);
-        gameManager.messageOnlineParticipants(message);
-        Audience.audience(
-                Audience.audience(context.getAdmins()),
-                Audience.audience(gameManager.getOnlineParticipants())
-        ).showTitle(Title.title(winningTeam.getFormattedDisplayName(), Component.text("wins!")
-                .color(winningTeam.getColor()), UIUtils.DEFAULT_TIMES));
-    }
-    
-    @Override
     public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
         sender.sendMessage(Component.text("There is no event running")
                 .color(NamedTextColor.RED));
-    }
-    
-    @Override
-    public void stopColossalCombat(@NotNull CommandSender sender) {
-        if (!context.getColossalCombatGame().isActive()) {
-            sender.sendMessage(Component.text("Colossal Combat is not running")
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        context.getColossalCombatGame().stop(null);
-    }
-    
-    @Override
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam, @NotNull String configFile) {
-        if (context.getGameManager().gameIsRunning()) {
-            sender.sendMessage(Component.text("Can't start Colossal Combat while a game is running")
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        if (context.getColossalCombatGame().isActive()) {
-            sender.sendMessage(Component.text("Colossal Combat is already running")
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        try {
-            context.getColossalCombatGame().loadConfig(configFile);
-        } catch (ConfigException e) {
-            Main.logger().log(Level.SEVERE, e.getMessage(), e);
-            sender.sendMessage(Component.text("Error loading config file. See console for details.")
-                    .color(NamedTextColor.RED));
-            context.messageAllAdmins(Component.text("Can't start ")
-                    .append(Component.text("Colossal Combat")
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(". Error loading config file. See console for details:\n"))
-                    .append(Component.text(e.getMessage()))
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        List<Participant> firstPlaceParticipants = new ArrayList<>();
-        List<Participant> secondPlaceParticipants = new ArrayList<>();
-        List<Participant> spectators = new ArrayList<>();
-        List<Participant> participantPool = new ArrayList<>(gameManager.getOnlineParticipants());
-        List<Player> adminPool;
-        adminPool = new ArrayList<>(gameManager.getOnlineAdmins());
-        for (Participant participant : participantPool) {
-            if (participant.getTeamId().equals(firstTeam.getTeamId())) {
-                firstPlaceParticipants.add(participant);
-            } else if (participant.getTeamId().equals(secondTeam.getTeamId())) {
-                secondPlaceParticipants.add(participant);
-            } else {
-                spectators.add(participant);
-            }
-        }
-        
-        if (firstPlaceParticipants.isEmpty()) {
-            sender.sendMessage(Component.empty()
-                    .append(Component.text("There are no members of the first place team online. Please use "))
-                    .append(Component.text("/mct event finalgame start <first> <second>")
-                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstTeam.getTeamId(), secondTeam.getTeamId())))
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" to manually start the final game."))
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        
-        if (secondPlaceParticipants.isEmpty()) {
-            sender.sendMessage(Component.empty()
-                    .append(Component.text("There are no members of the second place team online. Please use "))
-                    .append(Component.text("/mct event finalgame start <first> <second>")
-                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstTeam.getTeamId(), secondTeam.getTeamId())))
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" to manually start the final game."))
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        
-        gameManager.removeParticipantsFromHub(participantPool);
-        context.getColossalCombatGame().start(firstTeam, secondTeam, firstPlaceParticipants, secondPlaceParticipants, spectators, adminPool);
     }
     
     @Override

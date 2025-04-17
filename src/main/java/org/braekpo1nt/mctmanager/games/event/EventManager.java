@@ -7,7 +7,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.colossalcombat.ColossalCombatGameOld;
 import org.braekpo1nt.mctmanager.games.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.event.config.EventConfigController;
 import org.braekpo1nt.mctmanager.games.event.states.*;
@@ -42,7 +41,6 @@ public class EventManager implements Listener {
     private final Main plugin;
     private final GameManager gameManager;
     private final VoteManager voteManager;
-    private final ColossalCombatGameOld colossalCombatGame;
     private final EventConfigController configController;
     private final List<GameType> playedGames = new ArrayList<>();
     /**
@@ -79,7 +77,6 @@ public class EventManager implements Listener {
         this.gameManager = gameManager;
         this.voteManager = voteManager;
         this.configController = new EventConfigController(plugin.getDataFolder());
-        this.colossalCombatGame = new ColossalCombatGameOld(plugin, gameManager);
         this.crown.editMeta(meta -> meta.setCustomModelData(1));
         this.state = new OffState(this);
     }
@@ -132,7 +129,8 @@ public class EventManager implements Listener {
     }
     
     public boolean colossalCombatIsActive() {
-        return colossalCombatGame.isActive();
+        // TODO: reconsider use of this
+        return state instanceof PlayingColossalCombatState;
     }
     
     public void onParticipantJoin(Participant participant) {
@@ -172,9 +170,6 @@ public class EventManager implements Listener {
         sender.sendMessage(message);
         messageAllAdmins(message);
         Main.logger().info(String.format("Ending event. %d/%d games were played", currentGameNumber - 1, maxGames));
-        if (colossalCombatGame.isActive()) {
-            colossalCombatGame.stop(null);
-        }
         if (winningTeam != null) {
             for (Participant participant : gameManager.getOnlineParticipants()) {
                 if (participant.getTeamId().equals(winningTeam.getTeamId())) {
@@ -184,8 +179,7 @@ public class EventManager implements Listener {
         }
         clearSidebar();
         clearAdminSidebar();
-        topbar.hideAllPlayers();
-        topbar.removeAllTeams();
+        topbar.cleanup();
         admins.clear();
         readyUpManager.clear();
         scoreKeepers.clear();
@@ -442,18 +436,6 @@ public class EventManager implements Listener {
      */
     public void gameIsOver(GameType finishedGameType) {
         state.gameIsOver(finishedGameType);
-    }
-    
-    public void colossalCombatIsOver(Team winningTeam) {
-        state.colossalCombatIsOver(winningTeam);
-    }
-    
-    public void stopColossalCombat(@NotNull CommandSender sender) {
-        state.stopColossalCombat(sender);
-    }
-    
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam, @NotNull String configFile) {
-        state.startColossalCombat(sender, firstTeam, secondTeam, configFile);
     }
     
     public boolean eventIsActive() {

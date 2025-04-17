@@ -180,9 +180,6 @@ public class Main extends JavaPlugin {
             if (gameManager.getEventManager().eventIsActive()) {
                 gameManager.getEventManager().stopEvent(Bukkit.getConsoleSender());
             }
-            if (gameManager.getEventManager().colossalCombatIsActive()) {
-                gameManager.getEventManager().stopColossalCombat(Bukkit.getConsoleSender());
-            }
             if (gameManager.gameIsRunning()) {
                 gameManager.manuallyStopGame(false);
             }

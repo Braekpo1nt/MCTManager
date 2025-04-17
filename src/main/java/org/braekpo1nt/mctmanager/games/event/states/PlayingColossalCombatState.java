@@ -26,10 +26,6 @@ public class PlayingColossalCombatState extends PlayingGameState {
     
     public PlayingColossalCombatState(EventManager context, @NotNull Team firstTeam, @NotNull Team secondTeam, @NotNull String configFile) {
         super(context);
-        boolean success = tryToStartColossalCombat(firstTeam, secondTeam, configFile);
-        if (!success) {
-            context.setState(new WaitingInHubState(context));
-        }
     }
     
     @Override
@@ -37,63 +33,6 @@ public class PlayingColossalCombatState extends PlayingGameState {
         // do nothing
     }
     
-    private boolean tryToStartColossalCombat(@NotNull Team firstTeam, @NotNull Team secondTeam, @NotNull String configFile) {
-        try {
-            context.getColossalCombatGame().loadConfig(configFile);
-        } catch (ConfigException e) {
-            Main.logger().log(Level.SEVERE, "Error trying to start Colossal Combat", e);
-            context.messageAllAdmins(Component.text("Can't start ")
-                    .append(Component.text("Colossal Combat")
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(". Error loading config file. See console for details:\n"))
-                    .append(Component.text(e.getMessage()))
-                    .color(NamedTextColor.RED));
-            return false;
-        }
-        List<Participant> firstPlaceParticipants = new ArrayList<>();
-        List<Participant> secondPlaceParticipants = new ArrayList<>();
-        List<Participant> spectators = new ArrayList<>();
-        for (Participant participant : context.getParticipants()) {
-            String teamId = participant.getTeamId();
-            if (teamId.equals(firstTeam.getTeamId())) {
-                firstPlaceParticipants.add(participant);
-            } else if (teamId.equals(secondTeam.getTeamId())) {
-                secondPlaceParticipants.add(participant);
-            } else {
-                spectators.add(participant);
-            }
-        }
-        
-        if (firstPlaceParticipants.isEmpty()) {
-            context.messageAllAdmins(Component.empty()
-                    .append(Component.text("There are no members of the first place team online. Please use "))
-                    .append(Component.text("/mct event finalgame start <first> <second>")
-                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstTeam.getTeamId(), secondTeam.getTeamId())))
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" to manually start the final game."))
-                    .color(NamedTextColor.RED));
-            return false;
-        }
-        
-        if (secondPlaceParticipants.isEmpty()) {
-            context.messageAllAdmins(Component.empty()
-                    .append(Component.text("There are no members of the second place team online. Please use "))
-                    .append(Component.text("/mct event finalgame start <first> <second>")
-                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstTeam.getTeamId(), secondTeam.getTeamId())))
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" to manually start the final game."))
-                    .color(NamedTextColor.RED));
-            return false;
-        }
-        context.getSidebar().removePlayers(context.getParticipants());
-        context.getAdminSidebar().removePlayers(context.getAdmins());
-        gameManager.removeParticipantsFromHub(context.getParticipants());
-        context.getColossalCombatGame().start(firstTeam, secondTeam, firstPlaceParticipants, secondPlaceParticipants, spectators, context.getAdmins());
-        context.getAdmins().clear();
-        return true;
-    }
-    
-    @Override
     public void colossalCombatIsOver(@Nullable Team winningTeam) {
         if (winningTeam == null) {
             Component message = Component.text("Game stopped early. No winner declared.");
@@ -123,35 +62,5 @@ public class PlayingColossalCombatState extends PlayingGameState {
         context.setWinningTeam(winningTeam);
         context.initializeParticipantsAndAdmins();
         context.setState(new ToPodiumDelayState(context));
-    }
-    
-    @Override
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam, @NotNull String configFile) {
-        sender.sendMessage(Component.text("Colossal Combat is already running").color(NamedTextColor.RED));
-    }
-    
-    @Override
-    public void stopColossalCombat(@NotNull CommandSender sender) {
-        context.getColossalCombatGame().stop(null);
-    }
-    
-    @Override
-    public void onParticipantJoin(Participant participant) {
-        context.getColossalCombatGame().onParticipantJoin(participant);
-    }
-    
-    @Override
-    public void onParticipantQuit(Participant participant) {
-        context.getColossalCombatGame().onParticipantQuit(participant);
-    }
-    
-    @Override
-    public void onAdminJoin(Player admin) {
-        context.getColossalCombatGame().onAdminJoin(admin);
-    }
-    
-    @Override
-    public void onAdminQuit(Player admin) {
-        context.getColossalCombatGame().onAdminQuit(admin);
     }
 }

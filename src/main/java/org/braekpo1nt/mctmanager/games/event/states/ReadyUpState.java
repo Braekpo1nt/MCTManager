@@ -392,11 +392,6 @@ public class ReadyUpState implements EventState {
     }
     
     @Override
-    public void colossalCombatIsOver(@Nullable Team winningTeam) {
-        // do nothing
-    }
-    
-    @Override
     public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
         context.setMaxGames(newMaxGames);
         Component currentGameLine = context.getCurrentGameLine();
@@ -405,18 +400,6 @@ public class ReadyUpState implements EventState {
         gameManager.updateGameTitle();
         sender.sendMessage(Component.text("Max games has been set to ")
                 .append(Component.text(newMaxGames)));
-    }
-    
-    @Override
-    public void stopColossalCombat(@NotNull CommandSender sender) {
-        sender.sendMessage(Component.text("Colossal Combat is not running")
-                .color(NamedTextColor.RED));
-    }
-    
-    @Override
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam, @NotNull String configFile) {
-        sender.sendMessage(Component.text("Can't start Colossal Combat during Ready Up state")
-                .color(NamedTextColor.RED));
     }
     
     @Override
