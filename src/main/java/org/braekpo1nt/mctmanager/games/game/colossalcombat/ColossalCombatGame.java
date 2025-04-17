@@ -26,7 +26,10 @@ import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.GameRule;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.entity.Arrow;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -308,6 +311,22 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
                     config.getReplaceBlock(),
                     gameManager.getTeamConcreteColor(southTeam.getTeamId()));
         }
+    }
+    
+    public void resetArena() {
+        // remove items/arrows on the ground
+        BoundingBox removeArea = config.getRemoveArea();
+        for (Arrow arrow : config.getWorld().getEntitiesByClass(Arrow.class)) {
+            if (removeArea.contains(arrow.getLocation().toVector())) {
+                arrow.remove();
+            }
+        }
+        for (Item item : config.getWorld().getEntitiesByClass(Item.class)) {
+            if (removeArea.contains(item.getLocation().toVector())) {
+                item.remove();
+            }
+        }
+        removeConcrete();
     }
     
     public void removeConcrete() {

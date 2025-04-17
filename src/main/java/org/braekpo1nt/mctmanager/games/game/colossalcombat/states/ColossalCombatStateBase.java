@@ -23,7 +23,8 @@ public class ColossalCombatStateBase implements ColossalCombatState {
     
     @Override
     public void cleanup() {
-        
+        context.closeGates();
+        context.resetArena();
     }
     
     @Override

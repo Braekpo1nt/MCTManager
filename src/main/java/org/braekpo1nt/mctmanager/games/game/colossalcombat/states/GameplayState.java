@@ -66,12 +66,6 @@ public abstract class GameplayState extends ColossalCombatStateBase {
         }
     }
     
-    @Override
-    public void cleanup() {
-        context.closeGates();
-        resetArena();
-    }
-    
     /**
      * Called when a given team wins
      * @param winner the team which won
@@ -99,22 +93,6 @@ public abstract class GameplayState extends ColossalCombatStateBase {
                     .append(Component.text(" won this round!")));
             context.setState(new RoundOverState(context));
         }
-    }
-    
-    private void resetArena() {
-        // remove items/arrows on the ground
-        BoundingBox removeArea = config.getRemoveArea();
-        for (Arrow arrow : config.getWorld().getEntitiesByClass(Arrow.class)) {
-            if (removeArea.contains(arrow.getLocation().toVector())) {
-                arrow.remove();
-            }
-        }
-        for (Item item : config.getWorld().getEntitiesByClass(Item.class)) {
-            if (removeArea.contains(item.getLocation().toVector())) {
-                item.remove();
-            }
-        }
-        context.removeConcrete();
     }
     
     @Override
