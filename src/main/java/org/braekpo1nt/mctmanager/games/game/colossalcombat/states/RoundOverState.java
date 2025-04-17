@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.colossalcombat.states;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.experimental.Affiliation;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalCombatGame;
@@ -38,6 +39,14 @@ public class RoundOverState extends ColossalCombatStateBase {
     @Override
     public void onParticipantRespawn(PlayerRespawnEvent event, ColossalParticipant participant) {
         super.onParticipantRespawn(event, participant);
+        if (participant.getAffiliation() == Affiliation.SPECTATOR) {
+            return;
+        }
+        event.setRespawnLocation(participant.getLocation());
+    }
+    
+    @Override
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, ColossalParticipant participant) {
         if (participant.getAffiliation() == Affiliation.SPECTATOR) {
             return;
         }

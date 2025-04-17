@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.experimental;
 
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import org.braekpo1nt.mctmanager.participant.*;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -98,4 +99,8 @@ public interface GameStateBase<P extends ParticipantData, T extends ScoredTeamDa
     
     
     void onParticipantRespawn(PlayerRespawnEvent event, P participant);
+    
+    default void onParticipantPostRespawn(PlayerPostRespawnEvent event, P participant) {
+        // do nothing
+    }
 }

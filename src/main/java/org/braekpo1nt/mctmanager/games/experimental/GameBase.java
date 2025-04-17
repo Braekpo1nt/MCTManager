@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.experimental;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
@@ -831,6 +832,15 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             return;
         }
         state.onParticipantRespawn(event, participant);
+    }
+    
+    @EventHandler
+    public void onPlayerPostRespawn(PlayerPostRespawnEvent event) {
+        P participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        state.onParticipantPostRespawn(event, participant);
     }
     // EventHandlers end
     
