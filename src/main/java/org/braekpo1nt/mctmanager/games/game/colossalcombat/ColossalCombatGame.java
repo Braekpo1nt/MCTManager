@@ -118,7 +118,7 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
     
     @Override
     protected void cleanup() {
-        
+        removeConcrete();
     }
     
     @Override
@@ -313,8 +313,10 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
         }
     }
     
+    /**
+     * Remove items/arrows on the ground
+     */
     public void resetArena() {
-        // remove items/arrows on the ground
         BoundingBox removeArea = config.getRemoveArea();
         for (Arrow arrow : config.getWorld().getEntitiesByClass(Arrow.class)) {
             if (removeArea.contains(arrow.getLocation().toVector())) {
@@ -326,7 +328,6 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
                 item.remove();
             }
         }
-        removeConcrete();
     }
     
     public void removeConcrete() {
