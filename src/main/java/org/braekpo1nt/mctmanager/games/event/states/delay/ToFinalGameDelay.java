@@ -7,7 +7,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
-import org.braekpo1nt.mctmanager.games.event.states.PlayingColossalCombatState;
+import org.braekpo1nt.mctmanager.games.event.states.PlayingFinalGameState;
 import org.braekpo1nt.mctmanager.games.event.states.WaitingInHubState;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -17,11 +17,11 @@ import org.braekpo1nt.mctmanager.utils.LogType;
 
 import java.util.*;
 
-public class ToColossalCombatDelay extends DelayState {
+public class ToFinalGameDelay extends DelayState {
     
     private final GameManager gameManager;
     
-    public ToColossalCombatDelay(EventManager context) {
+    public ToFinalGameDelay(EventManager context) {
         super(context);
         this.gameManager = context.getGameManager();
         context.getTimerManager().start(Timer.builder()
@@ -75,7 +75,7 @@ public class ToColossalCombatDelay extends DelayState {
                     "teamId not found even though game manager produced it");
             Team secondPlace = Objects.requireNonNull(gameManager.getTeam(firstPlaces[1]), 
                     "teamId not found even though game manager produced it");
-            context.setState(new PlayingColossalCombatState(
+            context.setState(new PlayingFinalGameState(
                     context,
                     firstPlace,
                     secondPlace,
@@ -140,7 +140,7 @@ public class ToColossalCombatDelay extends DelayState {
             return false;
         }
         
-        context.setState(new PlayingColossalCombatState(
+        context.setState(new PlayingFinalGameState(
                 context,
                 firstPlace,
                 secondPlace,

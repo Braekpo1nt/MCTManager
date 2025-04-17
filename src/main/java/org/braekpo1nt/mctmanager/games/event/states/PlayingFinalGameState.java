@@ -1,30 +1,19 @@
 package org.braekpo1nt.mctmanager.games.event.states;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
-import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.states.delay.ToPodiumDelayState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-
-public class PlayingColossalCombatState extends PlayingGameState {
+public class PlayingFinalGameState extends PlayingGameState {
     
-    public PlayingColossalCombatState(EventManager context, @NotNull Team firstTeam, @NotNull Team secondTeam, @NotNull String configFile) {
+    public PlayingFinalGameState(EventManager context, @NotNull Team firstTeam, @NotNull Team secondTeam, @NotNull String configFile) {
         super(context);
     }
     

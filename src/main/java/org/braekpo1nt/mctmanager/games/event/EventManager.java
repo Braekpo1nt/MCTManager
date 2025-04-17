@@ -130,7 +130,7 @@ public class EventManager implements Listener {
     
     public boolean colossalCombatIsActive() {
         // TODO: reconsider use of this
-        return state instanceof PlayingColossalCombatState;
+        return state instanceof PlayingFinalGameState;
     }
     
     public void onParticipantJoin(Participant participant) {

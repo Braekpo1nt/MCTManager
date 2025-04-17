@@ -8,7 +8,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.Tip;
-import org.braekpo1nt.mctmanager.games.event.states.delay.ToColossalCombatDelay;
+import org.braekpo1nt.mctmanager.games.event.states.delay.ToFinalGameDelay;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -71,7 +71,7 @@ public class WaitingInHubState implements EventState {
                     context.getPlugin().getServer().getScheduler().cancelTask(updateTipsTaskId);
                     context.getPlugin().getServer().getScheduler().cancelTask(displayTipsTaskId);
                     if (context.allGamesHaveBeenPlayed()) {
-                        context.setState(new ToColossalCombatDelay(context));
+                        context.setState(new ToFinalGameDelay(context));
                     } else {
                         context.setState(new VotingState(context));
                     }

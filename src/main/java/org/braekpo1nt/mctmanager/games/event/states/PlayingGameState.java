@@ -18,7 +18,6 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,7 +41,7 @@ public class PlayingGameState implements EventState {
     }
     
     /**
-     * Don't start the game, used by {@link PlayingColossalCombatState}
+     * Don't start the game, used by {@link PlayingFinalGameState}
      * @param context the context
      */
     PlayingGameState(EventManager context) {
