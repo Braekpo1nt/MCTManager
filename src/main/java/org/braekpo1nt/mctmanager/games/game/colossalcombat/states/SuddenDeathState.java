@@ -83,10 +83,10 @@ public class SuddenDeathState extends GameplayState {
     
     @Override
     public void onParticipantMove(@NotNull PlayerMoveEvent event, @NotNull ColossalParticipant participant) {
-        if (!participant.isAlive()) {
+        if (participant.getAffiliation() == Affiliation.SPECTATOR) {
             return;
         }
-        if (participant.getAffiliation() == Affiliation.SPECTATOR) {
+        if (!participant.isAlive()) {
             return;
         }
         if (canPickUpFlag(participant.getLocation())) {
