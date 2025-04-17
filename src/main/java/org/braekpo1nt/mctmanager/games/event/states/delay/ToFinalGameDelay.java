@@ -19,19 +19,19 @@ import java.util.*;
 
 public class ToFinalGameDelay extends DelayState {
     
-    private final GameManager gameManager;
-    
     public ToFinalGameDelay(EventManager context) {
         super(context);
-        this.gameManager = context.getGameManager();
         context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getStartingGameDuration())
                 .withSidebar(context.getSidebar(), "timer")
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .sidebarPrefix(Component.text("Colossal Combat: "))
                 .onCompletion(() -> {
-                    boolean startedColossalCombat = identifyWinnersAndStartColossalCombat();
-                    if (!startedColossalCombat) {
+                    // TODO: improve the success or failure measurement of starting a game
+                    try {
+                        context.setState(new PlayingFinalGameState(context,
+                                context.getConfig().getColossalCombatConfig()));
+                    } catch (Exception e) {
                         context.messageAllAdmins(Component.text("Unable to start Colossal Combat. Returning to waiting in hub state."));
                         context.setState(new WaitingInHubState(context));
                     }
@@ -51,100 +51,4 @@ public class ToFinalGameDelay extends DelayState {
         // do nothing
     }
     
-    /**
-     * @return true if two teams were picked and Colossal Combat started successfully. False if anything went wrong.
-     */
-    private boolean identifyWinnersAndStartColossalCombat() {
-        Collection<Team> allTeams = gameManager.getTeams();
-        if (allTeams.size() < 2) {
-            context.messageAllAdmins(Component.empty()
-                    .append(Component.text("There are fewer than two teams online. Use "))
-                    .append(Component.text("/mct game finalgame <first> <second>")
-                            .clickEvent(ClickEvent.suggestCommand("/mct game finalgame "))
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" to start the final game with the two chosen teams.")));
-            return false;
-        }
-        Map<String, Integer> teamScores = new HashMap<>();
-        for (Team team : allTeams) {
-            teamScores.put(team.getTeamId(), team.getScore());
-        }
-        String[] firstPlaces = GameManagerUtils.calculateFirstPlace(teamScores);
-        if (firstPlaces.length == 2) {
-            Team firstPlace = Objects.requireNonNull(gameManager.getTeam(firstPlaces[0]), 
-                    "teamId not found even though game manager produced it");
-            Team secondPlace = Objects.requireNonNull(gameManager.getTeam(firstPlaces[1]), 
-                    "teamId not found even though game manager produced it");
-            context.setState(new PlayingFinalGameState(
-                    context,
-                    firstPlace,
-                    secondPlace,
-                    context.getConfig().getColossalCombatConfig()));
-            return true;
-        }
-        if (firstPlaces.length > 2) {
-            context.messageAllAdmins(Component.empty()
-                    .append(Component.text("There are more than 2 teams tied for first place. A tie breaker is needed. Use "))
-                    .append(Component.text("/mct game finalgame <first> <second>")
-                            .clickEvent(ClickEvent.suggestCommand("/mct game finalgame "))
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" to start the final game with the two chosen teams."))
-                    .color(NamedTextColor.RED));
-            return false;
-        }
-        Team firstPlace = Objects.requireNonNull(gameManager.getTeam(firstPlaces[0]),
-                "teamId not found even though game manager produced it");
-        teamScores.remove(firstPlace.getTeamId());
-        String[] secondPlaces = GameManagerUtils.calculateFirstPlace(teamScores);
-        if (secondPlaces.length > 1) {
-            context.messageAllAdmins(Component.empty()
-                    .append(Component.text("There is a tie second place. A tie breaker is needed. Use "))
-                    .append(Component.text("/mct game finalgame <first> <second>")
-                            .clickEvent(ClickEvent.suggestCommand("/mct game finalgame "))
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" to start the final game with the two chosen teams."))
-                    .color(NamedTextColor.RED));
-            return false;
-        }
-        Team secondPlace = Objects.requireNonNull(gameManager.getTeam(secondPlaces[0]),
-                "teamId not found even though game manager produced it");
-        int onlineFirsts = 0;
-        int onlineSeconds = 0;
-        for (Participant participant : context.getParticipants()) {
-            if (participant.getTeamId().equals(firstPlace.getTeamId())) {
-                onlineFirsts++;
-            }
-            if (participant.getTeamId().equals(secondPlace.getTeamId())) {
-                onlineSeconds++;
-            }
-        }
-        if (onlineFirsts <= 0) {
-            context.messageAllAdmins(Component.empty()
-                    .append(Component.text("There are no members of the first place team online. Please use "))
-                    .append(Component.text("/mct event finalgame start <first> <second>")
-                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstPlace.getTeamId(), secondPlace.getTeamId())))
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" to manually start the final game."))
-                    .color(NamedTextColor.RED));
-            return false;
-        }
-        
-        if (onlineSeconds <= 0) {
-            context.messageAllAdmins(Component.empty()
-                    .append(Component.text("There are no members of the second place team online. Please use "))
-                    .append(Component.text("/mct event finalgame start <first> <second>")
-                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstPlace.getTeamId(), secondPlace.getTeamId())))
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" to manually start the final game."))
-                    .color(NamedTextColor.RED));
-            return false;
-        }
-        
-        context.setState(new PlayingFinalGameState(
-                context,
-                firstPlace,
-                secondPlace,
-                context.getConfig().getColossalCombatConfig()));
-        return true;
-    }
 }

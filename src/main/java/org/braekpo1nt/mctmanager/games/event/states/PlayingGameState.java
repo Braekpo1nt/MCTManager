@@ -37,7 +37,7 @@ public class PlayingGameState implements EventState {
     public PlayingGameState(EventManager context, @NotNull GameType gameType, @NotNull String configFile) {
         this.context = context;
         this.gameManager = context.getGameManager();
-        startGame(context, gameType, configFile);
+        startGame(gameType, configFile);
     }
     
     /**
@@ -49,7 +49,7 @@ public class PlayingGameState implements EventState {
         this.gameManager = context.getGameManager();
     }
     
-    protected void startGame(EventManager context, @NotNull GameType gameType, @NotNull String configFile) {
+    protected void startGame(@NotNull GameType gameType, @NotNull String configFile) {
         createScoreKeeperForGame(gameType);
         context.getSidebar().removeAllPlayers();
         context.getAdminSidebar().removeAllPlayers();
