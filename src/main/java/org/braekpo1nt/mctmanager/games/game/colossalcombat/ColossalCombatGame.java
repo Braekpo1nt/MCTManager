@@ -310,6 +310,21 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
         }
     }
     
+    public void removeConcrete() {
+        if (config.shouldReplaceWithConcrete()) {
+            BlockPlacementUtils.createCubeReplace(
+                    config.getWorld(),
+                    config.getNorthFlagReplaceArea(),
+                    gameManager.getTeamConcreteColor(northTeam.getTeamId()),
+                    config.getReplaceBlock());
+            BlockPlacementUtils.createCubeReplace(
+                    config.getWorld(),
+                    config.getSouthFlagReplaceArea(),
+                    gameManager.getTeamConcreteColor(southTeam.getTeamId()),
+                    config.getReplaceBlock());
+        }
+    }
+    
     private void closeGate(Gate gate, Material teamPowderColor) {
         //replace powder with air
         for (Material powderColor : ColorMap.getAllConcretePowderColors()) {

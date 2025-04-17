@@ -43,6 +43,7 @@ public class SuddenDeathState extends GameplayState {
     
     @Override
     public void cleanup() {
+        super.cleanup();
         if (flagPosition != null) {
             flagPosition.getBlock().setType(Material.AIR);
         }

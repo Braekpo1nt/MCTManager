@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.games.game.colossalcombat.states;
 
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.experimental.Affiliation;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalCombatGame;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalParticipant;
@@ -11,10 +10,13 @@ import org.braekpo1nt.mctmanager.games.game.colossalcombat.config.ColossalCombat
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.bukkit.GameMode;
+import org.bukkit.entity.Arrow;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class GameplayState extends ColossalCombatStateBase {
@@ -64,6 +66,12 @@ public abstract class GameplayState extends ColossalCombatStateBase {
         }
     }
     
+    @Override
+    public void cleanup() {
+        context.closeGates();
+        resetArena();
+    }
+    
     /**
      * Called when a given team wins
      * @param winner the team which won
@@ -91,6 +99,22 @@ public abstract class GameplayState extends ColossalCombatStateBase {
                     .append(Component.text(" won this round!")));
             context.setState(new RoundOverState(context));
         }
+    }
+    
+    private void resetArena() {
+        // remove items/arrows on the ground
+        BoundingBox removeArea = config.getRemoveArea();
+        for (Arrow arrow : config.getWorld().getEntitiesByClass(Arrow.class)) {
+            if (removeArea.contains(arrow.getLocation().toVector())) {
+                arrow.remove();
+            }
+        }
+        for (Item item : config.getWorld().getEntitiesByClass(Item.class)) {
+            if (removeArea.contains(item.getLocation().toVector())) {
+                item.remove();
+            }
+        }
+        context.removeConcrete();
     }
     
     @Override

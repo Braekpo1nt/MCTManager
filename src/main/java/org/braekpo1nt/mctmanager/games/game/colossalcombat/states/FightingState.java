@@ -21,6 +21,7 @@ public class FightingState extends GameplayState {
     
     @Override
     public void cleanup() {
+        super.cleanup();
         suddenDeathTimer.cancel();
     }
 }
