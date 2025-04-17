@@ -42,6 +42,13 @@ public class SuddenDeathState extends GameplayState {
     }
     
     @Override
+    public void cleanup() {
+        if (flagPosition != null) {
+            flagPosition.getBlock().setType(Material.AIR);
+        }
+    }
+    
+    @Override
     public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull ColossalParticipant participant) {
         if (hasFlag(participant.getUniqueId())) {
             dropFlag(participant);
