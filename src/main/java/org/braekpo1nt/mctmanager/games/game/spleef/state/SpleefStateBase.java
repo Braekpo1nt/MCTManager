@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.state;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.spleef.SpleefGame;
@@ -114,10 +115,14 @@ public class SpleefStateBase implements SpleefState {
     @Override
     public void onParticipantRespawn(PlayerRespawnEvent event, SpleefParticipant participant) {
         event.setRespawnLocation(context.getRandomStartingPosition());
+    }
+    
+    @Override
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, SpleefParticipant participant) {
         participant.setGameMode(GameMode.SPECTATOR);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
     }
     
     @Override

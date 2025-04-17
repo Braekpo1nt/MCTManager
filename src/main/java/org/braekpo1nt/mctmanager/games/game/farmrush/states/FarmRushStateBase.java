@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.states;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
@@ -124,5 +125,8 @@ public class FarmRushStateBase implements FarmRushState {
         event.setRespawnLocation(team.getArena().getSpawn());
     }
     
-    
+    @Override
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, FarmRushParticipant participant) {
+        
+    }
 }

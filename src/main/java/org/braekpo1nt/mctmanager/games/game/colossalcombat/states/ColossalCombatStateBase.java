@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.colossalcombat.states;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import org.braekpo1nt.mctmanager.games.experimental.Affiliation;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalCombatGame;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalParticipant;
@@ -121,5 +122,10 @@ public class ColossalCombatStateBase implements ColossalCombatState {
             case SOUTH -> event.setRespawnLocation(context.getConfig().getSouthGate().getSpawn());
             case SPECTATOR -> event.setRespawnLocation(context.getConfig().getSpectatorSpawn());
         }
+    }
+    
+    @Override
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, ColossalParticipant participant) {
+        
     }
 }

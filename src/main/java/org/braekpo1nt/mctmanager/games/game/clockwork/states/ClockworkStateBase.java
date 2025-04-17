@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork.states;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkParticipant;
@@ -95,5 +96,10 @@ public class ClockworkStateBase implements ClockworkState{
     @Override
     public void onParticipantRespawn(PlayerRespawnEvent event, ClockworkParticipant participant) {
         event.setRespawnLocation(context.getConfig().getStartingLocation());
+    }
+    
+    @Override
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, ClockworkParticipant participant) {
+        
     }
 }

@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.states;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourParticipant;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourTeam;
@@ -90,6 +91,11 @@ public class ParkourPathwayStateBase implements ParkourPathwayState {
                 .getPuzzle(participant.getCurrentPuzzle())
                 .checkPoints().get(participant.getCurrentPuzzleCheckpoint())
                 .respawn();
-        participant.teleport(respawn);
+        event.setRespawnLocation(respawn);
+    }
+    
+    @Override
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, ParkourParticipant participant) {
+        
     }
 }

@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.experimental;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import org.braekpo1nt.mctmanager.participant.ParticipantData;
 import org.braekpo1nt.mctmanager.participant.ScoredTeamData;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -78,6 +79,11 @@ public interface DoNothingState<P extends ParticipantData, T extends ScoredTeamD
     
     @Override
     default void onParticipantRespawn(PlayerRespawnEvent event, P participant) {
+        
+    }
+    
+    @Override
+    default void onParticipantPostRespawn(PlayerPostRespawnEvent event, P participant) {
         
     }
 }

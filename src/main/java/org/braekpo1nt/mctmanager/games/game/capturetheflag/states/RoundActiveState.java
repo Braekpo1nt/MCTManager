@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.states;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -288,6 +289,15 @@ public class RoundActiveState extends CaptureTheFlagStateBase {
             return;
         }
         match.onParticipantRespawn(event, participant);
+    }
+    
+    @Override
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, CTFParticipant participant) {
+        CaptureTheFlagMatch match = getMatch(participant.getTeamId());
+        if (match == null) {
+            return;
+        }
+        match.onParticipantPostRespawn(event, participant);
     }
     
     @Override

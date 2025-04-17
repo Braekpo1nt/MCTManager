@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.survivalgames.states;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesParticipant;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesTeam;
@@ -84,6 +85,10 @@ public abstract class SurvivalGamesStateBase implements SurvivalGamesState {
     @Override
     public void onParticipantRespawn(PlayerRespawnEvent event, SurvivalGamesParticipant participant) {
         event.setRespawnLocation(participant.getLocation());
+    }
+    
+    @Override
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, SurvivalGamesParticipant participant) {
         participant.setGameMode(GameMode.SPECTATOR);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);

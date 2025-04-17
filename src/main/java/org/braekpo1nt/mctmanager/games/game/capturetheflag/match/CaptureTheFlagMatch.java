@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.match;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import io.papermc.paper.entity.LookAnchor;
 import lombok.Getter;
 import lombok.Setter;
@@ -337,6 +338,15 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
             return;
         }
         state.onParticipantRespawn(event, matchParticipant);
+    }
+    
+    @Override
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, CTFParticipant participant) {
+        CTFMatchParticipant matchParticipant = getParticipant(participant);
+        if (matchParticipant == null) {
+            return;
+        }
+        state.onParticipantPostRespawn(event, matchParticipant);
     }
     
     @Override

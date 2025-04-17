@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.survivalgames.states;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
@@ -61,6 +62,10 @@ public class DescriptionState extends SurvivalGamesStateBase {
     @Override
     public void onParticipantRespawn(PlayerRespawnEvent event, SurvivalGamesParticipant participant) {
         event.setRespawnLocation(participant.getLocation());
+    }
+    
+    @Override
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, SurvivalGamesParticipant participant) {
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);

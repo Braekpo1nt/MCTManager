@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.example.states;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.example.ExampleGame;
 import org.braekpo1nt.mctmanager.games.game.example.ExampleParticipant;
@@ -101,6 +102,11 @@ public class ExampleStateBase implements ExampleState {
     
     @Override
     public void onParticipantRespawn(PlayerRespawnEvent event, ExampleParticipant participant) {
+        
+    }
+    
+    @Override
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, ExampleParticipant participant) {
         
     }
 }

@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchParticipant;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchTeam;
@@ -105,5 +106,10 @@ public class CaptureTheFlagMatchStateBase implements CaptureTheFlagMatchState{
     @Override
     public void onParticipantRespawn(PlayerRespawnEvent event, CTFMatchParticipant participant) {
         event.setRespawnLocation(context.getConfig().getSpawnObservatory());
+    }
+    
+    @Override
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, CTFMatchParticipant participant) {
+        
     }
 }

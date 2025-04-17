@@ -100,7 +100,5 @@ public interface GameStateBase<P extends ParticipantData, T extends ScoredTeamDa
     
     void onParticipantRespawn(PlayerRespawnEvent event, P participant);
     
-    default void onParticipantPostRespawn(PlayerPostRespawnEvent event, P participant) {
-        // do nothing
-    }
+    void onParticipantPostRespawn(PlayerPostRespawnEvent event, P participant);
 }
