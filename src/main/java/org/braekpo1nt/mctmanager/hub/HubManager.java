@@ -12,8 +12,6 @@ import org.braekpo1nt.mctmanager.hub.config.HubConfig;
 import org.braekpo1nt.mctmanager.hub.config.HubConfigController;
 import org.braekpo1nt.mctmanager.hub.leaderboard.LeaderboardManager;
 import org.braekpo1nt.mctmanager.participant.Participant;
-import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
@@ -40,10 +38,6 @@ public class HubManager implements Listener, Configurable {
     protected final HubConfigController configController;
     protected HubConfig config;
     private @NotNull final List<LeaderboardManager> leaderboardManagers;
-    /**
-     * Contains a list of the players who are about to be sent to the hub and can see the countdown
-     */
-    private final Map<UUID, Participant> headingToHub = new HashMap<>();
     private boolean boundaryEnabled = true;
     /**
      * A list of the participants who are in the hub
@@ -81,45 +75,7 @@ public class HubManager implements Listener, Configurable {
         }
     }
     
-    /**
-     * Returns the participants to the hub (either instantly, or with a delay)
-     * @param newParticipants the participants to send to the hub
-     * @param delay false will perform the teleport instantaneously, true will teleport with a delay
-     */
-    public void returnParticipantsToHub(Collection<Participant> newParticipants, List<Player> newAdmins, boolean delay) {
-        if (delay) {
-            returnParticipantsToHub(newParticipants, new ArrayList<>(newAdmins), config.getTpToHubDuration());
-        } else {
-            returnParticipantsToHubInstantly(newParticipants, new ArrayList<>(newAdmins));
-        }
-    }
-    
-    private void returnParticipantsToHub(Collection<Participant> newParticipants, List<Player> newAdmins, int duration) {
-        for (Participant participant : newParticipants) {
-            headingToHub.put(participant.getUniqueId(), participant);
-        }
-        final List<Player> adminsHeadingToHub = new ArrayList<>(newAdmins);
-        final Sidebar sidebar = gameManager.createSidebar();
-        sidebar.addPlayers(newParticipants);
-        sidebar.addPlayers(newAdmins);
-        sidebar.addLine("backToHub", Component.empty()
-                .append(Component.text("Back to Hub: "))
-                .append(Component.text(duration)));
-        timerManager.start(Timer.builder()
-                .duration(duration)
-                .withSidebar(sidebar, "backToHub")
-                .sidebarPrefix(Component.text("Back to Hub: "))
-                .onCompletion(() -> {
-                    sidebar.deleteAllLines();
-                    sidebar.removeAllPlayers();
-                    returnParticipantsToHubInstantly(new ArrayList<>(headingToHub.values()), adminsHeadingToHub);
-                    headingToHub.clear();
-                    adminsHeadingToHub.clear();
-                })
-                .build());
-    }
-    
-    private void returnParticipantsToHubInstantly(Collection<Participant> newParticipants, List<Player> newAdmins) {
+    public void returnParticipantsToHub(Collection<Participant> newParticipants, List<Player> newAdmins) {
         for (Participant participant : newParticipants) {
             returnParticipantToHub(participant);
         }
@@ -255,15 +211,11 @@ public class HubManager implements Listener, Configurable {
         if (!(event.getEntity() instanceof Player participant)) {
             return;
         }
-        if (participants.containsKey(participant.getUniqueId())) {
-            Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "HubManager.onPlayerDamage()->participant contains cancelled");
-            event.setCancelled(true);
+        if (!participants.containsKey(participant.getUniqueId())) {
             return;
         }
-        if (headingToHub.containsKey(participant.getUniqueId())) {
-            Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "HubManager.onPlayerDamage()->headingToHub contains cancelled");
-            event.setCancelled(true);
-        }
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "HubManager.onPlayerDamage()->participant contains cancelled");
+        event.setCancelled(true);
     }
     
     @EventHandler
@@ -273,7 +225,7 @@ public class HubManager implements Listener, Configurable {
             return;
         }
         Player participant = event.getPlayer();
-        if (!participants.containsKey(participant.getUniqueId()) && !headingToHub.containsKey(participant.getUniqueId())) {
+        if (!participants.containsKey(participant.getUniqueId())) {
             return;
         }
         Material blockType = clickedBlock.getType();
@@ -298,13 +250,10 @@ public class HubManager implements Listener, Configurable {
             return;
         }
         Player participant = ((Player) event.getWhoClicked());
-        if (participants.containsKey(participant.getUniqueId())) {
-            event.setCancelled(true);
+        if (!participants.containsKey(participant.getUniqueId())) {
             return;
         }
-        if (headingToHub.containsKey(participant.getUniqueId())) {
-            event.setCancelled(true);
-        }
+        event.setCancelled(true);
     }
     
     /**
@@ -316,13 +265,10 @@ public class HubManager implements Listener, Configurable {
             return;
         }
         Player participant = event.getPlayer();
-        if (participants.containsKey(participant.getUniqueId())) {
-            event.setCancelled(true);
+        if (!participants.containsKey(participant.getUniqueId())) {
             return;
         }
-        if (headingToHub.containsKey(participant.getUniqueId())) {
-            event.setCancelled(true);
-        }
+        event.setCancelled(true);
     }
     
     @EventHandler
@@ -330,15 +276,11 @@ public class HubManager implements Listener, Configurable {
         if (!(event.getEntity() instanceof Player participant)) {
             return;
         }
-        if (participants.containsKey(participant.getUniqueId())) {
-            participant.setFoodLevel(20);
-            event.setCancelled(true);
+        if (!participants.containsKey(participant.getUniqueId())) {
             return;
         }
-        if (headingToHub.containsKey(participant.getUniqueId())) {
-            participant.setFoodLevel(20);
-            event.setCancelled(true);
-        }
+        participant.setFoodLevel(20);
+        event.setCancelled(true);
     }
     
     /**

@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
@@ -22,10 +23,12 @@ import java.util.*;
 
 public class ScorePlayerSubCommand extends TabSubCommand {
     
+    private final Main plugin;
     private final GameManager gameManager;
     
-    public ScorePlayerSubCommand(GameManager gameManager, @NotNull String name) {
+    public ScorePlayerSubCommand(@NotNull Main plugin, @NotNull GameManager gameManager, @NotNull String name) {
         super(name);
+        this.plugin = plugin;
         this.gameManager = gameManager;
     }
     
@@ -54,8 +57,7 @@ public class ScorePlayerSubCommand extends TabSubCommand {
         if (playerName.equals("all")) {
             return CommandResult.success(getAllPlayersScores());
         }
-        // TODO: replace this with a retrieval of participant by name
-        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
+        OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(playerName);
         OfflineParticipant offlineParticipant = gameManager.getOfflineParticipant(offlinePlayer.getUniqueId());
         if (offlineParticipant == null) {
             return CommandResult.failure(Component.empty()

@@ -1,14 +1,12 @@
-package org.braekpo1nt.mctmanager.games.experimental;
+package org.braekpo1nt.mctmanager.games.base;
 
 import lombok.Getter;
-import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.base.states.GameStateBase;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.*;
-import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -120,6 +118,7 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
                 super.onTeamQuit(teamId);
             }
         }
+        resetTeamOptions(team);
     }
     
     

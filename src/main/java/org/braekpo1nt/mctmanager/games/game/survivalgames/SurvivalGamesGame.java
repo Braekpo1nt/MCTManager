@@ -6,7 +6,7 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.experimental.GameBase;
+import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfig;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.states.DescriptionState;
@@ -147,16 +147,12 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     
     @Override
     protected void initializeAdmin(Player admin) {
-        // TODO: remove these showPlayer() uses in favor of GameBase._initializeAdmin()
-        topbar.showPlayer(admin);
-        glowManager.showPlayer(admin);
         admin.teleport(config.getAdminSpawn());
     }
     
     @Override
     protected void resetAdmin(Player admin) {
-        topbar.hidePlayer(admin.getUniqueId());
-        glowManager.hidePlayer(admin);
+        
     }
     
     /**

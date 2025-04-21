@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.experimental;
+package org.braekpo1nt.mctmanager.games.base.states;
 
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import org.braekpo1nt.mctmanager.participant.ParticipantData;

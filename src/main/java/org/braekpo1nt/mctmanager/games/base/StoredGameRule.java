@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.experimental;
+package org.braekpo1nt.mctmanager.games.base;
 
 import org.bukkit.GameRule;
 

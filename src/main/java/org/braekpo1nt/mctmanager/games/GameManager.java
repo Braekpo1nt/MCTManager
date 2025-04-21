@@ -243,9 +243,14 @@ public class GameManager implements Listener {
             }
             case FINAL -> {
                 ColossalCombatConfig config = new ColossalCombatConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-                // TODO: change how this is chosen
                 List<Team> sortedTeams = newTeams.stream()
-                        .sorted(Comparator.comparingInt(Team::getScore).reversed()).toList();
+                        .sorted((t1, t2) -> {
+                            int scoreComparison = t2.getScore() - t1.getScore();
+                            if (scoreComparison != 0) {
+                                return scoreComparison;
+                            }
+                            return t1.getDisplayName().compareToIgnoreCase(t2.getDisplayName());
+                        }).toList();
                 yield new ColossalCombatGame(plugin, this, title, config, sortedTeams.getFirst(), sortedTeams.get(1), sortedTeams, newParticipants, newAdmins);
             }
         };
@@ -411,7 +416,7 @@ public class GameManager implements Listener {
         onlineAdmins.remove(admin);
         if (gameIsRunning()) {
             activeGame.onAdminQuit(admin);
-        } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
+        } else if (eventManager.eventIsActive()) {
             eventManager.onAdminQuit(admin);
         } else if (voteManager.isVoting()) {
             voteManager.onAdminQuit(admin);
@@ -438,7 +443,7 @@ public class GameManager implements Listener {
         if (gameIsRunning()) {
             activeGame.onParticipantQuit(participant.getUniqueId());
             activeGame.onTeamQuit(team.getTeamId());
-        } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
+        } else if (eventManager.eventIsActive()) {
             eventManager.onParticipantQuit(participant);
             tabList.hidePlayer(participant.getUniqueId());
         } else if (voteManager.isVoting()) {
@@ -486,7 +491,7 @@ public class GameManager implements Listener {
         tabList.showPlayer(admin);
         if (gameIsRunning()) {
             activeGame.onAdminJoin(admin);
-        } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
+        } else if (eventManager.eventIsActive()) {
             eventManager.onAdminJoin(admin);
         } else if (voteManager.isVoting()) {
             voteManager.onAdminJoin(admin);
@@ -511,7 +516,7 @@ public class GameManager implements Listener {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
             activeGame.onTeamJoin(team);
             activeGame.onParticipantJoin(participant);
-        } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
+        } else if (eventManager.eventIsActive()) {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
             eventManager.onParticipantJoin(participant);
             tabList.showPlayer(participant);
@@ -897,7 +902,7 @@ public class GameManager implements Listener {
             shouldTeleportToHub = true;
             return;
         }
-        hubManager.returnParticipantsToHub(onlineParticipants.values(), onlineAdmins, true);
+        hubManager.returnParticipantsToHub(onlineParticipants.values(), onlineAdmins);
     }
     
     public void startEditor(@NotNull GameType gameType, @NotNull String configFile, @NotNull CommandSender sender) {
@@ -915,12 +920,6 @@ public class GameManager implements Listener {
         
         if (eventManager.eventIsActive()) {
             sender.sendMessage(Component.text("Can't start an editor while an event is going on")
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        
-        if (eventManager.colossalCombatIsActive()) {
-            sender.sendMessage(Component.text("Can't start an editor while colossal combat is running")
                     .color(NamedTextColor.RED));
             return;
         }
@@ -1068,15 +1067,15 @@ public class GameManager implements Listener {
     }
     
     public void returnAllParticipantsToHub() {
-        hubManager.returnParticipantsToHub(onlineParticipants.values(), onlineAdmins, false);
+        hubManager.returnParticipantsToHub(onlineParticipants.values(), onlineAdmins);
     }
     
     /**
      * Instantly returns the given participant to the hub
      * @param participant the participant to be returned to the hub
      */
-    public void returnParticipantToHubInstantly(Participant participant) {
-        hubManager.returnParticipantsToHub(Collections.singletonList(participant), Collections.emptyList(), false);
+    public void returnParticipantToHub(Participant participant) {
+        hubManager.returnParticipantsToHub(Collections.singletonList(participant), Collections.emptyList());
     }
     
     public void returnAllParticipantsToPodium(Team winningTeam) {

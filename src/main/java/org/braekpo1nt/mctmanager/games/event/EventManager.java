@@ -128,11 +128,6 @@ public class EventManager implements Listener {
         return Component.text("Final Round");
     }
     
-    public boolean colossalCombatIsActive() {
-        // TODO: reconsider use of this
-        return state instanceof PlayingFinalGameState;
-    }
-    
     public void onParticipantJoin(Participant participant) {
         state.onParticipantJoin(participant);
     }

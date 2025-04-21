@@ -3,7 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.colossalcombat.states;
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
-import org.braekpo1nt.mctmanager.games.experimental.Affiliation;
+import org.braekpo1nt.mctmanager.games.base.Affiliation;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalCombatGame;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalParticipant;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalTeam;
@@ -11,13 +11,10 @@ import org.braekpo1nt.mctmanager.games.game.colossalcombat.config.ColossalCombat
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.bukkit.GameMode;
-import org.bukkit.entity.Arrow;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class GameplayState extends ColossalCombatStateBase {

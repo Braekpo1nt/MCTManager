@@ -136,9 +136,7 @@ public abstract class GameplayState extends FarmRushStateBase {
                 context.getParticipants().get(uuid).getPlayer().sendMessage(message);
             }
             if (totalScore > 0) {
-                int multiplied = (int) (gameManager.getMultiplier() * totalScore);
-                team.awardPoints(multiplied);
-                context.displayScore(team);
+                context.awardPoints(team, totalScore);
             }
         }
         return soldItems;

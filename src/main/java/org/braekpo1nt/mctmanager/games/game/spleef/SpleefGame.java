@@ -6,9 +6,9 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.experimental.GameBase;
-import org.braekpo1nt.mctmanager.games.experimental.PreventHungerLoss;
-import org.braekpo1nt.mctmanager.games.experimental.PreventItemDrop;
+import org.braekpo1nt.mctmanager.games.base.GameBase;
+import org.braekpo1nt.mctmanager.games.base.listeners.PreventHungerLoss;
+import org.braekpo1nt.mctmanager.games.base.listeners.PreventItemDrop;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
 import org.braekpo1nt.mctmanager.games.game.spleef.state.DescriptionState;
@@ -149,7 +149,7 @@ public class SpleefGame extends GameBase<SpleefParticipant, SpleefTeam, SpleefPa
     
     @Override
     protected void initializeAdmin(Player admin) {
-        
+        admin.teleport(config.getStartingLocations().getFirst());
     }
     
     @Override

@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.commands.mct.score;
 
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.mct.score.all.ScoreAllSubCommand;
@@ -14,9 +15,9 @@ public class ScoreCommand extends CommandManager {
     
     private final ScorePlayerSubCommand playerSubCommand;
     
-    public ScoreCommand(@NotNull GameManager gameManager, @NotNull String name) {
+    public ScoreCommand(@NotNull Main plugin, @NotNull GameManager gameManager, @NotNull String name) {
         super(name);
-        playerSubCommand = new ScorePlayerSubCommand(gameManager, "player");
+        playerSubCommand = new ScorePlayerSubCommand(plugin, gameManager, "player");
         addSubCommand(playerSubCommand);
         addSubCommand(new ScoreTeamSubCommand(gameManager, "team"));
         addSubCommand(new ScoreAllSubCommand(gameManager, "all"));

@@ -81,7 +81,7 @@ public class WaitingInHubState implements EventState {
     
     @Override
     public void onParticipantJoin(Participant participant) {
-        gameManager.returnParticipantToHubInstantly(participant);
+        gameManager.returnParticipantToHub(participant);
         if (sidebar != null) {
             sidebar.addPlayer(participant);
             context.updateTeamScores();

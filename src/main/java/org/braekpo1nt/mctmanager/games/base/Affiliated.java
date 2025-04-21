@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.experimental;
+package org.braekpo1nt.mctmanager.games.base;
 
 /**
  * Represents a Participant or Team which has an {@link Affiliation}

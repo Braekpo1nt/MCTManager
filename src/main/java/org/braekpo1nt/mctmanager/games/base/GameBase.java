@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.experimental;
+package org.braekpo1nt.mctmanager.games.base;
 
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import lombok.Getter;
@@ -10,6 +10,8 @@ import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.base.listeners.GameListener;
+import org.braekpo1nt.mctmanager.games.base.states.GameStateBase;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
@@ -48,7 +50,6 @@ import java.util.logging.Level;
  */
 @Getter
 @Setter
-// TODO: this could be simplified by making QT and QP be T and P instead. In other words, quitDatas should be Map<UUID, P> quitParticipants, and teamQuitDatas should be Map<String, T> quitTeams. GameStateBase would need to change to make sure you are not re-using the previously stored Player object from when the player quit. 
 public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase, S extends GameStateBase<P, T>>  implements MCTGame, Listener {
     protected final @NotNull GameType type;
     protected final @NotNull Main plugin;
@@ -210,7 +211,6 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     // cleanup start
     @Override
     public void stop() {
-        // TODO: make sure everything is cleared, all fields etc.
         HandlerList.unregisterAll(this);
         listeners.forEach(GameListener::unregister);
         listeners.clear();
@@ -239,6 +239,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         for (StoredGameRule<?> stored : storedGameRules) {
             restoreGameRules(stored);
         }
+        storedGameRules.clear();
         cleanup();
         gameManager.gameIsOver();
         Main.logger().info("Stopping " + type.getTitle());
@@ -264,7 +265,6 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         for (String teamId : teamQuitDatas.keySet()) {
             teamScores.put(teamId, teamQuitDatas.get(teamId).getScore());
         }
-        // TODO: differentiate between ParticipantID for players who left one team and joined another, and earned scores on both teams
         for (ParticipantID pid : quitDatas.keySet()) {
             participantScores.put(pid.uuid(), quitDatas.get(pid).getScore());
         }
@@ -407,6 +407,26 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     /**
+     * Reset the scoreboard options to defaults for the given team
+     * @param team the team
+     */
+    protected void resetTeamOptions(@NotNull T team) {
+        org.bukkit.scoreboard.Team scoreboardTeam = gameManager.getMctScoreboard().getTeam(team.getTeamId());
+        if (scoreboardTeam != null) {
+            scoreboardTeam.setAllowFriendlyFire(false);
+            scoreboardTeam.setCanSeeFriendlyInvisibles(true);
+            scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+            scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+            scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.NEVER);
+        } else {
+            Main.logger().log(Level.SEVERE,
+                    String.format("MCT scoreboard could not find team with id %s", team.getTeamId()),
+                    new IllegalStateException(
+                            String.format("Scoreboard does not contain teamId %s", team.getTeamId())));
+        }
+    }
+    
+    /**
      * Set up the scoreboard options for the given team, such as collisions
      * @param scoreboardTeam the scoreboard team to set the options for
      * @param team the team representing the options team
@@ -486,6 +506,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         state.onTeamQuit(team);
         teams.remove(team.getTeamId());
         teamQuitDatas.put(team.getTeamId(), getQuitData(team));
+        resetTeamOptions(team);
     }
     // quit/join end
     
@@ -505,8 +526,8 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         adminSidebar.addPlayer(admin);
         tabList.showPlayer(admin);
         admin.setGameMode(GameMode.SPECTATOR);
+        uiManagers.forEach(uiManager -> uiManager.showPlayer(admin));
         initializeAdmin(admin);
-        // TODO: add admins to uiManagers
     }
     
     /**
@@ -530,10 +551,10 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     protected abstract void initializeAdminSidebar();
     
     protected void _resetAdmin(Player admin) {
+        uiManagers.forEach(uiManager -> uiManager.hidePlayer(admin));
         adminSidebar.removePlayer(admin);
         tabList.hidePlayer(admin);
         resetAdmin(admin);
-        // TODO: remove admins from uiManagers
     }
     
     /**
@@ -580,7 +601,6 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * <p>Called after initial lines are added 
      * and before team and participant scores are initially displayed.</p>
      */
-    // TODO: make sure implementations aren't re-calling displayScore() (see above)
     protected abstract void initializeSidebar();
     
     /**
@@ -710,7 +730,6 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     // Award Points end
     
     // EventHandlers start
-    // TODO: make sure no games override these unnecessarily 
     /**
      * <p>The default behavior for {@link PlayerMoveEvent}s. Checks if the triggering player is 
      * a participant in this game, and if so passes the event (and the participant) to the 

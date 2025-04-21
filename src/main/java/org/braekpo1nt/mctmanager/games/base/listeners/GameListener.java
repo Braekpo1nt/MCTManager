@@ -1,5 +1,6 @@
-package org.braekpo1nt.mctmanager.games.experimental;
+package org.braekpo1nt.mctmanager.games.base.listeners;
 
+import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.participant.ParticipantData;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;

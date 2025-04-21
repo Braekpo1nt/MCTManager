@@ -29,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MCTCommand extends MasterCommandManager {
     
-    public MCTCommand(Main plugin, GameManager gameManager, BlockEffectsListener blockEffectsListener) {
+    public MCTCommand(@NotNull Main plugin, @NotNull GameManager gameManager, BlockEffectsListener blockEffectsListener) {
         super(plugin, "mct");
         addSubCommand(new GameCommand(gameManager));
         addSubCommand(new EditCommand(gameManager, "edit"));
@@ -51,7 +51,7 @@ public class MCTCommand extends MasterCommandManager {
                 return CommandResult.success(Component.text("Loaded gameState.json"));
             }
         });
-        addSubCommand(new ScoreCommand(gameManager, "score"));
+        addSubCommand(new ScoreCommand(plugin, gameManager, "score"));
         addSubCommand(new TimerCommand(gameManager, "timer"));
         addSubCommand(new TabListCommand(gameManager, "tablist"));
         addSubCommand(new DebugCommand("debug"));

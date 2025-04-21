@@ -1,6 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.state;
 
-import org.braekpo1nt.mctmanager.games.experimental.DoNothingState;
+import org.braekpo1nt.mctmanager.games.base.states.DoNothingState;
 import org.braekpo1nt.mctmanager.games.game.spleef.SpleefParticipant;
 import org.braekpo1nt.mctmanager.games.game.spleef.SpleefTeam;
 import org.bukkit.event.block.BlockBreakEvent;

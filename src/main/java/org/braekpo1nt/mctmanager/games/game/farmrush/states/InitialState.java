@@ -1,6 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.states;
 
-import org.braekpo1nt.mctmanager.games.experimental.DoNothingState;
+import org.braekpo1nt.mctmanager.games.base.states.DoNothingState;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushParticipant;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushTeam;
 import org.bukkit.event.block.BlockPlaceEvent;

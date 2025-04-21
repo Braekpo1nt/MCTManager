@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.experimental;
+package org.braekpo1nt.mctmanager.games.base;
 
 /**
  * Used in Participants and Teams which implement {@link Affiliated}

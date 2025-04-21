@@ -54,7 +54,7 @@ public class FarmRushConfigControllerTest {
     }
     
     @Test
-    void wellFormedJsonValidData() throws IOException {
+    void wellFormedJsonValidData() {
         // TODO: change the exclusion of the materialsBook when MockBukkit implements BookMeta.toBuilder()
         InputStream inputStream = controller.getClass().getResourceAsStream(exampleConfigFileName);
         JsonObject json = TestUtils.inputStreamToJson(inputStream);
