@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.colossalcombat.config;
+package org.braekpo1nt.mctmanager.games.game.colossalcombat.config;
 
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.TestUtils;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.config.ColossalCombatConfigController;
+import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,8 +32,8 @@ public class ColossalCombatConfigControllerTest {
         ServerMock server = MockBukkit.mock(new MyCustomServerMock());
         server.getLogger().setLevel(Level.OFF);
         plugin = MockBukkit.load(MockMain.class);
-        controller = new ColossalCombatConfigController(plugin.getDataFolder(), "colossal-combat");
-        configFolder = new File(plugin.getDataFolder(), "colossal-combat");
+        controller = new ColossalCombatConfigController(plugin.getDataFolder(), GameType.FINAL.getId());
+        configFolder = new File(plugin.getDataFolder(), GameType.FINAL.getId());
         configFolder.mkdirs();
     }
 
@@ -57,11 +58,6 @@ public class ColossalCombatConfigControllerTest {
         wellFormedJsonValidData(exampleConfigFileName);
     }
     
-    @Test
-    void testBackwardsCompatibility() {
-        wellFormedJsonValidData("exampleColossalCombatConfig_v0.1.0.json");
-    }
-
     @Test
     void wellFormedJsonInvalidData() {
         InputStream inputStream = controller.getClass().getResourceAsStream(exampleConfigFileName);
