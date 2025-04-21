@@ -75,21 +75,28 @@ public abstract class GameplayState extends ColossalCombatStateBase {
         cleanup();
         winner.setWins(winner.getWins() + 1);
         context.updateRoundSidebar();
+        
+        EventManager eventManager = context.getGameManager().getEventManager();
+        Component eventTitle;
+        if (eventManager.eventIsActive()) {
+            eventTitle = eventManager.getTitle();
+            eventManager.setWinningTeam(winner);
+        } else {
+            eventTitle = Component.text("the game");
+        }
         if (winner.getWins() >= config.getRequiredWins()) {
             // declare overall winner
             context.messageAllParticipants(Component.empty()
                     .append(winner.getFormattedDisplayName())
-                    .append(Component.text(" wins the game!")));
+                    .append(Component.text(" wins "))
+                    .append(eventTitle)
+                    .append(Component.text("!")));
             context.titleAllParticipants(UIUtils.defaultTitle(
                     Component.empty()
-                            .append(winner.getFormattedDisplayName()),
+                            .append(Component.text("Winner:")),
                     Component.empty()
-                            .append(Component.text("wins"))
+                            .append(winner.getFormattedDisplayName())
             ));
-            EventManager eventManager = context.getGameManager().getEventManager();
-            if (eventManager.colossalCombatIsActive()) {
-                eventManager.setWinningTeam(winner);
-            }
             context.setState(new GameOverState(context));
         } else {
             // declare winner of round
