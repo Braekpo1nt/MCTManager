@@ -7,9 +7,10 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.ParticipantID;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIException;
+import org.braekpo1nt.mctmanager.ui.UIManager;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.logging.Level;
 
-public class TabList {
+public class TabList implements UIManager {
     
     private static final int TEAM_LINE_CHARACTERS = 45;
     private static final int PARTICIPANT_LINE_CHARACTERS = 45;
@@ -145,7 +146,7 @@ public class TabList {
     }
     
     private final Map<String, TeamData> teamDatas = new HashMap<>();
-    private final Map<UUID, ParticipantData> participantDatas = new HashMap<>();
+    private final Map<ParticipantID, ParticipantData> participantDatas = new HashMap<>();
     private final Map<UUID, PlayerData> playerDatas = new HashMap<>();
     
     private final Main plugin;
@@ -167,13 +168,13 @@ public class TabList {
     }
     
     /**
-     * @param uuid the UUID of the ParticipantData. Must be a valid key in {@link #participantDatas}
+     * @param pid the UUID of the ParticipantData. Must be a valid key in {@link #participantDatas}
      * @return the {@link TabList.ParticipantData} associated with this UUID
      */
-    private @Nullable ParticipantData getParticipantData(@NotNull UUID uuid) {
-        ParticipantData participantData = participantDatas.get(uuid);
+    private @Nullable ParticipantData getParticipantData(@NotNull ParticipantID pid) {
+        ParticipantData participantData = participantDatas.get(pid);
         if (participantData == null) {
-            logUIError("participant with UUID \"%s\" is not contained in this TabList", uuid);
+            logUIError("participant with UUID \"%s\" is not contained in this TabList", pid);
         }
         return participantData;
     }
@@ -330,19 +331,20 @@ public class TabList {
     
     /**
      * Joins the given participant to the given team so that the name is listed under the team
-     * in the TabList. Initialized as alive. <br> 
+     * in the TabList. Initialized as alive. <br>
      * This is not the same as {@link #showPlayer(Player)} because it has nothing
      * to do with who is viewing the TabList. Instead, it has to do with what data is being displayed
-     * via the TabList. 
-     * @param uuid the participant's uuid
-     * @param name the participant's name
+     * via the TabList.
+     *
+     * @param pid    the participant's uuid
+     * @param name   the participant's name
      * @param teamId the team to join the participant to
-     * @param grey whether the participant's name should be grey, or the color of their team
+     * @param grey   whether the participant's name should be grey, or the color of their team
      */
-    public void joinParticipant(@NotNull UUID uuid, @NotNull String name, @NotNull String teamId, boolean grey) {
-        ParticipantData existingParticipantData = participantDatas.get(uuid);
+    public void joinParticipant(@NotNull ParticipantID pid, @NotNull String name, @NotNull String teamId, boolean grey) {
+        ParticipantData existingParticipantData = participantDatas.get(pid);
         if (existingParticipantData != null) {
-            logUIError("Participant with UUID \"%s\" and name \"%s\" is already contained in this TabList, joined to team with id \"%s\"", uuid, existingParticipantData.getName(), existingParticipantData.getTeamId());
+            logUIError("Participant with UUID \"%s\" and name \"%s\" is already contained in this TabList, joined to team with id \"%s\"", pid, existingParticipantData.getName(), existingParticipantData.getTeamId());
             return;
         }
         TeamData teamData = getTeamData(teamId);
@@ -351,18 +353,19 @@ public class TabList {
         }
         ParticipantData newParticipantData = new ParticipantData(name, teamId, grey);
         teamData.getParticipants().add(newParticipantData);
-        participantDatas.put(uuid, newParticipantData);
+        participantDatas.put(pid, newParticipantData);
         update();
     }
     
     /**
      * Leave the given participant from their team
-     * @param uuid the UUID of the participant to leave. Must be a valid UUID contained in this TabList.
+     *
+     * @param pid the UUID of the participant to leave. Must be a valid UUID contained in this TabList.
      */
-    public void leaveParticipant(@NotNull UUID uuid) {
-        ParticipantData participantData = participantDatas.remove(uuid);
+    public void leaveParticipant(@NotNull ParticipantID pid) {
+        ParticipantData participantData = participantDatas.remove(pid);
         if (participantData == null) {
-            logUIError("Participant with UUID \"%s\" is not contained in this TabList", uuid);
+            logUIError("Participant with UUID \"%s\" is not contained in this TabList", pid);
             return;
         }
         TeamData teamData = teamDatas.get(participantData.getTeamId());
@@ -372,11 +375,12 @@ public class TabList {
     
     /**
      * Set the alive status of the {@link TabList.ParticipantData} associated with the given UUID
-     * @param uuid the UUID of the {@link TabList.ParticipantData}
+     *
+     * @param pid  the UUID of the {@link ParticipantData}
      * @param grey true makes the player name grey, false makes it their team color
      */
-    public void setParticipantGrey(@NotNull UUID uuid, boolean grey) {
-        ParticipantData participantData = getParticipantData(uuid);
+    public void setParticipantGrey(@NotNull ParticipantID pid, boolean grey) {
+        ParticipantData participantData = getParticipantData(pid);
         if (participantData == null) {
             return;
         }
@@ -385,17 +389,10 @@ public class TabList {
     }
     
     /**
-     * Show the given participant this TabList
-     * @param participant the participant to view the TabList. Must not already be a viewer.
-     */
-    public void showPlayer(@NotNull Participant participant) {
-        showPlayer(participant.getPlayer());
-    }
-    
-    /**
      * Show the given player this TabList
      * @param player the player to view the TabList. Must not already be a viewer.
      */
+    @Override
     public void showPlayer(@NotNull Player player) {
         if (playerDatas.containsKey(player.getUniqueId())) {
             logUIError("Player with UUID \"%s\" and name \"%s\" is already contained in this TabList", player.getUniqueId(), player.getName());
@@ -422,6 +419,16 @@ public class TabList {
     
     /**
      * Hide this TabList from the player with the given UUID
+     * @param player the player to hide this TabList from. Must be a player
+     *             viewing this TabList. 
+     */
+    @Override
+    public void hidePlayer(@NotNull Player player) {
+        hidePlayer(player.getUniqueId());   
+    }
+    
+    /**
+     * Hide this TabList from the player with the given UUID
      * @param uuid the UUID of the player to hide this TabList from. Must be the UUID of a player
      *             viewing this TabList. 
      */
@@ -439,7 +446,8 @@ public class TabList {
      * Remove all teams, remove all participants, remove all viewing players, clear all viewing players'
      * tab headers. 
      */
-    public void clear() {
+    @Override
+    public void cleanup() {
         teamDatas.clear();
         participantDatas.clear();
         for (PlayerData playerData : playerDatas.values()) {

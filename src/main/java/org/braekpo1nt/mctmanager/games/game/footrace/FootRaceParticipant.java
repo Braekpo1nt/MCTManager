@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.ParticipantData;
+import org.braekpo1nt.mctmanager.participant.QuitDataBase;
 import org.jetbrains.annotations.NotNull;
 
 @ToString(callSuper = true)
@@ -57,7 +58,7 @@ public class FootRaceParticipant extends ParticipantData {
      * Holds data for the participant when they leave the game
      */
     @Data
-    public static class QuitData {
+    public static class QuitData implements QuitDataBase {
         
         private final int score;
         /**

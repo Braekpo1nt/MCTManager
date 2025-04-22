@@ -11,12 +11,10 @@ import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.jetbrains.annotations.NotNull;
 
-public class GameOverState implements FarmRushState {
-    
-    protected final @NotNull FarmRushGame context;
+public class GameOverState extends FarmRushStateBase {
     
     public GameOverState(@NotNull FarmRushGame context) {
-        this.context = context;
+        super(context);
         context.getPowerupManager().stop();
         TopCommand.setEnabled(false);
         Audience.audience(context.getParticipants().values().stream().map(Participant::getPlayer).toList()).showTitle(UIUtils.gameOverTitle());
@@ -32,17 +30,5 @@ public class GameOverState implements FarmRushState {
                     context.stop();
                 })
                 .build());
-    }
-    
-    @Override
-    public void onParticipantJoin(Participant participant, Team team) {
-        // do nothing
-    }
-    
-    @Override
-    public void onParticipantQuit(FarmRushParticipant participant) {
-        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
-        context.resetParticipant(participant);
-        context.getParticipants().remove(participant.getUniqueId());
     }
 }

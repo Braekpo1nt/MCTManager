@@ -1,26 +1,16 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states;
 
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
+import org.braekpo1nt.mctmanager.games.base.states.GameStateBase;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchParticipant;
-import org.bukkit.event.entity.EntityDamageEvent;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchTeam;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
+import org.jetbrains.annotations.NotNull;
 
-public interface CaptureTheFlagMatchState {
-    void onParticipantJoin(CTFParticipant participant);
-    void onParticipantQuit(CTFMatchParticipant participant);
+public interface CaptureTheFlagMatchState extends GameStateBase<CTFMatchParticipant, CTFMatchTeam> {
     void nextState();
     
-    default void stop() {
-        // do nothing
-    }
-    
     // event handlers
-    void onPlayerDamage(EntityDamageEvent event);
-    void onPlayerLoseHunger(FoodLevelChangeEvent event);
-    void onPlayerMove(PlayerMoveEvent event);
-    void onClickInventory(InventoryClickEvent event);
-    void onPlayerDeath(PlayerDeathEvent event);
+    void onParticipantFoodLevelChange(@NotNull FoodLevelChangeEvent event, @NotNull CTFMatchParticipant participant);
+    void onParticipantClickInventory(@NotNull InventoryClickEvent event, @NotNull CTFMatchParticipant participant);
 }

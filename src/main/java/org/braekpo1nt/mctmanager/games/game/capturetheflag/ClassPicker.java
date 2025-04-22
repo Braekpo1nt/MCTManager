@@ -109,7 +109,6 @@ public class ClassPicker implements Listener {
         teamMates.remove(teamMate.getUniqueId());
     }
     
-    @EventHandler
     public void onClickInventory(InventoryClickEvent event) {
         if (!classPickingActive) {
             return;

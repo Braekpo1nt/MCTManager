@@ -13,7 +13,6 @@ import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.LogType;
-import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -307,7 +306,7 @@ public class VoteManager implements Listener {
         if (!voting) {
             return;
         }
-        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
+        if (GameManagerUtils.EXCLUDED_DAMAGE_CAUSES.contains(event.getCause())) {
             return;
         }
         Participant participant = voters.get(event.getEntity().getUniqueId());
@@ -385,7 +384,10 @@ public class VoteManager implements Listener {
         voting = false;
         paused = false;
         GameType gameType = getVotedForGame();
-        Audience.audience(voters.values()).showTitle(UIUtils.defaultTitle(
+        Audience.audience(
+                Audience.audience(voters.values()),
+                Audience.audience(admins)
+        ).showTitle(UIUtils.defaultTitle(
                 Component.empty()
                         .append(Component.text(gameType.getTitle()))
                         .color(NamedTextColor.BLUE),
@@ -581,7 +583,7 @@ public class VoteManager implements Listener {
         ));
         farmRush.setItemMeta(farmRushMeta);
         
-        Inventory newGui = Bukkit.createInventory(null, 9, TITLE);
+        Inventory newGui = plugin.getServer().createInventory(null, 9, TITLE);
         Map<GameType, ItemStack> votingItems = new HashMap<>();
         votingItems.put(GameType.FOOT_RACE, footRace);
         votingItems.put(GameType.SURVIVAL_GAMES, survivalGames);
@@ -595,6 +597,18 @@ public class VoteManager implements Listener {
             newGui.addItem(votingItems.get(mctGame));
         }
         participant.openInventory(newGui);
+    }
+    
+    public static List<GameType> votableGames() {
+        return List.of(
+                GameType.FOOT_RACE,
+                GameType.SURVIVAL_GAMES,
+                GameType.CAPTURE_THE_FLAG,
+                GameType.SPLEEF,
+                GameType.PARKOUR_PATHWAY,
+                GameType.CLOCKWORK,
+                GameType.FARM_RUSH
+        );
     }
     
     private void messageAllVoters(Component message) {

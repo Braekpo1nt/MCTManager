@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.config.dto.YawPitch;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.NamespacedKeyDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
@@ -205,7 +206,12 @@ class SurvivalGamesConfigDTO implements Validatable {
         }
         return SurvivalGamesConfig.builder()
                 .world(newWorld)
-                .spectatorArea(this.spectatorArea)
+                .spectatorBoundary(this.spectatorArea == null ? null : 
+                        new SpectatorBoundary(this.spectatorArea, 
+                                this.platforms.getFirst()
+                                        .barrier()
+                                        .getCenter()
+                                        .toLocation(newWorld)))
                 .spawnChestCoords(this.spawnChestCoords)
                 .mapChestCoords(this.mapChestCoords)
                 .spawnLootTable(Bukkit.getLootTable(this.spawnLootTable.toNamespacedKey()))

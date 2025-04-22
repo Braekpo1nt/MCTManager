@@ -19,7 +19,6 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,7 +34,7 @@ public class VotingState implements EventState {
         this.context = context;
         this.gameManager = context.getGameManager();
         this.voteManager = context.getVoteManager();
-        List<GameType> votingPool = new ArrayList<>(List.of(GameType.values()));
+        List<GameType> votingPool = new ArrayList<>(VoteManager.votableGames());
         votingPool.removeAll(context.getPlayedGames());
         context.getSidebar().removeAllPlayers();
         context.getAdminSidebar().removeAllPlayers();
@@ -100,7 +99,7 @@ public class VotingState implements EventState {
     
     @Override
     public void onParticipantJoin(Participant participant) {
-        gameManager.returnParticipantToHubInstantly(participant);
+        gameManager.returnParticipantToHub(participant);
         voteManager.onParticipantJoin(participant);
     }
     
@@ -147,11 +146,6 @@ public class VotingState implements EventState {
     }
     
     @Override
-    public void colossalCombatIsOver(@Nullable Team winningTeam) {
-        // do nothing
-    }
-    
-    @Override
     public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
         if (newMaxGames < context.getCurrentGameNumber()) {
             sender.sendMessage(Component.text("Can't set the max games for this event to less than ")
@@ -169,17 +163,5 @@ public class VotingState implements EventState {
         gameManager.updateGameTitle();
         sender.sendMessage(Component.text("Max games has been set to ")
                 .append(Component.text(newMaxGames)));
-    }
-    
-    @Override
-    public void stopColossalCombat(@NotNull CommandSender sender) {
-        sender.sendMessage(Component.text("Colossal Combat is not running")
-                .color(NamedTextColor.RED));
-    }
-    
-    @Override
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam, @NotNull String configFile) {
-        sender.sendMessage(Component.text("Can't start Colossal Combat during voting")
-                .color(NamedTextColor.RED));
     }
 }

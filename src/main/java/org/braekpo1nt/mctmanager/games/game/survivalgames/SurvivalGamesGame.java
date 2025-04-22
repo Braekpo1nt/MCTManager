@@ -1,23 +1,21 @@
 package org.braekpo1nt.mctmanager.games.game.survivalgames;
 
-import lombok.Data;
-import net.kyori.adventure.audience.Audience;
+import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfig;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.states.DescriptionState;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.states.InitialState;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.states.SurvivalGamesState;
-import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.glow.GlowManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
-import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.ManyBattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
@@ -27,51 +25,35 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.event.player.*;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.loot.LootTable;
-import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 /**
  * The context for the state pattern
  */
-@Data
-public class SurvivalGamesGame implements MCTGame, Listener {
+@Getter
+@Setter
+public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, SurvivalGamesTeam, SurvivalGamesParticipant.QuitData, SurvivalGamesTeam.QuitData, SurvivalGamesState> {
     
-    private @NotNull SurvivalGamesState state;
-    
-    private final Main plugin;
-    private final GameManager gameManager;
     private final @NotNull ManyBattleTopbar topbar;
-    private final TimerManager timerManager;
     private final GlowManager glowManager;
-    private final Sidebar sidebar;
-    private final Sidebar adminSidebar;
     private final SurvivalGamesConfig config;
-    public final Map<UUID, SurvivalGamesParticipant> participants;
-    public final Map<UUID, SurvivalGamesParticipant.QuitData> quitDatas;
-    public final Map<String, SurvivalGamesTeam> teams;
-    private final Map<String, SurvivalGamesTeam.QuitData> teamQuitDatas;
-    private final List<Player> admins;
     private final WorldBorder worldBorder;
-    
-    private @NotNull Component title;
     
     public SurvivalGamesGame(
             @NotNull Main plugin,
@@ -81,52 +63,32 @@ public class SurvivalGamesGame implements MCTGame, Listener {
             @NotNull Collection<Team> newTeams,
             @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
-        this.plugin = plugin;
-        this.timerManager = new TimerManager(plugin);
-        this.gameManager = gameManager;
-        this.topbar = new ManyBattleTopbar();
-        this.glowManager = new GlowManager(plugin);
-        this.sidebar = gameManager.createSidebar();
-        this.adminSidebar = gameManager.createSidebar();
-        this.title = title;
+        super(GameType.SURVIVAL_GAMES, plugin, gameManager, title, new InitialState());
+        this.topbar = addUIManager(new ManyBattleTopbar());
+        this.glowManager = addUIManager(new GlowManager(plugin));
         this.config = config;
-        this.admins = new ArrayList<>(newAdmins.size());
-        this.participants = new HashMap<>(newParticipants.size());
-        this.quitDatas =  new HashMap<>();
-        this.teams = new HashMap<>(newTeams.size());
-        this.teamQuitDatas = new HashMap<>();
-        for (Team team : newTeams) {
-            teams.put(team.getTeamId(), new SurvivalGamesTeam(team, 0));
-            topbar.addTeam(team.getTeamId(), team.getColor());
-        }
         worldBorder = config.getWorld().getWorldBorder();
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         glowManager.registerListeners();
-        gameManager.getTimerManager().register(timerManager);
         fillAllChests();
-        for (Participant participant : newParticipants) {
-            initializeParticipant(participant);
-        }
-        createPlatformsAndTeleportTeams();
-        initializeSidebar();
-        setUpTeamOptions();
-        startAdmins(newAdmins);
         initializeGlowManager();
+        setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
+        start(newTeams, newParticipants, newAdmins);
+        for (SurvivalGamesTeam team : teams.values()) {
+            updateAliveCount(team);
+        }
         initializeWorldBorder();
-        this.state = new DescriptionState(this);
+        createPlatformsAndTeleportTeams();
         Main.logger().info("Started Survival Games");
     }
     
     @Override
-    public void setTitle(@NotNull Component title) {
-        this.title = title;
-        sidebar.updateLine("title", title);
-        adminSidebar.updateLine("title", title);
+    protected @NotNull SurvivalGamesState getStartState() {
+        return new DescriptionState(this);
     }
     
     @Override
-    public GameType getType() {
-        return GameType.SURVIVAL_GAMES;
+    protected @NotNull World getWorld() {
+        return config.getWorld();
     }
     
     /**
@@ -166,158 +128,31 @@ public class SurvivalGamesGame implements MCTGame, Listener {
         }
     }
     
-    public void initializeParticipant(Participant newParticipant) {
-        SurvivalGamesParticipant participant = new SurvivalGamesParticipant(newParticipant, 0);
-        participants.put(participant.getUniqueId(), participant);
-        SurvivalGamesTeam team = teams.get(participant.getTeamId());
-        team.addParticipant(participant);
-        String teamId = participant.getTeamId();
-        sidebar.addPlayer(participant);
-        topbar.showPlayer(participant);
-        topbar.linkToTeam(participant.getUniqueId(), teamId);
-        glowManager.addPlayer(participant);
-        updateAliveCount(team);
-        initializeKillCount(participant);
-        participant.setGameMode(GameMode.ADVENTURE);
-        ParticipantInitializer.clearInventory(participant);
-        ParticipantInitializer.resetHealthAndHunger(participant);
-        ParticipantInitializer.clearStatusEffects(participant);
-    }
-    
-    public void resetParticipant(Participant participant) {
-        teams.get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
-        ParticipantInitializer.clearInventory(participant);
-        ParticipantInitializer.clearStatusEffects(participant);
-        ParticipantInitializer.resetHealthAndHunger(participant);
-        sidebar.removePlayer(participant.getUniqueId());
-        topbar.hidePlayer(participant.getUniqueId());
-        glowManager.removePlayer(participant);
-    }
-    
     @Override
-    public void stop() {
-        HandlerList.unregisterAll(this);
-        glowManager.unregisterListeners();
-        cancelAllTasks();
+    public void cleanup() {
         clearFloorItems();
         clearAllChests();
         clearContainers();
         removePlatforms();
         worldBorder.reset();
-        stopAdmins();
-        saveScores();
-        for (Participant participant : participants.values()) {
-            state.resetParticipant(participant);
-        }
-        clearSidebar();
-        glowManager.clear();
-        participants.clear();
-        teams.clear();
-        quitDatas.clear();
-        teamQuitDatas.clear();
-        gameManager.gameIsOver();
-        Main.logger().info("Stopped Survival Games");
-    }
-    
-    private void saveScores() {
-        Map<String, Integer> teamScores = new HashMap<>();
-        Map<UUID, Integer> participantScores = new HashMap<>();
-        for (SurvivalGamesTeam team : teams.values()) {
-            teamScores.put(team.getTeamId(), team.getScore());
-        }
-        for (SurvivalGamesParticipant participant : participants.values()) {
-            participantScores.put(participant.getUniqueId(), participant.getScore());
-        }
-        for (Map.Entry<String, SurvivalGamesTeam.QuitData> entry : teamQuitDatas.entrySet()) {
-            teamScores.put(entry.getKey(), entry.getValue().getScore());
-        }
-        for (Map.Entry<UUID, SurvivalGamesParticipant.QuitData> entry : quitDatas.entrySet()) {
-            participantScores.put(entry.getKey(), entry.getValue().getScore());
-        }
-        gameManager.addScores(teamScores, participantScores);
-    }
-    
-    public void onTeamJoin(Team team) {
-        if (teams.containsKey(team.getTeamId())) {
-            return;
-        }
-        SurvivalGamesTeam.QuitData quitData = teamQuitDatas.get(team.getTeamId());
-        if (quitData != null) {
-            teams.put(team.getTeamId(), new SurvivalGamesTeam(team, quitData.getScore()));
-        } else {
-            teams.put(team.getTeamId(), new SurvivalGamesTeam(team, 0));
-        }
-    }
-    
-    @Override
-    public void onParticipantJoin(Participant participant, Team team) {
-        state.onParticipantJoin(participant, team);
-    }
-    
-    @Override
-    public void onParticipantQuit(UUID participantUUID, String teamId) {
-        SurvivalGamesParticipant sgParticipant = participants.get(participantUUID);
-        if (sgParticipant == null) {
-            return;
-        }
-        state.onParticipantQuit(sgParticipant);
-    }
-    
-    public void onTeamQuit(SurvivalGamesTeam team) {
-        if (team.size() > 0) {
-            return;
-        }
-        SurvivalGamesTeam removed = teams.remove(team.getTeamId());
-        teamQuitDatas.put(team.getTeamId(), removed.getQuitData());
-    }
-    
-    private void startAdmins(List<Player> newAdmins) {
-        for (Player admin : newAdmins) {
-            initializeAdmin(admin);
-        }
-        initializeAdminSidebar();
     }
     
     @Override
     public void onAdminJoin(Player admin) {
-        initializeAdmin(admin);
-        adminSidebar.updateLine(admin.getUniqueId(), "title", title);
+        super.onAdminJoin(admin);
         for (Participant participant : participants.values()) {
             glowManager.showGlowing(admin.getUniqueId(), participant.getUniqueId());
         }
     }
     
-    private void initializeAdmin(Player admin) {
-        admins.add(admin);
-        adminSidebar.addPlayer(admin);
-        topbar.showPlayer(admin);
-        glowManager.addPlayer(admin);
-        admin.setGameMode(GameMode.SPECTATOR);
+    @Override
+    protected void initializeAdmin(Player admin) {
         admin.teleport(config.getAdminSpawn());
     }
     
     @Override
-    public void onAdminQuit(Player admin) {
-        resetAdmin(admin);
-        admins.remove(admin);
-    }
-    
-    private void resetAdmin(Player admin) {
-        adminSidebar.removePlayer(admin);
-        topbar.hidePlayer(admin.getUniqueId());
-        glowManager.removePlayer(admin);
-    }
-    
-    private void stopAdmins() {
-        for (Player admin : admins) {
-            resetAdmin(admin);
-        }
-        clearAdminSidebar();
-        admins.clear();
-    }
-    
-    private void clearAdminSidebar() {
-        adminSidebar.deleteAllLines();
+    protected void resetAdmin(Player admin) {
+        
     }
     
     /**
@@ -412,37 +247,25 @@ public class SurvivalGamesGame implements MCTGame, Listener {
         }
     }
     
-    private void initializeSidebar() {
-        sidebar.addLines(
-                new KeyLine("personalTeam", ""),
-                new KeyLine("personalScore", ""),
-                new KeyLine("title", title)
-        );
+    @Override
+    protected void initializeSidebar() {
         topbar.setMiddle(Component.empty());
-        for (SurvivalGamesTeam team : teams.values()) {
-            displayScore(team);
-        }
-        for (SurvivalGamesParticipant participant : participants.values()) {
-            displayScore(participant);
-        }
     }
     
-    private void initializeAdminSidebar() {
+    @Override
+    protected void initializeAdminSidebar() {
         adminSidebar.addLines(
-                new KeyLine("title", title),
                 new KeyLine("timer", "")
         );
     }
     
-    private void setUpTeamOptions() {
-        Scoreboard mctScoreboard = gameManager.getMctScoreboard();
-        for (org.bukkit.scoreboard.Team team : mctScoreboard.getTeams()) {
-            team.setAllowFriendlyFire(false);
-            team.setCanSeeFriendlyInvisibles(true);
-            team.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
-            team.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
-            team.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
-        }
+    @Override
+    protected void setupTeamOptions(org.bukkit.scoreboard.@NotNull Team scoreboardTeam, @NotNull SurvivalGamesTeam team) {
+        scoreboardTeam.setAllowFriendlyFire(false);
+        scoreboardTeam.setCanSeeFriendlyInvisibles(true);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
     }
     
     private void initializeWorldBorder() {
@@ -472,8 +295,50 @@ public class SurvivalGamesGame implements MCTGame, Listener {
         topbar.setKillsAndDeaths(participant.getUniqueId(), participant.getKills(), deaths);
     }
     
-    private void cancelAllTasks() {
-        timerManager.cancel();
+    @Override
+    protected @NotNull SurvivalGamesParticipant createParticipant(Participant participant, SurvivalGamesParticipant.QuitData quitData) {
+        return new SurvivalGamesParticipant(participant, quitData);
+    }
+    
+    @Override
+    protected @NotNull SurvivalGamesParticipant createParticipant(Participant participant) {
+        return new SurvivalGamesParticipant(participant, 0);
+    }
+    
+    @Override
+    protected @NotNull SurvivalGamesParticipant.QuitData getQuitData(SurvivalGamesParticipant participant) {
+        return participant.getQuitData();
+    }
+    
+    @Override
+    protected void initializeParticipant(SurvivalGamesParticipant participant, SurvivalGamesTeam team) {
+        topbar.linkToTeam(participant.getUniqueId(), participant.getTeamId());
+        initializeKillCount(participant);
+    }
+    
+    @Override
+    protected void initializeTeam(SurvivalGamesTeam team) {
+        topbar.addTeam(team.getTeamId(), team.getColor());
+    }
+    
+    @Override
+    protected @NotNull SurvivalGamesTeam createTeam(Team team, SurvivalGamesTeam.QuitData quitData) {
+        return new SurvivalGamesTeam(team, quitData.getScore());
+    }
+    
+    @Override
+    protected @NotNull SurvivalGamesTeam createTeam(Team team) {
+        return new SurvivalGamesTeam(team, 0);
+    }
+    
+    @Override
+    protected @NotNull SurvivalGamesTeam.QuitData getQuitData(SurvivalGamesTeam team) {
+        return team.getQuitData();
+    }
+    
+    @Override
+    protected void resetParticipant(SurvivalGamesParticipant participant, SurvivalGamesTeam team) {
+        // do nothing
     }
     
     private void clearFloorItems() {
@@ -537,17 +402,6 @@ public class SurvivalGamesGame implements MCTGame, Listener {
         for (BoundingBox barrier : platformBarriers) {
             BlockPlacementUtils.createCube(config.getWorld(), barrier, Material.AIR);
         }
-    }
-    
-    private void clearSidebar() {
-        sidebar.deleteAllLines();
-        topbar.removeAllTeams();
-        topbar.hideAllPlayers();
-    }
-    
-    public void messageAllParticipants(Component message) {
-        gameManager.messageAdmins(message);
-        Audience.audience(participants.values()).sendMessage(message);
     }
     
     // EventHandlers
@@ -635,59 +489,9 @@ public class SurvivalGamesGame implements MCTGame, Listener {
         }
     }
     
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        Block clickedBlock = event.getClickedBlock();
-        if (clickedBlock == null) {
-            return;
-        }
-        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
-            return;
-        }
-        Material blockType = clickedBlock.getType();
-        if (!config.getPreventInteractions().contains(blockType)) {
-            return;
-        }
-        event.setCancelled(true);
-    }
-    
-    @EventHandler
-    public void onPlayerMove(PlayerMoveEvent event) {
-        if (config.getSpectatorArea() == null){
-            return;
-        }
-        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
-            return;
-        }
-        if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
-            return;
-        }
-        if (!config.getSpectatorArea().contains(event.getFrom().toVector())) {
-            event.getPlayer().teleport(config.getPlatformSpawns().getFirst());
-            return;
-        }
-        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
-            event.setCancelled(true);
-        }
-    }
-    
-    @EventHandler
-    public void onPlayerTeleport(PlayerTeleportEvent event) {
-        if (config.getSpectatorArea() == null){
-            return;
-        }
-        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
-            return;
-        }
-        if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
-            return;
-        }
-        if (!event.getCause().equals(PlayerTeleportEvent.TeleportCause.SPECTATE)) {
-            return;
-        }
-        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
-            event.setCancelled(true);
-        }
+    @Override
+    protected boolean shouldPreventInteractions(@NotNull Material type) {
+        return config.getPreventInteractions().contains(type);
     }
     
     @EventHandler
@@ -754,41 +558,8 @@ public class SurvivalGamesGame implements MCTGame, Listener {
                 .count();
     }
     
-    // State-specific callers
-    
-    @EventHandler
-    public void onPlayerDamage(EntityDamageEvent event) {
-        if (!participants.containsKey(event.getEntity().getUniqueId())) {
-            return;
-        }
-        state.onPlayerDamage(event);
-    }
-    
-    @EventHandler
-    public void onPlayerDeath(PlayerDeathEvent event) {
-        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
-            return;
-        }
-        state.onParticipantDeath(event);
-    }
-    
-    // make this private if above used
-    public void displayScore(SurvivalGamesTeam team) {
-        Component contents = Component.empty()
-                .append(team.getFormattedDisplayName())
-                .append(Component.text(": "))
-                .append(Component.text(team.getScore())
-                        .color(NamedTextColor.GOLD));
-        for (UUID memberUUID : team.getMemberUUIDs()) {
-            sidebar.updateLine(memberUUID, "personalTeam", contents);
-        }
-    }
-    
-    // make this private if above used
-    public void displayScore(SurvivalGamesParticipant participant) {
-        sidebar.updateLine(participant.getUniqueId(), "personalScore", Component.empty()
-                .append(Component.text("Personal: "))
-                .append(Component.text(participant.getScore()))
-                .color(NamedTextColor.GOLD));
+    @Override
+    protected @Nullable SpectatorBoundary getSpectatorBoundary() {
+        return config.getSpectatorBoundary();
     }
 }

@@ -9,7 +9,6 @@ import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
 
 @Setter
@@ -20,8 +19,8 @@ public class TeamSpawn {
     private final World world;
     /**
      * the area to for the barrier blocks to be placed/removed
-     * @see TeamSpawn#close() 
-     * @see TeamSpawn#open() 
+     * @see TeamSpawn#close()
+     * @see TeamSpawn#open()
      */
     private final BoundingBox barrierArea;
     /**

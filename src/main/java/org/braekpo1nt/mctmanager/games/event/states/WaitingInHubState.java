@@ -8,7 +8,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.Tip;
-import org.braekpo1nt.mctmanager.games.event.states.delay.ToColossalCombatDelay;
+import org.braekpo1nt.mctmanager.games.event.states.delay.ToFinalGameDelay;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -24,9 +24,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -73,7 +71,7 @@ public class WaitingInHubState implements EventState {
                     context.getPlugin().getServer().getScheduler().cancelTask(updateTipsTaskId);
                     context.getPlugin().getServer().getScheduler().cancelTask(displayTipsTaskId);
                     if (context.allGamesHaveBeenPlayed()) {
-                        context.setState(new ToColossalCombatDelay(context));
+                        context.setState(new ToFinalGameDelay(context));
                     } else {
                         context.setState(new VotingState(context));
                     }
@@ -83,7 +81,7 @@ public class WaitingInHubState implements EventState {
     
     @Override
     public void onParticipantJoin(Participant participant) {
-        gameManager.returnParticipantToHubInstantly(participant);
+        gameManager.returnParticipantToHub(participant);
         if (sidebar != null) {
             sidebar.addPlayer(participant);
             context.updateTeamScores();
@@ -186,11 +184,6 @@ public class WaitingInHubState implements EventState {
     }
     
     @Override
-    public void colossalCombatIsOver(@Nullable Team winningTeam) {
-        // do nothing
-    }
-    
-    @Override
     public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
         if (newMaxGames < context.getCurrentGameNumber() - 1) {
             sender.sendMessage(Component.empty()
@@ -211,24 +204,6 @@ public class WaitingInHubState implements EventState {
                 .append(Component.text(newMaxGames)));
     }
     
-    @Override
-    public void stopColossalCombat(@NotNull CommandSender sender) {
-        sender.sendMessage(Component.text("Colossal Combat is not running")
-                .color(NamedTextColor.RED));
-    }
-    
-    @Override
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam, @NotNull String configFile) {
-        waitingInHubTimer.cancel();
-        context.getPlugin().getServer().getScheduler().cancelTask(updateTipsTaskId);
-        context.getPlugin().getServer().getScheduler().cancelTask(displayTipsTaskId);
-        context.setState(new PlayingColossalCombatState(
-                context,
-                firstTeam,
-                secondTeam, 
-                configFile));
-    }
-
     public void startActionBarTips() {
         BukkitScheduler scheduler = context.getPlugin().getServer().getScheduler();
 

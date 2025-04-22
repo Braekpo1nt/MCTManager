@@ -6,6 +6,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
+import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushParticipant;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushTeam;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
@@ -56,7 +57,7 @@ public class ActiveState extends GameplayState {
     }
     
     @Override
-    public void onCloseInventory(InventoryCloseEvent event, Participant participant) {
+    public void onParticipantCloseInventory(InventoryCloseEvent event, FarmRushParticipant participant) {
         FarmRushTeam team = context.getTeams().get(participant.getTeamId());
         int oldScore = team.getScore();
         sellItemsOnCloseInventory(event, participant);
@@ -80,9 +81,7 @@ public class ActiveState extends GameplayState {
     
     private void onTeamReachMaxScore(FarmRushTeam winingTeam) {
         gameTimer.cancel();
-        int multiplied = (int) (gameManager.getMultiplier() * context.getConfig().getWinnerBonus());
-        winingTeam.awardPoints(multiplied);
-        context.displayScore(winingTeam);
+        context.awardPoints(winingTeam, context.getConfig().getWinnerBonus());
         context.messageAllParticipants(Component.empty()
                 .append(winingTeam.getFormattedDisplayName())
                 .append(Component.text(" reached "))

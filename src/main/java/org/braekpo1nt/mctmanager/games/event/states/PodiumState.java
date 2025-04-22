@@ -18,7 +18,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -209,25 +208,8 @@ public class PodiumState implements EventState {
     }
     
     @Override
-    public void colossalCombatIsOver(@Nullable Team winningTeam) {
-        // do nothing
-    }
-    
-    @Override
     public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
         sender.sendMessage(Component.text("The event is over, can't change the max games.")
-                .color(NamedTextColor.RED));
-    }
-    
-    @Override
-    public void stopColossalCombat(@NotNull CommandSender sender) {
-        sender.sendMessage(Component.text("Colossal Combat is not running")
-                .color(NamedTextColor.RED));
-    }
-    
-    @Override
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull Team firstTeam, @NotNull Team secondTeam, @NotNull String configFile) {
-        sender.sendMessage(Component.text("The event is over, can't start Colossal Combat")
                 .color(NamedTextColor.RED));
     }
 }

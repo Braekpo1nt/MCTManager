@@ -4,15 +4,11 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesParticipant;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesParticipant;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesTeam;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
-import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.participant.Participant;
-import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -26,20 +22,20 @@ import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
-public class ActiveState implements SurvivalGamesState {
+public class ActiveState extends SurvivalGamesStateBase {
     
-    private final @NotNull SurvivalGamesGame context;
     private final Main plugin;
-    private final GameManager gameManager;
     private final TimerManager timerManager;
     private final SurvivalGamesConfig config;
-    private final Sidebar sidebar;
     private final Sidebar adminSidebar;
     private final ManyBattleTopbar topbar;
     private final WorldBorder worldBorder;
@@ -53,12 +49,10 @@ public class ActiveState implements SurvivalGamesState {
     private @Nullable Timer gracePeriodTimer;
     
     public ActiveState(@NotNull SurvivalGamesGame context) {
-        this.context = context;
+        super(context);
         this.plugin = context.getPlugin();
-        this.gameManager = context.getGameManager();
         this.timerManager = context.getTimerManager();
         this.config = context.getConfig();
-        this.sidebar = context.getSidebar();
         this.adminSidebar = context.getAdminSidebar();
         this.topbar = context.getTopbar();
         this.worldBorder = context.getWorldBorder();
@@ -185,40 +179,20 @@ public class ActiveState implements SurvivalGamesState {
     }
     
     @Override
-    public void onParticipantJoin(Participant participant, Team team) {
-        context.onTeamJoin(team);
-        SurvivalGamesParticipant.QuitData quitData = context.getQuitDatas().remove(participant.getUniqueId());
-        if (quitData != null) {
-            SurvivalGamesParticipant sgParticipant = new SurvivalGamesParticipant(
-                    participant,
-                    quitData
-            );
-            rejoinParticipant(sgParticipant);
-        } else {
-            context.getTopbar().addTeam(participant.getTeamId(), team.getColor());
-            context.initializeParticipant(participant);
-            participant.teleport(config.getPlatformSpawns().getFirst());
-            participant.setRespawnLocation(config.getPlatformSpawns().getFirst(), true);
-        }
-        sidebar.updateLine(participant.getUniqueId(), "title", context.getTitle());
-        context.initializeGlowing(participant);
-        context.displayScore(context.getParticipants().get(participant.getUniqueId()));
-        context.displayScore(context.getTeams().get(team.getTeamId()));
-    }
-    
-    private void rejoinParticipant(SurvivalGamesParticipant participant) {
-        context.getParticipants().put(participant.getUniqueId(), participant);
-        context.getTeams().get(participant.getTeamId()).addParticipant(participant);
+    public void onParticipantRejoin(SurvivalGamesParticipant participant, SurvivalGamesTeam team) {
+        super.onParticipantRejoin(participant, team);
         participant.setGameMode(GameMode.SPECTATOR);
-        sidebar.addPlayer(participant);
-        topbar.showPlayer(participant);
-        context.initializeKillCount(participant);
-        topbar.linkToTeam(participant.getUniqueId(), participant.getTeamId());
-        context.getGlowManager().addPlayer(participant);
     }
     
     @Override
-    public void onParticipantQuit(SurvivalGamesParticipant participant) {
+    public void onNewParticipantJoin(SurvivalGamesParticipant participant, SurvivalGamesTeam team) {
+        super.onNewParticipantJoin(participant, team);
+        participant.teleport(config.getPlatformSpawns().getFirst());
+        participant.setRespawnLocation(config.getPlatformSpawns().getFirst(), true);
+    }
+    
+    @Override
+    public void onParticipantQuit(SurvivalGamesParticipant participant, SurvivalGamesTeam team) {
         if (participant.isAlive()) {
             List<ItemStack> drops = Arrays.stream(participant.getInventory().getContents())
                     .filter(Objects::nonNull)
@@ -229,30 +203,12 @@ public class ActiveState implements SurvivalGamesState {
                     .append(Component.text(" left early. Their life is forfeit."));
             PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant.getPlayer(), 
                     DamageSource.builder(DamageType.GENERIC).build(), drops, droppedExp, deathMessage);
-            this.onParticipantDeath(fakeDeathEvent);
+            this.onParticipantDeath(fakeDeathEvent, participant);
         }
-        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
-        resetParticipant(participant);
-        context.getParticipants().remove(participant.getUniqueId());
-        context.onTeamQuit(context.getTeams().get(participant.getTeamId()));
     }
     
     @Override
-    public void resetParticipant(Participant participant) {
-        context.getTeams().get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
-        ParticipantInitializer.clearInventory(participant);
-        ParticipantInitializer.clearStatusEffects(participant);
-        ParticipantInitializer.resetHealthAndHunger(participant);
-        context.getSidebar().removePlayer(participant.getUniqueId());
-        context.getTopbar().hidePlayer(participant.getUniqueId());
-        context.getGlowManager().removePlayer(participant);
-    }
-    
-    @Override
-    public void onPlayerDamage(EntityDamageEvent event) {
-        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
-            return;
-        }
+    public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull SurvivalGamesParticipant participant) {
         if (gracePeriod) {
             Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "SurvivalGames.ActiveState.onPlayerDamage()->invulnerable cancelled");
             event.setCancelled(true);
@@ -260,22 +216,8 @@ public class ActiveState implements SurvivalGamesState {
     }
     
     @Override
-    public void onParticipantDeath(PlayerDeathEvent event) {
-        SurvivalGamesParticipant killed = context.getParticipants().get(event.getPlayer().getUniqueId());
-        if (killed == null) {
-            return;
-        }
-        killed.setGameMode(GameMode.SPECTATOR);
-        dropInventory(killed, event.getDrops());
-        Main.debugLog(LogType.CANCEL_PLAYER_DEATH_EVENT, "SurvivalGamesGame.ActiveState.onPlayerDeath() cancelled");
-        event.setCancelled(true);
-        if (event.getDeathSound() != null && event.getDeathSoundCategory() != null) {
-            killed.getWorld().playSound(killed.getLocation(), event.getDeathSound(), event.getDeathSoundCategory(), event.getDeathSoundVolume(), event.getDeathSoundPitch());
-        }
-        Component deathMessage = event.deathMessage();
-        if (deathMessage != null) {
-            plugin.getServer().sendMessage(deathMessage);
-        }
+    public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull SurvivalGamesParticipant killed) {
+        event.setDroppedExp(0);
         if (killed.getKiller() != null) {
             SurvivalGamesParticipant killer = context.getParticipants().get(killed.getKiller().getUniqueId());
             if (killer != null) {
@@ -285,24 +227,13 @@ public class ActiveState implements SurvivalGamesState {
         onParticipantDeath(killed);
     }
     
-    private void dropInventory(Participant killed, List<ItemStack> drops) {
-        for (ItemStack item : drops) {
-            config.getWorld().dropItemNaturally(killed.getLocation(), item);
-        }
-    }
-    
     private void onParticipantGetKill(@NotNull SurvivalGamesParticipant killer, @NotNull SurvivalGamesParticipant killed) {
         if (!context.getParticipants().containsKey(killer.getUniqueId())) {
             return;
         }
         addKill(killer);
         UIUtils.showKillTitle(killer, killed);
-        int multiplied = (int) (gameManager.getMultiplier() * config.getKillScore());
-        killer.awardPoints(multiplied);
-        SurvivalGamesTeam team = context.getTeams().get(killer.getTeamId());
-        team.addPoints(multiplied);
-        context.displayScore(killer);
-        context.displayScore(team);
+        context.awardPoints(killer, config.getKillScore());
     }
     
     /**
@@ -325,12 +256,11 @@ public class ActiveState implements SurvivalGamesState {
         topbar.setDeaths(participant.getUniqueId(), newDeathCount);
     }
     
-    private void onParticipantDeath(SurvivalGamesParticipant killed) {
-        killed.getInventory().clear();
-        killed.setAlive(false);
-        String teamId = killed.getTeamId();
+    private void onParticipantDeath(SurvivalGamesParticipant participant) {
+        participant.setAlive(false);
+        String teamId = participant.getTeamId();
+        addDeath(participant);
         SurvivalGamesTeam team = context.getTeams().get(teamId);
-        addDeath(killed);
         context.updateAliveCount(team);
         if (!team.isAlive()) {
             onTeamDeath(context.getTeams().get(teamId));
@@ -346,9 +276,8 @@ public class ActiveState implements SurvivalGamesState {
                 .append(deadTeam.getFormattedDisplayName())
                 .append(Component.text(" has been eliminated.")));
         List<SurvivalGamesTeam> livingTeams = getLivingTeams();
-        int multipliedSurvive = (int) (gameManager.getMultiplier() * config.getSurviveTeamScore());
         for (SurvivalGamesTeam livingTeam : livingTeams) {
-            livingTeam.awardPoints(multipliedSurvive);
+            context.awardPoints(livingTeam, config.getSurviveTeamScore());
             context.displayScore(livingTeam);
         }
         switch (livingTeams.size()) {
@@ -356,17 +285,13 @@ public class ActiveState implements SurvivalGamesState {
                 plugin.getServer().sendMessage(Component.empty()
                         .append(deadTeam.getFormattedDisplayName())
                         .append(Component.text(" got third place!")));
-                int multiplied = (int) (gameManager.getMultiplier() * config.getThirdPlaceScore());
-                deadTeam.awardPoints(multiplied);
-                context.displayScore(deadTeam);
+                context.awardPoints(deadTeam, config.getThirdPlaceScore());
             }
             case 1 -> {
                 plugin.getServer().sendMessage(Component.empty()
                         .append(deadTeam.getFormattedDisplayName())
                         .append(Component.text(" got second place!")));
-                int multiplied = (int) (gameManager.getMultiplier() * config.getSecondPlaceScore());
-                deadTeam.awardPoints(multiplied);
-                context.displayScore(deadTeam);
+                context.awardPoints(deadTeam, config.getSecondPlaceScore());
                 onTeamWin(livingTeams.getFirst());
             }
             case 0 -> {
@@ -389,9 +314,7 @@ public class ActiveState implements SurvivalGamesState {
         plugin.getServer().sendMessage(Component.text("Team ")
                 .append(winningTeam.getFormattedDisplayName())
                 .append(Component.text(" wins!")));
-        int multiplied = (int) (gameManager.getMultiplier() * config.getFirstPlaceScore());
-        winningTeam.awardPoints(multiplied);
-        context.displayScore(winningTeam);
+        context.awardPoints(winningTeam, config.getFirstPlaceScore());
         if (borderDelay != null) {
             borderDelay.cancel();
         }

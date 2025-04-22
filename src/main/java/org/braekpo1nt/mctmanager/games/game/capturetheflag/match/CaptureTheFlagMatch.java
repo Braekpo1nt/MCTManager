@@ -1,7 +1,9 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.match;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import io.papermc.paper.entity.LookAnchor;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
@@ -10,6 +12,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.*;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states.CaptureTheFlagMatchState;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states.ClassSelectionState;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.CaptureTheFlagState;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -21,23 +24,23 @@ import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Item;
-import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
-@Data
-public class CaptureTheFlagMatch {
+@Getter
+@Setter
+public class CaptureTheFlagMatch implements CaptureTheFlagState {
     
     public enum Affiliation {
         NORTH,
@@ -58,14 +61,9 @@ public class CaptureTheFlagMatch {
     private final CaptureTheFlagConfig config;
     private final BattleTopbar topbar;
     private final Sidebar adminSidebar;
-    private final ClassPicker northClassPicker;
-    private final ClassPicker southClassPicker;
-    private CTFMatchTeam northTeam;
-    private CTFMatchTeam southTeam;
-    // TODO: replace north and south lists with team.getParticipants() (above)
-    private final Map<UUID, CTFMatchParticipant> northParticipants = new HashMap<>();
-    private final Map<UUID, CTFMatchParticipant> southParticipants = new HashMap<>();
-    private final Map<UUID, CTFMatchParticipant> allParticipants = new HashMap<>();
+    private final @NotNull CTFMatchTeam northTeam;
+    private final @NotNull CTFMatchTeam southTeam;
+    private final Map<UUID, CTFMatchParticipant> participants = new HashMap<>();
     /**
      * The position of the north flag, if it has been dropped and can be picked up. Null if not
      */
@@ -85,7 +83,14 @@ public class CaptureTheFlagMatch {
     private Material northBanner;
     private Material southBanner;
     
-    public CaptureTheFlagMatch(CaptureTheFlagGame parentContext, Runnable matchIsOver, MatchPairing matchPairing, Arena arena) {
+    public CaptureTheFlagMatch(
+            CaptureTheFlagGame parentContext, 
+            Runnable matchIsOver, 
+            MatchPairing matchPairing, 
+            Arena arena,
+            @NotNull CTFTeam newNorthTeam, 
+            @NotNull CTFTeam newSouthTeam, 
+            Collection<CTFParticipant> newParticipants) {
         this.parentContext = parentContext;
         this.matchIsOver = matchIsOver;
         this.matchPairing = matchPairing;
@@ -94,87 +99,74 @@ public class CaptureTheFlagMatch {
         this.gameManager = parentContext.getGameManager();
         this.config = parentContext.getConfig();
         this.topbar = parentContext.getTopbar();
-        this.northClassPicker = new ClassPicker(gameManager);
-        this.southClassPicker = new ClassPicker(gameManager);
         this.adminSidebar = parentContext.getAdminSidebar();
+        this.northTeam = new CTFMatchTeam(newNorthTeam, Affiliation.NORTH);
+        this.southTeam = new CTFMatchTeam(newSouthTeam, Affiliation.SOUTH);
+        placeFlags();
+        closeGlassBarriers();
+        start(newParticipants);
     }
     
     public void nextState() {
         state.nextState();
     }
     
-    public void start(@NotNull CTFTeam newNorthTeam, @NotNull CTFTeam newSouthTeam, Collection<CTFParticipant> newParticipants) {
-        placeFlags();
-        closeGlassBarriers();
-        this.northTeam = new CTFMatchTeam(newNorthTeam, Affiliation.NORTH);
-        this.southTeam = new CTFMatchTeam(newSouthTeam, Affiliation.SOUTH);
-        for (CTFParticipant participant : newParticipants) {
+    private void start(Collection<CTFParticipant> newParticipants) {
+        for (CTFParticipant newParticipant : newParticipants) {
+            CTFMatchParticipant participant = createParticipant(newParticipant);
+            CTFMatchTeam team = getTeam(participant.getAffiliation());
+            addParticipant(participant, team);
+            participant.setGameMode(GameMode.ADVENTURE);
+            ParticipantInitializer.clearStatusEffects(participant);
+            ParticipantInitializer.clearInventory(participant);
+            ParticipantInitializer.resetHealthAndHunger(participant);
             initializeParticipant(participant);
         }
         initializeSidebar();
-        setupTeamOptions();
+        updateAliveStatus(Affiliation.NORTH);
+        updateAliveStatus(Affiliation.SOUTH);
         state = new ClassSelectionState(this);
         Main.logger().info(String.format("Starting capture the flag match %s", matchPairing));
     }
     
-    public void initializeParticipant(CTFParticipant newParticipant) {
-        initializeParticipant(newParticipant, true);
+    protected void addParticipant(CTFMatchParticipant participant, CTFMatchTeam team) {
+        participants.put(participant.getUniqueId(), participant);
+        team.addParticipant(participant);
     }
     
-    public void initializeParticipant(CTFParticipant newParticipant, boolean isAlive) {
-        Affiliation affiliation = 
-                matchPairing.northTeam().equals(newParticipant.getTeamId()) ? 
-                        Affiliation.NORTH : Affiliation.SOUTH;
-        CTFMatchParticipant participant = new CTFMatchParticipant(newParticipant, affiliation, isAlive);
-        allParticipants.put(participant.getUniqueId(), participant);
-        int alive;
-        int dead;
-        if (affiliation == Affiliation.NORTH) {
-            northParticipants.put(participant.getUniqueId(), participant);
-            northTeam.addParticipant(participant);
+    private CTFMatchParticipant createParticipant(CTFParticipant newParticipant) {
+        Affiliation affiliation = Objects.requireNonNull(getAffiliation(newParticipant.getTeamId()), "tried to create CTFMatchParticipant from participant whose team is not in match");
+        return new CTFMatchParticipant(newParticipant, affiliation, true);
+    }
+    
+    protected void initializeParticipant(CTFMatchParticipant participant) {
+        if (participant.getAffiliation() == Affiliation.NORTH) {
             participant.teleport(arena.northSpawn());
-            participant.setRespawnLocation(arena.northSpawn(), true);
             participant.lookAt(
                     arena.southSpawn().getX(), 
                     arena.southSpawn().getY(), 
                     arena.southSpawn().getZ(), 
                     LookAnchor.EYES);
-            alive = countAlive(northParticipants.values());
-            dead = northParticipants.size() - alive;
         } else {
-            southParticipants.put(participant.getUniqueId(), participant);
-            southTeam.addParticipant(participant);
             participant.teleport(arena.southSpawn());
-            participant.setRespawnLocation(arena.southSpawn(), true);
             participant.lookAt(
                     arena.northSpawn().getX(), 
                     arena.northSpawn().getY(), 
                     arena.northSpawn().getZ(), 
                     LookAnchor.EYES);
-            alive = countAlive(southParticipants.values());
-            dead = southParticipants.size() - alive;
         }
-        topbar.setMembers(participant.getTeamId(), alive, dead);
-        ParticipantInitializer.clearInventory(participant);
-        participant.setGameMode(GameMode.ADVENTURE);
-        ParticipantInitializer.clearStatusEffects(participant);
-        ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
-    public void onParticipantJoin(CTFParticipant participant) {
-        state.onParticipantJoin(participant);
-    }
-    
-    public void onParticipantQuit(CTFParticipant participant) {
-        CTFMatchParticipant ctfMatchParticipant = allParticipants.get(participant.getUniqueId());
-        if (ctfMatchParticipant == null) {
-            return;
+    public void updateAliveStatus(Affiliation affiliation) {
+        if (affiliation == Affiliation.NORTH) {
+            int alive = northTeam.getAlive();
+            int dead = northTeam.size() - alive;
+            topbar.setMembers(matchPairing.northTeam(), alive, dead);
+        } else {
+            int alive = southTeam.getAlive();
+            int dead = southTeam.size() - alive;
+            topbar.setMembers(matchPairing.southTeam(), alive, dead);
         }
-        state.onParticipantQuit(ctfMatchParticipant);
-    }
-    
-    public static int countAlive(Collection<CTFMatchParticipant> participants) {
-        return (int) participants.stream().filter(CTFMatchParticipant::isAlive).count();
     }
     
     private void initializeSidebar() {
@@ -212,33 +204,167 @@ public class CaptureTheFlagMatch {
         BlockPlacementUtils.createCube(arena.southBarrier(), size.xSize(), size.ySize(), size.zSize(), Material.AIR);
     }
     
-    /**
-     * Sets up the team options for the teams in this match
-     */
-    private void setupTeamOptions() {
-        Scoreboard mctScoreboard = gameManager.getMctScoreboard();
-        for (org.bukkit.scoreboard.Team team : mctScoreboard.getTeams()) {
-            if (team.getName().matches(matchPairing.northTeam()) || team.getName().matches(matchPairing.southTeam())) {
-                team.setAllowFriendlyFire(false);
-                team.setCanSeeFriendlyInvisibles(true);
-                team.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
-                team.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
-                team.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.NEVER);
-            }
-        }
-    }
-    
-    public void stop() {
+    @Override
+    public void cleanup() {
         hasNorthFlag = null;
         hasSouthFlag = null;
         resetArena();
-        for (CTFMatchParticipant participant : allParticipants.values()) {
+        for (CTFMatchParticipant participant : participants.values()) {
             resetParticipant(participant);
         }
-        allParticipants.clear();
-        northParticipants.clear();
-        southParticipants.clear();
+        participants.clear();
         Main.logger().info("Stopping capture the flag match " + matchPairing);
+    }
+    
+    private @Nullable CTFMatchParticipant getParticipant(CTFParticipant participant) {
+        return participants.get(participant.getUniqueId());
+    }
+    
+    private @NotNull CTFMatchTeam getTeam(CTFTeam team) {
+        return getTeam(getAffiliation(team.getTeamId()));
+    }
+    
+    private @NotNull CTFMatchTeam getTeam(Affiliation affiliation) {
+        return affiliation == Affiliation.NORTH ? northTeam : southTeam;
+    }
+    
+    /**
+     * @param teamId the teamId
+     * @return {@link Affiliation#NORTH} if teamId is the north team, {@link Affiliation#SOUTH} otherwise
+     */
+    private @NotNull Affiliation getAffiliation(@NotNull String teamId) {
+        if (matchPairing.northTeam().equals(teamId)) {
+            return Affiliation.NORTH;
+        }
+        return Affiliation.SOUTH;
+    }
+    
+    @Override
+    public void onTeamRejoin(CTFTeam team) {
+        CTFMatchTeam matchTeam = getTeam(team);
+        state.onTeamRejoin(matchTeam);
+    }
+    
+    @Override
+    public void onNewTeamJoin(CTFTeam team) {
+        // not applicable
+    }
+    
+    @Override
+    public void onParticipantRejoin(CTFParticipant participant, CTFTeam team) {
+        CTFMatchParticipant matchParticipant = createParticipant(participant);
+        CTFMatchTeam matchTeam = getTeam(team);
+        addParticipant(matchParticipant, matchTeam);
+        state.onParticipantRejoin(matchParticipant, matchTeam);
+    }
+    
+    @Override
+    public void onNewParticipantJoin(CTFParticipant participant, CTFTeam team) {
+        CTFMatchParticipant matchParticipant = createParticipant(participant);
+        CTFMatchTeam matchTeam = getTeam(team);
+        addParticipant(matchParticipant, matchTeam);
+        state.onNewParticipantJoin(matchParticipant, matchTeam);
+    }
+    
+    @Override
+    public void onParticipantQuit(CTFParticipant participant, CTFTeam team) {
+        CTFMatchParticipant matchParticipant = getParticipant(participant);
+        CTFMatchTeam matchTeam = getTeam(team);
+        if (matchParticipant == null) {
+            return;
+        }
+        state.onParticipantQuit(matchParticipant, matchTeam);
+        UUID participantUUID = matchParticipant.getUniqueId();
+        participants.remove(participantUUID);
+        team.removeParticipant(participantUUID);
+        resetParticipant(matchParticipant);
+    }
+    
+    @Override
+    public void onTeamQuit(CTFTeam team) {
+        CTFMatchTeam matchTeam = getTeam(team);
+        state.onTeamQuit(matchTeam);
+    }
+    
+    @Override
+    public void onParticipantMove(@NotNull PlayerMoveEvent event, @NotNull CTFParticipant participant) {
+        CTFMatchParticipant matchParticipant = getParticipant(participant);
+        if (matchParticipant == null) {
+            return;
+        }
+        state.onParticipantMove(event, matchParticipant);
+    }
+    
+    @Override
+    public void onParticipantTeleport(@NotNull PlayerTeleportEvent event, @NotNull CTFParticipant participant) {
+        CTFMatchParticipant matchParticipant = getParticipant(participant);
+        if (matchParticipant == null) {
+            return;
+        }
+        state.onParticipantTeleport(event, matchParticipant);
+    }
+    
+    @Override
+    public void onParticipantInteract(@NotNull PlayerInteractEvent event, @NotNull CTFParticipant participant) {
+        CTFMatchParticipant matchParticipant = getParticipant(participant);
+        if (matchParticipant == null) {
+            return;
+        }
+        state.onParticipantInteract(event, matchParticipant);
+    }
+    
+    @Override
+    public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull CTFParticipant participant) {
+        CTFMatchParticipant matchParticipant = getParticipant(participant);
+        if (matchParticipant == null) {
+            return;
+        }
+        state.onParticipantDamage(event, matchParticipant);
+    }
+    
+    @Override
+    public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull CTFParticipant participant) {
+        CTFMatchParticipant matchParticipant = getParticipant(participant);
+        if (matchParticipant == null) {
+            return;
+        }
+        state.onParticipantDeath(event, matchParticipant);
+    }
+    
+    @Override
+    public void onParticipantRespawn(PlayerRespawnEvent event, CTFParticipant participant) {
+        CTFMatchParticipant matchParticipant = getParticipant(participant);
+        if (matchParticipant == null) {
+            return;
+        }
+        state.onParticipantRespawn(event, matchParticipant);
+    }
+    
+    @Override
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, CTFParticipant participant) {
+        CTFMatchParticipant matchParticipant = getParticipant(participant);
+        if (matchParticipant == null) {
+            return;
+        }
+        state.onParticipantPostRespawn(event, matchParticipant);
+    }
+    
+    @Override
+    public void onParticipantFoodLevelChange(@NotNull FoodLevelChangeEvent event, @NotNull CTFParticipant participant) {
+        CTFMatchParticipant matchParticipant = getParticipant(participant);
+        if (matchParticipant == null) {
+            return;
+        }
+        state.onParticipantFoodLevelChange(event, matchParticipant);
+    }
+    
+    @Override
+    public void onParticipantClickInventory(@NotNull InventoryClickEvent event, @NotNull CTFParticipant participant) {
+        CTFMatchParticipant matchParticipant = getParticipant(participant);
+        if (matchParticipant == null) {
+            return;
+        }
+        state.onParticipantClickInventory(event, matchParticipant);
     }
     
     private void resetArena() {
@@ -266,57 +392,10 @@ public class CaptureTheFlagMatch {
     }
     
     public void resetParticipant(CTFMatchParticipant participant) {
-        if (participant.getAffiliation() == Affiliation.NORTH) {
-            northTeam.removeParticipant(participant.getUniqueId());
-        } else {
-            southTeam.removeParticipant(participant.getUniqueId());
-        }
         ParticipantInitializer.clearInventory(participant);
         participant.closeInventory();
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
-    }
-    
-    public void onPlayerDamage(EntityDamageEvent event) {
-        if (!(event.getEntity() instanceof Player participant)) {
-            return;
-        }
-        if (!allParticipants.containsKey(participant.getUniqueId())) {
-            return;
-        }
-        state.onPlayerDamage(event);
-    }
-    
-    public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        Player participant = (Player) event.getEntity();
-        if (!allParticipants.containsKey(participant.getUniqueId())) {
-            return;
-        }
-        state.onPlayerLoseHunger(event);
-    }
-    
-    public void onPlayerMove(PlayerMoveEvent event) {
-        Player participant = event.getPlayer();
-        if (!allParticipants.containsKey(participant.getUniqueId())) {
-            return;
-        }
-        state.onPlayerMove(event);
-    }
-    
-    public void onClickInventory(InventoryClickEvent event) {
-        Player participant = (Player) event.getWhoClicked();
-        if (!allParticipants.containsKey(participant.getUniqueId())) {
-            return;
-        }
-        state.onClickInventory(event);
-    }
-    
-    public void onPlayerDeath(PlayerDeathEvent event) {
-        Player participant = event.getPlayer();
-        if (!allParticipants.containsKey(participant.getUniqueId())) {
-            return;
-        }
-        state.onPlayerDeath(event);
     }
     
     /**
@@ -341,22 +420,28 @@ public class CaptureTheFlagMatch {
         topbar.setDeaths(participant.getUniqueId(), newDeathCount);
     }
     
-    public void syncScores(CTFMatchTeam team) {
-        CTFTeam ctfTeam = parentContext.getTeams().get(team.getTeamId());
-        ctfTeam.setScore(team.getScore());
-        parentContext.displayScore(ctfTeam);
+    public void awardPoints(CTFMatchParticipant participant, int points) {
+        CTFParticipant ctfParticipant = parentContext.getParticipants().get(participant.getUniqueId());
+        parentContext.awardPoints(ctfParticipant, points);
+        participant.setScore(ctfParticipant.getScore());
+        int newScore = parentContext.getTeams().get(participant.getTeamId()).getScore();
+        if (participant.getAffiliation() == Affiliation.NORTH) {
+            northTeam.setScore(newScore);
+        } else {
+            southTeam.setScore(newScore);
+        }
     }
     
-    public void syncScores(CTFMatchParticipant participant) {
-        CTFParticipant ctfParticipant = parentContext.getParticipants().get(participant.getUniqueId());
-        ctfParticipant.setScore(participant.getScore());
-        parentContext.displayScore(ctfParticipant);
+    public void awardPoints(CTFMatchTeam team, int points) {
+        CTFTeam ctfTeam = parentContext.getTeams().get(team.getTeamId());
+        parentContext.awardPoints(ctfTeam, points);
+        team.setScore(ctfTeam.getScore());
     }
     
     public void messageAllParticipants(Component message) {
         gameManager.messageAdmins(message);
         Audience.audience(
-                allParticipants.values()
+                participants.values()
         ).sendMessage(message);
     }
     

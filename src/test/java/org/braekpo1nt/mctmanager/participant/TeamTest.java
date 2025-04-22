@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.participant;
 
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkRoundTeam;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkTeam;
 import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushTeam;
@@ -39,7 +38,7 @@ class TeamTest {
     
     @Test
     void farmRushEquals() {
-        FarmRushTeam teamData = new FarmRushTeam(team, mock(Arena.class), 0, 0);
+        FarmRushTeam teamData = new FarmRushTeam(team, mock(Arena.class), 0);
         
         Assertions.assertEquals(team, teamData);
     }

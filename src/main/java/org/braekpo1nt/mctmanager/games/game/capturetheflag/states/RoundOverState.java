@@ -4,9 +4,8 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFTeam;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
-import org.braekpo1nt.mctmanager.participant.Participant;
-import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
@@ -15,15 +14,13 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.jetbrains.annotations.NotNull;
 
-public class RoundOverState implements CaptureTheFlagState {
-    
-    private final CaptureTheFlagGame context;
+public class RoundOverState extends CaptureTheFlagStateBase {
     
     public RoundOverState(CaptureTheFlagGame context) {
-        this.context = context;
+        super(context);
         Audience.audience(context.getParticipants().values()).showTitle(UIUtils.roundOverTitle());
-        Main.logger().info("Starting RoundOverState timer");
         context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getRoundOverDuration())
                 .withTopbar(context.getTopbar())
@@ -37,45 +34,8 @@ public class RoundOverState implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantJoin(Participant participant, Team team) {
-        context.onTeamJoin(team);
-        CTFParticipant.QuitData quitData = context.getQuitDatas().remove(participant.getUniqueId());
-        if (quitData == null) {
-            context.initializeParticipant(participant);
-        } else {
-            context.initializeParticipant(participant, quitData.getKills(), quitData.getDeaths(), quitData.getScore());
-        }
-        participant.setGameMode(GameMode.ADVENTURE);
-        participant.teleport(context.getConfig().getSpawnObservatory());
-        participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
-    }
-    
-    @Override
-    public void onParticipantQuit(CTFParticipant participant) {
-        context.getQuitDatas().put(participant.getUniqueId(), participant.getQuitData());
-        context.resetParticipant(participant);
-        context.getParticipants().remove(participant.getUniqueId());
-        context.onTeamQuit(context.getTeams().get(participant.getTeamId()));
-    }
-    
-    @Override
-    public void onPlayerDamage(EntityDamageEvent event) {
-        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "CaptureTheFlagGame.RoundOverState.onPlayerDamage() cancelled");
-        event.setCancelled(true);
-    }
-    
-    @Override
-    public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        event.setCancelled(true);
-    }
-    
-    @Override
-    public void onPlayerMove(PlayerMoveEvent event) {
-        // do nothing
-    }
-    
-    @Override
-    public void onClickInventory(InventoryClickEvent event) {
+    public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull CTFParticipant participant) {
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "RoundOverState.onParticipantDamage() cancelled");
         event.setCancelled(true);
     }
 }

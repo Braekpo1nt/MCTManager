@@ -1,57 +1,63 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork;
 
-import net.kyori.adventure.audience.Audience;
+import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.base.GameBase;
+import org.braekpo1nt.mctmanager.games.base.listeners.PreventHungerLoss;
+import org.braekpo1nt.mctmanager.games.base.listeners.PreventItemDrop;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
+import org.braekpo1nt.mctmanager.games.game.clockwork.states.ClockworkState;
+import org.braekpo1nt.mctmanager.games.game.clockwork.states.DescriptionState;
+import org.braekpo1nt.mctmanager.games.game.clockwork.states.InitialState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
-import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
-import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.participant.*;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
-import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.braekpo1nt.mctmanager.ui.timer.Timer;
-import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
-import org.braekpo1nt.mctmanager.utils.LogType;
-import org.bukkit.GameMode;
+import org.bukkit.GameRule;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Random;
+import java.util.logging.Level;
 
-public class ClockworkGame implements Listener, MCTGame {
-    private final Main plugin;
-    private final GameManager gameManager;
-    private final Sidebar sidebar;
-    private final Sidebar adminSidebar;
-    private final ClockworkConfig config;
-    private final Map<UUID, ClockworkParticipant> participants;
-    private final Map<UUID, ClockworkParticipant.QuitData> quitDatas;
-    private final Map<String, ClockworkTeam> teams;
-    private final Map<String, ClockworkTeam.QuitData> teamQuitDatas;
-    private final List<Player> admins = new ArrayList<>();
-    private final List<ClockworkRound> rounds;
-    private int currentRoundIndex = 0;
-    private boolean descriptionShowing = false;
-    private final TimerManager timerManager;
+@Getter
+@Setter
+public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam, ClockworkParticipant.QuitData, ClockworkTeam.QuitData, ClockworkState> {
     
-    private @NotNull Component title;
+    private final @NotNull ClockworkConfig config;
+    private final @NotNull ChaosManager chaosManager;
+    private final @NotNull Random random = new Random();
+    private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
+    
+    /**
+     * the task id of the status effect loop
+     */
+    private final int statusEffectTaskId;
+    /**
+     * True means participants are visible, false means they are invisible
+     */
+    private boolean participantsVisible;
+    private int currentRound;
+    /**
+     * How many times the clock chimed, determining which wedge is correct
+     */
+    private int numberOfChimes;
+    /**
+     * How much time (in ticks) between chimes
+     */
+    private double chimeInterval;
     
     public ClockworkGame(
             @NotNull Main plugin,
@@ -61,460 +67,181 @@ public class ClockworkGame implements Listener, MCTGame {
             @NotNull Collection<Team> newTeams,
             @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
-        this.plugin = plugin;
-        this.timerManager = new TimerManager(plugin);
-        this.gameManager = gameManager;
-        this.title = title;
+        super(GameType.CLOCKWORK, plugin, gameManager, title, new InitialState());
         this.config = config;
-        this.teams = new HashMap<>(newTeams.size());
-        for (Team team : newTeams) {
-            teams.put(team.getTeamId(), new ClockworkTeam(team, 0));
-        }
-        this.participants = new HashMap<>(newParticipants.size());
-        this.quitDatas = new HashMap<>();
-        this.teamQuitDatas = new HashMap<>();
-        this.sidebar = gameManager.createSidebar();
-        this.adminSidebar = gameManager.createSidebar();
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        gameManager.getTimerManager().register(timerManager);
-        for (Participant participant : newParticipants) {
-            initializeParticipant(participant, 0);
-        }
-        initializeSidebar();
-        this.rounds = new ArrayList<>(config.getRounds());
-        for (int i = 0; i < config.getRounds(); i++) {
-            rounds.add(new ClockworkRound(plugin, gameManager, this, config, i+1, sidebar, adminSidebar));
-        }
-        currentRoundIndex = 0;
-        setupTeamOptions();
-        startAdmins(newAdmins);
-        displayDescription();
-        startDescriptionPeriod();
-        Main.logger().info("Started clockwork");
+        this.currentRound = 1;
+        this.chaosManager = new ChaosManager(plugin, config);
+        this.chimeInterval = config.getInitialChimeInterval();
+        addListener(new PreventItemDrop<>(this, true));
+        addListener(new PreventHungerLoss<>(this));
+        setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
+        this.participantsVisible = true;
+        this.statusEffectTaskId = startStatusEffectTask();
+        start(newTeams, newParticipants, newAdmins);
+    }
+    
+    /**
+     * Makes participants invisible if {@link #participantsVisible} is true
+     * @return the task id of the BukkitRunnable
+     */
+    private int startStatusEffectTask() {
+        return new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (!participantsVisible) {
+                    participants.values().forEach(participant ->
+                            participant.addPotionEffect(INVISIBILITY));
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 60L).getTaskId();
+    }
+    
+    /**
+     * Make participants invisible, and stay invisible until {@link #stopInvisible()} is
+     * called
+     */
+    public void startInvisible() {
+        participantsVisible = false;
+        participants.values().forEach(participant ->
+                participant.addPotionEffect(INVISIBILITY));
+    }
+    
+    /**
+     * Make participants visible, and stay visible until {@link #startInvisible()} is 
+     * called
+     */
+    public void stopInvisible() {
+        participantsVisible = true;
+        participants.values().forEach(participant ->
+                participant.removePotionEffect(INVISIBILITY.getType()));
     }
     
     @Override
-    public void setTitle(@NotNull Component title) {
-        this.title = title;
-        sidebar.updateLine("title", title);
-        adminSidebar.updateLine("title", title);
+    protected @NotNull World getWorld() {
+        return config.getWorld();
     }
     
     @Override
-    public GameType getType() {
-        return GameType.CLOCKWORK;
+    protected @NotNull ClockworkState getStartState() {
+        return new DescriptionState(this);
     }
     
-    private void displayDescription() {
-        messageAllParticipants(config.getDescription());
+    @Override
+    protected void cleanup() {
+        plugin.getServer().getScheduler().cancelTask(statusEffectTaskId);
+        chaosManager.stop();
     }
     
-    private void initializeParticipant(Participant newParticipant, int score) {
-        ClockworkParticipant participant = new ClockworkParticipant(newParticipant, score);
-        teams.get(participant.getTeamId()).addParticipant(participant);
-        participants.put(participant.getUniqueId(), participant);
-        participant.setGameMode(GameMode.ADVENTURE);
-        sidebar.addPlayer(participant);
+    @Override
+    protected @NotNull ClockworkParticipant createParticipant(Participant participant) {
+        return new ClockworkParticipant(participant, 0, true);
+    }
+    
+    @Override
+    protected @NotNull ClockworkParticipant createParticipant(Participant participant, ClockworkParticipant.QuitData quitData) {
+        return new ClockworkParticipant(participant, quitData);
+    }
+    
+    @Override
+    protected @NotNull ClockworkParticipant.QuitData getQuitData(ClockworkParticipant participant) {
+        return participant.getQuitData();
+    }
+    
+    @Override
+    protected void initializeParticipant(ClockworkParticipant participant, ClockworkTeam team) {
         participant.teleport(config.getStartingLocation());
-        participant.setRespawnLocation(config.getStartingLocation(), true);
-        ParticipantInitializer.clearInventory(participant);
-        ParticipantInitializer.clearStatusEffects(participant);
-        ParticipantInitializer.resetHealthAndHunger(participant);
-    }
-    
-    private void startAdmins(List<Player> newAdmins) {
-        for (Player admin : newAdmins) {
-            initializeAdmin(admin);
-        }
-        initializeAdminSidebar();
     }
     
     @Override
-    public void onAdminJoin(Player admin) {
-        initializeAdmin(admin);
-        adminSidebar.updateLines(admin.getUniqueId(),
-                new KeyLine("title", title),
-                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size()))
-        );
+    protected void initializeTeam(ClockworkTeam team) {
+        
     }
     
     @Override
-    public void onAdminQuit(Player admin) {
-        resetAdmin(admin);
-        admins.remove(admin);
+    protected @NotNull ClockworkTeam createTeam(Team team) {
+        return new ClockworkTeam(team, 0);
     }
     
-    private void initializeAdmin(Player admin) {
-        admins.add(admin);
-        adminSidebar.addPlayer(admin);
-        admin.setGameMode(GameMode.SPECTATOR);
+    @Override
+    protected @NotNull ClockworkTeam createTeam(Team team, ClockworkTeam.QuitData quitData) {
+        return new ClockworkTeam(team, quitData.getScore());
+    }
+    
+    @Override
+    protected @NotNull ClockworkTeam.QuitData getQuitData(ClockworkTeam team) {
+        return team.getQuitData();
+    }
+    
+    @Override
+    protected void resetParticipant(ClockworkParticipant participant, ClockworkTeam team) {
+        
+    }
+    
+    @Override
+    protected void setupTeamOptions(org.bukkit.scoreboard.@NotNull Team scoreboardTeam, @NotNull ClockworkTeam team) {
+        scoreboardTeam.setAllowFriendlyFire(false);
+        scoreboardTeam.setCanSeeFriendlyInvisibles(true);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+    }
+    
+    @Override
+    protected void initializeAdmin(Player admin) {
         admin.teleport(config.getStartingLocation());
     }
     
     @Override
-    public void stop() {
-        if (currentRoundIndex < rounds.size()) {
-            ClockworkRound currentRound = rounds.get(currentRoundIndex);
-            if (currentRound.isActive()) {
-                currentRound.stop();
-            }
-        }
-        HandlerList.unregisterAll(this);
-        cancelAllTasks();
-        rounds.clear();
-        descriptionShowing = false;
-        saveScores();
-        for (Participant participant : participants.values()) {
-            resetParticipant(participant);
-        }
-        clearSidebar();
-        stopAdmins();
-        participants.clear();
-        quitDatas.clear();
-        teamQuitDatas.clear();
-        gameManager.gameIsOver();
-        Main.logger().info("Stopping Clockwork");
-    }
-    
-    private void saveScores() {
-        Map<String, Integer> teamScores = new HashMap<>();
-        Map<UUID, Integer> participantScores = new HashMap<>();
-        for (ClockworkTeam team : teams.values()) {
-            teamScores.put(team.getTeamId(), team.getScore());
-        }
-        for (ClockworkParticipant participant : participants.values()) {
-            participantScores.put(participant.getUniqueId(), participant.getScore());
-        }
-        for (Map.Entry<String, ClockworkTeam.QuitData> entry : teamQuitDatas.entrySet()) {
-            teamScores.put(entry.getKey(), entry.getValue().getScore());
-        }
-        for (Map.Entry<UUID, ClockworkParticipant.QuitData> entry : quitDatas.entrySet()) {
-            participantScores.put(entry.getKey(), entry.getValue().getScore());
-        }
-        gameManager.addScores(teamScores, participantScores);
-    }
-    
-    private void resetParticipant(Participant participant) {
-        teams.get(participant.getTeamId()).removeParticipant(participant.getUniqueId());
-        sidebar.removePlayer(participant.getUniqueId());
-        ParticipantInitializer.clearInventory(participant);
-        ParticipantInitializer.clearStatusEffects(participant);
-        ParticipantInitializer.resetHealthAndHunger(participant);
-    }
-    
-    private void stopAdmins() {
-        for (Player admin : admins) {
-            resetAdmin(admin);
-        }
-        clearAdminSidebar();
-        admins.clear();
-    }
-    
-    private void resetAdmin(Player admin) {
-        adminSidebar.removePlayer(admin);
-    }
-    
-    private void startDescriptionPeriod() {
-        descriptionShowing = true;
-        timerManager.start(Timer.builder()
-                .duration(config.getDescriptionDuration())
-                .withSidebar(sidebar, "timer")
-                .withSidebar(adminSidebar, "timer")
-                .sidebarPrefix(Component.text("Starting soon: "))
-                .titleAudience(Audience.audience(participants.values()))
-                .onCompletion(() -> {
-                    descriptionShowing = false;
-                    startNextRound();
-                })
-                .name("startDescriptionPeriod")
-                .build());
-    }
-    
-    public void roundIsOver() {
-        if (currentRoundIndex+1 >= rounds.size()) {
-            stop();
-            return;
-        }
-        currentRoundIndex++;
-        startNextRound();
-    }
-    
-    public void startNextRound() {
-        ClockworkRound nextRound = rounds.get(currentRoundIndex);
-        nextRound.start(teams.values(), participants.values());
-        updateRoundFastBoard();
-    }
-    
-    private void onTeamJoin(Team team) {
-        if (teams.containsKey(team.getTeamId())) {
-            return;
-        }
-        ClockworkTeam.QuitData quitData = teamQuitDatas.get(team.getTeamId());
-        if (quitData != null) {
-            teams.put(team.getTeamId(), new ClockworkTeam(team, quitData.getScore()));
-        } else {
-            teams.put(team.getTeamId(), new ClockworkTeam(team, 0));
-        }
-    }
-    
-    @Override
-    public void onParticipantJoin(Participant participant, Team team) {
-        onTeamJoin(team);
-        ClockworkParticipant.QuitData quitData = quitDatas.remove(participant.getUniqueId());
-        if (quitData != null) {
-            initializeParticipant(participant, quitData.getScore());
-        } else {
-            initializeParticipant(participant, 0);
-        }
-        sidebar.updateLines(participant.getUniqueId(), 
-                new KeyLine("title", title),
-                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size()))
-        );
-        ClockworkParticipant clockworkParticipant = participants.get(participant.getUniqueId());
-        displayScore(clockworkParticipant);
-        ClockworkTeam clockworkTeam = teams.get(team.getTeamId());
-        displayScore(clockworkTeam);
-        if (descriptionShowing) {
-            return;
-        }
-        if (currentRoundIndex < rounds.size()) {
-            ClockworkRound currentRound = rounds.get(currentRoundIndex);
-            if (currentRound.isActive()) {
-                currentRound.onParticipantJoin(clockworkParticipant, clockworkTeam);
-            }
-        }
-    }
-    
-    private void onTeamQuit(ClockworkTeam team) {
-        if (team.size() > 0) {
-            return;
-        }
-        ClockworkTeam removed = teams.remove(team.getTeamId());
-        teamQuitDatas.put(team.getTeamId(), removed.getQuitData());
-    }
-    
-    @Override
-    public void onParticipantQuit(UUID participantUUID, String teamId) {
-        ClockworkParticipant participant = participants.get(participantUUID);
-        if (participant == null) {
-            return;
-        }
-        quitDatas.put(participant.getUniqueId(), participant.getQuitData());
-        if (descriptionShowing) {
-            resetParticipant(participant);
-            participants.remove(participant.getUniqueId());
-            return;
-        }
-        if (currentRoundIndex < rounds.size()) {
-            ClockworkRound currentRound = rounds.get(currentRoundIndex);
-            if (currentRound.isActive()) {
-                currentRound.onParticipantQuit(participant);
-            }
-        }
-        resetParticipant(participant);
-        participants.remove(participant.getUniqueId());
-        onTeamQuit(teams.get(teamId));
-    }
-    
-    private void cancelAllTasks() {
-        timerManager.cancel();
-    }
-    
-    @EventHandler
-    public void onPlayerMove(PlayerMoveEvent event) {
-        if (config.getSpectatorArea() == null){
-            return;
-        }
-        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
-            return;
-        }
-        if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
-            return;
-        }
-        if (!config.getSpectatorArea().contains(event.getFrom().toVector())) {
-            event.getPlayer().teleport(config.getStartingLocation());
-            return;
-        }
-        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
-            event.setCancelled(true);
-        }
-    }
-    
-    @EventHandler
-    public void onPlayerTeleport(PlayerTeleportEvent event) {
-        if (config.getSpectatorArea() == null){
-            return;
-        }
-        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
-            return;
-        }
-        if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
-            return;
-        }
-        if (!event.getCause().equals(PlayerTeleportEvent.TeleportCause.SPECTATE)) {
-            return;
-        }
-        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
-            event.setCancelled(true);
-        }
-    }
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        Block clickedBlock = event.getClickedBlock();
-        if (clickedBlock == null) {
-            return;
-        }
-        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
-            return;
-        }
-        Material blockType = clickedBlock.getType();
-        if (!config.getPreventInteractions().contains(blockType)) {
-            return;
-        }
-        event.setCancelled(true);
-    }
-    
-    @EventHandler
-    public void onPlayerDamage(EntityDamageEvent event) {
-        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
-            return;
-        }
-        Participant participant = participants.get(event.getEntity().getUniqueId());
-        if (participant == null) {
-            return;
-        }
-        if (descriptionShowing) {
-            Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "ClockworkGame.onPlayerDamage()->descriptionShowing cancelled");
-            event.setCancelled(true);
-            return;
-        }
-        ClockworkRound round = rounds.get(currentRoundIndex);
-        round.onPlayerDamage(participant, event);
-    }
-    
-    @EventHandler
-    public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        Participant participant = participants.get(event.getEntity().getUniqueId());
-        if (participant == null) {
-            return;
-        }
-        participant.setFoodLevel(20);
-        event.setCancelled(true);
-    }
-    
-    /**
-     * Stop players from removing their equipment
-     */
-    @EventHandler
-    public void onClickInventory(InventoryClickEvent event) {
-        if (event.getClickedInventory() == null) {
-            return;
-        }
-        if (event.getCurrentItem() == null) {
-            return;
-        }
-        if (!participants.containsKey(event.getWhoClicked().getUniqueId())) {
-            return;
-        }
-        event.setCancelled(true);
-    }
-    
-    /**
-     * Stop players from dropping items
-     */
-    @EventHandler
-    public void onDropItem(PlayerDropItemEvent event) {
-        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
-            return;
-        }
-        event.setCancelled(true);
-    }
-    
-    private void initializeAdminSidebar() {
+    protected void initializeAdminSidebar() {
         adminSidebar.addLines(
-                new KeyLine("title", title),
-                new KeyLine("round", ""),
+                new KeyLine("round", Component.empty()
+                        .append(Component.text("Round 1/"))
+                        .append(Component.text(config.getRounds()))),
                 new KeyLine("playerCount", ""),
                 new KeyLine("timer", "")
         );
     }
     
-    private void clearAdminSidebar() {
-        adminSidebar.deleteAllLines();
+    @Override
+    protected void resetAdmin(Player admin) {
+        
     }
     
-    private void initializeSidebar() {
+    @Override
+    protected void initializeSidebar() {
         sidebar.addLines(
-                new KeyLine("personalTeam", ""),
-                new KeyLine("personalScore", ""),
-                new KeyLine("title", title),
-                new KeyLine("round", ""),
+                new KeyLine("round", Component.empty()
+                        .append(Component.text("Round 1/"))
+                        .append(Component.text(config.getRounds()))),
                 new KeyLine("playerCount", ""),
                 new KeyLine("timer", "")
         );
-        for (ClockworkTeam team : teams.values()) {
-            displayScore(team);
+    }
+    
+    @Override
+    protected @Nullable SpectatorBoundary getSpectatorBoundary() {
+        return config.getSpectatorBoundary();
+    }
+    
+    @Override
+    protected boolean shouldPreventInteractions(@NotNull Material type) {
+        return config.getPreventInteractions().contains(type);
+    }
+    
+    public void incrementChaos() {
+        chimeInterval -= config.getChimeIntervalDecrement();
+        if (chimeInterval < 0) {
+            chimeInterval = 0;
         }
-        for (ClockworkParticipant participant : participants.values()) {
-            displayScore(participant);
+        chaosManager.incrementChaos();
+    }
+    
+    public void setTeamOption(@NotNull ClockworkTeam team, @NotNull org.bukkit.scoreboard.Team.Option option, @NotNull org.bukkit.scoreboard.Team.OptionStatus status) {
+        org.bukkit.scoreboard.Team scoreboardTeam = gameManager.getMctScoreboard().getTeam(team.getTeamId());
+        if (scoreboardTeam != null) {
+            scoreboardTeam.setOption(option, status);
+        } else {
+            Main.logger().log(Level.SEVERE, String.format("Could not find scoreboard team with teamId %s", team.getTeamId()), new IllegalStateException("Scoreboard team does not exist"));
         }
-    }
-    
-    public void updateScore(ClockworkRoundTeam team) {
-        ClockworkTeam clockworkTeam = teams.get(team.getTeamId());
-        clockworkTeam.setScore(team.getScore());
-        displayScore(clockworkTeam);
-    }
-    
-    private void displayScore(ClockworkTeam team) {
-        Component contents = Component.empty()
-                .append(team.getFormattedDisplayName())
-                .append(Component.text(": "))
-                .append(Component.text(team.getScore())
-                        .color(NamedTextColor.GOLD));
-        for (UUID memberUUID : team.getMemberUUIDs()) {
-            sidebar.updateLine(memberUUID, "personalTeam", contents);
-        }
-    }
-    
-    public void updateScore(ClockworkRoundParticipant participant) {
-        ClockworkParticipant clockworkParticipant = participants.get(participant.getUniqueId());
-        clockworkParticipant.setScore(participant.getScore());
-        displayScore(clockworkParticipant);
-    }
-    
-    private void displayScore(ClockworkParticipant participant) {
-        sidebar.updateLine(participant.getUniqueId(), "personalScore", Component.empty()
-                .append(Component.text("Personal: "))
-                .append(Component.text(participant.getScore()))
-                .color(NamedTextColor.GOLD));
-    }
-    
-    private void clearSidebar() {
-        sidebar.deleteAllLines();
-    }
-    
-    private void updateRoundFastBoard() {
-        String round = String.format("Round %d/%d", currentRoundIndex + 1, rounds.size());
-        sidebar.updateLine("round", round);
-        adminSidebar.updateLine("round", round);
-    }
-    
-    private void setupTeamOptions() {
-        Scoreboard mctScoreboard = gameManager.getMctScoreboard();
-        for (org.bukkit.scoreboard.Team team : mctScoreboard.getTeams()) {
-            team.setAllowFriendlyFire(false);
-            team.setCanSeeFriendlyInvisibles(true);
-            team.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
-            team.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
-            team.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
-        }
-    }
-    
-    private void messageAllParticipants(Component message) {
-        Audience.audience(
-                Audience.audience(participants.values()),
-                Audience.audience(admins)
-        ).sendMessage(message);
     }
 }

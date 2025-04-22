@@ -1,38 +1,18 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.states;
 
-import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.base.states.GameStateBase;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushParticipant;
-import org.braekpo1nt.mctmanager.participant.Participant;
-import org.braekpo1nt.mctmanager.participant.Team;
-import org.braekpo1nt.mctmanager.utils.LogType;
+import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushTeam;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 
-public interface FarmRushState {
+public interface FarmRushState extends GameStateBase<FarmRushParticipant, FarmRushTeam> {
     
-    void onParticipantJoin(Participant participant, Team team);
-    void onParticipantQuit(FarmRushParticipant participant);
-    default void onParticipantDamage(EntityDamageEvent event) {
-        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "FarmRushState.onPlayerDamage()");
-        event.setCancelled(true);
-    }
     
-    default void onCloseInventory(InventoryCloseEvent event, Participant participant) {
-        // do nothing
-    }
+    void onParticipantCloseInventory(InventoryCloseEvent event, FarmRushParticipant participant);
     
-    default void onPlayerMove(PlayerMoveEvent event, Participant participant) {
-        // do nothing
-    }
+    void onParticipantPlaceBlock(BlockPlaceEvent event, FarmRushParticipant participant);
     
-    default void onPlaceBlock(BlockPlaceEvent event, Participant participant) {
-        // do nothing
-    }
-    
-    default void onPlayerOpenInventory(InventoryOpenEvent event) {
-        // do nothing
-    }
+    void onParticipantOpenInventory(InventoryOpenEvent event, FarmRushParticipant participant);
 }

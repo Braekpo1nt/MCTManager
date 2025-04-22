@@ -19,7 +19,13 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlag
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfigController;
+import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalCombatGame;
+import org.braekpo1nt.mctmanager.games.game.colossalcombat.config.ColossalCombatConfig;
+import org.braekpo1nt.mctmanager.games.game.colossalcombat.config.ColossalCombatConfigController;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.game.example.ExampleGame;
+import org.braekpo1nt.mctmanager.games.game.example.config.ExampleConfig;
+import org.braekpo1nt.mctmanager.games.game.example.config.ExampleConfigController;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfig;
 import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfigController;
@@ -30,14 +36,14 @@ import org.braekpo1nt.mctmanager.games.game.footrace.editor.FootRaceEditor;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfig;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfigController;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourPathwayEditor;
+import org.braekpo1nt.mctmanager.games.game.spleef.SpleefGame;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfigController;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourPathwayEditor;
-import org.braekpo1nt.mctmanager.games.game.spleef.SpleefGame;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfig;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfigController;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
@@ -53,7 +59,8 @@ import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.ui.tablist.TabList;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
-import org.bukkit.*;
+import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -230,6 +237,22 @@ public class GameManager implements Listener {
                 CaptureTheFlagConfig config = new CaptureTheFlagConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
                 yield new CaptureTheFlagGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
             }
+            case EXAMPLE -> {
+                ExampleConfig config = new ExampleConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
+                yield new ExampleGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
+            }
+            case FINAL -> {
+                ColossalCombatConfig config = new ColossalCombatConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
+                List<Team> sortedTeams = newTeams.stream()
+                        .sorted((t1, t2) -> {
+                            int scoreComparison = t2.getScore() - t1.getScore();
+                            if (scoreComparison != 0) {
+                                return scoreComparison;
+                            }
+                            return t1.getDisplayName().compareToIgnoreCase(t2.getDisplayName());
+                        }).toList();
+                yield new ColossalCombatGame(plugin, this, title, config, sortedTeams.getFirst(), sortedTeams.get(1), sortedTeams, newParticipants, newAdmins);
+            }
         };
     }
     
@@ -393,7 +416,7 @@ public class GameManager implements Listener {
         onlineAdmins.remove(admin);
         if (gameIsRunning()) {
             activeGame.onAdminQuit(admin);
-        } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
+        } else if (eventManager.eventIsActive()) {
             eventManager.onAdminQuit(admin);
         } else if (voteManager.isVoting()) {
             voteManager.onAdminQuit(admin);
@@ -418,11 +441,16 @@ public class GameManager implements Listener {
         team.quitOnlineMember(participant.getUniqueId());
         onlineParticipants.remove(participant.getUniqueId());
         if (gameIsRunning()) {
-            activeGame.onParticipantQuit(participant.getUniqueId(), team.getTeamId());
-        } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
+            activeGame.onParticipantQuit(participant.getUniqueId());
+            activeGame.onTeamQuit(team.getTeamId());
+        } else if (eventManager.eventIsActive()) {
             eventManager.onParticipantQuit(participant);
+            tabList.hidePlayer(participant.getUniqueId());
         } else if (voteManager.isVoting()) {
             voteManager.onParticipantQuit(participant);
+            tabList.hidePlayer(participant.getUniqueId());
+        } else {
+            tabList.hidePlayer(participant.getUniqueId());
         }
         hubManager.onParticipantQuit(participant);
         Component displayName = Component.text(participant.getName(), 
@@ -430,8 +458,7 @@ public class GameManager implements Listener {
         participant.getPlayer().displayName(displayName);
         participant.getPlayer().playerListName(displayName);
         GameManagerUtils.deColorLeatherArmor(participant.getInventory());
-        tabList.hidePlayer(participant.getUniqueId());
-        tabList.setParticipantGrey(participant.getUniqueId(), true);
+        tabList.setParticipantGrey(participant.getParticipantID(), true);
     }
     
     @EventHandler
@@ -464,7 +491,7 @@ public class GameManager implements Listener {
         tabList.showPlayer(admin);
         if (gameIsRunning()) {
             activeGame.onAdminJoin(admin);
-        } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
+        } else if (eventManager.eventIsActive()) {
             eventManager.onAdminJoin(admin);
         } else if (voteManager.isVoting()) {
             voteManager.onAdminJoin(admin);
@@ -487,16 +514,20 @@ public class GameManager implements Listener {
         hubManager.onParticipantJoin(participant);
         if (gameIsRunning()) {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
-            activeGame.onParticipantJoin(participant, team);
-        } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
+            activeGame.onTeamJoin(team);
+            activeGame.onParticipantJoin(participant);
+        } else if (eventManager.eventIsActive()) {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
             eventManager.onParticipantJoin(participant);
+            tabList.showPlayer(participant);
         } else if (voteManager.isVoting()) {
             voteManager.onParticipantJoin(participant);
+            tabList.showPlayer(participant);
+        } else {
+            tabList.showPlayer(participant);
         }
+        tabList.setParticipantGrey(participant.getParticipantID(), false);
         GameManagerUtils.colorLeatherArmor(this, participant);
-        tabList.showPlayer(participant);
-        tabList.setParticipantGrey(participant.getUniqueId(), false);
         updateScoreVisuals(Collections.singletonList(team), Collections.singletonList(participant));
     }
     
@@ -589,7 +620,7 @@ public class GameManager implements Listener {
         Map<UUID, Player> onlinePlayers = plugin.getServer().getOnlinePlayers().stream()
                 .collect(Collectors.toMap(Player::getUniqueId, Function.identity()));
         // TabList start
-        tabList.clear();
+        tabList.cleanup();
         for (MCTTeam team : teams.values()) {
             int teamScore = gameStateStorageUtil.getTeamScore(team.getTeamId());
             tabList.addTeam(team.getTeamId(), team.getDisplayName(), team.getColor());
@@ -597,7 +628,7 @@ public class GameManager implements Listener {
         }
         for (OfflineParticipant participant : allParticipants.values()) {
             boolean grey = !onlinePlayers.containsKey(participant.getUniqueId());
-            tabList.joinParticipant(participant.getUniqueId(), participant.getName(), participant.getTeamId(), grey);
+            tabList.joinParticipant(participant.getParticipantID(), participant.getName(), participant.getTeamId(), grey);
         }
         // TabList stop
         
@@ -728,10 +759,20 @@ public class GameManager implements Listener {
                     return false;
                 }
             }
+            case FINAL -> {
+                if (onlineTeams.size() < 2) {
+                    sender.sendMessage(Component.empty()
+                            .append(Component.text(GameType.FINAL.getTitle()))
+                            .append(Component.text(" needs at least 2 teams online to play")));
+                }
+            }
         }
         
         hubManager.removeParticipantsFromHub(onlineParticipants.values());
         Component title = createNewTitle(gameType.getTitle());
+        for (Participant participant : onlineParticipants.values()) {
+            tabList.hidePlayer(participant);
+        }
         
         try {
             activeGame = instantiateGame(gameType, title, configFile, new HashSet<>(onlineTeams), onlineParticipants.values(), onlineAdmins);
@@ -745,6 +786,9 @@ public class GameManager implements Listener {
                     .color(NamedTextColor.RED);
             sender.sendMessage(message);
             messageAdmins(message);
+            for (Participant participant : onlineParticipants.values()) {
+                tabList.showPlayer(participant);
+            }
             return false;
         }
         updateScoreVisuals(onlineTeams, onlineParticipants.values());
@@ -845,6 +889,9 @@ public class GameManager implements Listener {
      * If an event is running, calls {@link EventManager#gameIsOver(GameType)}
      */
     public void gameIsOver() {
+        for (Participant participant : onlineParticipants.values()) {
+            tabList.showPlayer(participant);
+        }
         if (eventManager.eventIsActive()) {
             eventManager.gameIsOver(activeGame.getType());
             activeGame = null;
@@ -855,7 +902,7 @@ public class GameManager implements Listener {
             shouldTeleportToHub = true;
             return;
         }
-        hubManager.returnParticipantsToHub(onlineParticipants.values(), onlineAdmins, true);
+        hubManager.returnParticipantsToHub(onlineParticipants.values(), onlineAdmins);
     }
     
     public void startEditor(@NotNull GameType gameType, @NotNull String configFile, @NotNull CommandSender sender) {
@@ -873,12 +920,6 @@ public class GameManager implements Listener {
         
         if (eventManager.eventIsActive()) {
             sender.sendMessage(Component.text("Can't start an editor while an event is going on")
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        
-        if (eventManager.colossalCombatIsActive()) {
-            sender.sendMessage(Component.text("Can't start an editor while colossal combat is running")
                     .color(NamedTextColor.RED));
             return;
         }
@@ -1026,15 +1067,15 @@ public class GameManager implements Listener {
     }
     
     public void returnAllParticipantsToHub() {
-        hubManager.returnParticipantsToHub(onlineParticipants.values(), onlineAdmins, false);
+        hubManager.returnParticipantsToHub(onlineParticipants.values(), onlineAdmins);
     }
     
     /**
      * Instantly returns the given participant to the hub
      * @param participant the participant to be returned to the hub
      */
-    public void returnParticipantToHubInstantly(Participant participant) {
-        hubManager.returnParticipantsToHub(Collections.singletonList(participant), Collections.emptyList(), false);
+    public void returnParticipantToHub(Participant participant) {
+        hubManager.returnParticipantsToHub(Collections.singletonList(participant), Collections.emptyList());
     }
     
     public void returnAllParticipantsToPodium(Team winningTeam) {
@@ -1209,7 +1250,7 @@ public class GameManager implements Listener {
         allParticipants.put(offlineParticipant.getUniqueId(), offlineParticipant);
         team.joinMember(offlineParticipant.getUniqueId());
         tabList.joinParticipant(
-                offlineParticipant.getUniqueId(), 
+                offlineParticipant.getParticipantID(), 
                 offlineParticipant.getName(), 
                 offlineParticipant.getTeamId(), 
                 false);
@@ -1281,7 +1322,7 @@ public class GameManager implements Listener {
                     .color(NamedTextColor.RED));
         }
         hubManager.updateLeaderboards();
-        tabList.leaveParticipant(offlineParticipant.getUniqueId());
+        tabList.leaveParticipant(offlineParticipant.getParticipantID());
         sender.sendMessage(Component.text("Removed ")
                 .append(offlineParticipant.displayName())
                 .append(Component.text(" from team "))

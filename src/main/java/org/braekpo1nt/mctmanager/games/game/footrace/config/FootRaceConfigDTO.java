@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
@@ -102,7 +103,7 @@ record FootRaceConfigDTO(
                 .descriptionDuration(this.durations.description)
                 .gameOverDuration(this.durations.gameOver)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
-                .spectatorArea(this.spectatorArea)
+                .spectatorBoundary(this.spectatorArea == null ? null : new SpectatorBoundary(this.spectatorArea, this.startingLocation.toLocation(newWorld)))
                 .checkpoints(new ArrayList<>(this.checkpoints))
                 .description(this.description)
                 .build();
@@ -115,7 +116,7 @@ record FootRaceConfigDTO(
                 config.getLaps(),
                 LocationDTO.from(config.getStartingLocation()),
                 config.getCheckpoints(),
-                config.getSpectatorArea(),
+                config.getSpectatorBoundary() != null ? config.getSpectatorBoundary().getArea() : null,
                 config.getGlassBarrier(),
                 config.getPreventInteractions(),
                 new Scores(

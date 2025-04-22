@@ -131,9 +131,27 @@ public class ManyBattleTopbar implements Topbar {
     }
     
     /**
+     * Remove the given team from this TopBar. updates appropriate BossBar displays.
+     * @param teamId the teamId to remove.
+     */
+    public void removeTeam(@NotNull String teamId) {
+        TeamData teamData = teamDatas.remove(teamId);
+        if (teamData == null) {
+            UIUtils.logUIError("team %s does not exist in this BattleTopbar", teamId);
+            return;
+        }
+        for (TeamData opponentTeamData : teamDatas.values()) {
+            opponentTeamData.getVersusManyComponent().getOpponents().removeTeam(teamId);
+        }
+        update();
+    }
+    
+    /**
      * Removes all the teams from this Topbar, and unlinks all players from 
      * their teamIds
+     * @deprecated use {@link #cleanup()}
      */
+    @Deprecated
     public void removeAllTeams() {
         teamDatas.clear();
         for (PlayerData playerData : playerDatas.values()) {
@@ -229,6 +247,7 @@ public class ManyBattleTopbar implements Topbar {
      * to make the appropriate association.
      * @param player the player to show this Topbar to
      */
+    @Override
     public void showPlayer(@NotNull Player player) {
         if (playerDatas.containsKey(player.getUniqueId())) {
             UIUtils.logUIError("player with UUID \"%s\" already exists in this ManyBattleTopbar", player.getUniqueId());
@@ -239,6 +258,12 @@ public class ManyBattleTopbar implements Topbar {
         PlayerData playerData = new PlayerData(bossBar);
         playerDatas.put(player.getUniqueId(), playerData);
         update(playerData);
+    }
+    
+    @Override
+    public void cleanup() {
+        hideAllPlayers();
+        removeAllTeams();
     }
     
     /**
@@ -270,6 +295,10 @@ public class ManyBattleTopbar implements Topbar {
         }
     }
     
+    /**
+     * @deprecated use {@link #cleanup()}
+     */
+    @Deprecated
     public void hideAllPlayers() {
         for (PlayerData playerData : playerDatas.values()) {
             playerData.getBossBar().hide();

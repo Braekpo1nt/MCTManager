@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.ParticipantData;
+import org.braekpo1nt.mctmanager.participant.QuitDataBase;
 import org.jetbrains.annotations.NotNull;
 
 @ToString(callSuper = true)
@@ -26,12 +27,17 @@ public class ParkourParticipant extends ParticipantData {
      * current puzzle (since each puzzle may have multiple checkpoints)
      */
     private int currentPuzzleCheckpoint;
+    /**
+     * The number of skip items this participant has (or should have)
+     */
+    private int unusedSkips;
     
     public ParkourParticipant(@NotNull Participant participant, int score) {
         super(participant, score);
         this.finished = false;
         this.currentPuzzle = 0;
         this.currentPuzzleCheckpoint = 0;
+        this.unusedSkips = 0;
     }
     
     public ParkourParticipant(@NotNull Participant participant, @NotNull ParkourParticipant.QuitData quitData) {
@@ -39,9 +45,10 @@ public class ParkourParticipant extends ParticipantData {
         this.finished = quitData.isFinished();
         this.currentPuzzle = quitData.getCurrentPuzzle();
         this.currentPuzzleCheckpoint = quitData.getCurrentPuzzleCheckpoint();
+        this.unusedSkips = quitData.getUnusedSkips();
     }
     
-    public QuitData getQuitData(int unusedSkips) {
+    public QuitData getQuitData() {
         return new QuitData(
                 getScore(),
                 finished,
@@ -52,11 +59,11 @@ public class ParkourParticipant extends ParticipantData {
     }
     
     @Data
-    public static class QuitData {
+    public static class QuitData implements QuitDataBase {
         private final int score;
         private final boolean finished;
         private final int currentPuzzle;
         private final int currentPuzzleCheckpoint;
-        private final int numOfSkips;
+        private final int unusedSkips;
     }
 }

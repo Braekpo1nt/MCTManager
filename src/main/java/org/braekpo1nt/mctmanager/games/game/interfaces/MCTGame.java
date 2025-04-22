@@ -7,8 +7,6 @@ import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -18,8 +16,10 @@ public interface MCTGame {
     GameType getType();
     void stop();
     
-    void onParticipantJoin(Participant participant, Team team);
-    void onParticipantQuit(UUID participantUUID, String teamId);
+    void onTeamJoin(Team team);
+    void onParticipantJoin(Participant participant);
+    void onParticipantQuit(UUID participantUUID);
+    void onTeamQuit(@NotNull String teamId);
     
     void onAdminJoin(Player admin);
     void onAdminQuit(Player admin);

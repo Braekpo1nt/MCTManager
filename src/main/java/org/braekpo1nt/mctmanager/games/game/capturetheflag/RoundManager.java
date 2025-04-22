@@ -67,6 +67,7 @@ public class RoundManager {
     }
     
     private static void logSchedule(List<List<MatchPairing>> schedule) {
+        Main.logger().info(String.format("Schedule (%d):", schedule.size()));
         for (int i = 0; i < schedule.size(); i++) {
             List<MatchPairing> round = schedule.get(i);
             Main.logger().info(String.format("Round %d:", i+1));
@@ -102,6 +103,7 @@ public class RoundManager {
      */
     public void regenerateRounds(@NotNull Collection<@NotNull String> teamIds, int numOfArenas) {
         Set<String> uniqueTeamIds = new HashSet<>(teamIds);
+        Main.logf("regenerating rounds for %s", uniqueTeamIds.toString());
         if (uniqueTeamIds.size() != teamIds.size()) {
             Main.logger().severe(String.format("Duplicate teamId found in teamIds %s", teamIds));
         }
