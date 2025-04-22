@@ -1,11 +1,14 @@
-package org.braekpo1nt.mctmanager.participant;
+package org.braekpo1nt.mctmanager.games.gamemanager;
 
 import lombok.ToString;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.participant.ColorAttributes;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.participant.TeamInfo;
 import org.braekpo1nt.mctmanager.utils.AudienceDelegate;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,8 +40,8 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
      * @param members a set of the UUIDs of the members of this team
      * @param score the team's score
      */
-    public MCTTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull Set<UUID> members, int score) {
-        super(teamId, displayName, color, score);
+    public MCTTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull ColorAttributes colorAttributes, @NotNull Set<UUID> members, int score) {
+        super(teamId, displayName, color, colorAttributes, score);
         this.members = members;
         this.onlineMembers = new HashMap<>();
         this.audience = Audience.empty();
@@ -51,8 +54,8 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
      * @param color the team's assigned color
      * @param members a collection of the UUIDs of the members of this team
      */
-    public MCTTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull Collection<UUID> members, int score) {
-        this(teamId, displayName, color, new HashSet<>(members), score);
+    public MCTTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull ColorAttributes colorAttributes, @NotNull Collection<UUID> members, int score) {
+        this(teamId, displayName, color, colorAttributes, new HashSet<>(members), score);
     }
     
     /**
@@ -61,8 +64,8 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
      * @param displayName the pretty display name of the team in text form
      * @param color the team's assigned color
      */
-    public MCTTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, int score) {
-        this(teamId, displayName, color, new HashSet<>(), score);
+    public MCTTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull ColorAttributes colorAttributes, int score) {
+        this(teamId, displayName, color, colorAttributes, new HashSet<>(), score);
     }
     
     /**
@@ -71,7 +74,14 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
      * @param newScore the new score
      */
     public MCTTeam(MCTTeam team, int newScore) {
-        super(team.getTeamId(), team.getDisplayName(), team.getColor(), team.getBukkitColor(), team.getFormattedDisplayName(), newScore);
+        super(
+                team.getTeamId(), 
+                team.getDisplayName(), 
+                team.getColor(), 
+                team.getColorAttributes(),
+                team.getBukkitColor(), 
+                team.getFormattedDisplayName(), 
+                newScore);
         this.members = new HashSet<>(team.members);
         this.onlineMembers = new HashMap<>(team.onlineMembers);
         this.audience = Audience.audience(this.onlineMembers.values());

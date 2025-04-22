@@ -224,8 +224,8 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
         // do nothing
     }
     
-    public void giveBoots(Participant participant) {
-        Color teamColor = gameManager.getTeam(participant).getBukkitColor();
+    public void giveBoots(FootRaceParticipant participant) {
+        Color teamColor = teams.get(participant.getTeamId()).getBukkitColor();
         ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
         LeatherArmorMeta meta = (LeatherArmorMeta) boots.getItemMeta();
         meta.setColor(teamColor);

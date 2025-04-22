@@ -5,6 +5,8 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkTeam;
 import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushTeam;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesTeam;
+import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
+import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -19,7 +21,7 @@ class TeamTest {
     
     @BeforeAll
     static void setup() {
-        team = new MCTTeam("yellow", "Yellow", NamedTextColor.YELLOW, Collections.emptySet(), 0);
+        team = new MCTTeam("yellow", "Yellow", NamedTextColor.YELLOW, ColorMap.getColorAttributes("yellow"), Collections.emptySet(), 0);
     }
     
     @Test

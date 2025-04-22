@@ -5,10 +5,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.MatchPairing;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.RoundManager;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.*;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
@@ -95,10 +92,10 @@ public class PreRoundState extends CaptureTheFlagStateBase {
         List<MatchPairing> roundMatchPairings = roundManager.getCurrentRound();
         topbar.removeAllTeamPairs();
         for (MatchPairing mp : roundMatchPairings) {
-            TextColor northColor = gameManager.getTeamColor(mp.northTeam());
-            TextColor southColor = gameManager.getTeamColor(mp.southTeam());
-            topbar.addTeam(mp.northTeam(), northColor);
-            topbar.addTeam(mp.southTeam(), southColor);
+            CTFTeam northTeam = context.getTeamOrQuitTeam(mp.northTeam());
+            CTFTeam southTeam = context.getTeamOrQuitTeam(mp.southTeam());
+            topbar.addTeam(mp.northTeam(), northTeam.getColor());
+            topbar.addTeam(mp.southTeam(), southTeam.getColor());
             topbar.linkTeamPair(mp.northTeam(), mp.southTeam());
             int northAlive = 0;
             int southAlive = 0;

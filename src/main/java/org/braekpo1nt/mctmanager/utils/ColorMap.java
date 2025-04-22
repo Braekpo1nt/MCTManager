@@ -1,8 +1,12 @@
 package org.braekpo1nt.mctmanager.utils;
 
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.participant.ColorAttributes;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.Color;
 import org.bukkit.Material;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -187,5 +191,30 @@ public class ColorMap {
      */
     public static Material getStainedGlassColor(String colorString) {
         return STAINED_GLASS_MAP.getOrDefault(colorString, Material.WHITE_STAINED_GLASS);
+    }
+    
+    /**
+     * @param colorString the color string indicating which colors the attributes should use. Should be the color string matching the ChatColor values.
+     * @return the {@link ColorAttributes} associated with the given colorString
+     */
+    public static ColorAttributes getColorAttributes(String colorString) {
+        return new ColorAttributes(
+                getConcretePowderColor(colorString),
+                getConcreteColor(colorString),
+                getStainedGlassColor(colorString),
+                getBannerColor(colorString)
+        );
+    }
+    
+    /**
+     * Colors all leather armor in the equipment slots of the participant to be the team color
+     * If the {@link org.bukkit.persistence.PersistentDataContainer} of an item's LeatherArmorMeta contains the {@link GameManagerUtils#IGNORE_TEAM_COLOR} {@link PersistentDataType#STRING} property, then that item will not be colored. 
+     * @param participant the participant whose armor slots may or may not contain leather armor, but for whom any existing leather armor slots should be colored their team color. If this participant is not a participiant in the given gameManager, then nothing happens. 
+     */
+    public static void colorLeatherArmor(@NotNull Participant participant, @NotNull Color teamColor) {
+        GameManagerUtils.colorLeatherArmor(participant.getInventory().getHelmet(), teamColor);
+        GameManagerUtils.colorLeatherArmor(participant.getInventory().getChestplate(), teamColor);
+        GameManagerUtils.colorLeatherArmor(participant.getInventory().getLeggings(), teamColor);
+        GameManagerUtils.colorLeatherArmor(participant.getInventory().getBoots(), teamColor);
     }
 }

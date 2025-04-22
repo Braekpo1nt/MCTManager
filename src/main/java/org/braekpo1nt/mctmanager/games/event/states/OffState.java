@@ -56,11 +56,6 @@ public class OffState implements EventState {
     
     @Override
     public void startEvent(@NotNull CommandSender sender, int numberOfGames, int currentGameNumber) {
-        if (context.getGameManager().gameIsRunning()) {
-            sender.sendMessage(Component.text("Can't start an event while a game is running.")
-                    .color(NamedTextColor.RED));
-            return;
-        }
         if (context.getGameManager().editorIsRunning()) {
             sender.sendMessage(Component.text("Can't start an event while an editor is running.")
                     .color(NamedTextColor.RED));
@@ -90,7 +85,7 @@ public class OffState implements EventState {
         initializeSidebar();
         initializeAdminSidebar();
         context.initializeParticipantsAndAdmins();
-        context.getGameManager().removeParticipantsFromHub(context.getParticipants());
+//        context.getGameManager().removeParticipantsFromHub(context.getParticipants());
         context.setState(new ReadyUpState(context));
     }
     

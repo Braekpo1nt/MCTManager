@@ -15,15 +15,17 @@ public class ClassSelectionState extends CaptureTheFlagMatchStateBase {
     
     public ClassSelectionState(CaptureTheFlagMatch context) {
         super(context);
-        this.northClassPicker = new ClassPicker(context.getGameManager());
-        this.southClassPicker = new ClassPicker(context.getGameManager());
+        this.northClassPicker = new ClassPicker();
+        this.southClassPicker = new ClassPicker();
         northClassPicker.start(
                 context.getPlugin(), 
                 context.getNorthTeam().getParticipants(), 
+                context.getNorthTeam().getBukkitColor(),
                 context.getConfig().getLoadouts());
         southClassPicker.start(
                 context.getPlugin(),
-                context.getSouthTeam().getParticipants(), 
+                context.getSouthTeam().getParticipants(),
+                context.getSouthTeam().getBukkitColor(),
                 context.getConfig().getLoadouts());
     }
     

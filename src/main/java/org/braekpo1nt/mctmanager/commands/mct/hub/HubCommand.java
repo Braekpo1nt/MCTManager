@@ -9,8 +9,7 @@ public class HubCommand extends CommandManager {
     
     public HubCommand(@NotNull GameManager gameManager, @NotNull BlockEffectsListener blockEffectsListener, @NotNull String name) {
         super(name);
-        addSubCommand(new HubOptionSubCommand(gameManager, blockEffectsListener, "option"));
-        addSubCommand(new HubLoadSubCommand(gameManager, "load"));
+        addSubCommand(new HubOptionSubCommand(blockEffectsListener, "option"));
     }
     
 }

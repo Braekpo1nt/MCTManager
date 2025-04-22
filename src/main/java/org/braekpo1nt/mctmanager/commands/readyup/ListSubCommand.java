@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +35,8 @@ public class ListSubCommand extends TabSubCommand {
             return CommandResult.success();
         }
         String teamId = args[0];
-        if (!gameManager.hasTeam(teamId)) {
+        Team team = gameManager.getTeam(teamId);
+        if (team == null) {
             return CommandResult.failure(Component.empty()
                     .append(Component.text(teamId)
                             .decorate(TextDecoration.BOLD))

@@ -29,18 +29,16 @@ public class StopSubCommand extends TabSubCommand {
     
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!gameManager.gameIsRunning()) {
-            return CommandResult.failure("No game is running.");
-        }
         if (args.length == 0) {
-            gameManager.manuallyStopGame(true);
+            gameManager.stopAllGames();
             return CommandResult.success();
         }
         if (args.length == 1) {
             String shouldTeleport = args[0];
+            // TODO: remove the shouldTeleport flag from this command, and specify game type
             switch (shouldTeleport) {
                 case "true" -> {
-                    gameManager.manuallyStopGame(true);
+                    gameManager.stopAllGames();
                     return CommandResult.success();
                 }
                 case "false" -> {
@@ -52,7 +50,7 @@ public class StopSubCommand extends TabSubCommand {
                                         .decorate(TextDecoration.BOLD)));
                     }
                     sender.sendMessage("Skipping teleport to hub.");
-                    gameManager.manuallyStopGame(false);
+                    gameManager.stopAllGames();
                     return CommandResult.success();
                 }
                 default -> {

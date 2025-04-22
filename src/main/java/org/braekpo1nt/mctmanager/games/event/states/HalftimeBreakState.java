@@ -23,7 +23,7 @@ public class HalftimeBreakState extends WaitingInHubState {
                 .onCompletion(() -> {
                     context.getPlugin().getServer().getScheduler().cancelTask(updateTipsTaskId);
                     context.getPlugin().getServer().getScheduler().cancelTask(displayTipsTaskId);
-                    gameManager.removeParticipantsFromHub(context.getParticipants());
+//                    gameManager.removeParticipantsFromHub(context.getParticipants());
                     context.setState(new WaitingInHubState(context));
                 })
                 .build());

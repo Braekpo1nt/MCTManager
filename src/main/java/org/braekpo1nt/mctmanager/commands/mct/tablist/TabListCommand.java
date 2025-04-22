@@ -5,6 +5,7 @@ import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
 import org.braekpo1nt.mctmanager.commands.manager.SubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -21,7 +22,8 @@ public class TabListCommand extends CommandManager {
                 if (!(sender instanceof Player player)) {
                     return CommandResult.failure("This command can only be run by a player");
                 }
-                if (!gameManager.isParticipant(player.getUniqueId()) 
+                Participant participant = gameManager.getOnlineParticipant(player.getUniqueId());
+                if (participant == null 
                         && !gameManager.isAdmin(player.getUniqueId())) {
                     return CommandResult.failure("This command can only be run by a participant or an admin");
                 }
@@ -35,7 +37,8 @@ public class TabListCommand extends CommandManager {
                 if (!(sender instanceof Player player)) {
                     return CommandResult.failure("This command can only be run by a player");
                 }
-                if (!gameManager.isParticipant(player.getUniqueId())
+                Participant participant = gameManager.getOnlineParticipant(player.getUniqueId());
+                if (participant == null
                         && !gameManager.isAdmin(player.getUniqueId())) {
                     return CommandResult.failure("This command can only be run by a participant or an admin");
                 }

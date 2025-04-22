@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.event.config.EventConfigController;
 import org.braekpo1nt.mctmanager.games.event.states.*;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
@@ -203,7 +204,8 @@ public class EventManager implements Listener {
                     .color(NamedTextColor.RED));
             return;
         }
-        if (gameManager.getActiveGame() != null && gameManager.getActiveGame().getType().equals(gameType)) {
+        MCTGame game = gameManager.getActiveGame(gameType);
+        if (game != null && game.getType().equals(gameType)) {
             sender.sendMessage(Component.text("Can't undo ")
                     .append(Component.text(gameType.getTitle())
                             .decorate(TextDecoration.BOLD))

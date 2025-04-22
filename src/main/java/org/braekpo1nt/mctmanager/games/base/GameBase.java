@@ -241,7 +241,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
         storedGameRules.clear();
         cleanup();
-        gameManager.gameIsOver();
+        gameManager.gameIsOver(getType(), participants.values().stream().map(Participant::getUniqueId).toList());
         Main.logger().info("Stopping " + type.getTitle());
     }
     
@@ -274,7 +274,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         for (P participant : participants.values()) {
             participantScores.put(participant.getUniqueId(), participant.getScore());
         }
-        gameManager.addScores(teamScores, participantScores);
+        gameManager.addScores(teamScores, participantScores, getType());
     }
     
     /**

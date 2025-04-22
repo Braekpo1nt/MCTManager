@@ -99,7 +99,7 @@ public class VotingState implements EventState {
     
     @Override
     public void onParticipantJoin(Participant participant) {
-        gameManager.returnParticipantToHub(participant);
+//        gameManager.returnParticipantToHub(participant);
         voteManager.onParticipantJoin(participant);
     }
     
@@ -160,7 +160,7 @@ public class VotingState implements EventState {
         context.setMaxGames(newMaxGames);
         context.getSidebar().updateLine("currentGame", context.getCurrentGameLine());
         context.getAdminSidebar().updateLine("currentGame", context.getCurrentGameLine());
-        gameManager.updateGameTitle();
+        // TODO: update the title of the active game to reflect the new max games
         sender.sendMessage(Component.text("Max games has been set to ")
                 .append(Component.text(newMaxGames)));
     }

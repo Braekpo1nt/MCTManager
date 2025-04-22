@@ -4,7 +4,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -19,12 +18,10 @@ import java.util.List;
  */
 public class HubOptionSubCommand extends TabSubCommand {
     
-    private final GameManager gameManager;
     private final BlockEffectsListener blockEffectsListener;
     
-    public HubOptionSubCommand(GameManager gameManager, BlockEffectsListener blockEffectsListener, @NotNull String name) {
+    public HubOptionSubCommand(BlockEffectsListener blockEffectsListener, @NotNull String name) {
         super(name);
-        this.gameManager = gameManager;
         this.blockEffectsListener = blockEffectsListener;
     }
     
@@ -35,12 +32,6 @@ public class HubOptionSubCommand extends TabSubCommand {
         }
         
         switch (args[0]) {
-            case "disablehubboundary":
-                gameManager.setBoundaryEnabled(false);
-                break;
-            case "enablehubboundary":
-                gameManager.setBoundaryEnabled(true);
-                break;
             case "disableblockeffects":
                 blockEffectsListener.disableBlockEffects();
                 break;
@@ -58,6 +49,6 @@ public class HubOptionSubCommand extends TabSubCommand {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        return Arrays.asList("disablehubboundary", "enablehubboundary", "disableblockeffects", "enableblockeffects");
+        return Arrays.asList("disableblockeffects", "enableblockeffects");
     }
 }

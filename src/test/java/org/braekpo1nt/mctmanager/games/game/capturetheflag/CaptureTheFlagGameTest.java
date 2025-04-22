@@ -62,7 +62,7 @@ public class CaptureTheFlagGameTest {
         MyPlayerMock player = new MyPlayerMock(server, name, UUID.nameUUIDFromBytes(name.getBytes(StandardCharsets.UTF_8)));
         server.addPlayer(player);
         gameManager.joinParticipantToTeam(sender, player, name, teamId);
-        Assertions.assertTrue(gameManager.isParticipant(player.getUniqueId()));
+        Assertions.assertNotNull(gameManager.getOnlineParticipant(player.getUniqueId()));
         return player;
     }
     
@@ -74,7 +74,7 @@ public class CaptureTheFlagGameTest {
     
     void addTeam(String teamId, String teamDisplayName, String teamColor) {
         gameManager.addTeam(teamId, teamDisplayName, teamColor);
-        Assertions.assertTrue(gameManager.hasTeam(teamId));
+        Assertions.assertNotNull(gameManager.getTeam(teamId));
     }
     
     @Test
@@ -86,7 +86,7 @@ public class CaptureTheFlagGameTest {
         createParticipant("Player2", "red");
         MyPlayerMock player3 = createParticipant("Player3", "yellow");
         gameManager.startGame(GameType.CAPTURE_THE_FLAG, "captureTheFlagConfig.json", sender);
-        CaptureTheFlagGame game = (CaptureTheFlagGame) gameManager.getActiveGame();
+        CaptureTheFlagGame game = (CaptureTheFlagGame) gameManager.getActiveGame(GameType.CAPTURE_THE_FLAG);
         
         gameManager.getTimerManager().skip();
         Assertions.assertInstanceOf(PreRoundState.class, game.getState(), "we should be in the PreRoundState");
@@ -101,6 +101,6 @@ public class CaptureTheFlagGameTest {
         gameManager.getTimerManager().skip(); // should realize that Player3 isn't online, and end the match, which ends the round
         Assertions.assertInstanceOf(RoundOverState.class, game.getState());
         
-        gameManager.manuallyStopGame(false);
+        gameManager.manuallyStopGame(GameType.CAPTURE_THE_FLAG);
     }
 }

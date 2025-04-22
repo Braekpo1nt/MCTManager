@@ -38,7 +38,6 @@ public class HubManager implements Listener, Configurable {
     protected final HubConfigController configController;
     protected HubConfig config;
     private @NotNull final List<LeaderboardManager> leaderboardManagers;
-    private boolean boundaryEnabled = true;
     /**
      * A list of the participants who are in the hub
      */
@@ -240,9 +239,6 @@ public class HubManager implements Listener, Configurable {
         if (!gameManager.getEventManager().eventIsActive()) {
             return;
         }
-        if (gameManager.gameIsRunning()) {
-            return;
-        }
         if (event.getClickedInventory() == null) {
             return;
         }
@@ -289,9 +285,6 @@ public class HubManager implements Listener, Configurable {
      */
     @EventHandler
     public void onPlayerOutOfBounds(PlayerMoveEvent event) {
-        if (!boundaryEnabled) {
-            return;
-        }
         Player participant = event.getPlayer();
         if (!participants.containsKey(participant.getUniqueId())) {
             return;
@@ -304,9 +297,5 @@ public class HubManager implements Listener, Configurable {
             participant.teleport(config.getSpawn());
             participant.sendMessage("You fell out of the hub boundary");
         }
-    }
-    
-    public void setBoundaryEnabled(boolean boundaryEnabled) {
-        this.boundaryEnabled = boundaryEnabled;
     }
 }

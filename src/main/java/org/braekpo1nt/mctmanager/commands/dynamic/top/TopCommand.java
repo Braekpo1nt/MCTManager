@@ -43,7 +43,7 @@ public class TopCommand implements CommandExecutor {
         }
         if (gameManager.isAdmin(player.getUniqueId())) {
             EntityUtils.top(player);
-        } else if (gameManager.isParticipant(player.getUniqueId())) {
+        } else if (gameManager.getOnlineParticipant(player.getUniqueId()) == null) {
             if (!enabled) {
                 sender.sendMessage("Can't use this command right now");
                 return true;

@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.utils;
 
+import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
@@ -19,6 +20,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -117,7 +119,7 @@ public class GameManagerUtils {
         TextComponent.Builder messageBuilder = Component.text().append(Component.text("Scores:\n")
                     .decorate(TextDecoration.BOLD));
         List<OfflineParticipant> offlineParticipants = getSortedOfflineParticipants(gameManager);
-        List<Team> sortedTeams = getSortedTeams(gameManager);
+        List<Team> sortedTeams = gameManager.getSortedTeams();
         
         for (Team team : sortedTeams) {
             messageBuilder.append(Component.empty()
@@ -170,20 +172,6 @@ public class GameManagerUtils {
     }
     
     /**
-     * @param gameManager the GameManager to get the data from
-     * @return a sorted list of team names. Sorted first by score from greatest to least, then alphabetically (A to Z).
-     */
-    public static List<Team> getSortedTeams(GameManager gameManager) {
-        return gameManager.getTeams().stream().sorted((t1, t2) -> {
-            int scoreComparison = t2.getScore() - t1.getScore();
-            if (scoreComparison != 0) {
-                return scoreComparison;
-            }
-            return t1.getDisplayName().compareToIgnoreCase(t2.getDisplayName());
-        }).toList();
-    }
-    
-    /**
      * This validation and creation is used across multiple commands, so I've put it here for easy replication. 
      * <br>
      * Makes sure the inputs are able to form a valid team that doesn't already exist. 
@@ -195,7 +183,8 @@ public class GameManagerUtils {
      * @return a comprehensive message about the success or failure of the addition of the given team
      */
     public static CommandResult addTeam(GameManager gameManager, @NotNull String teamId, @NotNull String teamDisplayName, @NotNull String colorString) {
-        if (gameManager.hasTeam(teamId)) {
+        Team existingTeam = gameManager.getTeam(teamId);
+        if (existingTeam != null) {
             return CommandResult.failure(Component.text("A team already exists with the teamId \"")
                     .append(Component.text(teamId))
                     .append(Component.text("\"")));
@@ -245,7 +234,8 @@ public class GameManagerUtils {
      * @return a CommandResult detailing what happened. 
      */
     public static CommandResult removeTeam(@NotNull CommandSender sender, @NotNull GameManager gameManager, @NotNull String teamId) {
-        if (!gameManager.hasTeam(teamId)) {
+        Team existingTeam = gameManager.getTeam(teamId);
+        if (existingTeam == null) {
             return CommandResult.failure(Component.text("Team ")
                     .append(Component.text(teamId)
                             .decorate(TextDecoration.BOLD))
@@ -293,20 +283,14 @@ public class GameManagerUtils {
     }
     
     /**
-     * Colors all leather armor in the equipment slots of the participant to be the team color
-     * If the {@link org.bukkit.persistence.PersistentDataContainer} of an item's LeatherArmorMeta contains the {@link GameManagerUtils#IGNORE_TEAM_COLOR} {@link PersistentDataType#STRING} property, then that item will not be colored. 
-     * @param gameManager the game manager in which the given participant should be contained
-     * @param participant the participant whose armor slots may or may not contain leather armor, but for whom any existing leather armor slots should be colored their team color. If this participant is not a participiant in the given gameManager, then nothing happens. 
+     * Replaces instances of the given player's name in the given component with the player's display name. 
+     * @param participant the player whose name should be replaced with their display name
+     * @param component the component in which the name should be replaced
+     * @return a new component with the replacements. Null if the component is null
      */
-    public static void colorLeatherArmor(@NotNull GameManager gameManager, @NotNull Participant participant) {
-        if (!gameManager.isParticipant(participant.getUniqueId())) {
-            return;
-        }
-        Color teamColor = gameManager.getTeam(participant).getBukkitColor();
-        colorLeatherArmor(participant.getInventory().getHelmet(), teamColor);
-        colorLeatherArmor(participant.getInventory().getChestplate(), teamColor);
-        colorLeatherArmor(participant.getInventory().getLeggings(), teamColor);
-        colorLeatherArmor(participant.getInventory().getBoots(), teamColor);
+    @Contract("_, null -> null")
+    public static Component replaceWithDisplayName(@NotNull Participant participant, Component component) {
+        return replaceWithDisplayName(participant.getPlayer(), component);
     }
     
     /**
@@ -410,16 +394,6 @@ public class GameManagerUtils {
     }
     
     /**
-     * Returns the formal placement title of the given place. 
-     * 1 gives 1st, 2 gives second, 11 gives 11th, 103 gives 103rd.
-     * @param placement A number representing the placement
-     * @return The placement number with the appropriate postfix (st, nd, rd, th)
-     */
-    public static String getPlacementTitleString(int placement) {
-        return placement + getStandingSuffix(placement);
-    }
-    
-    /**
      * @param name the name to turn into a display name
      * @param color the color to use for the display name
      * @return the display name from the given name and color
@@ -428,5 +402,25 @@ public class GameManagerUtils {
         return Component.empty()
                 .append(Component.text(name))
                 .color(color);
+    }
+    
+    public static @Nullable EquipmentSlot toEquipmentSlot(@Nullable PlayerArmorChangeEvent.SlotType slotType) {
+        switch (slotType) {
+            case HEAD -> {
+                return EquipmentSlot.HEAD;
+            }
+            case CHEST -> {
+                return EquipmentSlot.CHEST;
+            }
+            case LEGS -> {
+                return EquipmentSlot.LEGS;
+            }
+            case FEET -> {
+                return EquipmentSlot.FEET;
+            }
+            case null, default -> {
+                return null;
+            }
+        }
     }
 }

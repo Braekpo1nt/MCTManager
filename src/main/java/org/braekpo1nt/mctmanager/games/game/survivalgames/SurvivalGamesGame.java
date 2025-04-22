@@ -192,23 +192,21 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     }
     
     public void createPlatformsAndTeleportTeams() {
-        Set<String> teams = Participant.getTeamIds(participants);
-        createPlatforms(teams);
-        teleportTeams(teams);
+        createPlatforms();
+        teleportTeams();
     }
     
     /**
-     * Creates platforms for teamIds to spawn on made of a hollow rectangle of Barrier blocks where the bottom layer is Concrete that matches the color of the team
+     * Creates platforms for teams to spawn on made of a hollow rectangle of Barrier blocks where the bottom layer is Concrete that matches the color of the team
      * <br>
      * For n teamIds and m platforms in storageUtil.getPlatformBarriers():<br>
      * - place n platforms, but no more than m platforms
-     * @param teamIds the teamIds that will be teleported
      */
-    private void createPlatforms(Set<String> teamIds) {
+    private void createPlatforms() {
         List<BoundingBox> platformBarriers = config.getPlatformBarriers();
         World world = config.getWorld();
         int i = 0;
-        for (String teamId : teamIds) {
+        for (SurvivalGamesTeam team : teams.values()) {
             int platformIndex = MathUtils.wrapIndex(i, platformBarriers.size());
             BoundingBox barrierArea = platformBarriers.get(platformIndex);
             BoundingBox concreteArea = new BoundingBox(
@@ -218,9 +216,8 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
                     barrierArea.getMaxX()-1,
                     barrierArea.getMinY(),
                     barrierArea.getMaxZ()-1);
-            Material concreteColor = gameManager.getTeamConcreteColor(teamId);
             BlockPlacementUtils.createHollowCube(world, barrierArea, Material.BARRIER);
-            BlockPlacementUtils.createCube(world, concreteArea, concreteColor);
+            BlockPlacementUtils.createCube(world, concreteArea, team.getColorAttributes().getConcrete());
             i++;
         }
     }
@@ -228,16 +225,15 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     /**
      * For n teams and m platforms in storageUtil.getPlatformBarriers():<br>
      * - teleport teams to their designated platforms. If n is greater than m, then it will start wrapping around and teleporting different teams to the same platforms, until all teams have a platform. 
-     * @param teamIds the teams to teleport (players will be selected from the participants list)
      */
-    private void teleportTeams(Set<String> teamIds) {
+    private void teleportTeams() {
         List<Location> platformSpawns = config.getPlatformSpawns();
-        Map<String, Location> teamSpawnLocations = new HashMap<>(teamIds.size());
+        Map<String, Location> teamSpawnLocations = new HashMap<>(teams.size());
         int i = 0;
-        for (String teamId : teamIds) {
+        for (SurvivalGamesTeam team : teams.values()) {
             int platformIndex = MathUtils.wrapIndex(i, platformSpawns.size());
             Location platformSpawn = platformSpawns.get(platformIndex);
-            teamSpawnLocations.put(teamId, platformSpawn);
+            teamSpawnLocations.put(team.getTeamId(), platformSpawn);
             i++;
         }
         for (Participant participant : participants.values()) {

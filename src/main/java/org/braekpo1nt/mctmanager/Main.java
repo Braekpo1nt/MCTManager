@@ -12,10 +12,11 @@ import org.braekpo1nt.mctmanager.commands.readyup.ReadyUpCommand;
 import org.braekpo1nt.mctmanager.commands.readyup.UnReadyCommand;
 import org.braekpo1nt.mctmanager.commands.teammsg.TeamMsgCommand;
 import org.braekpo1nt.mctmanager.commands.utils.UtilsCommand;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
+import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -57,7 +58,11 @@ public class Main extends JavaPlugin {
     private static final Map<LogType, @NotNull Boolean> logTypeActive = new HashMap<>();
     
     protected GameManager initialGameManager(Scoreboard mctScoreboard) {
-        return new GameManager(this, mctScoreboard);
+        return new GameManager(
+                this, 
+                mctScoreboard,
+                new GameStateStorageUtil(this),
+                new SidebarFactory());
     }
     
     /**
@@ -123,19 +128,19 @@ public class Main extends JavaPlugin {
         PacketEvents.getAPI().init();
         
         gameManager = initialGameManager(mctScoreboard);
-        try {
-            gameManager.loadHubConfig();
-        } catch (ConfigException e) {
-            Main.logger().log(Level.SEVERE, String.format("Could not load hub config, see console for details. %s", e.getMessage()), e);
-            saveGameStateOnDisable = false;
-            Bukkit.getPluginManager().disablePlugin(this);
-            return;
-        }
+//        try {
+//            gameManager.loadHubConfig();
+//        } catch (ConfigException e) {
+//            Main.logger().log(Level.SEVERE, String.format("Could not load hub config, see console for details. %s", e.getMessage()), e);
+//            saveGameStateOnDisable = false;
+//            this.getServer().getPluginManager().disablePlugin(this);
+//            return;
+//        }
         boolean ableToLoadGameSate = gameManager.loadGameState();
         if (!ableToLoadGameSate) {
             Main.logger().severe("[MCTManager] Could not load game state from memory. Disabling plugin.");
             saveGameStateOnDisable = false;
-            Bukkit.getPluginManager().disablePlugin(this);
+            this.getServer().getPluginManager().disablePlugin(this);
             return;
         }
         
@@ -175,14 +180,10 @@ public class Main extends JavaPlugin {
         ParticipantInitializer.setPlugin(null); //TODO: remove this in favor of death and respawn combination 
         PacketEvents.getAPI().terminate();
         if (saveGameStateOnDisable && gameManager != null) {
-            gameManager.cancelVote();
-            gameManager.tearDown();
             if (gameManager.getEventManager().eventIsActive()) {
                 gameManager.getEventManager().stopEvent(Bukkit.getConsoleSender());
             }
-            if (gameManager.gameIsRunning()) {
-                gameManager.manuallyStopGame(false);
-            }
+            gameManager.stopAllGames();
             if (gameManager.editorIsRunning()) {
                 gameManager.stopEditor(Bukkit.getConsoleSender());
             }

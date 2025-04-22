@@ -455,9 +455,6 @@ public class VoteManager implements Listener {
         if (participant == null) {
             return;
         }
-        if (!gameManager.isParticipant(participant.getUniqueId())) {
-            return;
-        }
         ItemStack netherStar = event.getCurrentItem();
         if (netherStar == null ||
                 !netherStar.getType().equals(Material.NETHER_STAR)) {

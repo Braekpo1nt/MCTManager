@@ -46,7 +46,7 @@ public class WaitingInHubState implements EventState {
         this.gameManager = context.getGameManager();
         this.sidebar = context.getSidebar();
         this.adminSidebar = context.getAdminSidebar();
-        gameManager.returnAllParticipantsToHub();
+//        gameManager.returnAllParticipantsToHub();
         double scoreMultiplier = context.matchProgressPointMultiplier();
         gameManager.messageOnlineParticipants(Component.text("Score multiplier: ")
                 .append(Component.text(scoreMultiplier))
@@ -81,7 +81,7 @@ public class WaitingInHubState implements EventState {
     
     @Override
     public void onParticipantJoin(Participant participant) {
-        gameManager.returnParticipantToHub(participant);
+//        gameManager.returnParticipantToHub(participant);
         if (sidebar != null) {
             sidebar.addPlayer(participant);
             context.updateTeamScores();
@@ -199,7 +199,7 @@ public class WaitingInHubState implements EventState {
         context.setMaxGames(newMaxGames);
         context.getSidebar().updateLine("currentGame", context.getCurrentGameLine());
         context.getAdminSidebar().updateLine("currentGame", context.getCurrentGameLine());
-        gameManager.updateGameTitle();
+        // TODO: update the title of the active game to reflect the new max games
         sender.sendMessage(Component.text("Max games has been set to ")
                 .append(Component.text(newMaxGames)));
     }

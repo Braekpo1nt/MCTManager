@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.participant.ColorAttributes;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.OfflinePlayer;
@@ -205,7 +206,7 @@ public class GameStateStorageUtil {
         );
     }
     
-    public void updateScores(Collection<org.braekpo1nt.mctmanager.participant.MCTTeam> teams, Collection<OfflineParticipant> participants) {
+    public void updateScores(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams, Collection<OfflineParticipant> participants) {
         updateTeamScores(teams);
         updateParticipantScores(participants);
     }
@@ -225,12 +226,12 @@ public class GameStateStorageUtil {
         }
     }
     
-    public void updateScore(org.braekpo1nt.mctmanager.participant.MCTTeam team) {
+    public void updateScore(org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam team) {
         gameState.getTeam(team.getTeamId()).setScore(team.getScore());
     }
     
-    public void updateTeamScores(Collection<org.braekpo1nt.mctmanager.participant.MCTTeam> teams) {
-        for (org.braekpo1nt.mctmanager.participant.MCTTeam team : teams) {
+    public void updateTeamScores(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams) {
+        for (org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam team : teams) {
             MCTTeam mctTeam = gameState.getTeam(team.getTeamId());
             mctTeam.setScore(team.getScore());
         }
@@ -290,6 +291,11 @@ public class GameStateStorageUtil {
     public @NotNull NamedTextColor getTeamColor(@NotNull String teamId) {
         String colorString = gameState.getTeam(teamId).getColor();
         return ColorMap.getNamedTextColor(colorString);
+    }
+    
+    public @NotNull ColorAttributes getTeamColorAttributes(@NotNull String teamId) {
+        String colorString = gameState.getTeam(teamId).getColor();
+        return ColorMap.getColorAttributes(colorString);
     }
     
     public String getTeamDisplayName(String teamId) {

@@ -175,11 +175,11 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
     }
     
     private void placeFlags() {
-        northBanner = gameManager.getTeamBannerColor(matchPairing.northTeam());
+        northBanner = northTeam.getColorAttributes().getBanner();
         northFlagPosition = arena.northFlag();
         BlockPlacementUtils.placeFlag(northBanner, northFlagPosition, BlockFace.SOUTH);
         
-        southBanner = gameManager.getTeamBannerColor(matchPairing.southTeam());
+        southBanner = southTeam.getColorAttributes().getBanner();
         southFlagPosition = arena.southFlag();
         BlockPlacementUtils.placeFlag(southBanner, southFlagPosition, BlockFace.NORTH);
     }

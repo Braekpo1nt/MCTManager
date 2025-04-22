@@ -65,7 +65,7 @@ public class ReadyUpState implements EventState {
         this.adminSidebar = context.getAdminSidebar();
         this.readyUpManager = context.getReadyUpManager();
         this.topbar = context.getTopbar();
-        gameManager.returnAllParticipantsToHub();
+//        gameManager.returnAllParticipantsToHub();
         readyUpManager.clear();
         Collection<Team> teams = gameManager.getTeams();
         for (Team team : teams) {
@@ -218,7 +218,7 @@ public class ReadyUpState implements EventState {
     
     @Override
     public void onParticipantJoin(Participant participant) {
-        gameManager.returnParticipantToHub(participant);
+//        gameManager.returnParticipantToHub(participant);
         if (sidebar != null) {
             sidebar.addPlayer(participant);
             context.updateTeamScores();
@@ -283,7 +283,7 @@ public class ReadyUpState implements EventState {
                         .append(Component.text("Event Starting"))
                         .color(NamedTextColor.GOLD)
         ));
-        gameManager.removeParticipantsFromHub(context.getParticipants());
+//        gameManager.removeParticipantsFromHub(context.getParticipants());
         context.setState(new WaitingInHubState(context));
     }
     
@@ -397,7 +397,7 @@ public class ReadyUpState implements EventState {
         Component currentGameLine = context.getCurrentGameLine();
         context.getSidebar().updateLine("currentGame", currentGameLine);
         context.getAdminSidebar().updateLine("currentGame", currentGameLine);
-        gameManager.updateGameTitle();
+        // TODO: update the title of the active game to reflect the new max games
         sender.sendMessage(Component.text("Max games has been set to ")
                 .append(Component.text(newMaxGames)));
     }

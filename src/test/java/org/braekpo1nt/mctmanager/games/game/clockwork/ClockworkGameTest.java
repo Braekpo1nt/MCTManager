@@ -34,7 +34,7 @@ public class ClockworkGameTest {
             plugin = MockBukkit.load(MockMain.class);
         } catch (UnimplementedOperationException ex) {
             System.out.println("UnimplementedOperationException while setting up " + this.getClass() + ". MockBukkit must not support the functionality/operation you are trying to test. Check the stack trace below for the exact method that threw the exception. Message from exception:" + ex.getMessage());
-            ex.printStackTrace();
+            Main.logger().log(Level.SEVERE, ex.getMessage(), ex);
             System.exit(1);
         }
         gameManager = plugin.getGameManager();
@@ -54,13 +54,13 @@ public class ClockworkGameTest {
         MyPlayerMock player = new MyPlayerMock(server, name, UUID.nameUUIDFromBytes(name.getBytes(StandardCharsets.UTF_8)));
         server.addPlayer(player);
         gameManager.joinParticipantToTeam(sender, player, name, teamId);
-        Assertions.assertTrue(gameManager.isParticipant(player.getUniqueId()));
+        Assertions.assertNotNull(gameManager.getOnlineParticipant(player.getUniqueId()));
         return player;
     }
     
     void addTeam(String teamId, String teamDisplayName, String teamColor) {
         gameManager.addTeam(teamId, teamDisplayName, teamColor);
-        Assertions.assertTrue(gameManager.hasTeam(teamId));
+        Assertions.assertNotNull(gameManager.getTeam(teamId));
     }
     
     @Test
@@ -72,6 +72,6 @@ public class ClockworkGameTest {
         gameManager.startGame(GameType.CLOCKWORK, "clockworkConfig.json", sender);
         gameManager.getTimerManager().skip();
         gameManager.getTimerManager().skip();
-        gameManager.manuallyStopGame(false);
+        gameManager.manuallyStopGame(GameType.CLOCKWORK);
     }
 }

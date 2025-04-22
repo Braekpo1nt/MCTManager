@@ -46,7 +46,7 @@ public class PodiumState implements EventState {
         adminSidebar.addLine("winner", winner);
         sidebar.updateLine("currentGame", context.getCurrentGameLine());
         adminSidebar.updateLine("currentGame", context.getCurrentGameLine());
-        gameManager.returnAllParticipantsToPodium(context.getWinningTeam());
+//        gameManager.returnAllParticipantsToPodium(context.getWinningTeam());
         for (Participant participant : context.getParticipants()) {
             if (participant.getTeamId().equals(context.getWinningTeam().getTeamId())) {
                 context.giveCrown(participant);
@@ -58,12 +58,12 @@ public class PodiumState implements EventState {
     public void onParticipantJoin(Participant participant) {
         if (context.getWinningTeam() != null) {
             boolean winner = participant.getTeamId().equals(context.getWinningTeam().getTeamId());
-            gameManager.returnParticipantToPodium(participant, winner);
+//            gameManager.returnParticipantToPodium(participant, winner);
             if (winner) {
                 context.giveCrown(participant);
             }
         } else {
-            gameManager.returnParticipantToPodium(participant, false);
+//            gameManager.returnParticipantToPodium(participant, false);
         }
         if (sidebar != null) {
             sidebar.addPlayer(participant);

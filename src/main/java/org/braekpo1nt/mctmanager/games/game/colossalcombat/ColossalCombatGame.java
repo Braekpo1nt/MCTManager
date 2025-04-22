@@ -16,7 +16,6 @@ import org.braekpo1nt.mctmanager.games.game.colossalcombat.states.ColossalCombat
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.states.InitialState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -287,14 +286,14 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
         return config.getPreventInteractions().contains(type);
     }
     
-    public void giveLoadout(ColossalParticipant participant) {
+    public void giveLoadout(@NotNull ColossalParticipant participant) {
         participant.getInventory().setContents(config.getLoadout());
-        GameManagerUtils.colorLeatherArmor(gameManager, participant);
+        ColorMap.colorLeatherArmor(participant, teams.get(participant.getTeamId()).getBukkitColor());
     }
     
     public void closeGates() {
-        closeGate(config.getNorthGate(), gameManager.getTeamPowderColor(northTeam.getTeamId()));
-        closeGate(config.getSouthGate(), gameManager.getTeamPowderColor(southTeam.getTeamId()));
+        closeGate(config.getNorthGate(), northTeam.getColorAttributes().getPowder());
+        closeGate(config.getSouthGate(), southTeam.getColorAttributes().getPowder());
         placeConcrete();
     }
     
@@ -304,12 +303,12 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
                     config.getWorld(),
                     config.getNorthFlagReplaceArea(),
                     config.getReplaceBlock(),
-                    gameManager.getTeamConcreteColor(northTeam.getTeamId()));
+                    northTeam.getColorAttributes().getConcrete());
             BlockPlacementUtils.createCubeReplace(
                     config.getWorld(),
                     config.getSouthFlagReplaceArea(),
                     config.getReplaceBlock(),
-                    gameManager.getTeamConcreteColor(southTeam.getTeamId()));
+                    southTeam.getColorAttributes().getConcrete());
         }
     }
     
@@ -335,12 +334,12 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
             BlockPlacementUtils.createCubeReplace(
                     config.getWorld(),
                     config.getNorthFlagReplaceArea(),
-                    gameManager.getTeamConcreteColor(northTeam.getTeamId()),
+                    northTeam.getColorAttributes().getConcrete(),
                     config.getReplaceBlock());
             BlockPlacementUtils.createCubeReplace(
                     config.getWorld(),
                     config.getSouthFlagReplaceArea(),
-                    gameManager.getTeamConcreteColor(southTeam.getTeamId()),
+                    southTeam.getColorAttributes().getConcrete(),
                     config.getReplaceBlock());
         }
     }
