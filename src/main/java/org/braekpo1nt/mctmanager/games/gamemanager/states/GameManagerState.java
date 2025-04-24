@@ -220,7 +220,8 @@ public class GameManagerState {
                             .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
         }
         
-        Set<MCTTeam> onlineTeams = new HashSet<>();
+        Set<MCTTeam> gameTeams = new HashSet<>();
+        Set<MCTParticipant> gameParticipants = new HashSet<>();
         for (String teamId : teamIds) {
             MCTTeam team = teams.get(teamId);
             if (team == null) {
@@ -230,21 +231,22 @@ public class GameManagerState {
                         .append(Component.text(" is not a valid teamId")));
             }
             if (team.isOnline()) {
-                onlineTeams.add(team);
+                gameTeams.add(team);
+                gameParticipants.addAll(team.getOnlineMembers());
             }
         }
         // make sure the player and team count requirements are met
-        if (onlineTeams.isEmpty()) {
+        if (gameTeams.isEmpty()) {
             return CommandResult.failure("None of the specified teams are online");
         }
         switch (gameType) {
             case CAPTURE_THE_FLAG -> {
-                if (onlineTeams.size() < 2) {
+                if (gameTeams.size() < 2) {
                     return CommandResult.failure(Component.text("Capture the Flag needs at least 2 teams online to play.").color(NamedTextColor.RED));
                 }
             }
             case FINAL -> {
-                if (onlineTeams.size() < 2) {
+                if (gameTeams.size() < 2) {
                     return CommandResult.failure(Component.empty()
                             .append(Component.text(GameType.FINAL.getTitle()))
                             .append(Component.text(" needs at least 2 teams online to play")));
@@ -253,12 +255,12 @@ public class GameManagerState {
         }
         
         Component title = createNewTitle(gameType.getTitle());
-        for (Participant participant : onlineParticipants.values()) {
+        for (Participant participant : gameParticipants) {
             tabList.hidePlayer(participant);
         }
         
         try {
-            MCTGame newGame = instantiateGame(gameType, title, configFile, new HashSet<>(onlineTeams), new HashSet<>(onlineParticipants.values()), onlineAdmins);
+            MCTGame newGame = instantiateGame(gameType, title, configFile, new HashSet<>(gameTeams), new HashSet<>(gameParticipants), onlineAdmins);
             for (MCTParticipant participant : onlineParticipants.values()) {
                 participant.setCurrentGame(gameType);
             }
@@ -275,7 +277,7 @@ public class GameManagerState {
                     .append(Component.text(e.getMessage()))
                     .color(NamedTextColor.RED));
         }
-        updateScoreVisuals(onlineTeams, onlineParticipants.values());
+        updateScoreVisuals(gameTeams, gameParticipants);
         return CommandResult.success();
     }
     

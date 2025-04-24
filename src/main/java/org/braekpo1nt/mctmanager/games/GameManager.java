@@ -145,7 +145,7 @@ public class GameManager implements Listener {
                     .append(Component.text(" ("))
                     .append(Component.text(team.getMemberUUIDs().size()))
                     .append(Component.text("):\n"));
-            for (Participant member : team.getOnlineMembers()) {
+            for (MCTParticipant member : team.getOnlineMembers()) {
                 builder.append(Component.text("----"))
                         .append(member.displayName())
                         .append(Component.newline());

@@ -23,13 +23,13 @@ import java.util.stream.Collectors;
 public class MCTTeam extends TeamInfo implements AudienceDelegate {
     
     /**
-     * The UUIDs of the {@link Participant}s on this team, both on and offline
+     * The UUIDs of the participants on this team, both on and offline
      */
     private final @NotNull Set<UUID> members;
     /**
      * The Participants who are members of this team and are online
      */
-    private final @NotNull Map<UUID, Participant> onlineMembers;
+    private final @NotNull Map<UUID, MCTParticipant> onlineMembers;
     private @NotNull Audience audience;
     
     /**
@@ -197,7 +197,7 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
      * @throws IllegalStateException if the given participant is not a member of this team 
      * (i.e. their teamId matches this team's)
      */
-    public void joinOnlineMember(@NotNull Participant participant) {
+    public void joinOnlineMember(@NotNull MCTParticipant participant) {
         if (!members.contains(participant.getUniqueId())) {
             throw new IllegalArgumentException(String.format("Can't join participant \"%s\" with UUID \"%s\" and teamId \"%s\" to team \"%s\" because they are not in the members set",
                     participant.getName(), participant.getUniqueId(), this.getTeamId(), participant.getTeamId()));
@@ -245,7 +245,7 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
     /**
      * @return a collection of the online members of this team
      */
-    public Collection<Participant> getOnlineMembers() {
+    public Collection<MCTParticipant> getOnlineMembers() {
         return onlineMembers.values();
     }
     

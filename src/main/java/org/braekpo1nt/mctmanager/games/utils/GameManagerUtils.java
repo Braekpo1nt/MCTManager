@@ -26,6 +26,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.persistence.PersistentDataType;
+import org.intellij.lang.annotations.RegExp;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -258,6 +259,24 @@ public class GameManagerUtils {
     }
     
     /**
+     * Replaces instances of the given name with the given display name in the given component.
+     * @param name the name to replace
+     * @param displayName the display name to replace it with
+     * @param component the component to replace within
+     * @return a new component with the replacements, Null if the component is null.
+     */
+    @Contract("_, _, null -> null")
+    public static Component replaceWithDisplayName(@RegExp @NotNull String name, @NotNull Component displayName, Component component) {
+        if (component == null) {
+            return null;
+        }
+        return component.replaceText(TextReplacementConfig.builder()
+                .match(name)
+                .replacement(displayName)
+                .build());
+    }
+    
+    /**
      * Replaces instances of the given player's name in the given component with the player's display name. 
      * @param player the player whose name should be replaced with their display name
      * @param component the component in which the name should be replaced
@@ -265,13 +284,7 @@ public class GameManagerUtils {
      */
     @Contract("_, null -> null")
     public static Component replaceWithDisplayName(@NotNull Player player, Component component) {
-        if (component == null) {
-            return null;
-        }
-        return component.replaceText(TextReplacementConfig.builder()
-                .match(player.getName())
-                .replacement(player.displayName())
-                .build());
+        return replaceWithDisplayName(player.getName(), player.displayName(), component);
     }
     
     /**
@@ -282,7 +295,7 @@ public class GameManagerUtils {
      */
     @Contract("_, null -> null")
     public static Component replaceWithDisplayName(@NotNull Participant participant, Component component) {
-        return replaceWithDisplayName(participant.getPlayer(), component);
+        return replaceWithDisplayName(participant.getName(), participant.displayName(), component);
     }
     
     /**
