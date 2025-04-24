@@ -62,8 +62,8 @@ class TimerManagerTest {
     void footRace() {
         PlayerMock playerMock = server.addPlayer();
         gameManager.addTeam("test", "Test", "white");
-        gameManager.joinParticipantToTeam(plugin.getServer().getConsoleSender(), playerMock, playerMock.getName(), "test");
-        gameManager.startGame(GameType.FOOT_RACE, "footRaceConfig.json", plugin.getServer().getConsoleSender());
+        gameManager.joinParticipantToTeam(playerMock, playerMock.getName(), "test");
+        gameManager.startGame(GameType.FOOT_RACE, "footRaceConfig.json");
         Assertions.assertDoesNotThrow(timerManager::skip);
     }
     

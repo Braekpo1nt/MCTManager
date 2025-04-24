@@ -1,7 +1,7 @@
 package org.braekpo1nt.mctmanager.commands.mct.game;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -11,8 +11,7 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Handles starting games
@@ -28,19 +27,17 @@ public class StartSubCommand extends TabSubCommand {
     
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length < 1 || args.length > 2) {
-            return CommandResult.failure(getUsage().of("<game>").of("[configFile]"));
+        if (args.length < 1) {
+            return CommandResult.failure(getUsage().of("<game>").of("[configFile]").of("[teams...]"));
         }
         String gameID = args[0];
         GameType gameType = GameType.fromID(gameID);
         if (gameType == null) {
             return CommandResult.failure(Component.text(gameID)
-                    .append(Component.text(" is not a valid game"))
-                    .color(NamedTextColor.RED));
+                    .append(Component.text(" is not a valid game")));
         }
         if (gameManager.getEventManager().eventIsActive()) {
-            return CommandResult.failure(Component.text("Can't manually start a game while an event is active.")
-                    .color(NamedTextColor.RED));
+            return CommandResult.failure(Component.text("Can't manually start a game while an event is active."));
         }
         
         String configFile;
@@ -50,14 +47,22 @@ public class StartSubCommand extends TabSubCommand {
             configFile = "default.json";
         }
         
-        gameManager.startGame(gameType, configFile, sender);
-        return CommandResult.success();
+        if (args.length > 2) {
+            Set<String> teamIds = new HashSet<>(Arrays.asList(args).subList(2, args.length));
+            return gameManager.startGame(teamIds, gameType, configFile);
+        } else {
+            return gameManager.startGame(gameType, configFile);
+        }
+        
     }
     
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
             return GameType.GAME_IDS.keySet().stream().sorted().toList();
+        }
+        if (args.length > 2) {
+            return CommandUtils.partialMatchTabList(gameManager.getTeamIds(), args[args.length - 1]);
         }
         return Collections.emptyList();
     }

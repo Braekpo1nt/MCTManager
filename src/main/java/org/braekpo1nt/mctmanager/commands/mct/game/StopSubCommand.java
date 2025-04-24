@@ -2,10 +2,12 @@ package org.braekpo1nt.mctmanager.commands.mct.game;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -30,36 +32,21 @@ public class StopSubCommand extends TabSubCommand {
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 0) {
-            gameManager.stopAllGames();
-            return CommandResult.success();
+            return gameManager.stopAllGames();
         }
         if (args.length == 1) {
-            String shouldTeleport = args[0];
-            // TODO: remove the shouldTeleport flag from this command, and specify game type
-            switch (shouldTeleport) {
-                case "true" -> {
-                    gameManager.stopAllGames();
-                    return CommandResult.success();
-                }
-                case "false" -> {
-                    if (gameManager.getEventManager().eventIsActive()) {
-                        return CommandResult.failure(Component.empty()
-                                .append(Component.text("Can't skip teleport to hub while an event is running. Use "))
-                                .append(Component.text("/mct game stop [true]")
-                                        .clickEvent(ClickEvent.suggestCommand("/mct game stop"))
-                                        .decorate(TextDecoration.BOLD)));
-                    }
-                    sender.sendMessage("Skipping teleport to hub.");
-                    gameManager.stopAllGames();
-                    return CommandResult.success();
-                }
-                default -> {
-                    return CommandResult.failure(Component.text(shouldTeleport)
-                            .append(Component.text(" is not a recognized option")));
-                }
+            String gameID = args[0];
+            if (gameID.equals("all")) {
+                return gameManager.stopAllGames();
             }
-        } 
-        return CommandResult.failure(getUsage().of("[true|false]"));
+            GameType gameType = GameType.fromID(gameID);
+            if (gameType == null) {
+                return CommandResult.failure(Component.text(gameID)
+                        .append(Component.text(" is not a valid game")));
+            }
+            return gameManager.stopGame(gameType);
+        }
+        return CommandResult.failure(getUsage().of("[all|gameID]"));
     }
     
     @Override

@@ -37,8 +37,7 @@ public class RemoveSubCommand extends TabSubCommand {
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" is not an admin")));
         }
-        gameManager.removeAdmin(sender, admin, name);
-        return CommandResult.success();
+        return gameManager.removeAdmin(admin, name);
     }
     
     @Override

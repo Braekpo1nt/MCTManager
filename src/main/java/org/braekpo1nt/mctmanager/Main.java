@@ -185,7 +185,7 @@ public class Main extends JavaPlugin {
             }
             gameManager.stopAllGames();
             if (gameManager.editorIsRunning()) {
-                gameManager.stopEditor(Bukkit.getConsoleSender());
+                gameManager.stopEditor();
             }
             gameManager.saveGameState();
         } else {

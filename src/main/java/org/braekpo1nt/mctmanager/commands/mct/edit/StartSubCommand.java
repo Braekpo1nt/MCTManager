@@ -38,8 +38,7 @@ public class StartSubCommand extends TabSubCommand {
         
         String configFile = args[1];
         
-        gameManager.startEditor(gameType, configFile, sender);
-        return CommandResult.success();
+        return gameManager.startEditor(gameType, configFile);
     }
     
     @Override

@@ -50,8 +50,7 @@ public class LeaveSubCommand extends TabSubCommand {
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" is not on a team.")));
         }
-        gameManager.leaveParticipant(sender, offlineParticipant);
-        return CommandResult.success();
+        return gameManager.leaveParticipant(offlineParticipant);
     }
     
     @Override

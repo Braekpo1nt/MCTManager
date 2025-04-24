@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.commands;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.List;
 
 public class CommandUtils {
@@ -68,9 +69,9 @@ public class CommandUtils {
         }
     }
     
-    public static @NotNull List<String> partialMatchTabList(@NotNull List<@NotNull String> list, @Nullable String partial) {
+    public static @NotNull List<String> partialMatchTabList(@NotNull Collection<@NotNull String> list, @Nullable String partial) {
         if (partial == null || partial.isEmpty()) {
-            return list;
+            return list.stream().toList();
         }
         String lowerCasePartial = partial.toLowerCase();
         return list.stream().filter(s -> s.toLowerCase().startsWith(lowerCasePartial)).toList();

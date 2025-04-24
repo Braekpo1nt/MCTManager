@@ -39,7 +39,7 @@ public class JoinSubCommand extends TabSubCommand {
         } else {
             playerName = args[1];
         }
-        return GameManagerUtils.joinParticipant(sender, plugin, gameManager, playerName, teamId);
+        return GameManagerUtils.joinParticipant(plugin, gameManager, playerName, teamId);
     }
     
     @Override

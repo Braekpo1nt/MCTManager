@@ -14,12 +14,13 @@ import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
-import org.bukkit.*;
-import org.bukkit.command.CommandSender;
+import org.bukkit.Color;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryAction;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -38,12 +39,6 @@ public class GameManagerUtils {
     public final static Set<EntityDamageEvent.DamageCause> EXCLUDED_DAMAGE_CAUSES = Set.of(
             EntityDamageEvent.DamageCause.VOID,
             EntityDamageEvent.DamageCause.KILL
-    );
-    
-    public final static Set<PlayerTeleportEvent.TeleportCause> EXCLUDED_TELEPORT_CAUSES = Set.of(
-            PlayerTeleportEvent.TeleportCause.COMMAND,
-            PlayerTeleportEvent.TeleportCause.PLUGIN,
-            PlayerTeleportEvent.TeleportCause.UNKNOWN
     );
     
     public static final List<Material> SIGNS = List.of(
@@ -228,12 +223,11 @@ public class GameManagerUtils {
     
     /**
      * Removes the specified team from the GameState, and leaves all participants of that team
-     * @param sender the sender who will receive success/error messages
      * @param gameManager the GameManager to modify
      * @param teamId the teamId of the team to remove. Must be a valid teamId.
      * @return a CommandResult detailing what happened. 
      */
-    public static CommandResult removeTeam(@NotNull CommandSender sender, @NotNull GameManager gameManager, @NotNull String teamId) {
+    public static CommandResult removeTeam(@NotNull GameManager gameManager, @NotNull String teamId) {
         Team existingTeam = gameManager.getTeam(teamId);
         if (existingTeam == null) {
             return CommandResult.failure(Component.text("Team ")
@@ -241,11 +235,10 @@ public class GameManagerUtils {
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" does not exist")));
         }
-        gameManager.removeTeam(sender, teamId);
-        return CommandResult.success();
+        return gameManager.removeTeam(teamId);
     }
     
-    public static CommandResult joinParticipant(@NotNull CommandSender sender, Main plugin, @NotNull GameManager gameManager, @NotNull String ign, @NotNull String teamId) {
+    public static CommandResult joinParticipant(Main plugin, @NotNull GameManager gameManager, @NotNull String ign, @NotNull String teamId) {
         if (teamId.isEmpty()) {
             return CommandResult.failure("teamId must not be blank");
         }
@@ -261,8 +254,7 @@ public class GameManagerUtils {
         }
         
         OfflinePlayer playerToJoin = plugin.getServer().getOfflinePlayer(ign);
-        gameManager.joinParticipantToTeam(sender, playerToJoin, ign, teamId);
-        return CommandResult.success();
+        return gameManager.joinParticipantToTeam(playerToJoin, ign, teamId);
     }
     
     /**

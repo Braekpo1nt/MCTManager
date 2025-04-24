@@ -53,7 +53,7 @@ public class ClockworkGameTest {
     MyPlayerMock createParticipant(String name, String teamId) {
         MyPlayerMock player = new MyPlayerMock(server, name, UUID.nameUUIDFromBytes(name.getBytes(StandardCharsets.UTF_8)));
         server.addPlayer(player);
-        gameManager.joinParticipantToTeam(sender, player, name, teamId);
+        gameManager.joinParticipantToTeam(player, name, teamId);
         Assertions.assertNotNull(gameManager.getOnlineParticipant(player.getUniqueId()));
         return player;
     }
@@ -69,9 +69,9 @@ public class ClockworkGameTest {
         addTeam("blue", "blue", "blue");
         createParticipant("Player1", "red");
         createParticipant("Player2", "blue");
-        gameManager.startGame(GameType.CLOCKWORK, "clockworkConfig.json", sender);
+        gameManager.startGame(GameType.CLOCKWORK, "clockworkConfig.json");
         gameManager.getTimerManager().skip();
         gameManager.getTimerManager().skip();
-        gameManager.manuallyStopGame(GameType.CLOCKWORK);
+        gameManager.stopGame(GameType.CLOCKWORK);
     }
 }

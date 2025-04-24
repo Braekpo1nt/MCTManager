@@ -3,6 +3,9 @@ package org.braekpo1nt.mctmanager.games.game.survivalgames;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -75,6 +78,16 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
         start(newTeams, newParticipants, newAdmins);
         for (SurvivalGamesTeam team : teams.values()) {
             updateAliveCount(team);
+        }
+        if (newTeams.size() < 2) {
+            messageAllParticipants(Component.empty()
+                    .append(Component.text(GameType.SURVIVAL_GAMES.getTitle()))
+                    .append(Component.text(" doesn't end correctly unless there are 2 or more teams online. use ")
+                            .append(Component.text("/mct game stop")
+                                    .clickEvent(ClickEvent.suggestCommand("/mct game stop"))
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" to stop the game."))
+                            .color(NamedTextColor.RED)));
         }
         initializeWorldBorder();
         createPlatformsAndTeleportTeams();

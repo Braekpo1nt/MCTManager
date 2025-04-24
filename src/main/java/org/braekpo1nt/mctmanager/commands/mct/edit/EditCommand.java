@@ -27,8 +27,7 @@ public class EditCommand extends CommandManager {
                     return CommandResult.failure(Component.text("No editor is running."));
                 }
                 String configFile = args[0];
-                gameManager.validateEditor(sender, configFile);
-                return CommandResult.success();
+                return gameManager.validateEditor(configFile);
             }
         });
         addSubCommand(new SubCommand("save") {
@@ -56,8 +55,7 @@ public class EditCommand extends CommandManager {
                     force = forceBoolean;
                 }
                 
-                gameManager.saveEditor(sender, configFile, force);
-                return CommandResult.success();
+                return gameManager.saveEditor(configFile, force);
             }
         });
         addSubCommand(new SubCommand("load") {
@@ -72,8 +70,7 @@ public class EditCommand extends CommandManager {
                 
                 String configFile = args[0];
                 
-                gameManager.loadEditor(configFile, sender);
-                return CommandResult.success();
+                return gameManager.loadEditor(configFile);
             }
         });
     }

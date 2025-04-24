@@ -4,6 +4,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.SuccessCommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.ScoreKeeper;
@@ -54,13 +56,15 @@ public class PlayingGameState implements EventState {
         context.getSidebar().removeAllPlayers();
         context.getAdminSidebar().removeAllPlayers();
         context.getAdmins().clear();
-        boolean gameStarted = gameManager.startGame(gameType, configFile, 
-                context.getPlugin().getServer().getConsoleSender());
-        if (!gameStarted) {
-            context.messageAllAdmins(Component.text("Unable to start the game ")
-                    .append(Component.text(gameType.getTitle()))
-                    .append(Component.text(". Returning to the hub to try again."))
-                    .color(NamedTextColor.RED));
+        CommandResult result = gameManager.startGame(gameType, configFile);
+        if (result instanceof SuccessCommandResult) {
+            context.messageAllAdmins(
+                    result.and(CommandResult.failure(
+                            Component.text("Unable to start the game ")
+                                    .append(Component.text(gameType.getTitle()))
+                                    .append(Component.text(". Returning to the hub to try again."))
+                            )
+                    ).getMessage());
             context.initializeParticipantsAndAdmins();
             context.setState(new WaitingInHubState(context));
         }

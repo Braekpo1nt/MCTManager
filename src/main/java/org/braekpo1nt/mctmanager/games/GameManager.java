@@ -9,44 +9,18 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfigController;
-import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
-import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
-import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfigController;
-import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalCombatGame;
-import org.braekpo1nt.mctmanager.games.game.colossalcombat.config.ColossalCombatConfig;
-import org.braekpo1nt.mctmanager.games.game.colossalcombat.config.ColossalCombatConfigController;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.game.example.ExampleGame;
-import org.braekpo1nt.mctmanager.games.game.example.config.ExampleConfig;
-import org.braekpo1nt.mctmanager.games.game.example.config.ExampleConfigController;
-import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
-import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfig;
-import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfigController;
-import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
-import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
-import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfigController;
 import org.braekpo1nt.mctmanager.games.game.footrace.editor.FootRaceEditor;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfig;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfigController;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourPathwayEditor;
-import org.braekpo1nt.mctmanager.games.game.spleef.SpleefGame;
-import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
-import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfigController;
-import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
-import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfig;
-import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfigController;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
+import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.GameManagerState;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.MaintenanceState;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
@@ -60,10 +34,8 @@ import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.ui.tablist.TabList;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
-import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -130,7 +102,6 @@ public class GameManager implements Listener {
     private final Map<UUID, MCTParticipant> onlineParticipants = new HashMap<>();
     @Getter
     private final List<Player> onlineAdmins = new ArrayList<>();
-    @Getter
     private final TabList tabList;
     
     public GameManager(Main plugin, 
@@ -145,7 +116,18 @@ public class GameManager implements Listener {
         this.tabList = new TabList(plugin);
         this.sidebarFactory = sidebarFactory;
         this.eventManager = new EventManager(plugin, this, new VoteManager(this, plugin));
-        this.state = new MaintenanceState(this, teams, onlineParticipants, onlineAdmins);
+        this.state = new MaintenanceState(this, ContextReference.builder()
+                .tabList(tabList)
+                .mctScoreboard(mctScoreboard)
+                .activeGames(activeGames)
+                .teams(teams)
+                .allParticipants(allParticipants)
+                .onlineParticipants(onlineParticipants)
+                .onlineAdmins(onlineAdmins)
+                .plugin(this.plugin)
+                .gameStateStorageUtil(gameStateStorageUtil)
+                .sidebarFactory(sidebarFactory)
+                .build());
     }
     
     @SuppressWarnings("unused")
@@ -190,65 +172,6 @@ public class GameManager implements Listener {
                     .append(Component.newline());
         }
         plugin.getServer().getConsoleSender().sendMessage(builder.build());
-    }
-    
-    /**
-     * @param gameType the {@link GameType} to instantiate the {@link MCTGame} for
-     * @return a new {@link MCTGame} instance for the given type. Null if the given type is null. 
-     */
-    private MCTGame instantiateGame(
-            @NotNull GameType gameType, 
-            Component title, 
-            String configFile, 
-            Collection<Team> newTeams, 
-            Collection<Participant> newParticipants, 
-            List<Player> newAdmins) throws ConfigIOException, ConfigInvalidException {
-        return switch (gameType) {
-            case SPLEEF -> {
-                SpleefConfig config = new SpleefConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-                yield new SpleefGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
-            }
-            case CLOCKWORK -> {
-                ClockworkConfig config = new ClockworkConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-                yield new ClockworkGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
-            }
-            case SURVIVAL_GAMES -> {
-                SurvivalGamesConfig config = new SurvivalGamesConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-                yield new SurvivalGamesGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
-            }
-            case FARM_RUSH -> {
-                FarmRushConfig config = new FarmRushConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-                yield new FarmRushGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
-            }
-            case FOOT_RACE -> {
-                FootRaceConfig config = new FootRaceConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-                yield new FootRaceGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
-            }
-            case PARKOUR_PATHWAY -> {
-                ParkourPathwayConfig config = new ParkourPathwayConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-                yield new ParkourPathwayGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
-            }
-            case CAPTURE_THE_FLAG -> {
-                CaptureTheFlagConfig config = new CaptureTheFlagConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-                yield new CaptureTheFlagGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
-            }
-            case EXAMPLE -> {
-                ExampleConfig config = new ExampleConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-                yield new ExampleGame(plugin, this, title, config, newTeams, newParticipants, newAdmins);
-            }
-            case FINAL -> {
-                ColossalCombatConfig config = new ColossalCombatConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-                List<Team> sortedTeams = newTeams.stream()
-                        .sorted((t1, t2) -> {
-                            int scoreComparison = t2.getScore() - t1.getScore();
-                            if (scoreComparison != 0) {
-                                return scoreComparison;
-                            }
-                            return t1.getDisplayName().compareToIgnoreCase(t2.getDisplayName());
-                        }).toList();
-                yield new ColossalCombatGame(plugin, this, title, config, sortedTeams.getFirst(), sortedTeams.get(1), sortedTeams, newParticipants, newAdmins);
-            }
-        };
     }
     
     /**
@@ -486,95 +409,20 @@ public class GameManager implements Listener {
         return eventManager;
     }
     
+    public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull GameType gameType, @NotNull String configFile) {
+        return state.startGame(teamIds, gameType, configFile);
+    }
+    
     /**
      * Starts the given game
-     * @param gameType The game to start
+     *
+     * @param gameType   The game to start
      * @param configFile the config file to use for the game
-     * @param sender The sender to send messages and alerts to
-     * @return true if the game started successfully, false otherwise
+     * @return a CommandResult indicating the success or failure of starting the game,
+     * including a reason why the game didn't start if so.
      */
-    public boolean startGame(@NotNull GameType gameType, @NotNull String configFile, @NotNull CommandSender sender) {
-        if (activeGames.containsKey(gameType)) {
-            sender.sendMessage(Component.text("There is already a ")
-                    .append(Component.text(gameType.getTitle()))
-                    .append(Component.text(" game running."))
-                    .color(NamedTextColor.RED));
-            return false;
-        }
-        
-        if (editorIsRunning()) {
-            sender.sendMessage(Component.text("There is an editor running. You must stop the editor before you start a game.")
-                    .color(NamedTextColor.RED));
-            return false;
-        }
-        
-        if (onlineParticipants.isEmpty()) {
-            sender.sendMessage(Component.text("There are no online participants. You can add participants using:\n")
-                    .append(Component.text("/mct team join <team> <member>")
-                            .decorate(TextDecoration.BOLD)
-                            .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
-            return false;
-        }
-        
-        
-        Collection<MCTTeam> onlineTeams = MCTTeam.getOnlineTeams(teams);
-        // make sure the player and team count requirements are met
-        switch (gameType) {
-            case SURVIVAL_GAMES -> {
-                if (onlineTeams.size() < 2) {
-                    sender.sendMessage(Component.empty()
-                            .append(Component.text(GameType.SURVIVAL_GAMES.getTitle()))
-                            .append(Component.text(" doesn't end correctly unless there are 2 or more teams online. use ")
-                            .append(Component.text("/mct game stop")
-                                    .clickEvent(ClickEvent.suggestCommand("/mct game stop"))
-                                    .decorate(TextDecoration.BOLD))
-                            .append(Component.text(" to stop the game."))
-                            .color(NamedTextColor.RED)));
-                }
-            }
-            case CAPTURE_THE_FLAG -> {
-                if (onlineTeams.size() < 2) {
-                    sender.sendMessage(Component.text("Capture the Flag needs at least 2 teams online to play.").color(NamedTextColor.RED));
-                    return false;
-                }
-            }
-            case FINAL -> {
-                if (onlineTeams.size() < 2) {
-                    sender.sendMessage(Component.empty()
-                            .append(Component.text(GameType.FINAL.getTitle()))
-                            .append(Component.text(" needs at least 2 teams online to play")));
-                }
-            }
-        }
-        
-        Component title = createNewTitle(gameType.getTitle());
-        for (Participant participant : onlineParticipants.values()) {
-            tabList.hidePlayer(participant);
-        }
-        
-        try {
-            MCTGame newGame = instantiateGame(gameType, title, configFile, new HashSet<>(onlineTeams), onlineParticipants.values().stream().map(p -> (Participant) p).toList(), onlineAdmins);
-            for (MCTParticipant participant : onlineParticipants.values()) {
-                participant.setCurrentGame(gameType);
-            }
-            activeGames.put(gameType, newGame);
-        } catch (ConfigException e) {
-            Main.logger().log(Level.SEVERE, String.format("Error loading config for game %s", gameType), e);
-            Component message = Component.text("Can't start ")
-                    .append(Component.text(gameType.name())
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(". Error loading config file. See console for details:\n"))
-                    .append(Component.text(e.getMessage()))
-                    .color(NamedTextColor.RED);
-            sender.sendMessage(message);
-            messageAdmins(message);
-            for (Participant participant : onlineParticipants.values()) {
-                tabList.showPlayer(participant);
-            }
-            return false;
-        }
-        state.updateScoreVisuals(onlineTeams, onlineParticipants.values());
-        return true;
+    public CommandResult startGame(@NotNull GameType gameType, @NotNull String configFile) {
+        return state.startGame(teams.keySet(), gameType, configFile);
     }
     
     /**
@@ -606,7 +454,7 @@ public class GameManager implements Listener {
      * the team may not exist
      */
     public Team getTeam(@NotNull Participant participant) {
-        return teams.get(participant.getTeamId());
+        return getTeam(participant.getTeamId());
     }
     
     /**
@@ -617,91 +465,50 @@ public class GameManager implements Listener {
         return teams.get(teamId);
     }
     
-    private @NotNull Component createNewTitle(String baseTitle) {
-        if (!eventManager.eventIsActive() || !eventManager.shouldDisplayGameNumber()) {
-            return Component.empty()
-                    .append(Component.text(baseTitle))
-                    .color(NamedTextColor.BLUE);
-        }
-        int currentGameNumber = eventManager.getCurrentGameNumber();
-        int maxGames = eventManager.getMaxGames();
-        return Component.empty()
-                .append(Component.text(baseTitle)
-                        .color(NamedTextColor.BLUE))
-                .append(Component.space())
-                .append(Component.empty()
-                        .append(Component.text("["))
-                        .append(Component.text(currentGameNumber))
-                        .append(Component.text("/"))
-                        .append(Component.text(maxGames))
-                        .append(Component.text("]"))
-                        .color(NamedTextColor.GRAY));
-    }
-    
-    public void stopAllGames() {
-        for (MCTGame game : activeGames.values()) {
-            game.stop();
-        }
-    }
-    
     /**
-     * If a game is currently going on, manually stops the game.
-     * @throws NullPointerException if no game is currently running. 
-     * Check if a game is running with isGameRunning()
+     * If a game of the specified type is currently going on, manually stops the game.
      */
-    public void manuallyStopGame(GameType gameType) {
-        MCTGame game = activeGames.get(gameType);
-        if (game == null) {
-            return;
-        }
-        game.stop();
+    public CommandResult stopGame(GameType gameType) {
+        return state.stopGame(gameType);
     }
     
     /**
-     * Meant to be called by the active game when the game is over.
-     * If an event is running, calls {@link EventManager#gameIsOver(GameType)}
+     * Stop all active games, if there are any
+     */
+    public CommandResult stopAllGames() {
+        return state.stopAllGames();
+    }
+    
+    /**
+     * Called by an active game when the game is over.
      */
     public void gameIsOver(@NotNull GameType gameType, @NotNull Collection<UUID> gameParticipants) {
-        MCTGame game = activeGames.remove(gameType);
-        if (game == null) {
-            return;
-        }
-        for (UUID uuid : gameParticipants) {
-            MCTParticipant participant = onlineParticipants.get(uuid);
-            participant.setCurrentGame(null);
-            tabList.showPlayer(participant);
-        }
-        if (eventManager.eventIsActive()) {
-            eventManager.gameIsOver(game.getType());
-        }
+        state.gameIsOver(gameType, gameParticipants);
     }
     
-    public void startEditor(@NotNull GameType gameType, @NotNull String configFile, @NotNull CommandSender sender) {
+    public CommandResult startEditor(@NotNull GameType gameType, @NotNull String configFile) {
+        if (!activeGames.isEmpty()) {
+            return CommandResult.failure(Component.text("Can't start an editor while any games are active"));
+        }
+        
         if (eventManager.eventIsActive()) {
-            sender.sendMessage(Component.text("Can't start an editor while an event is going on")
-                    .color(NamedTextColor.RED));
-            return;
+            return CommandResult.failure(Component.text("Can't start an editor while an event is going on"));
         }
         
         if (onlineParticipants.isEmpty()) {
-            sender.sendMessage(Component.text("There are no online participants. You can add participants using:\n")
+            return CommandResult.failure(Component.text("There are no online participants. You can add participants using:\n")
                     .append(Component.text("/mct team join <team> <member>")
                             .decorate(TextDecoration.BOLD)
                             .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
-            return;
         }
         
         if (editorIsRunning()) {
-            sender.sendMessage(Component.text("An editor is already running. You must stop it before you can start another one.")
-                    .color(NamedTextColor.RED));
-            return;
+            return CommandResult.failure(Component.text("An editor is already running. You must stop it before you can start another one."));
         }
         
         GameEditor selectedEditor = instantiateEditor(gameType);
         if (selectedEditor == null) {
-            sender.sendMessage(Component.text("Can't find editor for game type " + gameType)
-                    .color(NamedTextColor.RED));
-            return;
+            return CommandResult.failure(Component.text("Can't find editor for game type " + gameType));
         }
         
         // make sure config loads
@@ -709,120 +516,104 @@ public class GameManager implements Listener {
             selectedEditor.loadConfig(configFile);
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, String.format("Error loading config for editor %s", selectedEditor), e);
-            Component message = Component.text("Can't start ")
+            return CommandResult.failure(Component.text("Can't start ")
                     .append(Component.text(gameType.name())
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(". Error loading config file. See console for details:\n"))
-                    .append(Component.text(e.getMessage()))
-                    .color(NamedTextColor.RED);
-            sender.sendMessage(message);
-            messageAdmins(message);
-            return;
+                    .append(Component.text(e.getMessage())));
         }
         
         selectedEditor.start(Participant.toPlayersList(onlineParticipants.values()));
         activeEditor = selectedEditor;
+        return CommandResult.success();
     }
     
-    public void stopEditor(@NotNull CommandSender sender) {
+    public CommandResult stopEditor() {
         if (!editorIsRunning()) {
-            sender.sendMessage(Component.text("No editor is running.")
-                    .color(NamedTextColor.RED));
-            return;
+            return CommandResult.failure(Component.text("No editor is running."));
         }
         activeEditor.stop();
         activeEditor = null;
+        return CommandResult.success();
     }
     
     public boolean editorIsRunning() {
         return activeEditor != null;
     }
     
-    public void validateEditor(@NotNull CommandSender sender, @NotNull String configFile) {
+    public CommandResult validateEditor(@NotNull String configFile) {
         if (!editorIsRunning()) {
-            sender.sendMessage(Component.text("No editor is running.")
-                    .color(NamedTextColor.RED));
-            return;
+            return CommandResult.failure(Component.text("No editor is running."));
         }
         try {
             activeEditor.configIsValid(configFile);
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, String.format("Error validating config for editor %s", activeEditor.getType()), e);
-            sender.sendMessage(Component.text("Config is not valid for ")
+            return CommandResult.failure(Component.text("Config is not valid for ")
                     .append(Component.text(activeEditor.getType().name())
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(". See console for details:\n"))
-                    .append(Component.text(e.getMessage()))
-                    .color(NamedTextColor.RED));
-            return;
+                    .append(Component.text(e.getMessage())));
         }
-        sender.sendMessage(Component.text("Config is valid.")
-                .color(NamedTextColor.GREEN));
+        return CommandResult.success(Component.text("Config is valid."));
     }
     
     /**
-     * @param sender the sender
-     * @param force if true, validation will be skipped and the config will be saved even if invalid, if false the config will only save if it is valid
+     * @param skipValidation if true, validation will be skipped and the config will be saved even if invalid, if false the config will only save if it is valid
      */
-    public void saveEditor(@NotNull CommandSender sender, @NotNull String configFile, boolean force) {
+    public CommandResult saveEditor(@NotNull String configFile, boolean skipValidation) {
         if (!editorIsRunning()) {
-            sender.sendMessage(Component.text("No editor is running.")
-                    .color(NamedTextColor.RED));
-            return;
+            return CommandResult.failure(Component.text("No editor is running."));
         }
-        if (!force) {
+        if (!skipValidation) {
             try {
                 activeEditor.configIsValid(configFile);
             } catch (ConfigException e) {
                 Main.logger().log(Level.SEVERE, String.format("Error validating config for editor %s", activeEditor.getType()), e);
-                sender.sendMessage(Component.text("Config is not valid for ")
-                        .append(Component.text(activeEditor.getType().name())
-                                .decorate(TextDecoration.BOLD))
-                        .append(Component.text(". See console for details:\n"))
-                        .append(Component.text(e.getMessage()))
-                        .color(NamedTextColor.RED));
-                sender.sendMessage(Component.text("Skipping save. If you wish to force the save, use ")
-                        .append(Component.text("/mct edit save true")
-                                .clickEvent(ClickEvent.suggestCommand("/mct edit save true"))
-                                .decorate(TextDecoration.BOLD))
-                        .color(NamedTextColor.RED));
-                return;
+                return CommandResult.failure(
+                        Component.text("Config is not valid for ")
+                                .append(Component.text(activeEditor.getType().name())
+                                        .decorate(TextDecoration.BOLD))
+                                .append(Component.text(". See console for details:\n"))
+                                .append(Component.text(e.getMessage()))
+                ).and(CommandResult.failure(
+                        Component.text("Skipping save. If you wish to force the save, use ")
+                                .append(Component.text("/mct edit save true")
+                                        .clickEvent(ClickEvent.suggestCommand("/mct edit save true"))
+                                        .decorate(TextDecoration.BOLD))
+                ));
             }
-        } else {
-            sender.sendMessage("Skipping validation.");
         }
         try {
             activeEditor.saveConfig(configFile);
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, String.format("Error saving config for editor %s", activeEditor.getType()), e);
-            sender.sendMessage(Component.text("An error occurred while attempting to save the config for ")
+            return CommandResult.failure(Component.text("An error occurred while attempting to save the config for ")
                     .append(Component.text(activeEditor.getType().name())
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(". See console for details:\n"))
-                    .append(Component.text(e.getMessage()))
-                    .color(NamedTextColor.RED));
-            return;
+                    .append(Component.text(e.getMessage())));
         }
-        sender.sendMessage(Component.text("Config is saved.")
-                .color(NamedTextColor.GREEN));
+        if (skipValidation) {
+            return CommandResult.success(Component.text("Skipping validation"))
+                    .and(CommandResult.success(Component.text("Config is saved.")));
+        } else {
+            return CommandResult.success(Component.text("Config is saved."));
+        }
     }
     
-    public void loadEditor(@NotNull String configFile, @NotNull CommandSender sender) {
+    public CommandResult loadEditor(@NotNull String configFile) {
         try {
             activeEditor.loadConfig(configFile);
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, String.format("Error loading config for editor %s", activeEditor.getType()), e);
-            Component message = Component.text("Can't start ")
+            return CommandResult.failure(Component.text("Can't start ")
                     .append(Component.text(activeEditor.getType().name())
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(". Error loading config file. See console for details:\n"))
-                    .append(Component.text(e.getMessage()))
-                    .color(NamedTextColor.RED);
-            sender.sendMessage(message);
-            return;
+                    .append(Component.text(e.getMessage())));
         }
-        sender.sendMessage(Component.text("Config loaded.")
-                .color(NamedTextColor.GREEN));
+        return CommandResult.success(Component.text("Config loaded."));
     }
     
     //====================================================
@@ -831,43 +622,10 @@ public class GameManager implements Listener {
     
     /**
      * Remove the given team from the game
-     * @param sender   the sender of the command, who will receive success/error messages
-     * @param teamId The internal name of the team to remove
+     * @param teamId teamId of the team to remove
      */
-    public void removeTeam(CommandSender sender, String teamId) {
-        MCTTeam team = teams.get(teamId);
-        if (team == null) {
-            sender.sendMessage(Component.text("Team ")
-                    .append(Component.text(teamId))
-                    .append(Component.text(" does not exist."))
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        Set<OfflineParticipant> members = team.getMemberUUIDs().stream().map(allParticipants::get).collect(Collectors.toSet());
-        for (OfflineParticipant member : members) {
-            leaveParticipant(sender, member);
-        }
-        teams.remove(team.getTeamId());
-        tabList.removeTeam(teamId);
-        try {
-            gameStateStorageUtil.removeTeam(teamId);
-            sender.sendMessage(Component.text("Removed team ")
-                    .append(team.getFormattedDisplayName())
-                    .append(Component.text(".")));
-        } catch (ConfigIOException e) {
-            reportGameStateException("removing team", e);
-            sender.sendMessage(Component.text("error occurred removing team, see console for details.")
-                    .color(NamedTextColor.RED));
-        }
-        org.bukkit.scoreboard.Team scoreboardTeam = mctScoreboard.getTeam(teamId);
-        if (scoreboardTeam != null) {
-            scoreboardTeam.unregister();
-        } else {
-            Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (removeTeam)", teamId));
-        }
-        if (eventManager.eventIsActive()) {
-            eventManager.updateTeamScores();
-        }
+    public CommandResult removeTeam(String teamId) {
+        return state.removeTeam(teamId);
     }
     
     /**
@@ -878,26 +636,7 @@ public class GameManager implements Listener {
      * @return the newly created team, or null if the given team already exists or could not be created
      */
     public Team addTeam(String teamId, String teamDisplayName, String colorString) {
-        if (teams.containsKey(teamId)) {
-            return null;
-        }
-        try {
-            gameStateStorageUtil.addTeam(teamId, teamDisplayName, colorString);
-        } catch (ConfigIOException e) {
-            reportGameStateException("adding score to player", e);
-        }
-        
-        NamedTextColor color = ColorMap.getNamedTextColor(colorString);
-        ColorAttributes colorAttributes = ColorMap.getColorAttributes(colorString);
-        MCTTeam team = new MCTTeam(teamId, teamDisplayName, color, colorAttributes, 0);
-        teams.put(teamId, team);
-        
-        org.bukkit.scoreboard.Team newTeam = mctScoreboard.registerNewTeam(teamId);
-        newTeam.displayName(Component.text(teamDisplayName));
-        newTeam.color(color);
-        tabList.addTeam(teamId, teamDisplayName, color);
-        state.updateScoreVisuals(Collections.singletonList(team), Collections.emptyList());
-        return team;
+        return state.addTeam(teamId, teamDisplayName, colorString);
     }
     
     /**
@@ -912,82 +651,12 @@ public class GameManager implements Listener {
     /**
      * Joins the given player to the team with the given teamId. If the player was on a team already (not teamId) they will be removed from that team and added to the other team. 
      * Note, this will not join a player to a team if that player is an admin. 
-     * @param sender the sender of the command, who will receive success/error messages
      * @param offlinePlayer The player to join to the given team
      * @param name The name of the participant to join to the given team
-     * @param teamId The internal teamId of the team to join the player to. 
-     *                 This method assumes the team exists, and will throw a 
-     *                 null pointer exception if it doesn't.
+     * @param teamId The internal teamId of the team to join the player to.
      */
-    public void joinParticipantToTeam(CommandSender sender, @NotNull OfflinePlayer offlinePlayer, @NotNull String name, @NotNull String teamId) {
-        MCTTeam team = teams.get(teamId);
-        if (team == null) {
-            sender.sendMessage(Component.empty()
-                    .append(Component.text(teamId).decorate(TextDecoration.BOLD))
-                    .append(Component.text(" is not a valid teamId")));
-            return;
-        }
-        if (isAdmin(offlinePlayer.getUniqueId())) {
-            removeAdmin(sender, offlinePlayer, name);
-        }
-        OfflineParticipant existingParticipant = allParticipants.get(offlinePlayer.getUniqueId());
-        if (existingParticipant != null) {
-            if (existingParticipant.getTeamId().equals(teamId)) {
-                sender.sendMessage(Component.text()
-                        .append(existingParticipant.displayName())
-                        .append(Component.text(" is already a member of "))
-                        .append(team.getFormattedDisplayName())
-                        .append(Component.text(". Nothing happened.")));
-                return;
-            }
-            leaveParticipant(sender, existingParticipant);
-        }
-        
-        org.bukkit.scoreboard.Team scoreboardTeam = mctScoreboard.getTeam(team.getTeamId());
-        if (scoreboardTeam != null) {
-            scoreboardTeam.addPlayer(offlinePlayer);
-        } else {
-            Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (joinParticipantToTeam)", team.getTeamId()));
-        }
-        
-        Component displayName = team.createDisplayName(name);
-        OfflineParticipant offlineParticipant = new OfflineParticipant(offlinePlayer.getUniqueId(), name, displayName, teamId, 0);
-        allParticipants.put(offlineParticipant.getUniqueId(), offlineParticipant);
-        team.joinMember(offlineParticipant.getUniqueId());
-        tabList.joinParticipant(
-                offlineParticipant.getParticipantID(), 
-                offlineParticipant.getName(), 
-                offlineParticipant.getTeamId(), 
-                false);
-        addParticipantToGameState(offlineParticipant);
-        // TODO: update leaderboards here
-        sender.sendMessage(Component.text("Joined ")
-                .append(offlineParticipant.displayName())
-                .append(Component.text(" to "))
-                .append(team.getFormattedDisplayName()));
-        
-        // if they are online
-        Player player = offlinePlayer.getPlayer();
-        if (player != null) {
-            MCTParticipant participant = new MCTParticipant(offlineParticipant, player);
-            participant.sendMessage(Component.text("You've been joined to team ")
-                    .append(team.getFormattedDisplayName()));
-            state.onParticipantJoin(participant);
-        }
-    }
-    
-    /**
-     * Adds the new participant to the {@link GameStateStorageUtil} and joins them the given team. 
-     * @param participant the participant to add to the game state
-     */
-    private void addParticipantToGameState(@NotNull OfflineParticipant participant) {
-        try {
-            gameStateStorageUtil.addNewPlayer(participant.getUniqueId(), participant.getName(), participant.getTeamId());
-        } catch (ConfigIOException e) {
-            reportGameStateException("adding new player", e);
-            messageAdmins(Component.text("error occurred adding new player, see console for details.")
-                    .color(NamedTextColor.RED));
-        }
+    public CommandResult joinParticipantToTeam(@NotNull OfflinePlayer offlinePlayer, @NotNull String name, @NotNull String teamId) {
+        return state.joinParticipantToTeam(offlinePlayer, name, teamId);
     }
     
     /**
@@ -1005,41 +674,10 @@ public class GameManager implements Listener {
     /**
      * Leaves the player from the team and removes them from the game state.
      * If a game is running, and the player is online, removes that player from the game as well. 
-     * @param sender the sender of the command, who will receive success/error messages
      * @param offlineParticipant The participant to remove from their team
      */
-    public void leaveParticipant(CommandSender sender, @NotNull OfflineParticipant offlineParticipant) {
-        MCTTeam team = teams.get(offlineParticipant.getTeamId());
-        MCTParticipant participant = onlineParticipants.get(offlineParticipant.getUniqueId());
-        if (participant != null) {
-            state.onParticipantQuit(participant);
-            participant.sendMessage(Component.text("You've been removed from ")
-                    .append(team.getFormattedDisplayName()));
-            onlineParticipants.remove(participant.getUniqueId());
-        }
-        team.leaveMember(offlineParticipant.getUniqueId());
-        allParticipants.remove(offlineParticipant.getUniqueId());
-        try {
-            gameStateStorageUtil.leavePlayer(offlineParticipant.getUniqueId());
-        } catch (ConfigIOException e) {
-            reportGameStateException("leaving player", e);
-            sender.sendMessage(Component.text("error occurred leaving player, see console for details.")
-                    .color(NamedTextColor.RED));
-        }
-        // TODO: update leaderboards here
-        tabList.leaveParticipant(offlineParticipant.getParticipantID());
-        sender.sendMessage(Component.text("Removed ")
-                .append(offlineParticipant.displayName())
-                .append(Component.text(" from team "))
-                .append(team.getFormattedDisplayName()));
-        org.bukkit.scoreboard.Team scoreboardTeam = mctScoreboard.getTeam(offlineParticipant.getTeamId());
-        if (scoreboardTeam != null) {
-            if (offlineParticipant.getPlayer() != null) {
-                scoreboardTeam.removePlayer(offlineParticipant.getPlayer());
-            }
-        } else {
-            Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (leaveParticipant)", offlineParticipant.getTeamId()));
-        }
+    public CommandResult leaveParticipant(@NotNull OfflineParticipant offlineParticipant) {
+        return state.leaveParticipant(offlineParticipant);
     }
     
     /**
@@ -1385,84 +1023,18 @@ public class GameManager implements Listener {
     
     /**
      * Adds the given player as an admin. If the player is already an admin, nothing happens. If the player is a participant, they are removed from their team and added as an admin.
-     * @param sender the sender of the command, who will receive success/error messages
      * @param newAdmin The player to add
      */
-    public void addAdmin(@NotNull CommandSender sender, Player newAdmin) {
-        UUID uniqueId = newAdmin.getUniqueId();
-        if (gameStateStorageUtil.isAdmin(uniqueId)) {
-            sender.sendMessage(Component.text()
-                    .append(Component.text(newAdmin.getName())
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" is already an admin. Nothing happened.")));
-            return;
-        }
-        OfflineParticipant offlineParticipant = allParticipants.get(uniqueId);
-        if (offlineParticipant != null) {
-            leaveParticipant(sender, offlineParticipant);
-        }
-        try {
-            gameStateStorageUtil.addAdmin(uniqueId);
-        } catch (ConfigIOException e) {
-            reportGameStateException("adding new admin", e);
-            sender.sendMessage(Component.text("error occurred adding new admin, see console for details.")
-                    .color(NamedTextColor.RED));
-        }
-        sender.sendMessage(Component.empty()
-                .append(Component.text("Added "))
-                .append(Component.text(newAdmin.getName())
-                        .decorate(TextDecoration.BOLD))
-                .append(Component.text(" as an admin")));
-        org.bukkit.scoreboard.Team adminTeam = mctScoreboard.getTeam(ADMIN_TEAM);
-        if (adminTeam != null) {
-            adminTeam.addPlayer(newAdmin);
-        } else {
-            Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (addAdmin)", ADMIN_TEAM));;
-        }
-        if (newAdmin.isOnline()) {
-            newAdmin.sendMessage(Component.text("You were added as an admin"));
-            state.onAdminJoin(newAdmin);
-        }
+    public CommandResult addAdmin(Player newAdmin) {
+        return state.addAdmin(newAdmin);
     }
     
     /**
      * Removes the given player from the admins
-     * @param sender the sender of the command, who will receive success/error messages
      * @param offlineAdmin The admin to remove
      */
-    public void removeAdmin(@NotNull CommandSender sender, @NotNull OfflinePlayer offlineAdmin, String adminName) {
-        if (!isAdmin(offlineAdmin.getUniqueId())) {
-            sender.sendMessage(Component.text()
-                    .append(Component.text(adminName)
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" is not an admin. Nothing happened.")));
-            return;
-        }
-        if (offlineAdmin.isOnline()) {
-            Player onlineAdmin = offlineAdmin.getPlayer();
-            if (onlineAdmin != null) {
-                onlineAdmin.sendMessage(Component.text("You were removed as an admin"));
-                state.onAdminQuit(onlineAdmin);
-            }
-        }
-        UUID adminUniqueId = offlineAdmin.getUniqueId();
-        try {
-            gameStateStorageUtil.removeAdmin(adminUniqueId);
-        } catch (ConfigIOException e) {
-            reportGameStateException("removing admin", e);
-            sender.sendMessage(Component.text("error occurred removing admin, see console for details.")
-                    .color(NamedTextColor.RED));
-        }
-        sender.sendMessage(Component.empty()
-                .append(Component.text(adminName)
-                        .decorate(TextDecoration.BOLD))
-                .append(Component.text(" is no longer an admin")));
-        org.bukkit.scoreboard.Team adminTeam = mctScoreboard.getTeam(ADMIN_TEAM);
-        if (adminTeam != null) {
-            adminTeam.removePlayer(offlineAdmin);
-        } else {
-            Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (addAdmin)", ADMIN_TEAM));;
-        }
+    public CommandResult removeAdmin(@NotNull OfflinePlayer offlineAdmin, String adminName) {
+        return state.removeAdmin(offlineAdmin, adminName);
     }
     
     public void messageAdmins(Component message) {
@@ -1483,7 +1055,7 @@ public class GameManager implements Listener {
     }
     
     // Test methods
-    private void reportGameStateException(String attemptedOperation, ConfigException e) {
+    public void reportGameStateException(String attemptedOperation, ConfigException e) {
         Main.logger().severe(String.format("error while %s. See console log for error message.", attemptedOperation));
         messageAdmins(Component.empty()
                 .append(Component.text("error while "))
