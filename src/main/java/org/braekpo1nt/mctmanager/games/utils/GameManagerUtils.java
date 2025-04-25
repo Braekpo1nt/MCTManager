@@ -20,6 +20,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -427,5 +428,30 @@ public class GameManagerUtils {
                 return null;
             }
         }
+    }
+    
+    /**
+     * Takes in a {@link PlayerDeathEvent} and replaces all instances of the given player's name with the given player's display name
+     * @param event the event
+     * @param participant the player whose name should be replaced with their display name. 
+     */
+    public static void replaceWithDisplayName(PlayerDeathEvent event, Participant participant) {
+        Component deathMessage = event.deathMessage();
+        if (deathMessage != null) {
+            Component newDeathMessage = replaceWithDisplayName(participant.getPlayer(), deathMessage);
+            event.deathMessage(newDeathMessage);
+        }
+    }
+    
+    /**
+     * @param item the item in question. If this is null, will return false. 
+     * @return true if the item is of a leather armor type, false otherwise. False if the given item is null. 
+     */
+    @Contract("null -> false")
+    public static boolean isLeatherArmor(@Nullable ItemStack item) {
+        if (item == null) {
+            return false;
+        }
+        return item.getItemMeta() instanceof LeatherArmorMeta;
     }
 }

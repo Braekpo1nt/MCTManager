@@ -8,6 +8,8 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
+import org.braekpo1nt.mctmanager.hub.config.HubConfig;
+import org.braekpo1nt.mctmanager.hub.leaderboard.LeaderboardManager;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.ui.tablist.TabList;
@@ -36,4 +38,6 @@ public class ContextReference {
     private final @NotNull Main plugin;
     private final @NotNull GameStateStorageUtil gameStateStorageUtil;
     private final @NotNull SidebarFactory sidebarFactory;
+    private final @NotNull HubConfig config;
+    private final @NotNull List<LeaderboardManager> leaderboardManagers;
 }

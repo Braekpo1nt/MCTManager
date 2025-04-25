@@ -26,6 +26,8 @@ import org.braekpo1nt.mctmanager.games.gamemanager.states.MaintenanceState;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
+import org.braekpo1nt.mctmanager.hub.config.HubConfig;
+import org.braekpo1nt.mctmanager.hub.leaderboard.LeaderboardManager;
 import org.braekpo1nt.mctmanager.participant.ColorAttributes;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -41,6 +43,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -48,9 +51,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.scoreboard.Scoreboard;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -103,11 +104,14 @@ public class GameManager implements Listener {
     @Getter
     private final List<Player> onlineAdmins = new ArrayList<>();
     private final TabList tabList;
+    private final @NotNull HubConfig config;
+    private final @NotNull List<LeaderboardManager> leaderboardManagers;
     
     public GameManager(Main plugin, 
                        Scoreboard mctScoreboard, 
                        @NotNull GameStateStorageUtil gameStateStorageUtil,
-                       @NotNull SidebarFactory sidebarFactory) {
+                       @NotNull SidebarFactory sidebarFactory,
+                       @NotNull HubConfig config) {
         this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.mctScoreboard = mctScoreboard;
@@ -116,6 +120,8 @@ public class GameManager implements Listener {
         this.tabList = new TabList(plugin);
         this.sidebarFactory = sidebarFactory;
         this.eventManager = new EventManager(plugin, this, new VoteManager(this, plugin));
+        this.config = config;
+        this.leaderboardManagers = createLeaderboardManagers();
         this.state = new MaintenanceState(this, ContextReference.builder()
                 .tabList(tabList)
                 .mctScoreboard(mctScoreboard)
@@ -125,9 +131,34 @@ public class GameManager implements Listener {
                 .onlineParticipants(onlineParticipants)
                 .onlineAdmins(onlineAdmins)
                 .plugin(this.plugin)
+                .config(config)
                 .gameStateStorageUtil(gameStateStorageUtil)
                 .sidebarFactory(sidebarFactory)
+                .leaderboardManagers(this.leaderboardManagers)
                 .build());
+    }
+    
+    public List<LeaderboardManager> createLeaderboardManagers() {
+        List<LeaderboardManager> results = new ArrayList<>(config.getLeaderboards().size());
+        for (HubConfig.Leaderboard leaderboard : config.getLeaderboards()) {
+            LeaderboardManager leaderboardManager = new LeaderboardManager(
+                    this,
+                    leaderboard.getTitle(),
+                    leaderboard.getLocation(),
+                    leaderboard.getTopPlayers()
+            );
+            leaderboardManager.updateScores();
+            results.add(leaderboardManager);
+        }
+        return results;
+    }
+    
+    public void updateLeaderboards() {
+        this.leaderboardManagers.forEach(LeaderboardManager::updateScores);
+    }
+    
+    public void cleanup() {
+        state.cleanup();
     }
     
     @SuppressWarnings("unused")
@@ -188,32 +219,12 @@ public class GameManager implements Listener {
     }
     
     @EventHandler(priority = EventPriority.LOWEST) // happens first
-    public void onParticipantDeath(PlayerDeathEvent event) {
-        Participant killed = onlineParticipants.get(event.getPlayer().getUniqueId());
-        if (killed == null) {
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        MCTParticipant participant = onlineParticipants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
             return;
         }
-        replaceWithDisplayName(event, killed);
-        if (killed.getKiller() != null) {
-            Participant killer = onlineParticipants.get(killed.getKiller().getUniqueId());
-            if (killer != null) {
-                replaceWithDisplayName(event, killer);
-            }
-        }
-        GameManagerUtils.deColorLeatherArmor(event.getDrops());
-    }
-    
-    /**
-     * Takes in a {@link PlayerDeathEvent} and replaces all instances of the given player's name with the given player's display name
-     * @param event the event
-     * @param participant the player whose name should be replaced with their display name. 
-     */
-    private static void replaceWithDisplayName(PlayerDeathEvent event, Participant participant) {
-        Component deathMessage = event.deathMessage();
-        if (deathMessage != null) {
-            Component newDeathMessage = GameManagerUtils.replaceWithDisplayName(participant.getPlayer(), deathMessage);
-            event.deathMessage(newDeathMessage);
-        }
+        state.onParticipantDeath(event, participant);
     }
     
     @EventHandler
@@ -223,7 +234,7 @@ public class GameManager implements Listener {
             return;
         }
         ItemStack newItem = event.getNewItem();
-        if (isLeatherArmor(newItem)) {
+        if (GameManagerUtils.isLeatherArmor(newItem)) {
             GameManagerUtils.colorLeatherArmor(newItem, teams.get(participant.getTeamId()).getBukkitColor());
             EquipmentSlot equipmentSlot = GameManagerUtils.toEquipmentSlot(event.getSlotType());
             if (equipmentSlot == null) {
@@ -232,18 +243,18 @@ public class GameManager implements Listener {
             participant.getEquipment().setItem(equipmentSlot, newItem);
         }
         ItemStack oldItem = event.getOldItem();
-        if (isLeatherArmor(oldItem)) {
+        if (GameManagerUtils.isLeatherArmor(oldItem)) {
             GameManagerUtils.deColorLeatherArmor(oldItem);
             ItemStack cursor = participant.getOpenInventory().getCursor();
             ItemStack mainHand = participant.getInventory().getItemInMainHand();
             ItemStack offHand = participant.getInventory().getItemInOffHand();
-            if (isLeatherArmor(cursor)) {
+            if (GameManagerUtils.isLeatherArmor(cursor)) {
                 GameManagerUtils.deColorLeatherArmor(cursor);
             }
-            if (isLeatherArmor(mainHand)) {
+            if (GameManagerUtils.isLeatherArmor(mainHand)) {
                 GameManagerUtils.deColorLeatherArmor(mainHand);
             }
-            if (isLeatherArmor(offHand)) {
+            if (GameManagerUtils.isLeatherArmor(offHand)) {
                 GameManagerUtils.deColorLeatherArmor(offHand);
             }
             GameManagerUtils.deColorLeatherArmor(Arrays.asList(participant.getInventory().getStorageContents()));
@@ -259,7 +270,7 @@ public class GameManager implements Listener {
             return;
         }
         ItemStack itemStack = event.getItemDrop().getItemStack();
-        if (!isLeatherArmor(itemStack)) {
+        if (!GameManagerUtils.isLeatherArmor(itemStack)) {
             return;
         }
         GameManagerUtils.deColorLeatherArmor(itemStack);
@@ -283,18 +294,6 @@ public class GameManager implements Listener {
             return;
         }
         event.setCancelled(true);
-    }
-    
-    /**
-     * @param item the item in question. If this is null, will return false. 
-     * @return true if the item is of a leather armor type, false otherwise. False if the given item is null. 
-     */
-    @Contract("null -> false")
-    private boolean isLeatherArmor(@Nullable ItemStack item) {
-        if (item == null) {
-            return false;
-        }
-        return item.getItemMeta() instanceof LeatherArmorMeta;
     }
     
     @EventHandler
@@ -322,6 +321,18 @@ public class GameManager implements Listener {
             MCTParticipant participant = new MCTParticipant(offlineParticipant, player);
             state.onParticipantJoin(event, participant);
         }
+    }
+    
+    @EventHandler
+    public void onEntityDamage(EntityDamageEvent event) {
+        if (GameManagerUtils.EXCLUDED_DAMAGE_CAUSES.contains(event.getCause())) {
+            return;
+        }
+        MCTParticipant participant = onlineParticipants.get(event.getEntity().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        state.onParticipantDamage(event, participant);
     }
     
     public Scoreboard getMctScoreboard() {

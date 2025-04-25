@@ -44,6 +44,8 @@ import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.hub.config.HubConfig;
+import org.braekpo1nt.mctmanager.hub.leaderboard.LeaderboardManager;
 import org.braekpo1nt.mctmanager.participant.ColorAttributes;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -52,10 +54,14 @@ import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.ui.tablist.TabList;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.scoreboard.Scoreboard;
 import org.jetbrains.annotations.NotNull;
 
@@ -77,6 +83,8 @@ public class GameManagerState {
     protected final Main plugin;
     protected final GameStateStorageUtil gameStateStorageUtil;
     protected final SidebarFactory sidebarFactory;
+    protected final HubConfig config;
+    protected final List<LeaderboardManager> leaderboardManagers;
     
     public GameManagerState(
             @NotNull GameManager context,
@@ -93,12 +101,18 @@ public class GameManagerState {
         this.allParticipants = contextReference.getAllParticipants();
         this.onlineParticipants = contextReference.getOnlineParticipants();
         this.onlineAdmins = contextReference.getOnlineAdmins();
+        this.config = contextReference.getConfig();
+        this.leaderboardManagers = contextReference.getLeaderboardManagers();
+    }
+    
+    public void cleanup() {
+        this.leaderboardManagers.forEach(LeaderboardManager::tearDown);
     }
     
     // leave/join start
     public void onAdminJoin(@NotNull PlayerJoinEvent event, @NotNull Player admin) {
-        event.joinMessage(GameManagerUtils.replaceWithDisplayName(admin, event.joinMessage()));
         onAdminJoin(admin);
+        event.joinMessage(GameManagerUtils.replaceWithDisplayName(admin, event.joinMessage()));
     }
     
     public void onAdminJoin(@NotNull Player admin) {
@@ -115,8 +129,8 @@ public class GameManagerState {
     }
     
     public void onParticipantJoin(@NotNull PlayerJoinEvent event, @NotNull MCTParticipant participant) {
-        event.joinMessage(GameManagerUtils.replaceWithDisplayName(participant, event.joinMessage()));
         onParticipantJoin(participant);
+        event.joinMessage(GameManagerUtils.replaceWithDisplayName(participant, event.joinMessage()));
     }
     
     /**
@@ -135,6 +149,7 @@ public class GameManagerState {
         tabList.showPlayer(participant);
         tabList.setParticipantGrey(participant.getParticipantID(), false);
         ColorMap.colorLeatherArmor(participant, team.getBukkitColor());
+        leaderboardManagers.forEach(manager -> manager.onParticipantJoin(participant.getPlayer()));
         updateScoreVisuals(Collections.singletonList(team), Collections.singletonList(participant));
     }
     
@@ -181,12 +196,14 @@ public class GameManagerState {
         participant.getPlayer().playerListName(displayName);
         GameManagerUtils.deColorLeatherArmor(participant.getInventory());
         tabList.setParticipantGrey(participant.getParticipantID(), true);
+        leaderboardManagers.forEach(manager -> manager.onParticipantQuit(participant.getPlayer()));
     }
     // leave/join end
     
     // ui start
     public void updateScoreVisuals(Collection<MCTTeam> mctTeams, Collection<MCTParticipant> mctParticipants) {
         tabList.setScores(mctTeams);
+        context.updateLeaderboards();
     }
     
     /**
@@ -512,7 +529,7 @@ public class GameManagerState {
             context.reportGameStateException("adding new player", e);
             results.add(CommandResult.failure(Component.text("error occurred adding new player, see console for details.")));
         }
-        // TODO: update leaderboards here
+        context.updateLeaderboards();
         results.add(CommandResult.success(Component.text("Joined ")
                 .append(offlineParticipant.displayName())
                 .append(Component.text(" to "))
@@ -552,7 +569,7 @@ public class GameManagerState {
             context.reportGameStateException("leaving player", e);
             return CommandResult.failure(Component.text("error occurred leaving player, see console for details."));
         }
-        // TODO: update leaderboards here
+        context.updateLeaderboards();
         tabList.leaveParticipant(offlineParticipant.getParticipantID());
         org.bukkit.scoreboard.Team scoreboardTeam = mctScoreboard.getTeam(offlineParticipant.getTeamId());
         if (scoreboardTeam != null) {
@@ -653,4 +670,32 @@ public class GameManagerState {
                 .append(Component.text(" is no longer an admin")));
     }
     // admin stop
+    
+    // event handlers start
+    public void onParticipantDeath(PlayerDeathEvent event, MCTParticipant participant) {
+        GameManagerUtils.replaceWithDisplayName(event, participant);
+        if (participant.getKiller() != null) {
+            MCTParticipant killer = onlineParticipants.get(participant.getKiller().getUniqueId());
+            if (killer != null) {
+                GameManagerUtils.replaceWithDisplayName(event, killer);
+            }
+        }
+        GameManagerUtils.deColorLeatherArmor(event.getDrops());
+    }
+    
+    public void onParticipantRespawn(PlayerRespawnEvent event, MCTParticipant participant) {
+        if (participant.getCurrentGame() == null) {
+            return;
+        }
+        event.setRespawnLocation(config.getSpawn());
+    }
+    
+    public void onParticipantDamage(@NotNull EntityDamageEvent event, MCTParticipant participant) {
+        if (participant.getCurrentGame() != null) {
+            return;
+        }
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "GameManagerState.onParticipantDamage()->participant is in hub cancelled");
+        event.setCancelled(true);
+    }
+    // event handlers stop
 }
