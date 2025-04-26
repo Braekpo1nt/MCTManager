@@ -288,12 +288,12 @@ public class GameManagerState {
         
         try {
             MCTGame newGame = instantiateGame(gameType, title, configFile, new HashSet<>(gameTeams), new HashSet<>(gameParticipants), onlineAdmins);
-            for (MCTParticipant participant : onlineParticipants.values()) {
+            for (MCTParticipant participant : gameParticipants) {
                 participant.setCurrentGame(gameType);
             }
             activeGames.put(gameType, newGame);
         } catch (ConfigException e) {
-            for (Participant participant : onlineParticipants.values()) {
+            for (Participant participant : gameParticipants) {
                 tabList.showPlayer(participant);
             }
             Main.logger().log(Level.SEVERE, String.format("Error loading config for game %s", gameType), e);
