@@ -194,6 +194,7 @@ public class GameManagerState {
             MCTGame activeGame = activeGames.get(participant.getCurrentGame());
             if (activeGame != null) {
                 activeGame.onParticipantQuit(participant.getUniqueId());
+                activeGame.onTeamQuit(participant.getTeamId());
             }
         }
         MCTTeam team = teams.get(participant.getTeamId());
@@ -355,6 +356,7 @@ public class GameManagerState {
         for (UUID uuid : gameParticipants) {
             MCTParticipant participant = onlineParticipants.get(uuid);
             onParticipantReturnToHub(participant);
+            participant.sendMessage(Component.text("Returning to hub"));
         }
     }
     
@@ -366,7 +368,6 @@ public class GameManagerState {
         ParticipantInitializer.clearStatusEffects(participant);
         participant.teleport(config.getSpawn());
         tabList.showPlayer(participant);
-        participant.sendMessage(Component.text("Returning to hub"));
     }
     
     /**
@@ -612,6 +613,23 @@ public class GameManagerState {
                 .append(offlineParticipant.displayName())
                 .append(Component.text(" from team "))
                 .append(team.getFormattedDisplayName()));
+    }
+    
+    public CommandResult returnParticipantToHub(@NotNull MCTParticipant participant) {
+        if (participant.getCurrentGame() == null) {
+            participant.teleport(config.getSpawn());
+            return CommandResult.success(Component.text("Returning to hub"));
+        }
+        MCTGame activeGame = activeGames.get(participant.getCurrentGame());
+        if (activeGame == null) { 
+            // this should not happen
+            participant.teleport(config.getSpawn());
+            return CommandResult.success(Component.text("Returning to hub"));
+        }
+        activeGame.onParticipantQuit(participant.getUniqueId());
+        activeGame.onTeamQuit(participant.getTeamId());
+        onParticipantReturnToHub(participant);
+        return CommandResult.success(Component.text("Quitting current game. Returning to hub."));
     }
     // participant stop
     

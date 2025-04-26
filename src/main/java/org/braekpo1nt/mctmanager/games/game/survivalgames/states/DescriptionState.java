@@ -60,11 +60,6 @@ public class DescriptionState extends SurvivalGamesStateBase {
     }
     
     @Override
-    public void onParticipantRespawn(PlayerRespawnEvent event, SurvivalGamesParticipant participant) {
-        event.setRespawnLocation(participant.getLocation());
-    }
-    
-    @Override
     public void onParticipantPostRespawn(PlayerPostRespawnEvent event, SurvivalGamesParticipant participant) {
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.resetHealthAndHunger(participant);
