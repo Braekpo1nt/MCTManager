@@ -163,7 +163,7 @@ public abstract class GameManagerState {
         tabList.showPlayer(participant);
         tabList.setParticipantGrey(participant.getParticipantID(), false);
         ColorMap.colorLeatherArmor(participant, team.getBukkitColor());
-        leaderboardManagers.forEach(manager -> manager.onParticipantJoin(participant.getPlayer()));
+        leaderboardManagers.forEach(manager -> manager.showPlayer(participant.getPlayer()));
         updateScoreVisuals(Collections.singletonList(team), Collections.singletonList(participant));
     }
     
@@ -211,7 +211,7 @@ public abstract class GameManagerState {
         participant.getPlayer().playerListName(displayName);
         GameManagerUtils.deColorLeatherArmor(participant.getInventory());
         tabList.setParticipantGrey(participant.getParticipantID(), true);
-        leaderboardManagers.forEach(manager -> manager.onParticipantQuit(participant.getPlayer()));
+        leaderboardManagers.forEach(manager -> manager.hidePlayer(participant.getPlayer()));
     }
     // leave/join end
     
