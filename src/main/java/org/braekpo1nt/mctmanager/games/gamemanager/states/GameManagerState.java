@@ -55,6 +55,7 @@ import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.ui.tablist.TabList;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.braekpo1nt.mctmanager.utils.LogType;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
@@ -730,6 +731,17 @@ public class GameManagerState {
         }
         participant.setFoodLevel(20);
         event.setCancelled(true);
+    }
+    
+    public void onParticipantMove(@NotNull PlayerMoveEvent event, MCTParticipant participant) {
+        if (participant.isInGame()) {
+            return;
+        }
+        Location location = participant.getLocation();
+        if (location.getY() < config.getYLimit()) {
+            participant.teleport(config.getSpawn());
+            participant.sendMessage("You fell out of the hub boundary");
+        }
     }
     // event handlers stop
 }
