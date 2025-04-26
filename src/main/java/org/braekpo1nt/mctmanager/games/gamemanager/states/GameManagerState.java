@@ -44,6 +44,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.hub.config.HubConfig;
 import org.braekpo1nt.mctmanager.hub.leaderboard.LeaderboardManager;
 import org.braekpo1nt.mctmanager.participant.ColorAttributes;
@@ -55,6 +56,7 @@ import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.ui.tablist.TabList;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.braekpo1nt.mctmanager.utils.LogType;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -331,6 +333,9 @@ public class GameManagerState {
     
     /**
      * Called by an active game when the game is over.
+     * @param gameType the type of game that ended
+     * @param gameParticipants the UUIDs of the participants which are online and were in the finished 
+     *                         game. Must be UUIDs which are keys in {@link #onlineParticipants}. 
      */
     public void gameIsOver(@NotNull GameType gameType, @NotNull Collection<UUID> gameParticipants) {
         MCTGame game = activeGames.remove(gameType);
@@ -339,9 +344,19 @@ public class GameManagerState {
         }
         for (UUID uuid : gameParticipants) {
             MCTParticipant participant = onlineParticipants.get(uuid);
-            participant.setCurrentGame(null);
-            tabList.showPlayer(participant);
+            onParticipantReturnToHub(participant);
         }
+    }
+    
+    protected void onParticipantReturnToHub(@NotNull MCTParticipant participant) {
+        participant.setCurrentGame(null);
+        participant.setGameMode(GameMode.ADVENTURE);
+        ParticipantInitializer.clearInventory(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
+        participant.teleport(config.getSpawn());
+        tabList.showPlayer(participant);
+        participant.sendMessage(Component.text("Returning to hub"));
     }
     
     /**
