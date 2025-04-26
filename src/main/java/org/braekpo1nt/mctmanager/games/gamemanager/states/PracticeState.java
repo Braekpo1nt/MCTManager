@@ -12,12 +12,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.logging.Level;
 
-public class MaintenanceState extends GameManagerState {
+public class PracticeState extends GameManagerState {
     
-    
-    public MaintenanceState(
-            @NotNull GameManager context,
-            @NotNull ContextReference contextReference) {
+    public PracticeState(@NotNull GameManager context, @NotNull ContextReference contextReference) {
         super(context, contextReference);
     }
     
@@ -25,11 +22,11 @@ public class MaintenanceState extends GameManagerState {
     public CommandResult switchMode(@NotNull String mode) {
         switch (mode) {
             case "maintenance" -> {
-                return CommandResult.success(Component.text("Already in maintenance mode"));
+                context.setState(new MaintenanceState(context, contextReference));
+                return CommandResult.success(Component.text("Switched to maintenance mode"));
             }
             case "practice" -> {
-                context.setState(new PracticeState(context, contextReference));
-                return CommandResult.success(Component.text("Switched to practice mode"));
+                return CommandResult.success(Component.text("Already in practice mode"));
             }
             case "event" -> {
                 try {
