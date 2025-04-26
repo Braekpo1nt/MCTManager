@@ -51,6 +51,7 @@ import org.braekpo1nt.mctmanager.participant.ColorAttributes;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.ui.tablist.TabList;
@@ -91,6 +92,7 @@ public abstract class GameManagerState {
     protected final SidebarFactory sidebarFactory;
     protected final HubConfig config;
     protected final List<LeaderboardManager> leaderboardManagers;
+    protected final Sidebar sidebar;
     
     public GameManagerState(
             @NotNull GameManager context,
@@ -98,6 +100,8 @@ public abstract class GameManagerState {
         this.context = context;
         this.contextReference = contextReference;
         this.tabList = contextReference.getTabList();
+        this.leaderboardManagers = contextReference.getLeaderboardManagers();
+        this.sidebar = contextReference.getSidebar();
         this.mctScoreboard = contextReference.getMctScoreboard();
         this.plugin = contextReference.getPlugin();
         this.activeGames = contextReference.getActiveGames();
@@ -109,7 +113,7 @@ public abstract class GameManagerState {
         this.onlineParticipants = contextReference.getOnlineParticipants();
         this.onlineAdmins = contextReference.getOnlineAdmins();
         this.config = contextReference.getConfig();
-        this.leaderboardManagers = contextReference.getLeaderboardManagers();
+        setupSidebar();
     }
     
     public abstract CommandResult switchMode(@NotNull String mode);
@@ -117,6 +121,7 @@ public abstract class GameManagerState {
     public void cleanup() {
         this.leaderboardManagers.forEach(LeaderboardManager::tearDown);
         this.tabList.cleanup();
+        this.sidebar.deleteAllLines();
         this.onlineAdmins.clear();
         this.onlineParticipants.clear();
         this.teams.clear();
@@ -140,6 +145,7 @@ public abstract class GameManagerState {
         admin.displayName(displayName);
         admin.playerListName(displayName);
         tabList.showPlayer(admin);
+        sidebar.addPlayer(admin);
     }
     
     public void onParticipantJoin(@NotNull PlayerJoinEvent event, @NotNull MCTParticipant participant) {
@@ -162,6 +168,7 @@ public abstract class GameManagerState {
         participant.getPlayer().playerListName(displayName);
         tabList.showPlayer(participant);
         tabList.setParticipantGrey(participant.getParticipantID(), false);
+        sidebar.addPlayer(participant);
         ColorMap.colorLeatherArmor(participant, team.getBukkitColor());
         leaderboardManagers.forEach(manager -> manager.showPlayer(participant.getPlayer()));
         updateScoreVisuals(Collections.singletonList(team), Collections.singletonList(participant));
@@ -175,6 +182,7 @@ public abstract class GameManagerState {
     public void onAdminQuit(@NotNull Player admin) {
         onlineAdmins.remove(admin);
         tabList.hidePlayer(admin.getUniqueId());
+        sidebar.removePlayer(admin);
         Component displayName = Component.text(admin.getName(), NamedTextColor.WHITE);
         admin.displayName(displayName);
         admin.playerListName(displayName);
@@ -182,7 +190,7 @@ public abstract class GameManagerState {
     
     public void onParticipantQuit(@NotNull PlayerQuitEvent event, @NotNull MCTParticipant participant) {
         event.quitMessage(GameManagerUtils.replaceWithDisplayName(participant, event.quitMessage()));
-        tabList.hidePlayer(participant);
+        onParticipantQuit(participant);
     }
     
     /**
@@ -205,6 +213,7 @@ public abstract class GameManagerState {
         team.quitOnlineMember(participant.getUniqueId());
         onlineParticipants.remove(participant.getUniqueId());
         tabList.hidePlayer(participant.getUniqueId());
+        sidebar.removePlayer(participant);
         Component displayName = Component.text(participant.getName(),
                 NamedTextColor.WHITE);
         participant.getPlayer().displayName(displayName);
@@ -217,6 +226,10 @@ public abstract class GameManagerState {
     
     // ui start
     public void updateScoreVisuals(Collection<MCTTeam> mctTeams, Collection<MCTParticipant> mctParticipants) {
+        if (!mctTeams.isEmpty()) {
+            updateSidebarTeamOrder();
+        }
+        updateSidebarPersonal(mctParticipants);
         tabList.setScores(mctTeams);
         context.updateLeaderboards();
     }
@@ -226,6 +239,66 @@ public abstract class GameManagerState {
      */
     public Sidebar createSidebar() {
         return sidebarFactory.createSidebar();
+    }
+    
+    /**
+     * Remove existing lines and add 
+     */
+    protected void setupSidebar() {
+        sidebar.deleteAllLines();
+        sidebar.addLine("personalScore", Component.empty());
+        addTeamLines();
+    }
+    
+    /**
+     * Takes the existing team score lines in the sidebar,
+     * and reorders them according to score
+     */
+    protected void updateSidebarTeamOrder() {
+        deleteTeamLines();
+        addTeamLines();
+    }
+    
+    /**
+     * Deletes the lines for each team from the sidebar. 
+     * Note: If this is called twice in a row, or after removing the team lines,
+     * it will cause UI errors.
+     */
+    public void deleteTeamLines() {
+        sidebar.deleteLines(teams.values().stream().map(Team::getTeamId).toArray(String[]::new));
+    }
+    
+    /**
+     * Adds the lines for each team to the sidebar in order from highest to lowest
+     * score, starting at the top of the sidebar (index 0).<br>
+     * Note: If this is run twice in a row, or before the existing team lines are
+     * removed, it will cause UI errors. 
+     */
+    public void addTeamLines() {
+        List<Team> sortedTeams = context.getSortedTeams();
+        KeyLine[] teamLines = new KeyLine[sortedTeams.size()];
+        for (int i = 0; i < sortedTeams.size(); i++) {
+            Team team = sortedTeams.get(i);
+            teamLines[i] = new KeyLine(team.getTeamId(), Component.empty()
+                    .append(team.getFormattedDisplayName())
+                    .append(Component.text(": "))
+                    .append(Component.text(team.getScore())
+                            .color(NamedTextColor.GOLD))
+            );
+        }
+        sidebar.addLines(0, teamLines);
+    }
+    
+    public void updateSidebarPersonal(Collection<MCTParticipant> mctParticipants) {
+        for (MCTParticipant participant : mctParticipants) {
+            if (!participant.isInGame()) {
+                sidebar.updateLine(participant.getUniqueId(), "personalScore",
+                        Component.empty()
+                                .append(Component.text("Personal: "))
+                                .append(Component.text(participant.getScore()))
+                                .color(NamedTextColor.GOLD));
+            }
+        }
     }
     // ui end
     
@@ -289,6 +362,7 @@ public abstract class GameManagerState {
         Component title = createNewTitle(gameType.getTitle());
         for (MCTParticipant participant : gameParticipants) {
             tabList.hidePlayer(participant);
+            sidebar.removePlayer(participant);
             participant.setCurrentGame(gameType);
             Main.logf("Setting participant game type to %s", gameType);
         }
@@ -306,6 +380,7 @@ public abstract class GameManagerState {
             for (MCTParticipant participant : gameParticipants) {
                 participant.setCurrentGame(null);
                 tabList.showPlayer(participant);
+                sidebar.addPlayer(participant);
             }
             Main.logger().log(Level.SEVERE, String.format("Error loading config for game %s", gameType), e);
             return CommandResult.failure(Component.text("Can't start ")
@@ -315,7 +390,6 @@ public abstract class GameManagerState {
                     .append(Component.text(e.getMessage()))
                     .color(NamedTextColor.RED));
         }
-        updateScoreVisuals(gameTeams, gameParticipants);
         return CommandResult.success();
     }
     
@@ -372,6 +446,7 @@ public abstract class GameManagerState {
         ParticipantInitializer.clearStatusEffects(participant);
         participant.teleport(config.getSpawn());
         tabList.showPlayer(participant);
+        sidebar.addPlayer(participant);
     }
     
     /**
@@ -489,6 +564,7 @@ public abstract class GameManagerState {
         }
         teams.remove(team.getTeamId());
         tabList.removeTeam(teamId);
+        sidebar.deleteLine(teamId);
         try {
             gameStateStorageUtil.removeTeam(teamId);
             results.add(CommandResult.success(Component.text("Removed team ")
@@ -632,6 +708,7 @@ public abstract class GameManagerState {
         }
         participant.setCurrentGame(gameType);
         tabList.hidePlayer(participant);
+        sidebar.removePlayer(participant);
         activeGame.onTeamJoin(teams.get(participant.getTeamId()));
         activeGame.onParticipantJoin(participant);
         return CommandResult.success(Component.empty()

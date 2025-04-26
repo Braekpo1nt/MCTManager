@@ -14,7 +14,6 @@ import java.util.logging.Level;
 
 public class MaintenanceState extends GameManagerState {
     
-    
     public MaintenanceState(
             @NotNull GameManager context,
             @NotNull ContextReference contextReference) {

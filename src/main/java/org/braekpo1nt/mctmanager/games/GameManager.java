@@ -33,6 +33,7 @@ import org.braekpo1nt.mctmanager.participant.ColorAttributes;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.ui.tablist.TabList;
@@ -103,8 +104,9 @@ public class GameManager implements Listener {
     @Getter
     private final List<Player> onlineAdmins = new ArrayList<>();
     private final TabList tabList;
-    private final @NotNull HubConfig config;
     private final @NotNull List<LeaderboardManager> leaderboardManagers;
+    private final Sidebar sidebar;
+    private final @NotNull HubConfig config;
     
     public GameManager(Main plugin, 
                        Scoreboard mctScoreboard, 
@@ -116,23 +118,25 @@ public class GameManager implements Listener {
         this.mctScoreboard = mctScoreboard;
         this.gameStateStorageUtil = gameStateStorageUtil;
         this.timerManager = new TimerManager(plugin);
-        this.tabList = new TabList(plugin);
         this.sidebarFactory = sidebarFactory;
         this.eventManager = new EventManager(plugin, this, new VoteManager(this, plugin));
         this.config = config;
+        this.tabList = new TabList(plugin);
         this.leaderboardManagers = createLeaderboardManagers();
+        this.sidebar = sidebarFactory.createSidebar();
         this.state = new MaintenanceState(this, ContextReference.builder()
-                .tabList(tabList)
-                .mctScoreboard(mctScoreboard)
-                .activeGames(activeGames)
-                .teams(teams)
-                .allParticipants(allParticipants)
-                .onlineParticipants(onlineParticipants)
-                .onlineAdmins(onlineAdmins)
+                .tabList(this.tabList)
+                .mctScoreboard(this.mctScoreboard)
+                .activeGames(this.activeGames)
+                .teams(this.teams)
+                .allParticipants(this.allParticipants)
+                .onlineParticipants(this.onlineParticipants)
+                .onlineAdmins(this.onlineAdmins)
                 .plugin(this.plugin)
-                .config(config)
-                .gameStateStorageUtil(gameStateStorageUtil)
-                .sidebarFactory(sidebarFactory)
+                .config(this.config)
+                .gameStateStorageUtil(this.gameStateStorageUtil)
+                .sidebarFactory(this.sidebarFactory)
+                .sidebar(this.sidebar)
                 .leaderboardManagers(this.leaderboardManagers)
                 .build());
     }
@@ -396,6 +400,9 @@ public class GameManager implements Listener {
             return false;
         }
         gameStateStorageUtil.setupScoreboard(mctScoreboard, plugin.getServer());
+        // sidebar start
+        state.deleteTeamLines();
+        // sidebar end
         teams.clear();
         allParticipants.clear();
         onlineParticipants.clear();
@@ -435,6 +442,10 @@ public class GameManager implements Listener {
             tabList.joinParticipant(participant.getParticipantID(), participant.getName(), participant.getTeamId(), grey);
         }
         // TabList stop
+        
+        // sidebar start
+        state.addTeamLines();
+        // sidebar stop
         
         // Log on all online admins and participants
         for (Player player : onlinePlayers.values()) {

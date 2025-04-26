@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -90,7 +91,7 @@ public class OffState implements EventState {
     }
     
     private void initializeSidebar() {
-        List<Team> sortedTeams = EventManager.sortTeams(gameManager.getTeams());
+        List<Team> sortedTeams = GameManagerUtils.sortTeams(gameManager.getTeams());
         context.setNumberOfTeams(sortedTeams.size());
         KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
         for (int i = 0; i < context.getNumberOfTeams(); i++) {
@@ -110,7 +111,7 @@ public class OffState implements EventState {
     }
     
     private void initializeAdminSidebar() {
-        List<Team> sortedTeams = EventManager.sortTeams(gameManager.getTeams());
+        List<Team> sortedTeams = GameManagerUtils.sortTeams(gameManager.getTeams());
         context.setNumberOfTeams(sortedTeams.size());
         KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
         for (int i = 0; i < context.getNumberOfTeams(); i++) {
@@ -149,7 +150,7 @@ public class OffState implements EventState {
         if (context.getSidebar() == null) {
             return;
         }
-        List<Team> sortedTeams = EventManager.sortTeams(updateTeams);
+        List<Team> sortedTeams = GameManagerUtils.sortTeams(updateTeams);
         if (context.getNumberOfTeams() != sortedTeams.size()) {
             EventState.reorderTeamLines(sortedTeams, context);
             return;

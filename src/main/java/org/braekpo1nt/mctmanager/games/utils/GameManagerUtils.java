@@ -13,6 +13,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -453,5 +454,16 @@ public class GameManagerUtils {
             return false;
         }
         return item.getItemMeta() instanceof LeatherArmorMeta;
+    }
+    
+    public static <T extends Team> List<Team> sortTeams(Collection<T> teamsToSort) {
+        List<Team> sortedTeams = new ArrayList<>(teamsToSort);
+        sortedTeams.sort(Comparator.comparing(Team::getScore, Comparator.reverseOrder()));
+        sortedTeams.sort(Comparator
+                .comparing(team -> ((Team) team).getScore())
+                .reversed()
+                .thenComparing(team -> ((Team) team).getTeamId())
+        );
+        return sortedTeams;
     }
 }

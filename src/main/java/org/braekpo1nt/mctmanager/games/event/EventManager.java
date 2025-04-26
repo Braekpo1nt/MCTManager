@@ -524,17 +524,6 @@ public class EventManager implements Listener {
         return multipliers[currentGameNumber - 1];
     }
     
-    public static <T extends Team> List<Team> sortTeams(Collection<T> teamsToSort) {
-        List<Team> sortedTeams = new ArrayList<>(teamsToSort);
-        sortedTeams.sort(Comparator.comparing(Team::getScore, Comparator.reverseOrder()));
-        sortedTeams.sort(Comparator
-                .comparing(team -> ((Team) team).getScore())
-                .reversed()
-                .thenComparing(team -> ((Team) team).getTeamId())
-        );
-        return sortedTeams;
-    }
-    
     public void trackScores(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, GameType gameType) {
         if (state instanceof OffState) {
             return;

@@ -55,6 +55,11 @@ public class EventState extends GameManagerState {
     }
     
     @Override
+    protected void setupSidebar() {
+        
+    }
+    
+    @Override
     public Sidebar createSidebar() {
         return context.getSidebarFactory().createSidebar(eventConfig.getTitle());
     }

@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.hub.config.HubConfig;
 import org.braekpo1nt.mctmanager.hub.leaderboard.LeaderboardManager;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.ui.tablist.TabList;
 import org.bukkit.entity.Player;
@@ -38,6 +39,7 @@ public class ContextReference {
     private final @NotNull Main plugin;
     private final @NotNull GameStateStorageUtil gameStateStorageUtil;
     private final @NotNull SidebarFactory sidebarFactory;
-    private final @NotNull HubConfig config;
     private final @NotNull List<LeaderboardManager> leaderboardManagers;
+    private final @NotNull Sidebar sidebar;
+    private final @NotNull HubConfig config;
 }

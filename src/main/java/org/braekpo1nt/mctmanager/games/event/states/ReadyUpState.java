@@ -13,6 +13,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.ReadyUpManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
@@ -354,7 +355,7 @@ public class ReadyUpState implements EventState {
         if (context.getSidebar() == null) {
             return;
         }
-        List<Team> sortedTeams = EventManager.sortTeams(updateTeams);
+        List<Team> sortedTeams = GameManagerUtils.sortTeams(updateTeams);
         if (context.getNumberOfTeams() != sortedTeams.size()) {
             EventState.reorderTeamLines(sortedTeams, context);
             return;
