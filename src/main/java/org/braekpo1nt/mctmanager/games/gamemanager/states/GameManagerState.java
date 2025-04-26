@@ -287,16 +287,13 @@ public abstract class GameManagerState {
         }
         
         Component title = createNewTitle(gameType.getTitle());
-        for (Participant participant : gameParticipants) {
+        for (MCTParticipant participant : gameParticipants) {
             tabList.hidePlayer(participant);
+            participant.setCurrentGame(gameType);
+            Main.logf("Setting participant game type to %s", gameType);
         }
         
         try {
-            Main.logf("gameParticipants.size(): %s", gameParticipants.size());
-            for (MCTParticipant participant : gameParticipants) {
-                participant.setCurrentGame(gameType);
-                Main.logf("Setting participant game type to %s", gameType);
-            }
             activeGames.put(gameType,
                     instantiateGame(
                             gameType, 
@@ -306,7 +303,8 @@ public abstract class GameManagerState {
                             new HashSet<>(gameParticipants), 
                             onlineAdmins));
         } catch (ConfigException e) {
-            for (Participant participant : gameParticipants) {
+            for (MCTParticipant participant : gameParticipants) {
+                participant.setCurrentGame(null);
                 tabList.showPlayer(participant);
             }
             Main.logger().log(Level.SEVERE, String.format("Error loading config for game %s", gameType), e);
@@ -633,6 +631,7 @@ public abstract class GameManagerState {
                     .append(Component.text(" game is active right now")));
         }
         participant.setCurrentGame(gameType);
+        tabList.hidePlayer(participant);
         activeGame.onTeamJoin(teams.get(participant.getTeamId()));
         activeGame.onParticipantJoin(participant);
         return CommandResult.success(Component.empty()
