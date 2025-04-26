@@ -15,6 +15,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
 
 public class EventState extends GameManagerState {
@@ -84,8 +85,8 @@ public class EventState extends GameManagerState {
     }
     
     @Override
-    public void gameIsOver(@NotNull GameType gameType, @NotNull Collection<UUID> gameParticipants) {
-        super.gameIsOver(gameType, gameParticipants);
+    public void gameIsOver(@NotNull GameType gameType, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants) {
+        super.gameIsOver(gameType, teamScores, participantScores, gameParticipants);
         eventManager.gameIsOver(gameType);
     }
     
