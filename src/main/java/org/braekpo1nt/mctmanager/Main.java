@@ -182,7 +182,7 @@ public class Main extends JavaPlugin {
     public void onDisable() {
         ParticipantInitializer.setPlugin(null); //TODO: remove this in favor of death and respawn combination 
         PacketEvents.getAPI().terminate();
-        if (saveGameStateOnDisable && gameManager != null) {
+        if (gameManager != null) {
             if (gameManager.getEventManager().eventIsActive()) {
                 gameManager.getEventManager().stopEvent(Bukkit.getConsoleSender());
             }
@@ -190,7 +190,10 @@ public class Main extends JavaPlugin {
             if (gameManager.editorIsRunning()) {
                 gameManager.stopEditor();
             }
-            gameManager.saveGameState();
+            if (saveGameStateOnDisable) {
+                gameManager.saveGameState();
+            }
+            gameManager.cleanup();
         } else {
             Main.logger().info("[MCTManager] Skipping save game state.");
         }

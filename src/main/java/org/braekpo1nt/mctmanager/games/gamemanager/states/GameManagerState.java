@@ -287,11 +287,17 @@ public class GameManagerState {
         }
         
         try {
-            MCTGame newGame = instantiateGame(gameType, title, configFile, new HashSet<>(gameTeams), new HashSet<>(gameParticipants), onlineAdmins);
             for (MCTParticipant participant : gameParticipants) {
                 participant.setCurrentGame(gameType);
             }
-            activeGames.put(gameType, newGame);
+            activeGames.put(gameType,
+                    instantiateGame(
+                            gameType, 
+                            title, 
+                            configFile, 
+                            new HashSet<>(gameTeams), 
+                            new HashSet<>(gameParticipants), 
+                            onlineAdmins));
         } catch (ConfigException e) {
             for (Participant participant : gameParticipants) {
                 tabList.showPlayer(participant);
