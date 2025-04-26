@@ -288,8 +288,10 @@ public class GameManagerState {
         }
         
         try {
+            Main.logf("gameParticipants.size(): %s", gameParticipants.size());
             for (MCTParticipant participant : gameParticipants) {
                 participant.setCurrentGame(gameType);
+                Main.logf("Setting participant game type to %s", gameType);
             }
             activeGames.put(gameType,
                     instantiateGame(
@@ -613,6 +615,25 @@ public class GameManagerState {
                 .append(offlineParticipant.displayName())
                 .append(Component.text(" from team "))
                 .append(team.getFormattedDisplayName()));
+    }
+    
+    public CommandResult joinParticipantToGame(@NotNull GameType gameType, @NotNull MCTParticipant participant) {
+        if (participant.getCurrentGame() != null) {
+            return CommandResult.failure(Component.text("Already in a game"));
+        }
+        MCTGame activeGame = activeGames.get(gameType);
+        if (activeGame == null) {
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text("No "))
+                    .append(Component.text(gameType.getTitle()))
+                    .append(Component.text(" game is active right now")));
+        }
+        participant.setCurrentGame(gameType);
+        activeGame.onTeamJoin(teams.get(participant.getTeamId()));
+        activeGame.onParticipantJoin(participant);
+        return CommandResult.success(Component.empty()
+                .append(Component.text("Joining "))
+                .append(Component.text(gameType.getTitle())));
     }
     
     public CommandResult returnParticipantToHub(@NotNull MCTParticipant participant) {

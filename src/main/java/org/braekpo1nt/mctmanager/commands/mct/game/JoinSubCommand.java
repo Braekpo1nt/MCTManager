@@ -6,29 +6,36 @@ import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
-/**
- * Handles starting games
- */
-public class StartSubCommand extends TabSubCommand {
+public class JoinSubCommand extends TabSubCommand {
     
-    private final GameManager gameManager;
+    private final @NotNull GameManager gameManager;
     
-    public StartSubCommand(GameManager gameManager, String name) {
+    public JoinSubCommand(@NotNull GameManager gameManager, @NotNull String name) {
         super(name);
         this.gameManager = gameManager;
     }
     
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length < 1) {
-            return CommandResult.failure(getUsage().of("<game>").of("[configFile]").of("[teams...]"));
+        if (args.length != 1) {
+            return CommandResult.failure(getUsage().of("<gameID>"));
+        }
+        if (!(sender instanceof Player player)) {
+            return CommandResult.failure("Only a player can use this command");
+        }
+        Participant participant = gameManager.getOnlineParticipant(player.getUniqueId());
+        if (participant == null) {
+            return CommandResult.failure("Only a participant can use this command");
         }
         String gameID = args[0];
         GameType gameType = GameType.fromID(gameID);
@@ -37,30 +44,17 @@ public class StartSubCommand extends TabSubCommand {
                     .append(Component.text(" is not a valid game")));
         }
         
-        String configFile;
-        if (args.length == 2) {
-            configFile = args[1];
-        } else {
-            configFile = "default.json";
-        }
-        
-        if (args.length > 2) {
-            Set<String> teamIds = new HashSet<>(Arrays.asList(args).subList(2, args.length));
-            return gameManager.startGame(teamIds, gameType, configFile);
-        } else {
-            return gameManager.startGame(gameType, configFile);
-        }
-        
+        return gameManager.joinParticipantToGame(gameType, participant.getUniqueId());
     }
     
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
-            return GameType.GAME_IDS.keySet().stream().sorted().toList();
+            return CommandUtils.partialMatchTabList(
+                    gameManager.getActiveGames().stream().map(GameType::getId).toList(),
+                    args[0]);
         }
-        if (args.length > 2) {
-            return CommandUtils.partialMatchTabList(gameManager.getTeamIds(), args[args.length - 1]);
-        }
+        
         return Collections.emptyList();
     }
 }

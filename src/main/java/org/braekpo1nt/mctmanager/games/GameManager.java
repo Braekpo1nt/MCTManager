@@ -359,6 +359,14 @@ public class GameManager implements Listener {
         return mctScoreboard;
     }
     
+    public CommandResult joinParticipantToGame(@NotNull GameType gameType, @NotNull UUID uuid) {
+        MCTParticipant mctParticipant = onlineParticipants.get(uuid);
+        if (mctParticipant == null) {
+            return CommandResult.failure(Component.text("You are not a participant"));
+        }
+        return state.joinParticipantToGame(gameType, mctParticipant);
+    }
+    
     public CommandResult returnParticipantToHub(@NotNull UUID uuid) {
         MCTParticipant mctParticipant = onlineParticipants.get(uuid);
         if (mctParticipant == null) {
