@@ -25,7 +25,7 @@ public class MCTParticipant extends Participant {
     
     public MCTParticipant(@NotNull MCTParticipant participant, int score) {
         super(participant, score);
-        currentGame = null;
+        currentGame = participant.getCurrentGame();
     }
     
     public boolean isInGame() {
