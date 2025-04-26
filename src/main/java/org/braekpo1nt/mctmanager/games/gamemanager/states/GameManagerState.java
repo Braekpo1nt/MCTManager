@@ -67,7 +67,6 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.scoreboard.Scoreboard;
 import org.jetbrains.annotations.NotNull;
 
@@ -113,6 +112,11 @@ public class GameManagerState {
     
     public void cleanup() {
         this.leaderboardManagers.forEach(LeaderboardManager::tearDown);
+        this.tabList.cleanup();
+        this.onlineAdmins.clear();
+        this.onlineParticipants.clear();
+        this.teams.clear();
+        this.allParticipants.clear();
     }
     
     // leave/join start
@@ -186,7 +190,7 @@ public class GameManagerState {
      * @see GameManager#leaveParticipant(OfflineParticipant)
      */
     public void onParticipantQuit(@NotNull MCTParticipant participant) {
-        if (participant.isInGame()) {
+        if (participant.getCurrentGame() != null) {
             MCTGame activeGame = context.getActiveGame(participant.getCurrentGame());
             if (activeGame != null) {
                 activeGame.onParticipantQuit(participant.getUniqueId());

@@ -221,7 +221,6 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             participant.setGameMode(GameMode.SPECTATOR);
             _resetParticipant(participant, teams.get(participant.getTeamId()));
         }
-        participants.clear();
         quitDatas.clear();
         teams.clear();
         teamQuitDatas.clear();
@@ -242,6 +241,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         storedGameRules.clear();
         cleanup();
         gameManager.gameIsOver(getType(), participants.values().stream().map(Participant::getUniqueId).toList());
+        participants.clear();
         Main.logger().info("Stopping " + type.getTitle());
     }
     
