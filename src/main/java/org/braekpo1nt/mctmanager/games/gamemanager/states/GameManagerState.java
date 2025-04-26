@@ -191,7 +191,7 @@ public class GameManagerState {
      */
     public void onParticipantQuit(@NotNull MCTParticipant participant) {
         if (participant.getCurrentGame() != null) {
-            MCTGame activeGame = context.getActiveGame(participant.getCurrentGame());
+            MCTGame activeGame = activeGames.get(participant.getCurrentGame());
             if (activeGame != null) {
                 activeGame.onParticipantQuit(participant.getUniqueId());
             }
