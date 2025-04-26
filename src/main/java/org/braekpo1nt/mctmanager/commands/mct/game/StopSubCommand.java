@@ -14,6 +14,7 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -53,8 +54,10 @@ public class StopSubCommand extends TabSubCommand {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
+            List<String> result = new ArrayList<>(Collections.singletonList("all"));
+            result.addAll(gameManager.getActiveGames().stream().map(GameType::getId).toList());
             return CommandUtils.partialMatchTabList(
-                    gameManager.getActiveGames().stream().map(GameType::getId).toList(), 
+                    result, 
                     args[0]);
         }
         
