@@ -27,4 +27,8 @@ public class MCTParticipant extends Participant {
         super(participant, score);
         currentGame = null;
     }
+    
+    public boolean isInGame() {
+        return currentGame != null;
+    }
 }

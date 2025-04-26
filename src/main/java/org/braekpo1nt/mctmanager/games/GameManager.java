@@ -37,14 +37,14 @@ import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.ui.tablist.TabList;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -263,10 +263,11 @@ public class GameManager implements Listener {
     
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerDropItem(PlayerDropItemEvent event) {
-        if (event.isCancelled()) {
+        MCTParticipant participant = onlineParticipants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
             return;
         }
-        if (!onlineParticipants.containsKey(event.getPlayer().getUniqueId())) {
+        if (event.isCancelled()) {
             return;
         }
         ItemStack itemStack = event.getItemDrop().getItemStack();
@@ -274,6 +275,7 @@ public class GameManager implements Listener {
             return;
         }
         GameManagerUtils.deColorLeatherArmor(itemStack);
+        state.onParticipantDropItem(event, participant);
     }
     
     // TODO: handle block dispensing items
@@ -283,17 +285,11 @@ public class GameManager implements Listener {
     
     @EventHandler
     public void onParticipantInteract(PlayerInteractEvent event) {
-        if (!onlineParticipants.containsKey(event.getPlayer().getUniqueId())) {
+        MCTParticipant participant = onlineParticipants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
             return;
         }
-        if (!event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
-            return;
-        }
-        Block clickedBlock = event.getClickedBlock();
-        if (clickedBlock == null || !GameManagerUtils.SIGNS.contains(clickedBlock.getType())) {
-            return;
-        }
-        event.setCancelled(true);
+        state.onParticipantInteract(event, participant);
     }
     
     @EventHandler
@@ -333,6 +329,24 @@ public class GameManager implements Listener {
             return;
         }
         state.onParticipantDamage(event, participant);
+    }
+    
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+        MCTParticipant participant = onlineParticipants.get(event.getWhoClicked().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        state.onParticipantInventoryClick(event, participant);
+    }
+    
+    @EventHandler
+    public void onFoodLevelChange(FoodLevelChangeEvent event) {
+        MCTParticipant participant = onlineParticipants.get(event.getEntity().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        state.onParticipantFoodLevelChange(event, participant);
     }
     
     public Scoreboard getMctScoreboard() {

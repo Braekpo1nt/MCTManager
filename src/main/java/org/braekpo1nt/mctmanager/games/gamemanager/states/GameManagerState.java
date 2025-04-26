@@ -55,13 +55,16 @@ import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.ui.tablist.TabList;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.braekpo1nt.mctmanager.utils.LogType;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.*;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scoreboard.Scoreboard;
 import org.jetbrains.annotations.NotNull;
 
@@ -180,7 +183,7 @@ public class GameManagerState {
      * @see GameManager#leaveParticipant(OfflineParticipant)
      */
     public void onParticipantQuit(@NotNull MCTParticipant participant) {
-        if (participant.getCurrentGame() != null) {
+        if (participant.isInGame()) {
             MCTGame activeGame = context.getActiveGame(participant.getCurrentGame());
             if (activeGame != null) {
                 activeGame.onParticipantQuit(participant.getUniqueId());
@@ -684,17 +687,48 @@ public class GameManagerState {
     }
     
     public void onParticipantRespawn(PlayerRespawnEvent event, MCTParticipant participant) {
-        if (participant.getCurrentGame() == null) {
+        if (participant.isInGame()) {
             return;
         }
         event.setRespawnLocation(config.getSpawn());
     }
     
     public void onParticipantDamage(@NotNull EntityDamageEvent event, MCTParticipant participant) {
-        if (participant.getCurrentGame() != null) {
+        if (participant.isInGame()) {
             return;
         }
         Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "GameManagerState.onParticipantDamage()->participant is in hub cancelled");
+        event.setCancelled(true);
+    }
+    
+    public void onParticipantInteract(@NotNull PlayerInteractEvent event, MCTParticipant participant) {
+        if (participant.isInGame()) {
+            return;
+        }
+        Block clickedBlock = event.getClickedBlock();
+        if (clickedBlock == null) {
+            return;
+        }
+        Material blockType = clickedBlock.getType();
+        if (!config.getPreventInteractions().contains(blockType)) {
+            return;
+        }
+        event.setCancelled(true);
+    }
+    
+    public void onParticipantInventoryClick(@NotNull InventoryClickEvent event, MCTParticipant participant) {
+        // do nothing
+    }
+    
+    public void onParticipantDropItem(@NotNull PlayerDropItemEvent event, MCTParticipant participant) {
+        // do nothing
+    }
+    
+    public void onParticipantFoodLevelChange(@NotNull FoodLevelChangeEvent event, MCTParticipant participant) {
+        if (participant.isInGame()) {
+            return;
+        }
+        participant.setFoodLevel(20);
         event.setCancelled(true);
     }
     // event handlers stop

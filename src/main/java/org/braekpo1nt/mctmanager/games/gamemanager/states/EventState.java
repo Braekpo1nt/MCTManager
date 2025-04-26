@@ -7,7 +7,10 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -65,4 +68,28 @@ public class EventState extends GameManagerState {
     }
     
     // game stop
+    
+    // event handlers start
+    @Override
+    public void onParticipantInventoryClick(@NotNull InventoryClickEvent event, MCTParticipant participant) {
+        if (participant.isInGame()) {
+            return;
+        }
+        if (event.getClickedInventory() == null) {
+            return;
+        }
+        if (event.getCurrentItem() == null) {
+            return;
+        }
+        event.setCancelled(true);
+    }
+    
+    @Override
+    public void onParticipantDropItem(@NotNull PlayerDropItemEvent event, MCTParticipant participant) {
+        if (participant.isInGame()) {
+            return;
+        }
+        event.setCancelled(true);
+    }
+    // event handlers stop
 }
