@@ -74,9 +74,10 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-public class GameManagerState {
+public abstract class GameManagerState {
     
     protected final @NotNull GameManager context;
+    protected final @NotNull ContextReference contextReference;
     protected final @NotNull TabList tabList;
     protected final Scoreboard mctScoreboard;
     protected final @NotNull Map<GameType, MCTGame> activeGames;
@@ -95,6 +96,7 @@ public class GameManagerState {
             @NotNull GameManager context,
             @NotNull ContextReference contextReference) {
         this.context = context;
+        this.contextReference = contextReference;
         this.tabList = contextReference.getTabList();
         this.mctScoreboard = contextReference.getMctScoreboard();
         this.plugin = contextReference.getPlugin();
@@ -109,6 +111,8 @@ public class GameManagerState {
         this.config = contextReference.getConfig();
         this.leaderboardManagers = contextReference.getLeaderboardManagers();
     }
+    
+    public abstract CommandResult switchMode(@NotNull String mode);
     
     public void cleanup() {
         this.leaderboardManagers.forEach(LeaderboardManager::tearDown);

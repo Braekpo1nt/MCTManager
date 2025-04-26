@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.gamemanager.states;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
@@ -18,21 +19,43 @@ import java.util.UUID;
 
 public class EventState extends GameManagerState {
     
-    protected final @NotNull EventConfig config;
+    protected final @NotNull EventConfig eventConfig;
     protected final @NotNull EventManager eventManager;
     
     public EventState(
             @NotNull GameManager context,
             @NotNull ContextReference contextReference,
-            @NotNull EventConfig config) {
+            @NotNull EventConfig eventConfig) {
         super(context, contextReference);
-        this.config = config;
+        this.eventConfig = eventConfig;
         this.eventManager = context.getEventManager();
     }
     
     @Override
+    public CommandResult switchMode(@NotNull String mode) {
+        switch (mode) {
+            case "maintenance" -> {
+                context.setState(new MaintenanceState(context, contextReference));
+                return CommandResult.success(Component.text("Switched to maintenance mode"));
+            }
+            case "practice" -> {
+                return CommandResult.success(Component.text("Switched to practice mode"));
+            }
+            case "event" -> {
+                return CommandResult.success(Component.text("Already in event mode"));
+            }
+            default -> {
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text(mode)
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" is not a valid mode")));
+            }
+        }
+    }
+    
+    @Override
     public Sidebar createSidebar() {
-        return context.getSidebarFactory().createSidebar(config.getTitle());
+        return context.getSidebarFactory().createSidebar(eventConfig.getTitle());
     }
     
     // game start

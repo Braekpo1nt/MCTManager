@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games;
 
 import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
 import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -63,6 +64,7 @@ import java.util.stream.Collectors;
  */
 public class GameManager implements Listener {
     
+    @Setter
     public @NotNull GameManagerState state;
     public static final String ADMIN_TEAM = "_Admins";
     public static final NamedTextColor ADMIN_COLOR = NamedTextColor.DARK_RED;
@@ -133,6 +135,10 @@ public class GameManager implements Listener {
                 .sidebarFactory(sidebarFactory)
                 .leaderboardManagers(this.leaderboardManagers)
                 .build());
+    }
+    
+    public CommandResult switchMode(@NotNull String mode) {
+        return state.switchMode(mode);
     }
     
     public List<LeaderboardManager> createLeaderboardManagers() {
