@@ -348,11 +348,14 @@ public abstract class GameManagerState {
     
     /**
      * Called by an active game when the game is over.
-     * @param gameType the type of game that ended
-     * @param gameParticipants the UUIDs of the participants which are online and were in the finished 
-     *                         game. Must be UUIDs which are keys in {@link #onlineParticipants}. 
+     *
+     * @param gameType          the type of game that ended
+     * @param teamScores        the team scores
+     * @param participantScores the participant scores
+     * @param gameParticipants  the UUIDs of the participants which are online and were in the finished
+     *                          game. Must be UUIDs which are keys in {@link #onlineParticipants}.
      */
-    public void gameIsOver(@NotNull GameType gameType, @NotNull Collection<UUID> gameParticipants) {
+    public void gameIsOver(@NotNull GameType gameType, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants) {
         MCTGame game = activeGames.remove(gameType);
         if (game == null) {
             return;
@@ -362,6 +365,7 @@ public abstract class GameManagerState {
             onParticipantReturnToHub(participant);
             participant.sendMessage(Component.text("Returning to hub"));
         }
+        context.addScores(teamScores, participantScores, gameType);
     }
     
     protected void onParticipantReturnToHub(@NotNull MCTParticipant participant) {

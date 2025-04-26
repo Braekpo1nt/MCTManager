@@ -535,8 +535,8 @@ public class GameManager implements Listener {
     /**
      * Called by an active game when the game is over.
      */
-    public void gameIsOver(@NotNull GameType gameType, @NotNull Collection<UUID> gameParticipants) {
-        state.gameIsOver(gameType, gameParticipants);
+    public void gameIsOver(@NotNull GameType gameType, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants) {
+        state.gameIsOver(gameType, teamScores, participantScores, gameParticipants);
     }
     
     public CommandResult startEditor(@NotNull GameType gameType, @NotNull String configFile) {
