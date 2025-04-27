@@ -93,6 +93,7 @@ public abstract class GameManagerState {
     protected final HubConfig config;
     protected final List<LeaderboardManager> leaderboardManagers;
     protected final Sidebar sidebar;
+    protected final Map<UUID, GameType> participantGames = new HashMap<>();
     
     public GameManagerState(
             @NotNull GameManager context,
@@ -202,8 +203,9 @@ public abstract class GameManagerState {
      * @see GameManager#leaveParticipant(OfflineParticipant)
      */
     public void onParticipantQuit(@NotNull MCTParticipant participant) {
-        if (participant.getCurrentGame() != null) {
-            MCTGame activeGame = activeGames.get(participant.getCurrentGame());
+        GameType gameType = participantGames.get(participant.getUniqueId());
+        if (gameType != null) {
+            MCTGame activeGame = activeGames.get(gameType);
             if (activeGame != null) {
                 activeGame.onParticipantQuit(participant.getUniqueId());
                 activeGame.onTeamQuit(participant.getTeamId());
@@ -833,6 +835,10 @@ public abstract class GameManagerState {
             }
         }
         GameManagerUtils.deColorLeatherArmor(event.getDrops());
+    }
+    
+    public abstract void isParticipantInGame(UUID uuid) {
+        
     }
     
     public void onParticipantRespawn(PlayerRespawnEvent event, MCTParticipant participant) {
