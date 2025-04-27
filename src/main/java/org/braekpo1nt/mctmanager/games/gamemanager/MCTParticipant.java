@@ -11,24 +11,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class MCTParticipant extends Participant {
     
-//    /**
-//     * Indicates whether the participant is in a game or not
-//     */
-//    @Getter
-//    @Setter
-//    private @Nullable GameType currentGame;
-    
     public MCTParticipant(@NotNull OfflineParticipant participant, @NotNull Player player) {
         super(participant, player, participant.getScore());
-//        currentGame = null;
     }
     
     public MCTParticipant(@NotNull MCTParticipant participant, int score) {
         super(participant, score);
-//        currentGame = participant.getCurrentGame();
     }
-    
-//    public boolean isInGame() {
-//        return currentGame != null;
-//    }
 }

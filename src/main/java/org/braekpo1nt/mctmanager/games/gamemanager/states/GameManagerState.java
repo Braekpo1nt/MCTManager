@@ -293,7 +293,7 @@ public abstract class GameManagerState {
     
     public void updateSidebarPersonal(Collection<MCTParticipant> mctParticipants) {
         for (MCTParticipant participant : mctParticipants) {
-            if (!participant.isInGame()) {
+            if (!isParticipantInGame(participant)) {
                 sidebar.updateLine(participant.getUniqueId(), "personalScore",
                         Component.empty()
                                 .append(Component.text("Personal: "))
@@ -365,7 +365,7 @@ public abstract class GameManagerState {
         for (MCTParticipant participant : gameParticipants) {
             tabList.hidePlayer(participant);
             sidebar.removePlayer(participant);
-            participant.setCurrentGame(gameType);
+            participantGames.put(participant.getUniqueId(), gameType);
             Main.logf("Setting participant game type to %s", gameType);
         }
         
@@ -380,7 +380,7 @@ public abstract class GameManagerState {
                             onlineAdmins));
         } catch (ConfigException e) {
             for (MCTParticipant participant : gameParticipants) {
-                participant.setCurrentGame(null);
+                participantGames.remove(participant.getUniqueId());
                 tabList.showPlayer(participant);
                 sidebar.addPlayer(participant);
             }
@@ -445,7 +445,7 @@ public abstract class GameManagerState {
     }
     
     protected void onParticipantReturnToHub(@NotNull MCTParticipant participant) {
-        participant.setCurrentGame(null);
+        participantGames.remove(participant.getUniqueId());
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -702,7 +702,7 @@ public abstract class GameManagerState {
     }
     
     public CommandResult joinParticipantToGame(@NotNull GameType gameType, @NotNull MCTParticipant participant) {
-        if (participant.getCurrentGame() != null) {
+        if (isParticipantInGame(participant)) {
             return CommandResult.failure(Component.text("Already in a game"));
         }
         MCTGame activeGame = activeGames.get(gameType);
@@ -712,7 +712,7 @@ public abstract class GameManagerState {
                     .append(Component.text(gameType.getTitle()))
                     .append(Component.text(" game is active right now")));
         }
-        participant.setCurrentGame(gameType);
+        participantGames.put(participant.getUniqueId(), gameType);
         tabList.hidePlayer(participant);
         sidebar.removePlayer(participant);
         activeGame.onTeamJoin(teams.get(participant.getTeamId()));
@@ -723,11 +723,12 @@ public abstract class GameManagerState {
     }
     
     public CommandResult returnParticipantToHub(@NotNull MCTParticipant participant) {
-        if (participant.getCurrentGame() == null) {
+        GameType gameType = participantGames.get(participant.getUniqueId());
+        if (gameType == null) {
             participant.teleport(config.getSpawn());
             return CommandResult.success(Component.text("Returning to hub"));
         }
-        MCTGame activeGame = activeGames.get(participant.getCurrentGame());
+        MCTGame activeGame = activeGames.get(gameType);
         if (activeGame == null) { 
             // this should not happen
             participant.teleport(config.getSpawn());
@@ -837,19 +838,23 @@ public abstract class GameManagerState {
         GameManagerUtils.deColorLeatherArmor(event.getDrops());
     }
     
-    public abstract void isParticipantInGame(UUID uuid) {
-        
+    public boolean isParticipantInGame(Participant participant) {
+        return isParticipantInGame(participant.getUniqueId());
+    }
+    
+    public boolean isParticipantInGame(UUID uuid) {
+        return participantGames.containsKey(uuid);
     }
     
     public void onParticipantRespawn(PlayerRespawnEvent event, MCTParticipant participant) {
-        if (participant.isInGame()) {
+        if (isParticipantInGame(participant)) {
             return;
         }
         event.setRespawnLocation(config.getSpawn());
     }
     
     public void onParticipantDamage(@NotNull EntityDamageEvent event, MCTParticipant participant) {
-        if (participant.isInGame()) {
+        if (isParticipantInGame(participant)) {
             return;
         }
         Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "GameManagerState.onParticipantDamage()->participant is in hub cancelled");
@@ -857,7 +862,7 @@ public abstract class GameManagerState {
     }
     
     public void onParticipantInteract(@NotNull PlayerInteractEvent event, MCTParticipant participant) {
-        if (participant.isInGame()) {
+        if (isParticipantInGame(participant)) {
             return;
         }
         Block clickedBlock = event.getClickedBlock();
@@ -880,7 +885,7 @@ public abstract class GameManagerState {
     }
     
     public void onParticipantFoodLevelChange(@NotNull FoodLevelChangeEvent event, MCTParticipant participant) {
-        if (participant.isInGame()) {
+        if (isParticipantInGame(participant)) {
             return;
         }
         participant.setFoodLevel(20);
@@ -888,7 +893,7 @@ public abstract class GameManagerState {
     }
     
     public void onParticipantMove(@NotNull PlayerMoveEvent event, MCTParticipant participant) {
-        if (participant.isInGame()) {
+        if (isParticipantInGame(participant)) {
             return;
         }
         Location location = participant.getLocation();
