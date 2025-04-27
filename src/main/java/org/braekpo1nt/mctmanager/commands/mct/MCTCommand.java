@@ -33,7 +33,7 @@ public class MCTCommand extends MasterCommandManager {
     
     public MCTCommand(@NotNull Main plugin, @NotNull GameManager gameManager, BlockEffectsListener blockEffectsListener) {
         super(plugin, "mct");
-        addSubCommand(new GameCommand(gameManager));
+        addSubCommand(new GameCommand(plugin, gameManager));
         addSubCommand(new EditCommand(gameManager, "edit"));
         addSubCommand(new HubCommand(gameManager, "hub"));
         addSubCommand(new OptionSubCommand(blockEffectsListener, "option"));
