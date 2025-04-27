@@ -93,6 +93,9 @@ public abstract class GameManagerState {
     protected final HubConfig config;
     protected final List<LeaderboardManager> leaderboardManagers;
     protected final Sidebar sidebar;
+    /**
+     * A reference to which participant is in which game
+     */
     protected final Map<UUID, GameType> participantGames = new HashMap<>();
     
     public GameManagerState(
@@ -210,6 +213,9 @@ public abstract class GameManagerState {
                 activeGame.onParticipantQuit(participant.getUniqueId());
                 activeGame.onTeamQuit(participant.getTeamId());
             }
+            participantGames.remove(participant.getUniqueId());
+            tabList.showPlayer(participant);
+            sidebar.addPlayer(participant);
         }
         MCTTeam team = teams.get(participant.getTeamId());
         team.quitOnlineMember(participant.getUniqueId());
