@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.commands.mct;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.MasterCommandManager;
 import org.braekpo1nt.mctmanager.commands.manager.SubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.Usage;
@@ -33,8 +34,9 @@ public class MCTCommand extends MasterCommandManager {
     
     public MCTCommand(@NotNull Main plugin, @NotNull GameManager gameManager, BlockEffectsListener blockEffectsListener) {
         super(plugin, "mct");
+        CommandUtils.refreshGameConfigs(plugin);
         addSubCommand(new GameCommand(plugin, gameManager));
-        addSubCommand(new EditCommand(gameManager, "edit"));
+        addSubCommand(new EditCommand(plugin, gameManager, "edit"));
         addSubCommand(new HubCommand(gameManager, "hub"));
         addSubCommand(new OptionSubCommand(blockEffectsListener, "option"));
         addSubCommand(new ModeCommand(gameManager, "mode"));

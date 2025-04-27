@@ -604,6 +604,16 @@ public class GameManager implements Listener {
         return activeEditor != null;
     }
     
+    /**
+     * @return the type of the active editor, or null if no editor is active
+     */
+    public @Nullable GameType getEditorType() {
+        if (activeEditor == null) {
+            return null;
+        }
+        return activeEditor.getType();
+    }
+    
     public CommandResult validateEditor(@NotNull String configFile) {
         if (!editorIsRunning()) {
             return CommandResult.failure(Component.text("No editor is running."));

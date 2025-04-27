@@ -66,7 +66,7 @@ public class StartSubCommand extends TabSubCommand {
             String gameID = args[0];
             return CommandUtils.partialMatchTabList(
                     CommandUtils.getGameConfigs(gameID),
-                    gameID
+                    args[1]
             );
         }
         if (args.length > 2) {

@@ -2,22 +2,27 @@ package org.braekpo1nt.mctmanager.commands.mct.edit;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
-import org.braekpo1nt.mctmanager.commands.manager.SubCommand;
+import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
+import java.util.List;
+
 public class EditCommand extends CommandManager {
     
-    public EditCommand(GameManager gameManager, @NotNull String name) {
+    public EditCommand(Main plugin, GameManager gameManager, @NotNull String name) {
         super(name);
         addSubCommand(new StartSubCommand(gameManager, "start"));
         addSubCommand(new StopSubCommand(gameManager, "stop"));
-        addSubCommand(new SubCommand("validate") {
+        addSubCommand(new TabSubCommand("validate") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
                 if (args.length != 1) {
@@ -29,8 +34,23 @@ public class EditCommand extends CommandManager {
                 String configFile = args[0];
                 return gameManager.validateEditor(configFile);
             }
+            
+            @Override
+            public @NotNull List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+                if (args.length == 1) {
+                    GameType gameType = gameManager.getEditorType();
+                    if (gameType == null) {
+                        return Collections.emptyList();
+                    }
+                    return CommandUtils.partialMatchTabList(
+                            CommandUtils.getGameConfigs(gameType.getId()),
+                            args[0]
+                    );
+                }
+                return Collections.emptyList();
+            }
         });
-        addSubCommand(new SubCommand("save") {
+        addSubCommand(new TabSubCommand("save") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
                 if (args.length < 1 || args.length > 2) {
@@ -55,10 +75,30 @@ public class EditCommand extends CommandManager {
                     force = forceBoolean;
                 }
                 
-                return gameManager.saveEditor(configFile, force);
+                CommandResult result = gameManager.saveEditor(configFile, force);
+                CommandUtils.refreshGameConfigs(plugin);
+                return result;
+            }
+            
+            @Override
+            public @NotNull List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+                if (args.length == 1) {
+                    GameType gameType = gameManager.getEditorType();
+                    if (gameType == null) {
+                        return Collections.emptyList();
+                    }
+                    return CommandUtils.partialMatchTabList(
+                            CommandUtils.getGameConfigs(gameType.getId()),
+                            args[0]
+                    );
+                }
+                if (args.length == 2) {
+                    return List.of("true", "false");
+                }
+                return Collections.emptyList();
             }
         });
-        addSubCommand(new SubCommand("load") {
+        addSubCommand(new TabSubCommand("load") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
                 if (args.length != 1) {
@@ -70,7 +110,23 @@ public class EditCommand extends CommandManager {
                 
                 String configFile = args[0];
                 
+                CommandUtils.refreshGameConfigs(plugin);
                 return gameManager.loadEditor(configFile);
+            }
+            
+            @Override
+            public @NotNull List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+                if (args.length == 1) {
+                    GameType gameType = gameManager.getEditorType();
+                    if (gameType == null) {
+                        return Collections.emptyList();
+                    }
+                    return CommandUtils.partialMatchTabList(
+                            CommandUtils.getGameConfigs(gameType.getId()),
+                            args[0]
+                    );
+                }
+                return Collections.emptyList();
             }
         });
     }
