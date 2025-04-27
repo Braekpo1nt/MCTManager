@@ -20,7 +20,7 @@ public class EditCommand extends CommandManager {
     
     public EditCommand(Main plugin, GameManager gameManager, @NotNull String name) {
         super(name);
-        addSubCommand(new StartSubCommand(gameManager, "start"));
+        addSubCommand(new StartSubCommand(plugin, gameManager, "start"));
         addSubCommand(new StopSubCommand(gameManager, "stop"));
         addSubCommand(new TabSubCommand("validate") {
             @Override
