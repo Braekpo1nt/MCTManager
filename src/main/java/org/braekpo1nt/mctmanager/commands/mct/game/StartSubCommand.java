@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.commands.mct.game;
 
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
@@ -19,9 +20,11 @@ import java.util.*;
 public class StartSubCommand extends TabSubCommand {
     
     private final GameManager gameManager;
+    private final Main plugin;
     
-    public StartSubCommand(GameManager gameManager, String name) {
+    public StartSubCommand(Main plugin, GameManager gameManager, String name) {
         super(name);
+        this.plugin = plugin;
         this.gameManager = gameManager;
     }
     
@@ -43,6 +46,7 @@ public class StartSubCommand extends TabSubCommand {
         } else {
             configFile = "default.json";
         }
+        CommandUtils.refreshGameConfigs(plugin);
         
         if (args.length > 2) {
             Set<String> teamIds = new HashSet<>(Arrays.asList(args).subList(2, args.length));
@@ -57,6 +61,13 @@ public class StartSubCommand extends TabSubCommand {
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
             return GameType.GAME_IDS.keySet().stream().sorted().toList();
+        }
+        if (args.length == 2) {
+            String gameID = args[0];
+            return CommandUtils.partialMatchTabList(
+                    CommandUtils.getGameConfigs(gameID),
+                    gameID
+            );
         }
         if (args.length > 2) {
             return CommandUtils.partialMatchTabList(gameManager.getTeamIds(), args[args.length - 1]);

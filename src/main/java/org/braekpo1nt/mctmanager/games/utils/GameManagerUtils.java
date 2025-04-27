@@ -13,10 +13,8 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
-import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.Color;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -42,25 +40,6 @@ public class GameManagerUtils {
     public final static Set<EntityDamageEvent.DamageCause> EXCLUDED_DAMAGE_CAUSES = Set.of(
             EntityDamageEvent.DamageCause.VOID,
             EntityDamageEvent.DamageCause.KILL
-    );
-    
-    public static final List<Material> SIGNS = List.of(
-            Material.OAK_SIGN,
-            Material.SPRUCE_SIGN,
-            Material.BIRCH_SIGN,
-            Material.JUNGLE_SIGN,
-            Material.ACACIA_SIGN,
-            Material.DARK_OAK_SIGN,
-            Material.CRIMSON_SIGN,
-            Material.WARPED_SIGN,
-            Material.OAK_WALL_SIGN,
-            Material.SPRUCE_WALL_SIGN,
-            Material.BIRCH_WALL_SIGN,
-            Material.JUNGLE_WALL_SIGN,
-            Material.ACACIA_WALL_SIGN,
-            Material.DARK_OAK_WALL_SIGN,
-            Material.CRIMSON_WALL_SIGN,
-            Material.WARPED_WALL_SIGN
     );
     
     /**

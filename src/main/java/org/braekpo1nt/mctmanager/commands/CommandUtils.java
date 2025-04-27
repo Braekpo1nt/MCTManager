@@ -1,12 +1,16 @@
 package org.braekpo1nt.mctmanager.commands;
 
+import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.List;
+import java.io.File;
+import java.util.*;
 
 public class CommandUtils {
+    
+    private static final Map<String, List<String>> GAME_CONFIGS = new HashMap<>();
     
     /**
      * @param value the string to check if it is an integer
@@ -75,5 +79,38 @@ public class CommandUtils {
         }
         String lowerCasePartial = partial.toLowerCase();
         return list.stream().filter(s -> s.toLowerCase().startsWith(lowerCasePartial)).toList();
+    }
+    
+    /**
+     * List the config files in the directory for the given gameID
+     * @param gameID the gameID to get the configs for
+     * @return the configs associated with that gameID, or an empty list
+     * if none are found
+     */
+    public static @NotNull List<String> getGameConfigs(@NotNull String gameID) {
+        return GAME_CONFIGS.getOrDefault(gameID, Collections.emptyList());
+    }
+    
+    /**
+     * Searches the plugin's data folder asynchronously to store
+     * references to each game's config folder and the json config
+     * files contained within, enabling cheap tab completion.
+     * @param plugin enables asynchronous file IO
+     */
+    public static void refreshGameConfigs(Main plugin) {
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            for (String gameID : GameType.GAME_IDS.keySet()) {
+                File configDir = new File(plugin.getDataFolder(), gameID);
+                if (configDir.isDirectory()) {
+                    File[] jsonFiles = configDir.listFiles(file ->
+                            file.isFile() && file.getName().endsWith(".json"));
+                    if (jsonFiles != null) {
+                        GAME_CONFIGS.put(gameID, Arrays.stream(jsonFiles)
+                                .map(File::getName)
+                                .toList());
+                    }
+                }
+            }
+        });
     }
 }

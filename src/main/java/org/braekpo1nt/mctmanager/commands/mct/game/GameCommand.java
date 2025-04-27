@@ -7,7 +7,7 @@ public class GameCommand extends CommandManager {
     
     public GameCommand(GameManager gameManager) {
         super("game");
-        addSubCommand(new StartSubCommand(gameManager, "start"));
+        addSubCommand(new StartSubCommand(plugin, gameManager, "start"));
         addSubCommand(new StopSubCommand(gameManager, "stop"));
         addSubCommand(new JoinSubCommand(gameManager, "join"));
     }
