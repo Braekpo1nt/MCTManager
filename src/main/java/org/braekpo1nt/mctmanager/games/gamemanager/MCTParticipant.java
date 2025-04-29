@@ -1,13 +1,9 @@
 package org.braekpo1nt.mctmanager.games.gamemanager;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class MCTParticipant extends Participant {
     

@@ -102,7 +102,7 @@ public class EventState extends GameManagerState {
     // event handlers start
     @Override
     public void onParticipantInventoryClick(@NotNull InventoryClickEvent event, MCTParticipant participant) {
-        if (participant.isInGame()) {
+        if (isParticipantInGame(participant)) {
             return;
         }
         if (event.getClickedInventory() == null) {
@@ -116,7 +116,7 @@ public class EventState extends GameManagerState {
     
     @Override
     public void onParticipantDropItem(@NotNull PlayerDropItemEvent event, MCTParticipant participant) {
-        if (participant.isInGame()) {
+        if (isParticipantInGame(participant)) {
             return;
         }
         event.setCancelled(true);
