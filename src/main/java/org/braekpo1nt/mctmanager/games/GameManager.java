@@ -399,9 +399,6 @@ public class GameManager implements Listener {
             return false;
         }
         gameStateStorageUtil.setupScoreboard(mctScoreboard, plugin.getServer());
-        // sidebar start
-        state.deleteTeamLines();
-        // sidebar end
         teams.clear();
         allParticipants.clear();
         onlineParticipants.clear();
@@ -442,10 +439,6 @@ public class GameManager implements Listener {
         }
         // TabList stop
         
-        // sidebar start
-        state.addTeamLines();
-        // sidebar stop
-        
         // Log on all online admins and participants
         for (Player player : onlinePlayers.values()) {
             if (isAdmin(player.getUniqueId())) {
@@ -457,6 +450,11 @@ public class GameManager implements Listener {
                 state.onParticipantJoin(participant);
             }
         }
+        
+        // sidebar start
+        state.updateSidebarTeamScores();
+        state.updateSidebarPersonalScores(onlineParticipants.values());
+        // sidebar stop
         return true;
     }
     
@@ -762,173 +760,20 @@ public class GameManager implements Listener {
      * @param gameType             the type of the game
      */
     public void addScores(Map<String, Integer> newTeamScores, Map<UUID, Integer> newParticipantScores, GameType gameType) {
-        // some values might be from offline teams who have been removed, but still saved as QuitData
         Map<String, Integer> teamScores = newTeamScores.entrySet().stream()
                 .filter(e -> teams.containsKey(e.getKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         Map<UUID, Integer> participantScores = newParticipantScores.entrySet().stream()
                 .filter(e -> allParticipants.containsKey(e.getKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        for (Map.Entry<String, Integer> entry : teamScores.entrySet()) {
-            String teamId = entry.getKey();
-            int newScore = entry.getValue();
-            MCTTeam team = teams.get(teamId);
-            teams.put(teamId, new MCTTeam(team, team.getScore() + newScore));
-        }
-        for (Map.Entry<UUID, Integer> entry : participantScores.entrySet()) {
-            UUID uuid = entry.getKey();
-            int newScore = entry.getValue();
-            OfflineParticipant offlineParticipant = allParticipants.get(uuid);
-            allParticipants.put(uuid, new OfflineParticipant(offlineParticipant, 
-                    offlineParticipant.getScore() + newScore));
-            MCTParticipant participant = onlineParticipants.get(uuid);
-            if (participant != null) {
-                onlineParticipants.put(uuid, new MCTParticipant(participant, 
-                        participant.getScore() + newScore));
-            }
-        }
-        try {
-            gameStateStorageUtil.updateScores(teams.values(), allParticipants.values());
-            if (plugin.isEnabled()) {
-                plugin.getServer().getScheduler().runTaskAsynchronously(plugin, gameStateStorageUtil::saveGameState);
-            } else {
-                gameStateStorageUtil.saveGameState();
-            }
-        } catch (ConfigIOException e) {
-            reportGameStateException("updating scores", e);
-        }
-        if (eventManager.eventIsActive()) {
-            eventManager.trackScores(teamScores, participantScores, gameType);
-        }
-        state.updateScoreVisuals(teams.values(), onlineParticipants.values());
-        displayStats(teamScores, participantScores);
-    }
-    
-    private void displayStats(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores) {
-        List<MCTTeam> sortedTeams = teamScores.keySet().stream()
-                .map(teams::get)
-                .filter(t -> teamScores.containsKey(t.getTeamId()))
-                .sorted(Comparator.comparing(
-                        t -> teamScores.get(t.getTeamId()), 
-                        Comparator.reverseOrder()))
-                .toList();
-        List<OfflineParticipant> sortedParticipants = participantScores.keySet().stream()
-                .map(allParticipants::get)
-                .filter(p -> participantScores.containsKey(p.getUniqueId()))
-                .sorted(Comparator.comparing(
-                        p -> participantScores.get(p.getUniqueId()),
-                        Comparator.reverseOrder()))
-                .toList();
-        
-        TextComponent.Builder everyone = Component.text();
-        everyone.append(
-                Component.empty()
-                        .append(Component.text("["))
-                        .append(Component.text(getMultiplier()))
-                        .append(Component.text(" Multiplier]\n"))
-                        .color(NamedTextColor.GRAY)
-        );
-        everyone.append(Component.text("Top 5 Teams:"))
-                .append(Component.newline());
-        for (int i = 0; i < Math.min(sortedTeams.size(), 5); i++) {
-            MCTTeam team = sortedTeams.get(i);
-            everyone
-                    .append(Component.text("  "))
-                    .append(Component.text(i+1))
-                    .append(Component.text(". "))
-                    .append(team.getFormattedDisplayName())
-                    .append(Component.text(": "))
-                    .append(Component.text(teamScores.get(team.getTeamId()))
-                            .color(NamedTextColor.GOLD))
-                    .append(Component.newline());
-        }
-        everyone.append(Component.text("\nTop 5 Participants:"))
-                .append(Component.newline());
-        for (int i = 0; i < Math.min(sortedParticipants.size(), 5); i++) {
-            OfflineParticipant participant = sortedParticipants.get(i);
-            everyone
-                    .append(Component.text("  "))
-                    .append(Component.text(i+1))
-                    .append(Component.text(". "))
-                    .append(participant.displayName())
-                    .append(Component.text(": "))
-                    .append(Component.text(participantScores.get(participant.getUniqueId()))
-                            .color(NamedTextColor.GOLD))
-                    .append(Component.text(" ("))
-                    .append(Component.text((int) (participantScores.get(participant.getUniqueId()) / getMultiplier()))
-                            .color(NamedTextColor.GOLD))
-                    .append(Component.text(" x "))
-                    .append(Component.text(getMultiplier()))
-                    .append(Component.text(")"))
-                    .append(Component.newline());
-        }
-        Audience.audience(
-                Audience.audience(sortedTeams),
-                Audience.audience(onlineAdmins),
-                plugin.getServer().getConsoleSender()
-        ).sendMessage(everyone.build());
-        
-        for (MCTTeam team : sortedTeams) {
-            TextComponent.Builder message = Component.text();
-            message
-                    .append(team.getFormattedDisplayName())
-                    .append(Component.text(": "))
-                    .append(Component.text(teamScores.get(team.getTeamId()))
-                            .color(NamedTextColor.GOLD))
-                    .append(Component.newline());
-            int i = 1;
-            for (OfflineParticipant participant : sortedParticipants) {
-                if (participant.getTeamId().equals(team.getTeamId())) {
-                    message
-                            .append(Component.text("  "))
-                            .append(Component.text(i))
-                            .append(Component.text(". "))
-                            .append(participant.displayName())
-                            .append(Component.text(": "))
-                            .append(Component.text(participantScores.get(participant.getUniqueId()))
-                                    .color(NamedTextColor.GOLD))
-                            .append(Component.text(" ("))
-                            .append(Component.text((int) (participantScores.get(participant.getUniqueId()) / getMultiplier()))
-                                    .color(NamedTextColor.GOLD))
-                            .append(Component.text(" x "))
-                            .append(Component.text(getMultiplier()))
-                            .append(Component.text(")"))
-                            .append(Component.newline());
-                    i++;
-                }
-            }
-            team.sendMessage(message.build());
-        }
-        
-        for (OfflineParticipant offlineParticipant : sortedParticipants) {
-            Participant participant = onlineParticipants.get(offlineParticipant.getUniqueId());
-            if (participant != null) {
-                participant.sendMessage(
-                        Component.empty()
-                                .append(Component.text("Personal")
-                                        .color(NamedTextColor.GOLD))
-                                .append(Component.text(": "))
-                                .append(Component.text(participantScores.get(offlineParticipant.getUniqueId()))
-                                        .color(NamedTextColor.GOLD))
-                                .append(Component.text(" ("))
-                                .append(Component.text((int) (participantScores.get(offlineParticipant.getUniqueId()) / getMultiplier()))
-                                        .color(NamedTextColor.GOLD))
-                                .append(Component.text(" x "))
-                                .append(Component.text(getMultiplier()))
-                                .append(Component.text(")"))
-                );
-            }
-        }
+        state.addScores(teamScores, participantScores, gameType);
     }
     
     /**
      * @return the event manager's point multiplier, if there is a match going on. 1.0 otherwise.
      */
     public double getMultiplier() {
-        if (!eventManager.eventIsActive()) {
-            return 1.0;
-        }
-        return eventManager.matchProgressPointMultiplier();
+        return state.getMultiplier();
     }
     
     /**

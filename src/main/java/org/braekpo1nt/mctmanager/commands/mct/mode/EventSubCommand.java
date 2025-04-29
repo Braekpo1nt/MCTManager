@@ -7,17 +7,16 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
-public class MaintenanceSubCommand extends SubCommand {
+public class EventSubCommand extends SubCommand {
     private final GameManager gameManager;
     
-    public MaintenanceSubCommand(@NotNull GameManager gameManager, @NotNull String name) {
+    public EventSubCommand(@NotNull GameManager gameManager, @NotNull String name) {
         super(name);
         this.gameManager = gameManager;
     }
     
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        
-        return gameManager.switchMode("maintenance");
+        return gameManager.switchMode("event");
     }
 }

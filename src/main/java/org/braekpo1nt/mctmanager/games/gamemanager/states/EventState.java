@@ -30,6 +30,7 @@ public class EventState extends GameManagerState {
         super(context, contextReference);
         this.eventConfig = eventConfig;
         this.eventManager = context.getEventManager();
+        this.sidebar.updateTitle(eventConfig.getTitle());
     }
     
     @Override
@@ -53,11 +54,6 @@ public class EventState extends GameManagerState {
                         .append(Component.text(" is not a valid mode")));
             }
         }
-    }
-    
-    @Override
-    protected void setupSidebar() {
-        
     }
     
     @Override
@@ -88,6 +84,12 @@ public class EventState extends GameManagerState {
     public void gameIsOver(@NotNull GameType gameType, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants) {
         super.gameIsOver(gameType, teamScores, participantScores, gameParticipants);
         eventManager.gameIsOver(gameType);
+    }
+    
+    @Override
+    public void addScores(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, GameType gameType) {
+        super.addScores(teamScores, participantScores, gameType);
+        eventManager.trackScores(teamScores, participantScores, gameType);
     }
     
     @Override
@@ -122,4 +124,9 @@ public class EventState extends GameManagerState {
         event.setCancelled(true);
     }
     // event handlers stop
+    
+    @Override
+    public double getMultiplier() {
+        return eventManager.matchProgressPointMultiplier();
+    }
 }

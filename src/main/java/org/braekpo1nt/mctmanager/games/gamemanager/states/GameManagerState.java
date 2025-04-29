@@ -1,6 +1,8 @@
 package org.braekpo1nt.mctmanager.games.gamemanager.states;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -235,9 +237,9 @@ public abstract class GameManagerState {
     // ui start
     public void updateScoreVisuals(Collection<MCTTeam> mctTeams, Collection<MCTParticipant> mctParticipants) {
         if (!mctTeams.isEmpty()) {
-            updateSidebarTeamOrder();
+            updateSidebarTeamScores();
         }
-        updateSidebarPersonal(mctParticipants);
+        updateSidebarPersonalScores(mctParticipants);
         tabList.setScores(mctTeams);
         context.updateLeaderboards();
     }
@@ -250,54 +252,53 @@ public abstract class GameManagerState {
     }
     
     /**
-     * Remove existing lines and add 
+     * Set up the sidebar for this state. Called once in the constructor.
      */
     protected void setupSidebar() {
         sidebar.deleteAllLines();
-        sidebar.addLine("personalScore", Component.empty());
-        addTeamLines();
+        sidebar.updateTitle(Sidebar.DEFAULT_TITLE);
+        sidebar.addLines(
+                new KeyLine("team0", Component.empty()),
+                new KeyLine("team1", Component.empty()),
+                new KeyLine("team2", Component.empty()),
+                new KeyLine("team3", Component.empty()),
+                new KeyLine("team4", Component.empty()),
+                new KeyLine("team5", Component.empty()),
+                new KeyLine("team6", Component.empty()),
+                new KeyLine("team7", Component.empty()),
+                new KeyLine("team8", Component.empty()),
+                new KeyLine("team9", Component.empty()),
+                new KeyLine("personalScore", Component.empty())
+        );
+        updateSidebarTeamScores();
+        updateSidebarPersonalScores(onlineParticipants.values());
     }
     
     /**
-     * Takes the existing team score lines in the sidebar,
-     * and reorders them according to score
+     * Reorders the team lines in the sidebar from highest to lowest
+     * score, up to 10
      */
-    protected void updateSidebarTeamOrder() {
-        deleteTeamLines();
-        addTeamLines();
-    }
-    
-    /**
-     * Deletes the lines for each team from the sidebar. 
-     * Note: If this is called twice in a row, or after removing the team lines,
-     * it will cause UI errors.
-     */
-    public void deleteTeamLines() {
-        sidebar.deleteLines(teams.values().stream().map(Team::getTeamId).toArray(String[]::new));
-    }
-    
-    /**
-     * Adds the lines for each team to the sidebar in order from highest to lowest
-     * score, starting at the top of the sidebar (index 0).<br>
-     * Note: If this is run twice in a row, or before the existing team lines are
-     * removed, it will cause UI errors. 
-     */
-    public void addTeamLines() {
+    public void updateSidebarTeamScores() {
         List<Team> sortedTeams = context.getSortedTeams();
-        KeyLine[] teamLines = new KeyLine[sortedTeams.size()];
-        for (int i = 0; i < sortedTeams.size(); i++) {
+        int numOfTeamLines = Math.min(10, sortedTeams.size());
+        KeyLine[] teamLines = new KeyLine[numOfTeamLines];
+        for (int i = 0; i < numOfTeamLines; i++) {
             Team team = sortedTeams.get(i);
-            teamLines[i] = new KeyLine(team.getTeamId(), Component.empty()
+            teamLines[i] = new KeyLine("team"+i, Component.empty()
                     .append(team.getFormattedDisplayName())
                     .append(Component.text(": "))
                     .append(Component.text(team.getScore())
                             .color(NamedTextColor.GOLD))
             );
         }
-        sidebar.addLines(0, teamLines);
+        sidebar.updateLines(teamLines);
     }
     
-    public void updateSidebarPersonal(Collection<MCTParticipant> mctParticipants) {
+    /**
+     * Updates the sidebars of the given participants, unless they are in a game
+     * @param mctParticipants the participants to update the sidebars of
+     */
+    public void updateSidebarPersonalScores(Collection<MCTParticipant> mctParticipants) {
         for (MCTParticipant participant : mctParticipants) {
             if (!isParticipantInGame(participant)) {
                 sidebar.updateLine(participant.getUniqueId(), "personalScore",
@@ -305,6 +306,123 @@ public abstract class GameManagerState {
                                 .append(Component.text("Personal: "))
                                 .append(Component.text(participant.getScore()))
                                 .color(NamedTextColor.GOLD));
+            }
+        }
+    }
+    
+    protected void displayStats(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores) {
+        List<MCTTeam> sortedTeams = teamScores.keySet().stream()
+                .map(teams::get)
+                .filter(t -> teamScores.containsKey(t.getTeamId()))
+                .sorted(Comparator.comparing(
+                        t -> teamScores.get(t.getTeamId()),
+                        Comparator.reverseOrder()))
+                .toList();
+        List<OfflineParticipant> sortedParticipants = participantScores.keySet().stream()
+                .map(allParticipants::get)
+                .filter(p -> participantScores.containsKey(p.getUniqueId()))
+                .sorted(Comparator.comparing(
+                        p -> participantScores.get(p.getUniqueId()),
+                        Comparator.reverseOrder()))
+                .toList();
+        
+        TextComponent.Builder everyone = Component.text();
+        everyone.append(
+                Component.empty()
+                        .append(Component.text("["))
+                        .append(Component.text(getMultiplier()))
+                        .append(Component.text(" Multiplier]\n"))
+                        .color(NamedTextColor.GRAY)
+        );
+        everyone.append(Component.text("Top 5 Teams:"))
+                .append(Component.newline());
+        for (int i = 0; i < Math.min(sortedTeams.size(), 5); i++) {
+            MCTTeam team = sortedTeams.get(i);
+            everyone
+                    .append(Component.text("  "))
+                    .append(Component.text(i+1))
+                    .append(Component.text(". "))
+                    .append(team.getFormattedDisplayName())
+                    .append(Component.text(": "))
+                    .append(Component.text(teamScores.get(team.getTeamId()))
+                            .color(NamedTextColor.GOLD))
+                    .append(Component.newline());
+        }
+        everyone.append(Component.text("\nTop 5 Participants:"))
+                .append(Component.newline());
+        for (int i = 0; i < Math.min(sortedParticipants.size(), 5); i++) {
+            OfflineParticipant participant = sortedParticipants.get(i);
+            everyone
+                    .append(Component.text("  "))
+                    .append(Component.text(i+1))
+                    .append(Component.text(". "))
+                    .append(participant.displayName())
+                    .append(Component.text(": "))
+                    .append(Component.text(participantScores.get(participant.getUniqueId()))
+                            .color(NamedTextColor.GOLD))
+                    .append(Component.text(" ("))
+                    .append(Component.text((int) (participantScores.get(participant.getUniqueId()) / getMultiplier()))
+                            .color(NamedTextColor.GOLD))
+                    .append(Component.text(" x "))
+                    .append(Component.text(getMultiplier()))
+                    .append(Component.text(")"))
+                    .append(Component.newline());
+        }
+        Audience.audience(
+                Audience.audience(sortedTeams),
+                Audience.audience(onlineAdmins),
+                plugin.getServer().getConsoleSender()
+        ).sendMessage(everyone.build());
+        
+        for (MCTTeam team : sortedTeams) {
+            TextComponent.Builder message = Component.text();
+            message
+                    .append(team.getFormattedDisplayName())
+                    .append(Component.text(": "))
+                    .append(Component.text(teamScores.get(team.getTeamId()))
+                            .color(NamedTextColor.GOLD))
+                    .append(Component.newline());
+            int i = 1;
+            for (OfflineParticipant participant : sortedParticipants) {
+                if (participant.getTeamId().equals(team.getTeamId())) {
+                    message
+                            .append(Component.text("  "))
+                            .append(Component.text(i))
+                            .append(Component.text(". "))
+                            .append(participant.displayName())
+                            .append(Component.text(": "))
+                            .append(Component.text(participantScores.get(participant.getUniqueId()))
+                                    .color(NamedTextColor.GOLD))
+                            .append(Component.text(" ("))
+                            .append(Component.text((int) (participantScores.get(participant.getUniqueId()) / getMultiplier()))
+                                    .color(NamedTextColor.GOLD))
+                            .append(Component.text(" x "))
+                            .append(Component.text(getMultiplier()))
+                            .append(Component.text(")"))
+                            .append(Component.newline());
+                    i++;
+                }
+            }
+            team.sendMessage(message.build());
+        }
+        
+        for (OfflineParticipant offlineParticipant : sortedParticipants) {
+            Participant participant = onlineParticipants.get(offlineParticipant.getUniqueId());
+            if (participant != null) {
+                participant.sendMessage(
+                        Component.empty()
+                                .append(Component.text("Personal")
+                                        .color(NamedTextColor.GOLD))
+                                .append(Component.text(": "))
+                                .append(Component.text(participantScores.get(offlineParticipant.getUniqueId()))
+                                        .color(NamedTextColor.GOLD))
+                                .append(Component.text(" ("))
+                                .append(Component.text((int) (participantScores.get(offlineParticipant.getUniqueId()) / getMultiplier()))
+                                        .color(NamedTextColor.GOLD))
+                                .append(Component.text(" x "))
+                                .append(Component.text(getMultiplier()))
+                                .append(Component.text(")"))
+                );
             }
         }
     }
@@ -448,6 +566,49 @@ public abstract class GameManagerState {
             participant.sendMessage(Component.text("Returning to hub"));
         }
         context.addScores(teamScores, participantScores, gameType);
+    }
+    
+    /**
+     * Add the given scores to the given teams and participants, save the game state, update
+     * the UI, etc. <br>
+     * If any invalid teamIds or UUIDs are used, there will be errors 
+     *
+     * @param teamScores        map of teamId to score to add. Must be teamIds of real teams
+     * @param participantScores map of UUID to score to add. Must be UUIDs of real participants
+     * @param gameType          the type of the game
+     */
+    public void addScores(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, GameType gameType) {
+        // some values might be from offline teams who have been removed, but still saved as QuitData
+        for (Map.Entry<String, Integer> entry : teamScores.entrySet()) {
+            String teamId = entry.getKey();
+            int newScore = entry.getValue();
+            MCTTeam team = teams.get(teamId);
+            teams.put(teamId, new MCTTeam(team, team.getScore() + newScore));
+        }
+        for (Map.Entry<UUID, Integer> entry : participantScores.entrySet()) {
+            UUID uuid = entry.getKey();
+            int newScore = entry.getValue();
+            OfflineParticipant offlineParticipant = allParticipants.get(uuid);
+            allParticipants.put(uuid, new OfflineParticipant(offlineParticipant,
+                    offlineParticipant.getScore() + newScore));
+            MCTParticipant participant = onlineParticipants.get(uuid);
+            if (participant != null) {
+                onlineParticipants.put(uuid, new MCTParticipant(participant,
+                        participant.getScore() + newScore));
+            }
+        }
+        try {
+            gameStateStorageUtil.updateScores(teams.values(), allParticipants.values());
+            if (plugin.isEnabled()) {
+                plugin.getServer().getScheduler().runTaskAsynchronously(plugin, gameStateStorageUtil::saveGameState);
+            } else {
+                gameStateStorageUtil.saveGameState();
+            }
+        } catch (ConfigIOException e) {
+            context.reportGameStateException("updating scores", e);
+        }
+        updateScoreVisuals(teams.values(), onlineParticipants.values());
+        displayStats(teamScores, participantScores);
     }
     
     protected void onParticipantReturnToHub(@NotNull MCTParticipant participant) {
@@ -907,6 +1068,10 @@ public abstract class GameManagerState {
             participant.teleport(config.getSpawn());
             participant.sendMessage("You fell out of the hub boundary");
         }
+    }
+    
+    public double getMultiplier() {
+        return 1.0;
     }
     // event handlers stop
 }

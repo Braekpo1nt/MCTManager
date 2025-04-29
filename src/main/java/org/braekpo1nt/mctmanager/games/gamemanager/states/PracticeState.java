@@ -8,14 +8,23 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.event.config.EventConfigController;
+import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Level;
 
 public class PracticeState extends GameManagerState {
     
     public PracticeState(@NotNull GameManager context, @NotNull ContextReference contextReference) {
         super(context, contextReference);
+        this.sidebar.updateTitle(Component.empty()
+                .append(Sidebar.DEFAULT_TITLE)
+                .append(Component.text(" - "))
+                .append(Component.text("Practice")));
     }
     
     @Override
@@ -47,4 +56,16 @@ public class PracticeState extends GameManagerState {
             }
         }
     }
+    
+    // leave/join start
+    
+    @Override
+    public void onParticipantJoin(@NotNull MCTParticipant participant) {
+        super.onParticipantJoin(participant);
+        participant.teleport(config.getSpawn());
+    }
+    
+    // leave/join stop
+    
+    
 }
