@@ -32,10 +32,8 @@ import java.util.logging.Level;
 public class UIUtils {
     
     private static final Component KILL_PREFIX = Component.empty()
-            .append(Component.text("["))
-            .append(Component.text("k")
+            .append(Component.text(" ⚔ ")
                     .color(NamedTextColor.GREEN))
-            .append(Component.text("] "))
             ;
     private static final Title.Times KILL_TIMES = Title.Times.times(
             Duration.ZERO,
@@ -131,7 +129,8 @@ public class UIUtils {
                 Component.empty(), 
                 Component.empty()
                         .append(KILL_PREFIX)
-                        .append(killed.displayName()),
+                        .append(killed.displayName())
+                        .append(KILL_PREFIX),
                 KILL_TIMES
         ));
     }
