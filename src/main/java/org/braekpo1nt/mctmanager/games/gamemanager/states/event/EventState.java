@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.gamemanager.states;
+package org.braekpo1nt.mctmanager.games.gamemanager.states.event;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -9,6 +9,10 @@ import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
+import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
+import org.braekpo1nt.mctmanager.games.gamemanager.states.GameManagerState;
+import org.braekpo1nt.mctmanager.games.gamemanager.states.MaintenanceState;
+import org.braekpo1nt.mctmanager.games.gamemanager.states.PracticeState;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
