@@ -10,7 +10,6 @@ import org.braekpo1nt.mctmanager.games.event.states.EventState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.utils.LogType;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -95,7 +94,7 @@ public abstract class DelayState implements EventState {
     }
     
     @Override
-    public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
+    public CommandResult setMaxGames(int newMaxGames) {
         sender.sendMessage(Component.text("Can't change the max games during transition period.")
                 .color(NamedTextColor.RED));
     }

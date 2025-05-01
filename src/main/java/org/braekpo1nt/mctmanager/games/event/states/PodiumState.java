@@ -14,7 +14,6 @@ import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.utils.LogType;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -117,8 +116,7 @@ public class PodiumState implements EventState {
     
     @Override
     public CommandResult startEvent(int numberOfGames, int currentGameNumber, @NotNull EventConfig config) {
-        sender.sendMessage(Component.text("An event is already running.")
-                .color(NamedTextColor.RED));
+        return CommandResult.failure(Component.text("An event is already running."));
     }
     
     @Override
@@ -211,8 +209,7 @@ public class PodiumState implements EventState {
     }
     
     @Override
-    public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
-        sender.sendMessage(Component.text("The event is over, can't change the max games.")
-                .color(NamedTextColor.RED));
+    public CommandResult setMaxGames(int newMaxGames) {
+        return CommandResult.failure(Component.text("The event is over, can't change the max games."));
     }
 }

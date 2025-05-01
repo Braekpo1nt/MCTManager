@@ -30,7 +30,7 @@ public interface EventState {
     void onClickInventory(InventoryClickEvent event, Participant participant);
     void onDropItem(PlayerDropItemEvent event, @NotNull Participant participant);
     void gameIsOver(@NotNull GameType finishedGameType);
-    void setMaxGames(@NotNull CommandSender sender, int newMaxGames);
+    CommandResult setMaxGames(int newMaxGames);
     void updatePersonalScores(Collection<Participant> updateParticipants);
     <T extends Team> void updateTeamScores(Collection<T> updateTeams);
     static void reorderTeamLines(List<Team> sortedTeamIds, EventManager context) {

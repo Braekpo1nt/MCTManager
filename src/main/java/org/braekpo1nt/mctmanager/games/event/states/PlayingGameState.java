@@ -15,7 +15,6 @@ import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.utils.LogType;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -147,7 +146,7 @@ public class PlayingGameState implements EventState {
     }
     
     @Override
-    public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
+    public CommandResult setMaxGames(int newMaxGames) {
         if (newMaxGames < context.getCurrentGameNumber()) {
             sender.sendMessage(Component.text("Can't set the max games for this event to less than ")
                     .append(Component.text(context.getCurrentGameNumber())

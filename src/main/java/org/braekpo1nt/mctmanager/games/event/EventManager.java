@@ -505,7 +505,7 @@ public class EventManager implements Listener {
      * @param newMaxGames the number to set the max games to
      */
     public void modifyMaxGames(@NotNull CommandSender sender, int newMaxGames) {
-        state.setMaxGames(sender, newMaxGames);
+        state.setMaxGames(newMaxGames);
     }
     
     /**

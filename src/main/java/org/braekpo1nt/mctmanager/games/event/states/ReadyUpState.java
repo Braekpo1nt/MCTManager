@@ -10,6 +10,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.ReadyUpManager;
@@ -35,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -267,16 +269,19 @@ public class ReadyUpState implements EventState {
     
     @Override
     public CommandResult startEvent(int numberOfGames, int currentGameNumber, @NotNull EventConfig config) {
+        List<CommandResult> results = new ArrayList<>();
         if (numberOfGames != context.getMaxGames() || currentGameNumber != context.getCurrentGameNumber()) {
             context.setCurrentGameNumber(currentGameNumber);
-            this.setMaxGames(sender, numberOfGames);
+            results.add(this.setMaxGames(numberOfGames));
         }
         cancelAllTasks();
         topbar.hideAllPlayers();
         readyUpManager.clear();
-        context.messageAllAdmins(Component.text("Starting event with ")
+        Component message = Component.text("Starting event with ")
                 .append(Component.text(context.getMaxGames()))
-                .append(Component.text(" games.")));
+                .append(Component.text(" games."));
+        results.add(CommandResult.success());
+        context.messageAllAdmins(message);
         Audience.audience(
                 Audience.audience(context.getAdmins()),
                 Audience.audience(context.getParticipants())
@@ -288,6 +293,7 @@ public class ReadyUpState implements EventState {
         ));
 //        gameManager.removeParticipantsFromHub(context.getParticipants());
         context.setState(new WaitingInHubState(context));
+        return CompositeCommandResult.all(results);
     }
     
     @Override
@@ -395,13 +401,13 @@ public class ReadyUpState implements EventState {
     }
     
     @Override
-    public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
+    public CommandResult setMaxGames(int newMaxGames) {
         context.setMaxGames(newMaxGames);
         Component currentGameLine = context.getCurrentGameLine();
         context.getSidebar().updateLine("currentGame", currentGameLine);
         context.getAdminSidebar().updateLine("currentGame", currentGameLine);
         // TODO: update the title of the active game to reflect the new max games
-        sender.sendMessage(Component.text("Max games has been set to ")
+        return CommandResult.success(Component.text("Max games has been set to ")
                 .append(Component.text(newMaxGames)));
     }
     
