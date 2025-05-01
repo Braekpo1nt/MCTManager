@@ -3,11 +3,12 @@ package org.braekpo1nt.mctmanager.games.event.states.delay;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
+import org.braekpo1nt.mctmanager.games.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.event.states.EventState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.Participant;
-import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -16,7 +17,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public abstract class DelayState implements EventState {
     
@@ -61,7 +61,7 @@ public abstract class DelayState implements EventState {
     }
     
     @Override
-    public void startEvent(@NotNull CommandSender sender, int numberOfGames, int currentGameNumber) {
+    public CommandResult startEvent(int numberOfGames, int currentGameNumber, @NotNull EventConfig config) {
         sender.sendMessage(Component.text("An event is already running.")
                 .color(NamedTextColor.RED));
     }

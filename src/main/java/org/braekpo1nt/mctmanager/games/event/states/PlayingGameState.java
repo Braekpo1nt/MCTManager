@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.commands.manager.commandresult.SuccessCommandRe
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.ScoreKeeper;
+import org.braekpo1nt.mctmanager.games.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.event.states.delay.BackToHubDelayState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -115,7 +116,7 @@ public class PlayingGameState implements EventState {
     }
     
     @Override
-    public void startEvent(@NotNull CommandSender sender, int numberOfGames, int currentGameNumber) {
+    public CommandResult startEvent(int numberOfGames, int currentGameNumber, @NotNull EventConfig config) {
         sender.sendMessage(Component.text("An event is already running.")
                 .color(NamedTextColor.RED));
     }

@@ -474,6 +474,14 @@ public class GameManager implements Listener {
         return state.startGame(teamIds, gameType, configFile);
     }
     
+    public CommandResult startEvent(int maxGames, int currentGameNumber) {
+        return state.startEvent(maxGames, currentGameNumber);
+    }
+    
+    public CommandResult stopEvent() {
+        return state.stopEvent();
+    }
+    
     /**
      * Starts the given game
      *

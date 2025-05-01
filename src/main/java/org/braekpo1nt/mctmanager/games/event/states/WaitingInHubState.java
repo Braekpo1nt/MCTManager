@@ -5,9 +5,11 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.Tip;
+import org.braekpo1nt.mctmanager.games.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.event.states.delay.ToFinalGameDelay;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
@@ -115,9 +117,8 @@ public class WaitingInHubState implements EventState {
     }
     
     @Override
-    public void startEvent(@NotNull CommandSender sender, int numberOfGames, int currentGameNumber) {
-        sender.sendMessage(Component.text("An event is already running.")
-                .color(NamedTextColor.RED));
+    public CommandResult startEvent(int numberOfGames, int currentGameNumber, @NotNull EventConfig config) {
+        return CommandResult.failure(Component.text("An event is already running."));
     }
     
     @Override

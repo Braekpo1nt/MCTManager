@@ -54,8 +54,7 @@ public class EventCommand extends CommandManager {
                     currentGameNumber = 1;
                 }
                 
-                gameManager.getEventManager().startEvent(sender, maxGames, currentGameNumber);
-                return CommandResult.success();
+                return gameManager.startEvent(maxGames, currentGameNumber);
             }
             
             @Override
@@ -85,8 +84,7 @@ public class EventCommand extends CommandManager {
                             .append(Component.text(confirmString))
                             .append(Component.text(" is not a recognized option.")));
                 }
-                gameManager.getEventManager().stopEvent(sender);
-                return CommandResult.success();
+                return gameManager.stopEvent();
             }
             
             @Override

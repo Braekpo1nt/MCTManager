@@ -6,6 +6,7 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.event.config.EventConfigController;
@@ -145,15 +146,13 @@ public class EventManager implements Listener {
         state.onAdminQuit(admin);
     }
     
-    public void startEvent(CommandSender sender, int numberOfGames, int currentGameNumber) {
-        state.startEvent(sender, numberOfGames, currentGameNumber);
+    public CommandResult startEvent(int numberOfGames, int currentGameNumber, @NotNull EventConfig eventConfig) {
+        return state.startEvent(numberOfGames, currentGameNumber, eventConfig);
     }
     
-    public void stopEvent(CommandSender sender) {
+    public CommandResult stopEvent() {
         if (state instanceof OffState) {
-            sender.sendMessage(Component.text("There is no event running.")
-                    .color(NamedTextColor.RED));
-            return;
+            return CommandResult.failure(Component.text("There is no event running."));
         }
         HandlerList.unregisterAll(this);
         cancelAllTasks();
@@ -163,7 +162,6 @@ public class EventManager implements Listener {
                 .append(Component.text("/"))
                 .append(Component.text(maxGames))
                 .append(Component.text(" games were played."));
-        sender.sendMessage(message);
         messageAllAdmins(message);
         Main.logger().info(String.format("Ending event. %d/%d games were played", currentGameNumber - 1, maxGames));
         if (winningTeam != null) {
@@ -182,6 +180,7 @@ public class EventManager implements Listener {
         currentGameNumber = 0;
         maxGames = 6;
         winningTeam = null;
+        return CommandResult.success(message);
     }
     
     private void clearSidebar() {

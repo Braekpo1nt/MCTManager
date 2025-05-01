@@ -2,7 +2,9 @@ package org.braekpo1nt.mctmanager.games.event.states;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
+import org.braekpo1nt.mctmanager.games.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
@@ -23,7 +25,7 @@ public interface EventState {
     void onParticipantQuit(Participant participant);
     void onAdminJoin(Player admin);
     void onAdminQuit(Player admin);
-    void startEvent(@NotNull CommandSender sender, int numberOfGames, int currentGameNumber);
+    CommandResult startEvent(int numberOfGames, int currentGameNumber, @NotNull EventConfig config);
     void onParticipantDamage(EntityDamageEvent event);
     void onClickInventory(InventoryClickEvent event, Participant participant);
     void onDropItem(PlayerDropItemEvent event, @NotNull Participant participant);

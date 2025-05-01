@@ -65,8 +65,17 @@ public class EventState extends GameManagerState {
         return context.getSidebarFactory().createSidebar(eventConfig.getTitle());
     }
     
-    // game start
+    @Override
+    public CommandResult startEvent(int maxGames, int currentGameNumber) {
+        return eventManager.startEvent(maxGames, currentGameNumber, eventConfig);
+    }
     
+    @Override
+    public CommandResult stopEvent() {
+        return eventManager.stopEvent();
+    }
+    
+    // game start
     @Override
     protected @NotNull Component createNewTitle(String baseTitle) {
         int currentGameNumber = eventManager.getCurrentGameNumber();

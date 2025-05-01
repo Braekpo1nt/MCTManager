@@ -9,9 +9,11 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.ReadyUpManager;
+import org.braekpo1nt.mctmanager.games.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
@@ -264,7 +266,7 @@ public class ReadyUpState implements EventState {
     }
     
     @Override
-    public void startEvent(@NotNull CommandSender sender, int numberOfGames, int currentGameNumber) {
+    public CommandResult startEvent(int numberOfGames, int currentGameNumber, @NotNull EventConfig config) {
         if (numberOfGames != context.getMaxGames() || currentGameNumber != context.getCurrentGameNumber()) {
             context.setCurrentGameNumber(currentGameNumber);
             this.setMaxGames(sender, numberOfGames);

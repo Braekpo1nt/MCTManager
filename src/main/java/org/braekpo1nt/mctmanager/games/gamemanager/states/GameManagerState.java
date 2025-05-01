@@ -688,6 +688,16 @@ public abstract class GameManagerState {
     }
     // game stop
     
+    // event start
+    public CommandResult startEvent(int maxGames, int currentGameNumber) {
+        return CommandResult.failure("Can't start an event in this mode");
+    }
+    
+    public CommandResult stopEvent() {
+        return CommandResult.failure("No event is running");
+    }
+    // event stop
+    
     // team start
     /**
      * Add a team to the game.

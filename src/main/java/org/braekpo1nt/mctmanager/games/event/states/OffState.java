@@ -3,9 +3,11 @@ package org.braekpo1nt.mctmanager.games.event.states;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
+import org.braekpo1nt.mctmanager.games.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -56,21 +58,17 @@ public class OffState implements EventState {
     }
     
     @Override
-    public void startEvent(@NotNull CommandSender sender, int numberOfGames, int currentGameNumber) {
+    public CommandResult startEvent(int numberOfGames, int currentGameNumber, @NotNull EventConfig config) {
         if (context.getGameManager().editorIsRunning()) {
-            sender.sendMessage(Component.text("Can't start an event while an editor is running.")
-                    .color(NamedTextColor.RED));
-            return;
+            return CommandResult.failure(Component.text("Can't start an event while an editor is running."));
         }
         
         try {
             context.setConfig(context.getConfigController().getConfig());
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, e.getMessage(), e);
-            sender.sendMessage(Component.text("Can't start event. Error loading config file. See console for details:\n")
-                    .append(Component.text(e.getMessage()))
-                    .color(NamedTextColor.RED));
-            return;
+            return CommandResult.failure(Component.text("Can't start event. Error loading config file. See console for details:\n")
+                    .append(Component.text(e.getMessage())));
         }
         
         context.getPlugin().getServer().getPluginManager().registerEvents(context, context.getPlugin());
@@ -88,6 +86,7 @@ public class OffState implements EventState {
         context.initializeParticipantsAndAdmins();
 //        context.getGameManager().removeParticipantsFromHub(context.getParticipants());
         context.setState(new ReadyUpState(context));
+        return CommandResult.success();
     }
     
     private void initializeSidebar() {

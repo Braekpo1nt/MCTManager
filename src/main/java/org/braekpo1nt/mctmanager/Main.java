@@ -184,7 +184,7 @@ public class Main extends JavaPlugin {
         PacketEvents.getAPI().terminate();
         if (gameManager != null) {
             if (gameManager.getEventManager().eventIsActive()) {
-                gameManager.getEventManager().stopEvent(Bukkit.getConsoleSender());
+                gameManager.stopEvent();
             }
             gameManager.stopAllGames();
             if (gameManager.editorIsRunning()) {
