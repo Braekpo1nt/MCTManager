@@ -149,20 +149,18 @@ public class VotingState implements EventState {
     @Override
     public CommandResult setMaxGames(int newMaxGames) {
         if (newMaxGames < context.getCurrentGameNumber()) {
-            sender.sendMessage(Component.text("Can't set the max games for this event to less than ")
+            return CommandResult.failure(Component.text("Can't set the max games for this event to less than ")
                     .append(Component.text(context.getCurrentGameNumber())
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" because "))
                     .append(Component.text(context.getCurrentGameNumber() - 1))
-                    .append(Component.text(" game(s) have been played and voting is in progress."))
-                    .color(NamedTextColor.RED));
-            return;
+                    .append(Component.text(" game(s) have been played and voting is in progress.")));
         }
         context.setMaxGames(newMaxGames);
         context.getSidebar().updateLine("currentGame", context.getCurrentGameLine());
         context.getAdminSidebar().updateLine("currentGame", context.getCurrentGameLine());
         // TODO: update the title of the active game to reflect the new max games
-        sender.sendMessage(Component.text("Max games has been set to ")
+        return CommandResult.success(Component.text("Max games has been set to ")
                 .append(Component.text(newMaxGames)));
     }
 }

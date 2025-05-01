@@ -193,8 +193,7 @@ public class OffState implements EventState {
     
     @Override
     public CommandResult setMaxGames(int newMaxGames) {
-        sender.sendMessage(Component.text("There is no event running")
-                .color(NamedTextColor.RED));
+        return CommandResult.failure(Component.text("There is no event running"));
     }
     
     @Override

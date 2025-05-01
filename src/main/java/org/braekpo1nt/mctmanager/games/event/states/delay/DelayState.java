@@ -61,8 +61,7 @@ public abstract class DelayState implements EventState {
     
     @Override
     public CommandResult startEvent(int numberOfGames, int currentGameNumber, @NotNull EventConfig config) {
-        sender.sendMessage(Component.text("An event is already running.")
-                .color(NamedTextColor.RED));
+        return CommandResult.failure(Component.text("An event is already running."));
     }
     
     @Override
@@ -95,7 +94,6 @@ public abstract class DelayState implements EventState {
     
     @Override
     public CommandResult setMaxGames(int newMaxGames) {
-        sender.sendMessage(Component.text("Can't change the max games during transition period.")
-                .color(NamedTextColor.RED));
+        return CommandResult.failure(Component.text("Can't change the max games during transition period."));
     }
 }

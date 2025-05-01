@@ -116,8 +116,7 @@ public class PlayingGameState implements EventState {
     
     @Override
     public CommandResult startEvent(int numberOfGames, int currentGameNumber, @NotNull EventConfig config) {
-        sender.sendMessage(Component.text("An event is already running.")
-                .color(NamedTextColor.RED));
+        return CommandResult.failure(Component.text("An event is already running."));
     }
     
     @Override
@@ -148,20 +147,18 @@ public class PlayingGameState implements EventState {
     @Override
     public CommandResult setMaxGames(int newMaxGames) {
         if (newMaxGames < context.getCurrentGameNumber()) {
-            sender.sendMessage(Component.text("Can't set the max games for this event to less than ")
+            return CommandResult.failure(Component.text("Can't set the max games for this event to less than ")
                     .append(Component.text(context.getCurrentGameNumber())
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" because "))
                     .append(Component.text(context.getCurrentGameNumber()))
-                    .append(Component.text(" game(s) have been played."))
-                    .color(NamedTextColor.RED));
-            return;
+                    .append(Component.text(" game(s) have been played.")));
         }
         context.setMaxGames(newMaxGames);
         context.getSidebar().updateLine("currentGame", context.getCurrentGameLine());
         context.getAdminSidebar().updateLine("currentGame", context.getCurrentGameLine());
         // TODO: update the title of the active game to reflect the new max games
-        sender.sendMessage(Component.text("Max games has been set to ")
+        return CommandResult.success(Component.text("Max games has been set to ")
                 .append(Component.text(newMaxGames)));
     }
 }
