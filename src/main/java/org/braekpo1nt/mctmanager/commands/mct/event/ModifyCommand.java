@@ -21,7 +21,7 @@ public class ModifyCommand extends CommandManager {
         addSubCommand(new TabSubCommand("maxgames") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                if (!gameManager.getEventManager().eventIsActive()) {
+                if (!gameManager.eventIsActive()) {
                     return CommandResult.failure(Component.text("There is no event running."));
                 }
                 
@@ -38,8 +38,7 @@ public class ModifyCommand extends CommandManager {
                 }
                 
                 int newCount = Integer.parseInt(newCountString);
-                gameManager.getEventManager().modifyMaxGames(sender, newCount);
-                return CommandResult.success();
+                return gameManager.modifyMaxGames(newCount);
             }
             
             @Override

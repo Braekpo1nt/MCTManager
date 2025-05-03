@@ -183,7 +183,7 @@ public class Main extends JavaPlugin {
         ParticipantInitializer.setPlugin(null); //TODO: remove this in favor of death and respawn combination 
         PacketEvents.getAPI().terminate();
         if (gameManager != null) {
-            if (gameManager.getEventManager().eventIsActive()) {
+            if (gameManager.eventIsActive()) {
                 gameManager.stopEvent();
             }
             gameManager.stopAllGames();

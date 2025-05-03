@@ -31,8 +31,7 @@ public class ListSubCommand extends TabSubCommand {
             return CommandResult.failure(getUsage().of("[teamId]"));
         }
         if (args.length == 0) {
-            gameManager.getEventManager().listReady(sender, null);
-            return CommandResult.success();
+            return gameManager.listReady(null);
         }
         String teamId = args[0];
         Team team = gameManager.getTeam(teamId);
@@ -42,8 +41,7 @@ public class ListSubCommand extends TabSubCommand {
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" is not a valid teamId")));
         }
-        gameManager.getEventManager().listReady(sender, teamId);
-        return CommandResult.success();
+        return gameManager.listReady(teamId);
     }
     
     @Override

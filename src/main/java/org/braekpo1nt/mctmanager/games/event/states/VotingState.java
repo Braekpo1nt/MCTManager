@@ -30,20 +30,13 @@ public class VotingState implements EventState {
     
     private final EventManager context;
     private final GameManager gameManager;
-    private final VoteManager voteManager;
     
     public VotingState(EventManager context) {
         this.context = context;
         this.gameManager = context.getGameManager();
-        this.voteManager = context.getVoteManager();
-        List<GameType> votingPool = new ArrayList<>(VoteManager.votableGames());
-        votingPool.removeAll(context.getPlayedGames());
         context.getSidebar().removeAllPlayers();
         context.getAdminSidebar().removeAllPlayers();
-        List<Player> adminCopy = new ArrayList<>(context.getAdmins());
         context.getAdmins().clear();
-        voteManager.startVote(context.getParticipants(), votingPool, context.getConfig().getVotingDuration(), 
-                this::startingGameDelay, adminCopy);
     }
     
     /**
@@ -101,23 +94,22 @@ public class VotingState implements EventState {
     
     @Override
     public void onParticipantJoin(Participant participant) {
-//        gameManager.returnParticipantToHub(participant);
-        voteManager.onParticipantJoin(participant);
+        
     }
     
     @Override
     public void onParticipantQuit(Participant participant) {
-        voteManager.onParticipantQuit(participant);
+        
     }
     
     @Override
     public void onAdminJoin(Player admin) {
-        voteManager.onAdminJoin(admin);
+        
     }
     
     @Override
     public void onAdminQuit(Player admin) {
-        voteManager.onAdminQuit(admin);
+        
     }
     
     @Override
@@ -162,5 +154,10 @@ public class VotingState implements EventState {
         // TODO: update the title of the active game to reflect the new max games
         return CommandResult.success(Component.text("Max games has been set to ")
                 .append(Component.text(newMaxGames)));
+    }
+    
+    @Override
+    public Component getTitle() {
+        return context.getConfig().getTitle();
     }
 }

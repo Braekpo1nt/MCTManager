@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.games.game.colossalcombat.states;
 
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.base.Affiliation;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalCombatGame;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalParticipant;
@@ -73,21 +72,12 @@ public abstract class GameplayState extends ColossalCombatStateBase {
         winner.setWins(winner.getWins() + 1);
         context.updateRoundSidebar();
         
-        EventManager eventManager = context.getGameManager().getEventManager();
-        Component eventTitle;
-        if (eventManager.eventIsActive()) {
-            eventTitle = eventManager.getTitle();
-            eventManager.setWinningTeam(winner);
-        } else {
-            eventTitle = Component.text("the game");
-        }
+        context.getGameManager().setWinner(winner.getTeamId());
         if (winner.getWins() >= config.getRequiredWins()) {
             // declare overall winner
             context.messageAllParticipants(Component.empty()
                     .append(winner.getFormattedDisplayName())
-                    .append(Component.text(" wins "))
-                    .append(eventTitle)
-                    .append(Component.text("!")));
+                    .append(Component.text(" wins the game!")));
             context.titleAllParticipants(UIUtils.defaultTitle(
                     Component.empty()
                             .append(Component.text("Winner:")),

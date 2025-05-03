@@ -49,7 +49,7 @@ public class WaitingInHubState implements EventState {
         this.sidebar = context.getSidebar();
         this.adminSidebar = context.getAdminSidebar();
 //        gameManager.returnAllParticipantsToHub();
-        double scoreMultiplier = context.matchProgressPointMultiplier();
+        double scoreMultiplier = context.getPointMultiplier();
         gameManager.messageOnlineParticipants(Component.text("Score multiplier: ")
                 .append(Component.text(scoreMultiplier))
                 .color(NamedTextColor.GOLD));
@@ -249,5 +249,9 @@ public class WaitingInHubState implements EventState {
         context.getPlugin().getServer().getScheduler().cancelTask(displayTipsTaskId);
         Audience.audience(context.getParticipants()).sendActionBar(Component.empty());
     }
-
+    
+    @Override
+    public Component getTitle() {
+        return context.getConfig().getTitle();
+    }
 }

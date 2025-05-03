@@ -65,7 +65,7 @@ public class EventCommand extends CommandManager {
         addSubCommand(new TabSubCommand("stop") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                if (!gameManager.getEventManager().eventIsActive()) {
+                if (!gameManager.eventIsActive()) {
                     return CommandResult.failure(Component.text("There is no event running."));
                 }
                 if (args.length != 1) {

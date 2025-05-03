@@ -72,6 +72,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.scoreboard.Scoreboard;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.logging.Level;
@@ -119,7 +120,6 @@ public abstract class GameManagerState {
         this.onlineParticipants = contextReference.getOnlineParticipants();
         this.onlineAdmins = contextReference.getOnlineAdmins();
         this.config = contextReference.getConfig();
-        setupSidebar();
     }
     
     public abstract CommandResult switchMode(@NotNull String mode);
@@ -249,29 +249,6 @@ public abstract class GameManagerState {
      */
     public Sidebar createSidebar() {
         return sidebarFactory.createSidebar();
-    }
-    
-    /**
-     * Set up the sidebar for this state. Called once in the constructor.
-     */
-    protected void setupSidebar() {
-        sidebar.deleteAllLines();
-        sidebar.updateTitle(Sidebar.DEFAULT_TITLE);
-        sidebar.addLines(
-                new KeyLine("team0", Component.empty()),
-                new KeyLine("team1", Component.empty()),
-                new KeyLine("team2", Component.empty()),
-                new KeyLine("team3", Component.empty()),
-                new KeyLine("team4", Component.empty()),
-                new KeyLine("team5", Component.empty()),
-                new KeyLine("team6", Component.empty()),
-                new KeyLine("team7", Component.empty()),
-                new KeyLine("team8", Component.empty()),
-                new KeyLine("team9", Component.empty()),
-                new KeyLine("personalScore", Component.empty())
-        );
-        updateSidebarTeamScores();
-        updateSidebarPersonalScores(onlineParticipants.values());
     }
     
     /**
@@ -565,7 +542,7 @@ public abstract class GameManagerState {
             onParticipantReturnToHub(participant);
             participant.sendMessage(Component.text("Returning to hub"));
         }
-        context.addScores(teamScores, participantScores, gameType);
+        addScores(teamScores, participantScores, gameType);
     }
     
     /**
@@ -573,12 +550,18 @@ public abstract class GameManagerState {
      * the UI, etc. <br>
      * If any invalid teamIds or UUIDs are used, there will be errors 
      *
-     * @param teamScores        map of teamId to score to add. Must be teamIds of real teams
-     * @param participantScores map of UUID to score to add. Must be UUIDs of real participants
-     * @param gameType          the type of the game
+     * @param newTeamScores        map of teamId to score to add. Must be teamIds of real teams
+     * @param newParticipantScores map of UUID to score to add. Must be UUIDs of real participants
+     * @param gameType             the type of the game
      */
-    public void addScores(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, GameType gameType) {
+    protected void addScores(Map<String, Integer> newTeamScores, Map<UUID, Integer> newParticipantScores, GameType gameType) {
         // some values might be from offline teams who have been removed, but still saved as QuitData
+        Map<String, Integer> teamScores = newTeamScores.entrySet().stream()
+                .filter(e -> teams.containsKey(e.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        Map<UUID, Integer> participantScores = newParticipantScores.entrySet().stream()
+                .filter(e -> allParticipants.containsKey(e.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         for (Map.Entry<String, Integer> entry : teamScores.entrySet()) {
             String teamId = entry.getKey();
             int newScore = entry.getValue();
@@ -695,6 +678,46 @@ public abstract class GameManagerState {
     
     public CommandResult stopEvent() {
         return CommandResult.failure("No event is running");
+    }
+    
+    public boolean eventIsActive() {
+        return false;
+    }
+    
+    public CommandResult readyUpParticipant(@NotNull MCTParticipant participant) {
+        return CommandResult.failure("Can't ready up at this time");
+    }
+    
+    public CommandResult unReadyParticipant(@NotNull MCTParticipant participant) {
+        return CommandResult.failure("Can't un-ready at this time");
+    }
+    
+    public int getGameIterations(@NotNull GameType gameType) {
+        return -1;
+    }
+    
+    public CommandResult undoGame(@NotNull GameType gameType, int iterationIndex) {
+        return CommandResult.failure("Can't undo games in this state");
+    }
+    
+    public CommandResult modifyMaxGames(int newMaxGames) {
+        return CommandResult.failure("No event is active");
+    }
+    
+    public CommandResult addGameToVotingPool(@NotNull GameType gameToAdd) {
+        return CommandResult.failure("No event is active");
+    }
+    
+    public CommandResult removeGameFromVotingPool(@NotNull GameType gameToRemove) {
+        return CommandResult.failure("No event is active");
+    }
+    
+    public CommandResult listReady(@Nullable String teamId) {
+        return CommandResult.failure("No event is active");
+    }
+    
+    public void setWinner(@NotNull MCTTeam team) {
+        // do nothing
     }
     // event stop
     
@@ -900,15 +923,19 @@ public abstract class GameManagerState {
     }
     
     public CommandResult returnParticipantToHub(@NotNull MCTParticipant participant) {
+        return returnParticipantToHub(participant, config.getSpawn());
+    }
+    
+    protected CommandResult returnParticipantToHub(@NotNull MCTParticipant participant, @NotNull Location spawn) {
         GameType gameType = participantGames.get(participant.getUniqueId());
         if (gameType == null) {
-            participant.teleport(config.getSpawn());
+            participant.teleport(spawn);
             return CommandResult.success(Component.text("Returning to hub"));
         }
         MCTGame activeGame = activeGames.get(gameType);
-        if (activeGame == null) { 
+        if (activeGame == null) {
             // this should not happen
-            participant.teleport(config.getSpawn());
+            participant.teleport(spawn);
             return CommandResult.success(Component.text("Returning to hub"));
         }
         activeGame.onParticipantQuit(participant.getUniqueId());

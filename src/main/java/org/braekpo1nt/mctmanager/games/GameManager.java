@@ -13,7 +13,6 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
-import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.footrace.editor.FootRaceEditor;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
@@ -26,7 +25,6 @@ import org.braekpo1nt.mctmanager.games.gamemanager.states.GameManagerState;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.MaintenanceState;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
-import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.hub.config.HubConfig;
 import org.braekpo1nt.mctmanager.hub.leaderboard.LeaderboardManager;
 import org.braekpo1nt.mctmanager.participant.ColorAttributes;
@@ -80,7 +78,6 @@ public class GameManager implements Listener {
      * with the game state.
      */
     private final Scoreboard mctScoreboard;
-    private final EventManager eventManager;
     /**
      * This should be used to register all timers in games and events, 
      * so that they can be easily paused, resumed, skipped, etc. in bulk.
@@ -118,7 +115,6 @@ public class GameManager implements Listener {
         this.gameStateStorageUtil = gameStateStorageUtil;
         this.timerManager = new TimerManager(plugin);
         this.sidebarFactory = sidebarFactory;
-        this.eventManager = new EventManager(plugin, this, new VoteManager(this, plugin));
         this.config = config;
         this.tabList = new TabList(plugin);
         this.leaderboardManagers = createLeaderboardManagers();
@@ -466,8 +462,8 @@ public class GameManager implements Listener {
         }
     }
     
-    public EventManager getEventManager() {
-        return eventManager;
+    public boolean eventIsActive() {
+        return state.eventIsActive();
     }
     
     public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull GameType gameType, @NotNull String configFile) {
@@ -558,10 +554,6 @@ public class GameManager implements Listener {
     public CommandResult startEditor(@NotNull GameType gameType, @NotNull String configFile) {
         if (!activeGames.isEmpty()) {
             return CommandResult.failure(Component.text("Can't start an editor while any games are active"));
-        }
-        
-        if (eventManager.eventIsActive()) {
-            return CommandResult.failure(Component.text("Can't start an editor while an event is going on"));
         }
         
         if (onlineParticipants.isEmpty()) {
@@ -757,24 +749,6 @@ public class GameManager implements Listener {
      */
     public CommandResult leaveParticipant(@NotNull OfflineParticipant offlineParticipant) {
         return state.leaveParticipant(offlineParticipant);
-    }
-    
-    /**
-     * Add the given scores to the given teams and participants, save the game state, update
-     * the UI, etc.
-     *
-     * @param newTeamScores        map of teamId to score to add
-     * @param newParticipantScores map of UUID to score to add
-     * @param gameType             the type of the game
-     */
-    public void addScores(Map<String, Integer> newTeamScores, Map<UUID, Integer> newParticipantScores, GameType gameType) {
-        Map<String, Integer> teamScores = newTeamScores.entrySet().stream()
-                .filter(e -> teams.containsKey(e.getKey()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        Map<UUID, Integer> participantScores = newParticipantScores.entrySet().stream()
-                .filter(e -> allParticipants.containsKey(e.getKey()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        state.addScores(teamScores, participantScores, gameType);
     }
     
     /**
@@ -979,6 +953,59 @@ public class GameManager implements Listener {
     public void messageOnlineParticipants(Component message) {
         Audience.audience(onlineParticipants.values()).sendMessage(message);
     }
+    
+    // event start
+    public CommandResult readyUpParticipant(@NotNull UUID uuid) {
+        MCTParticipant participant = onlineParticipants.get(uuid);
+        if (participant == null) {
+            return CommandResult.failure(Component.text("Not a participant"));
+        }
+        return state.readyUpParticipant(participant);
+    }
+    
+    public CommandResult unReadyParticipant(@NotNull UUID uuid) {
+        MCTParticipant participant = onlineParticipants.get(uuid);
+        if (participant == null) {
+            return CommandResult.failure(Component.text("Not a participant"));
+        }
+        return state.unReadyParticipant(participant);
+    }
+    
+    public int getGameIterations(@NotNull GameType gameType) {
+        return state.getGameIterations(gameType);
+    }
+    
+    public CommandResult undoGame(@NotNull GameType gameType, int iterationIndex) {
+        return state.undoGame(gameType, iterationIndex);
+    }
+    
+    public CommandResult modifyMaxGames(int newMaxGames) {
+        return state.modifyMaxGames(newMaxGames);
+    }
+    
+    public CommandResult addGameToVotingPool(@NotNull GameType gameToAdd) {
+        return state.addGameToVotingPool(gameToAdd);
+    }
+    
+    public CommandResult removeGameFromVotingPool(@NotNull GameType gameToRemove) {
+        return state.removeGameFromVotingPool(gameToRemove);
+    }
+    
+    public CommandResult listReady(@Nullable String teamId) {
+        return state.listReady(teamId);
+    }
+    
+    public void setWinner(@Nullable String teamId) {
+        if (teamId == null) {
+            return;
+        }
+        MCTTeam team = teams.get(teamId);
+        if (team == null) {
+            return;
+        }
+        state.setWinner(team);
+    }
+    // event end
     
     // Test methods
     public void reportGameStateException(String attemptedOperation, ConfigException e) {

@@ -67,4 +67,6 @@ public interface EventState {
     default void listReady(@NotNull CommandSender sender, @Nullable String teamId) {
         // do nothing
     }
+    
+    Component getTitle();
 }

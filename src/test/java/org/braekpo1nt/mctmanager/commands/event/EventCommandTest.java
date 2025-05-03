@@ -62,14 +62,14 @@ class EventCommandTest {
     @DisplayName("`/mct event start 6` starts the event with 6 games")
     void startTest() {
         Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{"event", "start", "6"}));
-        Assertions.assertTrue(plugin.getGameManager().getEventManager().eventIsActive());
+        Assertions.assertTrue(plugin.getGameManager().eventIsActive());
     }
     
     @Test
     @DisplayName("`/mct event start 4` starts the with 4 games")
     void startNumberTest() {
         Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{"event", "start", "4"}));
-        Assertions.assertTrue(plugin.getGameManager().getEventManager().eventIsActive());
+        Assertions.assertTrue(plugin.getGameManager().eventIsActive());
         Assertions.assertEquals(4, plugin.getGameManager().getEventManager().getMaxGames());
     }
     

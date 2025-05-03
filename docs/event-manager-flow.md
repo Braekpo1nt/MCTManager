@@ -9,16 +9,14 @@ state games_left <<choice>>
 WaitingInHub --> games_left: have all games<br>been played?
 games_left --> ToFinalGameDelay: yes
 ToFinalGameDelay --> PlayingFinalGame
-PlayingFinalGame --> ToPodiumDelay
-ToPodiumDelay --> Podium
+PlayingFinalGame -->  Podium
 Podium --> [*]: /mct event stop confirm
 
 games_left --> Voting: no
 Voting --> StartingGameDelay
 StartingGameDelay --> PlayingGame
-PlayingGame --> BackToHubDelay
 state half_time <<choice>>
-BackToHubDelay --> half_time: is it half time?
+PlayingGame --> half_time: is it half time?
 half_time --> HalftimeBreak: yes
 half_time --> WaitingInHub: no
 HalftimeBreak --> WaitingInHub

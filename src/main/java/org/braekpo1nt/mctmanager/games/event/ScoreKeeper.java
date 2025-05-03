@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.event;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -54,13 +55,21 @@ public class ScoreKeeper {
     /**
      * Gets the score for a given team. Defaults to 0 if the no points have been added
      * for the team.
-     * @param team The team to get the score of
+     * @param teamId The teamId to get the score of
      * @return the team's score
      */
-    public int getScore(@NotNull String team) {
-        if (!teamScores.containsKey(team)) {
+    public int getScore(@NotNull String teamId) {
+        if (!teamScores.containsKey(teamId)) {
             return 0;
         }
-        return teamScores.get(team);
+        return teamScores.get(teamId);
+    }
+    
+    public Map<UUID, Integer> getParticipantScores() {
+        return Collections.unmodifiableMap(participantScores);
+    }
+    
+    public Map<String, Integer> getTeamScores() {
+        return Collections.unmodifiableMap(teamScores);
     }
 }

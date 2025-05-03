@@ -212,4 +212,9 @@ public class PodiumState implements EventState {
     public CommandResult setMaxGames(int newMaxGames) {
         return CommandResult.failure(Component.text("The event is over, can't change the max games."));
     }
+    
+    @Override
+    public Component getTitle() {
+        return context.getConfig().getTitle();
+    }
 }

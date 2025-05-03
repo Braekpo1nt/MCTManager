@@ -42,7 +42,7 @@ public class ReadyUpManager {
         return status;
     }
     
-    public void clear() {
+    public void cleanup() {
         teamStatuses.clear();
     }
     

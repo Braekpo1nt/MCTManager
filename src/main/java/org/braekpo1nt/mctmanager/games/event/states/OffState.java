@@ -13,6 +13,7 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -209,5 +210,10 @@ public class OffState implements EventState {
     @Override
     public void listReady(@NotNull CommandSender sender, @Nullable String teamId) {
         sender.sendMessage(Component.text("There is no event going on right now"));
+    }
+    
+    @Override
+    public Component getTitle() {
+        return Sidebar.DEFAULT_TITLE;
     }
 }

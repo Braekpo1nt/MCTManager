@@ -71,7 +71,7 @@ public class ReadyUpState implements EventState {
         this.readyUpManager = context.getReadyUpManager();
         this.topbar = context.getTopbar();
 //        gameManager.returnAllParticipantsToHub();
-        readyUpManager.clear();
+        readyUpManager.cleanup();
         Collection<Team> teams = gameManager.getTeams();
         for (Team team : teams) {
             readyUpManager.addTeam(team.getTeamId());
@@ -97,7 +97,7 @@ public class ReadyUpState implements EventState {
         }
         
         promptToReadyUp(Audience.audience(context.getParticipants()));
-        context.messageAllAdmins(Component.text("Ready Up has begun"));
+        context.messageAdmins(Component.text("Ready Up has begun"));
         
         readyUpPromptTaskId = new BukkitRunnable() {
             @Override
@@ -133,7 +133,7 @@ public class ReadyUpState implements EventState {
         boolean wasReady = readyUpManager.readyUpParticipant(participant.getUniqueId(), teamId);
         if (!wasReady) {
             long readyCount = readyUpManager.readyCount(teamId);
-            context.messageAllAdmins(Component.empty()
+            context.messageAdmins(Component.empty()
                     .append(participant.displayName())
                     .append(Component.text(" is ready. ("))
                     .append(Component.text(readyCount))
@@ -145,7 +145,7 @@ public class ReadyUpState implements EventState {
             participant.showTitle(Title.title(Component.empty(), Component.empty()));
             int teamIdCount = gameManager.getTeamIds().size();
             if (readyUpManager.teamIsReady(teamId)) {
-                context.messageAllAdmins(Component.empty()
+                context.messageAdmins(Component.empty()
                         .append(team.getFormattedDisplayName())
                         .append(Component.text(" is ready. ("))
                         .append(Component.text(readyUpManager.readyTeamCount()))
@@ -159,7 +159,7 @@ public class ReadyUpState implements EventState {
                 topbar.setReadyCount(teamId, readyCount);
             }
             if (readyUpManager.allTeamsAreReady()) {
-                context.messageAllAdmins(Component.empty()
+                context.messageAdmins(Component.empty()
                         .append(Component.text("All "))
                         .append(Component.text(teamIdCount))
                         .append(Component.text(" teams are ready"))
@@ -195,7 +195,7 @@ public class ReadyUpState implements EventState {
         boolean wasReady = readyUpManager.unReadyParticipant(participant.getUniqueId(), teamId);
         long readyCount = readyUpManager.readyCount(teamId);
         if (wasReady) {
-            context.messageAllAdmins(Component.empty()
+            context.messageAdmins(Component.empty()
                     .append(participant.displayName())
                     .append(Component.text(" is not ready. ("))
                     .append(Component.text(readyCount))
@@ -205,7 +205,7 @@ public class ReadyUpState implements EventState {
                     .color(NamedTextColor.DARK_RED)
             );
             if (teamWasReady) {
-                context.messageAllAdmins(Component.empty()
+                context.messageAdmins(Component.empty()
                         .append(team.getFormattedDisplayName())
                         .append(Component.text(" is not ready. ("))
                         .append(Component.text(readyUpManager.readyTeamCount()))
@@ -268,20 +268,20 @@ public class ReadyUpState implements EventState {
     }
     
     @Override
-    public CommandResult startEvent(int numberOfGames, int currentGameNumber, @NotNull EventConfig config) {
+    public CommandResult startEvent(int maxGames, int currentGameNumber, @NotNull EventConfig config) {
         List<CommandResult> results = new ArrayList<>();
-        if (numberOfGames != context.getMaxGames() || currentGameNumber != context.getCurrentGameNumber()) {
+        if (maxGames != context.getMaxGames() || currentGameNumber != context.getCurrentGameNumber()) {
             context.setCurrentGameNumber(currentGameNumber);
-            results.add(this.setMaxGames(numberOfGames));
+            results.add(this.setMaxGames(maxGames));
         }
         cancelAllTasks();
-        topbar.hideAllPlayers();
-        readyUpManager.clear();
+        topbar.cleanup();
+        readyUpManager.cleanup();
         Component message = Component.text("Starting event with ")
                 .append(Component.text(context.getMaxGames()))
                 .append(Component.text(" games."));
-        results.add(CommandResult.success());
-        context.messageAllAdmins(message);
+        results.add(CommandResult.success(message));
+        context.messageAdmins(message);
         Audience.audience(
                 Audience.audience(context.getAdmins()),
                 Audience.audience(context.getParticipants())
@@ -414,5 +414,10 @@ public class ReadyUpState implements EventState {
     @Override
     public void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(readyUpPromptTaskId);
+    }
+    
+    @Override
+    public Component getTitle() {
+        return context.getConfig().getTitle();
     }
 }

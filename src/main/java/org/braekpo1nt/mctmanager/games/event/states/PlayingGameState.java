@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.games.event.states;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
@@ -58,7 +57,7 @@ public class PlayingGameState implements EventState {
         context.getAdmins().clear();
         CommandResult result = gameManager.startGame(gameType, configFile);
         if (result instanceof SuccessCommandResult) {
-            context.messageAllAdmins(
+            context.messageAdmins(
                     result.and(CommandResult.failure(
                             Component.text("Unable to start the game ")
                                     .append(Component.text(gameType.getTitle()))
@@ -160,5 +159,10 @@ public class PlayingGameState implements EventState {
         // TODO: update the title of the active game to reflect the new max games
         return CommandResult.success(Component.text("Max games has been set to ")
                 .append(Component.text(newMaxGames)));
+    }
+    
+    @Override
+    public Component getTitle() {
+        return context.getConfig().getTitle();
     }
 }

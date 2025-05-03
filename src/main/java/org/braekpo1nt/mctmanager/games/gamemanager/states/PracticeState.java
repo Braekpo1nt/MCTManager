@@ -9,7 +9,8 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.event.config.EventConfigController;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
-import org.braekpo1nt.mctmanager.games.gamemanager.states.event.EventState;
+import org.braekpo1nt.mctmanager.games.gamemanager.states.event.ReadyUpState;
+import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,10 +20,33 @@ public class PracticeState extends GameManagerState {
     
     public PracticeState(@NotNull GameManager context, @NotNull ContextReference contextReference) {
         super(context, contextReference);
+        setupSidebar();
+    }
+    
+    /**
+     * Set up the sidebar for this state. Called once in the constructor.
+     */
+    protected void setupSidebar() {
+        sidebar.deleteAllLines();
         this.sidebar.updateTitle(Component.empty()
                 .append(Sidebar.DEFAULT_TITLE)
                 .append(Component.text(" - "))
                 .append(Component.text("Practice")));
+        sidebar.addLines(
+                new KeyLine("team0", Component.empty()),
+                new KeyLine("team1", Component.empty()),
+                new KeyLine("team2", Component.empty()),
+                new KeyLine("team3", Component.empty()),
+                new KeyLine("team4", Component.empty()),
+                new KeyLine("team5", Component.empty()),
+                new KeyLine("team6", Component.empty()),
+                new KeyLine("team7", Component.empty()),
+                new KeyLine("team8", Component.empty()),
+                new KeyLine("team9", Component.empty()),
+                new KeyLine("personalScore", Component.empty())
+        );
+        updateSidebarTeamScores();
+        updateSidebarPersonalScores(onlineParticipants.values());
     }
     
     @Override
@@ -38,7 +62,7 @@ public class PracticeState extends GameManagerState {
             case "event" -> {
                 try {
                     EventConfig eventConfig = new EventConfigController(plugin.getDataFolder()).getConfig();
-                    context.setState(new EventState(context, contextReference, eventConfig));
+                    context.setState(new ReadyUpState(context, contextReference, eventConfig, 0, 7));
                     return CommandResult.success(Component.text("Switched to event mode"));
                 } catch (ConfigException e) {
                     Main.logger().log(Level.SEVERE, e.getMessage(), e);

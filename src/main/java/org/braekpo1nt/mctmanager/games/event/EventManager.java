@@ -14,7 +14,6 @@ import org.braekpo1nt.mctmanager.games.event.states.*;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
-import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
@@ -42,7 +41,6 @@ public class EventManager implements Listener {
     
     private final Main plugin;
     private final GameManager gameManager;
-    private final VoteManager voteManager;
     private final EventConfigController configController;
     private final List<GameType> playedGames = new ArrayList<>();
     /**
@@ -73,11 +71,10 @@ public class EventManager implements Listener {
         return gameManager.getOnlineParticipants();
     }
     
-    public EventManager(Main plugin, GameManager gameManager, VoteManager voteManager) {
+    public EventManager(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
-        this.voteManager = voteManager;
         this.configController = new EventConfigController(plugin.getDataFolder());
         this.crown.editMeta(meta -> meta.setCustomModelData(1));
         this.state = new OffState(this);
@@ -162,7 +159,7 @@ public class EventManager implements Listener {
                 .append(Component.text("/"))
                 .append(Component.text(maxGames))
                 .append(Component.text(" games were played."));
-        messageAllAdmins(message);
+        messageAdmins(message);
         Main.logger().info(String.format("Ending event. %d/%d games were played", currentGameNumber - 1, maxGames));
         if (winningTeam != null) {
             for (Participant participant : gameManager.getOnlineParticipants()) {
@@ -175,7 +172,7 @@ public class EventManager implements Listener {
         clearAdminSidebar();
         topbar.cleanup();
         admins.clear();
-        readyUpManager.clear();
+        readyUpManager.cleanup();
         scoreKeepers.clear();
         currentGameNumber = 0;
         maxGames = 6;
@@ -197,66 +194,54 @@ public class EventManager implements Listener {
         adminSidebar = null;
     }
     
-    public void undoGame(@NotNull CommandSender sender, @NotNull GameType gameType, int iterationIndex) {
+    public CommandResult undoGame(@NotNull CommandSender sender, @NotNull GameType gameType, int iterationIndex) {
         if (state instanceof OffState) {
-            sender.sendMessage(Component.text("There isn't an event going on.")
-                    .color(NamedTextColor.RED));
-            return;
+            return CommandResult.failure(Component.text("There isn't an event going on."));
         }
         MCTGame game = gameManager.getActiveGame(gameType);
         if (game != null && game.getType().equals(gameType)) {
-            sender.sendMessage(Component.text("Can't undo ")
+            return CommandResult.failure(Component.text("Can't undo ")
                     .append(Component.text(gameType.getTitle())
                             .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" because it is in progress"))
-                    .color(NamedTextColor.RED));
-            return;
+                    .append(Component.text(" because it is in progress")));
         }
         if (!scoreKeepers.containsKey(gameType)) {
-            sender.sendMessage(Component.empty()
+            return CommandResult.failure(Component.empty()
                     .append(Component.text("No points were tracked for "))
                     .append(Component.text(gameType.getTitle())
                             .decorate(TextDecoration.BOLD))
-                    .append(Component.text("."))
-                    .color(NamedTextColor.YELLOW));
-            return;
+                    .append(Component.text(".")));
         }
         List<ScoreKeeper> gameScoreKeepers = scoreKeepers.get(gameType);
         if (iterationIndex < 0) {
-            sender.sendMessage(Component.empty()
+            return CommandResult.failure(Component.empty()
                     .append(Component.text(iterationIndex+1)
                             .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" is not a valid play-through"))
-                    .color(NamedTextColor.RED));
-            return;
+                    .append(Component.text(" is not a valid play-through")));
         }
         if (iterationIndex >= gameScoreKeepers.size()) {
-            sender.sendMessage(Component.text(gameType.getTitle())
+            return CommandResult.failure(Component.text(gameType.getTitle())
                     .append(Component.text(" has only been played "))
                     .append(Component.text(gameScoreKeepers.size()))
                     .append(Component.text(" time(s). Can't undo play-through "))
-                    .append(Component.text(iterationIndex + 1))
-                    .color(NamedTextColor.RED));
-            return;
+                    .append(Component.text(iterationIndex + 1)));
         }
         ScoreKeeper iterationScoreKeeper = gameScoreKeepers.get(iterationIndex);
         if (iterationScoreKeeper == null) {
-            sender.sendMessage(Component.empty()
+            return CommandResult.failure(Component.empty()
                     .append(Component.text("No points were tracked for play-through "))
                     .append(Component.text(iterationIndex + 1)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" of "))
                     .append(Component.text(gameType.getTitle())
                             .decorate(TextDecoration.BOLD))
-                    .append(Component.text("."))
-                    .color(NamedTextColor.YELLOW));
-            return;
+                    .append(Component.text(".")));
         }
         undoScores(iterationScoreKeeper);
         gameScoreKeepers.set(iterationIndex, null); // remove tracked points for this iteration
         Component report = createScoreKeeperReport(gameType, iterationScoreKeeper);
-        sender.sendMessage(report);
         plugin.getServer().getConsoleSender().sendMessage(report);
+        return CommandResult.success(report);
     }
     
     public void addGameToVotingPool(@NotNull CommandSender sender, @NotNull GameType gameToAdd) {
@@ -434,12 +419,7 @@ public class EventManager implements Listener {
         state.gameIsOver(finishedGameType);
     }
     
-    public boolean eventIsActive() {
-        return !(state instanceof OffState);
-    }
-    
     public void cancelAllTasks() {
-        voteManager.cancelVote();
         timerManager.cancel();
         state.cancelAllTasks();
     }
@@ -449,11 +429,7 @@ public class EventManager implements Listener {
      * or the {@link Sidebar#DEFAULT_TITLE} if not
      */
     public @NotNull Component getTitle() {
-        if (eventIsActive()) {
-            return config.getTitle();
-        } else {
-            return Sidebar.DEFAULT_TITLE;
-        }
+        return state.getTitle();
     }
     
     public void giveCrown(Participant participant) {
@@ -465,13 +441,6 @@ public class EventManager implements Listener {
         if (helmet != null && helmet.equals(crown)) {
             participant.getInventory().setHelmet(null);
         }
-    }
-    
-    /**
-     * @return true if the game number should be displayed in-game
-     */
-    public boolean shouldDisplayGameNumber() {
-        return config.shouldDisplayGameNumber();
     }
     
     /**
@@ -489,9 +458,9 @@ public class EventManager implements Listener {
     
     /**
      * Assigns a value to the {@link #maxGames} field. This should not be used unless you know
-     * what you're doing. Instead, use {@link #modifyMaxGames(CommandSender, int)}
+     * what you're doing. Instead, use {@link #modifyMaxGames(int)}
      * @param maxGames the value to set the maxGames to
-     * @see #modifyMaxGames(CommandSender, int) 
+     * @see #modifyMaxGames(int) 
      */
     public void setMaxGames(int maxGames) {
         this.maxGames = maxGames;
@@ -501,18 +470,17 @@ public class EventManager implements Listener {
      * This is used to change the maxGames of the event. This calls state-specific
      * behavior and can safely be used at any time without causing any errors. The state
      * may or may not ignore the value with a message sent to the sender.
-     * @param sender the sender of the modify command
      * @param newMaxGames the number to set the max games to
      */
-    public void modifyMaxGames(@NotNull CommandSender sender, int newMaxGames) {
-        state.setMaxGames(newMaxGames);
+    public CommandResult modifyMaxGames(int newMaxGames) {
+        return state.setMaxGames(newMaxGames);
     }
     
     /**
      * The nth multiplier is used on the nth game in the event. If there are x multipliers, and we're on game z where z is greater than x, the xth multiplier is used.
      * @return a multiplier for the score based on the progression in the match.
      */
-    public double matchProgressPointMultiplier() {
+    public double getPointMultiplier() {
         if (currentGameNumber <= 0) {
             return 1;
         }
@@ -523,16 +491,7 @@ public class EventManager implements Listener {
         return multipliers[currentGameNumber - 1];
     }
     
-    public void trackScores(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, GameType gameType) {
-        if (state instanceof OffState) {
-            return;
-        }
-        List<ScoreKeeper> iterationScoreKeepers = scoreKeepers.get(gameType);
-        ScoreKeeper iteration = iterationScoreKeepers.getLast();
-        iteration.trackScores(teamScores, participantScores);
-    }
-    
-    public void messageAllAdmins(Component message) {
+    public void messageAdmins(Component message) {
         gameManager.messageAdmins(message);
     }
 
