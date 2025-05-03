@@ -277,8 +277,17 @@ public abstract class EventState extends GameManagerState {
         super.addScores(teamScores, participantScores, gameType);
         eventData.trackScores(teamScores, participantScores, gameType);
     }
-    
     // game stop
+    
+    // leave/join start
+    
+    @Override
+    public void onParticipantJoin(@NotNull MCTParticipant participant) {
+        super.onParticipantJoin(participant);
+        sidebar.updateLine(participant.getUniqueId(), "currentGame", getCurrentGameLine());
+    }
+    
+    // leave/join stop
     
     // event handlers start
     @Override
