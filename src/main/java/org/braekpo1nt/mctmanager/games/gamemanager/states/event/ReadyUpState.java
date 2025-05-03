@@ -11,6 +11,7 @@ import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.ReadyUpManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
@@ -29,6 +30,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public class ReadyUpState extends EventState {
     
@@ -171,6 +173,11 @@ public class ReadyUpState extends EventState {
         ));
         context.setState(new WaitingInHubState(context, contextReference, eventData));
         return CompositeCommandResult.all(results);
+    }
+    
+    @Override
+    public CommandResult startGame(Set<String> teamIds, @NotNull GameType gameType, @NotNull String configFile) {
+        return CommandResult.failure("Can't start a game during this state.");
     }
     
     // readyup start

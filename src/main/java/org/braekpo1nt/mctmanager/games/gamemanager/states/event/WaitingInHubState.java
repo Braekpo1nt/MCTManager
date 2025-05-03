@@ -3,11 +3,14 @@ package org.braekpo1nt.mctmanager.games.gamemanager.states.event;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.EventData;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.Tip;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
+import org.braekpo1nt.mctmanager.games.gamemanager.states.event.delay.StartingGameDelayState;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.event.delay.ToFinalGameDelayState;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -15,10 +18,7 @@ import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class WaitingInHubState extends EventState {
@@ -80,6 +80,17 @@ public class WaitingInHubState extends EventState {
         plugin.getServer().getScheduler().cancelTask(updateTipsTaskId);
         plugin.getServer().getScheduler().cancelTask(displayTipsTaskId);
         Audience.audience(onlineParticipants.values()).sendActionBar(Component.empty());
+    }
+    
+    @Override
+    public CommandResult startGame(Set<String> teamIds, @NotNull GameType gameType, @NotNull String configFile) {
+        waitingInHubTimer.cancel();
+        disableTips();
+        context.setState(new StartingGameDelayState(context, contextReference, eventData, gameType, configFile));
+        return CommandResult.success(Component.empty()
+                .append(Component.text("Manually starting "))
+                .append(Component.text(gameType.getTitle()))
+                .append(Component.text(". Cancelling the vote.")));
     }
     
     public void startActionBarTips() {

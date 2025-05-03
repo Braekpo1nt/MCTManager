@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public class PlayingGameState extends EventState {
@@ -58,6 +59,11 @@ public class PlayingGameState extends EventState {
     @Override
     public void onSwitchMode() {
         // do nothing
+    }
+    
+    @Override
+    public CommandResult startGame(Set<String> teamIds, @NotNull GameType gameType, @NotNull String configFile) {
+        return CommandResult.failure("Can't start a game while a game is running");
     }
     
     @Override

@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class VotingState extends EventState {
     
@@ -60,6 +61,17 @@ public class VotingState extends EventState {
     public void onSwitchMode() {
         voteManager.cancelVote();
         timer.cancel();
+    }
+    
+    @Override
+    public CommandResult startGame(Set<String> teamIds, @NotNull GameType gameType, @NotNull String configFile) {
+        voteManager.cancelVote();
+        timer.cancel();
+        context.setState(new StartingGameDelayState(context, contextReference, eventData, gameType, configFile));
+        return CommandResult.success(Component.empty()
+                .append(Component.text("Manually starting "))
+                .append(Component.text(gameType.getTitle()))
+                .append(Component.text(". Cancelling vote.")));
     }
     
     @Override

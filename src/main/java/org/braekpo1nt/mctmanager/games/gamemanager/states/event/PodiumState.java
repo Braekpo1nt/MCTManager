@@ -9,6 +9,8 @@ import org.braekpo1nt.mctmanager.games.gamemanager.event.EventData;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Set;
+
 public class PodiumState extends EventState {
     public PodiumState(@NotNull GameManager context, @NotNull ContextReference contextReference, @NotNull EventData eventData) {
         super(context, contextReference, eventData);
@@ -28,6 +30,11 @@ public class PodiumState extends EventState {
         } else {
             sidebar.addLine("winner", Component.empty());
         }
+    }
+    
+    @Override
+    public CommandResult startGame(Set<String> teamIds, @NotNull GameType gameType, @NotNull String configFile) {
+        return CommandResult.failure("Can't start a game, the event is over.");
     }
     
     @Override
