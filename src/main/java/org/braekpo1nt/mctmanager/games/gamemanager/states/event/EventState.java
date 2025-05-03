@@ -280,13 +280,11 @@ public abstract class EventState extends GameManagerState {
     // game stop
     
     // leave/join start
-    
     @Override
     public void onParticipantJoin(@NotNull MCTParticipant participant) {
         super.onParticipantJoin(participant);
         sidebar.updateLine(participant.getUniqueId(), "currentGame", getCurrentGameLine());
     }
-    
     // leave/join stop
     
     // event handlers start

@@ -604,6 +604,8 @@ public abstract class GameManagerState {
         participant.teleport(spawn);
         tabList.showPlayer(participant);
         sidebar.addPlayer(participant);
+        MCTTeam team = teams.get(participant.getTeamId());
+        updateScoreVisuals(Collections.singletonList(team), Collections.singletonList(participant));
     }
     
     /**
