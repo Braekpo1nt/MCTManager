@@ -88,10 +88,10 @@ public class TimerManager {
     
     public void skip() {
         List<TimerManager> managersCopy = new ArrayList<>(managers);
+        List<Timer> timersCopy = new ArrayList<>(timers);
         for (TimerManager manager : managersCopy) {
             manager.skip();
         }
-        List<Timer> timersCopy = new ArrayList<>(timers);
         for (Timer timer : timersCopy) {
             timer.skip();
         }
