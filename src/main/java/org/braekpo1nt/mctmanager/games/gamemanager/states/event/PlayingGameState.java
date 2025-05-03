@@ -63,7 +63,10 @@ public class PlayingGameState extends EventState {
     
     @Override
     public CommandResult startGame(Set<String> teamIds, @NotNull GameType gameType, @NotNull String configFile) {
-        return CommandResult.failure("Can't start a game while a game is running");
+        if (!activeGames.isEmpty()) {
+            return CommandResult.failure("Only one game can be run at a time during an event");
+        }
+        return super.startGame(teamIds, gameType, configFile);
     }
     
     @Override
