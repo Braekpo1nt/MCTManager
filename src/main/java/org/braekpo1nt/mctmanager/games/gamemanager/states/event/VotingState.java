@@ -41,6 +41,7 @@ public class VotingState extends EventState {
     }
     
     protected void onVoteExecuted(GameType gameType, String configFile) {
+        timer.cancel();
         String chosenConfigFile = eventData.getConfig().getGameConfigs().getOrDefault(gameType, configFile);
         context.setState(new StartingGameDelayState(
                 context, contextReference, eventData,
