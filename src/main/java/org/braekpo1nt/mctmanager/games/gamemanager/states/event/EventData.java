@@ -40,10 +40,14 @@ public class EventData {
      */
     @Getter
     private final Map<GameType, List<ScoreKeeper>> scoreKeepers = new HashMap<>();
-    private static final ItemStack crown = new ItemStack(Material.CARVED_PUMPKIN);
+    private static final ItemStack CROWN = new ItemStack(Material.CARVED_PUMPKIN);
     @Getter
     @Setter
     private @Nullable Team winningTeam;
+    
+    static {
+        CROWN.editMeta(meta -> meta.setCustomModelData(1));
+    }
     
     public EventData(@NotNull EventConfig config, int startingGameNumber, int maxGames) {
         this.config = config;
@@ -67,12 +71,12 @@ public class EventData {
     // score tracking stop
     
     public void giveCrown(Participant participant) {
-        participant.getInventory().setHelmet(crown);
+        participant.getInventory().setHelmet(CROWN);
     }
     
     public void removeCrown(Participant participant) {
         ItemStack helmet = participant.getInventory().getHelmet();
-        if (helmet != null && helmet.equals(crown)) {
+        if (helmet != null && helmet.equals(CROWN)) {
             participant.getInventory().setHelmet(null);
         }
     }
