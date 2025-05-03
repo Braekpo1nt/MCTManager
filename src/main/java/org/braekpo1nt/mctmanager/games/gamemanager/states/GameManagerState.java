@@ -99,7 +99,7 @@ public abstract class GameManagerState {
     /**
      * A reference to which participant is in which game
      */
-    protected final Map<UUID, GameType> participantGames = new HashMap<>();
+    protected final Map<UUID, GameType> participantGames;
     
     public GameManagerState(
             @NotNull GameManager context,
@@ -110,6 +110,7 @@ public abstract class GameManagerState {
         this.leaderboardManagers = contextReference.getLeaderboardManagers();
         this.sidebar = contextReference.getSidebar();
         this.mctScoreboard = contextReference.getMctScoreboard();
+        this.participantGames = contextReference.getParticipantGames();
         this.plugin = contextReference.getPlugin();
         this.activeGames = contextReference.getActiveGames();
         this.gameStateStorageUtil = contextReference.getGameStateStorageUtil();
@@ -539,7 +540,7 @@ public abstract class GameManagerState {
         }
         for (UUID uuid : gameParticipants) {
             MCTParticipant participant = onlineParticipants.get(uuid);
-            onParticipantReturnToHub(participant);
+            onParticipantReturnToHub(participant, config.getSpawn());
             participant.sendMessage(Component.text("Returning to hub"));
         }
         addScores(teamScores, participantScores, gameType);
@@ -594,13 +595,13 @@ public abstract class GameManagerState {
         displayStats(teamScores, participantScores);
     }
     
-    protected void onParticipantReturnToHub(@NotNull MCTParticipant participant) {
+    protected void onParticipantReturnToHub(@NotNull MCTParticipant participant, @NotNull Location spawn) {
         participantGames.remove(participant.getUniqueId());
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
-        participant.teleport(config.getSpawn());
+        participant.teleport(spawn);
         tabList.showPlayer(participant);
         sidebar.addPlayer(participant);
     }
@@ -927,7 +928,7 @@ public abstract class GameManagerState {
     }
     
     protected CommandResult returnParticipantToHub(@NotNull MCTParticipant participant, @NotNull Location spawn) {
-        GameType gameType = participantGames.get(participant.getUniqueId());
+        GameType gameType = participantGames.remove(participant.getUniqueId());
         if (gameType == null) {
             participant.teleport(spawn);
             return CommandResult.success(Component.text("Returning to hub"));
@@ -940,7 +941,7 @@ public abstract class GameManagerState {
         }
         activeGame.onParticipantQuit(participant.getUniqueId());
         activeGame.onTeamQuit(participant.getTeamId());
-        onParticipantReturnToHub(participant);
+        onParticipantReturnToHub(participant, spawn);
         return CommandResult.success(Component.text("Quitting current game. Returning to hub."));
     }
     // participant stop

@@ -99,6 +99,10 @@ public class GameManager implements Listener {
     private final Map<UUID, MCTParticipant> onlineParticipants = new HashMap<>();
     @Getter
     private final List<Player> onlineAdmins = new ArrayList<>();
+    /**
+     * A reference to which participant is in which game
+     */
+    protected final Map<UUID, GameType> participantGames = new HashMap<>();
     private final TabList tabList;
     private final @NotNull List<LeaderboardManager> leaderboardManagers;
     private final Sidebar sidebar;
@@ -127,6 +131,7 @@ public class GameManager implements Listener {
                 .allParticipants(this.allParticipants)
                 .onlineParticipants(this.onlineParticipants)
                 .onlineAdmins(this.onlineAdmins)
+                .participantGames(this.participantGames)
                 .plugin(this.plugin)
                 .config(this.config)
                 .gameStateStorageUtil(this.gameStateStorageUtil)

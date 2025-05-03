@@ -56,6 +56,10 @@ public class ReadyUpState extends EventState {
             int startingGameNumber,
             int maxGames) {
         super(context, contextReference, eventConfig, startingGameNumber, maxGames);
+        context.stopAllGames();
+        for (MCTParticipant participant : onlineParticipants.values()) {
+            returnParticipantToHub(participant);
+        }
         setupSidebar();
         sidebar.updateLine("currentGame", getCurrentGameLine());
         this.readyUpManager = new ReadyUpManager();

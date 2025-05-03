@@ -36,6 +36,7 @@ public class ContextReference {
     private final @NotNull Map<UUID, OfflineParticipant> allParticipants;
     private final @NotNull Map<UUID, MCTParticipant> onlineParticipants;
     private final @NotNull List<Player> onlineAdmins;
+    private final @NotNull Map<UUID, GameType> participantGames;
     private final @NotNull Main plugin;
     private final @NotNull GameStateStorageUtil gameStateStorageUtil;
     private final @NotNull SidebarFactory sidebarFactory;
