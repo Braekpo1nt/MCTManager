@@ -320,11 +320,8 @@ public class ReadyUpState extends EventState {
     @Override
     public Component getCurrentGameLine() {
         return Component.empty()
-                .append(Component.text("Game ["))
-                .append(Component.text(eventData.getCurrentGameNumber()))
-                .append(Component.text("/"))
-                .append(Component.text(eventData.getMaxGames()))
-                .append(Component.text("] "));
+                .append(Component.text("/readyup")
+                        .color(NamedTextColor.GREEN));
     }
     
     // leave/join start
