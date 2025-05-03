@@ -1,11 +1,11 @@
-package org.braekpo1nt.mctmanager.games.event.config;
+package org.braekpo1nt.mctmanager.games.gamemanager.event.config;
 
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
-import org.braekpo1nt.mctmanager.games.event.Tip;
+import org.braekpo1nt.mctmanager.games.gamemanager.event.Tip;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

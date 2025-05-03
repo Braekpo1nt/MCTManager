@@ -2,8 +2,8 @@ package org.braekpo1nt.mctmanager.games.gamemanager.states.event;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.braekpo1nt.mctmanager.games.event.ScoreKeeper;
-import org.braekpo1nt.mctmanager.games.event.config.EventConfig;
+import org.braekpo1nt.mctmanager.games.gamemanager.event.ScoreKeeper;
+import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;

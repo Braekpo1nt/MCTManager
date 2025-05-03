@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.event;
+package org.braekpo1nt.mctmanager.games.gamemanager.event;
 
 import lombok.Data;
 import net.kyori.adventure.text.Component;

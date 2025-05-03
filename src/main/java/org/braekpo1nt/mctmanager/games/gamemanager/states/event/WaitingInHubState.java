@@ -4,7 +4,7 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.event.Tip;
+import org.braekpo1nt.mctmanager.games.gamemanager.event.Tip;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.event.delay.ToFinalGameDelayState;

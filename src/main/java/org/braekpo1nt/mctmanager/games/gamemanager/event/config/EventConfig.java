@@ -1,9 +1,9 @@
-package org.braekpo1nt.mctmanager.games.event.config;
+package org.braekpo1nt.mctmanager.games.gamemanager.event.config;
 
 import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.games.event.Tip;
+import org.braekpo1nt.mctmanager.games.gamemanager.event.Tip;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.jetbrains.annotations.NotNull;
 

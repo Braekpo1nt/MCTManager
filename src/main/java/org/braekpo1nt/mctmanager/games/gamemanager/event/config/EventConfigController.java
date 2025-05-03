@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.event.config;
+package org.braekpo1nt.mctmanager.games.gamemanager.event.config;
 
 import org.braekpo1nt.mctmanager.config.ConfigController;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;

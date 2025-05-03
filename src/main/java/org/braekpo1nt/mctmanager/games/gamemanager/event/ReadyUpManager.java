@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.event;
+package org.braekpo1nt.mctmanager.games.gamemanager.event;
 
 import com.google.common.base.Preconditions;
 import lombok.Data;
