@@ -53,8 +53,8 @@ public class ReadyUpState extends EventState {
             @NotNull GameManager context, 
             @NotNull ContextReference contextReference, 
             @NotNull EventConfig eventConfig, 
-            int startingGameNumber,
-            int maxGames) {
+            int maxGames,
+            int startingGameNumber) {
         super(context, contextReference, eventConfig, startingGameNumber, maxGames);
         context.stopAllGames();
         for (MCTParticipant participant : onlineParticipants.values()) {

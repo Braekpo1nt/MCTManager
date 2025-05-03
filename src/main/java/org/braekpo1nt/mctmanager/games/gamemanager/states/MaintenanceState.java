@@ -61,15 +61,7 @@ public class MaintenanceState extends GameManagerState {
                 return CommandResult.success(Component.text("Switched to practice mode"));
             }
             case "event" -> {
-                try {
-                    EventConfig eventConfig = new EventConfigController(plugin.getDataFolder()).getConfig();
-                    context.setState(new ReadyUpState(context, contextReference, eventConfig, 0, 7));
-                    return CommandResult.success(Component.text("Switched to event mode"));
-                } catch (ConfigException e) {
-                    Main.logger().log(Level.SEVERE, e.getMessage(), e);
-                    return CommandResult.failure(Component.text("Can't switch to event mode. Error loading config file. See console for details:\n")
-                            .append(Component.text(e.getMessage())));
-                }
+                return startEvent(7, 0);
             }
             default -> {
                 return CommandResult.failure(Component.empty()
@@ -84,7 +76,7 @@ public class MaintenanceState extends GameManagerState {
     public CommandResult startEvent(int maxGames, int currentGameNumber) {
         try {
             EventConfig eventConfig = new EventConfigController(plugin.getDataFolder()).getConfig();
-            context.setState(new ReadyUpState(context, contextReference, eventConfig, currentGameNumber, maxGames));
+            context.setState(new ReadyUpState(context, contextReference, eventConfig, maxGames, currentGameNumber));
             return CommandResult.success(Component.text("Switched to event mode"));
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, e.getMessage(), e);
