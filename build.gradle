@@ -57,6 +57,7 @@ dependencies {
     implementation 'com.github.retrooper:packetevents-spigot:2.7.0'
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'com.sk89q.worldedit:worldedit-bukkit:7.3.6'
+    implementation 'com.github.stefvanschie.inventoryframework:IF:0.10.19'
     
     // lombok
     compileOnly 'org.projectlombok:lombok:1.18.36'
