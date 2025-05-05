@@ -441,11 +441,16 @@ public abstract class GameManagerState {
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(" is not a valid teamId")));
             }
-            Collection<MCTParticipant> onlineAvailableMembers = team.getOnlineMembers().stream()
-                    .filter(m -> !participantGames.containsKey(m.getUniqueId()))
-                    .toList();
-            gameParticipants.addAll(onlineAvailableMembers);
+            for (MCTParticipant onlineMember : team.getOnlineMembers()) {
+                if (participantGames.containsKey(onlineMember.getUniqueId())) {
+                    return CommandResult.failure(Component.empty()
+                            .append(Component.text("Can't start a game with "))
+                            .append(team.getFormattedDisplayName())
+                            .append(Component.text(" because one of its members is already in a game")));
+                }
+            }
             gameTeams.add(team);
+            gameParticipants.addAll(team.getOnlineMembers());
         }
         // make sure the player and team count requirements are met
         if (gameTeams.isEmpty()) {

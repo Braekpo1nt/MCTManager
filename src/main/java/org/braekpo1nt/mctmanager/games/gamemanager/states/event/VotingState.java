@@ -87,6 +87,7 @@ public class VotingState extends EventState {
     @Override
     public void onParticipantJoin(@NotNull MCTParticipant participant) {
         super.onParticipantJoin(participant);
+        participant.teleport(config.getSpawn());
         voteManager.onParticipantJoin(participant);
     }
     

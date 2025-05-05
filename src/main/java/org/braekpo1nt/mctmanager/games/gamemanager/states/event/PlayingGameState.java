@@ -8,9 +8,12 @@ import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommand
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.SuccessCommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
+import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.EventData;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -67,6 +70,15 @@ public class PlayingGameState extends EventState {
             return CommandResult.failure("Only one game can be run at a time during an event");
         }
         return super.startGame(teamIds, gameType, configFile);
+    }
+    
+    @Override
+    public void onParticipantJoin(@NotNull PlayerJoinEvent event, @NotNull MCTParticipant participant) {
+        super.onParticipantJoin(event, participant);
+        MCTGame game = activeGames.get(activeGameType);
+        MCTTeam team = teams.get(participant.getTeamId());
+        game.onTeamJoin(team);
+        game.onParticipantJoin(participant);
     }
     
     @Override

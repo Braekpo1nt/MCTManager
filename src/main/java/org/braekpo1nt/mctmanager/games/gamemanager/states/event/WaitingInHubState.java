@@ -15,6 +15,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.states.event.delay.ToFinalGam
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.jetbrains.annotations.NotNull;
 
@@ -120,6 +121,12 @@ public class WaitingInHubState extends EventState {
             }
         }, 0L, 20L);
         
+    }
+    
+    @Override
+    public void onParticipantJoin(@NotNull PlayerJoinEvent event, @NotNull MCTParticipant participant) {
+        super.onParticipantJoin(event, participant);
+        participant.teleport(config.getSpawn());
     }
     
     /**

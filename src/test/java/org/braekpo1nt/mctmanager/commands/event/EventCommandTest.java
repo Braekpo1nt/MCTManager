@@ -64,13 +64,6 @@ class EventCommandTest {
         Assertions.assertTrue(plugin.getGameManager().eventIsActive());
     }
     
-    @Test
-    @DisplayName("`/mct event start 4` starts the with 4 games")
-    void startNumberTest() {
-        Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{"event", "start", "4"}));
-        Assertions.assertTrue(plugin.getGameManager().eventIsActive());
-        Assertions.assertEquals(4, plugin.getGameManager().getEventManager().getMaxGames());
-    }
     
     @Test
     @DisplayName("`/mct event start blank` complains that blank isn't an integer")

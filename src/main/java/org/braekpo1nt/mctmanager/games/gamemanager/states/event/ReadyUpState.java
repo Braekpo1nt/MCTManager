@@ -344,6 +344,7 @@ public class ReadyUpState extends EventState {
         }
         topbar.showPlayer(participant);
         unReadyParticipant(participant);
+        participant.teleport(config.getSpawn());
     }
     
     @Override
