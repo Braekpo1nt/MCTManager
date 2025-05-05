@@ -320,6 +320,10 @@ public abstract class EventState extends GameManagerState {
      * @return a line for sidebars saying what the current game is
      */
     public Component getCurrentGameLine() {
+        if (eventData.getCurrentGameNumber() > eventData.getMaxGames()) {
+            return Component.empty()
+                    .append(Component.text("Final Game"));
+        }
         return Component.empty()
                 .append(Component.text("Game ["))
                 .append(Component.text(eventData.getCurrentGameNumber()))
