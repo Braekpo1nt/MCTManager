@@ -97,7 +97,9 @@ public abstract class GameManagerState {
     protected final List<LeaderboardManager> leaderboardManagers;
     protected final Sidebar sidebar;
     /**
-     * A reference to which participant is in which game
+     * A reference to which participant is in which game<br>
+     * If a participant's UUID is a key in this map, that participant is
+     * in a game.
      */
     protected final Map<UUID, GameType> participantGames;
     
@@ -439,10 +441,11 @@ public abstract class GameManagerState {
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(" is not a valid teamId")));
             }
-            if (team.isOnline()) {
-                gameTeams.add(team);
-                gameParticipants.addAll(team.getOnlineMembers());
-            }
+            Collection<MCTParticipant> onlineAvailableMembers = team.getOnlineMembers().stream()
+                    .filter(m -> !participantGames.containsKey(m.getUniqueId()))
+                    .toList();
+            gameParticipants.addAll(onlineAvailableMembers);
+            gameTeams.add(team);
         }
         // make sure the player and team count requirements are met
         if (gameTeams.isEmpty()) {

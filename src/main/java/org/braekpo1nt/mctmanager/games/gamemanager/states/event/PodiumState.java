@@ -40,11 +40,21 @@ public class PodiumState extends EventState {
     @Override
     public void cleanup() {
         super.cleanup();
+        if (eventData.getWinningTeam() != null) {
+            for (MCTParticipant participant : eventData.getWinningTeam().getOnlineMembers()) {
+                eventData.removeCrown(participant);
+            }
+        }
         sidebar.deleteLine("winner");
     }
     
     @Override
     public void onSwitchMode() {
+        if (eventData.getWinningTeam() != null) {
+            for (MCTParticipant participant : eventData.getWinningTeam().getOnlineMembers()) {
+                eventData.removeCrown(participant);
+            }
+        }
         sidebar.deleteLine("winner");
     }
     

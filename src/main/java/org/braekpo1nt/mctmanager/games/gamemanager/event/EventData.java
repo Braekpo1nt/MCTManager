@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.gamemanager.event;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -42,7 +43,7 @@ public class EventData {
     private static final ItemStack CROWN = new ItemStack(Material.CARVED_PUMPKIN);
     @Getter
     @Setter
-    private @Nullable Team winningTeam;
+    private @Nullable MCTTeam winningTeam;
     
     static {
         CROWN.editMeta(meta -> meta.setCustomModelData(1));
