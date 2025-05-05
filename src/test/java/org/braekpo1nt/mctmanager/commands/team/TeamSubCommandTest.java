@@ -54,7 +54,7 @@ class TeamSubCommandTest {
         String teamDisplayName = "Red Team";
         String teamColor = "red";
         plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "add", teamId, String.format("\"%s\"", teamDisplayName), teamColor});
-        Assertions.assertTrue(gameManager.hasTeam("red"));
+        Assertions.assertNotNull(gameManager.getTeam("red"));
     }
     
     @Test
@@ -64,12 +64,12 @@ class TeamSubCommandTest {
         String teamDisplayName = "Red Team";
         String teamColor = "red";
         plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "add", teamId, String.format("\"%s\"", teamDisplayName), teamColor});
-        Assertions.assertTrue(gameManager.hasTeam("red"));
+        Assertions.assertNotNull(gameManager.getTeam("red"));
         String name = "Player1";
         MyPlayerMock player = new MyPlayerMock(server, name, UUID.nameUUIDFromBytes(name.getBytes(StandardCharsets.UTF_8)));
         server.addPlayer(player);
         plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "join", teamId, name});
-        Assertions.assertTrue(gameManager.isParticipant(player.getUniqueId()));
+        Assertions.assertNotNull(gameManager.getOnlineParticipant(player.getUniqueId()));
     }
     
 }

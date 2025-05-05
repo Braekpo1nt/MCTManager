@@ -35,7 +35,6 @@ public class UnReadyCommand extends MasterCommandManager {
         if (participant == null) {
             return CommandResult.failure("Only participants can run this command");
         }
-        gameManager.getEventManager().unReadyParticipant(participant);
-        return CommandResult.success();
+        return gameManager.unReadyParticipant(participant.getUniqueId());
     }
 }

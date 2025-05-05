@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -30,18 +31,17 @@ public class ListSubCommand extends TabSubCommand {
             return CommandResult.failure(getUsage().of("[teamId]"));
         }
         if (args.length == 0) {
-            gameManager.getEventManager().listReady(sender, null);
-            return CommandResult.success();
+            return gameManager.listReady(null);
         }
         String teamId = args[0];
-        if (!gameManager.hasTeam(teamId)) {
+        Team team = gameManager.getTeam(teamId);
+        if (team == null) {
             return CommandResult.failure(Component.empty()
                     .append(Component.text(teamId)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" is not a valid teamId")));
         }
-        gameManager.getEventManager().listReady(sender, teamId);
-        return CommandResult.success();
+        return gameManager.listReady(teamId);
     }
     
     @Override

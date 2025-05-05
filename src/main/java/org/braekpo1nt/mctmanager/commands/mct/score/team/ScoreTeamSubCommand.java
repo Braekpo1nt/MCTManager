@@ -73,7 +73,7 @@ public class ScoreTeamSubCommand extends TabSubCommand {
         TextComponent.Builder builder = Component.text()
                 .append(Component.text("Team Scores:")
                         .decorate(TextDecoration.BOLD));
-        List<Team> sortedTeams = GameManagerUtils.getSortedTeams(gameManager);
+        List<Team> sortedTeams = gameManager.getSortedTeams();
         for (Team team : sortedTeams) {
             builder.append(Component.empty()
                     .append(Component.newline())

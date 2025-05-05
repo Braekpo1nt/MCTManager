@@ -58,14 +58,13 @@ public class TeamSpawnsDescription extends ParkourPathwayStateBase {
      * @return a map of teamIds to their {@link TeamSpawn}s
      */
     private @NotNull Map<String, TeamSpawn> createTeamSpawns() {
-        Set<String> teamIds = Team.getTeamIds(context.getTeams());
-        Map<String, TeamSpawn> result = new HashMap<>(teamIds.size());
+        Map<String, TeamSpawn> result = new HashMap<>(context.getTeams().size());
         int i = 0;
-        for (String teamId : teamIds) {
+        for (ParkourTeam team : context.getTeams().values()) {
             int teamSpawnIndex = MathUtils.wrapIndex(i, teamSpawns.size());
             TeamSpawn teamSpawn = teamSpawns.get(teamSpawnIndex);
-            teamSpawn.setBarrierMaterial(context.getGameManager().getTeamStainedGlassColor(teamId));
-            result.put(teamId, teamSpawn);
+            teamSpawn.setBarrierMaterial(team.getColorAttributes().getStainedGlass());
+            result.put(team.getTeamId(), teamSpawn);
             teamSpawn.close();
             i++;
         }

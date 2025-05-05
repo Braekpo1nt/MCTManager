@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.UUID;
 
 /**

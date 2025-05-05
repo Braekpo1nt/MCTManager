@@ -14,7 +14,6 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.RoundOverState
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -32,7 +31,6 @@ public class CaptureTheFlagGameTest {
     private ServerMock server;
     private Main plugin;
     private GameManager gameManager;
-    private CommandSender sender;
     
     @BeforeEach
     void setUpServerAndPlugin() {
@@ -46,7 +44,6 @@ public class CaptureTheFlagGameTest {
             System.exit(1);
         }
         gameManager = plugin.getGameManager();
-        sender = server.getConsoleSender();
         InputStream inputStream = CaptureTheFlagConfigController.class.getResourceAsStream("exampleCaptureTheFlagConfig.json");
         File configFolder = new File(plugin.getDataFolder(), GameType.CAPTURE_THE_FLAG.getId());
         configFolder.mkdirs();
@@ -61,20 +58,20 @@ public class CaptureTheFlagGameTest {
     MyPlayerMock createParticipant(String name, String teamId) {
         MyPlayerMock player = new MyPlayerMock(server, name, UUID.nameUUIDFromBytes(name.getBytes(StandardCharsets.UTF_8)));
         server.addPlayer(player);
-        gameManager.joinParticipantToTeam(sender, player, name, teamId);
-        Assertions.assertTrue(gameManager.isParticipant(player.getUniqueId()));
+        gameManager.joinParticipantToTeam(player, name, teamId);
+        Assertions.assertNotNull(gameManager.getOnlineParticipant(player.getUniqueId()));
         return player;
     }
     
     void removeParticipant(OfflinePlayer player, @NotNull String playerName) {
         OfflineParticipant offlineParticipant = gameManager.getOfflineParticipant(player.getUniqueId());
         Assertions.assertNotNull(offlineParticipant, String.format("player %s did not exist in the game state", playerName));
-        gameManager.leaveParticipant(sender, offlineParticipant);
+        gameManager.leaveParticipant(offlineParticipant);
     }
     
     void addTeam(String teamId, String teamDisplayName, String teamColor) {
         gameManager.addTeam(teamId, teamDisplayName, teamColor);
-        Assertions.assertTrue(gameManager.hasTeam(teamId));
+        Assertions.assertNotNull(gameManager.getTeam(teamId));
     }
     
     @Test
@@ -85,8 +82,9 @@ public class CaptureTheFlagGameTest {
         createParticipant("Player1", "aqua");
         createParticipant("Player2", "red");
         MyPlayerMock player3 = createParticipant("Player3", "yellow");
-        gameManager.startGame(GameType.CAPTURE_THE_FLAG, "captureTheFlagConfig.json", sender);
-        CaptureTheFlagGame game = (CaptureTheFlagGame) gameManager.getActiveGame();
+        gameManager.startGame(GameType.CAPTURE_THE_FLAG, "captureTheFlagConfig.json");
+        CaptureTheFlagGame game = (CaptureTheFlagGame) gameManager.getActiveGame(GameType.CAPTURE_THE_FLAG);
+        Assertions.assertNotNull(game);
         
         gameManager.getTimerManager().skip();
         Assertions.assertInstanceOf(PreRoundState.class, game.getState(), "we should be in the PreRoundState");
@@ -101,6 +99,6 @@ public class CaptureTheFlagGameTest {
         gameManager.getTimerManager().skip(); // should realize that Player3 isn't online, and end the match, which ends the round
         Assertions.assertInstanceOf(RoundOverState.class, game.getState());
         
-        gameManager.manuallyStopGame(false);
+        gameManager.stopGame(GameType.CAPTURE_THE_FLAG);
     }
 }

@@ -3,11 +3,11 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchParticipant;
-import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -36,23 +36,20 @@ public class ClassPicker implements Listener {
     private final Component NETHER_STAR_NAME = Component.text("Vote");
     private final Map<UUID, String> pickedBattleClasses = new HashMap<>();
     private final Map<UUID, Participant> teamMates = new HashMap<>();
-    private final GameManager gameManager;
+    private @NotNull Color leatherColor = Color.WHITE;
     private boolean classPickingActive = false;
     private Map<String, Loadout> loadouts = new HashMap<>();
     private Map<Material, String> materialToBattleClass = new HashMap<>();
-    
-    public ClassPicker(@NotNull GameManager gameManager) {
-        this.gameManager = gameManager;
-    }
     
     /**
      * Registers event listeners, and starts the class picking phase for the given list of teammates
      * 
      * @param plugin The plugin
      * @param newTeamMates The list of teammates. They are assumed to be on the same team. Weird things will happen if they are not.
+     * @param leatherColor the color that leather armor should be
      * @param loadouts the loadouts for each BattleClass
      */
-    public void start(Main plugin, Collection<CTFMatchParticipant> newTeamMates, 
+    public void start(Main plugin, Collection<CTFMatchParticipant> newTeamMates, @NotNull Color leatherColor, 
                       Map<String, Loadout> loadouts) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.materialToBattleClass = new HashMap<>();
@@ -60,6 +57,7 @@ public class ClassPicker implements Listener {
             this.materialToBattleClass.put(entry.getValue().getMenuItem().getType(), entry.getKey());
         }
         this.loadouts = loadouts;
+        this.leatherColor = leatherColor;
         teamMates.clear();
         for (Participant teamMate : newTeamMates) {
             teamMates.put(teamMate.getUniqueId(), teamMate);
@@ -78,6 +76,7 @@ public class ClassPicker implements Listener {
     public void stop(boolean assignBattleClasses) {
         HandlerList.unregisterAll(this);
         classPickingActive = false;
+        this.leatherColor = Color.WHITE;
         if (assignBattleClasses) {
             assignBattleClassesToTeamMatesWithoutBattleClasses();
         }
@@ -265,7 +264,7 @@ public class ClassPicker implements Listener {
         Loadout loadout = loadouts.get(battleClass);
         ItemStack[] contents = loadout.getContents();
         teamMate.getInventory().setContents(contents);
-        GameManagerUtils.colorLeatherArmor(gameManager, teamMate);
+        ColorMap.colorLeatherArmor(teamMate, leatherColor);
         teamMate.sendMessage(Component.text("Selected ")
                 .append(loadout.getName()));
     }

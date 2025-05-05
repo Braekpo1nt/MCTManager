@@ -37,6 +37,11 @@ public interface Team {
     @NotNull TextColor getColor();
     
     /**
+     * @return this team's {@link ColorAttributes}
+     */
+    @NotNull ColorAttributes getColorAttributes();
+    
+    /**
      * @return the team's score
      */
     int getScore();

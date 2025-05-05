@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.utils;
 
+import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
@@ -13,16 +14,19 @@ import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
-import org.bukkit.*;
-import org.bukkit.command.CommandSender;
+import org.bukkit.Color;
+import org.bukkit.NamespacedKey;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryAction;
-import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.persistence.PersistentDataType;
+import org.intellij.lang.annotations.RegExp;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,31 +40,6 @@ public class GameManagerUtils {
     public final static Set<EntityDamageEvent.DamageCause> EXCLUDED_DAMAGE_CAUSES = Set.of(
             EntityDamageEvent.DamageCause.VOID,
             EntityDamageEvent.DamageCause.KILL
-    );
-    
-    public final static Set<PlayerTeleportEvent.TeleportCause> EXCLUDED_TELEPORT_CAUSES = Set.of(
-            PlayerTeleportEvent.TeleportCause.COMMAND,
-            PlayerTeleportEvent.TeleportCause.PLUGIN,
-            PlayerTeleportEvent.TeleportCause.UNKNOWN
-    );
-    
-    public static final List<Material> SIGNS = List.of(
-            Material.OAK_SIGN,
-            Material.SPRUCE_SIGN,
-            Material.BIRCH_SIGN,
-            Material.JUNGLE_SIGN,
-            Material.ACACIA_SIGN,
-            Material.DARK_OAK_SIGN,
-            Material.CRIMSON_SIGN,
-            Material.WARPED_SIGN,
-            Material.OAK_WALL_SIGN,
-            Material.SPRUCE_WALL_SIGN,
-            Material.BIRCH_WALL_SIGN,
-            Material.JUNGLE_WALL_SIGN,
-            Material.ACACIA_WALL_SIGN,
-            Material.DARK_OAK_WALL_SIGN,
-            Material.CRIMSON_WALL_SIGN,
-            Material.WARPED_WALL_SIGN
     );
     
     /**
@@ -117,7 +96,7 @@ public class GameManagerUtils {
         TextComponent.Builder messageBuilder = Component.text().append(Component.text("Scores:\n")
                     .decorate(TextDecoration.BOLD));
         List<OfflineParticipant> offlineParticipants = getSortedOfflineParticipants(gameManager);
-        List<Team> sortedTeams = getSortedTeams(gameManager);
+        List<Team> sortedTeams = gameManager.getSortedTeams();
         
         for (Team team : sortedTeams) {
             messageBuilder.append(Component.empty()
@@ -170,20 +149,6 @@ public class GameManagerUtils {
     }
     
     /**
-     * @param gameManager the GameManager to get the data from
-     * @return a sorted list of team names. Sorted first by score from greatest to least, then alphabetically (A to Z).
-     */
-    public static List<Team> getSortedTeams(GameManager gameManager) {
-        return gameManager.getTeams().stream().sorted((t1, t2) -> {
-            int scoreComparison = t2.getScore() - t1.getScore();
-            if (scoreComparison != 0) {
-                return scoreComparison;
-            }
-            return t1.getDisplayName().compareToIgnoreCase(t2.getDisplayName());
-        }).toList();
-    }
-    
-    /**
      * This validation and creation is used across multiple commands, so I've put it here for easy replication. 
      * <br>
      * Makes sure the inputs are able to form a valid team that doesn't already exist. 
@@ -195,7 +160,8 @@ public class GameManagerUtils {
      * @return a comprehensive message about the success or failure of the addition of the given team
      */
     public static CommandResult addTeam(GameManager gameManager, @NotNull String teamId, @NotNull String teamDisplayName, @NotNull String colorString) {
-        if (gameManager.hasTeam(teamId)) {
+        Team existingTeam = gameManager.getTeam(teamId);
+        if (existingTeam != null) {
             return CommandResult.failure(Component.text("A team already exists with the teamId \"")
                     .append(Component.text(teamId))
                     .append(Component.text("\"")));
@@ -239,23 +205,22 @@ public class GameManagerUtils {
     
     /**
      * Removes the specified team from the GameState, and leaves all participants of that team
-     * @param sender the sender who will receive success/error messages
      * @param gameManager the GameManager to modify
      * @param teamId the teamId of the team to remove. Must be a valid teamId.
      * @return a CommandResult detailing what happened. 
      */
-    public static CommandResult removeTeam(@NotNull CommandSender sender, @NotNull GameManager gameManager, @NotNull String teamId) {
-        if (!gameManager.hasTeam(teamId)) {
+    public static CommandResult removeTeam(@NotNull GameManager gameManager, @NotNull String teamId) {
+        Team existingTeam = gameManager.getTeam(teamId);
+        if (existingTeam == null) {
             return CommandResult.failure(Component.text("Team ")
                     .append(Component.text(teamId)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" does not exist")));
         }
-        gameManager.removeTeam(sender, teamId);
-        return CommandResult.success();
+        return gameManager.removeTeam(teamId);
     }
     
-    public static CommandResult joinParticipant(@NotNull CommandSender sender, Main plugin, @NotNull GameManager gameManager, @NotNull String ign, @NotNull String teamId) {
+    public static CommandResult joinParticipant(Main plugin, @NotNull GameManager gameManager, @NotNull String ign, @NotNull String teamId) {
         if (teamId.isEmpty()) {
             return CommandResult.failure("teamId must not be blank");
         }
@@ -271,8 +236,25 @@ public class GameManagerUtils {
         }
         
         OfflinePlayer playerToJoin = plugin.getServer().getOfflinePlayer(ign);
-        gameManager.joinParticipantToTeam(sender, playerToJoin, ign, teamId);
-        return CommandResult.success();
+        return gameManager.joinParticipantToTeam(playerToJoin, ign, teamId);
+    }
+    
+    /**
+     * Replaces instances of the given name with the given display name in the given component.
+     * @param name the name to replace
+     * @param displayName the display name to replace it with
+     * @param component the component to replace within
+     * @return a new component with the replacements, Null if the component is null.
+     */
+    @Contract("_, _, null -> null")
+    public static Component replaceWithDisplayName(@RegExp @NotNull String name, @NotNull Component displayName, Component component) {
+        if (component == null) {
+            return null;
+        }
+        return component.replaceText(TextReplacementConfig.builder()
+                .match(name)
+                .replacement(displayName)
+                .build());
     }
     
     /**
@@ -283,30 +265,18 @@ public class GameManagerUtils {
      */
     @Contract("_, null -> null")
     public static Component replaceWithDisplayName(@NotNull Player player, Component component) {
-        if (component == null) {
-            return null;
-        }
-        return component.replaceText(TextReplacementConfig.builder()
-                .match(player.getName())
-                .replacement(player.displayName())
-                .build());
+        return replaceWithDisplayName(player.getName(), player.displayName(), component);
     }
     
     /**
-     * Colors all leather armor in the equipment slots of the participant to be the team color
-     * If the {@link org.bukkit.persistence.PersistentDataContainer} of an item's LeatherArmorMeta contains the {@link GameManagerUtils#IGNORE_TEAM_COLOR} {@link PersistentDataType#STRING} property, then that item will not be colored. 
-     * @param gameManager the game manager in which the given participant should be contained
-     * @param participant the participant whose armor slots may or may not contain leather armor, but for whom any existing leather armor slots should be colored their team color. If this participant is not a participiant in the given gameManager, then nothing happens. 
+     * Replaces instances of the given player's name in the given component with the player's display name. 
+     * @param participant the player whose name should be replaced with their display name
+     * @param component the component in which the name should be replaced
+     * @return a new component with the replacements. Null if the component is null
      */
-    public static void colorLeatherArmor(@NotNull GameManager gameManager, @NotNull Participant participant) {
-        if (!gameManager.isParticipant(participant.getUniqueId())) {
-            return;
-        }
-        Color teamColor = gameManager.getTeam(participant).getBukkitColor();
-        colorLeatherArmor(participant.getInventory().getHelmet(), teamColor);
-        colorLeatherArmor(participant.getInventory().getChestplate(), teamColor);
-        colorLeatherArmor(participant.getInventory().getLeggings(), teamColor);
-        colorLeatherArmor(participant.getInventory().getBoots(), teamColor);
+    @Contract("_, null -> null")
+    public static Component replaceWithDisplayName(@NotNull Participant participant, Component component) {
+        return replaceWithDisplayName(participant.getName(), participant.displayName(), component);
     }
     
     /**
@@ -410,16 +380,6 @@ public class GameManagerUtils {
     }
     
     /**
-     * Returns the formal placement title of the given place. 
-     * 1 gives 1st, 2 gives second, 11 gives 11th, 103 gives 103rd.
-     * @param placement A number representing the placement
-     * @return The placement number with the appropriate postfix (st, nd, rd, th)
-     */
-    public static String getPlacementTitleString(int placement) {
-        return placement + getStandingSuffix(placement);
-    }
-    
-    /**
      * @param name the name to turn into a display name
      * @param color the color to use for the display name
      * @return the display name from the given name and color
@@ -428,5 +388,61 @@ public class GameManagerUtils {
         return Component.empty()
                 .append(Component.text(name))
                 .color(color);
+    }
+    
+    public static @Nullable EquipmentSlot toEquipmentSlot(@Nullable PlayerArmorChangeEvent.SlotType slotType) {
+        switch (slotType) {
+            case HEAD -> {
+                return EquipmentSlot.HEAD;
+            }
+            case CHEST -> {
+                return EquipmentSlot.CHEST;
+            }
+            case LEGS -> {
+                return EquipmentSlot.LEGS;
+            }
+            case FEET -> {
+                return EquipmentSlot.FEET;
+            }
+            case null, default -> {
+                return null;
+            }
+        }
+    }
+    
+    /**
+     * Takes in a {@link PlayerDeathEvent} and replaces all instances of the given player's name with the given player's display name
+     * @param event the event
+     * @param participant the player whose name should be replaced with their display name. 
+     */
+    public static void replaceWithDisplayName(PlayerDeathEvent event, Participant participant) {
+        Component deathMessage = event.deathMessage();
+        if (deathMessage != null) {
+            Component newDeathMessage = replaceWithDisplayName(participant.getPlayer(), deathMessage);
+            event.deathMessage(newDeathMessage);
+        }
+    }
+    
+    /**
+     * @param item the item in question. If this is null, will return false. 
+     * @return true if the item is of a leather armor type, false otherwise. False if the given item is null. 
+     */
+    @Contract("null -> false")
+    public static boolean isLeatherArmor(@Nullable ItemStack item) {
+        if (item == null) {
+            return false;
+        }
+        return item.getItemMeta() instanceof LeatherArmorMeta;
+    }
+    
+    public static <T extends Team> List<Team> sortTeams(Collection<T> teamsToSort) {
+        List<Team> sortedTeams = new ArrayList<>(teamsToSort);
+        sortedTeams.sort(Comparator.comparing(Team::getScore, Comparator.reverseOrder()));
+        sortedTeams.sort(Comparator
+                .comparing(team -> ((Team) team).getScore())
+                .reversed()
+                .thenComparing(team -> ((Team) team).getTeamId())
+        );
+        return sortedTeams;
     }
 }

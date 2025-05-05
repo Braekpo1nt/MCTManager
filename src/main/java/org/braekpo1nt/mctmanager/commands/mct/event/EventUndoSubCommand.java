@@ -46,8 +46,7 @@ public class EventUndoSubCommand extends TabSubCommand {
                     .append(Component.text(" is not an integer")));
         }
         int iterationNumber = Integer.parseInt(iterationNumberString);
-        gameManager.getEventManager().undoGame(sender, gameType, iterationNumber - 1);
-        return CommandResult.success();
+        return gameManager.undoGame(gameType, iterationNumber - 1);
     }
     
     @Override
@@ -60,7 +59,7 @@ public class EventUndoSubCommand extends TabSubCommand {
         if (gameType == null) {
             return Collections.emptyList();
         }
-        int iterations = gameManager.getEventManager().getGameIterations(gameType);
+        int iterations = gameManager.getGameIterations(gameType);
         if (iterations <= 0) {
             return Collections.emptyList();
         }

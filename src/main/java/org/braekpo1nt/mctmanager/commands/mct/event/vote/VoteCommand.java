@@ -41,8 +41,7 @@ public class VoteCommand extends CommandManager {
                             .append(Component.text(" is not a votable game")));
                 }
                 
-                gameManager.getEventManager().addGameToVotingPool(sender, gameToAdd);
-                return CommandResult.success();
+                return gameManager.addGameToVotingPool(gameToAdd);
             }
             
             @Override
@@ -69,8 +68,7 @@ public class VoteCommand extends CommandManager {
                             .append(Component.text(" is not a recognized game")));
                 }
                 
-                gameManager.getEventManager().removeGameFromVotingPool(sender, gameToRemove);
-                return CommandResult.success();
+                return gameManager.removeGameFromVotingPool(gameToRemove);
             }
     
             @Override

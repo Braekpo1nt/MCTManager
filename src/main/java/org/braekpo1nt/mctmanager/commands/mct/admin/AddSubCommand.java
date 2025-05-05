@@ -45,8 +45,7 @@ public class AddSubCommand extends TabSubCommand {
                     .append(Component.text(" is already an admin"))
                     .color(NamedTextColor.YELLOW));
         }
-        gameManager.addAdmin(sender, newAdmin);
-        return CommandResult.success();
+        return gameManager.addAdmin(newAdmin);
     }
     
     @Override

@@ -68,14 +68,14 @@ public class LeaderboardManager {
         DHAPI.removeHologram(allHologram.getName());
     }
     
-    public void onParticipantJoin(@NotNull Player participant) {
+    public void showPlayer(@NotNull Player participant) {
         Hologram hologram = createHologram(PREFIX + participant.getName());
         hologram.setShowPlayer(participant);
         holograms.put(participant.getUniqueId(), hologram);
         allHologram.setHidePlayer(participant);
     }
     
-    public void onParticipantQuit(@NotNull Player participant) {
+    public void hidePlayer(@NotNull Player participant) {
         Hologram hologram = holograms.remove(participant.getUniqueId());
         if (hologram != null) {
             DHAPI.removeHologram(hologram.getName());

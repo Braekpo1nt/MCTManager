@@ -1,18 +1,33 @@
 package org.braekpo1nt.mctmanager.games;
 
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.hub.HubManager;
-import org.braekpo1nt.mctmanager.hub.MockHubManager;
+import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
+import org.braekpo1nt.mctmanager.hub.config.HubConfig;
+import org.braekpo1nt.mctmanager.hub.leaderboard.LeaderboardManager;
+import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.bukkit.scoreboard.Scoreboard;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Collections;
+import java.util.List;
 
 public class MockGameManager extends GameManager {
-    
-    public MockGameManager(Main plugin, Scoreboard mctScoreboard) {
-        super(plugin, mctScoreboard);
+    public MockGameManager(
+            Main plugin, 
+            Scoreboard mctScoreboard, 
+            @NotNull GameStateStorageUtil gameStateStorageUtil, 
+            @NotNull SidebarFactory sidebarFactory, 
+            @NotNull HubConfig config) {
+        super(
+                plugin, 
+                mctScoreboard, 
+                gameStateStorageUtil,
+                sidebarFactory, 
+                config);
     }
     
     @Override
-    protected HubManager initializeHubManager(Main plugin, GameManager gameManager) {
-        return new MockHubManager(plugin, gameManager);
+    public List<LeaderboardManager> createLeaderboardManagers() {
+        return Collections.emptyList();
     }
 }

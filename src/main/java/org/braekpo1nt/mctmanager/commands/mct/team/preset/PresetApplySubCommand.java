@@ -111,8 +111,7 @@ public class PresetApplySubCommand extends TabSubCommand {
             Set<String> teamIds = gameManager.getTeamIds();
             int oldTeamCount = teamIds.size();
             for (String teamId : teamIds) {
-                CommandResult commandResult = GameManagerUtils.removeTeam(sender, gameManager, teamId);
-                results.add(commandResult);
+                results.add(GameManagerUtils.removeTeam(gameManager, teamId));
             }
             results.add(CommandResult.success(Component.empty()
                     .append(Component.text("Removed "))
@@ -141,8 +140,7 @@ public class PresetApplySubCommand extends TabSubCommand {
         // join all the participants
         for (Preset.PresetTeam team : preset.getTeams()) {
             for (String ign : team.getMembers()) {
-                CommandResult commandResult = GameManagerUtils.joinParticipant(sender, plugin, gameManager, ign, team.getTeamId());
-                results.add(commandResult);
+                results.add(GameManagerUtils.joinParticipant(plugin, gameManager, ign, team.getTeamId()));
             }
         }
         

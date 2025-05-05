@@ -88,10 +88,13 @@ public class TimerManager {
     
     public void skip() {
         List<TimerManager> managersCopy = new ArrayList<>(managers);
+        List<Timer> timersCopy = new ArrayList<>(timers);
+        // this line ordering is important. Skipping manager A might create timer B,
+        // which is added to the timers list and would be skipped, if we weren't iterating
+        // through a copy of both lists.
         for (TimerManager manager : managersCopy) {
             manager.skip();
         }
-        List<Timer> timersCopy = new ArrayList<>(timers);
         for (Timer timer : timersCopy) {
             timer.skip();
         }

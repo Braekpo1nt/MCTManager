@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.ToString;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.utils.AudienceDelegate;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -35,7 +36,7 @@ public class Participant extends OfflineParticipant implements AudienceDelegate 
      * @param participants the participants list to get the list of players from
      * @return a list of the players contained in the given list of {@link Participant}s
      */
-    public static List<Player> toPlayersList(Collection<Participant> participants) {
+    public static <P extends Participant> List<Player> toPlayersList(Collection<P> participants) {
         return participants.stream().map(Participant::getPlayer).toList();
     }
     

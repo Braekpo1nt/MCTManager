@@ -27,9 +27,7 @@ public class StopSubCommand extends TabSubCommand {
             return CommandResult.failure(getUsage());
         }
         
-        gameManager.stopEditor(sender);
-        
-        return CommandResult.success();
+        return gameManager.stopEditor();
     }
     
     @Override

@@ -4,18 +4,14 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
-import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.Color;
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -34,89 +30,44 @@ import java.util.function.BiConsumer;
 
 public class VoteManager implements Listener {
     
-    private int voteCountDownDuration;
     private final Component TITLE = Component.text("Vote for a Game");
     
-    private final GameManager gameManager;
-    private Sidebar sidebar;
-    private Sidebar adminSidebar;
     private final Map<UUID, GameType> votes = new HashMap<>();
     private final Main plugin;
     private final Map<UUID, Participant> voters = new HashMap<>();
-    private final List<Player> admins = new ArrayList<>();
     private boolean voting = false;
     private final Component NETHER_STAR_NAME = Component.text("Vote");
     private final ItemStack NETHER_STAR;
     private List<GameType> votingPool = new ArrayList<>();
-    private BiConsumer<GameType, String> executeMethod;
-    private boolean paused = false;
+    private final BiConsumer<GameType, String> executeMethod;
+    private boolean paused;
     private final TimerManager timerManager;
     
-    public VoteManager(GameManager gameManager, Main plugin) {
-        this.gameManager = gameManager;
+    /**
+     * @param plugin used for creating inventories
+     * @param executeMethod the method to execute when the voting is over (either because the duration
+     *                      is up or all voters have voted). It will be passed the voted for
+     *                      GameType.
+     * @param votingPool The games to vote between
+     * @param newParticipants The participants who should vote
+     */
+    public VoteManager(Main plugin, BiConsumer<GameType, String> executeMethod, List<GameType> votingPool, Collection<Participant> newParticipants) {
         this.plugin = plugin;
         this.timerManager = new TimerManager(plugin);
         this.NETHER_STAR = new ItemStack(Material.NETHER_STAR);
         ItemMeta netherStarMeta = this.NETHER_STAR.getItemMeta();
         netherStarMeta.displayName(NETHER_STAR_NAME);
         this.NETHER_STAR.setItemMeta(netherStarMeta);
-    }
-    
-    /**
-     *Starts a voting phase with the given list of participants using the given voting pool
-     * @param newParticipants The participants who should vote
-     * @param votingPool The games to vote between
-     * @param duration how long (in seconds) the vote should last
-     * @param executeMethod the method to execute when the voting is over (either because the duration
-     *                      is up or all voters have voted). It will be passed the voted for
-     *                      GameType.
-     */
-    public void startVote(Collection<Participant> newParticipants, List<GameType> votingPool, int duration, BiConsumer<GameType, String> executeMethod, List<Player> newAdmins) {
         this.executeMethod = executeMethod;
-        this.voteCountDownDuration = duration;
         voting = true;
         paused = false;
         votes.clear();
         voters.clear();
         this.votingPool = votingPool;
-        sidebar = gameManager.createSidebar();
-        adminSidebar = gameManager.createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        gameManager.getTimerManager().register(timerManager);
         for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
-        initializeSidebar();
-        startAdmins(newAdmins);
-        startVoteCountDown();
-    }
-    
-    private void startAdmins(List<Player> newAdmins) {
-        this.admins.clear();
-        for (Player admin : newAdmins) {
-            initializeAdmin(admin);
-        }
-        initializeAdminSidebar();
-    }
-    
-    private void initializeAdmin(Player admin) {
-        this.admins.add(admin);
-        adminSidebar.addPlayer(admin);
-    }
-    
-    public void onAdminJoin(Player admin) {
-        if (!voting) {
-            return;
-        }
-        initializeAdmin(admin);
-    }
-    
-    public void onAdminQuit(Player admin) {
-        if (!voting) {
-            return;
-        }
-        admins.remove(admin);
-        adminSidebar.removePlayer(admin);
     }
     
     private void initializeParticipant(Participant voter) {
@@ -124,7 +75,6 @@ public class VoteManager implements Listener {
             return;
         }
         this.voters.put(voter.getUniqueId(), voter);
-        sidebar.addPlayer(voter);
         if (paused) {
             return;
         }
@@ -146,45 +96,7 @@ public class VoteManager implements Listener {
         }
         resetParticipant(voter);
         voters.remove(voter.getUniqueId());
-        sidebar.removePlayer(voter);
         votes.remove(voter.getUniqueId());
-    }
-    
-    private void startVoteCountDown() {
-        timerManager.start(Timer.builder()
-                .duration(voteCountDownDuration)
-                .withSidebar(sidebar, "timer")
-                .withSidebar(adminSidebar, "timer")
-                .sidebarPrefix(Component.text("Voting: "))
-                .onCompletion(this::executeVote)
-                .onTogglePause((paused) -> {
-                    if (paused) {
-                        pauseVote();
-                    } else {
-                        resumeVote();
-                    }
-                })
-                .build());
-    }
-    
-    private void initializeAdminSidebar() {
-        adminSidebar.addLine("timer", "");
-    }
-    
-    private void clearAdminSidebar() {
-        adminSidebar.removeAllPlayers();
-        adminSidebar.deleteAllLines();
-        adminSidebar = null;
-    }
-    
-    private void initializeSidebar() {
-        sidebar.addLine("timer", "");
-    }
-    
-    private void clearSidebar() {
-        sidebar.removeAllPlayers();
-        sidebar.deleteAllLines();
-        sidebar = null;
     }
     
     @EventHandler
@@ -366,13 +278,10 @@ public class VoteManager implements Listener {
         for (Participant voter : voters.values()) {
             resetParticipant(voter);
         }
-        clearSidebar();
-        clearAdminSidebar();
         messageAllVoters(Component.text("Cancelling vote"));
         HandlerList.unregisterAll(this);
         votes.clear();
         voters.clear();
-        admins.clear();
     }
     
     private static void resetParticipant(Participant voter) {
@@ -380,13 +289,12 @@ public class VoteManager implements Listener {
         voter.getInventory().clear();
     }
     
-    private void executeVote() {
+    public void executeVote() {
         voting = false;
         paused = false;
         GameType gameType = getVotedForGame();
         Audience.audience(
-                Audience.audience(voters.values()),
-                Audience.audience(admins)
+                voters.values()
         ).showTitle(UIUtils.defaultTitle(
                 Component.empty()
                         .append(Component.text(gameType.getTitle()))
@@ -400,9 +308,6 @@ public class VoteManager implements Listener {
         HandlerList.unregisterAll(this);
         votes.clear();
         voters.clear();
-        clearSidebar();
-        admins.clear();
-        clearAdminSidebar();
         executeMethod.accept(gameType, "default.json");
     }
     
@@ -453,9 +358,6 @@ public class VoteManager implements Listener {
         }
         Participant participant = voters.get(event.getWhoClicked().getUniqueId());
         if (participant == null) {
-            return;
-        }
-        if (!gameManager.isParticipant(participant.getUniqueId())) {
             return;
         }
         ItemStack netherStar = event.getCurrentItem();
@@ -616,9 +518,4 @@ public class VoteManager implements Listener {
             voter.sendMessage(message);
         }
     }
-    
-    public boolean isVoting() {
-        return voting;
-    }
-    
 }

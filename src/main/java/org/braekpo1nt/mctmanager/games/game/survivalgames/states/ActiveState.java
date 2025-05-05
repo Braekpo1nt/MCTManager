@@ -253,7 +253,9 @@ public class ActiveState extends SurvivalGamesStateBase {
         int oldDeathCount = participant.getDeaths();
         int newDeathCount = oldDeathCount + 1;
         participant.setDeaths(newDeathCount);
-        topbar.setDeaths(participant.getUniqueId(), newDeathCount);
+        if (config.showDeathCount()) {
+            topbar.setDeaths(participant.getUniqueId(), newDeathCount);
+        }
     }
     
     private void onParticipantDeath(SurvivalGamesParticipant participant) {

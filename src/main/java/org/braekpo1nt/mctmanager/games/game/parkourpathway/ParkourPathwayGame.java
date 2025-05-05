@@ -114,19 +114,6 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
     }
     
     /**
-     * @param participant the participant
-     * @return the number of unused skips in the participant's inventory
-     */
-    public int calculateUnusedSkips(Participant participant) {
-        return Arrays.stream(participant.getInventory().getContents()).filter(itemStack -> {
-            if (itemStack == null) {
-                return false;
-            }
-            return itemStack.getItemMeta().equals(config.getSkipItem().getItemMeta());
-        }).mapToInt(ItemStack::getAmount).sum();
-    }
-    
-    /**
      * Checks how many skips the player has, and awards them points for any remaining
      * skips. Removes them from their inventory as well.
      */
@@ -151,8 +138,8 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         giveBoots(participant);
     }
     
-    public void giveBoots(Participant participant) {
-        Color teamColor = gameManager.getTeam(participant).getBukkitColor();
+    public void giveBoots(ParkourParticipant participant) {
+        Color teamColor = teams.get(participant.getTeamId()).getBukkitColor();
         ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
         LeatherArmorMeta meta = (LeatherArmorMeta) boots.getItemMeta();
         meta.setColor(teamColor);

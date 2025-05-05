@@ -25,7 +25,7 @@ public class RemoveSubCommand extends TabSubCommand {
             return CommandResult.failure(getUsage().of("<team>"));
         }
         String removeTeamId = args[0];
-        return GameManagerUtils.removeTeam(sender, gameManager, removeTeamId);
+        return GameManagerUtils.removeTeam(gameManager, removeTeamId);
     }
     
     @Override

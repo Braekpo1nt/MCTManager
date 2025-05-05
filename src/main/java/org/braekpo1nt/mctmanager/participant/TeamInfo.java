@@ -35,6 +35,8 @@ public abstract class TeamInfo implements Team {
      */
     @Getter
     private final @NotNull TextColor color;
+    @Getter
+    private final @NotNull ColorAttributes colorAttributes;
     /**
      * The {@link Color} associated with the team
      */
@@ -57,10 +59,11 @@ public abstract class TeamInfo implements Team {
      * @param formattedDisplayName The formatted display name of the team for use in chat messages.
      * @param score the team's score
      */
-    public TeamInfo(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull Color bukkitColor, @NotNull Component formattedDisplayName, int score) {
+    public TeamInfo(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull ColorAttributes colorAttributes, @NotNull Color bukkitColor, @NotNull Component formattedDisplayName, int score) {
         this.teamId = teamId;
         this.displayName = displayName;
         this.color = color;
+        this.colorAttributes = colorAttributes;
         this.bukkitColor = bukkitColor;
         this.formattedDisplayName = formattedDisplayName;
         this.score = score;
@@ -72,8 +75,8 @@ public abstract class TeamInfo implements Team {
      * @param displayName the display name of the team
      * @param color the {@link TextColor} associated with the team
      */
-    public TeamInfo(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, int score) {
-        this(teamId, displayName, color, Color.fromARGB(255, color.red(), color.green(), color.blue()), Component.text(displayName, color, TextDecoration.BOLD), score);
+    public TeamInfo(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull ColorAttributes colorAttributes, int score) {
+        this(teamId, displayName, color, colorAttributes, Color.fromARGB(255, color.red(), color.green(), color.blue()), Component.text(displayName, color, TextDecoration.BOLD), score);
     }
     
     /**
@@ -84,6 +87,7 @@ public abstract class TeamInfo implements Team {
         this(team.getTeamId(),
             team.getDisplayName(),
             team.getColor(),
+            team.getColorAttributes(),
             team.getBukkitColor(),
             team.getFormattedDisplayName(),
             team.getScore());

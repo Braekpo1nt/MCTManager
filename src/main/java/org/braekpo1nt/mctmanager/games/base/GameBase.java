@@ -216,12 +216,12 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         listeners.clear();
         timerManager.cancel();
         state.cleanup();
-        saveScores();
+        Map<String, Integer> teamScores = getTeamScores();
+        Map<UUID, Integer> participantScores = getParticipantScores();
         for (P participant : participants.values()) {
             participant.setGameMode(GameMode.SPECTATOR);
             _resetParticipant(participant, teams.get(participant.getTeamId()));
         }
-        participants.clear();
         quitDatas.clear();
         teams.clear();
         teamQuitDatas.clear();
@@ -241,7 +241,8 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
         storedGameRules.clear();
         cleanup();
-        gameManager.gameIsOver();
+        gameManager.gameIsOver(getType(), teamScores, participantScores, participants.values().stream().map(Participant::getUniqueId).toList());
+        participants.clear();
         Main.logger().info("Stopping " + type.getTitle());
     }
     
@@ -256,25 +257,26 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         getWorld().setGameRule(stored.rule(), stored.value());
     }
     
-    /**
-     * Save the scores of the participants
-     */
-    protected final void saveScores() {
+    protected Map<String, Integer> getTeamScores() {
         Map<String, Integer> teamScores = new HashMap<>();
-        Map<UUID, Integer> participantScores = new HashMap<>();
         for (String teamId : teamQuitDatas.keySet()) {
             teamScores.put(teamId, teamQuitDatas.get(teamId).getScore());
-        }
-        for (ParticipantID pid : quitDatas.keySet()) {
-            participantScores.put(pid.uuid(), quitDatas.get(pid).getScore());
         }
         for (T team : teams.values()) {
             teamScores.put(team.getTeamId(), team.getScore());
         }
+        return teamScores;
+    }
+    
+    protected Map<UUID, Integer> getParticipantScores() {
+        Map<UUID, Integer> participantScores = new HashMap<>();
+        for (ParticipantID pid : quitDatas.keySet()) {
+            participantScores.put(pid.uuid(), quitDatas.get(pid).getScore());
+        }
         for (P participant : participants.values()) {
             participantScores.put(participant.getUniqueId(), participant.getScore());
         }
-        gameManager.addScores(teamScores, participantScores);
+        return participantScores;
     }
     
     /**
