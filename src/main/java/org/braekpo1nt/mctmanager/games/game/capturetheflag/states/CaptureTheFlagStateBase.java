@@ -80,11 +80,6 @@ public abstract class CaptureTheFlagStateBase implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantClickInventory(@NotNull InventoryClickEvent event, @NotNull CTFParticipant participant) {
-        event.setCancelled(true);
-    }
-    
-    @Override
     public void onParticipantMove(@NotNull PlayerMoveEvent event, @NotNull CTFParticipant participant) {
         // do nothing
     }

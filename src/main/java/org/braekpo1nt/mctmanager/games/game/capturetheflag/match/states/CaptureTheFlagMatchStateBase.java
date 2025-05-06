@@ -9,7 +9,6 @@ import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -32,11 +31,6 @@ public class CaptureTheFlagMatchStateBase implements CaptureTheFlagMatchState{
     @Override
     public void onParticipantFoodLevelChange(@NotNull FoodLevelChangeEvent event, @NotNull CTFMatchParticipant participant) {
         event.setCancelled(true);
-    }
-    
-    @Override
-    public void onParticipantClickInventory(@NotNull InventoryClickEvent event, @NotNull CTFMatchParticipant participant) {
-        // do nothing
     }
     
     @Override

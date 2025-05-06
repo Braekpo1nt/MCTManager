@@ -151,7 +151,7 @@ public class Main extends JavaPlugin {
         BlockEffectsListener blockEffectsListener = new BlockEffectsListener(this);
         
         // Commands
-        new MCTDebugCommand(this);
+        new MCTDebugCommand(this, gameManager);
         mctCommand = new MCTCommand(this, gameManager, blockEffectsListener);
         new UtilsCommand(this);
         new ReadyUpCommand(this, gameManager);

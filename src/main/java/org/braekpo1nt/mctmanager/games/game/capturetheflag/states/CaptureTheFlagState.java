@@ -11,6 +11,4 @@ public interface CaptureTheFlagState extends GameStateBase<CTFParticipant, CTFTe
     
     // event handlers
     void onParticipantFoodLevelChange(@NotNull FoodLevelChangeEvent event, @NotNull CTFParticipant participant);
-    void onParticipantClickInventory(@NotNull InventoryClickEvent event, @NotNull CTFParticipant participant);
-    
 }

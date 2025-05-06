@@ -1,197 +1,182 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
+import com.github.stefvanschie.inventoryframework.adventuresupport.ComponentHolder;
+import com.github.stefvanschie.inventoryframework.gui.GuiItem;
+import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
+import com.github.stefvanschie.inventoryframework.gui.type.util.Gui;
+import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
-import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-/**
- * Handles the class picking for a given team
- */
 public class ClassPicker implements Listener {
     
-    public static final Component TITLE = Component.empty()
-            .append(Component.text("Pick a Class")
-                    .color(NamedTextColor.DARK_GRAY))
-            .append(Component.text(" (One per team)")
-                    .color(NamedTextColor.GRAY));
-    private final Component NETHER_STAR_NAME = Component.text("Vote");
-    private final Map<UUID, String> pickedBattleClasses = new HashMap<>();
-    private final Map<UUID, Participant> teamMates = new HashMap<>();
-    private @NotNull Color leatherColor = Color.WHITE;
-    private boolean classPickingActive = false;
-    private Map<String, Loadout> loadouts = new HashMap<>();
-    private Map<Material, String> materialToBattleClass = new HashMap<>();
+    private final Component NETHER_STAR_NAME = Component.text("Pick a class");
     
-    /**
-     * Registers event listeners, and starts the class picking phase for the given list of teammates
-     * 
-     * @param plugin The plugin
-     * @param newTeamMates The list of teammates. They are assumed to be on the same team. Weird things will happen if they are not.
-     * @param leatherColor the color that leather armor should be
-     * @param loadouts the loadouts for each BattleClass
-     */
-    public void start(Main plugin, Collection<CTFMatchParticipant> newTeamMates, @NotNull Color leatherColor, 
-                      Map<String, Loadout> loadouts) {
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        this.materialToBattleClass = new HashMap<>();
-        for (Map.Entry<String, Loadout> entry : loadouts.entrySet()) {
-            this.materialToBattleClass.put(entry.getValue().getMenuItem().getType(), entry.getKey());
-        }
-        this.loadouts = loadouts;
+    private final Map<UUID, String> pickedBattleClasses = new HashMap<>();
+    private final Map<UUID, Participant> teamMates;
+    private final Map<UUID, ChestGui> guis;
+    private final Map<String, Loadout> loadouts;
+    private final Map<String, GuiItem> battleClassGuiItems;
+    private final Color leatherColor;
+    
+    public <T extends Participant> ClassPicker(
+            Main plugin,
+            Collection<T> newTeamMates,
+            @NotNull Color leatherColor,
+            Map<String, Loadout> loadouts) {
+        this.teamMates = new HashMap<>(newTeamMates.size());
+        this.guis = new HashMap<>(newTeamMates.size());
+        this.loadouts = new HashMap<>(loadouts);
         this.leatherColor = leatherColor;
-        teamMates.clear();
+        this.battleClassGuiItems = createGuiItems();
         for (Participant teamMate : newTeamMates) {
-            teamMates.put(teamMate.getUniqueId(), teamMate);
+            this.teamMates.put(teamMate.getUniqueId(), teamMate);
+            ChestGui gui = createGui();
+            this.guis.put(teamMate.getUniqueId(), gui);
+            gui.show(teamMate.getPlayer());
         }
-        classPickingActive = true;
-        for (Participant teamMate : teamMates.values()) {
-            teamMate.sendMessage(Component.text("Choose your class"));
-            showClassPickerGui(teamMate);
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+    }
+    
+    private Map<String, GuiItem> createGuiItems() {
+        Map<String, GuiItem> guiItems = new HashMap<>(loadouts.size());
+        for (String battleClass : loadouts.keySet()) {
+            Loadout loadout = loadouts.get(battleClass);
+            GuiItem menuItem = new GuiItem(loadout.getMenuItem());
+            guiItems.put(battleClass, menuItem);
+            menuItem.setAction(event -> {
+                Participant teamMate = teamMates.get(event.getWhoClicked().getUniqueId());
+                if (teamMate == null) {
+                    // should not happen
+                    event.getWhoClicked().sendMessage(Component.empty()
+                            .append(Component.text("You are not on this team's class picker.")));
+                    return;
+                }
+                
+                // prevent two teamMates picking same class
+                if (pickedBattleClasses.containsValue(battleClass)) {
+                    teamMate.sendMessage(Component.empty()
+                            .append(Component.text("Someone on your team already selected "))
+                            .append(loadout.getName())
+                            .color(NamedTextColor.DARK_RED));
+                    return;
+                }
+                
+                // deselect old class
+                deselectClass(teamMate);
+                
+                // select new class
+                assignClass(battleClass, teamMate, loadout);
+                ItemStack newItem = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+                newItem.editMeta(meta -> {
+                    meta.displayName(loadout.getName());
+                });
+                menuItem.setItem(newItem);
+                guis.values().forEach(Gui::update);
+            });
+        }
+        return guiItems;
+    }
+    
+    private void assignClass(String battleClass, Participant teamMate, Loadout loadout) {
+        pickedBattleClasses.put(teamMate.getUniqueId(), battleClass);
+        teamMate.getInventory().clear();
+        teamMate.getInventory().setContents(loadout.getContents());
+        ColorMap.colorLeatherArmor(teamMate, leatherColor);
+        teamMate.sendMessage(Component.empty()
+                .append(Component.text("Selected "))
+                .append(loadout.getName()));
+    }
+    
+    private void deselectClass(Participant teamMate) {
+        String deselectedBattleClass = pickedBattleClasses.remove(teamMate.getUniqueId());
+        if (deselectedBattleClass != null) {
+            GuiItem deselectedItem = battleClassGuiItems.get(deselectedBattleClass);
+            Loadout deselectedLoadout = loadouts.get(deselectedBattleClass);
+            deselectedItem.setItem(deselectedLoadout.getMenuItem());
+            guis.values().forEach(Gui::update);
         }
     }
     
-    /**
-     * Unregisters event listeners, assigns battle classes to teammates who don't have them (if desired), and closes inventories
-     * @param assignBattleClasses If true, this will assign battle classes to teammates who haven't picked a battle class yet.
-     */
+    private ChestGui createGui() {
+        ChestGui gui = new ChestGui(1, ComponentHolder.of(Component.empty()
+                .append(Component.text("Pick a class")
+                        .color(NamedTextColor.DARK_GRAY))
+                .append(Component.text(" (One per team)")
+                        .color(NamedTextColor.GRAY))));
+        gui.setOnGlobalClick(event -> event.setCancelled(true));
+        OutlinePane pane = new OutlinePane(0,0, 9, 1);
+        for (GuiItem guiItem : battleClassGuiItems.values()) {
+            pane.addItem(guiItem);
+        }
+        gui.addPane(pane);
+        gui.update();
+        gui.setOnClose(event -> {
+            if (!pickedBattleClasses.containsKey(event.getPlayer().getUniqueId())) {
+                event.getPlayer().sendMessage(Component.empty()
+                        .append(Component.text("You didn't pick a class. Use the nether star to pick."))
+                        .color(NamedTextColor.DARK_RED));
+            }
+            ItemStack netherStar = new ItemStack(Material.NETHER_STAR);
+            netherStar.editMeta(meta -> meta.displayName(NETHER_STAR_NAME));
+            event.getPlayer().getInventory().addItem(netherStar);
+        });
+        return gui;
+    }
+    
     public void stop(boolean assignBattleClasses) {
         HandlerList.unregisterAll(this);
-        classPickingActive = false;
-        this.leatherColor = Color.WHITE;
-        if (assignBattleClasses) {
-            assignBattleClassesToTeamMatesWithoutBattleClasses();
-        }
         for (Participant teamMate : teamMates.values()) {
-            teamMate.closeInventory();
+            ChestGui gui = guis.get(teamMate.getUniqueId());
+            gui.setOnClose(event -> {});
+            gui.getInventory().close();
+            teamMate.getInventory().remove(Material.NETHER_STAR);
         }
-    }
-    
-    public void addTeamMate(Participant newTeamMate) {
-        if (!classPickingActive) {
-            return;
-        }
-        teamMates.put(newTeamMate.getUniqueId(), newTeamMate);
-        newTeamMate.sendMessage(Component.text("Choose your class"));
-        showClassPickerGui(newTeamMate);
-    }
-    
-    public void removeTeamMate(Participant teamMate) {
-        if (!classPickingActive) {
-            return;
-        }
-        if (!teamMates.containsKey(teamMate.getUniqueId())) {
-            return;
-        }
-        if (pickedBattleClasses.containsKey(teamMate.getUniqueId())) {
-            unAssignClass(teamMate);
-            teamMate.getInventory().clear();
-        }
-        teamMates.remove(teamMate.getUniqueId());
-    }
-    
-    public void onClickInventory(InventoryClickEvent event) {
-        if (!classPickingActive) {
-            return;
-        }
-        if (event.getClickedInventory() == null) {
-            return;
-        }
-        ItemStack clickedItem = event.getCurrentItem();
-        if (clickedItem == null) {
-            return;
-        }
-        Participant teamMate = teamMates.get(event.getWhoClicked().getUniqueId());
-        if (teamMate == null) {
-            return;
-        }
-        if (event.getView().title().equals(TITLE)) {
-            event.setCancelled(true);
-            onClickClassPickerInventory(teamMate, clickedItem);
-            return;
-        }
-        Material clickedType = clickedItem.getType();
-        if (clickedType.equals(Material.NETHER_STAR)) {
-            ItemMeta netherStarMeta = clickedItem.getItemMeta();
-            if (netherStarMeta != null 
-                    && netherStarMeta.hasDisplayName() 
-                    && Objects.equals(netherStarMeta.displayName(), NETHER_STAR_NAME)) {
-                event.setCancelled(true);
-                onClickNetherStar(teamMate, clickedItem);
+        if (assignBattleClasses) {
+            for (Participant teamMate : teamMates.values()) {
+                if (!pickedBattleClasses.containsKey(teamMate.getUniqueId())) {
+                    assignLeftoverClass(teamMate);
+                }
             }
         }
-        // don't let them remove their armor
-        if (event.getSlotType() == InventoryType.SlotType.ARMOR) {
-            event.setCancelled(true);
-        }
+        teamMates.clear();
+        guis.clear();
+        pickedBattleClasses.clear();
+        battleClassGuiItems.clear();
+        loadouts.clear();
     }
     
-    /**
-     * To be called when the given teamMate clicks an item in the class picker inventory
-     * @param teamMate the player who clicked
-     * @param clickedItem the item they clicked on
-     */
-    public void onClickClassPickerInventory(Participant teamMate, ItemStack clickedItem) {
-        Material itemType = clickedItem.getType();
-        String battleClass = materialToBattleClass.get(itemType);
-        if (battleClass == null) {
-            return;
+    private void assignLeftoverClass(Participant teamMate) {
+        for (String battleClass : loadouts.keySet()) {
+            if (!pickedBattleClasses.containsValue(battleClass)) {
+                assignClass(battleClass, teamMate, loadouts.get(battleClass));
+                return;
+            }
         }
-        boolean playerSelectedBattleClass = selectBattleClass(teamMate, battleClass);
-        if (!playerSelectedBattleClass) {
-            return;
-        }
-        teamMate.closeInventory();
     }
     
     @EventHandler
-    public void onCloseMenu(InventoryCloseEvent event) {
-        if (!classPickingActive) {
-            return;
-        }
-        if (!event.getView().title().equals(TITLE)) {
-            return;
-        }
-        Participant teamMate = teamMates.get(event.getPlayer().getUniqueId());
-        if (teamMate == null) {
-            return;
-        }
-        if (pickedBattleClasses.containsKey(teamMate.getUniqueId())) {
-            return;
-        }
-        giveNetherStar(teamMate);
-        teamMate.sendMessage(Component.text("You didn't pick a class. Use the nether star to pick.").color(NamedTextColor.DARK_RED));
-    }
-    
-    @EventHandler
-    public void interactWithNetherStar(PlayerInteractEvent event) {
-        if (!classPickingActive) {
-            return;
-        }
+    public void onPlayerInteract(PlayerInteractEvent event) {
         Participant teamMate = teamMates.get(event.getPlayer().getUniqueId());
         if (teamMate == null) {
             return;
         }
         ItemStack netherStar = event.getItem();
-        if (netherStar == null || 
+        if (netherStar == null ||
                 !netherStar.getType().equals(Material.NETHER_STAR)) {
             return;
         }
@@ -200,114 +185,29 @@ public class ClassPicker implements Listener {
             return;
         }
         event.setCancelled(true);
-        onClickNetherStar(teamMate, netherStar);
+        teamMate.getInventory().remove(netherStar);
+        guis.get(teamMate.getUniqueId()).show(teamMate.getPlayer());
     }
     
-    private boolean selectBattleClass(@NotNull Participant participant, @NotNull String battleClass) {
-        if (pickedBattleClasses.containsValue(battleClass)) {
-            Loadout loadout = loadouts.get(battleClass);
-            participant.sendMessage(Component.empty()
-                            .append(Component.text("Someone on your team already selected "))
-                            .append(loadout.getName())
-                            .color(NamedTextColor.DARK_RED));
-            return false;
-        }
-        assignClass(participant, battleClass);
-        return true;
+    public void addTeamMate(Participant teamMate) {
+        teamMates.put(teamMate.getUniqueId(), teamMate);
+        teamMate.sendMessage(Component.text("Choose your class"));
+        ChestGui gui = createGui();
+        this.guis.put(teamMate.getUniqueId(), gui);
+        gui.show(teamMate.getPlayer());
     }
     
-    private void giveNetherStar(@NotNull Participant teamMate) {
-        ItemStack netherStar = new ItemStack(Material.NETHER_STAR);
-        ItemMeta netherStarMeta = netherStar.getItemMeta();
-        netherStarMeta.displayName(NETHER_STAR_NAME);
-        netherStar.setItemMeta(netherStarMeta);
-        teamMate.getInventory().addItem(netherStar);
-    }
-    
-    /**
-     * To be called when a given teamMate clicks on, drops, or otherwise interacts with a nether star item
-     * @param teamMate the player who used the nether star
-     * @param netherStar the nether star item
-     */
-    private void onClickNetherStar(@NotNull Participant teamMate, @NotNull ItemStack netherStar) {
-        ItemMeta netherStarMeta = netherStar.getItemMeta();
-        if (netherStarMeta == null ||
-                !netherStarMeta.hasDisplayName() ||
-                !Objects.equals(netherStarMeta.displayName(), NETHER_STAR_NAME)
-        ) {
+    public void removeTeamMate(UUID uuid) {
+        Participant teamMate = teamMates.remove(uuid);
+        if (teamMate == null) {
             return;
         }
-        teamMate.getInventory().remove(netherStar);
-        showClassPickerGui(teamMate);
-    }
-    
-    /**
-     *  Assigns a class to any teamMates that don't already have one. It will assign classes from the pool of unpicked classes for that team.
-     */
-    private void assignBattleClassesToTeamMatesWithoutBattleClasses() {
-        for (Participant teamMate : teamMates.values()) {
-            if (!pickedBattleClasses.containsKey(teamMate.getUniqueId())) {
-                randomlyAssignClass(teamMate);
-            }
+        ChestGui gui = guis.get(teamMate.getUniqueId());
+        gui.setOnClose(event -> {});
+        gui.getInventory().close();
+        if (pickedBattleClasses.containsKey(teamMate.getUniqueId())) {
+            deselectClass(teamMate);
         }
     }
     
-    /**
-     * Assign the given class to the given teamMate. Setting their inventory
-     * and armor to the appropriate items. 
-     * @param teamMate the teamMate to assign a class to
-     * @param battleClass the class to assign
-     */
-    private void assignClass(Participant teamMate, @NotNull String battleClass) {
-        pickedBattleClasses.put(teamMate.getUniqueId(), battleClass);
-        teamMate.getInventory().clear();
-        Loadout loadout = loadouts.get(battleClass);
-        ItemStack[] contents = loadout.getContents();
-        teamMate.getInventory().setContents(contents);
-        ColorMap.colorLeatherArmor(teamMate, leatherColor);
-        teamMate.sendMessage(Component.text("Selected ")
-                .append(loadout.getName()));
-    }
-    
-    private void unAssignClass(Participant teamMate) {
-        pickedBattleClasses.remove(teamMate.getUniqueId());
-        teamMate.getInventory().clear();
-        giveNetherStar(teamMate);
-        teamMate.sendMessage("Deselected class.");
-    }
-    
-    /**
-     * Randomly assign a class to the given participant from the pool of classes
-     * that are left (classes that other players on their team didn't pick).
-     * If there are no classes left unpicked to assign, this method does nothing.
-     * @param participant the participant to assign a class to
-     * @throws NullPointerException if the participant is not in the game state
-     */
-    private void randomlyAssignClass(Participant participant) {
-        for (String battleClass : loadouts.keySet()) {
-            if (!pickedBattleClasses.containsValue(battleClass)) {
-                assignClass(participant, battleClass);
-                return;
-            }
-        }
-    }
-    
-    /**
-     * Shows the given teamMate the Class Picker gui
-     * @param teamMate The teamMate to show the gui to
-     */
-    private void showClassPickerGui(Participant teamMate) {
-        Inventory newGui = Bukkit.createInventory(null, 9, TITLE);
-        int column = 1;
-        for (String battleClass : loadouts.keySet()) {
-            ItemStack menuItem = loadouts.get(battleClass).getMenuItem();
-            newGui.setItem(getSlotIndex(1, column), menuItem);
-            column++;
-        }
-        teamMate.openInventory(newGui);
-    }
-    
-    private int getSlotIndex(int line, int column) {
-        return (line - 1) * 9 + (column - 1);
-    }
 }

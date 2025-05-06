@@ -8,7 +8,6 @@ import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
-import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -31,17 +30,16 @@ import java.util.function.BiConsumer;
 public class VoteManager implements Listener {
     
     private final Component TITLE = Component.text("Vote for a Game");
+    private final Component NETHER_STAR_NAME = Component.text("Vote");
     
     private final Map<UUID, GameType> votes = new HashMap<>();
-    private final Main plugin;
     private final Map<UUID, Participant> voters = new HashMap<>();
-    private boolean voting = false;
-    private final Component NETHER_STAR_NAME = Component.text("Vote");
+    private final Main plugin;
     private final ItemStack NETHER_STAR;
-    private List<GameType> votingPool = new ArrayList<>();
+    private final List<GameType> votingPool;
     private final BiConsumer<GameType, String> executeMethod;
+    
     private boolean paused;
-    private final TimerManager timerManager;
     
     /**
      * @param plugin used for creating inventories
@@ -53,13 +51,11 @@ public class VoteManager implements Listener {
      */
     public VoteManager(Main plugin, BiConsumer<GameType, String> executeMethod, List<GameType> votingPool, Collection<Participant> newParticipants) {
         this.plugin = plugin;
-        this.timerManager = new TimerManager(plugin);
         this.NETHER_STAR = new ItemStack(Material.NETHER_STAR);
         ItemMeta netherStarMeta = this.NETHER_STAR.getItemMeta();
         netherStarMeta.displayName(NETHER_STAR_NAME);
         this.NETHER_STAR.setItemMeta(netherStarMeta);
         this.executeMethod = executeMethod;
-        voting = true;
         paused = false;
         votes.clear();
         voters.clear();
@@ -71,9 +67,6 @@ public class VoteManager implements Listener {
     }
     
     private void initializeParticipant(Participant voter) {
-        if (!voting) {
-            return;
-        }
         this.voters.put(voter.getUniqueId(), voter);
         if (paused) {
             return;
@@ -84,16 +77,10 @@ public class VoteManager implements Listener {
     }
     
     public void onParticipantJoin(Participant voter) {
-        if (!voting) {
-            return;
-        }
         initializeParticipant(voter);
     }
     
     public void onParticipantQuit(Participant voter) {
-        if (!voting) {
-            return;
-        }
         resetParticipant(voter);
         voters.remove(voter.getUniqueId());
         votes.remove(voter.getUniqueId());
@@ -101,9 +88,6 @@ public class VoteManager implements Listener {
     
     @EventHandler
     private void clickVoteInventory(InventoryClickEvent event) {
-        if (!voting) {
-            return;
-        }
         if (event.getClickedInventory() == null) {
             return;
         }
@@ -167,9 +151,6 @@ public class VoteManager implements Listener {
      */
     @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
-        if (!voting) {
-            return;
-        }
         Participant participant = voters.get(event.getPlayer().getUniqueId());
         if (participant == null) {
             return;
@@ -188,9 +169,6 @@ public class VoteManager implements Listener {
     
     @EventHandler
     private void onCloseMenu(InventoryCloseEvent event) {
-        if (!voting) {
-            return;
-        }
         if (paused) {
             return;
         }
@@ -215,9 +193,6 @@ public class VoteManager implements Listener {
     
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
-        if (!voting) {
-            return;
-        }
         if (GameManagerUtils.EXCLUDED_DAMAGE_CAUSES.contains(event.getCause())) {
             return;
         }
@@ -238,7 +213,6 @@ public class VoteManager implements Listener {
             return;
         }
         paused = true;
-        timerManager.pause();
         for (Participant voter : voters.values()) {
             voter.closeInventory();
             voter.getInventory().remove(NETHER_STAR);
@@ -257,7 +231,6 @@ public class VoteManager implements Listener {
             return;
         }
         paused = false;
-        timerManager.resume();
         for (Participant voter : voters.values()) {
             if (!participantVoted(voter)) {
                 showVoteGui(voter);
@@ -269,12 +242,7 @@ public class VoteManager implements Listener {
      * Cancel the vote if a vote is in progress
      */
     public void cancelVote() {
-        if (!voting) {
-            return;
-        }
-        voting = false;
         paused = false;
-        cancelAllTasks();
         for (Participant voter : voters.values()) {
             resetParticipant(voter);
         }
@@ -290,7 +258,6 @@ public class VoteManager implements Listener {
     }
     
     public void executeVote() {
-        voting = false;
         paused = false;
         GameType gameType = getVotedForGame();
         Audience.audience(
@@ -301,7 +268,6 @@ public class VoteManager implements Listener {
                         .color(NamedTextColor.BLUE),
                 Component.empty()
         ));
-        cancelAllTasks();
         for (Participant voter : voters.values()) {
             resetParticipant(voter);
         }
@@ -311,15 +277,8 @@ public class VoteManager implements Listener {
         executeMethod.accept(gameType, "default.json");
     }
     
-    private void cancelAllTasks() {
-        timerManager.cancel();
-    }
-    
     @EventHandler
     public void interactWithNetherStar(PlayerInteractEvent event) {
-        if (!voting) {
-            return;
-        }
         Participant participant = voters.get(event.getPlayer().getUniqueId());
         if (participant == null) {
             return;
@@ -353,9 +312,6 @@ public class VoteManager implements Listener {
     
     @EventHandler
     public void clickNetherStar(InventoryClickEvent event) {
-        if (!voting) {
-            return;
-        }
         Participant participant = voters.get(event.getWhoClicked().getUniqueId());
         if (participant == null) {
             return;
