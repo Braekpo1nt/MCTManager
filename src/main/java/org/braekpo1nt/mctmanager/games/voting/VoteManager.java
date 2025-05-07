@@ -9,20 +9,14 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
-import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -33,7 +27,6 @@ import java.util.function.BiConsumer;
 
 public class VoteManager implements Listener {
     
-    private final Component TITLE = Component.text("Vote for a Game");
     private final Component NETHER_STAR_NAME = Component.text("Vote");
     
     private final Map<UUID, GameType> votes = new HashMap<>();
@@ -95,8 +88,9 @@ public class VoteManager implements Listener {
      */
     private void vote(HumanEntity voter, GameType vote) {
         votes.put(voter.getUniqueId(), vote);
-        guis.get(voter.getUniqueId()).setOnClose(event -> {});
-        voter.closeInventory();
+        ChestGui gui = guis.get(voter.getUniqueId());
+        gui.setOnClose(event -> {});
+        gui.getInventory().close();
         voter.sendMessage(Component.empty()
                 .append(Component.text("Voted for "))
                 .append(Component.text(vote.getTitle()))
@@ -201,6 +195,7 @@ public class VoteManager implements Listener {
     private ChestGui createGui() {
         ChestGui gui = new ChestGui(1, ComponentHolder.of(Component.empty()
                 .append(Component.text("Vote"))));
+        gui.setOnGlobalClick(event -> event.setCancelled(true));
         OutlinePane pane = new OutlinePane(0, 0, 9, 1);
         for (GuiItem item : guiItems) {
             pane.addItem(item);
@@ -208,14 +203,18 @@ public class VoteManager implements Listener {
         gui.addPane(pane);
         gui.update();
         gui.setOnClose(event -> {
+            if (allPlayersHaveVoted()) {
+                executeVote();
+                return;
+            }
             if (!votes.containsKey(event.getPlayer().getUniqueId())) {
                 event.getPlayer().sendMessage(Component.empty()
                         .append(Component.text("You didn't vote. Use the nether star to vote."))
                         .color(NamedTextColor.DARK_RED));
+                ItemStack netherStar = new ItemStack(Material.NETHER_STAR);
+                netherStar.editMeta(meta -> meta.displayName(NETHER_STAR_NAME));
+                event.getPlayer().getInventory().addItem(netherStar);
             }
-            ItemStack netherStar = new ItemStack(Material.NETHER_STAR);
-            netherStar.editMeta(meta -> meta.displayName(NETHER_STAR_NAME));
-            event.getPlayer().getInventory().addItem(netherStar);
         });
         return gui;
     }
@@ -230,78 +229,6 @@ public class VoteManager implements Listener {
         votes.remove(voter.getUniqueId());
     }
     
-    @EventHandler
-    private void clickVoteInventory(InventoryClickEvent event) {
-        if (event.getClickedInventory() == null) {
-            return;
-        }
-        if (event.getCurrentItem() == null) {
-            return;
-        }
-        Participant participant = voters.get(event.getWhoClicked().getUniqueId());
-        if (participant == null) {
-            return;
-        }
-        if (!event.getView().title().equals(TITLE)) {
-            if (GameManagerUtils.INV_REMOVE_ACTIONS.contains(event.getAction())) {
-                event.setCancelled(true);
-            }
-            return;
-        }
-        event.setCancelled(true);
-        if (participantVoted(participant)) {
-            participant.sendMessage(Component.text("You already voted.")
-                    .color(NamedTextColor.GREEN));
-            return;
-        }
-        Material clickedItem = event.getCurrentItem().getType();
-        GameType votedForType;
-        switch (clickedItem) {
-            case FEATHER -> {
-                votedForType = GameType.FOOT_RACE;
-            }
-            case IRON_SWORD -> {
-                votedForType = GameType.SURVIVAL_GAMES;
-            }
-            case GRAY_BANNER -> {
-                votedForType = GameType.CAPTURE_THE_FLAG;
-            }
-            case DIAMOND_SHOVEL -> {
-                votedForType = GameType.SPLEEF;
-            }
-            case LEATHER_BOOTS -> {
-                votedForType = GameType.PARKOUR_PATHWAY;
-            }
-            case CLOCK -> {
-                votedForType = GameType.CLOCKWORK;
-            }
-            case STONE_HOE -> {
-                votedForType = GameType.FARM_RUSH;
-            }
-            default -> {
-                return;
-            }
-        }
-        votes.put(participant.getUniqueId(), votedForType);
-        participant.sendMessage(Component.empty()
-                .append(Component.text("Voted for "))
-                .append(Component.text(votedForType.getTitle()))
-                .color(NamedTextColor.GREEN));
-        participant.closeInventory();
-    }
-    
-    /**
-     * Stop players from dropping items
-     */
-    @EventHandler
-    public void onDropItem(PlayerDropItemEvent event) {
-        Participant participant = voters.get(event.getPlayer().getUniqueId());
-        if (participant == null) {
-            return;
-        }
-        event.setCancelled(true);
-    }
-    
     /**
      * Checks if the participant submitted a vote already
      * @param participant the participant to check
@@ -309,43 +236,6 @@ public class VoteManager implements Listener {
      */
     private boolean participantVoted(Participant participant) {
         return votes.containsKey(participant.getUniqueId());
-    }
-    
-    @EventHandler
-    private void onCloseMenu(InventoryCloseEvent event) {
-        if (paused) {
-            return;
-        }
-        if (!event.getView().title().equals(TITLE)) {
-            return;
-        }
-        Participant participant = voters.get(event.getPlayer().getUniqueId());
-        if (participant == null) {
-            return;
-        }
-        if (allPlayersHaveVoted()) {
-            executeVote();
-        } else {
-            if (participantVoted(participant)) {
-                return;
-            }
-            participant.getInventory().addItem(NETHER_STAR);
-            participant.sendMessage(Component.text("You didn't vote for a game. Use the nether star to vote.")
-                    .color(NamedTextColor.YELLOW));
-        }
-    }
-    
-    @EventHandler
-    public void onPlayerDamage(EntityDamageEvent event) {
-        if (GameManagerUtils.EXCLUDED_DAMAGE_CAUSES.contains(event.getCause())) {
-            return;
-        }
-        Participant participant = voters.get(event.getEntity().getUniqueId());
-        if (participant == null) {
-            return;
-        }
-        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "VoteManager.onPlayerDamage() cancelled");
-        event.setCancelled(true);
     }
     
     /**
@@ -400,8 +290,9 @@ public class VoteManager implements Listener {
     
     private void resetParticipant(Participant voter) {
         voter.closeInventory();
-        ChestGui removed = guis.remove(voter.getUniqueId());
-        removed.getInventory().close();
+        ChestGui gui = guis.remove(voter.getUniqueId());
+        gui.setOnClose(event -> {});
+        gui.getInventory().close();
     }
     
     public void executeVote() {
