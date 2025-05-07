@@ -12,16 +12,36 @@ import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.event.ReadyUpState;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.logging.Level;
 
 public class PracticeState extends GameManagerState {
     
+    private final Component NETHER_STAR_NAME = Component.text("Practice");
+    
     public PracticeState(@NotNull GameManager context, @NotNull ContextReference contextReference) {
         super(context, contextReference);
         setupSidebar();
+        for (MCTParticipant participant : onlineParticipants.values()) {
+            if (!isParticipantInGame(participant)) {
+                giveNetherStar(participant);
+            }
+        }
+    }
+    
+    protected void giveNetherStar(MCTParticipant participant) {
+        ItemStack netherStar = new ItemStack(Material.NETHER_STAR);
+        netherStar.editMeta(meta -> meta.displayName(NETHER_STAR_NAME));
+        participant.getInventory().addItem(netherStar);
+    }
+    
+    protected void removeNetherStar(MCTParticipant participant) {
+        participant.getInventory().remove(Material.NETHER_STAR);
     }
     
     /**
@@ -91,12 +111,27 @@ public class PracticeState extends GameManagerState {
     public void onParticipantJoin(@NotNull MCTParticipant participant) {
         super.onParticipantJoin(participant);
         participant.teleport(config.getSpawn());
+        giveNetherStar(participant);
+    }
+    
+    @Override
+    public void onParticipantQuit(@NotNull MCTParticipant participant) {
+        removeNetherStar(participant);
+        super.onParticipantQuit(participant);
     }
     
     // leave/join stop
     
+    
+    @Override
+    protected void onParticipantReturnToHub(@NotNull MCTParticipant participant, @NotNull Location spawn) {
+        super.onParticipantReturnToHub(participant, spawn);
+        giveNetherStar(participant);
+    }
+    
     @Override
     public void onParticipantDropItem(@NotNull PlayerDropItemEvent event, MCTParticipant participant) {
+        Main.logf("dropping item %s", participant.getName());
         if (isParticipantInGame(participant)) {
             return;
         }
