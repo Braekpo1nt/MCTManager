@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.event.ReadyUpState;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.logging.Level;
@@ -94,5 +95,12 @@ public class PracticeState extends GameManagerState {
     
     // leave/join stop
     
+    @Override
+    public void onParticipantDropItem(@NotNull PlayerDropItemEvent event, MCTParticipant participant) {
+        if (isParticipantInGame(participant)) {
+            return;
+        }
+        event.setCancelled(true);
+    }
     
 }
