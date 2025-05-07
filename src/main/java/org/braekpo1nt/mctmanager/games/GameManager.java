@@ -278,10 +278,9 @@ public class GameManager implements Listener {
             return;
         }
         ItemStack itemStack = event.getItemDrop().getItemStack();
-        if (!GameManagerUtils.isLeatherArmor(itemStack)) {
-            return;
+        if (GameManagerUtils.isLeatherArmor(itemStack)) {
+            GameManagerUtils.deColorLeatherArmor(itemStack);
         }
-        GameManagerUtils.deColorLeatherArmor(itemStack);
         state.onParticipantDropItem(event, participant);
     }
     

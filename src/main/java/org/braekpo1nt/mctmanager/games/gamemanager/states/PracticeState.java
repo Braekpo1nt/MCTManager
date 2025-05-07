@@ -74,6 +74,9 @@ public class PracticeState extends GameManagerState {
     public CommandResult switchMode(@NotNull String mode) {
         switch (mode) {
             case "maintenance" -> {
+                for (MCTParticipant participant : onlineParticipants.values()) {
+                    removeNetherStar(participant);
+                }
                 context.setState(new MaintenanceState(context, contextReference));
                 return CommandResult.success(Component.text("Switched to maintenance mode"));
             }
@@ -81,6 +84,9 @@ public class PracticeState extends GameManagerState {
                 return CommandResult.success(Component.text("Already in practice mode"));
             }
             case "event" -> {
+                for (MCTParticipant participant : onlineParticipants.values()) {
+                    removeNetherStar(participant);
+                }
                 return startEvent(7, 0);
             }
             default -> {
@@ -131,7 +137,6 @@ public class PracticeState extends GameManagerState {
     
     @Override
     public void onParticipantDropItem(@NotNull PlayerDropItemEvent event, MCTParticipant participant) {
-        Main.logf("dropping item %s", participant.getName());
         if (isParticipantInGame(participant)) {
             return;
         }
