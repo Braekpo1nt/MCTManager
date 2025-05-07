@@ -289,7 +289,6 @@ public class VoteManager implements Listener {
     }
     
     private void resetParticipant(Participant voter) {
-        voter.closeInventory();
         ChestGui gui = guis.remove(voter.getUniqueId());
         gui.setOnClose(event -> {});
         gui.getInventory().close();
