@@ -14,10 +14,15 @@ import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
 import java.util.logging.Level;
 
 public class PracticeState extends GameManagerState {
@@ -143,4 +148,29 @@ public class PracticeState extends GameManagerState {
         event.setCancelled(true);
     }
     
+    @Override
+    public void onParticipantInteract(@NotNull PlayerInteractEvent event, MCTParticipant participant) {
+        if (isParticipantInGame(participant)) {
+            return;
+        }
+        Block clickedBlock = event.getClickedBlock();
+        if (clickedBlock != null) {
+            Material blockType = clickedBlock.getType();
+            if (config.getPreventInteractions().contains(blockType)) {
+                event.setUseInteractedBlock(Event.Result.DENY);
+                return;
+            }
+        }
+        ItemStack netherStar = event.getItem();
+        if (netherStar == null ||
+                !netherStar.getType().equals(Material.NETHER_STAR)) {
+            return;
+        }
+        ItemMeta netherStarMeta = netherStar.getItemMeta();
+        if (netherStarMeta == null || !netherStarMeta.hasDisplayName() || !Objects.equals(netherStarMeta.displayName(), NETHER_STAR_NAME)) {
+            return;
+        }
+        event.setCancelled(true);
+        participant.sendMessage("You clicked the nether star");
+    }
 }
