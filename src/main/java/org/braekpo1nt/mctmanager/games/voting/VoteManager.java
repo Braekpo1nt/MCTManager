@@ -13,6 +13,7 @@ import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.bukkit.Color;
 import org.bukkit.Material;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -95,6 +96,9 @@ public class VoteManager implements Listener {
                 .append(Component.text("Voted for "))
                 .append(Component.text(vote.getTitle()))
                 .color(NamedTextColor.GREEN));
+        if (allPlayersHaveVoted()) {
+            executeVote();
+        }
     }
     
     /**
@@ -203,8 +207,7 @@ public class VoteManager implements Listener {
         gui.addPane(pane);
         gui.update();
         gui.setOnClose(event -> {
-            if (allPlayersHaveVoted()) {
-                executeVote();
+            if (paused) {
                 return;
             }
             if (!votes.containsKey(event.getPlayer().getUniqueId())) {
@@ -248,7 +251,8 @@ public class VoteManager implements Listener {
         }
         paused = true;
         for (Participant voter : voters.values()) {
-            voter.closeInventory();
+            ChestGui gui = guis.get(voter.getUniqueId());
+            gui.getInventory().close();
             voter.getInventory().remove(NETHER_STAR);
         }
         messageAllVoters(Component.text("Voting is paused.")
@@ -344,6 +348,20 @@ public class VoteManager implements Listener {
         event.setCancelled(true);
         participant.getInventory().remove(netherStar);
         showVoteGui(participant);
+    }
+    
+    /**
+     * @param participant the participant to check
+     * @return true if the given participant is currently in their voting gui
+     */
+    public boolean isInVoteGui(Participant participant) {
+        Participant voter = voters.get(participant.getUniqueId());
+        if (voter == null) {
+            return false;
+        }
+        return guis.get(voter.getUniqueId())
+                .getViewers().stream()
+                .anyMatch(v -> v.getUniqueId().equals(voter.getUniqueId()));
     }
     
     private GameType getVotedForGame() {

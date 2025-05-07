@@ -100,6 +100,9 @@ public class VotingState extends EventState {
     
     @Override
     public void onParticipantInventoryClick(@NotNull InventoryClickEvent event, MCTParticipant participant) {
-        // do nothing
+        if (voteManager.isInVoteGui(participant)) {
+            return;
+        }
+        super.onParticipantInventoryClick(event, participant);
     }
 }
