@@ -1,26 +1,24 @@
 package org.braekpo1nt.mctmanager.games.voting;
 
+import com.github.stefvanschie.inventoryframework.adventuresupport.ComponentHolder;
+import com.github.stefvanschie.inventoryframework.gui.GuiItem;
+import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
+import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
-import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
-import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.Color;
 import org.bukkit.Material;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -30,18 +28,17 @@ import java.util.function.BiConsumer;
 
 public class VoteManager implements Listener {
     
-    private final Component TITLE = Component.text("Vote for a Game");
+    private final Component NETHER_STAR_NAME = Component.text("Vote");
     
     private final Map<UUID, GameType> votes = new HashMap<>();
-    private final Main plugin;
     private final Map<UUID, Participant> voters = new HashMap<>();
-    private boolean voting = false;
-    private final Component NETHER_STAR_NAME = Component.text("Vote");
+    private final Map<UUID, ChestGui> guis;
     private final ItemStack NETHER_STAR;
-    private List<GameType> votingPool = new ArrayList<>();
+    private final List<GameType> votingPool;
+    private final Collection<GuiItem> guiItems;
     private final BiConsumer<GameType, String> executeMethod;
+    
     private boolean paused;
-    private final TimerManager timerManager;
     
     /**
      * @param plugin used for creating inventories
@@ -51,19 +48,22 @@ public class VoteManager implements Listener {
      * @param votingPool The games to vote between
      * @param newParticipants The participants who should vote
      */
-    public VoteManager(Main plugin, BiConsumer<GameType, String> executeMethod, List<GameType> votingPool, Collection<Participant> newParticipants) {
-        this.plugin = plugin;
-        this.timerManager = new TimerManager(plugin);
+    public VoteManager(
+            Main plugin, 
+            BiConsumer<GameType, String> executeMethod,
+            List<GameType> votingPool, 
+            Collection<Participant> newParticipants) {
         this.NETHER_STAR = new ItemStack(Material.NETHER_STAR);
         ItemMeta netherStarMeta = this.NETHER_STAR.getItemMeta();
         netherStarMeta.displayName(NETHER_STAR_NAME);
         this.NETHER_STAR.setItemMeta(netherStarMeta);
         this.executeMethod = executeMethod;
-        voting = true;
         paused = false;
         votes.clear();
         voters.clear();
         this.votingPool = votingPool;
+        this.guiItems = createGuiItems();
+        this.guis = new HashMap<>(newParticipants.size());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Participant participant : newParticipants) {
             initializeParticipant(participant);
@@ -71,10 +71,9 @@ public class VoteManager implements Listener {
     }
     
     private void initializeParticipant(Participant voter) {
-        if (!voting) {
-            return;
-        }
         this.voters.put(voter.getUniqueId(), voter);
+        ChestGui gui = createGui();
+        this.guis.put(voter.getUniqueId(), gui);
         if (paused) {
             return;
         }
@@ -83,98 +82,154 @@ public class VoteManager implements Listener {
                 .color(NamedTextColor.GREEN));
     }
     
-    public void onParticipantJoin(Participant voter) {
-        if (!voting) {
-            return;
+    /**
+     * Mark a vote and close the inventory
+     * @param voter the one who voted
+     * @param vote the game they voted for
+     */
+    private void vote(HumanEntity voter, GameType vote) {
+        votes.put(voter.getUniqueId(), vote);
+        ChestGui gui = guis.get(voter.getUniqueId());
+        gui.setOnClose(event -> {});
+        gui.getInventory().close();
+        voter.sendMessage(Component.empty()
+                .append(Component.text("Voted for "))
+                .append(Component.text(vote.getTitle()))
+                .color(NamedTextColor.GREEN));
+        if (allPlayersHaveVoted()) {
+            executeVote();
         }
+    }
+    
+    /**
+     * @return a list of GuiItems matching the votingPool
+     */
+    private Collection<GuiItem> createGuiItems() {
+        Collection<GuiItem> items = new ArrayList<>(votingPool.size());
+        
+        if (votingPool.contains(GameType.FOOT_RACE)) {
+            ItemStack footRace = new ItemStack(Material.FEATHER);
+            ItemMeta meta = footRace.getItemMeta();
+            meta.displayName(Component.text("Foot Race"));
+            meta.lore(List.of(
+                    Component.text("A racing game")
+            ));
+            footRace.setItemMeta(meta);
+            items.add(new GuiItem(footRace, 
+                    event -> vote(event.getWhoClicked(), GameType.FOOT_RACE)));
+        }
+        
+        if (votingPool.contains(GameType.SURVIVAL_GAMES)) {
+            ItemStack survivalGames = new ItemStack(Material.IRON_SWORD);
+            ItemMeta meta = survivalGames.getItemMeta();
+            meta.displayName(Component.text("Survival Games"));
+            meta.lore(List.of(
+                    Component.text("A fighting game")
+            ));
+            survivalGames.setItemMeta(meta);
+            items.add(new GuiItem(survivalGames,
+                    event -> vote(event.getWhoClicked(), GameType.SURVIVAL_GAMES)));
+        }
+        
+        if (votingPool.contains(GameType.CAPTURE_THE_FLAG)) {
+            ItemStack captureTheFlag = new ItemStack(Material.GRAY_BANNER);
+            ItemMeta meta = captureTheFlag.getItemMeta();
+            meta.displayName(Component.text("Capture the Flag"));
+            meta.lore(List.of(
+                    Component.text("A team capture the flag game")
+            ));
+            captureTheFlag.setItemMeta(meta);
+            items.add(new GuiItem(captureTheFlag,
+                    event -> vote(event.getWhoClicked(), GameType.CAPTURE_THE_FLAG)));
+        }
+        
+        if (votingPool.contains(GameType.CLOCKWORK)) {
+            ItemStack clockwork = new ItemStack(Material.CLOCK);
+            ItemMeta meta = clockwork.getItemMeta();
+            meta.displayName(Component.text("Clockwork"));
+            meta.lore(List.of(
+                    Component.text("A time-sensitive game")
+            ));
+            clockwork.setItemMeta(meta);
+            items.add(new GuiItem(clockwork,
+                    event -> vote(event.getWhoClicked(), GameType.CLOCKWORK)));
+        }
+        
+        if (votingPool.contains(GameType.PARKOUR_PATHWAY)) {
+            ItemStack parkourPathway = new ItemStack(Material.LEATHER_BOOTS);
+            ItemMeta meta = parkourPathway.getItemMeta();
+            meta.displayName(Component.text("Parkour Pathway"));
+            meta.lore(List.of(
+                    Component.text("A jumping game")
+            ));
+            LeatherArmorMeta parkourPathwayLeatherArmorMeta = ((LeatherArmorMeta) meta);
+            parkourPathwayLeatherArmorMeta.setColor(Color.WHITE);
+            parkourPathway.setItemMeta(meta);
+            items.add(new GuiItem(parkourPathway,
+                    event -> vote(event.getWhoClicked(), GameType.PARKOUR_PATHWAY)));
+        }
+        
+        if (votingPool.contains(GameType.SPLEEF)) {
+            ItemStack spleef = new ItemStack(Material.DIAMOND_SHOVEL);
+            ItemMeta meta = spleef.getItemMeta();
+            meta.displayName(Component.text("Spleef"));
+            meta.lore(List.of(
+                    Component.text("A falling game")
+            ));
+            spleef.setItemMeta(meta);
+            items.add(new GuiItem(spleef,
+                    event -> vote(event.getWhoClicked(), GameType.SPLEEF)));
+        }
+        
+        if (votingPool.contains(GameType.FARM_RUSH)) {
+            ItemStack farmRush = new ItemStack(Material.STONE_HOE);
+            ItemMeta meta = farmRush.getItemMeta();
+            meta.displayName(Component.text("Farm Rush"));
+            meta.lore(List.of(
+                    Component.text("A farming game")
+            ));
+            farmRush.setItemMeta(meta);
+            items.add(new GuiItem(farmRush,
+                    event -> vote(event.getWhoClicked(), GameType.FARM_RUSH)));
+        }
+        
+        return items;
+    }
+    
+    private ChestGui createGui() {
+        ChestGui gui = new ChestGui(1, ComponentHolder.of(Component.empty()
+                .append(Component.text("Vote"))));
+        gui.setOnGlobalClick(event -> event.setCancelled(true));
+        OutlinePane pane = new OutlinePane(0, 0, 9, 1);
+        for (GuiItem item : guiItems) {
+            pane.addItem(item);
+        }
+        gui.addPane(pane);
+        gui.update();
+        gui.setOnClose(event -> {
+            if (paused) {
+                return;
+            }
+            if (!votes.containsKey(event.getPlayer().getUniqueId())) {
+                event.getPlayer().sendMessage(Component.empty()
+                        .append(Component.text("You didn't vote. Use the nether star to vote."))
+                        .color(NamedTextColor.DARK_RED));
+                ItemStack netherStar = new ItemStack(Material.NETHER_STAR);
+                netherStar.editMeta(meta -> meta.displayName(NETHER_STAR_NAME));
+                event.getPlayer().getInventory().addItem(netherStar);
+            }
+        });
+        return gui;
+    }
+    
+    public void onParticipantJoin(Participant voter) {
         initializeParticipant(voter);
     }
     
     public void onParticipantQuit(Participant voter) {
-        if (!voting) {
-            return;
-        }
         resetParticipant(voter);
         voters.remove(voter.getUniqueId());
         votes.remove(voter.getUniqueId());
-    }
-    
-    @EventHandler
-    private void clickVoteInventory(InventoryClickEvent event) {
-        if (!voting) {
-            return;
-        }
-        if (event.getClickedInventory() == null) {
-            return;
-        }
-        if (event.getCurrentItem() == null) {
-            return;
-        }
-        Participant participant = voters.get(event.getWhoClicked().getUniqueId());
-        if (participant == null) {
-            return;
-        }
-        if (!event.getView().title().equals(TITLE)) {
-            if (GameManagerUtils.INV_REMOVE_ACTIONS.contains(event.getAction())) {
-                event.setCancelled(true);
-            }
-            return;
-        }
-        event.setCancelled(true);
-        if (participantVoted(participant)) {
-            participant.sendMessage(Component.text("You already voted.")
-                    .color(NamedTextColor.GREEN));
-            return;
-        }
-        Material clickedItem = event.getCurrentItem().getType();
-        GameType votedForType;
-        switch (clickedItem) {
-            case FEATHER -> {
-                votedForType = GameType.FOOT_RACE;
-            }
-            case IRON_SWORD -> {
-                votedForType = GameType.SURVIVAL_GAMES;
-            }
-            case GRAY_BANNER -> {
-                votedForType = GameType.CAPTURE_THE_FLAG;
-            }
-            case DIAMOND_SHOVEL -> {
-                votedForType = GameType.SPLEEF;
-            }
-            case LEATHER_BOOTS -> {
-                votedForType = GameType.PARKOUR_PATHWAY;
-            }
-            case CLOCK -> {
-                votedForType = GameType.CLOCKWORK;
-            }
-            case STONE_HOE -> {
-                votedForType = GameType.FARM_RUSH;
-            }
-            default -> {
-                return;
-            }
-        }
-        votes.put(participant.getUniqueId(), votedForType);
-        participant.sendMessage(Component.empty()
-                .append(Component.text("Voted for "))
-                .append(Component.text(votedForType.getTitle()))
-                .color(NamedTextColor.GREEN));
-        participant.closeInventory();
-    }
-    
-    /**
-     * Stop players from dropping items
-     */
-    @EventHandler
-    public void onDropItem(PlayerDropItemEvent event) {
-        if (!voting) {
-            return;
-        }
-        Participant participant = voters.get(event.getPlayer().getUniqueId());
-        if (participant == null) {
-            return;
-        }
-        event.setCancelled(true);
     }
     
     /**
@@ -186,49 +241,6 @@ public class VoteManager implements Listener {
         return votes.containsKey(participant.getUniqueId());
     }
     
-    @EventHandler
-    private void onCloseMenu(InventoryCloseEvent event) {
-        if (!voting) {
-            return;
-        }
-        if (paused) {
-            return;
-        }
-        if (!event.getView().title().equals(TITLE)) {
-            return;
-        }
-        Participant participant = voters.get(event.getPlayer().getUniqueId());
-        if (participant == null) {
-            return;
-        }
-        if (allPlayersHaveVoted()) {
-            executeVote();
-        } else {
-            if (participantVoted(participant)) {
-                return;
-            }
-            participant.getInventory().addItem(NETHER_STAR);
-            participant.sendMessage(Component.text("You didn't vote for a game. Use the nether star to vote.")
-                    .color(NamedTextColor.YELLOW));
-        }
-    }
-    
-    @EventHandler
-    public void onPlayerDamage(EntityDamageEvent event) {
-        if (!voting) {
-            return;
-        }
-        if (GameManagerUtils.EXCLUDED_DAMAGE_CAUSES.contains(event.getCause())) {
-            return;
-        }
-        Participant participant = voters.get(event.getEntity().getUniqueId());
-        if (participant == null) {
-            return;
-        }
-        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "VoteManager.onPlayerDamage() cancelled");
-        event.setCancelled(true);
-    }
-    
     /**
      * Pauses the vote. If no vote is running, nothing happens. Removes UI from players,
      * removes nether stars from players, pauses the timer, and retains player votes for resuming.
@@ -238,9 +250,9 @@ public class VoteManager implements Listener {
             return;
         }
         paused = true;
-        timerManager.pause();
         for (Participant voter : voters.values()) {
-            voter.closeInventory();
+            ChestGui gui = guis.get(voter.getUniqueId());
+            gui.getInventory().close();
             voter.getInventory().remove(NETHER_STAR);
         }
         messageAllVoters(Component.text("Voting is paused.")
@@ -257,7 +269,6 @@ public class VoteManager implements Listener {
             return;
         }
         paused = false;
-        timerManager.resume();
         for (Participant voter : voters.values()) {
             if (!participantVoted(voter)) {
                 showVoteGui(voter);
@@ -269,28 +280,26 @@ public class VoteManager implements Listener {
      * Cancel the vote if a vote is in progress
      */
     public void cancelVote() {
-        if (!voting) {
-            return;
-        }
-        voting = false;
+        HandlerList.unregisterAll(this);
         paused = false;
-        cancelAllTasks();
         for (Participant voter : voters.values()) {
             resetParticipant(voter);
         }
         messageAllVoters(Component.text("Cancelling vote"));
-        HandlerList.unregisterAll(this);
         votes.clear();
         voters.clear();
+        guis.clear();
+        guiItems.clear();
     }
     
-    private static void resetParticipant(Participant voter) {
-        voter.closeInventory();
-        voter.getInventory().clear();
+    private void resetParticipant(Participant voter) {
+        ChestGui gui = guis.remove(voter.getUniqueId());
+        gui.setOnClose(event -> {});
+        gui.getInventory().close();
     }
     
     public void executeVote() {
-        voting = false;
+        HandlerList.unregisterAll(this);
         paused = false;
         GameType gameType = getVotedForGame();
         Audience.audience(
@@ -301,25 +310,18 @@ public class VoteManager implements Listener {
                         .color(NamedTextColor.BLUE),
                 Component.empty()
         ));
-        cancelAllTasks();
         for (Participant voter : voters.values()) {
             resetParticipant(voter);
         }
-        HandlerList.unregisterAll(this);
         votes.clear();
         voters.clear();
+        guis.clear();
+        guiItems.clear();
         executeMethod.accept(gameType, "default.json");
-    }
-    
-    private void cancelAllTasks() {
-        timerManager.cancel();
     }
     
     @EventHandler
     public void interactWithNetherStar(PlayerInteractEvent event) {
-        if (!voting) {
-            return;
-        }
         Participant participant = voters.get(event.getPlayer().getUniqueId());
         if (participant == null) {
             return;
@@ -338,9 +340,6 @@ public class VoteManager implements Listener {
         if (netherStarMeta == null || !netherStarMeta.hasDisplayName() || !Objects.equals(netherStarMeta.displayName(), NETHER_STAR_NAME)) {
             return;
         }
-        if (!voters.containsKey(participant.getUniqueId())) {
-            voters.put(participant.getUniqueId(), participant);
-        }
         if (participantVoted(participant)) {
             participant.sendMessage(Component.text("You already voted.")
                     .color(NamedTextColor.GREEN));
@@ -351,33 +350,18 @@ public class VoteManager implements Listener {
         showVoteGui(participant);
     }
     
-    @EventHandler
-    public void clickNetherStar(InventoryClickEvent event) {
-        if (!voting) {
-            return;
+    /**
+     * @param participant the participant to check
+     * @return true if the given participant is currently in their voting gui
+     */
+    public boolean isInVoteGui(Participant participant) {
+        Participant voter = voters.get(participant.getUniqueId());
+        if (voter == null) {
+            return false;
         }
-        Participant participant = voters.get(event.getWhoClicked().getUniqueId());
-        if (participant == null) {
-            return;
-        }
-        ItemStack netherStar = event.getCurrentItem();
-        if (netherStar == null ||
-                !netherStar.getType().equals(Material.NETHER_STAR)) {
-            return;
-        }
-        ItemMeta netherStarMeta = netherStar.getItemMeta();
-        if (netherStarMeta == null || !netherStarMeta.hasDisplayName() || !Objects.equals(netherStarMeta.displayName(), NETHER_STAR_NAME)) {
-            return;
-        }
-        if (participantVoted(participant)) {
-            participant.sendMessage(Component.text("You already voted.")
-                    .color(NamedTextColor.GREEN));
-            event.setCancelled(true);
-            return;
-        }
-        event.setCancelled(true);
-        participant.getInventory().remove(netherStar);
-        showVoteGui(participant);
+        return guis.get(voter.getUniqueId())
+                .getViewers().stream()
+                .anyMatch(v -> v.getUniqueId().equals(voter.getUniqueId()));
     }
     
     private GameType getVotedForGame() {
@@ -426,79 +410,8 @@ public class VoteManager implements Listener {
     }
     
     private void showVoteGui(Participant participant) {
-        ItemStack footRace = new ItemStack(Material.FEATHER);
-
-        ItemMeta footRaceMeta = footRace.getItemMeta();
-        footRaceMeta.displayName(Component.text("Foot Race"));
-        footRaceMeta.lore(List.of(
-                Component.text("A racing game")
-        ));
-        footRace.setItemMeta(footRaceMeta);
-
-        ItemStack survivalGames = new ItemStack(Material.IRON_SWORD);
-        ItemMeta survivalGamesMeta = survivalGames.getItemMeta();
-        survivalGamesMeta.displayName(Component.text("Survival Games"));
-        survivalGamesMeta.lore(List.of(
-                Component.text("A fighting game")
-        ));
-        survivalGames.setItemMeta(survivalGamesMeta);
-
-        ItemStack captureTheFlag = new ItemStack(Material.GRAY_BANNER);
-        ItemMeta captureTheFlagMeta = captureTheFlag.getItemMeta();
-        captureTheFlagMeta.displayName(Component.text("Capture the Flag"));
-        captureTheFlagMeta.lore(List.of(
-                Component.text("A team capture the flag game")
-        ));
-        captureTheFlag.setItemMeta(captureTheFlagMeta);
-        
-        ItemStack clockwork = new ItemStack(Material.CLOCK);
-        ItemMeta clockworkMeta = clockwork.getItemMeta();
-        clockworkMeta.displayName(Component.text("Clockwork"));
-        clockworkMeta.lore(List.of(
-                Component.text("A time-sensitive game")
-        ));
-        clockwork.setItemMeta(clockworkMeta);
-
-        ItemStack parkourPathway = new ItemStack(Material.LEATHER_BOOTS);
-        ItemMeta parkourPathwayMeta = parkourPathway.getItemMeta();
-        parkourPathwayMeta.displayName(Component.text("Parkour Pathway"));
-        parkourPathwayMeta.lore(List.of(
-                Component.text("A jumping game")
-        ));
-        LeatherArmorMeta parkourPathwayLeatherArmorMeta = ((LeatherArmorMeta) parkourPathwayMeta);
-        parkourPathwayLeatherArmorMeta.setColor(Color.WHITE);
-        parkourPathway.setItemMeta(parkourPathwayMeta);
-
-        ItemStack spleef = new ItemStack(Material.DIAMOND_SHOVEL);
-        ItemMeta spleefMeta = spleef.getItemMeta();
-        spleefMeta.displayName(Component.text("Spleef"));
-        spleefMeta.lore(List.of(
-                Component.text("A falling game")
-        ));
-        spleef.setItemMeta(spleefMeta);
-        
-        ItemStack farmRush = new ItemStack(Material.STONE_HOE);
-        ItemMeta farmRushMeta = spleef.getItemMeta();
-        farmRushMeta.displayName(Component.text("Farm Rush"));
-        farmRushMeta.lore(List.of(
-                Component.text("A farming game")
-        ));
-        farmRush.setItemMeta(farmRushMeta);
-        
-        Inventory newGui = plugin.getServer().createInventory(null, 9, TITLE);
-        Map<GameType, ItemStack> votingItems = new HashMap<>();
-        votingItems.put(GameType.FOOT_RACE, footRace);
-        votingItems.put(GameType.SURVIVAL_GAMES, survivalGames);
-        votingItems.put(GameType.CAPTURE_THE_FLAG, captureTheFlag);
-        votingItems.put(GameType.SPLEEF, spleef);
-        votingItems.put(GameType.PARKOUR_PATHWAY, parkourPathway);
-        votingItems.put(GameType.CLOCKWORK, clockwork);
-        votingItems.put(GameType.FARM_RUSH, farmRush);
-        
-        for (GameType mctGame : votingPool) {
-            newGui.addItem(votingItems.get(mctGame));
-        }
-        participant.openInventory(newGui);
+        ChestGui gui = this.guis.get(participant.getUniqueId());
+        gui.show(participant.getPlayer());
     }
     
     public static List<GameType> votableGames() {
@@ -514,8 +427,6 @@ public class VoteManager implements Listener {
     }
     
     private void messageAllVoters(Component message) {
-        for (Participant voter : voters.values()) {
-            voter.sendMessage(message);
-        }
+        Audience.audience(voters.values()).sendMessage(message);
     }
 }

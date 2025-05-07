@@ -17,10 +17,4 @@ public class InitialState implements CaptureTheFlagState, DoNothingState<CTFPart
     public void onParticipantFoodLevelChange(@NotNull FoodLevelChangeEvent event, @NotNull CTFParticipant participant) {
         
     }
-    
-    @Override
-    public void onParticipantClickInventory(@NotNull InventoryClickEvent event, @NotNull CTFParticipant participant) {
-        
-    }
-    
 }

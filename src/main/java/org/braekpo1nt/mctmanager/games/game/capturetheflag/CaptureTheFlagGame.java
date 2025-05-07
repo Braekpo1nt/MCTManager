@@ -23,7 +23,6 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,13 +51,7 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
         this.topbar = addUIManager(new BattleTopbar());
         Set<String> teamIds = Participant.getTeamIds(newParticipants);
         roundManager = new RoundManager(teamIds, config.getArenas().size());
-        addListener(new PreventItemDrop<>(this, true) {
-            @Override
-            public void onParticipantClickInventory(@NotNull InventoryClickEvent event, @NotNull CTFParticipant participant) {
-                super.onParticipantClickInventory(event, participant);
-                state.onParticipantClickInventory(event, participant);
-            }
-        });
+        addListener(new PreventItemDrop<>(this, true));
         setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
         start(newTeams, newParticipants, newAdmins);
         updateRoundLine();
@@ -118,8 +111,8 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
     
     /**
      * @param teamId the teamId of the team which might have quit, or might be online
-     * @return the team with the given id if they are online or if they quit, null if no
-     * such team ever joined.
+     * @return the team with the given id if they are online or if they quit
+     * @throws IllegalStateException if no team with the given teamId ever joined
      */
     public @NotNull CTFTeam getTeamOrQuitTeam(@NotNull String teamId) {
         CTFTeam ctfTeam = teams.get(teamId);

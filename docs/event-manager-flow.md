@@ -21,5 +21,5 @@ half_time --> HalftimeBreak: yes
 half_time --> WaitingInHub: no
 HalftimeBreak --> WaitingInHub
 
-class ToFinalGameDelay, ToPodiumDelay, StartingGameDelay, BackToHubDelay delay
+class ToFinalGameDelay, StartingGameDelay delay
 ```

@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'com.gradleup.shadow' version '8.3.0'
 //    id "io.freefair.lombok" version "8.6"
 }
 
@@ -42,6 +42,10 @@ repositories {
     }
 }
 
+configurations {
+    shade
+}
+
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
     testImplementation 'org.mockito:mockito-core:5.2.0'
@@ -57,6 +61,8 @@ dependencies {
     implementation 'com.github.retrooper:packetevents-spigot:2.7.0'
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'com.sk89q.worldedit:worldedit-bukkit:7.3.6'
+    implementation 'com.github.stefvanschie.inventoryframework:IF:0.10.19'
+    shade 'com.github.stefvanschie.inventoryframework:IF:0.10.19'
     
     // lombok
     compileOnly 'org.projectlombok:lombok:1.18.36'
@@ -86,6 +92,12 @@ tasks.jar {
     manifest {
         attributes["paperweight-mappings-namespace"] = "spigot"
     }
+}
+
+tasks.shadowJar {
+    configurations = [project.configurations.shade] // only dependencies labeled with the "shade" configuration will be included in the fat jar (alongside my own code)
+    archiveClassifier = "" // doesn't add "-all" to the jar file name
+    relocate 'com.github.stefvanschie.inventoryframework', 'org.braekpo1nt.inventoryframework' // from the inventoryFramework docs
 }
 
 processResources {

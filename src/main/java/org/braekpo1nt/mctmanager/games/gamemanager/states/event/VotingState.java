@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.event.delay.StartingGameDelayState;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -95,5 +96,13 @@ public class VotingState extends EventState {
     public void onParticipantQuit(@NotNull MCTParticipant participant) {
         voteManager.onParticipantQuit(participant);
         super.onParticipantQuit(participant);
+    }
+    
+    @Override
+    public void onParticipantInventoryClick(@NotNull InventoryClickEvent event, MCTParticipant participant) {
+        if (voteManager.isInVoteGui(participant)) {
+            return;
+        }
+        super.onParticipantInventoryClick(event, participant);
     }
 }

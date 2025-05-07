@@ -27,7 +27,6 @@ import org.bukkit.entity.Item;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -356,15 +355,6 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
             return;
         }
         state.onParticipantFoodLevelChange(event, matchParticipant);
-    }
-    
-    @Override
-    public void onParticipantClickInventory(@NotNull InventoryClickEvent event, @NotNull CTFParticipant participant) {
-        CTFMatchParticipant matchParticipant = getParticipant(participant);
-        if (matchParticipant == null) {
-            return;
-        }
-        state.onParticipantClickInventory(event, matchParticipant);
     }
     
     private void resetArena() {
