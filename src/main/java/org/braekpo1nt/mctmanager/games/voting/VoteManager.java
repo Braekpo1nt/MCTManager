@@ -1,5 +1,9 @@
 package org.braekpo1nt.mctmanager.games.voting;
 
+import com.github.stefvanschie.inventoryframework.adventuresupport.ComponentHolder;
+import com.github.stefvanschie.inventoryframework.gui.GuiItem;
+import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
+import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -11,6 +15,7 @@ import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.Color;
 import org.bukkit.Material;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -19,7 +24,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -34,9 +38,10 @@ public class VoteManager implements Listener {
     
     private final Map<UUID, GameType> votes = new HashMap<>();
     private final Map<UUID, Participant> voters = new HashMap<>();
-    private final Main plugin;
+    private final Map<UUID, ChestGui> guis;
     private final ItemStack NETHER_STAR;
     private final List<GameType> votingPool;
+    private final Collection<GuiItem> guiItems;
     private final BiConsumer<GameType, String> executeMethod;
     
     private boolean paused;
@@ -49,8 +54,11 @@ public class VoteManager implements Listener {
      * @param votingPool The games to vote between
      * @param newParticipants The participants who should vote
      */
-    public VoteManager(Main plugin, BiConsumer<GameType, String> executeMethod, List<GameType> votingPool, Collection<Participant> newParticipants) {
-        this.plugin = plugin;
+    public VoteManager(
+            Main plugin, 
+            BiConsumer<GameType, String> executeMethod,
+            List<GameType> votingPool, 
+            Collection<Participant> newParticipants) {
         this.NETHER_STAR = new ItemStack(Material.NETHER_STAR);
         ItemMeta netherStarMeta = this.NETHER_STAR.getItemMeta();
         netherStarMeta.displayName(NETHER_STAR_NAME);
@@ -60,6 +68,8 @@ public class VoteManager implements Listener {
         votes.clear();
         voters.clear();
         this.votingPool = votingPool;
+        this.guiItems = createGuiItems();
+        this.guis = new HashMap<>(newParticipants.size());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Participant participant : newParticipants) {
             initializeParticipant(participant);
@@ -68,12 +78,146 @@ public class VoteManager implements Listener {
     
     private void initializeParticipant(Participant voter) {
         this.voters.put(voter.getUniqueId(), voter);
+        ChestGui gui = createGui();
+        this.guis.put(voter.getUniqueId(), gui);
         if (paused) {
             return;
         }
         showVoteGui(voter);
         voter.sendMessage(Component.text("Vote for the game you want to play")
                 .color(NamedTextColor.GREEN));
+    }
+    
+    /**
+     * Mark a vote and close the inventory
+     * @param voter the one who voted
+     * @param vote the game they voted for
+     */
+    private void vote(HumanEntity voter, GameType vote) {
+        votes.put(voter.getUniqueId(), vote);
+        guis.get(voter.getUniqueId()).setOnClose(event -> {});
+        voter.closeInventory();
+        voter.sendMessage(Component.empty()
+                .append(Component.text("Voted for "))
+                .append(Component.text(vote.getTitle()))
+                .color(NamedTextColor.GREEN));
+    }
+    
+    /**
+     * @return a list of GuiItems matching the votingPool
+     */
+    private Collection<GuiItem> createGuiItems() {
+        Collection<GuiItem> items = new ArrayList<>(votingPool.size());
+        
+        if (votingPool.contains(GameType.FOOT_RACE)) {
+            ItemStack footRace = new ItemStack(Material.FEATHER);
+            ItemMeta meta = footRace.getItemMeta();
+            meta.displayName(Component.text("Foot Race"));
+            meta.lore(List.of(
+                    Component.text("A racing game")
+            ));
+            footRace.setItemMeta(meta);
+            items.add(new GuiItem(footRace, 
+                    event -> vote(event.getWhoClicked(), GameType.FOOT_RACE)));
+        }
+        
+        if (votingPool.contains(GameType.SURVIVAL_GAMES)) {
+            ItemStack survivalGames = new ItemStack(Material.IRON_SWORD);
+            ItemMeta meta = survivalGames.getItemMeta();
+            meta.displayName(Component.text("Survival Games"));
+            meta.lore(List.of(
+                    Component.text("A fighting game")
+            ));
+            survivalGames.setItemMeta(meta);
+            items.add(new GuiItem(survivalGames,
+                    event -> vote(event.getWhoClicked(), GameType.SURVIVAL_GAMES)));
+        }
+        
+        if (votingPool.contains(GameType.CAPTURE_THE_FLAG)) {
+            ItemStack captureTheFlag = new ItemStack(Material.GRAY_BANNER);
+            ItemMeta meta = captureTheFlag.getItemMeta();
+            meta.displayName(Component.text("Capture the Flag"));
+            meta.lore(List.of(
+                    Component.text("A team capture the flag game")
+            ));
+            captureTheFlag.setItemMeta(meta);
+            items.add(new GuiItem(captureTheFlag,
+                    event -> vote(event.getWhoClicked(), GameType.CAPTURE_THE_FLAG)));
+        }
+        
+        if (votingPool.contains(GameType.CLOCKWORK)) {
+            ItemStack clockwork = new ItemStack(Material.CLOCK);
+            ItemMeta meta = clockwork.getItemMeta();
+            meta.displayName(Component.text("Clockwork"));
+            meta.lore(List.of(
+                    Component.text("A time-sensitive game")
+            ));
+            clockwork.setItemMeta(meta);
+            items.add(new GuiItem(clockwork,
+                    event -> vote(event.getWhoClicked(), GameType.CLOCKWORK)));
+        }
+        
+        if (votingPool.contains(GameType.PARKOUR_PATHWAY)) {
+            ItemStack parkourPathway = new ItemStack(Material.LEATHER_BOOTS);
+            ItemMeta meta = parkourPathway.getItemMeta();
+            meta.displayName(Component.text("Parkour Pathway"));
+            meta.lore(List.of(
+                    Component.text("A jumping game")
+            ));
+            LeatherArmorMeta parkourPathwayLeatherArmorMeta = ((LeatherArmorMeta) meta);
+            parkourPathwayLeatherArmorMeta.setColor(Color.WHITE);
+            parkourPathway.setItemMeta(meta);
+            items.add(new GuiItem(parkourPathway,
+                    event -> vote(event.getWhoClicked(), GameType.PARKOUR_PATHWAY)));
+        }
+        
+        if (votingPool.contains(GameType.SPLEEF)) {
+            ItemStack spleef = new ItemStack(Material.DIAMOND_SHOVEL);
+            ItemMeta meta = spleef.getItemMeta();
+            meta.displayName(Component.text("Spleef"));
+            meta.lore(List.of(
+                    Component.text("A falling game")
+            ));
+            spleef.setItemMeta(meta);
+            items.add(new GuiItem(spleef,
+                    event -> vote(event.getWhoClicked(), GameType.SPLEEF)));
+        }
+        
+        if (votingPool.contains(GameType.FARM_RUSH)) {
+            ItemStack farmRush = new ItemStack(Material.STONE_HOE);
+            ItemMeta meta = farmRush.getItemMeta();
+            meta.displayName(Component.text("Farm Rush"));
+            meta.lore(List.of(
+                    Component.text("A farming game")
+            ));
+            farmRush.setItemMeta(meta);
+            items.add(new GuiItem(farmRush,
+                    event -> vote(event.getWhoClicked(), GameType.FARM_RUSH)));
+        }
+        
+        return items;
+    }
+    
+    private ChestGui createGui() {
+        ChestGui gui = new ChestGui(1, ComponentHolder.of(Component.empty()
+                .append(Component.text("Vote"))));
+        OutlinePane pane = new OutlinePane(0, 0, 9, 1);
+        for (GuiItem item : guiItems) {
+            pane.addItem(item);
+        }
+        gui.addPane(pane);
+        gui.update();
+        gui.setOnClose(event -> {
+            if (!votes.containsKey(event.getPlayer().getUniqueId())) {
+                event.getPlayer().sendMessage(Component.empty()
+                        .append(Component.text("You didn't vote. Use the nether star to vote."))
+                        .color(NamedTextColor.DARK_RED));
+            }
+            ItemStack netherStar = new ItemStack(Material.NETHER_STAR);
+            netherStar.editMeta(meta -> meta.displayName(NETHER_STAR_NAME));
+            event.getPlayer().getInventory().addItem(netherStar);
+        });
+        return gui;
     }
     
     public void onParticipantJoin(Participant voter) {
@@ -382,79 +526,8 @@ public class VoteManager implements Listener {
     }
     
     private void showVoteGui(Participant participant) {
-        ItemStack footRace = new ItemStack(Material.FEATHER);
-
-        ItemMeta footRaceMeta = footRace.getItemMeta();
-        footRaceMeta.displayName(Component.text("Foot Race"));
-        footRaceMeta.lore(List.of(
-                Component.text("A racing game")
-        ));
-        footRace.setItemMeta(footRaceMeta);
-
-        ItemStack survivalGames = new ItemStack(Material.IRON_SWORD);
-        ItemMeta survivalGamesMeta = survivalGames.getItemMeta();
-        survivalGamesMeta.displayName(Component.text("Survival Games"));
-        survivalGamesMeta.lore(List.of(
-                Component.text("A fighting game")
-        ));
-        survivalGames.setItemMeta(survivalGamesMeta);
-
-        ItemStack captureTheFlag = new ItemStack(Material.GRAY_BANNER);
-        ItemMeta captureTheFlagMeta = captureTheFlag.getItemMeta();
-        captureTheFlagMeta.displayName(Component.text("Capture the Flag"));
-        captureTheFlagMeta.lore(List.of(
-                Component.text("A team capture the flag game")
-        ));
-        captureTheFlag.setItemMeta(captureTheFlagMeta);
-        
-        ItemStack clockwork = new ItemStack(Material.CLOCK);
-        ItemMeta clockworkMeta = clockwork.getItemMeta();
-        clockworkMeta.displayName(Component.text("Clockwork"));
-        clockworkMeta.lore(List.of(
-                Component.text("A time-sensitive game")
-        ));
-        clockwork.setItemMeta(clockworkMeta);
-
-        ItemStack parkourPathway = new ItemStack(Material.LEATHER_BOOTS);
-        ItemMeta parkourPathwayMeta = parkourPathway.getItemMeta();
-        parkourPathwayMeta.displayName(Component.text("Parkour Pathway"));
-        parkourPathwayMeta.lore(List.of(
-                Component.text("A jumping game")
-        ));
-        LeatherArmorMeta parkourPathwayLeatherArmorMeta = ((LeatherArmorMeta) parkourPathwayMeta);
-        parkourPathwayLeatherArmorMeta.setColor(Color.WHITE);
-        parkourPathway.setItemMeta(parkourPathwayMeta);
-
-        ItemStack spleef = new ItemStack(Material.DIAMOND_SHOVEL);
-        ItemMeta spleefMeta = spleef.getItemMeta();
-        spleefMeta.displayName(Component.text("Spleef"));
-        spleefMeta.lore(List.of(
-                Component.text("A falling game")
-        ));
-        spleef.setItemMeta(spleefMeta);
-        
-        ItemStack farmRush = new ItemStack(Material.STONE_HOE);
-        ItemMeta farmRushMeta = spleef.getItemMeta();
-        farmRushMeta.displayName(Component.text("Farm Rush"));
-        farmRushMeta.lore(List.of(
-                Component.text("A farming game")
-        ));
-        farmRush.setItemMeta(farmRushMeta);
-        
-        Inventory newGui = plugin.getServer().createInventory(null, 9, TITLE);
-        Map<GameType, ItemStack> votingItems = new HashMap<>();
-        votingItems.put(GameType.FOOT_RACE, footRace);
-        votingItems.put(GameType.SURVIVAL_GAMES, survivalGames);
-        votingItems.put(GameType.CAPTURE_THE_FLAG, captureTheFlag);
-        votingItems.put(GameType.SPLEEF, spleef);
-        votingItems.put(GameType.PARKOUR_PATHWAY, parkourPathway);
-        votingItems.put(GameType.CLOCKWORK, clockwork);
-        votingItems.put(GameType.FARM_RUSH, farmRush);
-        
-        for (GameType mctGame : votingPool) {
-            newGui.addItem(votingItems.get(mctGame));
-        }
-        participant.openInventory(newGui);
+        ChestGui gui = this.guis.get(participant.getUniqueId());
+        gui.show(participant.getPlayer());
     }
     
     public static List<GameType> votableGames() {
