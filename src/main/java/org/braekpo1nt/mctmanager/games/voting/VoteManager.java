@@ -386,22 +386,26 @@ public class VoteManager implements Listener {
      * Cancel the vote if a vote is in progress
      */
     public void cancelVote() {
+        HandlerList.unregisterAll(this);
         paused = false;
         for (Participant voter : voters.values()) {
             resetParticipant(voter);
         }
         messageAllVoters(Component.text("Cancelling vote"));
-        HandlerList.unregisterAll(this);
         votes.clear();
         voters.clear();
+        guis.clear();
+        guiItems.clear();
     }
     
-    private static void resetParticipant(Participant voter) {
+    private void resetParticipant(Participant voter) {
         voter.closeInventory();
-        voter.getInventory().clear();
+        ChestGui removed = guis.remove(voter.getUniqueId());
+        removed.getInventory().close();
     }
     
     public void executeVote() {
+        HandlerList.unregisterAll(this);
         paused = false;
         GameType gameType = getVotedForGame();
         Audience.audience(
@@ -415,9 +419,10 @@ public class VoteManager implements Listener {
         for (Participant voter : voters.values()) {
             resetParticipant(voter);
         }
-        HandlerList.unregisterAll(this);
         votes.clear();
         voters.clear();
+        guis.clear();
+        guiItems.clear();
         executeMethod.accept(gameType, "default.json");
     }
     
@@ -441,38 +446,9 @@ public class VoteManager implements Listener {
         if (netherStarMeta == null || !netherStarMeta.hasDisplayName() || !Objects.equals(netherStarMeta.displayName(), NETHER_STAR_NAME)) {
             return;
         }
-        if (!voters.containsKey(participant.getUniqueId())) {
-            voters.put(participant.getUniqueId(), participant);
-        }
         if (participantVoted(participant)) {
             participant.sendMessage(Component.text("You already voted.")
                     .color(NamedTextColor.GREEN));
-            return;
-        }
-        event.setCancelled(true);
-        participant.getInventory().remove(netherStar);
-        showVoteGui(participant);
-    }
-    
-    @EventHandler
-    public void clickNetherStar(InventoryClickEvent event) {
-        Participant participant = voters.get(event.getWhoClicked().getUniqueId());
-        if (participant == null) {
-            return;
-        }
-        ItemStack netherStar = event.getCurrentItem();
-        if (netherStar == null ||
-                !netherStar.getType().equals(Material.NETHER_STAR)) {
-            return;
-        }
-        ItemMeta netherStarMeta = netherStar.getItemMeta();
-        if (netherStarMeta == null || !netherStarMeta.hasDisplayName() || !Objects.equals(netherStarMeta.displayName(), NETHER_STAR_NAME)) {
-            return;
-        }
-        if (participantVoted(participant)) {
-            participant.sendMessage(Component.text("You already voted.")
-                    .color(NamedTextColor.GREEN));
-            event.setCancelled(true);
             return;
         }
         event.setCancelled(true);
@@ -543,8 +519,6 @@ public class VoteManager implements Listener {
     }
     
     private void messageAllVoters(Component message) {
-        for (Participant voter : voters.values()) {
-            voter.sendMessage(message);
-        }
+        Audience.audience(voters.values()).sendMessage(message);
     }
 }
