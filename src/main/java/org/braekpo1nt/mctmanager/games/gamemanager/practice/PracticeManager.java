@@ -290,7 +290,7 @@ public class PracticeManager {
         teamWool.editMeta(meta -> meta.displayName(Component.empty()
                 .append(Component.text("Invite "))
                 .append(team.getFormattedDisplayName())));
-        ItemStack teamGlass = new ItemStack(team.getColorAttributes().getStainedGlass());
+        ItemStack teamGlass = new ItemStack(team.getColorAttributes().getStainedGlassPane());
         teamGlass.editMeta(meta -> meta.displayName(Component.empty()
                 .append(Component.text("Un-invite "))
                 .append(team.getFormattedDisplayName())));
@@ -431,7 +431,7 @@ public class PracticeManager {
                     .append(team.getFormattedDisplayName())));
             return new GuiItem(teamWool);
         } else {
-            ItemStack teamGlass = new ItemStack(team.getColorAttributes().getStainedGlass());
+            ItemStack teamGlass = new ItemStack(team.getColorAttributes().getStainedGlassPane());
             teamGlass.editMeta(meta -> meta.displayName(Component.empty()
                     .append(Component.empty()
                             .append(Component.text("No response: "))
