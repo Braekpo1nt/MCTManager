@@ -352,34 +352,11 @@ public class PracticeManager {
         accept.editMeta(meta -> meta.displayName(Component.empty()
                 .append(Component.text("Accept"))
                 .color(NamedTextColor.GREEN)));
+        
         PracticeParticipant initiator = invite.getInitiator();
         GameType gameType = invite.getGameType();
         navigator.addItem(new GuiItem(decline, event -> {
             invite.rsvp(team.getTeamId(), false);
-            InventoryView openInventory = initiator.getOpenInventory();
-            if (openInventory.title().equals(invite.getStatusMenuTitle())) {
-                initiator.showGui(createInviteStatusMenu(initiator, invite));
-            }
-            initiator.sendMessage(Component.empty()
-                    .append(team.getFormattedDisplayName())
-                    .append(Component.text(" accepted your invite to play "))
-                    .append(Component.text(gameType.getTitle()))
-                    .color(NamedTextColor.GREEN));
-            for (PracticeParticipant guest : participants.values()) {
-                if (guest.getTeamId().equals(team.getTeamId())) {
-                    guest.sendMessage(Component.empty()
-                            .append(team.getFormattedDisplayName())
-                            .append(Component.text(" accepted "))
-                            .append(initiator.displayName())
-                            .append(Component.text("'s invite to play "))
-                            .append(Component.text(gameType.getTitle()))
-                            .color(NamedTextColor.GREEN));
-                }
-            }
-            gui.getInventory().close();
-        }));
-        navigator.addItem(new GuiItem(accept, event -> {
-            invite.rsvp(team.getTeamId(), true);
             InventoryView openInventory = initiator.getOpenInventory();
             if (openInventory.title().equals(invite.getStatusMenuTitle())) {
                 initiator.showGui(createInviteStatusMenu(initiator, invite));
@@ -398,6 +375,30 @@ public class PracticeManager {
                             .append(Component.text("'s invite to play "))
                             .append(Component.text(gameType.getTitle()))
                             .color(NamedTextColor.RED));
+                }
+            }
+            gui.getInventory().close();
+        }));
+        navigator.addItem(new GuiItem(accept, event -> {
+            invite.rsvp(team.getTeamId(), true);
+            InventoryView openInventory = initiator.getOpenInventory();
+            if (openInventory.title().equals(invite.getStatusMenuTitle())) {
+                initiator.showGui(createInviteStatusMenu(initiator, invite));
+            }
+            initiator.sendMessage(Component.empty()
+                    .append(team.getFormattedDisplayName())
+                    .append(Component.text(" accepted your invite to play "))
+                    .append(Component.text(gameType.getTitle()))
+                    .color(NamedTextColor.GREEN));
+            for (PracticeParticipant guest : participants.values()) {
+                if (guest.getTeamId().equals(team.getTeamId())) {
+                    guest.sendMessage(Component.empty()
+                            .append(team.getFormattedDisplayName())
+                            .append(Component.text(" accepted "))
+                            .append(initiator.displayName())
+                            .append(Component.text("'s invite to play "))
+                            .append(Component.text(gameType.getTitle()))
+                            .color(NamedTextColor.GREEN));
                 }
             }
             gui.getInventory().close();
