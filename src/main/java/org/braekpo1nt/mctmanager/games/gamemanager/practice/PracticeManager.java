@@ -97,21 +97,6 @@ public class PracticeManager {
         return gui;
     }
     
-    private void initiateInvite(PracticeParticipant initiator, @NotNull GameType gameType) {
-        if (!canInviteGame(gameType)) {
-            initiator.sendMessage(Component.empty()
-                    .append(Component.text("Can't start a "))
-                    .append(Component.text(gameType.getTitle())
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" game at this time")));
-            return;
-        }
-        Invite invite = new Invite(gameType, initiator);
-        initiator.setInvite(invite);
-        activeInvites.put(gameType, invite);
-        initiator.showGui(createInviteTeamMenu(initiator));
-    }
-    
     /**
      * A game can be played if it's not already being played, and it's in ths list
      * of allowed games in the config.
@@ -119,7 +104,7 @@ public class PracticeManager {
      * @return true if the given game type can be played at this time
      */
     private boolean canPlayGame(@NotNull GameType gameType) {
-        return config.getAllowedGames().contains(gameType) && gameManager.gameIsActive(gameType);
+        return config.getAllowedGames().contains(gameType) && !gameManager.gameIsActive(gameType);
     }
     
     /**
@@ -237,9 +222,15 @@ public class PracticeManager {
         return gui;
     }
     
-    private @NotNull ChestGui createInviteTeamMenu(PracticeParticipant participant) {
+    private @NotNull ChestGui createInviteTeamMenu(PracticeParticipant participant, @NotNull Invite invite) {
         ChestGui gui = new ChestGui(3, "Invite Teams");
         gui.setOnGlobalClick(event -> event.setCancelled(true));
+        gui.setOnClose(event -> {
+            if (invite.isSent()) {
+                return;
+            }
+            cancelInvite(participant, invite);
+        });
         MasonryPane inviteTeamMenu = new MasonryPane(0, 0, 9, 3);
         OutlinePane teamSelect = new OutlinePane(0, 0, 9, 2);
         for (Team team : teams.values()) {
@@ -252,37 +243,67 @@ public class PracticeManager {
         
         OutlinePane navigation = new OutlinePane(0, 2, 9, 1);
         ItemStack back = new ItemStack(Material.BARRIER);
-        back.editMeta(meta -> meta.displayName(Component.text("Back")));
+        back.editMeta(meta -> meta.displayName(Component.text("Cancel")));
         navigation.addItem(new GuiItem(back, event -> {
+            cancelInvite(participant, invite);
             participant.showGui(createGameMenu(participant));
         }));
         ItemStack send = new ItemStack(Material.LIME_DYE);
         send.editMeta(meta -> meta.displayName(Component.text("Send")));
         navigation.addItem(new GuiItem(send, event -> {
-            Invite invite = participant.getInvite();
-            if (invite == null) {
-                gui.getInventory().close();
-                return;
-            }
-            invite.send();
-            for (PracticeParticipant p : participants.values()) {
-                Team team = teams.get(p.getTeamId());
-                if (invite.isGuest(p.getTeamId())) {
-                    p.setInvite(invite);
-                    p.sendMessage(Component.empty()
-                            .append(invite.getInitiator().displayName())
-                            .append(Component.text(" invited "))
-                            .append(team.getFormattedDisplayName())
-                            .append(Component.text(" to play "))
-                            .append(Component.text(invite.getGameType().getTitle()))
-                            .append(Component.text(". Use the nether star to accept or decline.")));
-                }
-            }
-            participant.showGui(createInviteStatusMenu(participant, invite));
+            sendInvite(participant, invite);
         }));
         inviteTeamMenu.addPane(navigation);
         gui.addPane(inviteTeamMenu);
         return gui;
+    }
+    
+    private void initiateInvite(PracticeParticipant initiator, @NotNull GameType gameType) {
+        if (!canInviteGame(gameType)) {
+            initiator.sendMessage(Component.empty()
+                    .append(Component.text("Can't start a "))
+                    .append(Component.text(gameType.getTitle())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" game at this time")));
+            return;
+        }
+        Invite invite = new Invite(gameType, initiator);
+        initiator.setInvite(invite);
+        activeInvites.put(gameType, invite);
+        initiator.showGui(createInviteTeamMenu(initiator, invite));
+    }
+    
+    private void cancelInvite(PracticeParticipant participant, @NotNull Invite invite) {
+        invite.getInitiator().setInvite(null);
+        activeInvites.remove(invite.getGameType());
+        Component cancelMessage = Component.empty()
+                .append(Component.text(invite.getGameType().getTitle()))
+                .append(Component.text(" invite was cancelled"));
+        for (PracticeParticipant p : participants.values()) {
+            if (invite.isGuest(p.getTeamId())) {
+                p.setInvite(null);
+                p.sendMessage(cancelMessage);
+            }
+        }
+        participant.sendMessage(cancelMessage);
+    }
+    
+    private void sendInvite(PracticeParticipant participant, @NotNull Invite invite) {
+        invite.send();
+        for (PracticeParticipant p : participants.values()) {
+            Team team = teams.get(p.getTeamId());
+            if (invite.isGuest(p.getTeamId())) {
+                p.setInvite(invite);
+                p.sendMessage(Component.empty()
+                        .append(invite.getInitiator().displayName())
+                        .append(Component.text(" invited "))
+                        .append(team.getFormattedDisplayName())
+                        .append(Component.text(" to play "))
+                        .append(Component.text(invite.getGameType().getTitle()))
+                        .append(Component.text(". Use the nether star to accept or decline.")));
+            }
+        }
+        participant.showGui(createInviteStatusMenu(participant, invite));
     }
     
     private @NotNull GuiItem createInviteTeamItem(ChestGui gui, Team team) {
@@ -398,9 +419,10 @@ public class PracticeManager {
         
         OutlinePane navigation = new OutlinePane(0, 2, 9, 1);
         ItemStack back = new ItemStack(Material.BARRIER);
-        back.editMeta(meta -> meta.displayName(Component.text("Back")));
+        back.editMeta(meta -> meta.displayName(Component.text("Cancel")));
         navigation.addItem(new GuiItem(back, event -> {
-            participant.showGui(createGameMenu(participant));
+            cancelInvite(participant, invite);
+            gui.getInventory().close();
         }));
         ItemStack play = new ItemStack(Material.LIME_DYE);
         play.editMeta(meta -> meta.displayName(Component.empty()
