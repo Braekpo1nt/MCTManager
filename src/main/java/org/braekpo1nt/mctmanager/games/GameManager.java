@@ -555,6 +555,14 @@ public class GameManager implements Listener {
         state.gameIsOver(gameType, teamScores, participantScores, gameParticipants);
     }
     
+    /**
+     * @param gameType the game type to check
+     * @return true if the given game type is currently being played, false otherwise
+     */
+    public boolean gameIsActive(@NotNull GameType gameType) {
+        return activeGames.containsKey(gameType);
+    }
+    
     public CommandResult startEditor(@NotNull GameType gameType, @NotNull String configFile) {
         if (!activeGames.isEmpty()) {
             return CommandResult.failure(Component.text("Can't start an editor while any games are active"));

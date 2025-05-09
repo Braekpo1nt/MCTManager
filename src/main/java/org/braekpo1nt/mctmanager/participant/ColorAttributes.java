@@ -10,4 +10,5 @@ public class ColorAttributes {
     private final @NotNull Material concrete;
     private final @NotNull Material stainedGlass;
     private final @NotNull Material banner;
+    private final @NotNull Material wool;
 }

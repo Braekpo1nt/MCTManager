@@ -441,7 +441,8 @@ public abstract class GameManagerState {
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(" is not a valid teamId")));
             }
-            for (MCTParticipant onlineMember : team.getOnlineMembers()) {
+            Collection<MCTParticipant> onlineMembers = team.getOnlineMembers();
+            for (MCTParticipant onlineMember : onlineMembers) {
                 if (participantGames.containsKey(onlineMember.getUniqueId())) {
                     return CommandResult.failure(Component.empty()
                             .append(Component.text("Can't start a game with "))
@@ -449,8 +450,10 @@ public abstract class GameManagerState {
                             .append(Component.text(" because one of its members is already in a game")));
                 }
             }
-            gameTeams.add(team);
-            gameParticipants.addAll(team.getOnlineMembers());
+            if (!onlineMembers.isEmpty()) {
+                gameTeams.add(team);
+                gameParticipants.addAll(onlineMembers);
+            }
         }
         // make sure the player and team count requirements are met
         if (gameTeams.isEmpty()) {
@@ -473,10 +476,7 @@ public abstract class GameManagerState {
         
         Component title = createNewTitle(gameType.getTitle());
         for (MCTParticipant participant : gameParticipants) {
-            tabList.hidePlayer(participant);
-            sidebar.removePlayer(participant);
-            participantGames.put(participant.getUniqueId(), gameType);
-            Main.logf("Setting participant game type to %s", gameType);
+            onParticipantJoinGame(gameType, participant);
         }
         
         try {
@@ -503,6 +503,12 @@ public abstract class GameManagerState {
                     .color(NamedTextColor.RED));
         }
         return CommandResult.success();
+    }
+    
+    protected void onParticipantJoinGame(@NotNull GameType gameType, MCTParticipant participant) {
+        participantGames.put(participant.getUniqueId(), gameType);
+        tabList.hidePlayer(participant);
+        sidebar.removePlayer(participant);
     }
     
     public CommandResult stopGame(@NotNull GameType gameType) {
@@ -747,7 +753,7 @@ public abstract class GameManagerState {
         try {
             gameStateStorageUtil.addTeam(teamId, teamDisplayName, colorString);
         } catch (ConfigIOException e) {
-            context.reportGameStateException("adding score to player", e);
+            context.reportGameStateException("adding a team", e);
         }
         
         NamedTextColor color = ColorMap.getNamedTextColor(colorString);
@@ -923,9 +929,7 @@ public abstract class GameManagerState {
                     .append(Component.text(gameType.getTitle()))
                     .append(Component.text(" game is active right now")));
         }
-        participantGames.put(participant.getUniqueId(), gameType);
-        tabList.hidePlayer(participant);
-        sidebar.removePlayer(participant);
+        onParticipantJoinGame(gameType, participant);
         activeGame.onTeamJoin(teams.get(participant.getTeamId()));
         activeGame.onParticipantJoin(participant);
         return CommandResult.success(Component.empty()

@@ -4,13 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -24,6 +25,14 @@ public class HubConfig {
     private double yLimit;
     private int tpToHubDuration;
     private List<Material> preventInteractions;
+    private PracticeConfig practice;
+    
+    @Data
+    @Builder
+    public static class PracticeConfig {
+        private List<GameType> allowedGames;
+        private Map<GameType, String> gameConfigs;
+    }
     
     @Data
     @AllArgsConstructor

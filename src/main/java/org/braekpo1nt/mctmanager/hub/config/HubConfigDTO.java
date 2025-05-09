@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
+import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -16,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 record HubConfigDTO(
         String version,
@@ -23,6 +25,7 @@ record HubConfigDTO(
         LocationDTO spawn,
         LocationDTO podium,
         LocationDTO podiumObservation,
+        PracticeDTO practice,
         List<LeaderboardDTO> leaderboards,
         List<Material> preventInteractions,
         double yLimit,
@@ -35,6 +38,8 @@ record HubConfigDTO(
         validator.notNull(Bukkit.getWorld(this.world()), "Could not find world \"%s\"", this.world());
         validator.notNull(this.spawn(), "spawn");
         validator.notNull(this.podium(), "podium");
+        validator.notNull(practice, "practice");
+        practice.validate(validator.path("practice"));
         if (leaderboards != null) {
             validator.validateList(leaderboards, "leaderboards");
         }
@@ -59,10 +64,30 @@ record HubConfigDTO(
                 .yLimit(this.yLimit)
                 .tpToHubDuration(this.durations.tpToHub)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
+                .practice(practice.toPractice())
                 .build();
     }
     
     record Durations(int tpToHub) {
+    }
+    
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    static class PracticeDTO implements Validatable {
+        
+        private List<GameType> allowedGames;
+        private Map<GameType, String> configFiles;
+        
+        @Override
+        public void validate(@NotNull Validator validator) {
+            validator.notNull(allowedGames, "allowedGames");
+            validator.notNull(configFiles, "configFiles");
+        }
+        
+        public HubConfig.PracticeConfig toPractice() {
+            return new HubConfig.PracticeConfig(allowedGames, configFiles);
+        }
     }
     
     @Data

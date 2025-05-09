@@ -106,6 +106,26 @@ public class ColorMap {
         STAINED_GLASS_MAP.put("yellow", Material.YELLOW_STAINED_GLASS);
     }
     
+    private static final Map<String, Material> WOOL_MAP = new HashMap<>();
+    static {
+        WOOL_MAP.put("aqua", Material.LIGHT_BLUE_WOOL);
+        WOOL_MAP.put("black", Material.BLACK_WOOL);
+        WOOL_MAP.put("dark_aqua", Material.CYAN_WOOL);
+        WOOL_MAP.put("dark_blue", Material.BLUE_WOOL);
+        WOOL_MAP.put("dark_gray", Material.GRAY_WOOL);
+        WOOL_MAP.put("dark_green", Material.GREEN_WOOL);
+        WOOL_MAP.put("dark_purple", Material.PURPLE_WOOL);
+        WOOL_MAP.put("dark_red", Material.RED_WOOL);
+        WOOL_MAP.put("gold", Material.ORANGE_WOOL);
+        WOOL_MAP.put("gray", Material.LIGHT_GRAY_WOOL);
+        WOOL_MAP.put("green", Material.LIME_WOOL);
+        WOOL_MAP.put("light_purple", Material.MAGENTA_WOOL);
+        WOOL_MAP.put("red", Material.RED_WOOL);
+        WOOL_MAP.put("white", Material.WHITE_WOOL);
+        WOOL_MAP.put("blue", Material.BLUE_WOOL);
+        WOOL_MAP.put("yellow", Material.YELLOW_WOOL);
+    }
+    
     private static final Map<String, Material> BANNER_TYPE_MAP = new HashMap<>();
     static {
         BANNER_TYPE_MAP.put("aqua", Material.LIGHT_BLUE_BANNER);
@@ -186,11 +206,20 @@ public class ColorMap {
     
     /**
      * Gets the color of stained-glass associated with the given color string. 
-     * @param colorString the color string to get the concrete for. Should be the color string matching the ChatColor values.
+     * @param colorString the color string to get the stained-glass for. Should be the color string matching the ChatColor values.
      * @return The stained-glass color that best matches the given color string. White if unrecognized.
      */
     public static Material getStainedGlassColor(String colorString) {
         return STAINED_GLASS_MAP.getOrDefault(colorString, Material.WHITE_STAINED_GLASS);
+    }
+    
+    /**
+     * Gets the color of wool associated with the given color string. 
+     * @param colorString the color string to get the wool for. Should be the color string matching the ChatColor values.
+     * @return The wool color that best matches the given color string. White if unrecognized.
+     */
+    public static Material getWoolColor(String colorString) {
+        return WOOL_MAP.getOrDefault(colorString, Material.WHITE_WOOL);
     }
     
     /**
@@ -202,7 +231,8 @@ public class ColorMap {
                 getConcretePowderColor(colorString),
                 getConcreteColor(colorString),
                 getStainedGlassColor(colorString),
-                getBannerColor(colorString)
+                getBannerColor(colorString),
+                getWoolColor(colorString)
         );
     }
     

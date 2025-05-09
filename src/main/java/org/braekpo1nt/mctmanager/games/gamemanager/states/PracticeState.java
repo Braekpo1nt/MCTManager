@@ -6,10 +6,14 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfigController;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
+import org.braekpo1nt.mctmanager.games.gamemanager.practice.PracticeManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.event.ReadyUpState;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.Location;
@@ -18,35 +22,30 @@ import org.bukkit.block.Block;
 import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
 import java.util.logging.Level;
 
 public class PracticeState extends GameManagerState {
     
-    private final Component NETHER_STAR_NAME = Component.text("Practice");
+    private final PracticeManager practiceManager;
     
     public PracticeState(@NotNull GameManager context, @NotNull ContextReference contextReference) {
         super(context, contextReference);
+        this.practiceManager = new PracticeManager(
+                context, 
+                config.getPractice(),
+                teams.values(), 
+                onlineParticipants.values().stream()
+                        .filter(participant -> !isParticipantInGame(participant.getUniqueId()))
+                        .toList());
         setupSidebar();
-        for (MCTParticipant participant : onlineParticipants.values()) {
-            if (!isParticipantInGame(participant)) {
-                giveNetherStar(participant);
-            }
-        }
     }
     
-    protected void giveNetherStar(MCTParticipant participant) {
-        ItemStack netherStar = new ItemStack(Material.NETHER_STAR);
-        netherStar.editMeta(meta -> meta.displayName(NETHER_STAR_NAME));
-        participant.getInventory().addItem(netherStar);
-    }
-    
-    protected void removeNetherStar(MCTParticipant participant) {
-        participant.getInventory().remove(Material.NETHER_STAR);
+    @Override
+    public void cleanup() {
+        super.cleanup();
+        practiceManager.cleanup();
     }
     
     /**
@@ -79,9 +78,7 @@ public class PracticeState extends GameManagerState {
     public CommandResult switchMode(@NotNull String mode) {
         switch (mode) {
             case "maintenance" -> {
-                for (MCTParticipant participant : onlineParticipants.values()) {
-                    removeNetherStar(participant);
-                }
+                practiceManager.cleanup();
                 context.setState(new MaintenanceState(context, contextReference));
                 return CommandResult.success(Component.text("Switched to maintenance mode"));
             }
@@ -89,9 +86,7 @@ public class PracticeState extends GameManagerState {
                 return CommandResult.success(Component.text("Already in practice mode"));
             }
             case "event" -> {
-                for (MCTParticipant participant : onlineParticipants.values()) {
-                    removeNetherStar(participant);
-                }
+                practiceManager.cleanup();
                 return startEvent(7, 0);
             }
             default -> {
@@ -121,13 +116,15 @@ public class PracticeState extends GameManagerState {
     @Override
     public void onParticipantJoin(@NotNull MCTParticipant participant) {
         super.onParticipantJoin(participant);
-        participant.teleport(config.getSpawn());
-        giveNetherStar(participant);
+        if (!participant.getWorld().equals(config.getWorld())) {
+            participant.teleport(config.getSpawn());
+        }
+        practiceManager.addParticipant(participant);
     }
     
     @Override
     public void onParticipantQuit(@NotNull MCTParticipant participant) {
-        removeNetherStar(participant);
+        practiceManager.removeParticipant(participant.getUniqueId());
         super.onParticipantQuit(participant);
     }
     
@@ -135,9 +132,31 @@ public class PracticeState extends GameManagerState {
     
     
     @Override
+    public Team addTeam(String teamId, String teamDisplayName, String colorString) {
+        Team team = super.addTeam(teamId, teamDisplayName, colorString);
+        if (team != null) {
+            MCTTeam mctTeam = teams.get(teamId);
+            practiceManager.addTeam(mctTeam);
+        }
+        return team;
+    }
+    
+    @Override
+    public CommandResult removeTeam(String teamId) {
+        practiceManager.removeTeam(teamId);
+        return super.removeTeam(teamId);
+    }
+    
+    @Override
+    protected void onParticipantJoinGame(@NotNull GameType gameType, MCTParticipant participant) {
+        super.onParticipantJoinGame(gameType, participant);
+        practiceManager.removeParticipant(participant.getUniqueId());
+    }
+    
+    @Override
     protected void onParticipantReturnToHub(@NotNull MCTParticipant participant, @NotNull Location spawn) {
         super.onParticipantReturnToHub(participant, spawn);
-        giveNetherStar(participant);
+        practiceManager.addParticipant(participant);
     }
     
     @Override
@@ -161,16 +180,6 @@ public class PracticeState extends GameManagerState {
                 return;
             }
         }
-        ItemStack netherStar = event.getItem();
-        if (netherStar == null ||
-                !netherStar.getType().equals(Material.NETHER_STAR)) {
-            return;
-        }
-        ItemMeta netherStarMeta = netherStar.getItemMeta();
-        if (netherStarMeta == null || !netherStarMeta.hasDisplayName() || !Objects.equals(netherStarMeta.displayName(), NETHER_STAR_NAME)) {
-            return;
-        }
-        event.setCancelled(true);
-        participant.sendMessage("You clicked the nether star");
+        practiceManager.onParticipantInteract(event);
     }
 }
