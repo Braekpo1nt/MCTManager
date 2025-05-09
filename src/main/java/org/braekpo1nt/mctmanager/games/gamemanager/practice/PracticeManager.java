@@ -366,8 +366,10 @@ public class PracticeManager {
                     .append(Component.text(" declined your invite to play "))
                     .append(Component.text(gameType.getTitle()))
                     .color(NamedTextColor.RED));
+            invite.removeGuest(team.getTeamId());
             for (PracticeParticipant guest : participants.values()) {
                 if (guest.getTeamId().equals(team.getTeamId())) {
+                    guest.setInvite(null);
                     guest.sendMessage(Component.empty()
                             .append(team.getFormattedDisplayName())
                             .append(Component.text(" declined "))
