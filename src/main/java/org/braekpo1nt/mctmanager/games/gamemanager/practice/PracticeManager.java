@@ -8,6 +8,7 @@ import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
@@ -283,6 +284,11 @@ public class PracticeManager {
         }
         Invite invite = new Invite(gameType, initiator);
         initiator.setInvite(invite);
+        for (PracticeParticipant participant : participants.values()) {
+            if (invite.isInitiatorTeam(participant.getTeamId())) {
+                participant.setInvite(invite);
+            }
+        }
         activeInvites.put(gameType, invite);
         initiator.showGui(createInviteTeamMenu(initiator, invite));
     }
@@ -375,10 +381,7 @@ public class PracticeManager {
             PracticeParticipant initiator = invite.getInitiator();
             GameType gameType = invite.getGameType();
             invite.rsvp(team.getTeamId(), true);
-            InventoryView openInventory = initiator.getOpenInventory();
-            if (openInventory.title().equals(invite.getStatusMenuTitle())) {
-                initiator.showGui(createInviteStatusMenu(initiator, invite));
-            }
+            updateInviteStatusInventory(invite);
             initiator.sendMessage(Component.empty()
                     .append(team.getFormattedDisplayName())
                     .append(Component.text(" accepted your invite to play "))
@@ -402,6 +405,21 @@ public class PracticeManager {
     }
     
     /**
+     * Updates the "game Invite Status" inventory of all initiators
+     * @param invite the invite to update for
+     */
+    private void updateInviteStatusInventory(@NotNull Invite invite) {
+        for (PracticeParticipant participant : participants.values()) {
+            if (invite.isInitiatorTeam(participant.getTeamId())) {
+                InventoryView openInventory = participant.getOpenInventory();
+                if (openInventory.title().equals(invite.getStatusMenuTitle())) {
+                    participant.showGui(createInviteStatusMenu(participant, invite));
+                }
+            }
+        }
+    }
+    
+    /**
      * @param invite the invite which is being declined
      * @param decliningTeam the team which is declining the invite
      */
@@ -410,10 +428,7 @@ public class PracticeManager {
         GameType gameType = invite.getGameType();
         invite.rsvp(decliningTeam.getTeamId(), false);
         invite.removeGuest(decliningTeam.getTeamId());
-        InventoryView openInventory = initiator.getOpenInventory();
-        if (openInventory.title().equals(invite.getStatusMenuTitle())) {
-            initiator.showGui(createInviteStatusMenu(initiator, invite));
-        }
+        updateInviteStatusInventory(invite);
         initiator.sendMessage(Component.empty()
                 .append(decliningTeam.getFormattedDisplayName())
                 .append(Component.text(" declined your invite to play "))
@@ -576,7 +591,8 @@ public class PracticeManager {
         PracticeParticipant participant = new PracticeParticipant(newParticipant);
         participants.put(participant.getUniqueId(), participant);
         for (Invite invite : activeInvites.values()) {
-            if (invite.isInitiatorTeam(participant.getTeamId()) || invite.isGuest(participant.getTeamId())) {
+            if (invite.isInitiatorTeam(participant.getTeamId()) 
+                    || invite.isGuest(participant.getTeamId())) {
                 participant.setInvite(invite);
             }
         }
