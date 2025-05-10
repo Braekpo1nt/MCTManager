@@ -234,7 +234,7 @@ public class PracticeManager {
         MasonryPane inviteTeamMenu = new MasonryPane(0, 0, 9, 3);
         OutlinePane teamSelect = new OutlinePane(0, 0, 9, 2);
         for (Team team : teams.values()) {
-            if (!invite.isInitiatorTeam(team) && canInviteTeam(team)) {
+            if (!invite.isInitiatorTeam(team) && canInviteTeam(team.getTeamId())) {
                 GuiItem inviteTeamItem = createInviteTeamItem(gui, team);
                 teamSelect.addItem(inviteTeamItem);
             }
@@ -259,17 +259,17 @@ public class PracticeManager {
     }
     
     /**
-     * @param team the team to check
+     * @param teamId the team to check
      * @return true if the given team can be invited to a game, false if
-     * they are in a game already or involved in an active invite
+     * the team is in a game, has no online players, or involved in an active invite
      */
-    private boolean canInviteTeam(Team team) {
+    private boolean canInviteTeam(String teamId) {
         for (Invite invite : activeInvites.values()) {
-            if (invite.isGuest(team.getTeamId())) {
+            if (invite.isGuest(teamId) || invite.isInitiatorTeam(teamId)) {
                 return false;
             }
         }
-        return !gameManager.teamIsInGame(team.getTeamId());
+        return !gameManager.teamIsInGame(teamId) && gameManager.teamIsOnline(teamId);
     }
     
     private void initiateInvite(PracticeParticipant initiator, @NotNull GameType gameType) {
@@ -585,8 +585,10 @@ public class PracticeManager {
         }
         for (Invite invite : activeInvites.values()) {
             if (invite.isGuest(participant.getTeamId())) {
-                Team team = teams.get(participant.getTeamId());
-                declineInvite(invite, team);
+                if (!canInviteTeam(participant.getTeamId())) {
+                    Team team = teams.get(participant.getTeamId());
+                    declineInvite(invite, team);
+                }
             }
             if (invite.isInitiatorTeam(participant.getTeamId())) {
                 cancelInvite(participant, invite);

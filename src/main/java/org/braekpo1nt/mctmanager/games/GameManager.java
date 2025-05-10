@@ -547,6 +547,14 @@ public class GameManager implements Listener {
         return false;
     }
     
+    public boolean teamIsOnline(String teamId) {
+        MCTTeam team = teams.get(teamId);
+        if (team == null) {
+            return false;
+        }
+        return team.isOnline();
+    }
+    
     /**
      * If a game of the specified type is currently going on, manually stops the game.
      */
