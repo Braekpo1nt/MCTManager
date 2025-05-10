@@ -528,8 +528,9 @@ public abstract class GameManagerState {
         if (activeGames.isEmpty()) {
             return CommandResult.success(Component.text("No games are running"));
         }
+        List<MCTGame> gamesToCancel = new ArrayList<>(activeGames.values());
         List<CommandResult> results = new ArrayList<>(activeGames.size());
-        for (MCTGame game : activeGames.values()) {
+        for (MCTGame game : gamesToCancel) {
             game.stop();
             results.add(CommandResult.success(Component.empty()
                     .append(Component.text("Stopped "))
