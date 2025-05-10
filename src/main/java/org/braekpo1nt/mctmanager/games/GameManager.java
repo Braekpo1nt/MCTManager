@@ -535,6 +535,19 @@ public class GameManager implements Listener {
     }
     
     /**
+     * @param teamId the teamId to check
+     * @return true if the given teamId is in any active games
+     */
+    public boolean teamIsInGame(String teamId) {
+        for (MCTGame game : activeGames.values()) {
+            if (game.containsTeam(teamId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
      * If a game of the specified type is currently going on, manually stops the game.
      */
     public CommandResult stopGame(GameType gameType) {

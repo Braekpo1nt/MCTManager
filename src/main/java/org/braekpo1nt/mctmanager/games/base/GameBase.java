@@ -114,6 +114,11 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         this.state = initialState;
     }
     
+    @Override
+    public boolean containsTeam(@NotNull String teamId) {
+        return teams.containsKey(teamId);
+    }
+    
     /**
      * <p>Add a new {@link GameListener} component to this game.
      * This will be registered on {@link #start(Collection, Collection, List)},

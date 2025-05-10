@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.gamemanager.practice;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -89,6 +90,22 @@ public class Invite {
      */
     public boolean isAttending(String teamId) {
         return rsvps.getOrDefault(teamId, false);
+    }
+    
+    /**
+     * @param teamId the teamId to check
+     * @return true if the teamId is that of the initiator of this invite
+     */
+    public boolean isInitiatorTeam(String teamId) {
+        return initiator.getTeamId().equals(teamId);
+    }
+    
+    /**
+     * @param team the team to check
+     * @return true if the team's teamId is that of the initiator of this invite
+     */
+    public boolean isInitiatorTeam(Team team) {
+        return isInitiatorTeam(team.getTeamId());
     }
     
     public Component getStatusMenuTitle() {

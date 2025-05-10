@@ -7,7 +7,6 @@ import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
 import java.util.UUID;
 
 /**
@@ -25,4 +24,6 @@ public interface MCTGame {
     void onAdminJoin(Player admin);
     void onAdminQuit(Player admin);
     void setTitle(@NotNull Component title);
+    
+    boolean containsTeam(@NotNull String teamId);
 }
