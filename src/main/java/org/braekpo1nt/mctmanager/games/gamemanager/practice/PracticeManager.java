@@ -565,7 +565,7 @@ public class PracticeManager {
             participant.showGui(createMainMenu(participant));
             return;
         }
-        if (invite.getInitiator().getTeamId().equals(participant.getTeamId())) {
+        if (invite.isInitiatorTeam(participant.getTeamId())) {
             participant.showGui(createInviteStatusMenu(participant, invite));
             return;
         }
@@ -575,6 +575,11 @@ public class PracticeManager {
     public void addParticipant(Participant newParticipant) {
         PracticeParticipant participant = new PracticeParticipant(newParticipant);
         participants.put(participant.getUniqueId(), participant);
+        for (Invite invite : activeInvites.values()) {
+            if (invite.isInitiatorTeam(participant.getTeamId()) || invite.isGuest(participant.getTeamId())) {
+                participant.setInvite(invite);
+            }
+        }
         giveNetherStar(participant);
     }
     
@@ -594,6 +599,7 @@ public class PracticeManager {
                 cancelInvite(participant, invite);
             }
         }
+        participant.setInvite(null);
         participant.closeInventory();
         removeNetherStar(participant);
     }
