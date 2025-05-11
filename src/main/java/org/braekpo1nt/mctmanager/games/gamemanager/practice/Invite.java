@@ -18,10 +18,10 @@ public class Invite {
     @Getter
     private final GameType gameType;
     /**
-     * The one who sent the invite
+     * The teamId of the team who sent the invite
      */
     @Getter
-    private final PracticeParticipant initiator;
+    private final String initiator;
     /**
      * The teams who have been invited
      */
@@ -38,7 +38,7 @@ public class Invite {
     
     public Invite(
             @NotNull GameType gameType,
-            @NotNull PracticeParticipant initiator) {
+            @NotNull String initiator) {
         this.gameType = gameType;
         this.initiator = initiator;
         this.guests = new HashSet<>();
@@ -53,8 +53,30 @@ public class Invite {
         guests.remove(teamId);
     }
     
+    /**
+     * @param teamId the teamId to check
+     * @return true if the given team has been invited to this invite,
+     * and did not decline
+     */
     public boolean isGuest(String teamId) {
         return guests.contains(teamId);
+    }
+    
+    /**
+     * @param teamId the teamId to check
+     * @return true if the given team is the initiator of this invite
+     */
+    public boolean isInitiator(String teamId) {
+        return initiator.equals(teamId);
+    }
+    
+    /**
+     * @param teamId the teamId to check
+     * @return true if the given team is a guest or the initiator of this
+     * invite
+     */
+    public boolean isInvolved(String teamId) {
+        return isGuest(teamId) || isInitiator(teamId);
     }
     
     public void rsvp(String teamId, boolean rsvp) {
@@ -74,7 +96,7 @@ public class Invite {
      */
     public Set<String> getConfirmedGuestIds() {
         Set<String> confirmed = new HashSet<>();
-        confirmed.add(initiator.getTeamId());
+        confirmed.add(initiator);
         for (String teamId : guests) {
             Boolean rsvp = rsvps.get(teamId);
             if (rsvp != null && rsvp) {
@@ -90,22 +112,6 @@ public class Invite {
      */
     public boolean isAttending(String teamId) {
         return rsvps.getOrDefault(teamId, false);
-    }
-    
-    /**
-     * @param teamId the teamId to check
-     * @return true if the teamId is that of the initiator of this invite
-     */
-    public boolean isInitiatorTeam(String teamId) {
-        return initiator.getTeamId().equals(teamId);
-    }
-    
-    /**
-     * @param team the team to check
-     * @return true if the team's teamId is that of the initiator of this invite
-     */
-    public boolean isInitiatorTeam(Team team) {
-        return isInitiatorTeam(team.getTeamId());
     }
     
     public Component getStatusMenuTitle() {
