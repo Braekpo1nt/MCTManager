@@ -605,8 +605,11 @@ public class PracticeManager {
             return;
         }
         for (Invite invite : activeInvites.values()) {
+            // TODO: make differentiation between guest and initiator clearer, and only decline the invite if there are no more players on the team in the PracticeManager
+            // TODO: PracticeManager should reference the last opened gui so that it can be closed, instead of participant.closeInventory() you do participant.closeGUI() and it closes the referenced gui, but if the participant doesn't have one open it does nothing (even if they have a crafting menu open or something) 
             if (invite.isGuest(participant.getTeamId())) {
-                if (!canInviteTeam(participant.getTeamId())) {
+                long numOnTeam = participants.values().stream().filter(p -> p.getTeamId().equals(participant.getTeamId())).count();
+                if (numOnTeam == 0 || !canInviteTeam(participant.getTeamId())) {
                     Team team = teams.get(participant.getTeamId());
                     declineInvite(invite, team);
                 }
