@@ -3,7 +3,6 @@ package org.braekpo1nt.mctmanager.games.gamemanager.practice;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.participant.Team;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
