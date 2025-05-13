@@ -9,7 +9,6 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -488,17 +487,17 @@ public abstract class GameManagerState {
                             new HashSet<>(gameTeams), 
                             new HashSet<>(gameParticipants), 
                             onlineAdmins));
-        } catch (ConfigException e) {
+        } catch (Exception e) {
             for (MCTParticipant participant : gameParticipants) {
                 participantGames.remove(participant.getUniqueId());
                 tabList.showPlayer(participant);
                 sidebar.addPlayer(participant);
             }
-            Main.logger().log(Level.SEVERE, String.format("Error loading config for game %s", gameType), e);
+            Main.logger().log(Level.SEVERE, String.format("Error starting game %s", gameType), e);
             return CommandResult.failure(Component.text("Can't start ")
                     .append(Component.text(gameType.name())
                             .decorate(TextDecoration.BOLD))
-                    .append(Component.text(". Error loading config file. See console for details:\n"))
+                    .append(Component.text(". Error starting game. See console for details:\n"))
                     .append(Component.text(e.getMessage()))
                     .color(NamedTextColor.RED));
         }
@@ -708,6 +707,10 @@ public abstract class GameManagerState {
     
     public CommandResult unReadyParticipant(@NotNull MCTParticipant participant) {
         return CommandResult.failure("Can't un-ready at this time");
+    }
+    
+    public CommandResult openHubMenu(@NotNull MCTParticipant participant) {
+        return CommandResult.failure("Can't open the hub menu at this time");
     }
     
     public int getGameIterations(@NotNull GameType gameType) {
@@ -930,6 +933,17 @@ public abstract class GameManagerState {
                     .append(Component.text(gameType.getTitle()))
                     .append(Component.text(" game is active right now")));
         }
+        GameType teamGameType = context.getTeamActiveGame(participant.getTeamId());
+        if (teamGameType != null && !teamGameType.equals(gameType)) {
+            MCTTeam team = teams.get(participant.getTeamId());
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text("Can't join "))
+                    .append(Component.text(gameType.getTitle()))
+                    .append(Component.text(" because "))
+                    .append(team.getFormattedDisplayName())
+                    .append(Component.text(" is in "))
+                    .append(Component.text(teamGameType.getTitle())));
+        }
         onParticipantJoinGame(gameType, participant);
         activeGame.onTeamJoin(teams.get(participant.getTeamId()));
         activeGame.onParticipantJoin(participant);
@@ -955,8 +969,8 @@ public abstract class GameManagerState {
             return CommandResult.success(Component.text("Returning to hub"));
         }
         activeGame.onParticipantQuit(participant.getUniqueId());
-        activeGame.onTeamQuit(participant.getTeamId());
         onParticipantReturnToHub(participant, spawn);
+        activeGame.onTeamQuit(participant.getTeamId());
         return CommandResult.success(Component.text("Quitting current game. Returning to hub."));
     }
     // participant stop

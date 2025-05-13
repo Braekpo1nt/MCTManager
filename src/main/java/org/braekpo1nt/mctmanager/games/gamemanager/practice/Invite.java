@@ -5,10 +5,7 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Invite {
     /**
@@ -29,11 +26,6 @@ public class Invite {
      * Each guest's RSVP (true is accepted, false is declined, no entry is no response)
      */
     private final Map<String, Boolean> rsvps;
-    /**
-     * True if the invite was sent, false otherwise
-     */
-    @Getter
-    public boolean sent = false;
     
     public Invite(
             @NotNull GameType gameType,
@@ -85,10 +77,6 @@ public class Invite {
         rsvps.put(teamId, rsvp);
     }
     
-    public void send() {
-        sent = true;
-    }
-    
     /**
      * @return a set of the teamIds of the guests which RSVPed yes
      * (always includes the initiator's teamId)
@@ -117,5 +105,14 @@ public class Invite {
         return Component.empty()
                 .append(Component.text(gameType.getTitle()))
                 .append(Component.text(" Invite Status"));
+    }
+    
+    /**
+     * @param teamId the teamId to check
+     * @return true if the teamId a guest in this invite, and has not
+     * rsvped yes or no
+     */
+    public boolean hasNotResponded(String teamId) {
+        return guests.contains(teamId) && !rsvps.containsKey(teamId);
     }
 }

@@ -34,7 +34,8 @@ record CaptureTheFlagConfigDTO(
     public void validate(@NotNull Validator validator) {
         validator.notNull(this.version, "version");
         validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.version), "invalid config version (%s)", this.version);
-        validator.validate(Bukkit.getWorld(this.world) != null, "Could not find world \"%s\"", this.world);
+        validator.notNull(this.world, "world");
+        validator.notNull(Bukkit.getWorld(this.world), "Could not find world \"%s\"", this.world);
         validator.notNull(this.arenas, "arenas");
         validator.validate(!this.arenas.isEmpty(), "arenas: there must be at least 1 arena");
         validator.validateList(this.arenas, "arenas");

@@ -24,7 +24,10 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 public class PracticeState extends GameManagerState {
     
@@ -132,6 +135,18 @@ public class PracticeState extends GameManagerState {
     
     
     @Override
+    protected void addScores(Map<String, Integer> newTeamScores, Map<UUID, Integer> newParticipantScores, GameType gameType) {
+        Map<String, Integer> teamScores = newTeamScores.entrySet().stream()
+                .filter(e -> teams.containsKey(e.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        Map<UUID, Integer> participantScores = newParticipantScores.entrySet().stream()
+                .filter(e -> allParticipants.containsKey(e.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        // TODO: save scores for practice to special practice log, so Shotgun can use stats
+        displayStats(teamScores, participantScores);
+    }
+    
+    @Override
     public Team addTeam(String teamId, String teamDisplayName, String colorString) {
         Team team = super.addTeam(teamId, teamDisplayName, colorString);
         if (team != null) {
@@ -157,6 +172,11 @@ public class PracticeState extends GameManagerState {
     protected void onParticipantReturnToHub(@NotNull MCTParticipant participant, @NotNull Location spawn) {
         super.onParticipantReturnToHub(participant, spawn);
         practiceManager.addParticipant(participant);
+    }
+    
+    @Override
+    public CommandResult openHubMenu(@NotNull MCTParticipant participant) {
+        return practiceManager.openMenu(participant.getUniqueId());
     }
     
     @Override

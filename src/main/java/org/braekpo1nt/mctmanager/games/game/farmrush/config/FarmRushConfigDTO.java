@@ -176,6 +176,7 @@ class FarmRushConfigDTO implements Validatable {
     public void validate(@NotNull Validator validator) {
         validator.notNull(this.getVersion(), "version");
         validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.getVersion()), "invalid config version (%s)", this.getVersion());
+        validator.notNull(this.world, "world");
         validator.notNull(Bukkit.getWorld(this.getWorld()), "Could not find world \"%s\"", this.getWorld());
         validator.notNull(adminLocation, "adminLocation");
         validator.notNull(arenaFile, "arenaFile");

@@ -88,6 +88,7 @@ class SurvivalGamesConfigDTO implements Validatable {
         validator.notNull(this.version,
                 "version");
         validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.version), "invalid config version (%s)", this.version);
+        validator.notNull(this.world, "world");
         validator.notNull(Bukkit.getWorld(this.world),
                 "Could not find world \"%s\"", this.world);
         if (spectatorArea != null) {

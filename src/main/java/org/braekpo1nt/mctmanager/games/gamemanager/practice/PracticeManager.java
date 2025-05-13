@@ -60,7 +60,7 @@ public class PracticeManager {
     
     public void cleanup() {
         for (PracticeParticipant participant : participants.values()) {
-            participant.closeInventory();
+            participant.closeLastGui();
             removeNetherStar(participant);
         }
         participants.clear();
@@ -82,12 +82,28 @@ public class PracticeManager {
         ChestGui gui = new ChestGui(3, "Main");
         gui.setOnGlobalClick(event -> event.setCancelled(true));
         OutlinePane main = new OutlinePane(0, 0, 9, 3);
-        // Game Select
-        ItemStack gameSelect = new ItemStack(Material.AMETHYST_SHARD);
-        gameSelect.editMeta(meta -> meta.displayName(Component.text("Game Select")));
-        main.addItem(new GuiItem(gameSelect, event -> {
-            participant.showGui(createGameMenu(participant));
-        }));
+        GameType gameType = gameManager.getTeamActiveGame(participant.getTeamId());
+        if (gameType == null) {
+            // Game Select
+            ItemStack gameSelect = new ItemStack(Material.AMETHYST_SHARD);
+            gameSelect.editMeta(meta -> meta.displayName(Component.text("Game Select")));
+            main.addItem(new GuiItem(gameSelect, event -> {
+                participant.showGui(createGameMenu(participant));
+            }));
+        } else {
+            // Join Game
+            Team team = teams.get(participant.getTeamId());
+            ItemStack joinGame = new ItemStack(team.getColorAttributes().getPowder());
+            joinGame.editMeta(meta -> meta.displayName(Component.empty()
+                    .append(Component.text("Join "))
+                    .append(team.getFormattedDisplayName())
+                    .append(Component.text(" in "))
+                    .append(Component.text(gameType.getTitle()))));
+            main.addItem(new GuiItem(joinGame, event -> {
+                CommandResult commandResult = gameManager.joinParticipantToGame(gameType, participant.getUniqueId());
+                participant.sendMessage(commandResult.getMessageOrEmpty());
+            }));
+        }
         // Team Select
         ItemStack teamSelect = new ItemStack(Material.WHITE_WOOL);
         teamSelect.editMeta(meta -> meta.displayName(Component.text("Team Select")));
@@ -226,17 +242,11 @@ public class PracticeManager {
     private @NotNull ChestGui createInviteTeamMenu(PracticeParticipant participant, @NotNull Invite invite) {
         ChestGui gui = new ChestGui(3, "Invite Teams");
         gui.setOnGlobalClick(event -> event.setCancelled(true));
-        gui.setOnClose(event -> {
-            if (invite.isSent()) {
-                return;
-            }
-            cancelInvite(invite);
-        });
         MasonryPane inviteTeamMenu = new MasonryPane(0, 0, 9, 3);
         OutlinePane teamSelect = new OutlinePane(0, 0, 9, 2);
         for (Team team : teams.values()) {
             if (!invite.isInitiator(team.getTeamId()) && canInviteTeam(team.getTeamId())) {
-                GuiItem inviteTeamItem = createInviteTeamItem(gui, team);
+                GuiItem inviteTeamItem = createInviteTeamItem(gui, team, invite);
                 teamSelect.addItem(inviteTeamItem);
             }
         }
@@ -246,7 +256,6 @@ public class PracticeManager {
         ItemStack back = new ItemStack(Material.BARRIER);
         back.editMeta(meta -> meta.displayName(Component.text("Cancel")));
         navigation.addItem(new GuiItem(back, event -> {
-            cancelInvite(invite);
             participant.showGui(createGameMenu(participant));
         }));
         ItemStack send = new ItemStack(Material.LIME_DYE);
@@ -262,7 +271,8 @@ public class PracticeManager {
     /**
      * @param teamId the team to check
      * @return true if the given team can be invited to a game, false if
-     * the team is in a game, has no online players, or involved in an active invite
+     * the team is involved in an active invite, has no online players, or has
+     * at least one player in a game
      */
     private boolean canInviteTeam(String teamId) {
         for (Invite invite : activeInvites.values()) {
@@ -270,9 +280,17 @@ public class PracticeManager {
                 return false;
             }
         }
-        return !gameManager.teamIsInGame(teamId) && gameManager.teamIsOnline(teamId);
+        if (getParticipantsOnTeam(teamId).isEmpty()) {
+            return false;
+        }
+        return !gameManager.teamIsInGame(teamId);
     }
     
+    /**
+     * Creates an Invite object and shows the player a gui for inviting teams
+     * @param initiator the participant who is creating the invite
+     * @param gameType the game type ot create an Invite for
+     */
     private void initiateInvite(PracticeParticipant initiator, @NotNull GameType gameType) {
         if (!canInviteGame(gameType)) {
             initiator.sendMessage(Component.empty()
@@ -282,14 +300,14 @@ public class PracticeManager {
                     .append(Component.text(" game at this time")));
             return;
         }
-        Invite invite = new Invite(gameType, initiator.getTeamId());
-        initiator.setInvite(invite);
-        for (PracticeParticipant participant : participants.values()) {
-            if (invite.isInitiator(participant.getTeamId())) {
-                participant.setInvite(invite);
-            }
+        Team team = teams.get(initiator.getTeamId());
+        if (!canInviteTeam(initiator.getTeamId())) {
+            initiator.sendMessage(Component.empty()
+                    .append(Component.text("Can't start an invite because"))
+                    .append(team.getFormattedDisplayName())
+                    .append(Component.text(" is busy")));
         }
-        activeInvites.put(gameType, invite);
+        Invite invite = new Invite(gameType, initiator.getTeamId());
         initiator.showGui(createInviteTeamMenu(initiator, invite));
     }
     
@@ -301,19 +319,48 @@ public class PracticeManager {
         for (PracticeParticipant p : participants.values()) {
             if (invite.isInvolved(p.getTeamId())) {
                 p.setInvite(null);
+                p.closeLastGui();
                 p.sendMessage(cancelMessage);
             }
         }
     }
     
     private void sendInvite(PracticeParticipant sender, @NotNull Invite invite) {
-        invite.send();
+        // re-evaluate the invite-ability of the teams (including initiator)
+        if (!canInviteGame(invite.getGameType())) {
+            sender.sendMessage(Component.empty()
+                    .append(Component.text("Could not create invite because "))
+                    .append(Component.text(invite.getGameType().getTitle()))
+                    .append(Component.text(" already has an invite in-progress")));
+            return;
+        }
+        if (!canInviteTeam(invite.getInitiator())) {
+            Team team = teams.get(invite.getInitiator());
+            sender.sendMessage(Component.empty()
+                    .append(Component.text("Could not create invite because "))
+                    .append(team.getFormattedDisplayName())
+                    .append(Component.text(" is not available")));
+            return;
+        }
+        for (Team team : teams.values()) {
+            if (invite.isGuest(team.getTeamId())) {
+                if (!canInviteTeam(team.getTeamId())) {
+                    sender.sendMessage(Component.empty()
+                            .append(Component.text("Can't invite "))
+                            .append(team.getFormattedDisplayName()));
+                    invite.removeGuest(team.getTeamId());
+                }
+            }
+        }
+        
+        activeInvites.put(invite.getGameType(), invite);
         Team initiator = teams.get(invite.getInitiator());
-        for (PracticeParticipant p : participants.values()) {
-            Team team = teams.get(p.getTeamId());
-            if (invite.isGuest(p.getTeamId())) {
-                p.setInvite(invite);
-                p.sendMessage(Component.empty()
+        for (PracticeParticipant participant : participants.values()) {
+            Team team = teams.get(participant.getTeamId());
+            if (invite.isGuest(participant.getTeamId())) {
+                participant.setInvite(invite);
+                participant.closeLastGui();
+                participant.sendMessage(Component.empty()
                         .append(initiator.getFormattedDisplayName())
                         .append(Component.text(" invited "))
                         .append(team.getFormattedDisplayName())
@@ -321,11 +368,21 @@ public class PracticeManager {
                         .append(Component.text(invite.getGameType().getTitle()))
                         .append(Component.text(". Use the nether star to accept or decline.")));
             }
+            if (invite.isInitiator(participant.getTeamId())) {
+                participant.setInvite(invite);
+                participant.sendMessage(Component.empty()
+                        .append(initiator.getFormattedDisplayName())
+                        .append(Component.text(" sent an invite to play "))
+                        .append(Component.text(invite.getGameType().getTitle())));
+                if (!participant.getUniqueId().equals(sender.getUniqueId())) {
+                    participant.closeLastGui();
+                }
+            }
         }
         sender.showGui(createInviteStatusMenu(sender, invite));
     }
     
-    private @NotNull GuiItem createInviteTeamItem(ChestGui gui, Team team) {
+    private @NotNull GuiItem createInviteTeamItem(ChestGui gui, Team team, Invite invite) {
         ItemStack teamWool = new ItemStack(team.getColorAttributes().getWool());
         teamWool.editMeta(meta -> meta.displayName(Component.empty()
                 .append(Component.text("Invite "))
@@ -336,14 +393,6 @@ public class PracticeManager {
                 .append(team.getFormattedDisplayName())));
         GuiItem inviteTeamItem = new GuiItem(teamWool);
         inviteTeamItem.setAction(event -> {
-            PracticeParticipant participant = participants.get(event.getWhoClicked().getUniqueId());
-            if (participant == null) {
-                return;
-            }
-            Invite invite = participant.getInvite();
-            if (invite == null) {
-                return;
-            }
             if (invite.isGuest(team.getTeamId())) {
                 invite.removeGuest(team.getTeamId());
                 inviteTeamItem.setItem(teamWool);
@@ -377,32 +426,39 @@ public class PracticeManager {
             gui.getInventory().close();
         }));
         navigator.addItem(new GuiItem(accept, event -> {
-            Team initiator = teams.get(invite.getInitiator());
-            GameType gameType = invite.getGameType();
-            invite.rsvp(team.getTeamId(), true);
-            updateInviteStatusInventory(invite);
-            for (PracticeParticipant p : participants.values()) {
-                if (p.getTeamId().equals(team.getTeamId())) {
-                    p.sendMessage(Component.empty()
-                            .append(team.getFormattedDisplayName())
-                            .append(Component.text(" accepted "))
-                            .append(initiator.getFormattedDisplayName())
-                            .append(Component.text("'s invite to play "))
-                            .append(Component.text(gameType.getTitle()))
-                            .color(NamedTextColor.GREEN));
-                }
-                if (invite.isInitiator(p.getTeamId())) {
-                    p.sendMessage(Component.empty()
-                            .append(team.getFormattedDisplayName())
-                            .append(Component.text(" accepted your invite to play "))
-                            .append(Component.text(gameType.getTitle()))
-                            .color(NamedTextColor.GREEN));
-                }
-            }
+            acceptInvite(invite, team);
             gui.getInventory().close();
         }));
         gui.addPane(navigator);
         return gui;
+    }
+    
+    private void acceptInvite(@NotNull Invite invite, Team team) {
+        if (!activeInvites.containsKey(invite.getGameType())) {
+            return;
+        }
+        Team initiator = teams.get(invite.getInitiator());
+        GameType gameType = invite.getGameType();
+        invite.rsvp(team.getTeamId(), true);
+        updateInviteStatusInventory(invite);
+        for (PracticeParticipant p : participants.values()) {
+            if (p.getTeamId().equals(team.getTeamId())) {
+                p.sendMessage(Component.empty()
+                        .append(team.getFormattedDisplayName())
+                        .append(Component.text(" accepted "))
+                        .append(initiator.getFormattedDisplayName())
+                        .append(Component.text("'s invite to play "))
+                        .append(Component.text(gameType.getTitle()))
+                        .color(NamedTextColor.GREEN));
+            }
+            if (invite.isInitiator(p.getTeamId())) {
+                p.sendMessage(Component.empty()
+                        .append(team.getFormattedDisplayName())
+                        .append(Component.text(" accepted your invite to play "))
+                        .append(Component.text(gameType.getTitle()))
+                        .color(NamedTextColor.GREEN));
+            }
+        }
     }
     
     /**
@@ -423,6 +479,9 @@ public class PracticeManager {
      * @param decliningTeam the team which is declining the invite
      */
     private void declineInvite(@NotNull Invite invite, Team decliningTeam) {
+        if (!activeInvites.containsKey(invite.getGameType())) {
+            return;
+        }
         Team initiator = teams.get(invite.getInitiator());
         GameType gameType = invite.getGameType();
         invite.rsvp(decliningTeam.getTeamId(), false);
@@ -516,6 +575,13 @@ public class PracticeManager {
                     .append(Component.text(" game at this time")));
             return;
         }
+        for (PracticeParticipant participant : participants.values()) {
+            if (invite.hasNotResponded(participant.getTeamId())) {
+                participant.sendMessage(Component.empty()
+                        .append(Component.text(invite.getGameType().getTitle()))
+                        .append(Component.text(" was started, invite cancelled")));
+            }
+        }
         Set<String> teamIds = invite.getConfirmedGuestIds();
         CommandResult commandResult = gameManager.startGame(
                 teamIds, 
@@ -534,14 +600,16 @@ public class PracticeManager {
         MasonryPane teamMenu = new MasonryPane(0, 0, 9, 3);
         OutlinePane teamSelect = new OutlinePane(0, 0, 9, 2);
         for (Team team : teams.values()) {
-            ItemStack teamWool = new ItemStack(team.getColorAttributes().getWool());
-            teamWool.editMeta(meta -> meta.displayName(team.getFormattedDisplayName()));
-            teamSelect.addItem(new GuiItem(teamWool, event -> {
-                Component message = joinTeam(event, team.getTeamId()).getMessage();
-                if (message != null) {
-                    event.getWhoClicked().sendMessage(message);
-                }
-            }));
+            if (!team.getTeamId().equals(participant.getTeamId())) {
+                ItemStack teamWool = new ItemStack(team.getColorAttributes().getWool());
+                teamWool.editMeta(meta -> meta.displayName(team.getFormattedDisplayName()));
+                teamSelect.addItem(new GuiItem(teamWool, event -> {
+                    Component message = joinTeam(event, team.getTeamId()).getMessage();
+                    if (message != null) {
+                        event.getWhoClicked().sendMessage(message);
+                    }
+                }));
+            }
         }
         teamMenu.addPane(teamSelect);
         
@@ -579,6 +647,20 @@ public class PracticeManager {
             return;
         }
         event.setCancelled(true);
+        openMenu(participant);
+    }
+    
+    public CommandResult openMenu(@NotNull UUID uuid) {
+        PracticeParticipant participant = participants.get(uuid);
+        if (participant == null) {
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text("Can't open the hub menu at this time")));
+        }
+        openMenu(participant);
+        return CommandResult.success();
+    }
+    
+    private void openMenu(PracticeParticipant participant) {
         Invite invite = participant.getInvite();
         if (invite == null) {
             participant.showGui(createMainMenu(participant));
@@ -608,21 +690,21 @@ public class PracticeManager {
             return;
         }
         for (Invite invite : activeInvites.values()) {
-            // TODO: and only decline the invite if there are no more players on the team in the PracticeManager
-            // TODO: PracticeManager should reference the last opened gui so that it can be closed, instead of participant.closeInventory() you do participant.closeGUI() and it closes the referenced gui, but if the participant doesn't have one open it does nothing (even if they have a crafting menu open or something) 
-            if (invite.isGuest(participant.getTeamId())) {
-                long numOnTeam = participants.values().stream().filter(p -> p.getTeamId().equals(participant.getTeamId())).count();
-                if (numOnTeam == 0 || !canInviteTeam(participant.getTeamId())) {
-                    Team team = teams.get(participant.getTeamId());
-                    declineInvite(invite, team);
+            String teamId = participant.getTeamId();
+            if (invite.isInvolved(teamId)) {
+                if (getParticipantsOnTeam(teamId).isEmpty() 
+                        || gameManager.teamIsInGame(teamId)) {
+                    if (invite.isGuest(teamId)) {
+                        Team team = teams.get(teamId);
+                        declineInvite(invite, team);
+                    } else { // they are the initiator
+                        cancelInvite(invite);
+                    }
                 }
-            }
-            if (invite.isInitiator(participant.getTeamId())) {
-                cancelInvite(invite);
             }
         }
         participant.setInvite(null);
-        participant.closeInventory();
+        participant.closeLastGui();
         removeNetherStar(participant);
     }
     
@@ -632,5 +714,14 @@ public class PracticeManager {
     
     public void removeTeam(String teamId) {
         teams.remove(teamId);
+        for (Invite invite : activeInvites.values()) {
+            if (invite.isInitiator(teamId)) {
+                cancelInvite(invite);
+            }
+            if (invite.isGuest(teamId)) {
+                Team team = teams.get(teamId);
+                declineInvite(invite, team);
+            }
+        }
     }
 }

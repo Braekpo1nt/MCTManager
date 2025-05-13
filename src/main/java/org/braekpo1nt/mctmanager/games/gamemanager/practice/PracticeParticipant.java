@@ -12,6 +12,11 @@ import org.jetbrains.annotations.Nullable;
 public class PracticeParticipant extends Participant {
     
     /**
+     * the last open gui for the {@link PracticeManager}, used for closing
+     * inventories associated with PracticeManager, rather than normal inventories
+     */
+    private @Nullable ChestGui lastGui;
+    /**
      * The invite associated with this participant. This participant
      * may have been the initiator, or may have received this invite
      */
@@ -25,7 +30,19 @@ public class PracticeParticipant extends Participant {
      * Simple convenience method to show the participant a given gui
      * @param gui the gui to show the participant
      */
-    public void showGui(ChestGui gui) {
+    public void showGui(@NotNull ChestGui gui) {
         gui.show(getPlayer());
+        lastGui = gui;
+    }
+    
+    /**
+     * If there is a last gui opened from PracticeManager, closes the inventory 
+     */
+    public void closeLastGui() {
+        if (lastGui == null) {
+            return;
+        }
+        lastGui.getInventory().close();
+        lastGui = null;
     }
 }

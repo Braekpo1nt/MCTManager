@@ -547,6 +547,20 @@ public class GameManager implements Listener {
         return false;
     }
     
+    /**
+     * @param teamId the team to get the game type of
+     * @return the type of active game the given teamId is in,
+     * or null if the team is not in a game
+     */
+    public @Nullable GameType getTeamActiveGame(String teamId) {
+        for (MCTGame game : activeGames.values()) {
+            if (game.containsTeam(teamId)) {
+                return game.getType();
+            }
+        }
+        return null;
+    }
+    
     public boolean teamIsOnline(String teamId) {
         MCTTeam team = teams.get(teamId);
         if (team == null) {
@@ -1002,6 +1016,14 @@ public class GameManager implements Listener {
             return CommandResult.failure(Component.text("Not a participant"));
         }
         return state.unReadyParticipant(participant);
+    }
+    
+    public CommandResult openHubMenu(@NotNull UUID uuid) {
+        MCTParticipant participant = onlineParticipants.get(uuid);
+        if (participant == null) {
+            return CommandResult.failure(Component.text("Not a participant"));
+        }
+        return state.openHubMenu(participant);
     }
     
     public int getGameIterations(@NotNull GameType gameType) {

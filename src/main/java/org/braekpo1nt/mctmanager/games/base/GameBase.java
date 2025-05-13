@@ -514,6 +514,9 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         teams.remove(team.getTeamId());
         teamQuitDatas.put(team.getTeamId(), getQuitData(team));
         resetTeamOptions(team);
+        if (teams.isEmpty()) {
+            stop();
+        }
     }
     // quit/join end
     
