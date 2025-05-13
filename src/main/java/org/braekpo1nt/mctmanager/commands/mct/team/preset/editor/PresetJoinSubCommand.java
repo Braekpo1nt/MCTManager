@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
@@ -38,15 +39,16 @@ public class PresetJoinSubCommand extends TabSubCommand {
     
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length < 2) {
-            return CommandResult.failure(getUsage().of("<team>").of("<member>"));
+        if (args.length < 3) {
+            return CommandResult.failure(getUsage().of("<presetFile.json>").of("<team>").of("<member>"));
         }
-        String teamId = args[0];
-        String playerName = args[1];
-        return joinParticipant(playerName, teamId);
+        String presetFile = args[0];
+        String teamId = args[1];
+        String playerName = args[2];
+        return joinParticipant(presetFile, playerName, teamId);
     }
     
-    private @NotNull CommandResult joinParticipant(@NotNull String ign, @NotNull String teamId) {
+    private @NotNull CommandResult joinParticipant(@NotNull String presetFile, @NotNull String ign, @NotNull String teamId) {
         if (ign.isEmpty()) {
             return CommandResult.failure("player name must not be blank");
         }
@@ -56,11 +58,10 @@ public class PresetJoinSubCommand extends TabSubCommand {
         
         Preset preset;
         try {
-            storageUtil.loadPreset();
+            storageUtil.loadPreset(presetFile);
             preset = storageUtil.getPreset();
         } catch (ConfigException e) {
-            Main.logger().severe(String.format("Could not load preset. %s", e.getMessage()));
-            e.printStackTrace();
+            Main.logger().log(Level.SEVERE, String.format("Could not load preset. %s", e.getMessage()), e);
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Error occurred loading preset. See console for details: "))
                     .append(Component.text(e.getMessage())));
@@ -101,10 +102,9 @@ public class PresetJoinSubCommand extends TabSubCommand {
         
         preset.joinMember(ign, teamId);
         try {
-            storageUtil.savePreset();
+            storageUtil.savePreset(presetFile);
         } catch (ConfigException e) {
-            Main.logger().severe(String.format("Could not save preset. %s", e.getMessage()));
-            e.printStackTrace();
+            Main.logger().log(Level.SEVERE, String.format("Could not save preset. %s", e.getMessage()), e);
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Error occurred saving preset. See console for details: "))
                     .append(Component.text(e.getMessage())));

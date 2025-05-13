@@ -19,6 +19,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * Lets you add a team to the preset
@@ -35,22 +36,25 @@ public class PresetAddSubCommand extends TabSubCommand {
     
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length < 3) {
-            return CommandResult.failure(getUsage().of("<team>").of("\"<displayName>\"").of("<color>"));
+        if (args.length < 4) {
+            return CommandResult.failure(getUsage().of("<presetFile.json>").of("<team>").of("\"<displayName>\"").of("<color>"));
         }
         
         int[] displayNameIndexes = AddSubCommand.getDisplayNameIndexes(args);
         int displayNameStart = displayNameIndexes[0];
         int displayNameEnd = displayNameIndexes[1];
         
-        if (displayNameStart > 1) {
+        if (displayNameStart > 2) {
             return CommandResult.failure(Component.text("Provide a team name"))
                     .and(CommandResult.failure(Component.text("/mct team add ")
                             .append(Component.text("<team>")
                                     .decorate(TextDecoration.BOLD))
                             .append(Component.text(" \"<displayName>\" <color>"))));
         }
-        String teamId = args[0];
+        
+        String presetFile = args[0];
+        
+        String teamId = args[1];
         
         if (AddSubCommand.displayNameIndexesAreInvalid(displayNameStart, displayNameEnd)) {
             return CommandResult.failure("Display name must be surrounded by quotation marks")
@@ -62,23 +66,22 @@ public class PresetAddSubCommand extends TabSubCommand {
                     .and(CommandResult.failure(getUsage().of("<team>").of("\"<displayName>\"", TextDecoration.BOLD).of("<color>")));
         }
         
-        if (args.length < displayNameEnd + 2) {
+        if (args.length < displayNameEnd + 3) {
             return CommandResult.failure("Please provide a color")
                     .and(CommandResult.failure(getUsage().of("<team>").of("\"<displayName>\"").of("<color>", TextDecoration.BOLD)));
         }
-        String colorString = args[displayNameEnd + 1];
+        String colorString = args[displayNameEnd + 2];
         
-        return addTeam(teamId, teamDisplayName, colorString);
+        return addTeam(presetFile, teamId, teamDisplayName, colorString);
     }
     
-    private @NotNull CommandResult addTeam(@NotNull String teamId, @NotNull String displayName, @NotNull String colorString) {
+    private @NotNull CommandResult addTeam(@NotNull String presetFile, @NotNull String teamId, @NotNull String displayName, @NotNull String colorString) {
         Preset preset;
         try {
-            storageUtil.loadPreset();
+            storageUtil.loadPreset(presetFile);
             preset = storageUtil.getPreset();
         } catch (ConfigException e) {
-            Main.logger().severe(String.format("Could not load preset. %s", e.getMessage()));
-            e.printStackTrace();
+            Main.logger().log(Level.SEVERE, String.format("Could not load preset. %s", e.getMessage()), e);
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Error occurred loading preset. See console for details: "))
                     .append(Component.text(e.getMessage())));
@@ -119,10 +122,9 @@ public class PresetAddSubCommand extends TabSubCommand {
         
         preset.addTeam(teamId, displayName, colorString);
         try {
-            storageUtil.savePreset();
+            storageUtil.savePreset(presetFile);
         } catch (ConfigException e) {
-            Main.logger().severe(String.format("Could not save preset. %s", e.getMessage()));
-            e.printStackTrace();
+            Main.logger().log(Level.SEVERE, String.format("Could not save preset. %s", e.getMessage()), e);
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Error occurred saving preset. See console for details: "))
                     .append(Component.text(e.getMessage())));

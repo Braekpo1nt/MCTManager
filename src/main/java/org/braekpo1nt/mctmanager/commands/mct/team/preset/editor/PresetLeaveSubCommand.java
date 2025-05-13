@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * lets you leave players from their team by ign
@@ -31,25 +32,25 @@ public class PresetLeaveSubCommand extends TabSubCommand {
     
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length != 1) {
-            return CommandResult.failure(getUsage().of("<member>"));
+        if (args.length != 2) {
+            return CommandResult.failure(getUsage().of("<presetFile.json>").of("<member>"));
         }
-        String ign = args[0];
-        return leavePlayer(ign);
+        String presetFile = args[0];
+        String ign = args[1];
+        return leavePlayer(presetFile, ign);
     }
     
-    private @NotNull CommandResult leavePlayer(@NotNull String ign) {
+    private @NotNull CommandResult leavePlayer(@NotNull String presetFile, @NotNull String ign) {
         if (ign.isEmpty()) {
             return CommandResult.failure("Player name can't be blank");
         }
         
         Preset preset;
         try {
-            storageUtil.loadPreset();
+            storageUtil.loadPreset(presetFile);
             preset = storageUtil.getPreset();
         } catch (ConfigException e) {
-            Main.logger().severe(String.format("Could not load preset. %s", e.getMessage()));
-            e.printStackTrace();
+            Main.logger().log(Level.SEVERE, String.format("Could not load preset. %s", e.getMessage()), e);
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Error occurred loading preset. See console for details: "))
                     .append(Component.text(e.getMessage())));
@@ -63,10 +64,9 @@ public class PresetLeaveSubCommand extends TabSubCommand {
         }
         preset.leaveMember(ign);
         try {
-            storageUtil.savePreset();
+            storageUtil.savePreset(presetFile);
         } catch (ConfigException e) {
-            Main.logger().severe(String.format("Could not save preset. %s", e.getMessage()));
-            e.printStackTrace();
+            Main.logger().log(Level.SEVERE, String.format("Could not save preset. %s", e.getMessage()), e);
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Error occurred saving preset. See console for details: "))
                     .append(Component.text(e.getMessage())));

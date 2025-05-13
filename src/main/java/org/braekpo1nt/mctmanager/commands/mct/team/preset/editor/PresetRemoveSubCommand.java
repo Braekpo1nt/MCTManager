@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * lets you remove a team from the preset
@@ -30,21 +31,21 @@ public class PresetRemoveSubCommand extends TabSubCommand {
     
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length != 1) {
-            return CommandResult.failure(getUsage().of("<team>"));
+        if (args.length != 2) {
+            return CommandResult.failure(getUsage().of("<presetFile.json>").of("<team>"));
         }
-        String removeTeamId = args[0];
-        return removeTeam(removeTeamId);
+        String presetFile = args[0];
+        String removeTeamId = args[1];
+        return removeTeam(presetFile, removeTeamId);
     }
     
-    private @NotNull CommandResult removeTeam(@NotNull String teamId) {
+    private @NotNull CommandResult removeTeam(@NotNull String presetFile, @NotNull String teamId) {
         Preset preset;
         try {
-            storageUtil.loadPreset();
+            storageUtil.loadPreset(presetFile);
             preset = storageUtil.getPreset();
         } catch (ConfigException e) {
-            Main.logger().severe(String.format("Could not load preset. %s", e.getMessage()));
-            e.printStackTrace();
+            Main.logger().log(Level.SEVERE, String.format("Could not load preset. %s", e.getMessage()), e);
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Error occurred loading preset. See console for details: "))
                     .append(Component.text(e.getMessage())));
@@ -59,10 +60,9 @@ public class PresetRemoveSubCommand extends TabSubCommand {
         
         preset.removeTeam(teamId);
         try {
-            storageUtil.savePreset();
+            storageUtil.savePreset(presetFile);
         } catch (ConfigException e) {
-            Main.logger().severe(String.format("Could not save preset. %s", e.getMessage()));
-            e.printStackTrace();
+            Main.logger().log(Level.SEVERE, String.format("Could not save preset. %s", e.getMessage()), e);
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Error occurred saving preset. See console for details: "))
                     .append(Component.text(e.getMessage())));

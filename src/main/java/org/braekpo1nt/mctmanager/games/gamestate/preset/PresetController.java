@@ -13,10 +13,10 @@ import java.io.File;
 
 public class PresetController extends ConfigController<PresetDTO> {
     
-    private final File presetFile;
+    private final @NotNull File presetDirectory;
     
-    public PresetController(File configDirectory) {
-        this.presetFile = new File(configDirectory, "preset.json");
+    public PresetController(@NotNull File presetDirectory) {
+        this.presetDirectory = presetDirectory;
     }
     
     @Override
@@ -24,15 +24,15 @@ public class PresetController extends ConfigController<PresetDTO> {
         return Main.GSON_PRETTY;
     }
     
-    public @NotNull Preset getPreset() throws ConfigException {
-        PresetDTO presetDTO = loadConfigDTO(presetFile, PresetDTO.class);
+    public @NotNull Preset getPreset(@NotNull String presetFile) throws ConfigException {
+        PresetDTO presetDTO = loadConfigDTO(new File(presetDirectory, presetFile), PresetDTO.class);
         presetDTO.validate(new Validator("preset"));
         return presetDTO.toPreset();
     }
     
-    public void savePreset(@NotNull Preset preset) {
+    public void savePreset(@NotNull Preset preset, @NotNull String presetFile) {
         PresetDTO presetDTO = PresetDTO.fromPreset(preset);
-        saveConfigDTO(presetDTO, presetFile);
+        saveConfigDTO(presetDTO, new File(presetDirectory, presetFile));
     }
     
     @Override
