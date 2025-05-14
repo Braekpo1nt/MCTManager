@@ -8,7 +8,6 @@ import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
-import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.Preset;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
 import org.bukkit.Bukkit;
@@ -19,24 +18,25 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.logging.Level;
 
 public class PresetWhitelistSubCommand extends TabSubCommand {
     
     private final PresetStorageUtil storageUtil;
-    private final GameManager gameManager;
     
-    public PresetWhitelistSubCommand(GameManager gameManager, PresetStorageUtil storageUtil, @NotNull String name) {
+    public PresetWhitelistSubCommand(PresetStorageUtil storageUtil, @NotNull String name) {
         super(name);
-        this.gameManager = gameManager;
         this.storageUtil = storageUtil;
     }
     
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length != 1) {
-            return CommandResult.failure(getUsage().of("<true|false>"));
+        if (args.length != 2) {
+            return CommandResult.failure(getUsage().of("<presetFile.json>").of("<true|false>"));
         }
-        String shouldWhitelistString = args[0];
+        String presetFile = args[0];
+        
+        String shouldWhitelistString = args[1];
         Boolean shouldWhitelist = CommandUtils.toBoolean(shouldWhitelistString);
         if (shouldWhitelist == null) {
             return CommandResult.failure(Component.empty()
@@ -48,11 +48,10 @@ public class PresetWhitelistSubCommand extends TabSubCommand {
         
         Preset preset;
         try {
-            storageUtil.loadPreset();
+            storageUtil.loadPreset(presetFile);
             preset = storageUtil.getPreset();
         } catch (ConfigException e) {
-            Main.logger().severe(String.format("Could not load preset. %s", e.getMessage()));
-            e.printStackTrace();
+            Main.logger().log(Level.SEVERE, String.format("Could not load preset. %s", e.getMessage()), e);
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Error occurred loading preset. See console for details: "))
                     .append(Component.text(e.getMessage())));

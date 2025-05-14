@@ -10,6 +10,8 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.logging.Level;
+
 /**
  * Useful for bringing the preset in memory up to date with the file
  */
@@ -24,11 +26,14 @@ public class PresetLoadSubCommand extends SubCommand {
     
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (args.length != 1) {
+            return CommandResult.failure(getUsage().of("<presetFile.json>"));
+        }
+        String presetFile = args[0];
         try {
-            storageUtil.loadPreset();
+            storageUtil.loadPreset(presetFile);
         } catch (ConfigException e) {
-            Main.logger().severe(String.format("Could not load preset. %s", e.getMessage()));
-            e.printStackTrace();
+            Main.logger().log(Level.SEVERE, String.format("Could not load preset. %s", e.getMessage()), e);
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Error occurred loading preset. See console for details: "))
                     .append(Component.text(e.getMessage())));

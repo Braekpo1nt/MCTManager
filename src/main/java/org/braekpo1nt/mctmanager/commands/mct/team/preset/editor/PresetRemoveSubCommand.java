@@ -13,6 +13,7 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -76,7 +77,10 @@ public class PresetRemoveSubCommand extends TabSubCommand {
     }
     
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        return storageUtil.getPreset().getTeamIds();
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
+        if (args.length == 2) {
+            return storageUtil.getPreset().getTeamIds();
+        }
+        return Collections.emptyList();
     }
 }

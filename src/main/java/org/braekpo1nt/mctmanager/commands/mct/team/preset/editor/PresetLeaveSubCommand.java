@@ -81,9 +81,9 @@ public class PresetLeaveSubCommand extends TabSubCommand {
     
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length != 1) {
-            return Collections.emptyList();
+        if (args.length == 2) {
+            return storageUtil.getPreset().getMembers();
         }
-        return storageUtil.getPreset().getMembers();
+        return Collections.emptyList();
     }
 }

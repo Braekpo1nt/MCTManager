@@ -123,10 +123,10 @@ public class PresetJoinSubCommand extends TabSubCommand {
     
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length == 1) {
+        if (args.length == 2) {
             return storageUtil.getPreset().getTeamIds();
         }
-        if (args.length == 2) {
+        if (args.length == 3) {
             // this is intentional to allow default auto-completing of online players
             List<String> onlinePlayers = Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toCollection(LinkedList::new));
             onlinePlayers.addAll(storageUtil.getPreset().getMembers());

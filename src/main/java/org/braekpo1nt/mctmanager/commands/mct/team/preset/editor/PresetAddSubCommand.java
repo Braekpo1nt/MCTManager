@@ -66,11 +66,11 @@ public class PresetAddSubCommand extends TabSubCommand {
                     .and(CommandResult.failure(getUsage().of("<team>").of("\"<displayName>\"", TextDecoration.BOLD).of("<color>")));
         }
         
-        if (args.length < displayNameEnd + 3) {
+        if (args.length < displayNameEnd + 2) {
             return CommandResult.failure("Please provide a color")
                     .and(CommandResult.failure(getUsage().of("<team>").of("\"<displayName>\"").of("<color>", TextDecoration.BOLD)));
         }
-        String colorString = args[displayNameEnd + 2];
+        String colorString = args[displayNameEnd + 1];
         
         return addTeam(presetFile, teamId, teamDisplayName, colorString);
     }

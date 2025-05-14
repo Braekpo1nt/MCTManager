@@ -6,7 +6,6 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.logging.Logger;
 
 /**
  * Keeps the most recently loaded Preset in memory, so we don't need to perform file IO
@@ -14,13 +13,11 @@ import java.util.logging.Logger;
  */
 public class PresetStorageUtil {
     
-    private final Logger LOGGER;
     private final PresetController controller;
     private Preset preset = new Preset();
     
     public PresetStorageUtil(Main plugin) {
-        this.LOGGER = plugin.getLogger();
-        this.controller = new PresetController(new File(plugin.getDataFolder(), "preset"));
+        this.controller = new PresetController(new File(plugin.getDataFolder(), "presets"));
     }
     
     /**
