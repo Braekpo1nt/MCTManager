@@ -2,7 +2,7 @@ package org.braekpo1nt.mctmanager.commands.readyup;
 
 import org.braekpo1nt.mctmanager.commands.manager.MasterCommandManager;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

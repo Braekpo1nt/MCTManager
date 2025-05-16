@@ -8,7 +8,7 @@ import org.braekpo1nt.mctmanager.commands.mct.team.preset.editor.PresetAddSubCom
 import org.braekpo1nt.mctmanager.commands.mct.team.preset.editor.PresetJoinSubCommand;
 import org.braekpo1nt.mctmanager.commands.mct.team.preset.editor.PresetLeaveSubCommand;
 import org.braekpo1nt.mctmanager.commands.mct.team.preset.editor.PresetRemoveSubCommand;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

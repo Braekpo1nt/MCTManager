@@ -5,6 +5,7 @@ import lombok.Data;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
@@ -23,7 +24,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Used to pass info from {@link org.braekpo1nt.mctmanager.games.GameManager} to {@link GameManagerState}
+ * Used to pass info from {@link GameManager} to {@link GameManagerState}
  * for convenience and safety. 
  */
 @Data

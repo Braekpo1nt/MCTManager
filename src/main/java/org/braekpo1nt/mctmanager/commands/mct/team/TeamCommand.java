@@ -5,7 +5,7 @@ import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
 import org.braekpo1nt.mctmanager.commands.manager.Usage;
 import org.braekpo1nt.mctmanager.commands.mct.team.preset.PresetCommand;
 import org.braekpo1nt.mctmanager.commands.mct.team.score.ScoreCommand;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.bukkit.permissions.Permissible;
 import org.jetbrains.annotations.NotNull;
 

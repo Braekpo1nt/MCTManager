@@ -13,7 +13,7 @@ import org.braekpo1nt.mctmanager.commands.readyup.UnReadyCommand;
 import org.braekpo1nt.mctmanager.commands.teammsg.TeamMsgCommand;
 import org.braekpo1nt.mctmanager.commands.utils.UtilsCommand;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.hub.config.HubConfig;

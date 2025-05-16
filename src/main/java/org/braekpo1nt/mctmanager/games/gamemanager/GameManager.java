@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games;
+package org.braekpo1nt.mctmanager.games.gamemanager;
 
 import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
 import lombok.Getter;
@@ -18,8 +18,6 @@ import org.braekpo1nt.mctmanager.games.game.footrace.editor.FootRaceEditor;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourPathwayEditor;
-import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
-import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.GameManagerState;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.MaintenanceState;

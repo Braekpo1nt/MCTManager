@@ -1,7 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.states;
 
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushParticipant;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushTeam;

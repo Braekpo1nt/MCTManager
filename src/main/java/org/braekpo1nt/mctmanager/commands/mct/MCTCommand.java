@@ -19,7 +19,7 @@ import org.braekpo1nt.mctmanager.commands.mct.score.ScoreCommand;
 import org.braekpo1nt.mctmanager.commands.mct.tablist.TabListCommand;
 import org.braekpo1nt.mctmanager.commands.mct.team.TeamCommand;
 import org.braekpo1nt.mctmanager.commands.mct.timer.TimerCommand;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

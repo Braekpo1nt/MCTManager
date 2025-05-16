@@ -1,7 +1,7 @@
 package org.braekpo1nt.mctmanager;
 
 import com.github.retrooper.packetevents.PacketEvents;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.MockGameManager;
 import org.braekpo1nt.mctmanager.games.gamestate.MockGameStateStorageUtil;
 import org.braekpo1nt.mctmanager.hub.config.HubConfig;

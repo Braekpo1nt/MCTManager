@@ -6,7 +6,7 @@ import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.mct.score.all.ScoreAllSubCommand;
 import org.braekpo1nt.mctmanager.commands.mct.score.player.ScorePlayerSubCommand;
 import org.braekpo1nt.mctmanager.commands.mct.score.team.ScoreTeamSubCommand;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;

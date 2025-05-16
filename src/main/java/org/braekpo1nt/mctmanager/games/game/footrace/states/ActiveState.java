@@ -3,7 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.footrace.states;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceParticipant;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceTeam;

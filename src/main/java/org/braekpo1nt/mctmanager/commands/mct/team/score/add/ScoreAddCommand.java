@@ -1,7 +1,7 @@
 package org.braekpo1nt.mctmanager.commands.mct.team.score.add;
 
 import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.jetbrains.annotations.NotNull;
 
 public class ScoreAddCommand extends CommandManager {
