@@ -15,7 +15,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.practice.PracticeManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.event.ReadyUpState;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
-import org.braekpo1nt.mctmanager.hub.config.HubConfig;
+import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetConfig;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -46,7 +46,7 @@ public class PracticeState extends GameManagerState {
                         .filter(participant -> !isParticipantInGame(participant.getUniqueId()))
                         .toList());
         setupSidebar();
-        HubConfig.PresetConfig presetConfig = config.getPractice().getPreset();
+        PresetConfig presetConfig = config.getPractice().getPreset();
         if (presetConfig != null) {
             CommandResult commandResult = GameManagerUtils.applyPreset(
                     plugin,

@@ -17,6 +17,9 @@ import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
+import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetConfig;
+import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -109,6 +112,21 @@ public class ReadyUpState extends EventState {
                 }
             }
         }.runTaskTimer(plugin, 0L, 2*20L).getTaskId();
+        
+        PresetConfig presetConfig = eventConfig.getPreset();
+        if (presetConfig != null) {
+            CommandResult commandResult = GameManagerUtils.applyPreset(
+                    plugin,
+                    context,
+                    new PresetStorageUtil(plugin.getDataFolder()),
+                    presetConfig.getFile(),
+                    presetConfig.isOverride(),
+                    presetConfig.isResetScores(),
+                    presetConfig.isWhitelist(),
+                    presetConfig.isUnWhitelist(),
+                    presetConfig.isKickUnWhitelisted());
+            context.messageAdmins(commandResult.getMessageOrEmpty());
+        }
     }
     
     protected void setupSidebar() {

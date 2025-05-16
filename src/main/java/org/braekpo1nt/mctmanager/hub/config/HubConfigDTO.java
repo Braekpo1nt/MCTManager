@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetDTO;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -83,7 +84,7 @@ class HubConfigDTO implements Validatable {
         
         private List<GameType> allowedGames;
         private Map<GameType, String> configFiles;
-        private @Nullable HubConfigDTO.PresetConfigDTO preset;
+        private @Nullable PresetDTO.PresetConfigDTO preset;
         
         @Override
         public void validate(@NotNull Validator validator) {
@@ -99,54 +100,6 @@ class HubConfigDTO implements Validatable {
                     allowedGames, 
                     configFiles,
                     preset != null ? preset.toPreset() : null
-            );
-        }
-    }
-    
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    static class PresetConfigDTO implements Validatable {
-        
-        /**
-         * The name of the preset file (located in MCTManager/presets/) to use
-         */
-        private String file;
-        private Boolean override;
-        private Boolean resetScores;
-        /**
-         * Add participants who are in the preset to the whitelist when applied
-         */
-        private Boolean whitelist;
-        /**
-         * Remove current participants from the whitelist before the whitelist
-         * is applied
-         */
-        private Boolean unWhitelist;
-        /**
-         * if true, players who are not whitelisted when transitioning to the practice mode
-         * will be kicked (this kicking happens after the application of the preset)
-         */
-        private Boolean kickUnWhitelisted;
-        
-        @Override
-        public void validate(@NotNull Validator validator) {
-            validator.notNull(file, "file");
-            validator.notNull(override, "override");
-            validator.notNull(resetScores, "resetScores");
-            validator.notNull(whitelist, "whitelist");
-            validator.notNull(kickUnWhitelisted, "kickUnWhitelisted");
-            validator.notNull(unWhitelist, "unWhitelist");
-        }
-        
-        public HubConfig.PresetConfig toPreset() {
-            return new HubConfig.PresetConfig(
-                    file,
-                    override,
-                    resetScores,
-                    whitelist,
-                    unWhitelist,
-                    kickUnWhitelisted
             );
         }
     }

@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.Tip;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetDTO;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,6 +29,7 @@ record EventConfigDTO(
         @Nullable Map<GameType, String> gameConfigs,
         @Nullable String colossalCombatConfig,
         Tips tips,
+        PresetDTO.PresetConfigDTO preset,
         Durations durations) implements Validatable {
     
     @Override
@@ -45,6 +47,9 @@ record EventConfigDTO(
         tips.validate(validator.path("tips"));
         validator.notNull(this.tips.displayTime, "display time for tips must be specified");
         validator.validate(!this.tips.getTips().isEmpty(), "there must be at least 1 game tip");
+        if (preset != null) {
+            preset.validate(validator.path("preset"));
+        }
         validator.validate(this.durations.waitingInHub() >= 0, "durations.waitingInHub can't be negative");
         validator.validate(this.durations.halftimeBreak() >= 0, "durations.halftimeBreak can't be negative");
         validator.validate(this.durations.voting() >= 0, "durations.voting can't be negative");
@@ -65,6 +70,7 @@ record EventConfigDTO(
                 .shouldDisplayGameNumber(this.shouldDisplayGameNumber)
                 .gameConfigs(this.gameConfigs != null ? this.gameConfigs : Collections.emptyMap())
                 .colossalCombatConfig(this.colossalCombatConfig != null ? this.colossalCombatConfig : "default.json")
+                .preset(this.preset.toPreset())
                 .title(this.title)
                 .build();
     }

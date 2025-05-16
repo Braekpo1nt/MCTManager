@@ -5,7 +5,9 @@ import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.Tip;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetConfig;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
@@ -34,9 +36,11 @@ public class EventConfig {
      */
     private @NotNull Map<GameType, String> gameConfigs;
     private @NotNull String colossalCombatConfig;
+    /**
+     * The preset that should be applied when switching to event mode
+     * If null, no preset is applied.
+     */
+    private @Nullable PresetConfig preset;
     private Component title;
     
-    public boolean shouldDisplayGameNumber() {
-        return shouldDisplayGameNumber;
-    }
 }

@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-class PresetDTO implements Validatable {
+public class PresetDTO implements Validatable {
     private List<PresetTeamDTO> teams = new ArrayList<>();
     
     @Override
@@ -110,5 +110,53 @@ class PresetDTO implements Validatable {
         static List<PresetTeamDTO> fromPresetTeams(List<Preset.PresetTeam> presetTeams) {
             return presetTeams.stream().map(PresetTeamDTO::fromPresetTeam).toList();
         }
-    } 
+    }
+    
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class PresetConfigDTO implements Validatable {
+        
+        /**
+         * The name of the preset file (located in MCTManager/presets/) to use
+         */
+        private String file;
+        private Boolean override;
+        private Boolean resetScores;
+        /**
+         * Add participants who are in the preset to the whitelist when applied
+         */
+        private Boolean whitelist;
+        /**
+         * Remove current participants from the whitelist before the whitelist
+         * is applied
+         */
+        private Boolean unWhitelist;
+        /**
+         * if true, players who are not whitelisted when transitioning to the practice mode
+         * will be kicked (this kicking happens after the application of the preset)
+         */
+        private Boolean kickUnWhitelisted;
+        
+        @Override
+        public void validate(@NotNull Validator validator) {
+            validator.notNull(file, "file");
+            validator.notNull(override, "override");
+            validator.notNull(resetScores, "resetScores");
+            validator.notNull(whitelist, "whitelist");
+            validator.notNull(kickUnWhitelisted, "kickUnWhitelisted");
+            validator.notNull(unWhitelist, "unWhitelist");
+        }
+        
+        public PresetConfig toPreset() {
+            return new PresetConfig(
+                    file,
+                    override,
+                    resetScores,
+                    whitelist,
+                    unWhitelist,
+                    kickUnWhitelisted
+            );
+        }
+    }
 }
