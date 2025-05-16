@@ -33,10 +33,6 @@ public class JoinSubCommand extends TabSubCommand {
         if (!(sender instanceof Player player)) {
             return CommandResult.failure("Only a player can use this command");
         }
-        Participant participant = gameManager.getOnlineParticipant(player.getUniqueId());
-        if (participant == null) {
-            return CommandResult.failure("Only a participant can use this command");
-        }
         String gameID = args[0];
         GameType gameType = GameType.fromID(gameID);
         if (gameType == null) {
@@ -44,8 +40,18 @@ public class JoinSubCommand extends TabSubCommand {
                     .append(Component.text(" is not a valid game")));
         }
         
-        return gameManager.joinParticipantToGame(gameType, participant.getUniqueId());
+        Participant participant = gameManager.getOnlineParticipant(player.getUniqueId());
+        if (participant != null) {
+            return gameManager.joinParticipantToGame(gameType, participant.getUniqueId());
+        }
+        
+        if (gameManager.isAdmin(player.getUniqueId())) {
+            return gameManager.joinAdminToGame(gameType, player);
+        }
+        return CommandResult.failure("Only a participant or an admin can use this command");
     }
+    
+    
     
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {

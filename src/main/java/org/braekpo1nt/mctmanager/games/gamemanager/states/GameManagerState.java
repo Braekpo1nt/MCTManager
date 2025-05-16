@@ -101,6 +101,12 @@ public abstract class GameManagerState {
      * in a game.
      */
     protected final Map<UUID, GameType> participantGames;
+    /**
+     * A reference to which admin is in which game<br>
+     * If an admin's UUID is a key in this map, that admin is in 
+     * a game.
+     */
+    protected final Map<UUID, GameType> adminGames;
     
     public GameManagerState(
             @NotNull GameManager context,
@@ -112,6 +118,7 @@ public abstract class GameManagerState {
         this.sidebar = contextReference.getSidebar();
         this.mctScoreboard = contextReference.getMctScoreboard();
         this.participantGames = contextReference.getParticipantGames();
+        this.adminGames = contextReference.getAdminGames();
         this.plugin = contextReference.getPlugin();
         this.activeGames = contextReference.getActiveGames();
         this.gameStateStorageUtil = contextReference.getGameStateStorageUtil();
@@ -527,6 +534,12 @@ public abstract class GameManagerState {
         participantGames.put(participant.getUniqueId(), gameType);
         tabList.hidePlayer(participant);
         sidebar.removePlayer(participant);
+    }
+    
+    protected void onAdminJoinGame(@NotNull GameType gameType, Player admin) {
+        adminGames.put(admin.getUniqueId(), gameType);
+        tabList.hidePlayer(admin);
+        sidebar.removePlayer(admin);
     }
     
     public CommandResult stopGame(@NotNull GameType gameType) {
@@ -971,6 +984,24 @@ public abstract class GameManagerState {
                 .append(Component.text(gameType.getTitle())));
     }
     
+    public CommandResult joinAdminToGame(@NotNull GameType gameType, @NotNull Player admin) {
+        if (isAdminInGame(admin)) {
+            return CommandResult.failure(Component.text("Already in a game"));
+        }
+        MCTGame activeGame = activeGames.get(gameType);
+        if (activeGame == null) {
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text("No "))
+                    .append(Component.text(gameType.getTitle()))
+                    .append(Component.text(" game is active right now")));
+        }
+        onAdminJoinGame(gameType, admin);
+        activeGame.onAdminJoin(admin);
+        return CommandResult.success(Component.empty()
+                .append(Component.text("Joining "))
+                .append(Component.text(gameType.getTitle())));
+    }
+    
     public CommandResult returnParticipantToHub(@NotNull MCTParticipant participant) {
         return returnParticipantToHub(participant, config.getSpawn());
     }
@@ -1097,6 +1128,14 @@ public abstract class GameManagerState {
     
     public boolean isParticipantInGame(UUID uuid) {
         return participantGames.containsKey(uuid);
+    }
+    
+    public boolean isAdminInGame(Player admin) {
+        return isAdminInGame(admin.getUniqueId());
+    }
+    
+    public boolean isAdminInGame(UUID uuid) {
+        return adminGames.containsKey(uuid);
     }
     
     public void onParticipantRespawn(PlayerRespawnEvent event, MCTParticipant participant) {

@@ -101,6 +101,10 @@ public class GameManager implements Listener {
      * A reference to which participant is in which game
      */
     protected final Map<UUID, GameType> participantGames = new HashMap<>();
+    /**
+     * A reference to which admin is in which game
+     */
+    protected final Map<UUID, GameType> adminGames = new HashMap<>();
     private final TabList tabList;
     private final @NotNull List<LeaderboardManager> leaderboardManagers;
     private final Sidebar sidebar; // TODO: make sidebar a thing of each state, not central
@@ -130,6 +134,7 @@ public class GameManager implements Listener {
                 .onlineParticipants(this.onlineParticipants)
                 .onlineAdmins(this.onlineAdmins)
                 .participantGames(this.participantGames)
+                .adminGames(this.adminGames)
                 .plugin(this.plugin)
                 .config(this.config)
                 .gameStateStorageUtil(this.gameStateStorageUtil)
@@ -373,6 +378,14 @@ public class GameManager implements Listener {
             return CommandResult.failure(Component.text("You are not a participant"));
         }
         return state.joinParticipantToGame(gameType, mctParticipant);
+    }
+    
+    public CommandResult joinAdminToGame(@NotNull GameType gameType, @NotNull Player admin) {
+        
+        if (!isAdmin(admin.getUniqueId())) {
+            return CommandResult.failure("You are not an admin");
+        }
+        return state.joinAdminToGame(gameType, admin);
     }
     
     public CommandResult returnParticipantToHub(@NotNull UUID uuid) {
