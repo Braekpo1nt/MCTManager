@@ -154,6 +154,7 @@ public abstract class GameManagerState {
         admin.playerListName(displayName);
         tabList.showPlayer(admin);
         sidebar.addPlayer(admin);
+        updateSidebarTeamScores();
     }
     
     public void onParticipantJoin(@NotNull PlayerJoinEvent event, @NotNull MCTParticipant participant) {
