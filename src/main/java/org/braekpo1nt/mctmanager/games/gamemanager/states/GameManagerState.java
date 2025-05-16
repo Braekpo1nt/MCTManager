@@ -434,7 +434,7 @@ public abstract class GameManagerState {
     // ui end
     
     // game start
-    public CommandResult startGame(Set<String> teamIds, @NotNull GameType gameType, @NotNull String configFile) {
+    public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
         if (teamIds.isEmpty()) {
             return CommandResult.failure("Can't start a game with no teams.");
         }
@@ -503,6 +503,9 @@ public abstract class GameManagerState {
         for (MCTParticipant participant : gameParticipants) {
             onParticipantJoinGame(gameType, participant);
         }
+        for (Player admin : gameAdmins) {
+            onAdminJoinGame(gameType, admin);
+        }
         
         try {
             activeGames.put(gameType,
@@ -512,12 +515,17 @@ public abstract class GameManagerState {
                             configFile, 
                             new HashSet<>(gameTeams), 
                             new HashSet<>(gameParticipants), 
-                            onlineAdmins));
+                            gameAdmins));
         } catch (Exception e) {
             for (MCTParticipant participant : gameParticipants) {
                 participantGames.remove(participant.getUniqueId());
                 tabList.showPlayer(participant);
                 sidebar.addPlayer(participant);
+            }
+            for (Player admin : gameAdmins) {
+                adminGames.remove(admin.getUniqueId());
+                tabList.showPlayer(admin);
+                sidebar.addPlayer(admin);
             }
             Main.logger().log(Level.SEVERE, String.format("Error starting game %s", gameType), e);
             return CommandResult.failure(Component.text("Can't start ")

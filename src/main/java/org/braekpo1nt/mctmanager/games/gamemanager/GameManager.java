@@ -482,8 +482,8 @@ public class GameManager implements Listener {
         return state.eventIsActive();
     }
     
-    public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull GameType gameType, @NotNull String configFile) {
-        return state.startGame(teamIds, gameType, configFile);
+    public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
+        return state.startGame(teamIds, gameAdmins, gameType, configFile);
     }
     
     public CommandResult startEvent(int maxGames, int currentGameNumber) {
@@ -495,7 +495,7 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Starts the given game
+     * Starts the given game with all teams and all admins
      *
      * @param gameType   The game to start
      * @param configFile the config file to use for the game
@@ -503,7 +503,7 @@ public class GameManager implements Listener {
      * including a reason why the game didn't start if so.
      */
     public CommandResult startGame(@NotNull GameType gameType, @NotNull String configFile) {
-        return state.startGame(teams.keySet(), gameType, configFile);
+        return state.startGame(teams.keySet(), onlineAdmins, gameType, configFile);
     }
     
     /**
