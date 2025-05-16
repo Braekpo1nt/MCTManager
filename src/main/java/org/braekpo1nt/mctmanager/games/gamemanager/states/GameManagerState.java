@@ -597,6 +597,10 @@ public abstract class GameManagerState {
             onParticipantReturnToHub(participant, config.getSpawn());
             participant.sendMessage(Component.text("Returning to hub"));
         }
+        for (Player admin : gameAdmins) {
+            onAdminReturnToHub(admin, config.getSpawn());
+            admin.sendMessage(Component.text("Returning to hub"));
+        }
         addScores(teamScores, participantScores, gameType);
     }
     
