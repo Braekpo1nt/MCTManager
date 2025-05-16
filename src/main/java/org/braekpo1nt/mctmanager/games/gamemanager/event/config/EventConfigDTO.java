@@ -70,7 +70,7 @@ record EventConfigDTO(
                 .shouldDisplayGameNumber(this.shouldDisplayGameNumber)
                 .gameConfigs(this.gameConfigs != null ? this.gameConfigs : Collections.emptyMap())
                 .colossalCombatConfig(this.colossalCombatConfig != null ? this.colossalCombatConfig : "default.json")
-                .preset(this.preset.toPreset())
+                .preset(this.preset != null ? this.preset.toPreset() : null)
                 .title(this.title)
                 .build();
     }

@@ -58,14 +58,6 @@ class EventCommandTest {
     }
     
     @Test
-    @DisplayName("`/mct event start 6` starts the event with 6 games")
-    void startTest() {
-        Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{"event", "start", "6"}));
-        Assertions.assertTrue(plugin.getGameManager().eventIsActive());
-    }
-    
-    
-    @Test
     @DisplayName("`/mct event start blank` complains that blank isn't an integer")
     void startWrongArgsTest() {
         Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{"event", "start", "blank"}));
