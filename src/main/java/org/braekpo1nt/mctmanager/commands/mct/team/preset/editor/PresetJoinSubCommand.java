@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.commands.mct.team.preset.editor;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.SubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
@@ -30,7 +29,7 @@ public class PresetJoinSubCommand extends SubCommand {
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 3) {
-            return CommandResult.failure(getUsage().of("<presetFile.json>").of("<team>").of("<member>"));
+            return CommandResult.failure(getUsage().of("<team>").of("<member>"));
         }
         String presetFile = args[0];
         String teamId = args[1];

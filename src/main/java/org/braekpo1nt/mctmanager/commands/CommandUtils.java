@@ -11,6 +11,7 @@ import java.util.*;
 public class CommandUtils {
     
     private static final Map<String, List<String>> GAME_CONFIGS = new HashMap<>();
+    private static @NotNull List<String> PRESET_FILES = Collections.emptyList();
     
     /**
      * @param value the string to check if it is an integer
@@ -112,5 +113,35 @@ public class CommandUtils {
                 }
             }
         });
+    }
+    
+    public static @NotNull List<String> getPresetFiles() {
+        return PRESET_FILES;
+    }
+    
+    public static void refreshPresetFiles(Main plugin) {
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            File configDir = new File(plugin.getDataFolder(), "presets");
+            if (configDir.isDirectory()) {
+                File[] jsonFiles = configDir.listFiles(file ->
+                        file.isFile() && file.getName().endsWith(".json"));
+                if (jsonFiles != null) {
+                    PRESET_FILES = Arrays.stream(jsonFiles)
+                            .map(File::getName)
+                            .toList();
+                }
+            }
+        });
+    }
+    
+    public static @NotNull String[] removeElement(@NotNull String[] original, int indexToRemove) {
+        if (indexToRemove < 0 || indexToRemove >= original.length) {
+            throw new IllegalArgumentException("Invalid index");
+        }
+        
+        String[] result = new String[original.length - 1];
+        System.arraycopy(original, 0, result, 0, indexToRemove);
+        System.arraycopy(original, indexToRemove + 1, result, indexToRemove, original.length - indexToRemove - 1);
+        return result;
     }
 }

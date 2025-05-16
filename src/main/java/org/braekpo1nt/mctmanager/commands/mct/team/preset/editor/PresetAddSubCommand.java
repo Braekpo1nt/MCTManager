@@ -2,7 +2,7 @@ package org.braekpo1nt.mctmanager.commands.mct.team.preset.editor;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.braekpo1nt.mctmanager.commands.manager.SubCommand;
+import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.mct.team.AddSubCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -12,11 +12,15 @@ import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Lets you add a team to the preset
  */
-public class PresetAddSubCommand extends SubCommand {
+public class PresetAddSubCommand extends TabSubCommand {
     
     
     private final PresetStorageUtil storageUtil;
@@ -29,7 +33,7 @@ public class PresetAddSubCommand extends SubCommand {
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 4) {
-            return CommandResult.failure(getUsage().of("<presetFile.json>").of("<team>").of("\"<displayName>\"").of("<color>"));
+            return CommandResult.failure(getUsage().of("<team>").of("\"<displayName>\"").of("<color>"));
         }
         
         int[] displayNameIndexes = AddSubCommand.getDisplayNameIndexes(args);
@@ -109,6 +113,22 @@ public class PresetAddSubCommand extends SubCommand {
                             .color(ColorMap.getNamedTextColor(colorString)))
                     .append(Component.text(" to the preset")));
         });
+    }
+    
+    @Override
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (args.length >= 4) {
+            int[] displayNameIndexes = AddSubCommand.getDisplayNameIndexes(args);
+            int displayNameStart = displayNameIndexes[0];
+            int displayNameEnd = displayNameIndexes[1];
+            if (!AddSubCommand.displayNameIndexesAreInvalid(displayNameStart, displayNameEnd)) {
+                if (args.length == displayNameEnd + 2) {
+                    String colorString = args[displayNameEnd + 1];
+                    return ColorMap.getPartiallyMatchingColorStrings(colorString);
+                }
+            }
+        }
+        return Collections.emptyList();
     }
     
 }

@@ -25,7 +25,7 @@ public class PresetLeaveSubCommand extends SubCommand {
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length != 2) {
-            return CommandResult.failure(getUsage().of("<presetFile.json>").of("<member>"));
+            return CommandResult.failure(getUsage().of("<member>"));
         }
         String presetFile = args[0];
         String ign = args[1];

@@ -32,7 +32,7 @@ public class PresetWhitelistSubCommand extends TabSubCommand {
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length != 2) {
-            return CommandResult.failure(getUsage().of("<presetFile.json>").of("<true|false>"));
+            return CommandResult.failure(getUsage().of("<true|false>"));
         }
         String presetFile = args[0];
         

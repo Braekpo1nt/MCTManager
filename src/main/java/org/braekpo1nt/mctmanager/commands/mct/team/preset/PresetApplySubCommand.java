@@ -4,7 +4,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
-import org.braekpo1nt.mctmanager.commands.manager.Usage;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
@@ -44,7 +43,7 @@ public class PresetApplySubCommand extends TabSubCommand {
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         
         if (args.length < 1) {
-            return CommandResult.failure(getUsage().of("<presetFile.json>").of("[override|resetScores|whiteList]"));
+            return CommandResult.failure(getUsage().of("[override|resetScores|whiteList]"));
         }
         
         boolean override = false;
