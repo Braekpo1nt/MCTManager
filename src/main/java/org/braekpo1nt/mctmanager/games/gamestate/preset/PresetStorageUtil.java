@@ -21,8 +21,8 @@ public class PresetStorageUtil {
     
     private final PresetController controller;
     
-    public PresetStorageUtil(Main plugin) {
-        this.controller = new PresetController(new File(plugin.getDataFolder(), "presets"));
+    public PresetStorageUtil(File pluginDataFolder) {
+        this.controller = new PresetController(new File(pluginDataFolder, "presets"));
     }
     
     /**

@@ -29,10 +29,22 @@ public class HubConfig {
     private PracticeConfig practice;
     
     @Data
-    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class PracticeConfig {
         private List<GameType> allowedGames;
         private Map<GameType, String> gameConfigs;
+        private @Nullable Preset preset;
+    }
+    
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Preset {
+        private String file;
+        private boolean override;
+        private boolean resetScores;
+        private boolean whitelist;
     }
     
     @Data

@@ -25,7 +25,7 @@ public class PresetCommand extends OptCommandManager {
         super(name, "<presetFile.json>");
         this.plugin = plugin;
         CommandUtils.refreshPresetFiles(plugin);
-        PresetStorageUtil storageUtil = new PresetStorageUtil(plugin);
+        PresetStorageUtil storageUtil = new PresetStorageUtil(plugin.getDataFolder());
         addSubCommand(new PresetApplySubCommand(plugin, gameManager, storageUtil, "apply"));
         addSubCommand(new PresetWhitelistSubCommand(storageUtil, "whitelist"));
         

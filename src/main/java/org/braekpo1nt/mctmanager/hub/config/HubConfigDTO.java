@@ -81,15 +81,51 @@ record HubConfigDTO(
         
         private List<GameType> allowedGames;
         private Map<GameType, String> configFiles;
+        private @Nullable PresetDTO preset;
         
         @Override
         public void validate(@NotNull Validator validator) {
             validator.notNull(allowedGames, "allowedGames");
             validator.notNull(configFiles, "configFiles");
+            if (preset != null) {
+                preset.validate(validator.path("preset"));
+            }
         }
         
         public HubConfig.PracticeConfig toPractice() {
-            return new HubConfig.PracticeConfig(allowedGames, configFiles);
+            return new HubConfig.PracticeConfig(
+                    allowedGames, 
+                    configFiles,
+                    preset != null ? preset.toPreset() : null
+            );
+        }
+    }
+    
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    static class PresetDTO implements Validatable {
+        
+        private String file;
+        private Boolean override;
+        private Boolean resetScores;
+        private Boolean whitelist;
+        
+        @Override
+        public void validate(@NotNull Validator validator) {
+            validator.notNull(file, "file");
+            validator.notNull(override, "override");
+            validator.notNull(resetScores, "resetScores");
+            validator.notNull(whitelist, "whitelist");
+        }
+        
+        public HubConfig.Preset toPreset() {
+            return new HubConfig.Preset(
+                    file,
+                    override,
+                    resetScores,
+                    whitelist
+            );
         }
     }
     

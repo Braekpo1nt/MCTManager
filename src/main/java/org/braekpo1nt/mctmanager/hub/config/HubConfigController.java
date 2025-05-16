@@ -70,6 +70,22 @@ public class HubConfigController extends ConfigController<HubConfigDTO> {
         LocationDTO defaultLocation = new LocationDTO(defaultSpawn);
         int yLimit = -64;
         HubConfigDTO.Durations durations = new HubConfigDTO.Durations(10);
-        return new HubConfigDTO(Main.VALID_CONFIG_VERSIONS.getLast(), defaultWorld.getName(), defaultLocation, defaultLocation, defaultLocation, "maintenance", new HubConfigDTO.PracticeDTO(Collections.emptyList(), Collections.emptyMap()), Collections.emptyList(), Collections.emptyList(), yLimit, durations);
+        return new HubConfigDTO(
+                Main.VALID_CONFIG_VERSIONS.getLast(), 
+                defaultWorld.getName(), 
+                defaultLocation, 
+                defaultLocation, 
+                defaultLocation, 
+                "maintenance", 
+                new HubConfigDTO.PracticeDTO(
+                        Collections.emptyList(), 
+                        Collections.emptyMap(),
+                        null
+                ), 
+                Collections.emptyList(), 
+                Collections.emptyList(), 
+                yLimit, 
+                durations
+        );
     }
 }
