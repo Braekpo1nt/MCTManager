@@ -454,7 +454,8 @@ public class GameManagerUtils {
     
     /**
      * 
-     * @param whiteList if true, all players listed in the preset will be whitelisted as well
+     * @param whiteList if true, all participants in the preset will be whitelisted.
+     *                  If false, no participants will be whitelisted by this process.
      * @param override if true, all previous teams and participants will be cleared and the preset 
      *                 teams and participants will be added (thus replacing everything with the 
      *                 preset). If false, the previous GameSate will not be changed, and it will 
@@ -463,6 +464,8 @@ public class GameManagerUtils {
      *                 any participants not mentioned in preset will be ignored/unchanged.
      * @param resetScores if true, all scores will be set to 0 for all teams mentioned in the preset, 
      *                    even if the teams already exist. 
+     * @param unWhitelist if true, all participants will be un-whitelisted before the preset
+     *                    is applied. If false, no players will be un-whitelisted by this process.
      * @param kickUnWhitelisted kick any players which are online but aren't whitelisted after
      *                          the application of the given preset
      * @return a comprehensive {@link CompositeCommandResult} including every {@link CommandResult} of the (perhaps many) operations performed here.
@@ -475,6 +478,7 @@ public class GameManagerUtils {
             boolean override, 
             boolean resetScores, 
             boolean whiteList,
+            boolean unWhitelist,
             boolean kickUnWhitelisted) {
         Preset preset;
         try {
@@ -485,12 +489,28 @@ public class GameManagerUtils {
                     .append(Component.text("Error occurred loading preset. See console for details: "))
                     .append(Component.text(e.getMessage())));
         }
+        
+        
+        List<CommandResult> results = new LinkedList<>();
+        
+        Collection<OfflineParticipant> offlineParticipants = gameManager.getOfflineParticipants();
+        if (unWhitelist) {
+            int count = 0;
+            for (OfflineParticipant offlineParticipant : offlineParticipants) {
+                OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(offlineParticipant.getUniqueId());
+                offlinePlayer.setWhitelisted(false);
+                count++;
+            }
+            results.add(CommandResult.success(Component.empty()
+                    .append(Component.text("Removed "))
+                    .append(Component.text(count))
+                    .append(Component.text(" participants from the whitelist"))));
+        }
          
         // check if they want to overwrite or merge the game state
-        List<CommandResult> results = new LinkedList<>();
         if (override) {
             // remove all existing teams and leave all existing players
-            int oldParticipantCount = gameManager.getOfflineParticipants().size();
+            int oldParticipantCount = offlineParticipants.size();
             Set<String> teamIds = gameManager.getTeamIds();
             int oldTeamCount = teamIds.size();
             for (String teamId : teamIds) {

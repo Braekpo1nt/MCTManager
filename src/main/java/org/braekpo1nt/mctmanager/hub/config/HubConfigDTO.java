@@ -25,7 +25,7 @@ record HubConfigDTO(
         LocationDTO spawn,
         LocationDTO podium,
         LocationDTO podiumObservation,
-        @Nullable String initialState,
+        @Nullable String initialMode,
         PracticeDTO practice,
         List<LeaderboardDTO> leaderboards,
         List<Material> preventInteractions,
@@ -66,7 +66,7 @@ record HubConfigDTO(
                 .yLimit(this.yLimit)
                 .tpToHubDuration(this.durations.tpToHub)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
-                .initialState(this.initialState)
+                .initialMode(this.initialMode)
                 .practice(this.practice.toPractice())
                 .build();
     }
@@ -112,7 +112,15 @@ record HubConfigDTO(
         private String file;
         private Boolean override;
         private Boolean resetScores;
+        /**
+         * Add participants who are in the preset to the whitelist when applied
+         */
         private Boolean whitelist;
+        /**
+         * Remove current participants from the whitelist before the whitelist
+         * is applied
+         */
+        private Boolean unWhitelist;
         /**
          * if true, players who are not whitelisted when transitioning to the practice mode
          * will be kicked (this kicking happens after the application of the preset)
@@ -126,6 +134,7 @@ record HubConfigDTO(
             validator.notNull(resetScores, "resetScores");
             validator.notNull(whitelist, "whitelist");
             validator.notNull(kickUnWhitelisted, "kickUnWhitelisted");
+            validator.notNull(unWhitelist, "unWhitelist");
         }
         
         public HubConfig.PresetConfig toPreset() {
@@ -134,6 +143,7 @@ record HubConfigDTO(
                     override,
                     resetScores,
                     whitelist,
+                    unWhitelist,
                     kickUnWhitelisted
             );
         }

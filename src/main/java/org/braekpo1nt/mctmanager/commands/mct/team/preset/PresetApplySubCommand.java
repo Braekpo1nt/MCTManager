@@ -36,12 +36,13 @@ public class PresetApplySubCommand extends TabSubCommand {
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         
         if (args.length < 1) {
-            return CommandResult.failure(getUsage().of("[override|resetScores|whiteList|kickUnWhitelisted]"));
+            return CommandResult.failure(getUsage().of("[override|resetScores|whiteList|unWhitelist|kickUnWhitelisted]"));
         }
         
         boolean override = false;
         boolean resetScores = false;
         boolean whiteList = false;
+        boolean unWhitelist = false;
         boolean kickUnWhitelisted = false;
         
         String presetFile = args[0];
@@ -66,6 +67,9 @@ public class PresetApplySubCommand extends TabSubCommand {
                 case "whiteList":
                     whiteList = true;
                     break;
+                case "unWhitelist":
+                    unWhitelist = true;
+                    break;
                 case "kickUnWhitelisted":
                     kickUnWhitelisted = true;
                     break;
@@ -86,6 +90,7 @@ public class PresetApplySubCommand extends TabSubCommand {
                 override, 
                 resetScores, 
                 whiteList, 
+                unWhitelist,
                 kickUnWhitelisted
         );
     }
@@ -94,6 +99,7 @@ public class PresetApplySubCommand extends TabSubCommand {
             "override", 
             "resetScores", 
             "whiteList",
+            "unWhitelist",
             "kickUnWhitelisted");
     
     @Override

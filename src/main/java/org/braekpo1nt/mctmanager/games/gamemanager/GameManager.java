@@ -18,13 +18,9 @@ import org.braekpo1nt.mctmanager.games.game.footrace.editor.FootRaceEditor;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourPathwayEditor;
-import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfig;
-import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfigController;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.GameManagerState;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.MaintenanceState;
-import org.braekpo1nt.mctmanager.games.gamemanager.states.PracticeState;
-import org.braekpo1nt.mctmanager.games.gamemanager.states.event.ReadyUpState;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.hub.config.HubConfig;
@@ -141,23 +137,7 @@ public class GameManager implements Listener {
                 .sidebar(this.sidebar)
                 .leaderboardManagers(this.leaderboardManagers)
                 .build();
-        this.state = getInitialState(this.config.getInitialState(), contextReference);
-    }
-    
-    private @NotNull GameManagerState getInitialState(@Nullable String initialState, ContextReference contextReference) {
-        return switch (initialState) {
-            case "practice" -> new PracticeState(this, contextReference);
-            case "event" -> {
-                try {
-                    EventConfig eventConfig = new EventConfigController(plugin.getDataFolder()).getConfig();
-                    yield new ReadyUpState(this, contextReference, eventConfig, 7, 0);
-                } catch (ConfigException e) {
-                    Main.logger().log(Level.SEVERE, e.getMessage(), e);
-                    yield new MaintenanceState(this, contextReference);
-                }
-            }
-            case null, default -> new MaintenanceState(this, contextReference);
-        };
+        this.state = new MaintenanceState(this, contextReference);
     }
     
     public CommandResult switchMode(@NotNull String mode) {
@@ -474,6 +454,9 @@ public class GameManager implements Listener {
         state.updateSidebarTeamScores();
         state.updateSidebarPersonalScores(onlineParticipants.values());
         // sidebar stop
+        if (config.getInitialMode() != null) {
+            switchMode(config.getInitialMode());
+        }
         return true;
     }
     
