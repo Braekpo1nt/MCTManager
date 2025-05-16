@@ -55,7 +55,8 @@ public class PracticeState extends GameManagerState {
                     presetConfig.getFile(),
                     presetConfig.isOverride(),
                     presetConfig.isResetScores(),
-                    presetConfig.isWhitelist());
+                    presetConfig.isWhitelist(),
+                    presetConfig.isKickUnWhitelisted());
             context.messageAdmins(commandResult.getMessageOrEmpty());
         }
     }

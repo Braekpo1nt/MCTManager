@@ -461,7 +461,10 @@ public class GameManagerUtils {
      *                 try to add all teams from the preset but not override existing teams, 
      *                 and participants will be joined to teams according to the preset but 
      *                 any participants not mentioned in preset will be ignored/unchanged.
-     * @param resetScores if true, all scores will be set to 0 for all teams mentioned in the preset, even if the teams already exist. 
+     * @param resetScores if true, all scores will be set to 0 for all teams mentioned in the preset, 
+     *                    even if the teams already exist. 
+     * @param kickUnWhitelisted kick any players which are online but aren't whitelisted after
+     *                          the application of the given preset
      * @return a comprehensive {@link CompositeCommandResult} including every {@link CommandResult} of the (perhaps many) operations performed here.
      */
     public static @NotNull CommandResult applyPreset(
@@ -471,7 +474,8 @@ public class GameManagerUtils {
             @NotNull String presetFile, 
             boolean override, 
             boolean resetScores, 
-            boolean whiteList) {
+            boolean whiteList,
+            boolean kickUnWhitelisted) {
         Preset preset;
         try {
             preset = storageUtil.loadPreset(presetFile);
@@ -549,6 +553,15 @@ public class GameManagerUtils {
                     .append(Component.text("Whitelisted "))
                     .append(Component.text(participantCount))
                     .append(Component.text(" participant(s)"))));
+        }
+        
+        if (kickUnWhitelisted) {
+            for (Player onlinePlayer : plugin.getServer().getOnlinePlayers()) {
+                if (!onlinePlayer.isWhitelisted() && !onlinePlayer.isOp()) {
+                    onlinePlayer.kick(Component.empty()
+                            .append(Component.text("You are not whitelisted on this server.")));
+                }
+            }
         }
         
         return CompositeCommandResult.all(results);

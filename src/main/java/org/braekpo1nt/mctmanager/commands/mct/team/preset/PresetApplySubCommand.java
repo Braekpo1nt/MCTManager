@@ -36,12 +36,13 @@ public class PresetApplySubCommand extends TabSubCommand {
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         
         if (args.length < 1) {
-            return CommandResult.failure(getUsage().of("[override|resetScores|whiteList]"));
+            return CommandResult.failure(getUsage().of("[override|resetScores|whiteList|kickUnWhitelisted]"));
         }
         
         boolean override = false;
         boolean resetScores = false;
         boolean whiteList = false;
+        boolean kickUnWhitelisted = false;
         
         String presetFile = args[0];
         
@@ -65,6 +66,9 @@ public class PresetApplySubCommand extends TabSubCommand {
                 case "whiteList":
                     whiteList = true;
                     break;
+                case "kickUnWhitelisted":
+                    kickUnWhitelisted = true;
+                    break;
                 default:
                     return CommandResult.failure(Component.empty()
                             .append(Component.text(arg)
@@ -74,10 +78,23 @@ public class PresetApplySubCommand extends TabSubCommand {
             seenArguments.add(arg);
         }
         
-        return GameManagerUtils.applyPreset(plugin, gameManager, storageUtil, presetFile, override, resetScores, whiteList);
+        return GameManagerUtils.applyPreset(
+                plugin, 
+                gameManager, 
+                storageUtil, 
+                presetFile, 
+                override, 
+                resetScores, 
+                whiteList, 
+                kickUnWhitelisted
+        );
     }
     
-    private final List<String> validOptions = List.of("override", "resetScores", "whiteList");
+    private final List<String> validOptions = List.of(
+            "override", 
+            "resetScores", 
+            "whiteList",
+            "kickUnWhitelisted");
     
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args) {
