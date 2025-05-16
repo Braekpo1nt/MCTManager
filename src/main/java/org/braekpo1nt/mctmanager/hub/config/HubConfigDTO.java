@@ -81,7 +81,7 @@ record HubConfigDTO(
         
         private List<GameType> allowedGames;
         private Map<GameType, String> configFiles;
-        private @Nullable PresetDTO preset;
+        private @Nullable HubConfigDTO.PresetConfigDTO preset;
         
         @Override
         public void validate(@NotNull Validator validator) {
@@ -104,7 +104,7 @@ record HubConfigDTO(
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    static class PresetDTO implements Validatable {
+    static class PresetConfigDTO implements Validatable {
         
         /**
          * The name of the preset file (located in MCTManager/presets/) to use
@@ -128,8 +128,8 @@ record HubConfigDTO(
             validator.notNull(kickUnWhitelisted, "kickUnWhitelisted");
         }
         
-        public HubConfig.Preset toPreset() {
-            return new HubConfig.Preset(
+        public HubConfig.PresetConfig toPreset() {
+            return new HubConfig.PresetConfig(
                     file,
                     override,
                     resetScores,

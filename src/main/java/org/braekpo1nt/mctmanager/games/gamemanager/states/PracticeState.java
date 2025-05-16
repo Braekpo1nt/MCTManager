@@ -46,7 +46,7 @@ public class PracticeState extends GameManagerState {
                         .filter(participant -> !isParticipantInGame(participant.getUniqueId()))
                         .toList());
         setupSidebar();
-        HubConfig.Preset presetConfig = config.getPractice().getPreset();
+        HubConfig.PresetConfig presetConfig = config.getPractice().getPreset();
         if (presetConfig != null) {
             CommandResult commandResult = GameManagerUtils.applyPreset(
                     plugin,

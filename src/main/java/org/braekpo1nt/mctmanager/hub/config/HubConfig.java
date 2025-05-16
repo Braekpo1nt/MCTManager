@@ -37,13 +37,13 @@ public class HubConfig {
         /**
          * If null, no preset will be used. 
          */
-        private @Nullable Preset preset;
+        private @Nullable HubConfig.PresetConfig preset;
     }
     
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class Preset {
+    public static class PresetConfig {
         private String file;
         private boolean override;
         private boolean resetScores;

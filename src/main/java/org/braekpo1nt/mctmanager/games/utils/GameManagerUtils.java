@@ -556,12 +556,18 @@ public class GameManagerUtils {
         }
         
         if (kickUnWhitelisted) {
+            int kickCount = 0;
             for (Player onlinePlayer : plugin.getServer().getOnlinePlayers()) {
                 if (!onlinePlayer.isWhitelisted() && !onlinePlayer.isOp()) {
                     onlinePlayer.kick(Component.empty()
                             .append(Component.text("You are not whitelisted on this server.")));
+                    kickCount++;
                 }
             }
+            results.add(CommandResult.success(Component.empty()
+                    .append(Component.text("Kicked "))
+                    .append(Component.text(kickCount))
+                    .append(Component.text(" un-whitelisted player(s)"))));
         }
         
         return CompositeCommandResult.all(results);
