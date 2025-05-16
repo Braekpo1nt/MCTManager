@@ -106,10 +106,18 @@ record HubConfigDTO(
     @NoArgsConstructor
     static class PresetDTO implements Validatable {
         
+        /**
+         * The name of the preset file (located in MCTManager/presets/) to use
+         */
         private String file;
         private Boolean override;
         private Boolean resetScores;
         private Boolean whitelist;
+        /**
+         * if true, players who are not whitelisted when transitioning to the practice mode
+         * will be kicked (this kicking happens after the application of the preset)
+         */
+        private Boolean kickUnWhitelisted;
         
         @Override
         public void validate(@NotNull Validator validator) {
@@ -117,6 +125,7 @@ record HubConfigDTO(
             validator.notNull(override, "override");
             validator.notNull(resetScores, "resetScores");
             validator.notNull(whitelist, "whitelist");
+            validator.notNull(kickUnWhitelisted, "kickUnWhitelisted");
         }
         
         public HubConfig.Preset toPreset() {
@@ -124,7 +133,8 @@ record HubConfigDTO(
                     file,
                     override,
                     resetScores,
-                    whitelist
+                    whitelist,
+                    kickUnWhitelisted
             );
         }
     }

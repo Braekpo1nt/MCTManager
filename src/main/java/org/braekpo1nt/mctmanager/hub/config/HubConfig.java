@@ -34,6 +34,9 @@ public class HubConfig {
     public static class PracticeConfig {
         private List<GameType> allowedGames;
         private Map<GameType, String> gameConfigs;
+        /**
+         * If null, no preset will be used. 
+         */
         private @Nullable Preset preset;
     }
     
@@ -45,6 +48,11 @@ public class HubConfig {
         private boolean override;
         private boolean resetScores;
         private boolean whitelist;
+        /**
+         * if true, players who are not whitelisted when transitioning to the practice mode
+         * will be kicked (this kicking happens after the application of the preset)
+         */
+        private boolean kickUnWhitelisted;
     }
     
     @Data
