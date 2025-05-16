@@ -162,7 +162,7 @@ public class TabList implements UIManager {
     private @Nullable TeamData getTeamData(@NotNull String teamId) {
         TeamData teamData = teamDatas.get(teamId);
         if (teamData == null) {
-            logUIError("team %s does not exist in this BattleTopbar", teamId);
+            logUIError("team %s does not exist in this TabList", teamId);
         }
         return teamData;
     }
@@ -186,7 +186,7 @@ public class TabList implements UIManager {
     private @Nullable PlayerData getPlayerData(@NotNull UUID playerUUID) {
         PlayerData playerData = playerDatas.get(playerUUID);
         if (playerData == null) {
-            logUIError("player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+            logUIError("player with UUID \"%s\" does not exist in this TabList", playerUUID);
         }
         return playerData;
     }
@@ -463,7 +463,7 @@ public class TabList implements UIManager {
      */
     private void logUIError(@NotNull String reason, Object... args) {
         Main.logger().log(Level.SEVERE,
-                "An error occurred in the ManyBattleTopbar. Failing gracefully.",
+                "An error occurred in the TabList. Failing gracefully.",
                 new UIException(String.format(reason, args)));
     }
     

@@ -19,6 +19,7 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
@@ -41,13 +42,19 @@ public class PresetApplySubCommand extends TabSubCommand {
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         
+        if (args.length < 1) {
+            return CommandResult.failure(getUsage().of("[override|resetScores|whiteList]"));
+        }
+        
         boolean override = false;
         boolean resetScores = false;
         boolean whiteList = false;
         
-        Set<String> seenArguments = new HashSet<>();
+        String presetFile = args[0];
         
-        for (String arg : args) {
+        Set<String> seenArguments = new HashSet<>();
+        for (int i = 1; i < args.length; i++) {
+            String arg = args[i];
             if (seenArguments.contains(arg)) {
                 return CommandResult.failure(Component.empty()
                         .append(Component.text("Duplicate argument: "))
@@ -74,12 +81,11 @@ public class PresetApplySubCommand extends TabSubCommand {
             seenArguments.add(arg);
         }
         
-        return applyPreset(sender, override, resetScores, whiteList);
+        return applyPreset(presetFile, override, resetScores, whiteList);
     }
     
     /**
      * 
-     * @param sender the sender
      * @param whiteList if true, all players listed in the preset will be whitelisted as well
      * @param override if true, all previous teams and participants will be cleared and the preset 
      *                 teams and participants will be added (thus replacing everything with the 
@@ -90,19 +96,17 @@ public class PresetApplySubCommand extends TabSubCommand {
      * @param resetScores if true, all scores will be set to 0 for all teams mentioned in the preset, even if the teams already exist. 
      * @return a comprehensive {@link CompositeCommandResult} including every {@link CommandResult} of the (perhaps many) operations performed here.
      */
-    private @NotNull CommandResult applyPreset(@NotNull CommandSender sender, boolean override, boolean resetScores, boolean whiteList) {
+    private @NotNull CommandResult applyPreset(@NotNull String presetFile, boolean override, boolean resetScores, boolean whiteList) {
         Preset preset;
         try {
-            storageUtil.loadPreset();
-            preset = storageUtil.getPreset();
+            preset = storageUtil.loadPreset(presetFile);
         } catch (ConfigException e) {
-            Main.logger().severe(String.format("Could not load preset. %s", e.getMessage()));
-            e.printStackTrace();
+            Main.logger().log(Level.SEVERE, String.format("Could not load preset. %s", e.getMessage()), e);
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Error occurred loading preset. See console for details: "))
                     .append(Component.text(e.getMessage())));
         }
-        
+         
         // check if they want to overwrite or merge the game state
         List<CommandResult> results = new LinkedList<>();
         if (override) {
@@ -179,6 +183,9 @@ public class PresetApplySubCommand extends TabSubCommand {
     
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args) {
+        if (args.length == 1) {
+            return Collections.emptyList();
+        }
         Set<String> seenArguments = Arrays.stream(args).collect(Collectors.toSet());
         List<String> suggestions = new ArrayList<>();
         for (String option : validOptions) {
