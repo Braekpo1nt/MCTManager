@@ -25,6 +25,7 @@ record HubConfigDTO(
         LocationDTO spawn,
         LocationDTO podium,
         LocationDTO podiumObservation,
+        @Nullable String initialState,
         PracticeDTO practice,
         List<LeaderboardDTO> leaderboards,
         List<Material> preventInteractions,
@@ -65,7 +66,8 @@ record HubConfigDTO(
                 .yLimit(this.yLimit)
                 .tpToHubDuration(this.durations.tpToHub)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
-                .practice(practice.toPractice())
+                .initialState(this.initialState)
+                .practice(this.practice.toPractice())
                 .build();
     }
     
