@@ -43,6 +43,7 @@ public class PracticeState extends GameManagerState {
                         .filter(participant -> !isParticipantInGame(participant.getUniqueId()))
                         .toList());
         setupSidebar();
+        
     }
     
     @Override
