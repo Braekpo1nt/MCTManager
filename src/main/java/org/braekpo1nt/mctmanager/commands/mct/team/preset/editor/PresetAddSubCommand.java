@@ -2,29 +2,21 @@ package org.braekpo1nt.mctmanager.commands.mct.team.preset.editor;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
+import org.braekpo1nt.mctmanager.commands.manager.SubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.mct.team.AddSubCommand;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.gamestate.preset.Preset;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.logging.Level;
 
 /**
  * Lets you add a team to the preset
  */
-public class PresetAddSubCommand extends TabSubCommand {
+public class PresetAddSubCommand extends SubCommand {
     
     
     private final PresetStorageUtil storageUtil;
@@ -76,79 +68,47 @@ public class PresetAddSubCommand extends TabSubCommand {
     }
     
     private @NotNull CommandResult addTeam(@NotNull String presetFile, @NotNull String teamId, @NotNull String displayName, @NotNull String colorString) {
-        Preset preset;
-        try {
-            storageUtil.loadPreset(presetFile);
-            preset = storageUtil.getPreset();
-        } catch (ConfigException e) {
-            Main.logger().log(Level.SEVERE, String.format("Could not load preset. %s", e.getMessage()), e);
-            return CommandResult.failure(Component.empty()
-                    .append(Component.text("Error occurred loading preset. See console for details: "))
-                    .append(Component.text(e.getMessage())));
-        }
-        
-        if (preset.hasTeamId(teamId)) {
-            return CommandResult.failure(Component.text("A team already exists with the teamId \"")
-                    .append(Component.text(teamId))
-                    .append(Component.text("\" in the preset")));
-        }
-        
-        if (teamId.equals(GameManager.ADMIN_TEAM)) {
-            return CommandResult.failure(Component.empty()
-                    .append(Component.text(teamId)
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" cannot be "))
-                    .append(Component.text(GameManager.ADMIN_TEAM)
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" because that is reserved for the admin team.")));
-        }
-        
-        if (!GameManagerUtils.validTeamId(teamId)) {
-            return CommandResult.failure(Component.text("Provide a valid team name\n")
-                    .append(Component.text(
-                            "Allowed characters: -, +, ., _, A-Z, a-z, and 0-9")));
-        }
-        
-        if (displayName.isEmpty()) {
-            return CommandResult.failure("Display name can't be blank");
-        }
-        
-        if (!ColorMap.hasNamedTextColor(colorString)) {
-            return CommandResult.failure(Component.empty()
-                    .append(Component.text(colorString)
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" is not a recognized color")));
-        }
-        
-        preset.addTeam(teamId, displayName, colorString);
-        try {
-            storageUtil.savePreset(presetFile);
-        } catch (ConfigException e) {
-            Main.logger().log(Level.SEVERE, String.format("Could not save preset. %s", e.getMessage()), e);
-            return CommandResult.failure(Component.empty()
-                    .append(Component.text("Error occurred saving preset. See console for details: "))
-                    .append(Component.text(e.getMessage())));
-        }
-        return CommandResult.success(Component.empty()
-                .append(Component.text("Added "))
-                .append(Component.text(displayName)
-                        .color(ColorMap.getNamedTextColor(colorString)))
-                .append(Component.text(" to the preset")));
+        return storageUtil.modifyPreset(presetFile, preset -> {
+            if (preset.hasTeamId(teamId)) {
+                return CommandResult.failure(Component.text("A team already exists with the teamId \"")
+                        .append(Component.text(teamId))
+                        .append(Component.text("\" in the preset")));
+            }
+            
+            if (teamId.equals(GameManager.ADMIN_TEAM)) {
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text(teamId)
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" cannot be "))
+                        .append(Component.text(GameManager.ADMIN_TEAM)
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" because that is reserved for the admin team.")));
+            }
+            
+            if (!GameManagerUtils.validTeamId(teamId)) {
+                return CommandResult.failure(Component.text("Provide a valid team name\n")
+                        .append(Component.text(
+                                "Allowed characters: -, +, ., _, A-Z, a-z, and 0-9")));
+            }
+            
+            if (displayName.isEmpty()) {
+                return CommandResult.failure("Display name can't be blank");
+            }
+            
+            if (!ColorMap.hasNamedTextColor(colorString)) {
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text(colorString)
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" is not a recognized color")));
+            }
+            
+            preset.addTeam(teamId, displayName, colorString);
+            return CommandResult.success(Component.empty()
+                    .append(Component.text("Added "))
+                    .append(Component.text(displayName)
+                            .color(ColorMap.getNamedTextColor(colorString)))
+                    .append(Component.text(" to the preset")));
+        });
     }
     
-    @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length >= 3) {
-            int[] displayNameIndexes = AddSubCommand.getDisplayNameIndexes(args);
-            int displayNameStart = displayNameIndexes[0];
-            int displayNameEnd = displayNameIndexes[1];
-            if (!AddSubCommand.displayNameIndexesAreInvalid(displayNameStart, displayNameEnd)) {
-                if (args.length == displayNameEnd + 2) {
-                    String colorString = args[displayNameEnd + 1];
-                    return ColorMap.getPartiallyMatchingColorStrings(colorString);
-                }
-            }
-        }
-        return Collections.emptyList();
-    }
 }

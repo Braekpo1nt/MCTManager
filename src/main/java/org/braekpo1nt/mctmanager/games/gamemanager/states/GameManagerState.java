@@ -169,7 +169,7 @@ public abstract class GameManagerState {
         onlineParticipants.put(participant.getUniqueId(), participant);
         MCTTeam team = teams.get(participant.getTeamId());
         team.joinOnlineMember(participant);
-        participant.getPlayer().setScoreboard(mctScoreboard);
+        setupScoreboard(participant);
         participant.addPotionEffect(Main.NIGHT_VISION);
         Component displayName = Component.text(participant.getName(), team.getColor());
         participant.getPlayer().displayName(displayName);
@@ -180,6 +180,20 @@ public abstract class GameManagerState {
         ColorMap.colorLeatherArmor(participant, team.getBukkitColor());
         leaderboardManagers.forEach(manager -> manager.showPlayer(participant.getPlayer()));
         updateScoreVisuals(Collections.singletonList(team), Collections.singletonList(participant));
+    }
+    
+    /**
+     * Set up the internal scoreboard connections
+     * @param participant the participant to set up the scoreboard for
+     */
+    private void setupScoreboard(@NotNull MCTParticipant participant) {
+        participant.getPlayer().setScoreboard(mctScoreboard);
+        org.bukkit.scoreboard.Team scoreboardTeam = mctScoreboard.getTeam(participant.getTeamId());
+        if (scoreboardTeam != null) {
+            scoreboardTeam.addPlayer(participant.getPlayer());
+        } else {
+            Main.logger().severe(String.format("Error retrieving team with ID %s from scoreboard", participant.getTeamId()));
+        }
     }
     
     public void onAdminQuit(@NotNull PlayerQuitEvent event, @NotNull Player admin) {
@@ -260,7 +274,7 @@ public abstract class GameManagerState {
     public void updateSidebarTeamScores() {
         List<Team> sortedTeams = context.getSortedTeams();
         int numOfTeamLines = Math.min(10, sortedTeams.size());
-        KeyLine[] teamLines = new KeyLine[numOfTeamLines];
+        KeyLine[] teamLines = new KeyLine[10];
         for (int i = 0; i < numOfTeamLines; i++) {
             Team team = sortedTeams.get(i);
             teamLines[i] = new KeyLine("team"+i, Component.empty()
@@ -269,6 +283,10 @@ public abstract class GameManagerState {
                     .append(Component.text(team.getScore())
                             .color(NamedTextColor.GOLD))
             );
+        }
+        // fill out any empty lines
+        for (int i = numOfTeamLines; i < 10; i++) {
+            teamLines[i] = new KeyLine("team"+i, Component.empty());
         }
         sidebar.updateLines(teamLines);
     }
@@ -791,7 +809,7 @@ public abstract class GameManagerState {
         }
         teams.remove(team.getTeamId());
         tabList.removeTeam(teamId);
-        sidebar.deleteLine(teamId);
+        updateSidebarTeamScores();
         try {
             gameStateStorageUtil.removeTeam(teamId);
             results.add(CommandResult.success(Component.text("Removed team ")
@@ -859,7 +877,7 @@ public abstract class GameManagerState {
                 offlineParticipant.getParticipantID(),
                 offlineParticipant.getName(),
                 offlineParticipant.getTeamId(),
-                false);
+                true);
         try {
             gameStateStorageUtil.addNewPlayer(offlineParticipant.getUniqueId(), offlineParticipant.getName(), offlineParticipant.getTeamId());
         } catch (ConfigIOException e) {

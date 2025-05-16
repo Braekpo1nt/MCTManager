@@ -48,8 +48,7 @@ public class PresetWhitelistSubCommand extends TabSubCommand {
         
         Preset preset;
         try {
-            storageUtil.loadPreset(presetFile);
-            preset = storageUtil.getPreset();
+            preset = storageUtil.loadPreset(presetFile);
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, String.format("Could not load preset. %s", e.getMessage()), e);
             return CommandResult.failure(Component.empty()

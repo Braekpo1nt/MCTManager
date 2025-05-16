@@ -105,7 +105,7 @@ public class GameManager implements Listener {
     protected final Map<UUID, GameType> participantGames = new HashMap<>();
     private final TabList tabList;
     private final @NotNull List<LeaderboardManager> leaderboardManagers;
-    private final Sidebar sidebar;
+    private final Sidebar sidebar; // TODO: make sidebar a thing of each state, not central
     private final @NotNull HubConfig config;
     
     public GameManager(Main plugin, 
@@ -398,7 +398,7 @@ public class GameManager implements Listener {
             reportGameStateException("loading game state", e);
             return false;
         }
-        gameStateStorageUtil.setupScoreboard(mctScoreboard, plugin.getServer());
+        gameStateStorageUtil.setupScoreboard(mctScoreboard);
         teams.clear();
         allParticipants.clear();
         onlineParticipants.clear();

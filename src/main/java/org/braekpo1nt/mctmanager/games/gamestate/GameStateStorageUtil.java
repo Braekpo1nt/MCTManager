@@ -10,8 +10,6 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.ColorAttributes;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.Server;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
@@ -92,10 +90,9 @@ public class GameStateStorageUtil {
      * - add the players to those teams
      * @param scoreboard The scoreboard to set up
      */
-    public void setupScoreboard(Scoreboard scoreboard, Server server) {
+    public void setupScoreboard(Scoreboard scoreboard) {
         unregisterAllTeams(scoreboard);
         registerTeams(scoreboard);
-        joinPlayersToTeams(scoreboard, server);
     }
     
     /**
@@ -126,36 +123,6 @@ public class GameStateStorageUtil {
             NamedTextColor namedTextColor = ColorMap.getNamedTextColor(mctTeam.getColor());
             team.color(namedTextColor);
         }
-    }
-    
-    /**
-     * Joins all players in the game state to their respective teams on the given scoreboard
-     * @param scoreboard The scoreboard with the teams to join players to
-     */
-    private void joinPlayersToTeams(Scoreboard scoreboard, Server server) {
-        for (UUID adminUniqueId : gameState.getAdmins()) {
-            Team adminTeam = scoreboard.getTeam(GameManager.ADMIN_TEAM);
-            OfflinePlayer admin = server.getOfflinePlayer(adminUniqueId);
-            if (adminTeam == null) {
-                // this should never happen
-                String message = String.format("Could not find player with UUID %s", adminUniqueId);
-                LOGGER.severe(message);
-                throw new RuntimeException(message);
-            }
-            adminTeam.addPlayer(admin);
-        }
-        for (MCTPlayer mctPlayer : gameState.getPlayers().values()) {
-            Team team = scoreboard.getTeam(mctPlayer.getTeamId());
-            OfflinePlayer player = server.getOfflinePlayer(mctPlayer.getUniqueId());
-            if (team == null) {
-                // this should never happen
-                String message = String.format("Could not find team with name %s", mctPlayer.getTeamId());
-                LOGGER.severe(message);
-                throw new RuntimeException(message);
-            }
-            team.addPlayer(player);
-        }
-        
     }
     
     /**

@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
+import org.braekpo1nt.mctmanager.commands.manager.Usage;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
@@ -41,6 +42,10 @@ public class PresetApplySubCommand extends TabSubCommand {
     
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        
+        if (args.length < 1) {
+            return CommandResult.failure(getUsage().of("<presetFile.json>").of("[override|resetScores|whiteList]"));
+        }
         
         boolean override = false;
         boolean resetScores = false;
@@ -95,8 +100,7 @@ public class PresetApplySubCommand extends TabSubCommand {
     private @NotNull CommandResult applyPreset(@NotNull String presetFile, boolean override, boolean resetScores, boolean whiteList) {
         Preset preset;
         try {
-            storageUtil.loadPreset(presetFile);
-            preset = storageUtil.getPreset();
+            preset = storageUtil.loadPreset(presetFile);
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, String.format("Could not load preset. %s", e.getMessage()), e);
             return CommandResult.failure(Component.empty()
@@ -180,6 +184,9 @@ public class PresetApplySubCommand extends TabSubCommand {
     
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args) {
+        if (args.length == 1) {
+            return Collections.emptyList();
+        }
         Set<String> seenArguments = Arrays.stream(args).collect(Collectors.toSet());
         List<String> suggestions = new ArrayList<>();
         for (String option : validOptions) {
