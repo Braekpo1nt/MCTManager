@@ -375,7 +375,6 @@ public abstract class GameManagerState {
         }
         Audience.audience(
                 Audience.audience(sortedTeams),
-                Audience.audience(onlineAdmins),
                 plugin.getServer().getConsoleSender()
         ).sendMessage(everyone.build());
         
@@ -586,8 +585,9 @@ public abstract class GameManagerState {
      * @param participantScores the participant scores
      * @param gameParticipants  the UUIDs of the participants which are online and were in the finished
      *                          game. Must be UUIDs which are keys in {@link #onlineParticipants}.
+     * @param gameAdmins        the admins who were in the game
      */
-    public void gameIsOver(@NotNull GameType gameType, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants) {
+    public void gameIsOver(@NotNull GameType gameType, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants, @NotNull List<Player> gameAdmins) {
         MCTGame game = activeGames.remove(gameType);
         if (game == null) {
             return;
@@ -660,6 +660,15 @@ public abstract class GameManagerState {
         sidebar.addPlayer(participant);
         MCTTeam team = teams.get(participant.getTeamId());
         updateScoreVisuals(Collections.singletonList(team), Collections.singletonList(participant));
+    }
+    
+    protected void onAdminReturnToHub(@NotNull Player admin, @NotNull Location spawn) {
+        adminGames.remove(admin.getUniqueId());
+        admin.setGameMode(GameMode.SPECTATOR);
+        admin.teleport(spawn);
+        tabList.showPlayer(admin);
+        sidebar.addPlayer(admin);
+        updateSidebarTeamScores();
     }
     
     /**
@@ -1029,6 +1038,27 @@ public abstract class GameManagerState {
         activeGame.onParticipantQuit(participant.getUniqueId());
         onParticipantReturnToHub(participant, spawn);
         activeGame.onTeamQuit(participant.getTeamId());
+        return CommandResult.success(Component.text("Quitting current game. Returning to hub."));
+    }
+    
+    public CommandResult returnAdminToHub(@NotNull Player admin) {
+        return returnAdminToHub(admin, config.getSpawn());
+    }
+    
+    public CommandResult returnAdminToHub(@NotNull Player admin, @NotNull Location spawn) {
+        GameType gameType = adminGames.remove(admin.getUniqueId());
+        if (gameType == null) {
+            admin.teleport(spawn);
+            return CommandResult.success(Component.text("Returning to hub"));
+        }
+        MCTGame activeGame = activeGames.get(gameType);
+        if (activeGame == null) {
+            // this should not happen
+            admin.teleport(spawn);
+            return CommandResult.success(Component.text("Returning to hub"));
+        }
+        activeGame.onAdminQuit(admin);
+        onAdminReturnToHub(admin, spawn);
         return CommandResult.success(Component.text("Quitting current game. Returning to hub."));
     }
     // participant stop

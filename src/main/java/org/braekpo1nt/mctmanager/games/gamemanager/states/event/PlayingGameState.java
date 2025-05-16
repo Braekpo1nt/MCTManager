@@ -80,8 +80,8 @@ public class PlayingGameState extends EventState {
     }
     
     @Override
-    public void gameIsOver(@NotNull GameType gameType, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants) {
-        super.gameIsOver(gameType, teamScores, participantScores, gameParticipants);
+    public void gameIsOver(@NotNull GameType gameType, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants, @NotNull List<Player> gameAdmins) {
+        super.gameIsOver(gameType, teamScores, participantScores, gameParticipants, gameAdmins);
         postGame();
     }
     

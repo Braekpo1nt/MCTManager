@@ -396,6 +396,13 @@ public class GameManager implements Listener {
         return state.returnParticipantToHub(mctParticipant);
     }
     
+    public CommandResult returnAdminToHub(@NotNull Player admin) {
+        if (!isAdmin(admin.getUniqueId())) {
+            return CommandResult.failure("You are not an admin");
+        }
+        return state.returnAdminToHub(admin);
+    }
+    
     /**
      * @return a new sidebar
      */
@@ -598,8 +605,8 @@ public class GameManager implements Listener {
     /**
      * Called by an active game when the game is over.
      */
-    public void gameIsOver(@NotNull GameType gameType, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants) {
-        state.gameIsOver(gameType, teamScores, participantScores, gameParticipants);
+    public void gameIsOver(@NotNull GameType gameType, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants, @NotNull List<Player> gameAdmins) {
+        state.gameIsOver(gameType, teamScores, participantScores, gameParticipants, gameAdmins);
     }
     
     /**
