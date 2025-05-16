@@ -13,13 +13,11 @@ import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.EventData;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
+import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class PlayingGameState extends EventState {
     
@@ -32,7 +30,7 @@ public class PlayingGameState extends EventState {
             @NotNull GameType gameType,
             @NotNull String gameConfigFile) {
         super(context, contextReference, eventData);
-        CommandResult commandResult = this.startGame(teams.keySet(), gameType, gameConfigFile);
+        CommandResult commandResult = this.startGame(teams.keySet(), onlineAdmins, gameType, gameConfigFile);
         this.activeGameType = gameType;
         if (!(commandResult instanceof SuccessCommandResult)) {
             context.messageAdmins(commandResult.getMessage());
@@ -65,11 +63,11 @@ public class PlayingGameState extends EventState {
     }
     
     @Override
-    public CommandResult startGame(Set<String> teamIds, @NotNull GameType gameType, @NotNull String configFile) {
+    public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
         if (!activeGames.isEmpty()) {
             return CommandResult.failure("Only one game can be run at a time during an event");
         }
-        return super.startGame(teamIds, gameType, configFile);
+        return super.startGame(teamIds, gameAdmins, gameType, configFile);
     }
     
     @Override
@@ -82,8 +80,8 @@ public class PlayingGameState extends EventState {
     }
     
     @Override
-    public void gameIsOver(@NotNull GameType gameType, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants) {
-        super.gameIsOver(gameType, teamScores, participantScores, gameParticipants);
+    public void gameIsOver(@NotNull GameType gameType, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants, @NotNull List<Player> gameAdmins) {
+        super.gameIsOver(gameType, teamScores, participantScores, gameParticipants, gameAdmins);
         postGame();
     }
     

@@ -101,6 +101,10 @@ public class GameManager implements Listener {
      * A reference to which participant is in which game
      */
     protected final Map<UUID, GameType> participantGames = new HashMap<>();
+    /**
+     * A reference to which admin is in which game
+     */
+    protected final Map<UUID, GameType> adminGames = new HashMap<>();
     private final TabList tabList;
     private final @NotNull List<LeaderboardManager> leaderboardManagers;
     private final Sidebar sidebar; // TODO: make sidebar a thing of each state, not central
@@ -130,6 +134,7 @@ public class GameManager implements Listener {
                 .onlineParticipants(this.onlineParticipants)
                 .onlineAdmins(this.onlineAdmins)
                 .participantGames(this.participantGames)
+                .adminGames(this.adminGames)
                 .plugin(this.plugin)
                 .config(this.config)
                 .gameStateStorageUtil(this.gameStateStorageUtil)
@@ -375,12 +380,27 @@ public class GameManager implements Listener {
         return state.joinParticipantToGame(gameType, mctParticipant);
     }
     
+    public CommandResult joinAdminToGame(@NotNull GameType gameType, @NotNull Player admin) {
+        
+        if (!isAdmin(admin.getUniqueId())) {
+            return CommandResult.failure("You are not an admin");
+        }
+        return state.joinAdminToGame(gameType, admin);
+    }
+    
     public CommandResult returnParticipantToHub(@NotNull UUID uuid) {
         MCTParticipant mctParticipant = onlineParticipants.get(uuid);
         if (mctParticipant == null) {
             return CommandResult.failure(Component.text("You are not a participant"));
         }
         return state.returnParticipantToHub(mctParticipant);
+    }
+    
+    public CommandResult returnAdminToHub(@NotNull Player admin) {
+        if (!isAdmin(admin.getUniqueId())) {
+            return CommandResult.failure("You are not an admin");
+        }
+        return state.returnAdminToHub(admin);
     }
     
     /**
@@ -469,8 +489,8 @@ public class GameManager implements Listener {
         return state.eventIsActive();
     }
     
-    public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull GameType gameType, @NotNull String configFile) {
-        return state.startGame(teamIds, gameType, configFile);
+    public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
+        return state.startGame(teamIds, gameAdmins, gameType, configFile);
     }
     
     public CommandResult startEvent(int maxGames, int currentGameNumber) {
@@ -482,7 +502,7 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Starts the given game
+     * Starts the given game with all teams and all admins
      *
      * @param gameType   The game to start
      * @param configFile the config file to use for the game
@@ -490,7 +510,7 @@ public class GameManager implements Listener {
      * including a reason why the game didn't start if so.
      */
     public CommandResult startGame(@NotNull GameType gameType, @NotNull String configFile) {
-        return state.startGame(teams.keySet(), gameType, configFile);
+        return state.startGame(teams.keySet(), onlineAdmins, gameType, configFile);
     }
     
     /**
@@ -585,8 +605,8 @@ public class GameManager implements Listener {
     /**
      * Called by an active game when the game is over.
      */
-    public void gameIsOver(@NotNull GameType gameType, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants) {
-        state.gameIsOver(gameType, teamScores, participantScores, gameParticipants);
+    public void gameIsOver(@NotNull GameType gameType, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants, @NotNull List<Player> gameAdmins) {
+        state.gameIsOver(gameType, teamScores, participantScores, gameParticipants, gameAdmins);
     }
     
     /**

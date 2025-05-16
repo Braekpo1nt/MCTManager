@@ -237,7 +237,6 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         uiManagers.forEach(UIManager::cleanup);
         uiManagers.clear();
         adminSidebar.deleteAllLines();
-        admins.clear();
         // admins end
         sidebar.deleteAllLines();
         tabList.cleanup();
@@ -246,8 +245,9 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
         storedGameRules.clear();
         cleanup();
-        gameManager.gameIsOver(getType(), teamScores, participantScores, participants.values().stream().map(Participant::getUniqueId).toList());
+        gameManager.gameIsOver(getType(), teamScores, participantScores, participants.values().stream().map(Participant::getUniqueId).toList(), admins);
         participants.clear();
+        admins.clear();
         Main.logger().info("Stopping " + type.getTitle());
     }
     

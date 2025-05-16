@@ -27,9 +27,12 @@ public class TPCommand extends SubCommand {
             return CommandResult.failure("This command can only be run by a player");
         }
         Participant participant = gameManager.getOnlineParticipant(player.getUniqueId());
-        if (participant == null) {
-            return CommandResult.failure("This command can only be run by a participant");
+        if (participant != null) {
+            return gameManager.returnParticipantToHub(participant.getUniqueId());
         }
-        return gameManager.returnParticipantToHub(participant.getUniqueId());
+        if (gameManager.isAdmin(player.getUniqueId())) {
+            return gameManager.returnAdminToHub(player);
+        }
+        return CommandResult.failure("Only participants and admins can use this command");
     }
 }

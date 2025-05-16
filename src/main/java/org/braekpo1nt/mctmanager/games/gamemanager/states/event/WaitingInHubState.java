@@ -15,6 +15,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.states.event.delay.ToFinalGam
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.jetbrains.annotations.NotNull;
@@ -84,7 +85,7 @@ public class WaitingInHubState extends EventState {
     }
     
     @Override
-    public CommandResult startGame(Set<String> teamIds, @NotNull GameType gameType, @NotNull String configFile) {
+    public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
         waitingInHubTimer.cancel();
         disableTips();
         context.setState(new StartingGameDelayState(context, contextReference, eventData, gameType, configFile));

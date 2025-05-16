@@ -584,9 +584,8 @@ public class PracticeManager {
         }
         Set<String> teamIds = invite.getConfirmedGuestIds();
         CommandResult commandResult = gameManager.startGame(
-                teamIds, 
-                invite.getGameType(), 
-                config.getGameConfigs().getOrDefault(invite.getGameType(), "default.json"));
+                teamIds, Collections.emptyList(),
+                invite.getGameType(), config.getGameConfigs().getOrDefault(invite.getGameType(), "default.json"));
         Component message = commandResult.getMessage();
         if (message == null) {
             return;

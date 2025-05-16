@@ -101,6 +101,12 @@ public abstract class GameManagerState {
      * in a game.
      */
     protected final Map<UUID, GameType> participantGames;
+    /**
+     * A reference to which admin is in which game<br>
+     * If an admin's UUID is a key in this map, that admin is in 
+     * a game.
+     */
+    protected final Map<UUID, GameType> adminGames;
     
     public GameManagerState(
             @NotNull GameManager context,
@@ -112,6 +118,7 @@ public abstract class GameManagerState {
         this.sidebar = contextReference.getSidebar();
         this.mctScoreboard = contextReference.getMctScoreboard();
         this.participantGames = contextReference.getParticipantGames();
+        this.adminGames = contextReference.getAdminGames();
         this.plugin = contextReference.getPlugin();
         this.activeGames = contextReference.getActiveGames();
         this.gameStateStorageUtil = contextReference.getGameStateStorageUtil();
@@ -154,6 +161,7 @@ public abstract class GameManagerState {
         admin.playerListName(displayName);
         tabList.showPlayer(admin);
         sidebar.addPlayer(admin);
+        updateSidebarTeamScores();
     }
     
     public void onParticipantJoin(@NotNull PlayerJoinEvent event, @NotNull MCTParticipant participant) {
@@ -367,7 +375,6 @@ public abstract class GameManagerState {
         }
         Audience.audience(
                 Audience.audience(sortedTeams),
-                Audience.audience(onlineAdmins),
                 plugin.getServer().getConsoleSender()
         ).sendMessage(everyone.build());
         
@@ -426,7 +433,7 @@ public abstract class GameManagerState {
     // ui end
     
     // game start
-    public CommandResult startGame(Set<String> teamIds, @NotNull GameType gameType, @NotNull String configFile) {
+    public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
         if (teamIds.isEmpty()) {
             return CommandResult.failure("Can't start a game with no teams.");
         }
@@ -495,6 +502,9 @@ public abstract class GameManagerState {
         for (MCTParticipant participant : gameParticipants) {
             onParticipantJoinGame(gameType, participant);
         }
+        for (Player admin : gameAdmins) {
+            onAdminJoinGame(gameType, admin);
+        }
         
         try {
             activeGames.put(gameType,
@@ -504,12 +514,17 @@ public abstract class GameManagerState {
                             configFile, 
                             new HashSet<>(gameTeams), 
                             new HashSet<>(gameParticipants), 
-                            onlineAdmins));
+                            gameAdmins));
         } catch (Exception e) {
             for (MCTParticipant participant : gameParticipants) {
                 participantGames.remove(participant.getUniqueId());
                 tabList.showPlayer(participant);
                 sidebar.addPlayer(participant);
+            }
+            for (Player admin : gameAdmins) {
+                adminGames.remove(admin.getUniqueId());
+                tabList.showPlayer(admin);
+                sidebar.addPlayer(admin);
             }
             Main.logger().log(Level.SEVERE, String.format("Error starting game %s", gameType), e);
             return CommandResult.failure(Component.text("Can't start ")
@@ -526,6 +541,12 @@ public abstract class GameManagerState {
         participantGames.put(participant.getUniqueId(), gameType);
         tabList.hidePlayer(participant);
         sidebar.removePlayer(participant);
+    }
+    
+    protected void onAdminJoinGame(@NotNull GameType gameType, Player admin) {
+        adminGames.put(admin.getUniqueId(), gameType);
+        tabList.hidePlayer(admin);
+        sidebar.removePlayer(admin);
     }
     
     public CommandResult stopGame(@NotNull GameType gameType) {
@@ -564,8 +585,9 @@ public abstract class GameManagerState {
      * @param participantScores the participant scores
      * @param gameParticipants  the UUIDs of the participants which are online and were in the finished
      *                          game. Must be UUIDs which are keys in {@link #onlineParticipants}.
+     * @param gameAdmins        the admins who were in the game
      */
-    public void gameIsOver(@NotNull GameType gameType, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants) {
+    public void gameIsOver(@NotNull GameType gameType, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants, @NotNull List<Player> gameAdmins) {
         MCTGame game = activeGames.remove(gameType);
         if (game == null) {
             return;
@@ -574,6 +596,10 @@ public abstract class GameManagerState {
             MCTParticipant participant = onlineParticipants.get(uuid);
             onParticipantReturnToHub(participant, config.getSpawn());
             participant.sendMessage(Component.text("Returning to hub"));
+        }
+        for (Player admin : gameAdmins) {
+            onAdminReturnToHub(admin, config.getSpawn());
+            admin.sendMessage(Component.text("Returning to hub"));
         }
         addScores(teamScores, participantScores, gameType);
     }
@@ -638,6 +664,15 @@ public abstract class GameManagerState {
         sidebar.addPlayer(participant);
         MCTTeam team = teams.get(participant.getTeamId());
         updateScoreVisuals(Collections.singletonList(team), Collections.singletonList(participant));
+    }
+    
+    protected void onAdminReturnToHub(@NotNull Player admin, @NotNull Location spawn) {
+        adminGames.remove(admin.getUniqueId());
+        admin.setGameMode(GameMode.SPECTATOR);
+        admin.teleport(spawn);
+        tabList.showPlayer(admin);
+        sidebar.addPlayer(admin);
+        updateSidebarTeamScores();
     }
     
     /**
@@ -970,6 +1005,24 @@ public abstract class GameManagerState {
                 .append(Component.text(gameType.getTitle())));
     }
     
+    public CommandResult joinAdminToGame(@NotNull GameType gameType, @NotNull Player admin) {
+        if (isAdminInGame(admin)) {
+            return CommandResult.failure(Component.text("Already in a game"));
+        }
+        MCTGame activeGame = activeGames.get(gameType);
+        if (activeGame == null) {
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text("No "))
+                    .append(Component.text(gameType.getTitle()))
+                    .append(Component.text(" game is active right now")));
+        }
+        onAdminJoinGame(gameType, admin);
+        activeGame.onAdminJoin(admin);
+        return CommandResult.success(Component.empty()
+                .append(Component.text("Joining "))
+                .append(Component.text(gameType.getTitle())));
+    }
+    
     public CommandResult returnParticipantToHub(@NotNull MCTParticipant participant) {
         return returnParticipantToHub(participant, config.getSpawn());
     }
@@ -989,6 +1042,27 @@ public abstract class GameManagerState {
         activeGame.onParticipantQuit(participant.getUniqueId());
         onParticipantReturnToHub(participant, spawn);
         activeGame.onTeamQuit(participant.getTeamId());
+        return CommandResult.success(Component.text("Quitting current game. Returning to hub."));
+    }
+    
+    public CommandResult returnAdminToHub(@NotNull Player admin) {
+        return returnAdminToHub(admin, config.getSpawn());
+    }
+    
+    public CommandResult returnAdminToHub(@NotNull Player admin, @NotNull Location spawn) {
+        GameType gameType = adminGames.remove(admin.getUniqueId());
+        if (gameType == null) {
+            admin.teleport(spawn);
+            return CommandResult.success(Component.text("Returning to hub"));
+        }
+        MCTGame activeGame = activeGames.get(gameType);
+        if (activeGame == null) {
+            // this should not happen
+            admin.teleport(spawn);
+            return CommandResult.success(Component.text("Returning to hub"));
+        }
+        activeGame.onAdminQuit(admin);
+        onAdminReturnToHub(admin, spawn);
         return CommandResult.success(Component.text("Quitting current game. Returning to hub."));
     }
     // participant stop
@@ -1096,6 +1170,14 @@ public abstract class GameManagerState {
     
     public boolean isParticipantInGame(UUID uuid) {
         return participantGames.containsKey(uuid);
+    }
+    
+    public boolean isAdminInGame(Player admin) {
+        return isAdminInGame(admin.getUniqueId());
+    }
+    
+    public boolean isAdminInGame(UUID uuid) {
+        return adminGames.containsKey(uuid);
     }
     
     public void onParticipantRespawn(PlayerRespawnEvent event, MCTParticipant participant) {

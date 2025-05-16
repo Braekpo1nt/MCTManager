@@ -194,7 +194,7 @@ public class ReadyUpState extends EventState {
     }
     
     @Override
-    public CommandResult startGame(Set<String> teamIds, @NotNull GameType gameType, @NotNull String configFile) {
+    public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
         return CommandResult.failure("Can't start a game during this state.");
     }
     

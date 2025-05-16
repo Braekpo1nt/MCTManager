@@ -50,7 +50,7 @@ public class StartSubCommand extends TabSubCommand {
         
         if (args.length > 2) {
             Set<String> teamIds = new HashSet<>(Arrays.asList(args).subList(2, args.length));
-            return gameManager.startGame(teamIds, gameType, configFile);
+            return gameManager.startGame(teamIds, Collections.emptyList(), gameType, configFile);
         } else {
             return gameManager.startGame(gameType, configFile);
         }
