@@ -454,9 +454,6 @@ public class GameManager implements Listener {
         state.updateSidebarTeamScores();
         state.updateSidebarPersonalScores(onlineParticipants.values());
         // sidebar stop
-        if (config.getInitialMode() != null) {
-            switchMode(config.getInitialMode());
-        }
         return true;
     }
     

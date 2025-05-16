@@ -25,7 +25,6 @@ public class HubConfig {
     private double yLimit;
     private int tpToHubDuration;
     private List<Material> preventInteractions;
-    private @Nullable String initialMode;
     private PracticeConfig practice;
     
     @Data

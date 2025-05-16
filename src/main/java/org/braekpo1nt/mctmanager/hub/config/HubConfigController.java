@@ -76,7 +76,6 @@ public class HubConfigController extends ConfigController<HubConfigDTO> {
                 defaultLocation, 
                 defaultLocation, 
                 defaultLocation, 
-                "maintenance", 
                 new HubConfigDTO.PracticeDTO(
                         Collections.emptyList(), 
                         Collections.emptyMap(),
