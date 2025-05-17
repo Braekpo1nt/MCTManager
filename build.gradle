@@ -22,7 +22,7 @@ repositories {
         url = "https://repo.onarandombox.com/content/groups/public/"
     }
     maven {
-        name = "jitpack"
+        name = "jitpack" // MockBukkit
         url = "https://jitpack.io/"
     }
     maven {
