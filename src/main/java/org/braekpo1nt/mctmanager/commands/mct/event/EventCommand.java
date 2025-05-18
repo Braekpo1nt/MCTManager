@@ -5,13 +5,11 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
-import org.braekpo1nt.mctmanager.commands.manager.SubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.Usage;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.commands.mct.event.finalgame.FinalGameCommand;
 import org.braekpo1nt.mctmanager.commands.mct.event.vote.VoteCommand;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permissible;
@@ -56,8 +54,7 @@ public class EventCommand extends CommandManager {
                     currentGameNumber = 1;
                 }
                 
-                gameManager.getEventManager().startEvent(sender, maxGames, currentGameNumber);
-                return CommandResult.success();
+                return gameManager.startEvent(maxGames, currentGameNumber);
             }
             
             @Override
@@ -68,7 +65,7 @@ public class EventCommand extends CommandManager {
         addSubCommand(new TabSubCommand("stop") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                if (!gameManager.getEventManager().eventIsActive()) {
+                if (!gameManager.eventIsActive()) {
                     return CommandResult.failure(Component.text("There is no event running."));
                 }
                 if (args.length != 1) {
@@ -87,8 +84,7 @@ public class EventCommand extends CommandManager {
                             .append(Component.text(confirmString))
                             .append(Component.text(" is not a recognized option.")));
                 }
-                gameManager.getEventManager().stopEvent(sender);
-                return CommandResult.success();
+                return gameManager.stopEvent();
             }
             
             @Override
@@ -96,7 +92,6 @@ public class EventCommand extends CommandManager {
                 return Collections.emptyList();
             }
         });
-        addSubCommand(new FinalGameCommand(gameManager, "finalgame"));
         addSubCommand(new EventUndoSubCommand(gameManager, "undo"));
         addSubCommand(new VoteCommand(gameManager, "vote"));
         addSubCommand(new ModifyCommand(gameManager, "modify"));

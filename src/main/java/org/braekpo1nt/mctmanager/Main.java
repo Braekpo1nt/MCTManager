@@ -13,9 +13,13 @@ import org.braekpo1nt.mctmanager.commands.readyup.UnReadyCommand;
 import org.braekpo1nt.mctmanager.commands.teammsg.TeamMsgCommand;
 import org.braekpo1nt.mctmanager.commands.utils.UtilsCommand;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.hub.config.HubConfig;
+import org.braekpo1nt.mctmanager.hub.config.HubConfigController;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
+import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -56,8 +60,13 @@ public class Main extends JavaPlugin {
     private static Logger logger = log;
     private static final Map<LogType, @NotNull Boolean> logTypeActive = new HashMap<>();
     
-    protected GameManager initialGameManager(Scoreboard mctScoreboard) {
-        return new GameManager(this, mctScoreboard);
+    protected GameManager initialGameManager(Scoreboard mctScoreboard, @NotNull HubConfig config) {
+        return new GameManager(
+                this, 
+                mctScoreboard,
+                new GameStateStorageUtil(this),
+                new SidebarFactory(),
+                config);
     }
     
     /**
@@ -65,6 +74,15 @@ public class Main extends JavaPlugin {
      */
     public static Logger logger() {
         return Main.logger;
+    }
+    
+    /**
+     * Use the plugin's logger to send the log message at the info level
+     * @param message the message with {@link String#format(String, Object...)} style patterns
+     * @param args the args to {@link String#format(String, Object...)}
+     */
+    public static void logf(String message, Object... args) {
+        logger().info(String.format(message, args));
     }
     
     public static void setLogTypeActive(@NotNull LogType logType, boolean active) {
@@ -108,26 +126,24 @@ public class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         Main.logger = this.getLogger();
-        Scoreboard mctScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+        Scoreboard mctScoreboard = this.getServer().getScoreboardManager().getNewScoreboard();
         ParticipantInitializer.setPlugin(this); //TODO: remove this in favor of death and respawn combination 
         
         PacketEvents.getAPI().init();
         
-        gameManager = initialGameManager(mctScoreboard);
+        HubConfig config;
         try {
-            gameManager.loadHubConfig();
+            config = new HubConfigController(getDataFolder()).getConfig();
         } catch (ConfigException e) {
-            Main.logger().severe(String.format("[MCTManager] Could not load hub config, see console for details. %s", e.getMessage()));
-            e.printStackTrace();
-            saveGameStateOnDisable = false;
-            Bukkit.getPluginManager().disablePlugin(this);
-            return;
+            Main.logger().log(Level.SEVERE, String.format("Could not load hub config, using default config. See console for details. %s", e.getMessage()), e);
+            config = new HubConfigController(getDataFolder()).getDefaultConfig();
         }
+        gameManager = initialGameManager(mctScoreboard, config);
         boolean ableToLoadGameSate = gameManager.loadGameState();
         if (!ableToLoadGameSate) {
             Main.logger().severe("[MCTManager] Could not load game state from memory. Disabling plugin.");
             saveGameStateOnDisable = false;
-            Bukkit.getPluginManager().disablePlugin(this);
+            this.getServer().getPluginManager().disablePlugin(this);
             return;
         }
         
@@ -135,7 +151,7 @@ public class Main extends JavaPlugin {
         BlockEffectsListener blockEffectsListener = new BlockEffectsListener(this);
         
         // Commands
-        new MCTDebugCommand(this);
+        new MCTDebugCommand(this, gameManager);
         mctCommand = new MCTCommand(this, gameManager, blockEffectsListener);
         new UtilsCommand(this);
         new ReadyUpCommand(this, gameManager);
@@ -166,25 +182,24 @@ public class Main extends JavaPlugin {
     public void onDisable() {
         ParticipantInitializer.setPlugin(null); //TODO: remove this in favor of death and respawn combination 
         PacketEvents.getAPI().terminate();
-        if (saveGameStateOnDisable && gameManager != null) {
-            gameManager.cancelVote();
-            gameManager.tearDown();
-            if (gameManager.getEventManager().eventIsActive()) {
-                gameManager.getEventManager().stopEvent(Bukkit.getConsoleSender());
+        if (gameManager != null) {
+            if (gameManager.eventIsActive()) {
+                gameManager.stopEvent();
             }
-            if (gameManager.getEventManager().colossalCombatIsActive()) {
-                gameManager.getEventManager().stopColossalCombat(Bukkit.getConsoleSender());
-            }
-            if (gameManager.gameIsRunning()) {
-                gameManager.manuallyStopGame(false);
-            }
+            gameManager.stopAllGames();
             if (gameManager.editorIsRunning()) {
-                gameManager.stopEditor(Bukkit.getConsoleSender());
+                gameManager.stopEditor();
             }
-            gameManager.saveGameState();
+            if (saveGameStateOnDisable) {
+                gameManager.saveGameState();
+            }
+            gameManager.cleanup();
         } else {
             Main.logger().info("[MCTManager] Skipping save game state.");
         }
+        gameManager = null;
+        mctCommand = null;
+        logTypeActive.clear();
     }
     
     // Testing methods for mocking components

@@ -19,11 +19,6 @@ import java.util.*;
 public class GameState {
     @Builder.Default
     private @NotNull Map<UUID, MCTPlayer> players = new HashMap<>();
-    /**
-     * holds the list of players who are to be added upon joining
-     */
-    @Builder.Default
-    private @NotNull Map<String, OfflineMCTPlayer> offlinePlayers = new HashMap<>();
     @Builder.Default
     private @NotNull Map<String, MCTTeam> teams = new HashMap<>();
     @Builder.Default
@@ -64,20 +59,9 @@ public class GameState {
      * @param playerUniqueId the UUID of the player
      * @param teamId the teamId to join it to
      */
-    public void addPlayer(UUID playerUniqueId, String teamId) {
-        MCTPlayer newPlayer = new MCTPlayer(playerUniqueId, 0, teamId);
+    public void addPlayer(@NotNull UUID playerUniqueId, @NotNull String name, @NotNull String teamId) {
+        MCTPlayer newPlayer = new MCTPlayer(playerUniqueId, name, 0, teamId);
         players.put(playerUniqueId, newPlayer);
-    }
-    
-    /**
-     * Adds the given offline player to the game state, joined to the given team
-     * @param ign the participant's in-game-name
-     * @param offlineUniqueId can be null, but represents the offlineUniqueId of the participant
-     * @param teamId the teamId of the team this participant belongs to
-     */
-    public void addOfflinePlayer(@NotNull String ign, @Nullable UUID offlineUniqueId, @NotNull String teamId) {
-        OfflineMCTPlayer newPlayer = new OfflineMCTPlayer(offlineUniqueId, ign, teamId);
-        offlinePlayers.put(ign, newPlayer);
     }
     
     /**
@@ -90,36 +74,12 @@ public class GameState {
     }
     
     /**
-     * @param ign the in-game-name of a participant who has never logged in before
-     * @return true if the ign is in the current list of offline players (who have yet to log in for the first time), false otherwise
-     */
-    public boolean containsOfflineIGN(String ign) {
-        return offlinePlayers.containsKey(ign);
-    }
-    
-    /**
      * Returns the player with the given UUID
      * @param playerUniqueId The UUID of the player to get
      * @return The player with the given UUID, null if the player does not exist.
      */
     public @Nullable MCTPlayer getPlayer(@NotNull UUID playerUniqueId) {
         return players.get(playerUniqueId);
-    }
-    
-    /**
-     * @param ign the in-game-name of a participant who has never logged in before
-     * @return the matching {@link OfflineMCTPlayer} of the ign
-     */
-    public @Nullable OfflineMCTPlayer getOfflinePlayer(@NotNull String ign) {
-        return offlinePlayers.get(ign);
-    }
-    
-    /**
-     * @param uuid the UUID of the offlinePlayer to match
-     * @return the offlineMCTPlayer whose UUID matches the given UUID. Null if no such player exists in the GameState
-     */
-    public @Nullable OfflineMCTPlayer getOfflinePlayer(@NotNull UUID uuid) {
-        return offlinePlayers.values().stream().filter(p -> Objects.equals(p.getOfflineUniqueId(), uuid)).findFirst().orElse(null);
     }
     
     /**
@@ -131,16 +91,7 @@ public class GameState {
         players.remove(playerUniqueId);
     }
     
-    /**
-     * Removes the offline player with the given IGN from the game state, if it exists.
-     * If it did not exist, nothing happens. 
-     * @param ign the in-game-name of a player who never logged in
-     */
-    public void removeOfflinePlayer(@NotNull String ign) {
-        offlinePlayers.remove(ign);
-    }
-    
-    public MCTTeam getTeam(String teamId) {
+    MCTTeam getTeam(String teamId) {
         return teams.get(teamId);
     }
     

@@ -11,14 +11,17 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSp
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.ui.UIManager;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class GlowManager extends SimplePacketListenerAbstract {
+public class GlowManager extends SimplePacketListenerAbstract implements UIManager {
     
     private final Plugin plugin;
     
@@ -118,11 +121,12 @@ public class GlowManager extends SimplePacketListenerAbstract {
         PacketEvents.getAPI().getEventManager().registerListener(this);
     }
     
-    public void unregisterListeners() {
+    private void unregisterListeners() {
         PacketEvents.getAPI().getEventManager().unregisterListener(this);
     }
     
-    public void clear() {
+    @Override
+    public void cleanup() {
         for (PlayerData playerData : playerDatas.values()) {
             Player target = playerData.getPlayer();
             List<EntityData> entityMetadata = getEntityMetadata(target, false);
@@ -131,6 +135,7 @@ public class GlowManager extends SimplePacketListenerAbstract {
                 sendGlowingPacket(viewer, target.getEntityId(), entityMetadata);
             }
         }
+        unregisterListeners();
         mapper.clear();
     }
     
@@ -161,13 +166,67 @@ public class GlowManager extends SimplePacketListenerAbstract {
         PacketEvents.getAPI().getPlayerManager().sendPacket(viewer, packet);
     }
     
+    /**
+     * Add a participant to this manager to be referenced as a viewer or target
+     * @param participant the participant to add to this manager
+     * @deprecated use {@link #showPlayer(Participant)}
+     */
+    @Deprecated
+    public void addPlayer(Participant participant) {
+        showPlayer(participant.getPlayer());
+    }
+    
+    /**
+     * Add a player to this manager to be referenced as a viewer or target
+     * @param player the player to add to this manager
+     * @deprecated use {@link #showPlayer(Player)}
+     */
+    @Deprecated
     public void addPlayer(Player player) {
+        showPlayer(player);
+    }
+    
+    @Override
+    public void showPlayer(@NotNull Player player) {
         if (playerDatas.containsKey(player.getUniqueId())) {
             UIUtils.logUIError("Player %s already exists in this manager", player.getName());
             return;
         }
         playerDatas.put(player.getUniqueId(), new PlayerData(player));
         mapper.put(player.getEntityId(), player.getUniqueId());
+    }
+    
+    /**
+     * Show the viewer the target's glowing effect
+     * @param viewer the viewer (the player who should see the target glowing)
+     *               Must be a player contained in this manager
+     * @param target the target (the Participant who should glow). 
+     *               Must reference a player contained in this manager.
+     */
+    public void showGlowing(Player viewer, Participant target) {
+        showGlowing(viewer.getUniqueId(), target.getUniqueId());
+    }
+    
+    /**
+     * Show the viewer the target's glowing effect
+     * @param viewer the viewer (the Participant who should see the target glowing)
+     *               Must reference a player contained in this manager
+     * @param target the target (the Participant who should glow). 
+     *               Must be a player contained in this manager.
+     */
+    public void showGlowing(Participant viewer, Player target) {
+        showGlowing(viewer.getUniqueId(), target.getUniqueId());
+    }
+    
+    /**
+     * Show the viewer the target's glowing effect
+     * @param viewer the viewer (the Participant who should see the target glowing)
+     *               Must reference a player contained in this manager
+     * @param target the target (the Participant who should glow). 
+     *               Must reference a player contained in this manager.
+     */
+    public void showGlowing(Participant viewer, Participant target) {
+        showGlowing(viewer.getUniqueId(), target.getUniqueId());
     }
     
     /**
@@ -250,11 +309,29 @@ public class GlowManager extends SimplePacketListenerAbstract {
     }
     
     /**
+     * Remove the given participant from this manager. They will stop glowing and stop
+     * seeing others glow.
+     * @param participant the participant to remove
+     * @deprecated use {@link #hidePlayer(Participant)}
+     */
+    @Deprecated
+    public void removePlayer(Participant participant) {
+        hidePlayer(participant.getPlayer());
+    }
+    
+    /**
      * Remove the given player from this manager. They will stop glowing and stop
      * seeing others glow.
      * @param player the player to remove
+     * @deprecated use {@link #hidePlayer(Player)}
      */
+    @Deprecated
     public void removePlayer(Player player) {
+        hidePlayer(player);
+    }
+    
+    @Override
+    public void hidePlayer(@NotNull Player player) {
         PlayerData removedPlayerData = playerDatas.remove(player.getUniqueId());
         if (removedPlayerData == null) {
             UIUtils.logUIError("Player %s does not exist in this manager", player.getName());

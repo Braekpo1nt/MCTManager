@@ -1,431 +1,209 @@
 package org.braekpo1nt.mctmanager.games.game.spleef;
 
-import net.kyori.adventure.audience.Audience;
+import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.games.base.GameBase;
+import org.braekpo1nt.mctmanager.games.base.listeners.PreventHungerLoss;
+import org.braekpo1nt.mctmanager.games.base.listeners.PreventItemDrop;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
-import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
-import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfigController;
-import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
+import org.braekpo1nt.mctmanager.games.game.spleef.state.DescriptionState;
+import org.braekpo1nt.mctmanager.games.game.spleef.state.InitialState;
+import org.braekpo1nt.mctmanager.games.game.spleef.state.SpleefState;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
-import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
-import org.bukkit.GameMode;
+import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.bukkit.GameRule;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.structure.Mirror;
+import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
-import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.structure.Structure;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
-public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
-    private final Main plugin;
-    private final GameManager gameManager;
+@Getter
+@Setter
+public class SpleefGame extends GameBase<SpleefParticipant, SpleefTeam, SpleefParticipant.QuitData, SpleefTeam.QuitData, SpleefState> {
+    
+    private final @NotNull SpleefConfig config;
     private final Random random = new Random();
-    private Sidebar sidebar;
-    private Sidebar adminSidebar;
-    private final SpleefConfigController configController;
-    private SpleefConfig config;
-    private final Component baseTitle = Component.empty()
-            .append(Component.text("Spleef"))
-            .color(NamedTextColor.BLUE);
-    private Component title = baseTitle;
-    private List<Player> participants = new ArrayList<>();
-    private List<Player> admins = new ArrayList<>();
-    private List<SpleefRound> rounds = new ArrayList<>();
-    private int currentRoundIndex = 0;
-    private boolean gameActive = false;
-    private final TimerManager timerManager;
     
-    public SpleefGame(Main plugin, GameManager gameManager) {
-        this.plugin = plugin;
-        this.timerManager = new TimerManager(plugin);
-        this.gameManager = gameManager;
-        this.configController = new SpleefConfigController(plugin.getDataFolder());
-    }
+    private int currentRound;
     
-    @Override
-    public @NotNull Component getBaseTitle() {
-        return baseTitle;
-    }
-    
-    @Override
-    public void setTitle(@NotNull Component title) {
-        this.title = title;
-        if (sidebar != null) {
-            sidebar.updateLine("title", title);
-        }
-        if (adminSidebar != null) {
-            adminSidebar.updateLine("title", title);
-        }
-    }
-    
-    @Override
-    public GameType getType() {
-        return GameType.SPLEEF;
-    }
-    
-    @Override
-    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
-        this.config = configController.getConfig();
-        if (gameActive) {
-            for (SpleefRound round : rounds) {
-                round.setConfig(config);
-            }
-        }
-    }
-    
-    @Override
-    public void start(List<Player> newParticipants, List<Player> newAdmins) {
-        participants = new ArrayList<>(newParticipants.size());
-        sidebar = gameManager.createSidebar();
-        adminSidebar = gameManager.createSidebar();
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        gameManager.getTimerManager().register(timerManager);
-        for (Player participant : newParticipants) {
-            initializeParticipant(participant);
-        }
-        initializeSidebar();
-        rounds = new ArrayList<>(config.getRounds());
-        for (int i = 0; i < config.getRounds(); i++) {
-            rounds.add(new SpleefRound(plugin, gameManager, this, config, sidebar, adminSidebar));
-        }
-        rounds.get(0).setFirstRound(true);
-        plugin.getLogger().info(String.format("rounds.size() = %d", rounds.size()));
-        currentRoundIndex = 0;
-        setupTeamOptions();
-        startAdmins(newAdmins);
-        displayDescription();
-        gameActive = true;
-        startNextRound();
+    public SpleefGame(
+            @NotNull Main plugin,
+            @NotNull GameManager gameManager,
+            @NotNull Component title,
+            @NotNull SpleefConfig config,
+            @NotNull Collection<Team> newTeams,
+            @NotNull Collection<Participant> newParticipants,
+            @NotNull List<Player> newAdmins) {
+        super(GameType.SPLEEF, plugin, gameManager, title, new InitialState());
+        this.config = config;
+        this.currentRound = 1;
+        placeLayers(true);
+        addListener(new PreventHungerLoss<>(this));
+        addListener(new PreventItemDrop<>(this, true));
+        setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
+        start(newTeams, newParticipants, newAdmins);
         Main.logger().info("Started Spleef");
     }
     
-    private void displayDescription() {
-        messageAllParticipants(config.getDescription());
+    @Override
+    protected @NotNull SpleefState getStartState() {
+        return new DescriptionState(this);
     }
     
-    private void initializeParticipant(Player participant) {
-        participants.add(participant);
-        sidebar.addPlayer(participant);
-        teleportParticipantToRandomStartingPosition(participant);
-        ParticipantInitializer.resetHealthAndHunger(participant);
-        ParticipantInitializer.clearStatusEffects(participant);
+    @Override
+    protected @NotNull World getWorld() {
+        return config.getWorld();
     }
     
-    private void teleportParticipantToRandomStartingPosition(Player participant) {
+    public void placeLayers(boolean replaceStencil) {
+        for (int i = 0; i < config.getStructures().size(); i++) {
+            Structure layer = config.getStructures().get(i);
+            layer.place(config.getStructureOrigins().get(i), true, StructureRotation.NONE, Mirror.NONE, 0, 1, random);
+        }
+        if (replaceStencil && config.getStencilBlock() != null) {
+            for (BoundingBox layerArea : config.getDecayLayers()) {
+                BlockPlacementUtils.createCubeReplace(config.getWorld(), layerArea, config.getStencilBlock(), config.getLayerBlock());
+            }
+        }
+    }
+    
+    @Override
+    protected void cleanup() {
+        placeLayers(false);
+    }
+    
+    @Override
+    protected @NotNull SpleefParticipant createParticipant(Participant participant) {
+        return new SpleefParticipant(participant, 0, true);
+    }
+    
+    @Override
+    protected @NotNull SpleefParticipant createParticipant(Participant participant, SpleefParticipant.QuitData quitData) {
+        return new SpleefParticipant(participant, quitData.getScore(), true);
+    }
+    
+    @Override
+    protected @NotNull SpleefParticipant.QuitData getQuitData(SpleefParticipant participant) {
+        return participant.getQuitData();
+    }
+    
+    @Override
+    protected void initializeParticipant(SpleefParticipant participant, SpleefTeam team) {
+        teleportToRandomStartingPosition(participant);
+    }
+    
+    public void teleportToRandomStartingPosition(Participant participant) {
+        Location location = getRandomStartingPosition();
+        participant.teleport(location);
+        participant.setRespawnLocation(location, true);
+    }
+    
+    public Location getRandomStartingPosition() {
         int index = random.nextInt(config.getStartingLocations().size());
-        participant.teleport(config.getStartingLocations().get(index));
-        participant.setRespawnLocation(config.getStartingLocations().get(index), true);
-    }
-    
-    private void startAdmins(List<Player> newAdmins) {
-        this.admins = new ArrayList<>(newAdmins.size());
-        for (Player admin : newAdmins) {
-            initializeAdmin(admin);
-        }
-        initializeAdminSidebar();
+        return config.getStartingLocations().get(index);
     }
     
     @Override
-    public void onAdminJoin(Player admin) {
-        initializeAdmin(admin);
-        adminSidebar.updateLines(admin.getUniqueId(),
-                new KeyLine("title", title),
-                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, config.getRounds()))
-        );
+    protected void initializeTeam(SpleefTeam team) {
+        
     }
     
     @Override
-    public void onAdminQuit(Player admin) {
-        resetAdmin(admin);
-        admins.remove(admin);
-    }
-    
-    private void initializeAdmin(Player admin) {
-        admins.add(admin);
-        adminSidebar.addPlayer(admin);
-        admin.setGameMode(GameMode.SPECTATOR);
-        admin.teleport(config.getStartingLocations().get(0));
+    protected @NotNull SpleefTeam createTeam(Team team) {
+        return new SpleefTeam(team, 0);
     }
     
     @Override
-    public void stop() {
-        HandlerList.unregisterAll(this);
-        cancelAllTasks();
-        if (currentRoundIndex < rounds.size()) {
-            SpleefRound currentRound = rounds.get(currentRoundIndex);
-            if (currentRound.isActive()) {
-                currentRound.stop();
-            }
-        }
-        rounds.clear();
-        gameActive = false;
-        for (Player participant : participants) {
-            resetParticipant(participant);
-        }
-        clearSidebar();
-        stopAdmins();
-        participants.clear();
-        gameManager.gameIsOver();
-        Main.logger().info("Stopping Spleef");
-    }
-    
-    private void resetParticipant(Player participant) {
-        ParticipantInitializer.clearInventory(participant);
-        sidebar.removePlayer(participant.getUniqueId());
-    }
-    
-    private void stopAdmins() {
-        for (Player admin : admins) {
-            resetAdmin(admin);
-        }
-        clearAdminSidebar();
-        admins.clear();
-    }
-    
-    private void resetAdmin(Player admin) {
-        adminSidebar.removePlayer(admin);
-    }
-    
-    @EventHandler
-    public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        if (!(event.getEntity() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        participant.setFoodLevel(20);
-        event.setCancelled(true);
-    }
-    
-    /**
-     * Stop players from removing their equipment
-     */
-    @EventHandler
-    public void onClickInventory(InventoryClickEvent event) {
-        if (!gameActive) {
-            return;
-        }
-        if (event.getClickedInventory() == null) {
-            return;
-        }
-        if (event.getCurrentItem() == null) {
-            return;
-        }
-        Player participant = ((Player) event.getWhoClicked());
-        if (!participants.contains(participant)) {
-            return;
-        }
-        event.setCancelled(true);
-    }
-    
-    /**
-     * Stop players from dropping items
-     */
-    @EventHandler
-    public void onDropItem(PlayerDropItemEvent event) {
-        if (!gameActive) {
-            return;
-        }
-        Player participant = event.getPlayer();
-        if (!participants.contains(participant)) {
-            return;
-        }
-        event.setCancelled(true);
-    }
-    
-    @EventHandler
-    public void onPlayerMove(PlayerMoveEvent event) {
-        if (!gameActive) {
-            return;
-        }
-        if (config.getSpectatorArea() == null){
-            return;
-        }
-        if (!participants.contains(event.getPlayer())) {
-            return;
-        }
-        if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
-            return;
-        }
-        if (!config.getSpectatorArea().contains(event.getFrom().toVector())) {
-            event.getPlayer().teleport(config.getStartingLocations().get(0));
-            return;
-        }
-        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
-            event.setCancelled(true);
-        }
-    }
-    
-    @EventHandler
-    public void onPlayerTeleport(PlayerTeleportEvent event) {
-        if (!gameActive) {
-            return;
-        }
-        if (config.getSpectatorArea() == null){
-            return;
-        }
-        if (!participants.contains(event.getPlayer())) {
-            return;
-        }
-        if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
-            return;
-        }
-        if (!event.getCause().equals(PlayerTeleportEvent.TeleportCause.SPECTATE)) {
-            return;
-        }
-        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
-            event.setCancelled(true);
-        }
+    protected @NotNull SpleefTeam createTeam(Team team, SpleefTeam.QuitData quitData) {
+        return new SpleefTeam(team, quitData.getScore());
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
-        if (!gameActive) {
-            return;
-        }
-        initializeParticipant(participant);
-        sidebar.updateLines(participant.getUniqueId(),
-                new KeyLine("title", title),
-                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, config.getRounds()))
-        );
-        if (currentRoundIndex < rounds.size()) {
-            SpleefRound currentRound = rounds.get(currentRoundIndex);
-            if (currentRound.isActive()) {
-                currentRound.onParticipantJoin(participant);
-            }
-        }
+    protected @NotNull SpleefTeam.QuitData getQuitData(SpleefTeam team) {
+        return team.getQuitData();
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
-        if (!gameActive) {
-            return;
-        }
-        resetParticipant(participant);
-        participants.remove(participant);
-        if (currentRoundIndex < rounds.size()) {
-            SpleefRound currentRound = rounds.get(currentRoundIndex);
-            if (currentRound.isActive()) {
-                currentRound.onParticipantQuit(participant);
-            }
-        }
+    protected void resetParticipant(SpleefParticipant participant, SpleefTeam team) {
+        
     }
     
-    
-    public void roundIsOver() {
-        if (currentRoundIndex+1 >= rounds.size()) {
-            stop();
-            return;
-        }
-        currentRoundIndex++;
-        startNextRound();
+    @Override
+    protected void initializeAdmin(Player admin) {
+        admin.teleport(config.getStartingLocations().getFirst());
     }
     
-    public void startNextRound() {
-        SpleefRound nextRound = rounds.get(currentRoundIndex);
-        nextRound.start(participants);
-        String round = String.format("Round %d/%d", currentRoundIndex + 1, rounds.size());
-        sidebar.updateLine("round", round);
-        adminSidebar.updateLine("round", round);
-    }
-    
-    private void cancelAllTasks() {
-        timerManager.cancel();
-    }
-    
-    private void initializeAdminSidebar() {
+    @Override
+    protected void initializeAdminSidebar() {
         adminSidebar.addLines(
-                new KeyLine("title", title),
-                new KeyLine("round", String.format("Round %d/%d", 1, config.getRounds())),
-                new KeyLine("timer", "")
+                new KeyLine("round", Component.empty()
+                        .append(Component.text("Round 1/"))
+                        .append(Component.text(config.getRounds()))),
+                new KeyLine("timer", ""),
+                new KeyLine("alive", Component.empty())
         );
     }
     
-    private void clearAdminSidebar() {
-        adminSidebar.deleteAllLines();
-        adminSidebar = null;
+    @Override
+    protected void resetAdmin(Player admin) {
+        
     }
     
-    private void initializeSidebar() {
+    @Override
+    protected void initializeSidebar() {
         sidebar.addLines(
-                new KeyLine("personalTeam", ""),
-                new KeyLine("personalScore", ""),
-                new KeyLine("title", title),
-                new KeyLine("round", String.format("Round %d/%d", 1, config.getRounds())),
-                new KeyLine("timer", "")
+                new KeyLine("round", Component.empty()
+                        .append(Component.text("Round 1/"))
+                        .append(Component.text(config.getRounds()))),
+                new KeyLine("timer", ""),
+                new KeyLine("alive", Component.empty())
         );
     }
     
-    private void clearSidebar() {
-        sidebar.deleteAllLines();
-        sidebar = null;
+    @Override
+    protected @Nullable SpectatorBoundary getSpectatorBoundary() {
+        return config.getSpectatorBoundary();
     }
     
     @Override
-    public void updateTeamScore(Player participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
+    protected boolean shouldPreventInteractions(@NotNull Material type) {
+        return config.getPreventInteractions().contains(type);
     }
     
     @Override
-    public void updatePersonalScore(Player participant, Component contents) {
-        if (sidebar == null) {
+    protected void setupTeamOptions(org.bukkit.scoreboard.@NotNull Team scoreboardTeam, @NotNull SpleefTeam team) {
+        scoreboardTeam.setAllowFriendlyFire(false);
+        scoreboardTeam.setCanSeeFriendlyInvisibles(true);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.NEVER);
+    }
+    
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent event) {
+        SpleefParticipant participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
             return;
         }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
-    }
-    
-    private void setupTeamOptions() {
-        Scoreboard mctScoreboard = gameManager.getMctScoreboard();
-        for (Team team : mctScoreboard.getTeams()) {
-            team.setAllowFriendlyFire(false);
-            team.setCanSeeFriendlyInvisibles(true);
-            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
-        }
-    }
-    
-    private void messageAllParticipants(Component message) {
-        gameManager.messageAdmins(message);
-        for (Player participant : participants) {
-            participant.sendMessage(message);
-        }
-    }
-    
-    public void showTitle(@NotNull Title title) {
-        Audience.audience(
-                Audience.audience(admins),
-                Audience.audience(participants)
-        ).showTitle(title);
+        state.onParticipantBreakBlock(event, participant);
     }
 }

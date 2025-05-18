@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.game.spleef.DecayStage;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.Powerup;
 import org.braekpo1nt.mctmanager.geometry.CompositeGeometry;
@@ -25,7 +26,7 @@ public class SpleefConfig {
     private World world;
     private List<Location> startingLocations;
     private List<Structure> structures;
-    private @Nullable BoundingBox spectatorArea;
+    private @Nullable SpectatorBoundary spectatorBoundary;
     private List<Location> structureOrigins;
     private List<BoundingBox> decayLayers;
     private List<DecayStage> decayStages;
@@ -44,7 +45,8 @@ public class SpleefConfig {
     private Map<Powerup.Type, @Nullable Sound> userSounds;
     private Map<Powerup.Type, @Nullable Sound> affectedSounds;
     private int roundStartingDuration;
-    private int roundEndingDuration;
+    private int roundOverDuration;
+    private int gameOverDuration;
     private int surviveScore;
     private int rounds;
     private List<Material> preventInteractions;

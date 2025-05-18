@@ -10,7 +10,9 @@ public enum GameType {
     SPLEEF("Spleef", "spleef"),
     PARKOUR_PATHWAY("Parkour Pathway", "parkour-pathway"),
     CLOCKWORK("Clockwork", "clockwork"),
-    FARM_RUSH("Farm Rush", "farm-rush");
+    FARM_RUSH("Farm Rush", "farm-rush"), 
+    EXAMPLE("Example", "example"), 
+    FINAL("Final", "final");
     
     GameType(String title, String id) {
         this.title = title;
@@ -26,6 +28,10 @@ public enum GameType {
     
     public String getTitle() {
         return title;
+    }
+    
+    public String getId() {
+        return id;
     }
     
     public static final Map<String, GameType> GAME_IDS;

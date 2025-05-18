@@ -6,6 +6,9 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
+import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushParticipant;
+import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushTeam;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
@@ -43,20 +46,20 @@ public class ActiveState extends GameplayState {
                     context.setState(new GracePeriodState(context));
                 })
                 .build());
-        for (FarmRushGame.Participant participant : context.getParticipants().values()) {
-            participant.getPlayer().setGameMode(GameMode.SURVIVAL);
+        for (Participant participant : context.getParticipants().values()) {
+            participant.setGameMode(GameMode.SURVIVAL);
         }
         
-        for (FarmRushGame.Team team : context.getTeams().values()) {
+        for (FarmRushTeam team : context.getTeams().values()) {
             team.getArena().openBarnDoor();
         }
         context.getPowerupManager().start();
     }
     
     @Override
-    public void onCloseInventory(InventoryCloseEvent event, FarmRushGame.Participant participant) {
-        FarmRushGame.Team team = context.getTeams().get(participant.getTeamId());
-        int oldScore = team.getTotalScore();
+    public void onParticipantCloseInventory(InventoryCloseEvent event, FarmRushParticipant participant) {
+        FarmRushTeam team = context.getTeams().get(participant.getTeamId());
+        int oldScore = team.getScore();
         sellItemsOnCloseInventory(event, participant);
         if (context.getConfig().shouldEnforceMaxScore() && teamReachedMaxScore(team)) {
             onTeamReachMaxScore(team);
@@ -64,7 +67,7 @@ public class ActiveState extends GameplayState {
         }
         int warningThreshold = calculateWarningThreshold();
         boolean teamWasNotAboveThreshold = oldScore < warningThreshold;
-        boolean teamIsNowAboveThreshold = team.getTotalScore() >= warningThreshold;
+        boolean teamIsNowAboveThreshold = team.getScore() >= warningThreshold;
         if (context.getConfig().shouldEnforceMaxScore() && 
                 context.getConfig().shouldWarnAtThreshold() && 
                 teamWasNotAboveThreshold && teamIsNowAboveThreshold) {
@@ -72,15 +75,15 @@ public class ActiveState extends GameplayState {
         }
     }
     
-    private boolean teamReachedMaxScore(FarmRushGame.Team team) {
-        return team.getTotalScore() >= getTrueMaxScore();
+    private boolean teamReachedMaxScore(FarmRushTeam team) {
+        return team.getScore() >= getTrueMaxScore();
     }
     
-    private void onTeamReachMaxScore(FarmRushGame.Team winingTeam) {
+    private void onTeamReachMaxScore(FarmRushTeam winingTeam) {
         gameTimer.cancel();
-        gameManager.awardPointsToTeam(winingTeam.getTeamId(), context.getConfig().getWinnerBonus());
+        context.awardPoints(winingTeam, context.getConfig().getWinnerBonus());
         context.messageAllParticipants(Component.empty()
-                .append(winingTeam.getDisplayName())
+                .append(winingTeam.getFormattedDisplayName())
                 .append(Component.text(" reached "))
                 .append(Component.text(getTrueMaxScore())
                         .color(NamedTextColor.GOLD)
@@ -91,7 +94,7 @@ public class ActiveState extends GameplayState {
         Component timeLeft = TimeStringUtils.getTimeComponent(context.getConfig().getGracePeriodDuration());
         context.titleAllParticipants(UIUtils.defaultTitle(
                 Component.empty()
-                        .append(winingTeam.getDisplayName())
+                        .append(winingTeam.getFormattedDisplayName())
                         .append(Component.text("wins!")),
                 Component.empty()
                         .append(timeLeft)
@@ -104,7 +107,7 @@ public class ActiveState extends GameplayState {
      * @return the multiplied max score
      */
     private int getTrueMaxScore() {
-        return (int) (context.getConfig().getMaxScore() * gameManager.matchProgressPointMultiplier());
+        return (int) (context.getConfig().getMaxScore() * gameManager.getMultiplier());
     }
     
     /**
@@ -113,14 +116,14 @@ public class ActiveState extends GameplayState {
     private int calculateWarningThreshold() {
         return (int) (context.getConfig().getWarningThreshold() *
                 context.getConfig().getMaxScore() *
-                gameManager.matchProgressPointMultiplier());
+                gameManager.getMultiplier());
     }
     
-    private void onTeamReachWarningThreshold(FarmRushGame.Team team) {
+    private void onTeamReachWarningThreshold(FarmRushTeam team) {
         context.messageAllParticipants(Component.empty()
-                .append(team.getDisplayName())
+                .append(team.getFormattedDisplayName())
                 .append(Component.text(" has "))
-                .append(Component.text(team.getTotalScore())
+                .append(Component.text(team.getScore())
                         .color(NamedTextColor.GOLD)
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text("/"))

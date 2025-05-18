@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.footrace.config;
 import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -20,7 +21,6 @@ public class FootRaceConfig {
      * the number of laps in the race
      */
     private int laps;
-    private @Nullable BoundingBox finishLine;
     private BoundingBox glassBarrier;
     private int completeLapScore;
     private int[] placementPoints;
@@ -30,21 +30,12 @@ public class FootRaceConfig {
     private int descriptionDuration;
     private int gameOverDuration;
     private List<Material> preventInteractions;
-    private boolean useLegacy;
     /**
      * the checkpoints in the race. The last one is the finish line. Players must
-     * pass through all of these in order to be considered a lap. If this is null, then use
-     * the {@link #finishLine}
+     * pass through all of these in order to be considered a lap.
      */
     private List<BoundingBox> checkpoints;
-    private @Nullable BoundingBox spectatorArea;
+    private @Nullable SpectatorBoundary spectatorBoundary;
     private Component description;
     
-    /**
-     * The legacy version implies that only the finish line is provided, and no checkpoints.
-     * @return true if the legacy version should be used, false otherwise
-     */
-    public boolean useLegacy() {
-        return useLegacy;
-    }
 }

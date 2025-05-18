@@ -10,7 +10,7 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.display.Display;
 import org.braekpo1nt.mctmanager.display.geometry.GeometryUtils;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
@@ -88,7 +88,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     public ParkourPathwayEditor(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.configController = new ParkourPathwayConfigController(plugin.getDataFolder());
+        this.configController = new ParkourPathwayConfigController(plugin.getDataFolder(), getType().getId());
         this.inBoundsWand = addWand("inBounds", List.of(
                 Component.text("Left Click: push box face away"),
                 Component.text("Right Click: pull box face toward"),
@@ -151,8 +151,8 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     }
     
     @Override
-    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
-        this.config = configController.getConfig();
+    public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
+        this.config = configController.getConfig(configFile);
         if (!editorStarted) {
             return;
         }
@@ -212,15 +212,15 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     }
     
     @Override
-    public boolean configIsValid() {
+    public boolean configIsValid(@NotNull String configFile) {
         config.setPuzzles(puzzles);
-        configController.validateConfig(config);
+        configController.validateConfig(config, configFile);
         return true;
     }
     
     @Override
-    public void saveConfig() throws ConfigException {
-        configController.saveConfig(config);
+    public void saveConfig(@NotNull String configFile) throws ConfigException {
+        configController.saveConfig(config, configFile);
     }
     
     @Override
@@ -229,7 +229,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     }
     
     @Override
-    public void start(List<Player> newParticipants) {
+    public void start(Collection<Player> newParticipants) {
         participants = new ArrayList<>(newParticipants.size());
         currentPuzzles = new HashMap<>(newParticipants.size());
         currentInBounds = new HashMap<>(newParticipants.size());

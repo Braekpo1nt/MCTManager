@@ -9,7 +9,7 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.display.Display;
 import org.braekpo1nt.mctmanager.display.geometry.GeometryUtils;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfigController;
@@ -62,7 +62,7 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
     public FootRaceEditor(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.controller = new FootRaceConfigController(plugin.getDataFolder());
+        this.controller = new FootRaceConfigController(plugin.getDataFolder(), getType().getId());
         this.checkpointWand = addWand(
                 Component.text("checkpoint"),
                 List.of(
@@ -105,7 +105,7 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
     }
     
     @Override
-    public void start(List<Player> newParticipants) {
+    public void start(Collection<Player> newParticipants) {
         participants = new ArrayList<>(newParticipants.size());
         currentCheckpoints = new HashMap<>(newParticipants.size());
         displays = new HashMap<>(newParticipants.size());
@@ -227,19 +227,19 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
     }
     
     @Override
-    public boolean configIsValid() {
-        controller.validateConfig(config);
+    public boolean configIsValid(@NotNull String configFile) {
+        controller.validateConfig(config, configFile);
         return true;
     }
     
     @Override
-    public void saveConfig() throws ConfigIOException, ConfigInvalidException {
-        controller.saveConfig(config);
+    public void saveConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
+        controller.saveConfig(config, configFile);
     }
     
     @Override
-    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
-        this.config = controller.getConfig();
+    public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
+        this.config = controller.getConfig(configFile);
         if (!editorStarted) {
             return;
         }

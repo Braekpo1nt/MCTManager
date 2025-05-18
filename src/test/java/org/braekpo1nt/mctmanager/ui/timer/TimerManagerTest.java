@@ -8,7 +8,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MockMain;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.TestUtils;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
 import org.junit.jupiter.api.AfterEach;
@@ -62,8 +62,8 @@ class TimerManagerTest {
     void footRace() {
         PlayerMock playerMock = server.addPlayer();
         gameManager.addTeam("test", "Test", "white");
-        gameManager.joinPlayerToTeam(plugin.getServer().getConsoleSender(), playerMock, "test");
-        gameManager.startGame(GameType.FOOT_RACE, plugin.getServer().getConsoleSender());
+        gameManager.joinParticipantToTeam(playerMock, playerMock.getName(), "test");
+        gameManager.startGame(GameType.FOOT_RACE, "footRaceConfig.json");
         Assertions.assertDoesNotThrow(timerManager::skip);
     }
     

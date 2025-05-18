@@ -20,8 +20,8 @@ public class KillDeathComponent {
     public KillDeathComponent() {
         this.kills = 0;
         this.deaths = 0;
-        this.killsPrefix = Component.text("K: ");
-        this.deathsPrefix = Component.text("D: ");
+        this.killsPrefix = Component.text("⚔: ");
+        this.deathsPrefix = Component.text("☠: ");
     }
     
     public KillDeathComponent(@NotNull Component killsPrefix, @NotNull Component deathsPrefix) {

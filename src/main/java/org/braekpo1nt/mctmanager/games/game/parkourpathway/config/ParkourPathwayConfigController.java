@@ -13,10 +13,13 @@ import java.io.File;
 
 public class ParkourPathwayConfigController extends ConfigController<ParkourPathwayConfigDTO> {
     
-    private final File configFile;
+    /**
+     * The directory where all the config files are located for this game
+     */
+    private final File configDirectory;
     
-    public ParkourPathwayConfigController(File configDirectory) {
-        this.configFile = new File(configDirectory, "parkourPathwayConfig.json");
+    public ParkourPathwayConfigController(@NotNull File pluginDataFolder, @NotNull String configDirectory) {
+        this.configDirectory = new File(pluginDataFolder, configDirectory);
     }
     
     @Override
@@ -26,28 +29,30 @@ public class ParkourPathwayConfigController extends ConfigController<ParkourPath
     
     /**
      * Gets the config from storage 
+     * @param configFile the name of the config file to use
      * @return the config for spleef
      * @throws ConfigInvalidException if the config is invalid
-     * @throws ConfigIOException if there is an IO problem getting the config
+     * @throws ConfigIOException if there is an IO problem getting the config, or the config file doesn't exist
      */
-    public @NotNull ParkourPathwayConfig getConfig() throws ConfigException {
-        ParkourPathwayConfigDTO configDTO = loadConfigDTO(configFile, ParkourPathwayConfigDTO.class);
-        configDTO.validate(new Validator("parkourPathwayConfig"));
+    public @NotNull ParkourPathwayConfig getConfig(@NotNull String configFile) throws ConfigException {
+        ParkourPathwayConfigDTO configDTO = loadConfigDTO(new File(configDirectory, configFile), ParkourPathwayConfigDTO.class);
+        configDTO.validate(new Validator(configFile));
         return configDTO.toConfig();
     }
     
-    public void validateConfig(@NotNull ParkourPathwayConfig config) throws ConfigInvalidException {
+    public void validateConfig(@NotNull ParkourPathwayConfig config, @NotNull String configFile) throws ConfigInvalidException {
         ParkourPathwayConfigDTO configDTO = ParkourPathwayConfigDTO.fromConfig(config);
-        configDTO.validate(new Validator("parkourPathwayConfig"));
+        configDTO.validate(new Validator(configFile));
     }
     
     /**
      * Save the given config to its file. Note that this does not validate the configDTO.
      * @param config the config to save
+     * @param configFile the file name to save to
      * @throws ConfigIOException if there is an IO error while saving the config file
      */
-    public void saveConfig(@NotNull ParkourPathwayConfig config) throws ConfigIOException {
+    public void saveConfig(@NotNull ParkourPathwayConfig config, @NotNull String configFile) throws ConfigIOException {
         ParkourPathwayConfigDTO configDTO = ParkourPathwayConfigDTO.fromConfig(config);
-        saveConfigDTO(configDTO, configFile);
+        saveConfigDTO(configDTO, new File(configDirectory, configFile));
     }
 }

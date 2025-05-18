@@ -44,6 +44,7 @@ record PowerupsDTO(long minTimeBetween, int maxPowerups, @Nullable Map<Powerup.T
          */
         private @Nullable Map<Powerup.@Nullable Type, @Nullable Integer> types;
         
+        @Override
         public void validate(@NotNull Validator validator) {
             validator.validate(chance <= 1.0, "chance can't be greater than 1.0");
             if (types != null) {
@@ -53,6 +54,7 @@ record PowerupsDTO(long minTimeBetween, int maxPowerups, @Nullable Map<Powerup.T
         }
     }
     
+    @Override
     public void validate(@NotNull Validator validator) {
         validator.validate(minTimeBetween >= 0, "minTimeBetween must be greater than or equal to 0");
         if (initialLoadout != null) {

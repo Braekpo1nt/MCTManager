@@ -46,6 +46,10 @@ public class ManyTeamsComponent {
         teams.put(teamId, new Team(0, color));
     }
     
+    public void removeTeam(@NotNull String teamId) {
+        teams.remove(teamId);
+    }
+    
     public void setAliveCount(@NotNull String teamId, int aliveCount) {
         Team team = teams.get(teamId);
         if (team == null) {

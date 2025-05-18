@@ -272,17 +272,23 @@ public class BattleTopbar implements Topbar {
      * to make the appropriate association.
      * @param player the player to show this Topbar to
      */
+    @Override
     public void showPlayer(@NotNull Player player) {
         if (playerDatas.containsKey(player.getUniqueId())) {
             UIUtils.logUIError("player with UUID \"%s\" already exists in this BattleTopbar", player.getUniqueId());
             return;
         }
-        
         FormattedBar bossBar = new FormattedBar(player);
         bossBar.show();
         PlayerData playerData = new PlayerData(bossBar);
         playerDatas.put(player.getUniqueId(), playerData);
         update(playerData);
+    }
+    
+    @Override
+    public void cleanup() {
+        hideAllPlayers();
+        removeAllTeamPairs();
     }
     
     /**
@@ -368,6 +374,10 @@ public class BattleTopbar implements Topbar {
         }
     }
     
+    /**
+     * @deprecated use {@link #cleanup()}
+     */
+    @Deprecated
     public void hideAllPlayers() {
         for (PlayerData playerData : playerDatas.values()) {
             playerData.getBossBar().hide();

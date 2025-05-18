@@ -2,16 +2,15 @@ package org.braekpo1nt.mctmanager.games.game.footrace.states;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
+import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceParticipant;
+import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceTeam;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-public class DescriptionState implements FootRaceState {
-    
-    protected final @NotNull FootRaceGame context;
+public class DescriptionState extends FootRaceStateBase {
     
     public DescriptionState(@NotNull FootRaceGame context) {
-        this.context = context;
+        super(context);
         startTimer();
     }
     
@@ -22,51 +21,19 @@ public class DescriptionState implements FootRaceState {
                 .withSidebar(context.getSidebar(), "timer")
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .sidebarPrefix(Component.text("Starting soon: "))
-                .onCompletion(() -> {
-                    context.setState(new StartingState(context));
-                })
+                .onCompletion(() -> context.setState(new StartingState(context)))
                 .build());
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
-        initializeParticipant(participant);
-        context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
-        Integer currentLap = context.getLaps().get(participant.getUniqueId());
-        context.getSidebar().updateLine(participant.getUniqueId(), "lap", Component.empty()
-                .append(Component.text("Lap: "))
-                .append(Component.text(currentLap))
-                .append(Component.text("/"))
-                .append(Component.text(context.getConfig().getLaps())));
-        context.updateStandings();
-        context.displayStandings();
-        participant.sendMessage(context.getConfig().getDescription());
+    public void onParticipantRejoin(FootRaceParticipant participant, FootRaceTeam team) {
+        super.onParticipantRejoin(participant, team);
+        context.getSidebar().updateLine("elapsedTime", "00:00:000");
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
-        resetParticipant(participant);
-        context.getParticipants().remove(participant);
-        context.getLapCooldowns().remove(participant.getUniqueId());
-        context.getLaps().remove(participant.getUniqueId());
-        context.getCurrentCheckpoints().remove(participant.getUniqueId());
-        context.getStandings().remove(participant);
-        context.updateStandings();
-        context.displayStandings();
-    }
-    
-    @Override
-    public void initializeParticipant(Player participant) {
-        context.initializeParticipant(participant);
-    }
-    
-    @Override
-    public void resetParticipant(Player participant) {
-        context.resetParticipant(participant);
-    }
-    
-    @Override
-    public void onParticipantMove(Player participant) {
-        // do nothing
+    public void onNewParticipantJoin(FootRaceParticipant participant, FootRaceTeam team) {
+        super.onNewParticipantJoin(participant, team);
+        context.getSidebar().updateLine("elapsedTime", "00:00:000");
     }
 }

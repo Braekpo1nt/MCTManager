@@ -45,6 +45,11 @@ public class BasicTopbar implements Topbar {
         playerDatas.put(player.getUniqueId(), new PlayerData(bossBar));
     }
     
+    @Override
+    public void cleanup() {
+        this.hideAllPlayers();
+    }
+    
     /**
      * {@inheritDoc}
      */

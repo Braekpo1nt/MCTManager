@@ -13,36 +13,43 @@ import java.io.File;
 
 public class FootRaceConfigController extends ConfigController<FootRaceConfigDTO> {
     
-    private final File configFile;
+    /**
+     * The directory where all the config files are located for this game
+     */
+    private final File configDirectory;
     
     @Override
     protected @NotNull Gson getGson() {
         return ConfigUtils.PRETTY_GSON;
     }
     
-    public FootRaceConfigController(File configDirectory) {
-        this.configFile = new File(configDirectory, "footRaceConfig.json");
+    public FootRaceConfigController(@NotNull File pluginDataFolder, @NotNull String configDirectory) {
+        this.configDirectory = new File(pluginDataFolder, configDirectory);
     }
     
     /**
      * Gets the config from storage 
+     * @param configFile the name of the config file to use
      * @return the config for spleef
      * @throws ConfigInvalidException if the config is invalid
-     * @throws ConfigIOException if there is an IO problem getting the config
+     * @throws ConfigIOException if there is an IO problem getting the config, or the config file doesn't exist
      */
-    public @NotNull FootRaceConfig getConfig() throws ConfigException {
-        FootRaceConfigDTO configDTO = loadConfigDTO(configFile, FootRaceConfigDTO.class);
-        configDTO.validate(new Validator("footRaceConfig"));
+    public @NotNull FootRaceConfig getConfig(@NotNull String configFile) throws ConfigException {
+        FootRaceConfigDTO configDTO = loadConfigDTO(new File(configDirectory, configFile), FootRaceConfigDTO.class);
+        configDTO.validate(new Validator(configFile));
         return configDTO.toConfig();
     }
     
-    public void validateConfig(FootRaceConfig config) {
+    // add the arg
+    // TODO: this configFile argument is only used as a name, consider removing
+    public void validateConfig(@NotNull FootRaceConfig config, @NotNull String configFile) {
         FootRaceConfigDTO configDTO = FootRaceConfigDTO.fromConfig(config);
-        configDTO.validate(new Validator("footRaceConfig"));
+        configDTO.validate(new Validator(configFile)); // set validate path
     }
     
-    public void saveConfig(FootRaceConfig config) {
+    // add the arg
+    public void saveConfig(@NotNull FootRaceConfig config, @NotNull String configFile) {
         FootRaceConfigDTO configDTO = FootRaceConfigDTO.fromConfig(config);
-        saveConfigDTO(configDTO, configFile);
+        saveConfigDTO(configDTO, new File(configDirectory, configFile)); // replace the config file
     }
 }
