@@ -1,269 +1,192 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.games.base.GameBase;
+import org.braekpo1nt.mctmanager.games.base.listeners.PreventItemDrop;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfigController;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.CaptureTheFlagState;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.DescriptionState;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.InitialState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
-import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
-import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
-import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
-import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
-import org.bukkit.GameMode;
+import org.bukkit.GameRule;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-@Data
-public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Headerable {
+@Getter
+@Setter
+public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFParticipant.QuitData, CTFTeam.QuitData, CaptureTheFlagState> {
     
-    public @Nullable CaptureTheFlagState state;
-    
-    private final Main plugin;
-    private final GameManager gameManager;
     private final BattleTopbar topbar;
-    private final Component baseTitle = Component.empty()
-            .append(Component.text("Capture the Flag"))
-            .color(NamedTextColor.BLUE);
-    private final TimerManager timerManager;
-    private Component title = baseTitle;
-    private RoundManager roundManager;
-    private Sidebar sidebar;
-    private Sidebar adminSidebar;
-    private CaptureTheFlagConfigController configController;
-    private CaptureTheFlagConfig config;
-    private List<Player> participants = new ArrayList<>();
-    private List<Player> admins = new ArrayList<>();
-    private Map<UUID, Integer> killCount = new HashMap<>();
-    private Map<UUID, Integer> deathCount = new HashMap<>();
+    private final RoundManager roundManager;
+    private final CaptureTheFlagConfig config;
     
-    public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
-        this.plugin = plugin;
-        this.gameManager = gameManager;
-        this.timerManager = new TimerManager(plugin);
-        this.configController = new CaptureTheFlagConfigController(plugin.getDataFolder());
-        this.topbar = new BattleTopbar();
+    private final Map<String, CTFTeam> quitTeams = new HashMap<>();
+    
+    public CaptureTheFlagGame(
+            @NotNull Main plugin,
+            @NotNull GameManager gameManager, 
+            @NotNull Component title, 
+            @NotNull CaptureTheFlagConfig config, 
+            @NotNull Collection<Team> newTeams, 
+            @NotNull Collection<Participant> newParticipants, 
+            @NotNull List<Player> newAdmins) {
+        super(GameType.CAPTURE_THE_FLAG, plugin, gameManager, title, new InitialState());
+        this.config = config;
+        this.topbar = addUIManager(new BattleTopbar());
+        Set<String> teamIds = Participant.getTeamIds(newParticipants);
+        roundManager = new RoundManager(teamIds, config.getArenas().size());
+        addListener(new PreventItemDrop<>(this, true));
+        setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
+        start(newTeams, newParticipants, newAdmins);
+        updateRoundLine();
+        Main.logger().info("Starting Capture the Flag");
+    }
+    
+    @Override
+    protected @NotNull World getWorld() {
+        return config.getWorld();
+    }
+    
+    @Override
+    protected @NotNull CaptureTheFlagState getStartState() {
+        return new DescriptionState(this);
+    }
+    
+    @Override
+    protected @NotNull CTFParticipant createParticipant(Participant participant) {
+        return new CTFParticipant(participant, 0, 0, 0);
+    }
+    
+    @Override
+    protected @NotNull CTFParticipant createParticipant(Participant participant, CTFParticipant.QuitData quitData) {
+        return new CTFParticipant(participant, quitData);
+    }
+    
+    @Override
+    protected @NotNull CTFParticipant.QuitData getQuitData(CTFParticipant participant) {
+        return participant.getQuitData();
+    }
+    
+    @Override
+    protected void initializeParticipant(CTFParticipant participant, CTFTeam team) {
+        topbar.setKillsAndDeaths(participant.getUniqueId(), 0, 0);
+        participant.teleport(config.getSpawnObservatory());
+    }
+    
+    @Override
+    protected void initializeTeam(CTFTeam team) {
         
     }
     
     @Override
-    public GameType getType() {
-        return GameType.CAPTURE_THE_FLAG;
+    protected @NotNull CTFTeam createTeam(Team team) {
+        return new CTFTeam(team, 0);
     }
     
     @Override
-    public void setTitle(@NotNull Component title) {
-        this.title = title;
-        if (sidebar != null) {
-            sidebar.updateLine("title", title);
-        }
-        if (adminSidebar != null) {
-            adminSidebar.updateLine("title", title);
-        }
+    protected @NotNull CTFTeam createTeam(Team team, CTFTeam.QuitData quitData) {
+        return new CTFTeam(team, quitData);
     }
     
     @Override
-    public @NotNull Component getBaseTitle() {
-        return baseTitle;
+    protected @NotNull CTFTeam.QuitData getQuitData(CTFTeam team) {
+        return team.getQuitData();
+    }
+    
+    /**
+     * @param teamId the teamId of the team which might have quit, or might be online
+     * @return the team with the given id if they are online or if they quit
+     * @throws IllegalStateException if no team with the given teamId ever joined
+     */
+    public @NotNull CTFTeam getTeamOrQuitTeam(@NotNull String teamId) {
+        CTFTeam ctfTeam = teams.get(teamId);
+        if (ctfTeam != null) {
+            return ctfTeam;
+        }
+        CTFTeam quitTeam = quitTeams.get(teamId);
+        if (quitTeam != null) {
+            return quitTeam;
+        }
+        throw new IllegalStateException(String.format("Attempted to access a team which never joined (id %s", teamId));
     }
     
     @Override
-    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
-        if (state != null) {
-            throw new ConfigException("CaptureTheFlagGame does not support loading the config mid-game");
-        }
-        this.config = configController.getConfig();
+    protected void resetParticipant(CTFParticipant participant, CTFTeam team) {
+        
     }
     
     @Override
-    public void start(List<Player> newParticipants, List<Player> newAdmins) {
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        gameManager.getTimerManager().register(timerManager);
-        participants = new ArrayList<>(newParticipants.size());
-        sidebar = gameManager.createSidebar();
-        adminSidebar = gameManager.createSidebar();
-        List<String> teamIds = gameManager.getTeamIds(newParticipants);
-        roundManager = new RoundManager(teamIds, config.getArenas().size());
-        killCount = new HashMap<>(newParticipants.size());
-        deathCount = new HashMap<>(newParticipants.size());
-        for (Player participant : newParticipants) {
-            initializeParticipant(participant);
-        }
-        initializeSidebar();
-        startAdmins(newAdmins);
-        updateRoundLine();
-        setState(new DescriptionState(this));
-        Main.logger().info("Starting Capture the Flag");
+    protected void setupTeamOptions(org.bukkit.scoreboard.@NotNull Team scoreboardTeam, @NotNull CTFTeam team) {
+        scoreboardTeam.setAllowFriendlyFire(false);
+        scoreboardTeam.setCanSeeFriendlyInvisibles(true);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.NEVER);
     }
     
-    public void initializeParticipant(Player participant) {
-        participants.add(participant);
-        sidebar.addPlayer(participant);
-        topbar.showPlayer(participant);
-        killCount.putIfAbsent(participant.getUniqueId(), 0);
-        deathCount.putIfAbsent(participant.getUniqueId(), 0);
-        participant.setGameMode(GameMode.ADVENTURE);
-        participant.teleport(config.getSpawnObservatory());
-        participant.setRespawnLocation(config.getSpawnObservatory());
-        ParticipantInitializer.clearInventory(participant);
-        int kills = killCount.get(participant.getUniqueId());
-        int deaths = deathCount.get(participant.getUniqueId());
-        topbar.setKillsAndDeaths(participant.getUniqueId(), kills, deaths);
-    }
-    
-    public void resetParticipant(Player participant) {
-        ParticipantInitializer.clearInventory(participant);
-        ParticipantInitializer.resetHealthAndHunger(participant);
-        ParticipantInitializer.clearStatusEffects(participant);
-        sidebar.removePlayer(participant.getUniqueId());
-        topbar.hidePlayer(participant.getUniqueId());
-    }
-    
-    private void startAdmins(List<Player> newAdmins) {
-        this.admins = new ArrayList<>(newAdmins.size());
-        for (Player admin : newAdmins) {
-            initializeAdmin(admin);
-        }
-        initializeAdminSidebar();
-    }
-    
-    private void initializeAdmin(Player admin) {
-        admins.add(admin);
-        adminSidebar.addPlayer(admin);
-        topbar.showPlayer(admin);
-        admin.setGameMode(GameMode.SPECTATOR);
+    @Override
+    protected void initializeAdmin(Player admin) {
         admin.teleport(config.getSpawnObservatory());
     }
     
-    private void resetAdmin(Player admin) {
-        adminSidebar.removePlayer(admin);
-        topbar.hidePlayer(admin.getUniqueId());
+    @Override
+    protected void cleanup() {
+        
     }
     
     @Override
-    public void stop() {
-        HandlerList.unregisterAll(this);
-        cancelAllTasks();
-        if (state != null) {
-            state.stop();
-        }
-        for (Player participant : participants) {
-            resetParticipant(participant);
-        }
-        participants.clear();
-        stopAdmins();
-        clearSidebar();
-        state = null;
-        gameManager.gameIsOver();
-        Main.logger().info("Stopping Capture the Flag");
+    protected void initializeSidebar() {
+        sidebar.addLines(
+                new KeyLine("round", "")
+        );
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
-        if (state == null) {
-            return;
-        }
-        state.onParticipantJoin(participant);
-        if (sidebar != null) {
-            sidebar.updateLine(participant.getUniqueId(), "title", title);
-        }
+    protected @Nullable SpectatorBoundary getSpectatorBoundary() {
+        return config.getSpectatorBoundary();
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
-        if (state == null) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        state.onParticipantQuit(participant);
+    protected boolean shouldPreventInteractions(@NotNull Material type) {
+        return config.getPreventInteractions().contains(type);
     }
     
-    @Override
-    public void onAdminJoin(Player admin) {
-        initializeAdmin(admin);
-        adminSidebar.updateLine(admin.getUniqueId(), "title", title);
+    /**
+     * Updates the round line of the sidebar for the given player
+     * to reflect the current round and number of total rounds
+     * @param uuid the UUID of the participant/admin to update the round line for
+     */
+    public void updateRoundLine(UUID uuid) {
         Component roundLine = Component.empty()
                 .append(Component.text("Round "))
                 .append(Component.text(roundManager.getPlayedRounds() + 1))
                 .append(Component.text("/"))
                 .append(Component.text(roundManager.getMaxRounds()))
                 ;
+        sidebar.updateLine(uuid, "round", roundLine);
         adminSidebar.updateLine("round", roundLine);
     }
     
-    @Override
-    public void onAdminQuit(Player admin) {
-        resetAdmin(admin);
-        admins.remove(admin);
-    }
-    
-    private void stopAdmins() {
-        for (Player admin : admins) {
-            resetAdmin(admin);
-        }
-        clearAdminSidebar();
-        admins.clear();
-    }
-    
     /**
-     * @param playerUUID the player to add a kill to
+     * Updates the round line of the sidebar for all participants and admins
+     * to reflect the current round and number of total rounds
      */
-    public void addKill(@NotNull UUID playerUUID) {
-        int oldKillCount = killCount.get(playerUUID);
-        int newKillCount = oldKillCount + 1;
-        killCount.put(playerUUID, newKillCount);
-        topbar.setKills(playerUUID, newKillCount);
-    }
-    
-    /**
-     * @param playerUUID the player to add a death to
-     */
-    public void addDeath(@NotNull UUID playerUUID) {
-        int oldDeathCount = deathCount.get(playerUUID);
-        int newDeathCount = oldDeathCount + 1;
-        deathCount.put(playerUUID, newDeathCount);
-        topbar.setDeaths(playerUUID, newDeathCount);
-    }
-    
-    private void initializeSidebar() {
-        sidebar.addLines(
-                new KeyLine("personalTeam", ""),
-                new KeyLine("personalScore", ""),
-                new KeyLine("title", title),
-                new KeyLine("round", "")
-        );
-    }
-    
     public void updateRoundLine() {
         Component roundLine = Component.empty()
                 .append(Component.text("Round "))
@@ -275,201 +198,26 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         adminSidebar.updateLine("round", roundLine);
     }
     
-    private void clearSidebar() {
-        sidebar.deleteAllLines();
-        sidebar = null;
-        topbar.removeAllTeamPairs();
-        topbar.hideAllPlayers();
-    }
-    
-    private void initializeAdminSidebar() {
+    @Override
+    protected void initializeAdminSidebar() {
         adminSidebar.addLines(
-                new KeyLine("title", title),
                 new KeyLine("round", ""),
                 new KeyLine("timer", "")
         );
     }
     
-    private void clearAdminSidebar() {
-        adminSidebar.deleteAllLines();
-        adminSidebar = null;
-    }
-    
     @Override
-    public void updateTeamScore(Player participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
-    }
-    
-    @Override
-    public void updatePersonalScore(Player participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
-    }
-    
-    private void cancelAllTasks() {
-        timerManager.cancel();
+    protected void resetAdmin(Player admin) {
+        
     }
     
     @EventHandler
-    public void onPlayerDeath(PlayerDeathEvent event) {
-        if (state == null) {
+    public void onFoodLevelChange(FoodLevelChangeEvent event) {
+        CTFParticipant participant = participants.get(event.getEntity().getUniqueId());
+        if (participant == null) {
             return;
         }
-        state.onPlayerDeath(event);
+        state.onParticipantFoodLevelChange(event, participant);
     }
     
-    @EventHandler
-    public void onPlayerDamage(EntityDamageEvent event) {
-        if (state == null) {
-            return;
-        }
-        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
-            return;
-        }
-        if (!(event.getEntity() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        state.onPlayerDamage(event);
-    }
-    
-    @EventHandler
-    public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        if (state == null) {
-            return;
-        }
-        Player participant = (Player) event.getEntity();
-        if (!participants.contains(participant)) {
-            return;
-        }
-        state.onPlayerLoseHunger(event);
-    }
-    
-    @EventHandler
-    public void onClickInventory(InventoryClickEvent event) {
-        if (state == null) {
-            return;
-        }
-        Player participant = (Player) event.getWhoClicked();
-        if (!participants.contains(participant)) {
-            return;
-        }
-        state.onClickInventory(event);
-    }
-    
-    /**
-     * Stop players from dropping items
-     */
-    @EventHandler
-    public void onDropItem(PlayerDropItemEvent event) {
-        if (state == null) {
-            return;
-        }
-        Player participant = event.getPlayer();
-        if (!participants.contains(participant)) {
-            return;
-        }
-        event.setCancelled(true);
-    }
-    
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        Block clickedBlock = event.getClickedBlock();
-        if (clickedBlock == null) {
-            return;
-        }
-        if (!participants.contains(event.getPlayer())) {
-            return;
-        }
-        Material blockType = clickedBlock.getType();
-        if (!config.getPreventInteractions().contains(blockType)) {
-            return;
-        }
-        event.setCancelled(true);
-    }
-    
-    @EventHandler
-    public void onPlayerMove(PlayerMoveEvent event) {
-        if (state == null) {
-            return;
-        }
-        Player participant = event.getPlayer();
-        if (!participants.contains(participant)) {
-            return;
-        }
-        boolean cancelled = handleSpectators(event);
-        if (cancelled) {
-            return;
-        }
-        state.onPlayerMove(event);
-    }
-    
-    /**
-     * prevent spectators from leaving the spectator area
-     * @param event the move event
-     * @return true if the event was cancelled due to preventing spectator movement
-     */
-    private boolean handleSpectators(PlayerMoveEvent event) {
-        if (config.getSpectatorArea() == null){
-            return false;
-        }
-        if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
-            return false;
-        }
-        if (!config.getSpectatorArea().contains(event.getFrom().toVector())) {
-            event.getPlayer().teleport(config.getSpawnObservatory());
-            return false;
-        }
-        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
-            event.setCancelled(true);
-            return true;
-        }
-        return false;
-    }
-    
-    @EventHandler
-    public void onPlayerTeleport(PlayerTeleportEvent event) {
-        if (state == null) {
-            return;
-        }
-        if (config.getSpectatorArea() == null){
-            return;
-        }
-        if (!participants.contains(event.getPlayer())) {
-            return;
-        }
-        if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
-            return;
-        }
-        if (!event.getCause().equals(PlayerTeleportEvent.TeleportCause.SPECTATE)) {
-            return;
-        }
-        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
-            event.setCancelled(true);
-        }
-    }
-    
-    /**
-     * Messages all the participants of the game (whether they're in a match or not)
-     * @param message The message to send
-     */
-    public void messageAllParticipants(Component message) {
-        gameManager.messageAdmins(message);
-        for (Player participant : participants) {
-            participant.sendMessage(message);
-        }
-    }
 }

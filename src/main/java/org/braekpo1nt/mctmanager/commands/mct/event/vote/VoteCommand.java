@@ -5,8 +5,9 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -25,23 +26,28 @@ public class VoteCommand extends CommandManager {
                     return CommandResult.failure(getUsage().of("<game>"));
                 }
                 
-                String gameString = args[0];
-                GameType gameToAdd = GameType.fromID(gameString);
+                String gameId = args[0];
+                GameType gameToAdd = GameType.fromID(gameId);
                 if (gameToAdd == null) {
                     return CommandResult.failure(Component.text("")
-                            .append(Component.text(gameString)
+                            .append(Component.text(gameId)
                                     .decorate(TextDecoration.BOLD))
                             .append(Component.text(" is not a recognized game")));
                 }
+                if (!VoteManager.votableGames().contains(gameToAdd)) {
+                    return CommandResult.failure(Component.text("")
+                            .append(Component.text(gameId)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" is not a votable game")));
+                }
                 
-                gameManager.getEventManager().addGameToVotingPool(sender, gameToAdd);
-                return CommandResult.success();
+                return gameManager.addGameToVotingPool(gameToAdd);
             }
             
             @Override
             public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
                 if (args.length == 1) {
-                    return GameType.GAME_IDS.keySet().stream().sorted().toList();
+                    return VoteManager.votableGames().stream().map(GameType::getId).toList();
                 }
                 return null;
             }
@@ -62,14 +68,13 @@ public class VoteCommand extends CommandManager {
                             .append(Component.text(" is not a recognized game")));
                 }
                 
-                gameManager.getEventManager().removeGameFromVotingPool(sender, gameToRemove);
-                return CommandResult.success();
+                return gameManager.removeGameFromVotingPool(gameToRemove);
             }
     
             @Override
             public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
                 if (args.length == 1) {
-                    return GameType.GAME_IDS.keySet().stream().sorted().toList();
+                    return VoteManager.votableGames().stream().map(GameType::getId).toList();
                 }
                 return null;
             }

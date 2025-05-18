@@ -13,6 +13,16 @@ public interface CommandResult {
     @Nullable Component getMessage();
     
     /**
+     * @return the message to send to the command sender(s), or empty if
+     * the message is null
+     * @see #getMessage() 
+     */
+    default @NotNull Component getMessageOrEmpty() {
+        Component message = getMessage();
+        return message != null ? message : Component.empty();
+    }
+    
+    /**
      * Concatenates an additional {@link CommandResult} after the current one.
      * @param other the additional {@link CommandResult} to concatenate to this one.
      * @return the combined {@link CommandResult}s

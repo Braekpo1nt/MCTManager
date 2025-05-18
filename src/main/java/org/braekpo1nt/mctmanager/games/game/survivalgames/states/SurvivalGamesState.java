@@ -1,15 +1,8 @@
 package org.braekpo1nt.mctmanager.games.game.survivalgames.states;
 
-import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
+import org.braekpo1nt.mctmanager.games.base.states.GameStateBase;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesParticipant;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesTeam;
 
-public interface SurvivalGamesState {
-    void onParticipantJoin(Player participant);
-    void onParticipantQuit(Player participant);
-    void initializeParticipant(Player participant);
-    void resetParticipant(Player participant);
-    
-    void onPlayerDamage(EntityDamageEvent event);
-    void onPlayerDeath(PlayerDeathEvent event);
+public interface SurvivalGamesState extends GameStateBase<SurvivalGamesParticipant, SurvivalGamesTeam> {
 }

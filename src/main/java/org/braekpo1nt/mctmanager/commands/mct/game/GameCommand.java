@@ -1,15 +1,15 @@
 package org.braekpo1nt.mctmanager.commands.mct.game;
 
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 
 public class GameCommand extends CommandManager {
     
-    public GameCommand(GameManager gameManager) {
+    public GameCommand(Main plugin, GameManager gameManager) {
         super("game");
-        addSubCommand(new StartSubCommand(gameManager, "start"));
+        addSubCommand(new StartSubCommand(plugin, gameManager, "start"));
         addSubCommand(new StopSubCommand(gameManager, "stop"));
-        addSubCommand(new VoteSubCommand(gameManager, "vote"));
-        addSubCommand(new LoadSubCommand(gameManager, "load"));
+        addSubCommand(new JoinSubCommand(gameManager, "join"));
     }
 }

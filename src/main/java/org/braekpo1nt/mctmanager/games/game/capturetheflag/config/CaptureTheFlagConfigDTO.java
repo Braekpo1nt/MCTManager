@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.Bukkit;
@@ -33,7 +34,8 @@ record CaptureTheFlagConfigDTO(
     public void validate(@NotNull Validator validator) {
         validator.notNull(this.version, "version");
         validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.version), "invalid config version (%s)", this.version);
-        validator.validate(Bukkit.getWorld(this.world) != null, "Could not find world \"%s\"", this.world);
+        validator.notNull(this.world, "world");
+        validator.notNull(Bukkit.getWorld(this.world), "Could not find world \"%s\"", this.world);
         validator.notNull(this.arenas, "arenas");
         validator.validate(!this.arenas.isEmpty(), "arenas: there must be at least 1 arena");
         validator.validateList(this.arenas, "arenas");
@@ -79,7 +81,8 @@ record CaptureTheFlagConfigDTO(
                 .roundOverDuration(this.durations.roundOver)
                 .gameOverDuration(this.durations.gameOver)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
-                .spectatorArea(this.spectatorArea)
+                .spectatorBoundary(this.spectatorArea == null ? null :
+                        new SpectatorBoundary(this.spectatorArea, this.spawnObservatory.toLocation(newWorld)))
                 .description(this.description)
                 .build();
     }

@@ -1,12 +1,14 @@
 package org.braekpo1nt.mctmanager;
 
 import com.github.retrooper.packetevents.PacketEvents;
-import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.MockGameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.MockGameManager;
 import org.braekpo1nt.mctmanager.games.gamestate.MockGameStateStorageUtil;
+import org.braekpo1nt.mctmanager.hub.config.HubConfig;
 import org.braekpo1nt.mctmanager.packetevents.PacketEventsAPIMock;
 import org.braekpo1nt.mctmanager.ui.sidebar.MockSidebarFactory;
 import org.bukkit.scoreboard.Scoreboard;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.logging.Level;
 
@@ -25,13 +27,13 @@ public class MockMain extends Main {
     }
     
     @Override
-    protected GameManager initialGameManager(Scoreboard mctScoreboard) {
-        GameManager gameManager = new MockGameManager(this, mctScoreboard);
-        MockGameStateStorageUtil mockGameStateStorageUtil = new MockGameStateStorageUtil(this);
-        gameManager.setGameStateStorageUtil(mockGameStateStorageUtil);
-        MockSidebarFactory mockSidebarFactory = new MockSidebarFactory();
-        gameManager.setSidebarFactory(mockSidebarFactory);
-        return gameManager;
+    protected GameManager initialGameManager(Scoreboard mctScoreboard, @NotNull HubConfig config) {
+        return new MockGameManager(
+                this, 
+                mctScoreboard,
+                new MockGameStateStorageUtil(this),
+                new MockSidebarFactory(),
+                config);
     }
     
 }

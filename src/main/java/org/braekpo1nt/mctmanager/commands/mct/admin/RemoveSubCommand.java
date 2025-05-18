@@ -4,7 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -37,8 +37,7 @@ public class RemoveSubCommand extends TabSubCommand {
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" is not an admin")));
         }
-        gameManager.removeAdmin(sender, admin, name);
-        return CommandResult.success();
+        return gameManager.removeAdmin(admin, name);
     }
     
     @Override

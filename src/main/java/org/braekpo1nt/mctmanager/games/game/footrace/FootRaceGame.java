@@ -1,174 +1,107 @@
 package org.braekpo1nt.mctmanager.games.game.footrace;
 
-import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
-import lombok.Data;
-import net.kyori.adventure.audience.Audience;
+import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.games.base.GameBase;
+import org.braekpo1nt.mctmanager.games.base.listeners.PreventHungerLoss;
+import org.braekpo1nt.mctmanager.games.base.listeners.PreventItemDrop;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
-import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfigController;
 import org.braekpo1nt.mctmanager.games.game.footrace.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.footrace.states.FootRaceState;
-import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
-import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
-import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
-import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
+import org.braekpo1nt.mctmanager.games.game.footrace.states.InitialState;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
-import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
-import org.braekpo1nt.mctmanager.utils.LogType;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
-import org.bukkit.*;
-import org.bukkit.block.Block;
+import org.bukkit.Bukkit;
+import org.bukkit.Color;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
-@Data
-public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable {
-    
-    private @Nullable FootRaceState state;
+@Getter
+@Setter
+public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, FootRaceParticipant.QuitData, FootRaceTeam.QuitData, FootRaceState> {
     
     public static final long COOL_DOWN_TIME = 3000L;
-    private final FootRaceConfigController configController;
-    private final Main plugin;
-    private final GameManager gameManager;
     private final PotionEffect SPEED = new PotionEffect(PotionEffectType.SPEED, 10000, 8, true, false, false);
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
-    private final Component baseTitle = Component.empty()
-            .append(Component.text("Foot Race"))
-            .color(NamedTextColor.BLUE);
-    private final TimerManager timerManager;
-    private FootRaceConfig config;
-    private Sidebar sidebar;
-    private Sidebar adminSidebar;
-    private int timerRefreshTaskId;
-    private List<Player> participants;
-    private List<Player> admins;
-    private Map<UUID, Long> lapCooldowns;
-    private Map<UUID, Integer> laps;
-    /**
-     * the index of each participant's current checkpoint. (the checkpoint they just passed).
-     */
-    private Map<UUID, Integer> currentCheckpoints;
-    /**
-     * Participants who have finished the race, stored in standing order
-     * (first entry came in first place, second entry came in second place, etc.)
-     */
-    private List<UUID> finishedParticipants;
+    private final FootRaceConfig config;
     /**
      * what place every participant is in at any given moment in the race
      */
-    private List<Player> standings;
+    private List<FootRaceParticipant> standings;
+    /**
+     * Keeps track of how many participants have finished the race, so we can know 
+     * what place a player should be in when they finish
+     * TODO: Participant would {@link #standings} be sufficient for this?
+     */
+    private int numOfFinishedParticipants = 0;
     private long raceStartTime;
+    private int timerRefreshTaskId;
     private int statusEffectsTaskId;
     private int standingsDisplayTaskId;
-    private Component title = baseTitle;
     
-    public FootRaceGame(Main plugin, GameManager gameManager) {
-        this.plugin = plugin;
-        this.gameManager = gameManager;
-        this.timerManager = new TimerManager(plugin);
-        this.configController = new FootRaceConfigController(plugin.getDataFolder());
-    }
-    
-    @Override
-    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
-        this.config = configController.getConfig();
-    }
-    
-    @Override
-    public GameType getType() {
-        return GameType.FOOT_RACE;
-    }
-    
-    @Override
-    public void setTitle(@NotNull Component title) {
+    public FootRaceGame(
+            @NotNull Main plugin,
+            @NotNull GameManager gameManager,
+            @NotNull Component title,
+            @NotNull FootRaceConfig config,
+            @NotNull Collection<Team> newTeams,
+            @NotNull Collection<Participant> newParticipants,
+            @NotNull List<Player> newAdmins) {
+        super(GameType.FOOT_RACE, plugin, gameManager, title, new InitialState());
         this.title = title;
-        if (sidebar != null) {
-            sidebar.updateLine("title", title);
-        }
-        if (adminSidebar != null) {
-            adminSidebar.updateLine("title", title);
-        }
-    }
-    
-    @Override
-    public @NotNull Component getBaseTitle() {
-        return baseTitle;
-    }
-    
-    @Override
-    public void start(List<Player> newParticipants, List<Player> newAdmins) {
-        this.participants = new ArrayList<>(newParticipants.size());
-        lapCooldowns = new HashMap<>(newParticipants.size());
-        laps = new HashMap<>(newParticipants.size());
-        currentCheckpoints = new HashMap<>(newParticipants.size());
-        finishedParticipants = new ArrayList<>(newParticipants.size());
+        this.config = config;
         standings = new ArrayList<>(newParticipants.size());
-        admins = new ArrayList<>(newAdmins.size());
-        sidebar = gameManager.createSidebar();
-        adminSidebar = gameManager.createSidebar();
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        gameManager.getTimerManager().register(timerManager);
-        closeGlassBarrier();
-        for (Player participant : newParticipants) {
-            initializeParticipant(participant);
-        }
-        startAdmins(newAdmins);
-        initializeSidebar();
-        if (!config.useLegacy()) {
-            updateStandings();
-            displayStandings();
-        }
         startStatusEffectsTask();
-        setupTeamOptions();
-        state = new DescriptionState(this);
+        closeGlassBarrier();
+        addListener(new PreventItemDrop<>(this, true));
+        addListener(new PreventHungerLoss<>(this));
+        start(newTeams, newParticipants, newAdmins);
+        updateStandings();
+        displayStandings();
         Main.logger().info("Starting Foot Race game");
+    }
+    
+    @Override
+    protected @NotNull FootRaceState getStartState() {
+        return new DescriptionState(this);
+    }
+    
+    @Override
+    protected @NotNull World getWorld() {
+        return config.getWorld();
     }
     
     public void updateStandings() {
         standings = standings.stream()
                 .sorted((participant1, participant2) -> {
-                    UUID uuid1 = participant1.getUniqueId();
-                    UUID uuid2 = participant2.getUniqueId();
-                    boolean finished1 = finishedParticipants.contains(uuid1);
-                    boolean finished2 = finishedParticipants.contains(uuid2);
-                    if (finished1 || finished2) {
-                        if (finished1 && finished2) {
-                            int placement1 = finishedParticipants.indexOf(uuid1);
-                            int placement2 = finishedParticipants.indexOf(uuid2);
-                            return placement1 - placement2;
+                    if (participant1.isFinished() || participant2.isFinished()) {
+                        if (participant1.isFinished() && participant2.isFinished()) {
+                            return participant1.getPlacement() - participant2.getPlacement();
                         } else {
-                            if (finished1) {
+                            if (participant1.isFinished()) {
                                 return -1;
                             } else {
                                 return 1;
@@ -176,14 +109,12 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                         }
                     }
                     
-                    int currentLap1 = laps.get(uuid1);
-                    int currentLap2 = laps.get(uuid2);
-                    if (currentLap1 != currentLap2) {
-                        return currentLap2 - currentLap1; // Reverse order
+                    if (participant1.getLap() != participant2.getLap()) {
+                        return participant2.getLap() - participant1.getLap(); // Reverse order
                     }
                     
-                    int nextCheckpoint1 = MathUtils.wrapIndex(currentCheckpoints.get(uuid1) + 1, config.getCheckpoints().size());
-                    int nextCheckpoint2 = MathUtils.wrapIndex(currentCheckpoints.get(uuid2) + 1, config.getCheckpoints().size());
+                    int nextCheckpoint1 = MathUtils.wrapIndex(participant1.getCurrentCheckpoint() + 1, config.getCheckpoints().size());
+                    int nextCheckpoint2 = MathUtils.wrapIndex(participant2.getCurrentCheckpoint() + 1, config.getCheckpoints().size());
                     if (nextCheckpoint1 != nextCheckpoint2) {
                         return nextCheckpoint2 - nextCheckpoint1; // Reverse order
                     }
@@ -201,10 +132,9 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     public void displayStandings() {
         for (int i = 0; i < standings.size(); i++) {
-            Player participant = standings.get(i);
-            UUID uuid = participant.getUniqueId();
+            FootRaceParticipant participant = standings.get(i);
             List<KeyLine> standingLines = createStandingLines(i);
-            sidebar.updateLines(uuid, standingLines);
+            sidebar.updateLines(participant.getUniqueId(), standingLines);
         }
         adminSidebar.updateLines(createStandingLines(0));
     }
@@ -264,7 +194,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         this.statusEffectsTaskId = new BukkitRunnable(){
             @Override
             public void run() {
-                for (Player participant : participants) {
+                for (Participant participant : participants.values()) {
                     participant.addPotionEffect(SPEED);
                     participant.addPotionEffect(INVISIBILITY);
                 }
@@ -272,36 +202,30 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         }.runTaskTimer(plugin, 0L, 60L).getTaskId();
     }
     
-    private void setupTeamOptions() {
-        Scoreboard mctScoreboard = gameManager.getMctScoreboard();
-        for (Team team : mctScoreboard.getTeams()) {
-            team.setAllowFriendlyFire(false);
-            team.setCanSeeFriendlyInvisibles(true);
-            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
-        }
+    @Override
+    protected void setupTeamOptions(org.bukkit.scoreboard.@NotNull Team scoreboardTeam, @NotNull FootRaceTeam team) {
+        scoreboardTeam.setAllowFriendlyFire(false);
+        scoreboardTeam.setCanSeeFriendlyInvisibles(true);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.NEVER);
     }
     
-    public void initializeParticipant(Player participant) {
-        UUID participantUUID = participant.getUniqueId();
-        participants.add(participant);
-        lapCooldowns.put(participantUUID, System.currentTimeMillis());
-        laps.put(participantUUID, 1);
-        currentCheckpoints.put(participantUUID, config.getCheckpoints().size() - 1);
+    @Override
+    protected void initializeParticipant(FootRaceParticipant participant, FootRaceTeam team) {
         standings.add(participant);
-        sidebar.addPlayer(participant);
         participant.teleport(config.getStartingLocation());
         participant.setRespawnLocation(config.getStartingLocation(), true);
-        ParticipantInitializer.clearInventory(participant);
         giveBoots(participant);
-        participant.setGameMode(GameMode.ADVENTURE);
-        ParticipantInitializer.clearStatusEffects(participant);
-        ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
-    public void giveBoots(Player participant) {
-        Color teamColor = gameManager.getTeamColor(participant.getUniqueId());
+    @Override
+    protected void initializeTeam(FootRaceTeam team) {
+        // do nothing
+    }
+    
+    public void giveBoots(FootRaceParticipant participant) {
+        Color teamColor = teams.get(participant.getTeamId()).getBukkitColor();
         ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
         LeatherArmorMeta meta = (LeatherArmorMeta) boots.getItemMeta();
         meta.setColor(teamColor);
@@ -310,64 +234,52 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     @Override
-    public void stop() {
-        HandlerList.unregisterAll(this);
-        closeGlassBarrier();
-        cancelAllTasks();
-        stopAdmins();
-        for (Player participant : participants) {
-            resetParticipant(participant);
-        }
-        clearSidebar();
-        participants.clear();
-        lapCooldowns.clear();
-        laps.clear();
-        finishedParticipants.clear();
-        currentCheckpoints.clear();
-        standings.clear();
-        gameManager.gameIsOver();
-        Main.logger().info("Stopping Foot Race game");
-    }
-    
-    private void cancelAllTasks() {
+    protected void cleanup() {
         Bukkit.getScheduler().cancelTask(timerRefreshTaskId);
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
         Bukkit.getScheduler().cancelTask(standingsDisplayTaskId);
-        timerManager.cancel();
-    }
-    
-    public void resetParticipant(Player participant) {
-        ParticipantInitializer.clearInventory(participant);
-        ParticipantInitializer.clearStatusEffects(participant);
-        ParticipantInitializer.resetHealthAndHunger(participant);
-        sidebar.removePlayer(participant);
+        closeGlassBarrier();
+        standings.clear();
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
-        if (state != null) {
-            state.onParticipantJoin(participant);
-        }
+    protected @NotNull FootRaceParticipant createParticipant(Participant participant) {
+        return new FootRaceParticipant(participant, 0, 0);
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
-        if (state != null) {
-            state.onParticipantQuit(participant);
-        }
+    protected @NotNull FootRaceParticipant createParticipant(Participant participant, FootRaceParticipant.QuitData quitData) {
+        return new FootRaceParticipant(participant, quitData);
     }
     
-    private void startAdmins(List<Player> newAdmins) {
-        this.admins = new ArrayList<>(newAdmins.size());
-        for (Player admin : newAdmins) {
-            initializeAdmin(admin);
-        }
-        initializeAdminSidebar();
+    @Override
+    protected @NotNull FootRaceParticipant.QuitData getQuitData(FootRaceParticipant participant) {
+        return participant.getQuitData();
     }
     
-    private void initializeAdminSidebar() {
+    @Override
+    protected void resetParticipant(FootRaceParticipant participant, FootRaceTeam team) {
+        
+    }
+    
+    @Override
+    protected @NotNull FootRaceTeam createTeam(Team team) {
+        return new FootRaceTeam(team, 0);
+    }
+    
+    @Override
+    protected @NotNull FootRaceTeam.QuitData getQuitData(FootRaceTeam team) {
+        return team.getQuitData();
+    }
+    
+    @Override
+    protected @NotNull FootRaceTeam createTeam(Team team, FootRaceTeam.QuitData quitData) {
+        return new FootRaceTeam(team, quitData.getScore());
+    }
+    
+    @Override
+    protected void initializeAdminSidebar() {
         adminSidebar.addLines(
-                new KeyLine("title", title),
                 new KeyLine("elapsedTime", "00:00:000"),
                 new KeyLine("timer", Component.empty()),
                 new KeyLine("standing1", Component.empty()),
@@ -379,15 +291,12 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     @Override
-    public void onAdminJoin(Player admin) {
-        initializeAdmin(admin);
-        adminSidebar.updateLine(admin.getUniqueId(), "title", title);
+    protected void resetAdmin(Player admin) {
+        // do nothing
     }
     
-    private void initializeAdmin(Player admin) {
-        admins.add(admin);
-        adminSidebar.addPlayer(admin);
-        admin.setGameMode(GameMode.SPECTATOR);
+    @Override
+    protected void initializeAdmin(Player admin) {
         admin.teleport(config.getStartingLocation());
     }
     
@@ -397,52 +306,13 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         admins.remove(admin);
     }
     
-    private void stopAdmins() {
-        for (Player admin : admins) {
-            resetAdmin(admin);
-        }
-        clearAdminSidebar();
-        admins.clear();
-    }
-    
-    private void resetAdmin(Player admin) {
-        adminSidebar.removePlayer(admin);
-    }
-    
     @Override
-    public void updateTeamScore(Player participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
-    }
-    
-    @Override
-    public void updatePersonalScore(Player participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
-    }
-    
-    private void clearAdminSidebar() {
-        adminSidebar.deleteAllLines();
-        adminSidebar = null;
-    }
-    
-    private void initializeSidebar() {
+    protected void initializeSidebar() {
         sidebar.addLines(
-                new KeyLine("personalTeam", ""),
-                new KeyLine("personalScore", ""),
-                new KeyLine("title", title),
                 new KeyLine("elapsedTime", "00:00:000"),
-                new KeyLine("lap", String.format("Lap: %d/%d", 1, config.getLaps())),
+                new KeyLine("lap", Component.empty()
+                        .append(Component.text("Lap: 1/"))
+                        .append(Component.text(config.getLaps()))),
                 new KeyLine("timer", Component.empty()),
                 new KeyLine("standing1", Component.empty()),
                 new KeyLine("standing2", Component.empty()),
@@ -452,141 +322,14 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         );
     }
     
-    private void clearSidebar() {
-        sidebar.deleteAllLines();
-        sidebar = null;
+    @Override
+    protected @Nullable SpectatorBoundary getSpectatorBoundary() {
+        return config.getSpectatorBoundary();
     }
     
-    // EventHandlers
-    
-    @EventHandler
-    public void onPlayerTeleport(PlayerTeleportEvent event) {
-        if (config.getSpectatorArea() == null){
-            return;
-        }
-        if (!participants.contains(event.getPlayer())) {
-            return;
-        }
-        if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
-            return;
-        }
-        if (!event.getCause().equals(PlayerTeleportEvent.TeleportCause.SPECTATE)) {
-            return;
-        }
-        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
-            event.setCancelled(true);
-        }
+    @Override
+    protected boolean shouldPreventInteractions(@NotNull Material type) {
+        return config.getPreventInteractions().contains(type);
     }
     
-    /**
-     * Stop players from removing their equipment
-     */
-    @EventHandler
-    public void onClickInventory(InventoryClickEvent event) {
-        if (event.getClickedInventory() == null) {
-            return;
-        }
-        if (event.getCurrentItem() == null) {
-            return;
-        }
-        Player participant = ((Player) event.getWhoClicked());
-        if (!participants.contains(participant)) {
-            return;
-        }
-        event.setCancelled(true);
-    }
-    
-    /**
-     * Stop players from dropping items
-     */
-    @EventHandler
-    public void onDropItem(PlayerDropItemEvent event) {
-        Player participant = event.getPlayer();
-        if (!participants.contains(participant)) {
-            return;
-        }
-        event.setCancelled(true);
-    }
-    
-    @EventHandler
-    public void onPlayerDamage(EntityDamageEvent event) {
-        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
-            return;
-        }
-        if (!(event.getEntity() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "FootraceGame.onPlayerDamage() cancelled");
-        event.setCancelled(true);
-    }
-    
-    @EventHandler
-    public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        if (!(event.getEntity() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        participant.setFoodLevel(20);
-        event.setCancelled(true);
-    }
-    
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        Block clickedBlock = event.getClickedBlock();
-        if (clickedBlock == null) {
-            return;
-        }
-        if (!participants.contains(event.getPlayer())) {
-            return;
-        }
-        Material blockType = clickedBlock.getType();
-        if (!config.getPreventInteractions().contains(blockType)) {
-            return;
-        }
-        event.setCancelled(true);
-    }
-    
-    // state calling methods
-    
-    @EventHandler
-    public void onPlayerMove(PlayerMoveEvent event) {
-        Player participant = event.getPlayer();
-        if (!participants.contains(participant)) {
-            return;
-        }
-        if (state != null) {
-            state.onParticipantMove(participant);
-        }
-        if (participant.getGameMode().equals(GameMode.SPECTATOR)) {
-            keepSpectatorsInArea(participant, event);
-        }
-    }
-    
-    /**
-     * Prevent spectators from leaving the spectatorArea
-     * @param participant the participant (assumed to be a valid participant of this game in the SPECTATOR gamemode
-     * @param event the event which may be cancelled in order to keep the given participant in the spectator area
-     */
-    private void keepSpectatorsInArea(@NotNull Player participant, PlayerMoveEvent event) {
-        if (config.getSpectatorArea() == null){
-            return;
-        }
-        if (!config.getSpectatorArea().contains(event.getFrom().toVector())) {
-            participant.teleport(config.getStartingLocation());
-            return;
-        }
-        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
-            event.setCancelled(true);
-        }
-    }
-    
-    public void messageAllParticipants(Component message) {
-        gameManager.messageAdmins(message);
-        Audience.audience(participants).sendMessage(message);
-    }
 }

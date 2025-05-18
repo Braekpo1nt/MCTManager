@@ -1,9 +1,11 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
 import com.google.common.base.Preconditions;
+import com.google.gson.annotations.SerializedName;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.ItemStackDTO;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
@@ -65,6 +67,7 @@ record SpleefConfigDTO(
     public void validate(@NotNull Validator validator) throws ConfigInvalidException {
         validator.validate(this.version() != null, "version can't be null");
         validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.version()), "invalid config version (%s)", this.version());
+        validator.notNull(this.world, "world");
         validator.validate(Bukkit.getWorld(this.world()) != null, "world: Could not find world \"%s\"", this.world());
         validator.validate(this.startingLocations() != null, "startingLocations can't be null");
         validator.validate(!this.startingLocations.isEmpty(), "startingLocations must have at least one entry");
@@ -103,7 +106,8 @@ record SpleefConfigDTO(
         validator.validate(this.scores() != null, "scores can't be null");
         validator.validate(this.durations() != null, "durations can't be null");
         validator.validate(this.durations.roundStarting() >= 0, "durations.roundStarting (%s) can't be negative", this.durations.roundStarting());
-        validator.validate(this.durations.roundEnding() >= 0, "duration.roundEnding (%s) can't be negative", this.durations.roundEnding());
+        validator.validate(this.durations.roundOver() >= 0, "duration.roundOver (%s) can't be negative", this.durations.roundOver());
+        validator.validate(this.durations.gameOver() >= 0, "duration.gameOver (%s) can't be negative", this.durations.gameOver());
         validator.notNull(this.description, "description");
     }
     
@@ -145,11 +149,14 @@ record SpleefConfigDTO(
                 .rounds(this.rounds)
                 .surviveScore(this.scores.survive)
                 .roundStartingDuration(this.durations.roundStarting)
-                .roundEndingDuration(this.durations.roundEnding)
+                .roundOverDuration(this.durations.roundOver)
+                .gameOverDuration(this.durations.gameOver)
                 .descriptionDuration(this.durations.description)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .safetyArea(this.safetyArea)
-                .spectatorArea(this.spectatorArea)
+                .spectatorBoundary(this.spectatorArea == null ? null : 
+                        new SpectatorBoundary(this.spectatorArea, 
+                                this.startingLocations.getFirst().toLocation(newWorld)))
                 .description(this.description)
                 .build();
     }
@@ -261,6 +268,9 @@ record SpleefConfigDTO(
     record Scores(int survive) {
     }
     
-    record Durations(int roundStarting, int roundEnding, int description) {
+    record Durations(int roundStarting,
+                     int roundOver, 
+                     int description, 
+                     int gameOver) {
     }
 }

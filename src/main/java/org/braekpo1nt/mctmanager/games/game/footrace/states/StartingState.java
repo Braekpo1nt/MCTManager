@@ -19,13 +19,9 @@ public class StartingState extends DescriptionState {
                 .withSidebar(context.getSidebar(), "timer")
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .sidebarPrefix(Component.text("Starting: "))
-                .titleAudience(Audience.audience(context.getParticipants()))
+                .titleAudience(Audience.audience(context.getParticipants().values()))
                 .onCompletion(() -> {
-                    if (context.getConfig().useLegacy()) {
-                        context.setState(new ActiveStateLegacy(context));
-                    } else {
-                        context.setState(new ActiveState(context));
-                    }
+                    context.setState(new ActiveState(context));
                 })
                 .build());
     }

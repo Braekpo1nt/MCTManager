@@ -1,19 +1,27 @@
 package org.braekpo1nt.mctmanager.ui.topbar;
 
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.ui.UIManager;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.UUID;
 
-public interface Topbar {
+public interface Topbar extends UIManager {
     
     /**
      * Show this Topbar to the given player
      * @param player the player to show this Topbar to
      */
+    @Override
     void showPlayer(@NotNull Player player);
+    
+    @Override
+    default void hidePlayer(@NotNull Player player) {
+        hidePlayer(player.getUniqueId());
+    }
     
     /**
      * Make the given player no longer see this Topbar

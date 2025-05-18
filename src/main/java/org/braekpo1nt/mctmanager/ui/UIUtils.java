@@ -3,10 +3,12 @@ package org.braekpo1nt.mctmanager.ui;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.io.IOUtils;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.maps.ImageMapRenderer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -28,11 +30,10 @@ import java.time.Duration;
 import java.util.logging.Level;
 
 public class UIUtils {
+    
     private static final Component KILL_PREFIX = Component.empty()
-            .append(Component.text("["))
-            .append(Component.text("k")
+            .append(Component.text(" ⚔ ")
                     .color(NamedTextColor.GREEN))
-            .append(Component.text("] "))
             ;
     private static final Title.Times KILL_TIMES = Title.Times.times(
             Duration.ZERO,
@@ -114,12 +115,22 @@ public class UIUtils {
      * @param killer the one who killed
      * @param killed the one who was killed (the one who died)
      */
+    public static void showKillTitle(Participant killer, Participant killed) {
+        showKillTitle(killer.getPlayer(), killed.getPlayer());
+    }
+    
+    /**
+     * Shows a subtitle to the killer indicating that they killed the given player
+     * @param killer the one who killed
+     * @param killed the one who was killed (the one who died)
+     */
     public static void showKillTitle(Player killer, Player killed) {
         killer.showTitle(Title.title(
                 Component.empty(), 
                 Component.empty()
                         .append(KILL_PREFIX)
-                        .append(killed.displayName()),
+                        .append(killed.displayName())
+                        .append(KILL_PREFIX),
                 KILL_TIMES
         ));
     }
@@ -159,6 +170,34 @@ public class UIUtils {
                         .append(Component.text("Match Over!"))
                         .color(NamedTextColor.RED),
                 Component.empty(),
+                DEFAULT_TIMES
+        );
+    }
+    
+    /**
+     * @param x the number of the round
+     * @return the default "Round X" title, used everywhere
+     */
+    public static Title roundXTitle(int x) {
+        return Title.title(
+                Component.empty()
+                        .append(Component.text("Round "))
+                        .append(Component.text(x))
+                        .color(NamedTextColor.WHITE),
+                Component.empty(),
+                DEFAULT_TIMES
+        );
+    }
+    
+    /**
+     * @return the default GO! title, used everywhere
+     */
+    public static Title goTitle() {
+        return Title.title(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("Go!"))
+                        .color(NamedTextColor.GREEN),
                 DEFAULT_TIMES
         );
     }

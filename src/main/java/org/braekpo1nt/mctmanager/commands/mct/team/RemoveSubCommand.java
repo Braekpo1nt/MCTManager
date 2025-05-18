@@ -2,7 +2,7 @@ package org.braekpo1nt.mctmanager.commands.mct.team;
 
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -25,7 +25,7 @@ public class RemoveSubCommand extends TabSubCommand {
             return CommandResult.failure(getUsage().of("<team>"));
         }
         String removeTeamId = args[0];
-        return GameManagerUtils.removeTeam(sender, gameManager, removeTeamId);
+        return GameManagerUtils.removeTeam(gameManager, removeTeamId);
     }
     
     @Override

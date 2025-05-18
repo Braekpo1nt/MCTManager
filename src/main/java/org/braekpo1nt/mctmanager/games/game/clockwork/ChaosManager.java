@@ -28,14 +28,15 @@ import java.util.Random;
 public class ChaosManager implements Listener {
     private final BlockData sandBlockData = Material.SAND.createBlockData();
     private final BlockData anvilBlockData = Material.ANVIL.createBlockData();
-    private ClockworkConfig config;
+    private final ClockworkConfig config;
     private double minArrows;
     private double maxArrows;
     private double minFallingBlocks;
     private double maxFallingBlocks;
     private double minDelay;
     private double maxDelay;
-    private int scheduleArrowsSummonTaskId;
+    private int summonTaskId;
+    private boolean paused;
     private final Random random = new Random();
     
     private final Main plugin;
@@ -43,16 +44,16 @@ public class ChaosManager implements Listener {
     public ChaosManager(Main plugin, ClockworkConfig config) {
         this.plugin = plugin;
         this.config = config;
+        paused = true;
+    }
+    
+    private void initializeValues() {
         minArrows = config.getChaos().arrows().initial().min();
         maxArrows = config.getChaos().arrows().initial().max();
         minFallingBlocks = config.getChaos().fallingBlocks().initial().min();
         maxFallingBlocks = config.getChaos().fallingBlocks().initial().max();
         minDelay += config.getChaos().summonDelay().initial().min();
         maxDelay += config.getChaos().summonDelay().initial().max();
-    }
-    
-    public void setConfig(ClockworkConfig config) {
-        this.config = config;
     }
     
     public void incrementChaos() {
@@ -84,9 +85,29 @@ public class ChaosManager implements Listener {
         }
     }
     
-    public void start() {
+    /**
+     * Start the chaos manager
+     * @param paused true if this should start in a paused state, false otherwise
+     */
+    public void start(boolean paused) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        initializeValues();
+        this.paused = paused;
         scheduleSummonTask();
+    }
+    
+    /**
+     * Pause all chaos
+     */
+    public void pause() {
+        this.paused = true;
+    }
+    
+    /**
+     * Resume all chaos
+     */
+    public void resume() {
+        this.paused = false;
     }
     
     public void stop() {
@@ -103,11 +124,13 @@ public class ChaosManager implements Listener {
             return;
         }
         long randomDelay = random.nextLong((long) minDelay, (long) maxDelay + 1);
-        this.scheduleArrowsSummonTaskId = new BukkitRunnable() {
+        this.summonTaskId = new BukkitRunnable() {
             @Override
             public void run() {
-                summonArrows();
-                summonFallingBlocks();
+                if (!paused) {
+                    summonArrows();
+                    summonFallingBlocks();
+                }
                 scheduleSummonTask();
             }
         }.runTaskLater(plugin, randomDelay).getTaskId();
@@ -174,7 +197,7 @@ public class ChaosManager implements Listener {
     }
     
     private void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(scheduleArrowsSummonTaskId);
+        Bukkit.getScheduler().cancelTask(summonTaskId);
     }
     
     private void removeArrowsAndFallingBlocks() {

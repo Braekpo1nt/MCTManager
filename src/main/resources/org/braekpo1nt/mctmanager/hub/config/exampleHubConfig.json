@@ -20,28 +20,56 @@
     "yaw": -90,
     "pitch": 0
   },
+  "practice": {
+    "allowedGames": [
+      "CAPTURE_THE_FLAG",
+      "FOOT_RACE",
+      "SPLEEF",
+      "PARKOUR_PATHWAY"
+    ],
+    "configFiles": {
+      "CAPTURE_THE_FLAG": "bluemap.json"
+    },
+    "preset": {
+      "file": "practice1.json",
+      "override": true,
+      "resetScores": false,
+      "whitelist": true,
+      "unWhitelist": true,
+      "kickUnWhitelisted": true
+    }
+  },
   "leaderboards": [
     {
-      "title": "Top 10",
+      "title": "§6§nTop 10",
       "location": {
         "x": 0,
         "y": 154,
-        "z": -141
+        "z": -144
       },
       "topPlayers": 10
     },
     {
       "location": {
-        "x": -2.5,
+        "x": 49,
+        "y": 151,
+        "z": -29
+      },
+      "topPlayers": 5
+    },
+    {
+      "title": "§6§nTop 5",
+      "location": {
+        "x": 10,
         "y": 153,
-        "z": -132.5
+        "z": 0
       },
       "topPlayers": 5
     }
   ],
   "yLimit": 130,
   "durations": {
-    "tpToHub": 10
+    "tpToHub": 5
   },
   "preventInteractions": [
     "IRON_TRAPDOOR",

@@ -67,6 +67,7 @@ public class RoundManager {
     }
     
     private static void logSchedule(List<List<MatchPairing>> schedule) {
+        Main.logger().info(String.format("Schedule (%d):", schedule.size()));
         for (int i = 0; i < schedule.size(); i++) {
             List<MatchPairing> round = schedule.get(i);
             Main.logger().info(String.format("Round %d:", i+1));
@@ -81,7 +82,7 @@ public class RoundManager {
      * @param teamIds the teamIds of the teams in the round
      * @param numOfArenas the number of arenas
      */
-    public RoundManager(@NotNull List<@NotNull String> teamIds, int numOfArenas) {
+    public RoundManager(@NotNull Collection<@NotNull String> teamIds, int numOfArenas) {
         this.containedTeamIds = new HashSet<>(teamIds);
         this.schedule = generateSchedule(teamIds, numOfArenas);
         if (schedule.isEmpty()) {
@@ -100,8 +101,9 @@ public class RoundManager {
      * @param teamIds the teamIds of the teams in the round
      * @param numOfArenas the number of arenas (must be greater than 0)
      */
-    public void regenerateRounds(@NotNull List<@NotNull String> teamIds, int numOfArenas) {
+    public void regenerateRounds(@NotNull Collection<@NotNull String> teamIds, int numOfArenas) {
         Set<String> uniqueTeamIds = new HashSet<>(teamIds);
+        Main.logf("regenerating rounds for %s", uniqueTeamIds.toString());
         if (uniqueTeamIds.size() != teamIds.size()) {
             Main.logger().severe(String.format("Duplicate teamId found in teamIds %s", teamIds));
         }
@@ -133,7 +135,9 @@ public class RoundManager {
     /**
      * @param teamId the teamId to check for
      * @return true if the given teamId is contained in this {@link RoundManager}, false otherwise
+     * @deprecated in favor of checking if the team exists in the {@link CaptureTheFlagGame#getTeams()}
      */
+    @Deprecated
     public boolean containsTeamId(String teamId) {
         return containedTeamIds.contains(teamId);
     }
@@ -164,12 +168,12 @@ public class RoundManager {
         return currentRound;
     }
     
-    public static List<List<MatchPairing>> generateSchedule(@NotNull List<String> teamIds, int numOfArenas) {
+    public static List<List<MatchPairing>> generateSchedule(@NotNull Collection<String> teamIds, int numOfArenas) {
         List<MatchPairing> allMatches = generateRoundRobin(teamIds);
         return distributeMatches(allMatches, numOfArenas);
     }
     
-    public static List<List<MatchPairing>> generateSchedule(@NotNull List<String> teamIds, int numOfArenas, List<MatchPairing> exclude) {
+    public static List<List<MatchPairing>> generateSchedule(@NotNull Collection<String> teamIds, int numOfArenas, List<MatchPairing> exclude) {
         List<MatchPairing> allMatches = generateRoundRobin(teamIds);
         allMatches.removeAll(exclude);
         return distributeMatches(allMatches, numOfArenas);
@@ -181,7 +185,7 @@ public class RoundManager {
      * a some {@link MatchPairing}s where one of the teams is {@link #BYE}. This is intended, so
      * that when you generate the schedule, no one team waits too many rounds in a row on-deck.
      */
-    public static @NotNull List<MatchPairing> generateRoundRobin(@NotNull List<String> teamIds) {
+    public static @NotNull List<MatchPairing> generateRoundRobin(@NotNull Collection<String> teamIds) {
         List<String> teams = teamIds.stream().sorted().collect(Collectors.toCollection(ArrayList::new));
         if (teamIds.size() % 2 != 0) {
             teams.add(BYE);

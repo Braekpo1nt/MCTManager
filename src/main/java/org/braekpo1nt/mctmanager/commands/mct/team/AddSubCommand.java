@@ -4,7 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.command.Command;
@@ -72,12 +72,10 @@ public class AddSubCommand extends TabSubCommand {
             displayNameBuilder.append(" ");
         }
         String messageWithQuotes = displayNameBuilder.toString().trim();
-        String displayName = messageWithQuotes.substring(1, messageWithQuotes.length() - 1).trim();
-        return displayName;
+        return messageWithQuotes.substring(1, messageWithQuotes.length() - 1).trim();
     }
     
-    @NotNull
-    public static int[] getDisplayNameIndexes(@NotNull String @NotNull [] args) {
+    public static int @NotNull [] getDisplayNameIndexes(@NotNull String @NotNull [] args) {
         int startIndex = -1;
         int endIndex = -1;
         
@@ -86,7 +84,7 @@ public class AddSubCommand extends TabSubCommand {
                 startIndex = i;
             }
     
-            if (args[i].endsWith("\"") && endIndex == -1) {
+            if (args[i].endsWith("\"")) {
                 if (i == startIndex) {
                     if (args[i].length() == 1) {
                         // means args[i] == "\""

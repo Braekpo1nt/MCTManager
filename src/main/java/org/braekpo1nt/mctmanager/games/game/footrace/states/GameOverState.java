@@ -5,16 +5,13 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-public class GameOverState implements FootRaceState {
-    
-    private final @NotNull FootRaceGame context;
+public class GameOverState extends FootRaceStateBase {
     
     public GameOverState(@NotNull FootRaceGame context) {
-        this.context = context;
-        Audience.audience(context.getParticipants()).showTitle(UIUtils.gameOverTitle());
+        super(context);
+        Audience.audience(context.getParticipants().values()).showTitle(UIUtils.gameOverTitle());
         context.getSidebar().addLine("over", Component.empty());
         context.getAdminSidebar().addLine("over", Component.empty());
         context.getTimerManager().start(Timer.builder()
@@ -29,29 +26,4 @@ public class GameOverState implements FootRaceState {
                 .build());
     }
     
-    @Override
-    public void onParticipantJoin(Player participant) {
-        // do nothing
-    }
-    
-    @Override
-    public void onParticipantQuit(Player participant) {
-        resetParticipant(participant);
-        context.getParticipants().remove(participant);
-    }
-    
-    @Override
-    public void initializeParticipant(Player participant) {
-        context.initializeParticipant(participant);
-    }
-    
-    @Override
-    public void resetParticipant(Player participant) {
-        context.resetParticipant(participant);
-    }
-    
-    @Override
-    public void onParticipantMove(Player participant) {
-        // do nothing
-    }
 }

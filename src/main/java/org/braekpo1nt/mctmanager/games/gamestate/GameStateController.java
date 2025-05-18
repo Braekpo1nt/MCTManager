@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
-public class GameStateController extends ConfigController<GameStateDTO> {
+class GameStateController extends ConfigController<GameStateDTO> {
     
     private final File gameStateFile;
     

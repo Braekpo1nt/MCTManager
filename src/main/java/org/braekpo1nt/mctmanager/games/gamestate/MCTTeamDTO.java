@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +34,7 @@ class MCTTeamDTO implements Validatable {
         validator.validate(ColorMap.hasNamedTextColor(color), "color is not a recognized color. It should be one of %s", ColorMap.getNamedTextColors());
     }
     
-    MCTTeam toMCTTeam() {
+    MCTTeam toTeam() {
         return MCTTeam.builder()
                 .name(this.name)
                 .displayName(this.displayName)
@@ -43,15 +43,15 @@ class MCTTeamDTO implements Validatable {
                 .build();
     }
     
-    static Map<String, MCTTeam> toMCTTeams(Map<String, MCTTeamDTO> teams) {
+    static Map<String, MCTTeam> toTeams(Map<String, MCTTeamDTO> teams) {
         Map<String, MCTTeam> mctTeams = new HashMap<>(teams.size());
         for (Map.Entry<String, MCTTeamDTO> entry : teams.entrySet()) {
-            mctTeams.put(entry.getKey(), entry.getValue().toMCTTeam());
+            mctTeams.put(entry.getKey(), entry.getValue().toTeam());
         }
         return mctTeams;
     }
     
-    static MCTTeamDTO fromMCTTeam(MCTTeam mctTeam) {
+    static MCTTeamDTO fromTeam(MCTTeam mctTeam) {
         return MCTTeamDTO.builder()
                 .name(mctTeam.getName())
                 .displayName(mctTeam.getDisplayName())
@@ -60,10 +60,10 @@ class MCTTeamDTO implements Validatable {
                 .build();
     }
     
-    static Map<String, MCTTeamDTO> fromMCTTeams(Map<String, MCTTeam> teams) {
+    static Map<String, MCTTeamDTO> fromTeams(Map<String, MCTTeam> teams) {
         Map<String, MCTTeamDTO> mctTeamDTOs = new HashMap<>(teams.size());
         for (Map.Entry<String, MCTTeam> entry : teams.entrySet()) {
-            mctTeamDTOs.put(entry.getKey(), MCTTeamDTO.fromMCTTeam(entry.getValue()));
+            mctTeamDTOs.put(entry.getKey(), MCTTeamDTO.fromTeam(entry.getValue()));
         }
         return mctTeamDTOs;
     }

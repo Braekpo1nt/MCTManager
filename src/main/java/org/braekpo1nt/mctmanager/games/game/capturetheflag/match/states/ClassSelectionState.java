@@ -1,33 +1,27 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states;
 
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.ClassPicker;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchParticipant;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchTeam;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
-import org.braekpo1nt.mctmanager.utils.LogType;
-import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 
-public class ClassSelectionState implements CaptureTheFlagMatchState {
+public class ClassSelectionState extends CaptureTheFlagMatchStateBase {
     
-    private final CaptureTheFlagMatch context;
     private final ClassPicker northClassPicker;
     private final ClassPicker southClassPicker;
     
     public ClassSelectionState(CaptureTheFlagMatch context) {
-        this.context = context;
-        this.northClassPicker = context.getNorthClassPicker();
-        this.southClassPicker = context.getSouthClassPicker();
-        northClassPicker.start(
-                context.getPlugin(), 
-                context.getNorthParticipants(), 
+        super(context);
+        this.northClassPicker = new ClassPicker(
+                context.getPlugin(),
+                context.getNorthTeam().getParticipants(),
+                context.getNorthTeam().getBukkitColor(),
                 context.getConfig().getLoadouts());
-        southClassPicker.start(
-                context.getPlugin(), 
-                context.getSouthParticipants(), 
+        this.southClassPicker = new ClassPicker(
+                context.getPlugin(),
+                context.getSouthTeam().getParticipants(),
+                context.getSouthTeam().getBukkitColor(),
                 context.getConfig().getLoadouts());
     }
     
@@ -39,67 +33,52 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
     }
     
     @Override
-    public void stop() {
+    public void cleanup() {
         northClassPicker.stop(false);
         southClassPicker.stop(false);
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
-        context.initializeParticipant(participant);
-        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
-        context.getTopbar().linkToTeam(participant.getUniqueId(), teamId);
-        if (context.getMatchPairing().northTeam().equals(teamId)) {
+    public void onParticipantRejoin(CTFMatchParticipant participant, CTFMatchTeam team) {
+        super.onParticipantRejoin(participant, team);
+        if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
             northClassPicker.addTeamMate(participant);
+            participant.teleport(context.getArena().northSpawn());
         } else {
             southClassPicker.addTeamMate(participant);
+            participant.teleport(context.getArena().southSpawn());
         }
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
-        context.resetParticipant(participant);
-        context.getAllParticipants().remove(participant);
-        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
-        int alive;
-        int dead;
-        if (context.getMatchPairing().northTeam().equals(teamId)) {
-            context.getNorthParticipants().remove(participant);
-            context.getNorthClassPicker().removeTeamMate(participant);
-            alive = context.countAlive(context.getNorthParticipants());
-            dead = context.getNorthParticipants().size() - alive;
+    public void onNewParticipantJoin(CTFMatchParticipant participant, CTFMatchTeam team) {
+        super.onNewParticipantJoin(participant, team);
+        participant.setAlive(true);
+        if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
+            northClassPicker.addTeamMate(participant);
+            participant.teleport(context.getArena().northSpawn());
         } else {
-            context.getSouthParticipants().remove(participant);
-            context.getSouthClassPicker().removeTeamMate(participant);
-            alive = context.countAlive(context.getSouthParticipants());
-            dead = context.getSouthParticipants().size() - alive;
+            southClassPicker.addTeamMate(participant);
+            participant.teleport(context.getArena().southSpawn());
         }
-        context.getTopbar().setMembers(teamId, alive, dead);
     }
     
     @Override
-    public void onPlayerDamage(EntityDamageEvent event) {
-        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "CaptureTheFlagMatch.ClassSelectionState.onPlayerDamage() cancelled");
-        event.setCancelled(true);
+    public void onParticipantQuit(CTFMatchParticipant participant, CTFMatchTeam team) {
+        if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
+            northClassPicker.removeTeamMate(participant.getUniqueId());
+        } else {
+            southClassPicker.removeTeamMate(participant.getUniqueId());
+        }
+        super.onParticipantQuit(participant, team);
     }
     
     @Override
-    public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        event.setCancelled(true);
-    }
-    
-    @Override
-    public void onPlayerMove(PlayerMoveEvent event) {
-        // do nothing
-    }
-    
-    @Override
-    public void onClickInventory(InventoryClickEvent event) {
-        // do nothing
-    }
-    
-    @Override
-    public void onPlayerDeath(PlayerDeathEvent event) {
-        // do nothing
+    public void onParticipantRespawn(PlayerRespawnEvent event, CTFMatchParticipant participant) {
+        if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
+            event.setRespawnLocation(context.getArena().northSpawn());
+        } else {
+            event.setRespawnLocation(context.getArena().southSpawn());
+        }
     }
 }

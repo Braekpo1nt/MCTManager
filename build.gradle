@@ -1,11 +1,11 @@
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '7.1.2'
-    id "io.freefair.lombok" version "8.6"
+    id 'com.gradleup.shadow' version '8.3.0'
+//    id "io.freefair.lombok" version "8.6"
 }
 
 group = 'org.braekpo1nt'
-version = '1.3.1'
+version = '2.0.0'
 
 repositories {
     mavenCentral()
@@ -22,7 +22,7 @@ repositories {
         url = "https://repo.onarandombox.com/content/groups/public/"
     }
     maven {
-        name = "jitpack"
+        name = "jitpack" // MockBukkit
         url = "https://jitpack.io/"
     }
     maven {
@@ -42,6 +42,10 @@ repositories {
     }
 }
 
+configurations {
+    shade
+}
+
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
     testImplementation 'org.mockito:mockito-core:5.2.0'
@@ -50,13 +54,22 @@ dependencies {
     testImplementation 'org.slf4j:slf4j-jdk14:2.0.5'
     
     compileOnly 'io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT'
-    compileOnly 'com.github.decentsoftware-eu:decentholograms:2.8.14'
+    compileOnly 'com.github.decentsoftware-eu:decentholograms:2.8.17'
 
     // This would normally be compileOnly, but it's implementation so that the MockBukkit
     // tests can work. I mock PacketEventsAPI in the test folders to be a no-op implementation.
     implementation 'com.github.retrooper:packetevents-spigot:2.7.0'
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'com.sk89q.worldedit:worldedit-bukkit:7.3.6'
+    implementation 'com.github.stefvanschie.inventoryframework:IF:0.10.19'
+    shade 'com.github.stefvanschie.inventoryframework:IF:0.10.19'
+    
+    // lombok
+    compileOnly 'org.projectlombok:lombok:1.18.36'
+    annotationProcessor 'org.projectlombok:lombok:1.18.36'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.36'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.36'
 }
 
 def targetJavaVersion = 21
@@ -79,6 +92,12 @@ tasks.jar {
     manifest {
         attributes["paperweight-mappings-namespace"] = "spigot"
     }
+}
+
+tasks.shadowJar {
+    configurations = [project.configurations.shade] // only dependencies labeled with the "shade" configuration will be included in the fat jar (alongside my own code)
+    archiveClassifier = "" // doesn't add "-all" to the jar file name
+    relocate 'com.github.stefvanschie.inventoryframework', 'org.braekpo1nt.inventoryframework' // from the inventoryFramework docs
 }
 
 processResources {

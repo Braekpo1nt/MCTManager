@@ -1,8 +1,12 @@
 package org.braekpo1nt.mctmanager.utils;
 
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.participant.ColorAttributes;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.Color;
 import org.bukkit.Material;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -102,6 +106,46 @@ public class ColorMap {
         STAINED_GLASS_MAP.put("yellow", Material.YELLOW_STAINED_GLASS);
     }
     
+    private static final Map<String, Material> STAINED_GLASS_PANE_MAP = new HashMap<>();
+    static {
+        STAINED_GLASS_PANE_MAP.put("aqua", Material.LIGHT_BLUE_STAINED_GLASS_PANE);
+        STAINED_GLASS_PANE_MAP.put("black", Material.BLACK_STAINED_GLASS_PANE);
+        STAINED_GLASS_PANE_MAP.put("dark_aqua", Material.CYAN_STAINED_GLASS_PANE);
+        STAINED_GLASS_PANE_MAP.put("dark_blue", Material.BLUE_STAINED_GLASS_PANE);
+        STAINED_GLASS_PANE_MAP.put("dark_gray", Material.GRAY_STAINED_GLASS_PANE);
+        STAINED_GLASS_PANE_MAP.put("dark_green", Material.GREEN_STAINED_GLASS_PANE);
+        STAINED_GLASS_PANE_MAP.put("dark_purple", Material.PURPLE_STAINED_GLASS_PANE);
+        STAINED_GLASS_PANE_MAP.put("dark_red", Material.RED_STAINED_GLASS_PANE);
+        STAINED_GLASS_PANE_MAP.put("gold", Material.ORANGE_STAINED_GLASS_PANE);
+        STAINED_GLASS_PANE_MAP.put("gray", Material.LIGHT_GRAY_STAINED_GLASS_PANE);
+        STAINED_GLASS_PANE_MAP.put("green", Material.LIME_STAINED_GLASS_PANE);
+        STAINED_GLASS_PANE_MAP.put("light_purple", Material.MAGENTA_STAINED_GLASS_PANE);
+        STAINED_GLASS_PANE_MAP.put("red", Material.RED_STAINED_GLASS_PANE);
+        STAINED_GLASS_PANE_MAP.put("white", Material.WHITE_STAINED_GLASS_PANE);
+        STAINED_GLASS_PANE_MAP.put("blue", Material.BLUE_STAINED_GLASS_PANE);
+        STAINED_GLASS_PANE_MAP.put("yellow", Material.YELLOW_STAINED_GLASS_PANE);
+    }
+    
+    private static final Map<String, Material> WOOL_MAP = new HashMap<>();
+    static {
+        WOOL_MAP.put("aqua", Material.LIGHT_BLUE_WOOL);
+        WOOL_MAP.put("black", Material.BLACK_WOOL);
+        WOOL_MAP.put("dark_aqua", Material.CYAN_WOOL);
+        WOOL_MAP.put("dark_blue", Material.BLUE_WOOL);
+        WOOL_MAP.put("dark_gray", Material.GRAY_WOOL);
+        WOOL_MAP.put("dark_green", Material.GREEN_WOOL);
+        WOOL_MAP.put("dark_purple", Material.PURPLE_WOOL);
+        WOOL_MAP.put("dark_red", Material.RED_WOOL);
+        WOOL_MAP.put("gold", Material.ORANGE_WOOL);
+        WOOL_MAP.put("gray", Material.LIGHT_GRAY_WOOL);
+        WOOL_MAP.put("green", Material.LIME_WOOL);
+        WOOL_MAP.put("light_purple", Material.MAGENTA_WOOL);
+        WOOL_MAP.put("red", Material.RED_WOOL);
+        WOOL_MAP.put("white", Material.WHITE_WOOL);
+        WOOL_MAP.put("blue", Material.BLUE_WOOL);
+        WOOL_MAP.put("yellow", Material.YELLOW_WOOL);
+    }
+    
     private static final Map<String, Material> BANNER_TYPE_MAP = new HashMap<>();
     static {
         BANNER_TYPE_MAP.put("aqua", Material.LIGHT_BLUE_BANNER);
@@ -182,10 +226,55 @@ public class ColorMap {
     
     /**
      * Gets the color of stained-glass associated with the given color string. 
-     * @param colorString the color string to get the concrete for. Should be the color string matching the ChatColor values.
+     * @param colorString the color string to get the stained-glass for. Should be the color string matching the ChatColor values.
      * @return The stained-glass color that best matches the given color string. White if unrecognized.
      */
     public static Material getStainedGlassColor(String colorString) {
         return STAINED_GLASS_MAP.getOrDefault(colorString, Material.WHITE_STAINED_GLASS);
+    }
+    
+    /**
+     * Gets the color of stained-glass-pane associated with the given color string. 
+     * @param colorString the color string to get the stained-glass-pane for. Should be the color string matching the ChatColor values.
+     * @return The stained-glass-pane color that best matches the given color string. White if unrecognized.
+     */
+    public static Material getStainedGlassPaneColor(String colorString) {
+        return STAINED_GLASS_PANE_MAP.getOrDefault(colorString, Material.WHITE_STAINED_GLASS_PANE);
+    }
+    
+    /**
+     * Gets the color of wool associated with the given color string. 
+     * @param colorString the color string to get the wool for. Should be the color string matching the ChatColor values.
+     * @return The wool color that best matches the given color string. White if unrecognized.
+     */
+    public static Material getWoolColor(String colorString) {
+        return WOOL_MAP.getOrDefault(colorString, Material.WHITE_WOOL);
+    }
+    
+    /**
+     * @param colorString the color string indicating which colors the attributes should use. Should be the color string matching the ChatColor values.
+     * @return the {@link ColorAttributes} associated with the given colorString
+     */
+    public static ColorAttributes getColorAttributes(String colorString) {
+        return new ColorAttributes(
+                getConcretePowderColor(colorString),
+                getConcreteColor(colorString),
+                getStainedGlassColor(colorString),
+                getStainedGlassPaneColor(colorString),
+                getBannerColor(colorString),
+                getWoolColor(colorString)
+        );
+    }
+    
+    /**
+     * Colors all leather armor in the equipment slots of the participant to be the team color
+     * If the {@link org.bukkit.persistence.PersistentDataContainer} of an item's LeatherArmorMeta contains the {@link GameManagerUtils#IGNORE_TEAM_COLOR} {@link PersistentDataType#STRING} property, then that item will not be colored. 
+     * @param participant the participant whose armor slots may or may not contain leather armor, but for whom any existing leather armor slots should be colored their team color. If this participant is not a participiant in the given gameManager, then nothing happens. 
+     */
+    public static void colorLeatherArmor(@NotNull Participant participant, @NotNull Color teamColor) {
+        GameManagerUtils.colorLeatherArmor(participant.getInventory().getHelmet(), teamColor);
+        GameManagerUtils.colorLeatherArmor(participant.getInventory().getChestplate(), teamColor);
+        GameManagerUtils.colorLeatherArmor(participant.getInventory().getLeggings(), teamColor);
+        GameManagerUtils.colorLeatherArmor(participant.getInventory().getBoots(), teamColor);
     }
 }

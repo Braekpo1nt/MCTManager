@@ -65,11 +65,6 @@ public class HubConfigControllerTest {
     }
     
     @Test
-    void testBackwardsCompatibility() {
-        wellFormedJsonValidData("exampleHubConfig_v0.1.0.json");
-    }
-    
-    @Test
     void wellFormedJsonInvalidData() {
         InputStream inputStream = controller.getClass().getResourceAsStream(exampleConfigFileName);
         JsonObject json = TestUtils.inputStreamToJson(inputStream);

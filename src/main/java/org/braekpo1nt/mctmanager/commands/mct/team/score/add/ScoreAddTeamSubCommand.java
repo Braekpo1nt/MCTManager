@@ -5,7 +5,8 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +31,8 @@ public class ScoreAddTeamSubCommand extends TabSubCommand {
             return CommandResult.failure(getUsage().of("<teamId>").of("<score>"));
         }
         String teamId = args[0];
-        if (!gameManager.hasTeam(teamId)) {
+        Team team = gameManager.getTeam(teamId);
+        if (team == null) {
             return CommandResult.failure(Component.empty()
                     .append(Component.text(teamId)
                             .decorate(TextDecoration.BOLD))
@@ -46,15 +48,14 @@ public class ScoreAddTeamSubCommand extends TabSubCommand {
         int score = Integer.parseInt(scoreString);
         if (invert) {
             score = -score;
-            int currentScore = gameManager.getScore(teamId);
+            int currentScore = team.getScore();
             if (currentScore + score < 0) {
                 score = -currentScore;
             }
         }
-        gameManager.addScore(teamId, score);
-        int newScore = gameManager.getScore(teamId);
+        int newScore = gameManager.addScore(team, score);
         return CommandResult.success(Component.empty()
-                .append(gameManager.getFormattedTeamDisplayName(teamId))
+                .append(team.getFormattedDisplayName())
                 .append(Component.text(" score is now "))
                 .append(Component.text(newScore)));
     }

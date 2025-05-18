@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.TestUtils;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
+import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,13 +24,16 @@ public class ClockworkConfigControllerTest {
     String exampleConfigFileName = "exampleClockworkConfig.json";
     Main plugin;
     ClockworkConfigController controller;
+    File configFolder;
     
     @BeforeEach
     void setupServerAndPlugin() {
         ServerMock server = MockBukkit.mock(new MyCustomServerMock());
         server.getLogger().setLevel(Level.OFF);
         plugin = MockBukkit.load(MockMain.class);
-        controller = new ClockworkConfigController(plugin.getDataFolder());
+        controller = new ClockworkConfigController(plugin.getDataFolder(), GameType.CLOCKWORK.getId());
+        configFolder = new File(plugin.getDataFolder(), GameType.CLOCKWORK.getId());
+        configFolder.mkdirs();
     }
     
     @AfterEach
@@ -39,20 +43,20 @@ public class ClockworkConfigControllerTest {
     
     @Test
     void configDoesNotExist() {
-        Assertions.assertThrows(ConfigIOException.class, controller::getConfig);
+        Assertions.assertThrows(ConfigIOException.class, () -> controller.getConfig(configFileName));
     }
     
     @Test
     void malformedJson() {
-        TestUtils.createFileInDirectory(plugin.getDataFolder(), configFileName, "{,");
-        Assertions.assertThrows(ConfigInvalidException.class, controller::getConfig);
+        TestUtils.createFileInDirectory(configFolder, configFileName, "{,");
+        Assertions.assertThrows(ConfigInvalidException.class, () -> controller.getConfig(configFileName));
     }
     
     @Test
     void wellFormedJsonValidData() {
         InputStream inputStream = controller.getClass().getResourceAsStream(exampleConfigFileName);
-        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
-        Assertions.assertDoesNotThrow(controller::getConfig);
+        TestUtils.copyInputStreamToFile(inputStream, new File(configFolder, configFileName));
+        Assertions.assertDoesNotThrow(() -> controller.getConfig(configFileName));
     }
     
     @Test
@@ -60,7 +64,7 @@ public class ClockworkConfigControllerTest {
         InputStream inputStream = controller.getClass().getResourceAsStream(exampleConfigFileName);
         JsonObject json = TestUtils.inputStreamToJson(inputStream);
         json.addProperty("rounds", 0);
-        TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));
-        Assertions.assertThrows(ConfigInvalidException.class, controller::getConfig);
+        TestUtils.saveJsonToFile(json, new File(configFolder, configFileName));
+        Assertions.assertThrows(ConfigInvalidException.class, () -> controller.getConfig(configFileName));
     }
 }

@@ -4,12 +4,13 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
-import org.bukkit.Bukkit;
+import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -21,27 +22,29 @@ import java.util.*;
 
 public class ScorePlayerSubCommand extends TabSubCommand {
     
+    private final Main plugin;
     private final GameManager gameManager;
     
-    public ScorePlayerSubCommand(GameManager gameManager, @NotNull String name) {
+    public ScorePlayerSubCommand(@NotNull Main plugin, @NotNull GameManager gameManager, @NotNull String name) {
         super(name);
+        this.plugin = plugin;
         this.gameManager = gameManager;
     }
     
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 0) {
-            if (!(sender instanceof Player participant)) {
+            if (!(sender instanceof Player player)) {
                 return CommandResult.failure(getUsage().of("<player>"));
             }
-            if (!gameManager.isParticipant(participant.getUniqueId()) && !gameManager.isOfflineParticipant(participant.getUniqueId())) {
+            OfflineParticipant offlineParticipant = gameManager.getOfflineParticipant(player.getUniqueId());
+            if (offlineParticipant == null) {
                 return CommandResult.failure(Component.text("You are not a participant"));
             }
-            int score = gameManager.getScore(participant.getUniqueId());
             return CommandResult.success(Component.empty()
-                    .append(participant.displayName())
+                    .append(player.displayName())
                     .append(Component.text(": "))
-                    .append(Component.text(score)
+                    .append(Component.text(offlineParticipant.getScore())
                             .color(NamedTextColor.GOLD)));
         }
         
@@ -53,27 +56,17 @@ public class ScorePlayerSubCommand extends TabSubCommand {
         if (playerName.equals("all")) {
             return CommandResult.success(getAllPlayersScores());
         }
-        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
-        UUID uuid = offlinePlayer.getUniqueId();
-        if (!gameManager.isParticipant(uuid) && !gameManager.isOfflineParticipant(uuid)) {
+        OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(playerName);
+        OfflineParticipant offlineParticipant = gameManager.getOfflineParticipant(offlinePlayer.getUniqueId());
+        if (offlineParticipant == null) {
             return CommandResult.failure(Component.empty()
                     .append(Component.text(playerName))
                     .append(Component.text(" is not a participant")));
         }
-        int score = gameManager.getScore(uuid);
-        Player player = offlinePlayer.getPlayer();
-        Component displayName;
-        if (player != null) {
-            displayName = player.displayName();
-        } else {
-            String team = gameManager.getTeamId(uuid);
-            NamedTextColor teamColor = gameManager.getTeamColor(team);
-            displayName = Component.text(playerName).color(teamColor);
-        }
         return CommandResult.success(Component.empty()
-                .append(displayName)
+                .append(offlineParticipant.displayName())
                 .append(Component.text(": "))
-                .append(Component.text(score)
+                .append(Component.text(offlineParticipant.getScore())
                         .color(NamedTextColor.GOLD)));
     }
     
@@ -84,15 +77,13 @@ public class ScorePlayerSubCommand extends TabSubCommand {
         TextComponent.Builder builder = Component.text()
                 .append(Component.text("Player Scores (Un-multiplied):")
                         .decorate(TextDecoration.BOLD));
-        List<OfflinePlayer> sortedOfflinePlayers = GameManagerUtils.getSortedOfflineParticipants(gameManager);
-        for (OfflinePlayer participant : sortedOfflinePlayers) {
-            Component displayName = gameManager.getParticipantDisplayName(participant);
-            int score = gameManager.getScore(participant.getUniqueId());
+        List<OfflineParticipant> sortedOfflinePlayers = GameManagerUtils.getSortedOfflineParticipants(gameManager);
+        for (OfflineParticipant participant : sortedOfflinePlayers) {
             builder.append(Component.empty()
                     .append(Component.newline())
-                    .append(displayName)
+                    .append(participant.displayName())
                     .append(Component.text(": "))
-                    .append(Component.text(score)
+                    .append(Component.text(participant.getScore())
                             .color(NamedTextColor.GOLD)));
         }
         return builder.build();

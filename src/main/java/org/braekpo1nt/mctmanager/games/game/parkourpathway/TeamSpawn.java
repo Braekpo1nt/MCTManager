@@ -4,11 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
 
 @Setter
@@ -19,8 +19,8 @@ public class TeamSpawn {
     private final World world;
     /**
      * the area to for the barrier blocks to be placed/removed
-     * @see TeamSpawn#close() 
-     * @see TeamSpawn#open() 
+     * @see TeamSpawn#close()
+     * @see TeamSpawn#open()
      */
     private final BoundingBox barrierArea;
     /**
@@ -50,7 +50,7 @@ public class TeamSpawn {
      * Teleports the given participant to this {@link TeamSpawn}'s {@link TeamSpawn#spawnLocation}. 
      * @param participant the participant
      */
-    public void teleport(Player participant) {
+    public void teleport(Participant participant) {
         participant.teleport(spawnLocation);
     }
 }

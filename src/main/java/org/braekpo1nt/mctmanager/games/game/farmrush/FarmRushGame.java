@@ -2,39 +2,28 @@ package org.braekpo1nt.mctmanager.games.game.farmrush;
 
 import com.destroystokyo.paper.event.block.BlockDestroyEvent;
 import com.destroystokyo.paper.event.inventory.PrepareResultEvent;
-import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import net.kyori.adventure.audience.Audience;
+import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfig;
-import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfigController;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupManager;
 import org.braekpo1nt.mctmanager.games.game.farmrush.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.farmrush.states.FarmRushState;
-import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
-import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
-import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
-import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
+import org.braekpo1nt.mctmanager.games.game.farmrush.states.InitialState;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
-import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
@@ -45,26 +34,19 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.inventory.*;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -72,10 +54,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
-import java.util.List;
 
-@Data
-public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener {
+@Getter
+@Setter
+public class FarmRushGame extends GameBase<FarmRushParticipant, FarmRushTeam, FarmRushParticipant.QuitData, FarmRushTeam.QuitData, FarmRushState> {
     
     @SuppressWarnings("SpellCheckingInspection")
     public static final NamespacedKey HAS_SCORE_LORE = NamespacedKey.minecraft("hasscorelore");
@@ -89,106 +71,39 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             InventoryType.ENDER_CHEST
     );
     
-    private @Nullable FarmRushState state;
-    
-    private final Main plugin;
-    private final GameManager gameManager;
-    private final TimerManager timerManager;
-    private final Component baseTitle = Component.empty()
-            .append(Component.text("Farm Rush"))
-            .color(NamedTextColor.BLUE);
     private final PowerupManager powerupManager = new PowerupManager(this);
-    private Component title = baseTitle;
-    private FarmRushConfig config;
-    private final FarmRushConfigController configController;
-    private final List<Player> admins = new ArrayList<>();
-    private Sidebar sidebar;
-    private Sidebar adminSidebar;
-    /**
-     * This list is maintained separately from the teams list, to maintain
-     * placement order when new teams join the game.
-     */
-    private @NotNull List<Arena> arenas = new ArrayList<>();
-    private final Map<UUID, Participant> participants = new HashMap<>();
-    private final Map<String, Team> teams = new HashMap<>();
-    private @Nullable ItemStack materialBook;
+    private @Nullable final ItemStack materialBook;
+    private final FarmRushConfig config;
+    private final @NotNull List<Arena> arenas;
     
-    @Data
-    @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-    public static class Participant {
-        /**
-         * The player object that this participant represents
-         */
-        @EqualsAndHashCode.Include
-        private final @NotNull Player player;
-        private final @NotNull String teamId;
-        
-        /**
-         * @return the UUID of the player this Participant represents
-         */
-        public UUID getUniqueId() {
-            return player.getUniqueId();
-        }
-    }
     
-    @Data
-    @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-    public static class Team {
-        @EqualsAndHashCode.Include
-        private final @NotNull String teamId;
-        private final @NotNull Component displayName;
-        private final @NotNull List<UUID> members = new ArrayList<>();
-        private final Arena arena;
-        private final List<Location> cropGrowers = new ArrayList<>();
-        /**
-         * keeps track of the total score accrued during this game. Used
-         * for checking if the players have surpassed the configured maxScore
-         * ({@link FarmRushConfig#getMaxScore()})
-         */
-        private int totalScore = 0;
-    }
-    
-    public FarmRushGame(Main plugin, GameManager gameManager) {
-        this.plugin = plugin;
-        this.gameManager = gameManager;
-        this.timerManager = new TimerManager(plugin);
-        this.configController = new FarmRushConfigController(plugin.getDataFolder());
-    }
-    
-    @Override
-    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
-        this.config = configController.getConfig();
-    }
-    
-    @Override
-    public GameType getType() {
-        return GameType.FARM_RUSH;
-    }
-    
-    @Override
-    public void start(List<Player> newParticipants, List<Player> newAdmins) {
-        sidebar = gameManager.createSidebar();
-        adminSidebar = gameManager.createSidebar();
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        gameManager.getTimerManager().register(timerManager);
-        List<String> teamIds = gameManager.getTeamIds(newParticipants);
-        arenas = createArenas(teamIds);
-        materialBook = createMaterialBook();
+    public FarmRushGame(
+            @NotNull Main plugin,
+            @NotNull GameManager gameManager,
+            @NotNull Component title,
+            @NotNull FarmRushConfig config,
+            @NotNull Collection<Team> newTeams,
+            @NotNull Collection<Participant> newParticipants,
+            @NotNull List<Player> newAdmins) {
+        super(GameType.FARM_RUSH, plugin, gameManager, title, new InitialState());
+        this.config = config;
+        this.materialBook = createMaterialBook();
+        this.arenas = new ArrayList<>(newTeams.size());
         addRecipes();
-        for (int i = 0; i < teamIds.size(); i++) {
-            String teamId = teamIds.get(i);
-            Arena arena = arenas.get(i);
-            teams.put(teamId, new Team(teamId, gameManager.getFormattedTeamDisplayName(teamId), arena));
-        }
+        setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
+        start(newTeams, newParticipants, newAdmins);
         placeArenas(arenas);
-        for (Player participant : newParticipants) {
-            initializeParticipant(participant);
-        }
-        startAdmins(newAdmins);
-        initializeSidebar();
-        setupTeamOptions();
-        state = new DescriptionState(this);
         Main.logger().info("Starting Farm Rush game");
+    }
+    
+    @Override
+    protected @NotNull World getWorld() {
+        return config.getWorld();
+    }
+    
+    @Override
+    protected @NotNull FarmRushState getStartState() {
+        return new DescriptionState(this);
     }
     
     private @Nullable ItemStack createMaterialBook() {
@@ -200,7 +115,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         BookMeta bookMeta = builder
                 .title(Component.text("Item Values"))
                 .author(Component.text("Farm Rush"))
-                .pages(createPages(config.getMaterialScores(), gameManager.matchProgressPointMultiplier()))
+                .pages(createPages(config.getMaterialScores(), gameManager.getMultiplier()))
                 .build();
         materialBook.setItemMeta(bookMeta);
         return materialBook;
@@ -278,7 +193,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
      * such as the barrel for delivery
      * @param arenas the arenas to place copies of the schematic file on
      */
-    private void placeArenas(@NotNull List<Arena> arenas) {
+    public void placeArenas(@NotNull Collection<Arena> arenas) {
         if (config.shouldBuildArenas()) {
             File schematicFile = new File(plugin.getDataFolder(), config.getArenaFile());
             List<Vector> origins = arenas.stream().map(arena -> arena.getBounds().getMin()).toList();
@@ -337,167 +252,114 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         }
     }
     
-    private @NotNull List<Arena> createArenas(List<String> teamIds) {
-        List<Arena> arenas = new ArrayList<>(teamIds.size());
-        Arena arena = config.getFirstArena();
-        Vector offset = new Vector(arena.getBounds().getWidthX() + 1, 0, 0);
-        for (int i = 0; i < teamIds.size(); i++) {
-            arenas.add(arena);
-            if (i < teamIds.size() - 1) {
-                arena = arena.offset(offset);
-            }
-        }
-        return arenas;
-    }
-    
     /**
-     * Meant to be called by {@link FarmRushState#onParticipantJoin(Player)}, not externally called
-     * Call to create a new {@link Team}, and a new {@link Arena} for that team.
-     * @param teamId the team who joined
+     * @return a new arena, offset from the last arena in line (last entry
+     * in {@link #arenas}
      */
-    public void onNewTeamJoin(String teamId) {
-        Arena arena;
+    private @NotNull Arena createArena() {
         if (arenas.isEmpty()) {
-            arena = config.getFirstArena();
-        } else {
-            Vector offset = new Vector(config.getFirstArena().getBounds().getWidthX() + 1, 0, 0);
-            arena = arenas.getLast().offset(offset);
+            Arena arena = config.getFirstArena();
+            arenas.add(arena);
+            return arena;
         }
+        Arena lastInLine = arenas.getLast();
+        Vector offset = new Vector(lastInLine.getBounds().getWidthX() + 1, 0, 0);
+        Arena arena = lastInLine.offset(offset);
         arenas.add(arena);
-        Team team = new Team(teamId, gameManager.getFormattedTeamDisplayName(teamId), arena);
-        teams.put(teamId, team);
-        placeArenas(Collections.singletonList(arena));
+        return arena;
     }
     
-    public void initializeParticipant(Player player) {
-        String teamId = gameManager.getTeamId(player.getUniqueId());
-        Participant participant = new Participant(player, teamId);
-        participants.put(player.getUniqueId(), participant);
-        Team team = teams.get(teamId);
-        team.getMembers().add(player.getUniqueId());
-        player.setGameMode(GameMode.ADVENTURE);
-        sidebar.addPlayer(player);
-        ParticipantInitializer.clearInventory(player);
-        ParticipantInitializer.clearStatusEffects(player);
-        ParticipantInitializer.resetHealthAndHunger(player);
-        player.getInventory().setContents(config.getLoadout());
-        if (materialBook != null) {
-            player.getInventory().addItem(materialBook);
-        }
-        player.teleport(team.getArena().getSpawn());
-        player.setRespawnLocation(team.getArena().getSpawn(), true);
-    }
     
-    private void startAdmins(List<Player> newAdmins) {
-        for (Player admin : newAdmins) {
-            initializeAdmin(admin);
-        }
-        initializeAdminSidebar();
-    }
-    
-    private void initializeAdmin(Player admin) {
-        admins.add(admin);
-        adminSidebar.addPlayer(admin);
-        admin.setGameMode(GameMode.SPECTATOR);
+    @Override
+    protected void initializeAdmin(Player admin) {
         admin.teleport(config.getAdminLocation());
     }
     
-    private void initializeAdminSidebar() {
+    @Override
+    protected void initializeAdminSidebar() {
         adminSidebar.addLines(
-                new KeyLine("title", title),
                 new KeyLine("timer", Component.empty())
         );
     }
     
-    private void clearAdminSidebar() {
-        adminSidebar.deleteAllLines();
-        adminSidebar = null;
+    @Override
+    protected void resetAdmin(Player admin) {
+        
     }
     
     @Override
-    public void stop() {
-        HandlerList.unregisterAll(this);
-        stopAdmins();
-        cancelAllTasks();
+    protected void initializeSidebar() {
+        sidebar.addLines(
+                new KeyLine("timer", Component.empty())
+        );
+    }
+    
+    @Override
+    protected void cleanup() {
         removeRecipes();
-        for (Participant participant : participants.values()) {
-            resetParticipant(participant);
-        }
-        clearSidebar();
-        removeArenas(teams.values().stream().map(Team::getArena).toList());
-        teams.clear();
-        participants.clear();
-        arenas.clear();
+        removeArenas(teams.values().stream().map(FarmRushTeam::getArena).toList());
         TopCommand.setEnabled(false);
-        gameManager.gameIsOver();
         powerupManager.stop();
-        Main.logger().info("Stopping Farm Rush game");
     }
     
-    public void resetParticipant(Participant participant) {
-        ParticipantInitializer.clearInventory(participant.getPlayer());
-        ParticipantInitializer.clearStatusEffects(participant.getPlayer());
-        ParticipantInitializer.resetHealthAndHunger(participant.getPlayer());
-        sidebar.removePlayer(participant.getPlayer());
-        participant.getPlayer().setGameMode(GameMode.SPECTATOR);
+    @Override
+    protected @NotNull FarmRushParticipant createParticipant(Participant participant) {
+        return new FarmRushParticipant(participant, 0);
     }
     
-    private void stopAdmins() {
-        for (Player admin : admins) {
-            resetAdmin(admin);
+    @Override
+    protected @NotNull FarmRushParticipant createParticipant(Participant participant, FarmRushParticipant.QuitData quitData) {
+        participant.getInventory().setContents(quitData.getInventory());
+        return new FarmRushParticipant(participant, quitData);
+    }
+    
+    @Override
+    protected @NotNull FarmRushParticipant.QuitData getQuitData(FarmRushParticipant participant) {
+        return participant.getQuitData();
+    }
+    
+    @Override
+    protected void initializeParticipant(FarmRushParticipant participant, FarmRushTeam team) {
+        participant.getInventory().setContents(config.getLoadout());
+        if (materialBook != null) {
+            participant.getInventory().addItem(materialBook);
         }
-        clearAdminSidebar();
-        admins.clear();
-    }
-    
-    private void cancelAllTasks() {
-        timerManager.cancel();
+        participant.teleport(team.getArena().getSpawn());
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
-        if (state == null) {
-            return;
-        }
-        state.onParticipantJoin(participant);
+    protected void initializeTeam(FarmRushTeam team) {
+        
     }
     
     @Override
-    public void onParticipantQuit(Player player) {
-        if (state == null) {
-            return;
-        }
-        Participant participant = participants.get(player.getUniqueId());
-        if (participant == null) {
-            return;
-        }
-        state.onParticipantQuit(participant);
+    protected @NotNull FarmRushTeam createTeam(Team team) {
+        Arena arena = createArena();
+        return new FarmRushTeam(team, arena, 0);
     }
     
     @Override
-    public void onAdminJoin(Player admin) {
-        initializeAdmin(admin);
-        adminSidebar.updateLine(admin.getUniqueId(), "title", title);
+    protected @NotNull FarmRushTeam createTeam(Team team, FarmRushTeam.QuitData quitData) {
+        return new FarmRushTeam(team, quitData);
     }
     
     @Override
-    public void onAdminQuit(Player admin) {
-        resetAdmin(admin);
-        admins.remove(admin);
-    }
-    
-    private void resetAdmin(Player admin) {
-        adminSidebar.removePlayer(admin);
+    protected @NotNull FarmRushTeam.QuitData getQuitData(FarmRushTeam team) {
+        return team.getQuitData();
     }
     
     @Override
-    public @NotNull Component getBaseTitle() {
-        return baseTitle;
+    protected void resetParticipant(FarmRushParticipant participant, FarmRushTeam team) {
+        
     }
     
     @Override
-    public void setTitle(@NotNull Component title) {
-        this.title = title;
+    protected void setupTeamOptions(org.bukkit.scoreboard.@NotNull Team scoreboardTeam, @NotNull FarmRushTeam team) {
+        scoreboardTeam.setAllowFriendlyFire(false);
+        scoreboardTeam.setCanSeeFriendlyInvisibles(true);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+        scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
     }
     
     @EventHandler
@@ -512,45 +374,10 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         event.setCancelled(true);
     }
     
-    @EventHandler
-    public void postRespawn(PlayerPostRespawnEvent event) {
-        Participant participant = participants.get(event.getPlayer().getUniqueId());
-        if (participant == null) {
-            return;
-        }
-        Location spawn = teams.get(participant.getTeamId()).getArena().getSpawn();
-        event.getPlayer().teleport(spawn);
-    }
-    
-    @EventHandler
-    public void onPlayerTeleport(PlayerTeleportEvent event) {
-        Participant participant = participants.get(event.getPlayer().getUniqueId());
-        if (participant == null) {
-            return;
-        }
-        BoundingBox bounds = teams.get(participant.getTeamId()).getArena().getBounds();
-        if (!bounds.contains(event.getTo().toVector())) {
-            event.setCancelled(true);
-        }
-    }
-    
-    @EventHandler
-    public void onPlayerMove(PlayerMoveEvent event) {
-        Participant participant = participants.get(event.getPlayer().getUniqueId());
-        if (participant == null) {
-            return;
-        }
-        Arena arena = teams.get(participant.getTeamId()).getArena();
-        if (!arena.getBounds().contains(event.getFrom().toVector())) {
-            participant.getPlayer().teleport(arena.getSpawn());
-            return;
-        }
-        if (!arena.getBounds().contains(event.getTo().toVector())) {
-            event.setCancelled(true);
-        }
-        if (state != null) {
-            state.onPlayerMove(event, participant);
-        }
+    @Override
+    protected @Nullable SpectatorBoundary getSpectatorBoundary() {
+        // intentionally null, participants should not be in spectator during the game
+        return null;
     }
     
     @EventHandler
@@ -573,7 +400,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     @EventHandler
     public void blockExplodeEvent(BlockExplodeEvent event) {
         event.blockList().removeIf(block -> {
-            for (Team team : teams.values()) {
+            for (FarmRushTeam team : teams.values()) {
                 Location delivery = team.getArena().getDelivery();
                 if (block.getLocation().equals(delivery)) {
                     return true;
@@ -587,7 +414,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     @EventHandler
     public void entityExplodeEvent(EntityExplodeEvent event) {
         event.blockList().removeIf(block -> {
-            for (Team team : teams.values()) {
+            for (FarmRushTeam team : teams.values()) {
                 Location delivery = team.getArena().getDelivery();
                 if (block.getLocation().equals(delivery)) {
                     return true;
@@ -607,10 +434,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         onBlockDestroy(event.getBlock(), event);
     }
     public void onBlockDestroy(Block block, Cancellable event) {
-        if (state == null) {
-            return;
-        }
-        for (Team team : teams.values()) {
+        for (FarmRushTeam team : teams.values()) {
             Location delivery = team.getArena().getDelivery();
             if (block.getLocation().equals(delivery)) {
                 event.setCancelled(true);
@@ -620,31 +444,18 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         powerupManager.onBlockBreak(block, event);
     }
     
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        Block clickedBlock = event.getClickedBlock();
-        if (clickedBlock == null) {
-            return;
-        }
-        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
-            return;
-        }
-        Material blockType = clickedBlock.getType();
-        if (!config.getPreventInteractions().contains(blockType)) {
-            return;
-        }
-        event.setCancelled(true);
+    @Override
+    protected boolean shouldPreventInteractions(@NotNull Material type) {
+        return config.getPreventInteractions().contains(type);
     }
     
     @EventHandler
     public void onPlayerOpenInventory(InventoryOpenEvent event) {
-        if (state == null) {
+        FarmRushParticipant participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
             return;
         }
-        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
-            return;
-        }
-        state.onPlayerOpenInventory(event);
+        state.onParticipantOpenInventory(event, participant);
     }
     
     @EventHandler
@@ -727,48 +538,6 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         });
     }
     
-    @EventHandler
-    public void onCloseInventory(InventoryCloseEvent event) {
-        if (state == null) {
-            return;
-        }
-        Participant participant = participants.get(event.getPlayer().getUniqueId());
-        if (participant == null) {
-            return;
-        }
-        state.onCloseInventory(event, participant);
-    }
-    
-    @EventHandler
-    public void onPlayerDamage(EntityDamageEvent event) {
-        if (state == null) {
-            return;
-        }
-        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
-            return;
-        }
-        if (!(event.getEntity() instanceof Player player)) {
-            return;
-        }
-        Participant participant = participants.get(player.getUniqueId());
-        if (participant == null) {
-            return;
-        }
-        state.onParticipantDamage(event);
-    }
-    
-    @EventHandler
-    public void onPlaceBlock(BlockPlaceEvent event) {
-        if (state == null) {
-            return;
-        }
-        Participant participant = participants.get(event.getPlayer().getUniqueId());
-        if (participant == null) {
-            return;
-        }
-        state.onPlaceBlock(event, participant);
-    }
-    
     /**
      * @param type the type to get the score lore of
      * @return the lore line describing how many points the given item type is worth.
@@ -784,8 +553,26 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         }
         return Component.empty()
                 .append(Component.text("Price: "))
-                .append(Component.text((int) (itemSale.getScore() * gameManager.matchProgressPointMultiplier())))
+                .append(Component.text((int) (itemSale.getScore() * gameManager.getMultiplier())))
                 .color(NamedTextColor.GOLD);
+    }
+    
+    @EventHandler
+    public void onInventoryClose(InventoryCloseEvent event) {
+        FarmRushParticipant participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        state.onParticipantCloseInventory(event, participant);
+    }
+    
+    @EventHandler
+    public void onBlockPlace(BlockPlaceEvent event) {
+        FarmRushParticipant participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        state.onParticipantPlaceBlock(event, participant);
     }
     
     /**
@@ -806,68 +593,5 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             plugin.getServer().removeRecipe(recipeKey);
         }
         plugin.getServer().updateRecipes();
-    }
-    
-    @Override
-    public void updatePersonalScore(Player participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.containsKey(participant.getUniqueId())) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
-    }
-    
-    @Override
-    public void updateTeamScore(Player participant, Component contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.containsKey(participant.getUniqueId())) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
-    }
-    
-    private void initializeSidebar() {
-        sidebar.addLines(
-                new KeyLine("personalTeam", ""),
-                new KeyLine("personalScore", ""),
-                new KeyLine("title", title),
-                new KeyLine("timer", Component.empty())
-        );
-    }
-    
-    private void clearSidebar() {
-        sidebar.deleteAllLines();
-        sidebar = null;
-    }
-    
-    private void setupTeamOptions() {
-        Scoreboard mctScoreboard = gameManager.getMctScoreboard();
-        for (org.bukkit.scoreboard.Team team : mctScoreboard.getTeams()) {
-            team.setAllowFriendlyFire(false);
-            team.setCanSeeFriendlyInvisibles(true);
-            team.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
-            team.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
-            team.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
-        }
-    }
-    
-    public void messageAllParticipants(Component message) {
-        Audience.audience(admins
-        ).sendMessage(message);
-        for (Participant participant : participants.values()) {
-            participant.getPlayer().sendMessage(message);
-        }
-    }
-    
-    public void titleAllParticipants(Title title) {
-        Audience.audience(admins
-        ).showTitle(title);
-        for (Participant participant : participants.values()) {
-            participant.getPlayer().showTitle(title);
-        }
     }
 }
