@@ -41,7 +41,7 @@ public class StartSubCommand extends TabSubCommand {
         }
         
         String configFile;
-        if (args.length == 2) {
+        if (args.length >= 2) {
             configFile = args[1];
         } else {
             configFile = "default.json";

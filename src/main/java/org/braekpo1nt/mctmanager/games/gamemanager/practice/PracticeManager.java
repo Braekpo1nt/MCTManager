@@ -586,11 +586,7 @@ public class PracticeManager {
         CommandResult commandResult = gameManager.startGame(
                 teamIds, Collections.emptyList(),
                 invite.getGameType(), config.getGameConfigs().getOrDefault(invite.getGameType(), "default.json"));
-        Component message = commandResult.getMessage();
-        if (message == null) {
-            return;
-        }
-        initiatorAudience.sendMessage(message);
+        initiatorAudience.sendMessage(commandResult.getMessageOrEmpty());
     }
     
     private @NotNull ChestGui createTeamMenu(PracticeParticipant participant) {

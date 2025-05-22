@@ -507,6 +507,7 @@ public abstract class GameManagerState {
         }
         
         try {
+            Main.logf("Starting game with config file %s", configFile);
             activeGames.put(gameType,
                     instantiateGame(
                             gameType, 

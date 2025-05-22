@@ -5,7 +5,6 @@ import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.util.BoundingBox;
@@ -14,15 +13,24 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * All coordinate locations will be assuming an origin of {@code (0, 0, 0)}.
- * All locations and bounding boxes must be within the bounding box formed by the (0, 0, 0) and the size.
+ * All locations are absolute. These are the details of the first arena. When other arenas are created,
+ * an offset determined by the x-width of the first arena will be added to all coordinates.
+ * Define this first arena as if it's the only one, with coordinates relative to the world
+ * (not relative to the arena's origin). e.g. if you set spawn to (1,2,3), players
+ * will spawn at (1,2,3) in the first arena.
  */
 @Data
 class ArenaDTO implements Validatable {
     /**
-     * the dimensions (or size) of the arena. Assuming {@code (0, 0, 0)} is the origin.
+     * The placement origin of the schematic file. Where to tell WorldEdit to place the schematic.
      */
-    private Size size;
+    private Vector schematicOrigin;
+    /**
+     * The bounding box of the arena (not to be confused with the {@link #schematicOrigin} which might be outside
+     * the bounds of the arena depending on how the structure was created)
+     * This will be used to delete the structure after the game is over
+     */
+    private BoundingBox bounds;
     /**
      * the dimensions of the barn area. Used for keeping players in that area under
      * certain circumstances. Must have a volume of at least 1.0.
@@ -55,7 +63,7 @@ class ArenaDTO implements Validatable {
     
     @Override
     public void validate(@NotNull Validator validator) {
-        validator.notNull(size, "size");
+        validator.notNull(schematicOrigin, "schematicOrigin");
         validator.notNull(barn, "barn");
         validator.validate(barn.getVolume() >= 1, "barn must have a volume of at least 1.0");
         validator.notNull(barnDoor, "barnDoor");
@@ -63,15 +71,13 @@ class ArenaDTO implements Validatable {
         validator.notNull(starterChest, "starterChest");
         validator.notNull(delivery, "delivery");
         
-        // make sure everything is contained within the bounding box formed by the origin and the size
-        BoundingBox arenaBounds = new BoundingBox(
-                0, 0, 0, 
-                size.getSizeX(), size.getSizeY(), size.getSizeZ());
-        validator.validate(arenaBounds.contains(barn), "barn must be within the size");
-        validator.validate(arenaBounds.contains(barnDoor), "barnDoor must be within the size");
-        validator.validate(arenaBounds.contains(spawn.toVector()), "spawn must be within the size");
-        validator.validate(arenaBounds.contains(starterChest), "starterChest must be within the size");
-        validator.validate(arenaBounds.contains(delivery), "delivery must be within the size");
+        validator.notNull(bounds, "bounds");
+        // make sure everything is contained within the bounds
+        validator.validate(bounds.contains(barn), "barn must be within the size");
+        validator.validate(bounds.contains(barnDoor), "barnDoor must be within the size");
+        validator.validate(bounds.contains(spawn.toVector()), "spawn must be within the size");
+        validator.validate(bounds.contains(starterChest), "starterChest must be within the size");
+        validator.validate(bounds.contains(delivery), "delivery must be within the size");
     }
     
     @Data
@@ -84,7 +90,8 @@ class ArenaDTO implements Validatable {
     public Arena toArena(World world) {
         return Arena.builder()
                 .world(world)
-                .bounds(new BoundingBox(0, 0, 0, size.getSizeX(), size.getSizeY(), size.getSizeZ()))
+                .schematicOrigin(this.schematicOrigin)
+                .bounds(this.bounds)
                 .barn(this.barn)
                 .barnDoor(this.barnDoor)
                 .spawn(this.spawn.toLocation(world))

@@ -19,11 +19,13 @@ import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 @Data
 class FarmRushConfigDTO implements Validatable {
@@ -33,16 +35,9 @@ class FarmRushConfigDTO implements Validatable {
     private LocationDTO adminLocation;
     /**
      * the file location of the arena, relative to the MCTManager plugin's data folder 
-     * ({@code <server>/plugins/MCTManager/}). Example: {@code "farmRushArena.schem"}.
+     * ({@code <server>/plugins/MCTManager/farm-rush}). Example: {@code "farmRushArena.schem"}.
      */
     private String arenaFile;
-    /**
-     * The location in the world where the first arena will be placed. Will be the
-     * minimum position used in WorldEdit's placement of the schematic file.
-     * All positions in the {@link #arena} will have this vector added to them.<br>
-     * Defaults to {@code (0, 0, 0)}
-     */
-    private @Nullable Vector firstArenaOrigin;
     /**
      * The items in the starter chest. Can contain no more than 27 entries. 
      */
@@ -71,7 +66,7 @@ class FarmRushConfigDTO implements Validatable {
      */
     private @Nullable Boolean buildArenas;
     /**
-     * The details of the arena. When generating arenas for the game, the first one placed down will have its origin at {@link #firstArenaOrigin}, and successive ones will be placed on a grid according to the defined size. Please ensure that the {@link ArenaDTO#getSize()} attribute is the correct dimensions of the {@link #arenaFile} schematic file's dimensions. 
+     * The details of the arena. When generating arenas for the game, the first one placed down will have its origin at {@link ArenaDTO#getOrigin()}, and successive ones will be placed on a grid according to the defined size. Please ensure that the {@link ArenaDTO#getSize()} attribute is the correct dimensions of the {@link #arenaFile} schematic file's dimensions. 
      */
     private ArenaDTO arena;
     private @Nullable List<Material> preventInteractions;
@@ -180,7 +175,6 @@ class FarmRushConfigDTO implements Validatable {
         validator.notNull(Bukkit.getWorld(this.getWorld()), "Could not find world \"%s\"", this.getWorld());
         validator.notNull(adminLocation, "adminLocation");
         validator.notNull(arenaFile, "arenaFile");
-        validator.notNull(firstArenaOrigin, "firstArenaOrigin");
         validator.notNull(starterChestContents, "starterChestContents");
         starterChestContents.validate(validator.path("starterChestContents"));
         validator.notNull(arena, "arena");
@@ -229,7 +223,7 @@ class FarmRushConfigDTO implements Validatable {
                 .arenaFile(this.arenaFile)
                 .clearArenas(this.clearArenas == null || this.clearArenas)
                 .buildArenas(this.buildArenas == null || this.buildArenas)
-                .firstArena(this.arena.toArena(newWorld).offset(firstArenaOrigin != null ? firstArenaOrigin : new Vector(0, 0, 0)))
+                .firstArena(this.arena.toArena(newWorld))
                 .starterChestContents(newStarterChestContents)
                 .loadout(newLoadout)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())

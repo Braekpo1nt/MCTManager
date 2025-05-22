@@ -53,7 +53,8 @@ public class FarmRushConfig {
      */
     private Arena firstArena;
     /**
-     * The file location of the arena, relative to the Plugin's data folder
+     * The file location of the arena, relative to the Plugin's data folder and farm-rush folder
+     * e.g. /home/container/plugins/MCTManager/farm-rush/filename.schem
      */
     private String arenaFile;
     private @NotNull List<Material> preventInteractions;

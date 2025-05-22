@@ -195,9 +195,9 @@ public class FarmRushGame extends GameBase<FarmRushParticipant, FarmRushTeam, Fa
      */
     public void placeArenas(@NotNull Collection<Arena> arenas) {
         if (config.shouldBuildArenas()) {
-            File schematicFile = new File(plugin.getDataFolder(), config.getArenaFile());
-            List<Vector> origins = arenas.stream().map(arena -> arena.getBounds().getMin()).toList();
-            BlockPlacementUtils.placeSchematic(config.getWorld(), origins, schematicFile);
+            File schematicFile = new File(new File(plugin.getDataFolder(), getType().getId()), config.getArenaFile());
+            List<Vector> schematicOrigins = arenas.stream().map(Arena::getSchematicOrigin).toList();
+            BlockPlacementUtils.placeSchematic(config.getWorld(), schematicOrigins, schematicFile);
         }
         for (Arena arena : arenas) {
             Block delivery = arena.getDelivery().getBlock();
@@ -295,9 +295,14 @@ public class FarmRushGame extends GameBase<FarmRushParticipant, FarmRushTeam, Fa
     }
     
     @Override
+    public void stop() {
+        removeArenas(teams.values().stream().map(FarmRushTeam::getArena).toList());
+        super.stop();
+    }
+    
+    @Override
     protected void cleanup() {
         removeRecipes();
-        removeArenas(teams.values().stream().map(FarmRushTeam::getArena).toList());
         TopCommand.setEnabled(false);
         powerupManager.stop();
     }

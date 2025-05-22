@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 @Builder
 public class Arena {
     private @NotNull World world;
+    private @NotNull Vector schematicOrigin;
     private @NotNull BoundingBox bounds;
     private @NotNull BoundingBox barn;
     private @NotNull BoundingBox barnDoor;
@@ -34,6 +35,11 @@ public class Arena {
     public Arena offset(Vector offset) {
         return Arena.builder()
                 .world(world)
+                .schematicOrigin(new Vector(
+                        schematicOrigin.getX() + offset.getX(),
+                        schematicOrigin.getY() + offset.getY(),
+                        schematicOrigin.getZ() + offset.getZ()
+                ))
                 .bounds(new BoundingBox(
                         bounds.getMinX() + offset.getX(), 
                         bounds.getMinY() + offset.getY(), 
