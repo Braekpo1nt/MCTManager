@@ -1020,6 +1020,16 @@ public class GameManager implements Listener {
         Audience.audience(onlineParticipants.values()).sendMessage(message);
     }
     
+    // commands start
+    public CommandResult top(@NotNull UUID uuid) {
+        MCTParticipant participant = onlineParticipants.get(uuid);
+        if (participant == null) {
+            return CommandResult.failure(Component.text("Not a participant"));
+        }
+        return state.top(participant);
+    }
+    // commands end
+    
     // event start
     public CommandResult readyUpParticipant(@NotNull UUID uuid) {
         MCTParticipant participant = onlineParticipants.get(uuid);

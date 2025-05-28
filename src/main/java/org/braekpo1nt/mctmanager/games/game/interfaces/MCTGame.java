@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.interfaces;
 
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
@@ -26,4 +27,10 @@ public interface MCTGame {
     void setTitle(@NotNull Component title);
     
     boolean containsTeam(@NotNull String teamId);
+    
+    /**
+     * @param uuid the UUID of the participant to run {@code /top}
+     * @return the result of running the {@code /top} command
+     */
+    @NotNull CommandResult top(@NotNull UUID uuid);
 }

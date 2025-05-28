@@ -16,7 +16,6 @@ public class GameOverState extends FarmRushStateBase {
     public GameOverState(@NotNull FarmRushGame context) {
         super(context);
         context.getPowerupManager().stop();
-        TopCommand.setEnabled(false);
         Audience.audience(context.getParticipants().values().stream().map(Participant::getPlayer).toList()).showTitle(UIUtils.gameOverTitle());
         context.getSidebar().addLine("over", Component.empty());
         context.getAdminSidebar().addLine("over", Component.empty());

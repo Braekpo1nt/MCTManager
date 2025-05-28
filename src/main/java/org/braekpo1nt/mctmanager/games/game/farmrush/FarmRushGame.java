@@ -303,7 +303,6 @@ public class FarmRushGame extends GameBase<FarmRushParticipant, FarmRushTeam, Fa
     @Override
     protected void cleanup() {
         removeRecipes();
-        TopCommand.setEnabled(false);
         powerupManager.stop();
     }
     
