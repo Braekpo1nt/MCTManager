@@ -8,6 +8,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.base.listeners.GameListener;
@@ -872,6 +873,19 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         state.onParticipantPostRespawn(event, participant);
     }
     // EventHandlers end
+    
+    // commands start
+    @Override
+    public @NotNull CommandResult top(@NotNull UUID uuid) {
+        P participant = participants.get(uuid);
+        if (participant == null) {
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text("Not a participant in "))
+                    .append(Component.text(getType().getTitle())));
+        }
+        return state.top(participant);
+    }
+    // commands end
     
     /**
      * Convenience method to send the same message to all participants and admins

@@ -741,6 +741,17 @@ public abstract class GameManagerState {
     }
     // game stop
     
+    // commands start
+    public CommandResult top(@NotNull MCTParticipant participant) {
+        GameType gameType = participantGames.get(participant.getUniqueId());
+        if (gameType == null) {
+            return CommandResult.failure("Can't use /top at this time");
+        }
+        MCTGame game = activeGames.get(gameType);
+        return game.top(participant.getUniqueId());
+    }
+    // commands end
+    
     // event start
     public CommandResult startEvent(int maxGames, int currentGameNumber) {
         return CommandResult.failure("Can't start an event in this mode");

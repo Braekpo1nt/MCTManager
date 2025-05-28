@@ -1,10 +1,13 @@
 package org.braekpo1nt.mctmanager.utils;
 
+import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.dto.YawPitch;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 public final class EntityUtils {
     
@@ -77,14 +80,15 @@ public final class EntityUtils {
      * teleports the entity to the position one block above the highest solid block.
      * @param entity the entity to teleport.
      */
-    public static void top(Entity entity) {
+    public static @NotNull CommandResult top(Entity entity) {
         Location topBlock = BlockPlacementUtils.getTopBlock(entity.getLocation());
         if (topBlock == null) {
-            return;
+            return CommandResult.failure("You are at the top");
         }
         Location topLoc = topBlock.add(0, 1, 0);
         entity.teleport(topLoc);
-        entity.sendMessage("Teleported to top");
+        return CommandResult.success(Component.empty()
+                .append(Component.text("Teleported to top ")));
     }
     
     private EntityUtils() {

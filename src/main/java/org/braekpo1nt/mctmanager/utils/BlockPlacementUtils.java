@@ -290,7 +290,7 @@ public class BlockPlacementUtils {
         Location highestSolidLoc = new Location(location.getWorld(), location.getBlockX(), maxHeight, location.getBlockZ());
         for (double y = maxHeight; y > minHeight; y--) {
             Block block = highestSolidLoc.getBlock();
-            if (block.isSolid()) {
+            if (block.isSolid() && !block.getType().equals(Material.BARRIER)) {
                 return highestSolidLoc;
             }
             highestSolidLoc.subtract(0, 1, 0);
