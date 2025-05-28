@@ -334,10 +334,10 @@ public class BlockPlacementUtils {
      * Use this in favor of {@link #placeSchematic(World, int, int, int, File)} multiple times
      * in a row because this optimizes the multiple placement. 
      * @param world the world to place in
-     * @param origins the list of origins. Each schematic copy placed will use one of these as their origin, using their integer block values. 
+     * @param schematicOrigins the list of origins. Each schematic copy placed will use one of these as their origin, using their integer block values. 
      * @param file the .schem schematic file to use
      */
-    public static void placeSchematic(World world, @NotNull List<Vector> origins, File file) {
+    public static void placeSchematic(World world, @NotNull List<Vector> schematicOrigins, File file) {
         Clipboard clipboard;
         ClipboardFormat format = ClipboardFormats.findByFile(file);
         if (format == null) {
@@ -354,7 +354,7 @@ public class BlockPlacementUtils {
             return;
         }
         try (EditSession editSession = WorldEdit.getInstance().newEditSession(BukkitAdapter.adapt(world))) {
-            for (Vector origin : origins) {
+            for (Vector origin : schematicOrigins) {
                 Operation operation = new ClipboardHolder(clipboard)
                         .createPaste(editSession)
                         .ignoreAirBlocks(false)
