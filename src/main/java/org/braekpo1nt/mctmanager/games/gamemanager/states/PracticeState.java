@@ -6,7 +6,6 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
@@ -240,14 +239,7 @@ public class PracticeState extends GameManagerState {
         if (isParticipantInGame(participant)) {
             return;
         }
-        Block clickedBlock = event.getClickedBlock();
-        if (clickedBlock != null) {
-            Material blockType = clickedBlock.getType();
-            if (config.getPreventInteractions().contains(blockType)) {
-                event.setUseInteractedBlock(Event.Result.DENY);
-                return;
-            }
-        }
+        super.onParticipantInteract(event, participant);
         practiceManager.onParticipantInteract(event);
     }
 }

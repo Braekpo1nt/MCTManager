@@ -64,6 +64,8 @@ import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -1211,14 +1213,12 @@ public abstract class GameManagerState {
             return;
         }
         Block clickedBlock = event.getClickedBlock();
-        if (clickedBlock == null) {
-            return;
+        if (clickedBlock != null) {
+            Material blockType = clickedBlock.getType();
+            if (config.getPreventInteractions().contains(blockType)) {
+                event.setUseInteractedBlock(Event.Result.DENY);
+            }
         }
-        Material blockType = clickedBlock.getType();
-        if (!config.getPreventInteractions().contains(blockType)) {
-            return;
-        }
-        event.setCancelled(true);
     }
     
     public void onParticipantInventoryClick(@NotNull InventoryClickEvent event, MCTParticipant participant) {
