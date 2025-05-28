@@ -17,6 +17,7 @@ import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.Color;
 import org.bukkit.Material;
+import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.InventoryView;
@@ -641,7 +642,7 @@ public class PracticeManager {
         if (netherStarMeta == null || !netherStarMeta.hasDisplayName() || !Objects.equals(netherStarMeta.displayName(), NETHER_STAR_NAME)) {
             return;
         }
-        event.setCancelled(true);
+        event.setUseItemInHand(Event.Result.DENY);
         openMenu(participant);
     }
     
