@@ -44,5 +44,4 @@ public class ContextReference {
     private final @NotNull SidebarFactory sidebarFactory;
     private final @NotNull List<LeaderboardManager> leaderboardManagers;
     private final @NotNull Sidebar sidebar;
-    private final @NotNull HubConfig config;
 }

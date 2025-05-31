@@ -19,11 +19,7 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
@@ -136,16 +132,23 @@ public class PracticeState extends GameManagerState {
     
     @Override
     public CommandResult joinParticipantToGame(@NotNull GameType gameType, @NotNull MCTParticipant participant) {
-        GameType teamGameType = context.getTeamActiveGame(participant.getTeamId());
-        if (teamGameType == null) {
+        if (config.getPractice().isRestrictGameJoining()) {
+            GameType teamGameType = context.getTeamActiveGame(participant.getTeamId());
+            if (gameType.equals(teamGameType)) { // if you're trying to join your team's game
+                return super.joinParticipantToGame(gameType, participant);
+            } else { // you're trying to join another team's game
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text("Can't join another group's game")));
+            }
+        } else {
             if (gameType == GameType.FARM_RUSH) {
                 return CommandResult.failure(Component.empty()
                         .append(Component.text("Only one team can play "))
                         .append(Component.text(gameType.getTitle()))
                         .append(Component.text(" at a time.")));
             }
+            return super.joinParticipantToGame(gameType, participant);
         }
-        return super.joinParticipantToGame(gameType, participant);
     }
     
     @Override
@@ -216,8 +219,8 @@ public class PracticeState extends GameManagerState {
     }
     
     @Override
-    protected void onParticipantReturnToHub(@NotNull MCTParticipant participant, @NotNull Location spawn) {
-        super.onParticipantReturnToHub(participant, spawn);
+    protected void onParticipantReturnToHub(@NotNull MCTParticipant participant) {
+        super.onParticipantReturnToHub(participant);
         practiceManager.addParticipant(participant);
     }
     

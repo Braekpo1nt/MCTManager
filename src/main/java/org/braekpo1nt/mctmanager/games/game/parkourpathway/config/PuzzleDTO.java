@@ -176,7 +176,8 @@ class PuzzleDTO implements Validatable {
     Puzzle toPuzzle(World world) {
         return new Puzzle(
                 new ArrayList<>(inBounds),
-                checkPoints.stream().map(checkPointDTO -> checkPointDTO.toCheckPoint(world)).toList()
+                checkPoints.stream().map(checkPointDTO -> checkPointDTO.toCheckPoint(world))
+                        .collect(Collectors.toCollection(ArrayList::new))
         );
     }
     

@@ -31,7 +31,13 @@ public class HubConfig {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
+    @Builder
     public static class PracticeConfig {
+        /**
+         * If true, participants can't join an active game
+         * unless their team already has members in it
+         */
+        private boolean restrictGameJoining;
         private List<GameType> allowedGames;
         private Map<GameType, String> gameConfigs;
         /**

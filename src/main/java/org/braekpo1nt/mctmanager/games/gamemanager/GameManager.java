@@ -11,6 +11,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
@@ -24,6 +25,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.states.MaintenanceState;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.hub.config.HubConfig;
+import org.braekpo1nt.mctmanager.hub.config.HubConfigController;
 import org.braekpo1nt.mctmanager.hub.leaderboard.LeaderboardManager;
 import org.braekpo1nt.mctmanager.participant.ColorAttributes;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
@@ -108,7 +110,8 @@ public class GameManager implements Listener {
     private final TabList tabList;
     private final @NotNull List<LeaderboardManager> leaderboardManagers;
     private final Sidebar sidebar; // TODO: make sidebar a thing of each state, not central
-    private final @NotNull HubConfig config;
+    @Getter
+    private @NotNull HubConfig config;
     
     public GameManager(Main plugin, 
                        Scoreboard mctScoreboard, 
@@ -136,7 +139,6 @@ public class GameManager implements Listener {
                 .participantGames(this.participantGames)
                 .adminGames(this.adminGames)
                 .plugin(this.plugin)
-                .config(this.config)
                 .gameStateStorageUtil(this.gameStateStorageUtil)
                 .sidebarFactory(this.sidebarFactory)
                 .sidebar(this.sidebar)
@@ -410,12 +412,30 @@ public class GameManager implements Listener {
         return state.createSidebar();
     }
     
-    public boolean loadGameState() {
+    public @NotNull CommandResult loadGameState() {
+        if (!activeGames.isEmpty()) {
+            return CommandResult.failure("Can't load the game state while a game is running");
+        }
+        if (activeEditor != null) {
+            return CommandResult.failure("Can't load the game state while an editor is running");
+        }
         try {
             gameStateStorageUtil.loadGameState();
         } catch (ConfigException e) {
             reportGameStateException("loading game state", e);
-            return false;
+            return CommandResult.failure("Unable to load game state, see console for details.");
+        }
+        List<CommandResult> results = new ArrayList<>();
+        try {
+            this.config = new HubConfigController(plugin.getDataFolder()).getConfig();
+            this.leaderboardManagers.forEach(LeaderboardManager::tearDown);
+            this.leaderboardManagers.clear();
+            this.leaderboardManagers.addAll(createLeaderboardManagers());
+            state.setConfig(this.config);
+            results.add(CommandResult.success(Component.text("Loaded hub config")));
+        } catch (ConfigException e) {
+            results.add(CommandResult.failure(Component.text("Could not load hub config. See console for details.")));
+            Main.logger().log(Level.SEVERE, String.format("Could not load new hub config, reverting to last working one. See console for details. %s", e.getMessage()), e);
         }
         gameStateStorageUtil.setupScoreboard(mctScoreboard);
         teams.clear();
@@ -474,7 +494,8 @@ public class GameManager implements Listener {
         state.updateSidebarTeamScores();
         state.updateSidebarPersonalScores(onlineParticipants.values());
         // sidebar stop
-        return true;
+        results.add(CommandResult.success(Component.text("Loaded gameState.json")));
+        return CompositeCommandResult.all(results);
     }
     
     public void saveGameState() {
@@ -622,11 +643,11 @@ public class GameManager implements Listener {
             return CommandResult.failure(Component.text("Can't start an editor while any games are active"));
         }
         
-        if (onlineParticipants.isEmpty()) {
-            return CommandResult.failure(Component.text("There are no online participants. You can add participants using:\n")
-                    .append(Component.text("/mct team join <team> <member>")
+        if (onlineAdmins.isEmpty()) {
+            return CommandResult.failure(Component.text("There are no online admins. You can add admins using:\n")
+                    .append(Component.text("/mct admin add <member>")
                             .decorate(TextDecoration.BOLD)
-                            .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
+                            .clickEvent(ClickEvent.suggestCommand("/mct admin add "))));
         }
         
         if (editorIsRunning()) {
@@ -650,7 +671,7 @@ public class GameManager implements Listener {
                     .append(Component.text(e.getMessage())));
         }
         
-        selectedEditor.start(Participant.toPlayersList(onlineParticipants.values()));
+        selectedEditor.start(new ArrayList<>(onlineAdmins));
         activeEditor = selectedEditor;
         return CommandResult.success();
     }

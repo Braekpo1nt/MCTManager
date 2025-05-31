@@ -70,6 +70,7 @@ public class PracticeManager {
     }
     
     private void giveNetherStar(PracticeParticipant participant) {
+        removeNetherStar(participant);
         ItemStack netherStar = new ItemStack(Material.NETHER_STAR);
         netherStar.editMeta(meta -> meta.displayName(NETHER_STAR_NAME));
         participant.getInventory().addItem(netherStar);

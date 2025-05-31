@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.hub.config;
 
 import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.braekpo1nt.mctmanager.Main;
@@ -80,8 +81,15 @@ class HubConfigDTO implements Validatable {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
+    @Builder
     static class PracticeDTO implements Validatable {
         
+        /**
+         * If true, participants can't join an active game
+         * unless their team already has members in it.
+         * Defaults to false.
+         */
+        private Boolean restrictGameJoining;
         private List<GameType> allowedGames;
         private Map<GameType, String> configFiles;
         private @Nullable PresetDTO.PresetConfigDTO preset;
@@ -96,11 +104,12 @@ class HubConfigDTO implements Validatable {
         }
         
         public HubConfig.PracticeConfig toPractice() {
-            return new HubConfig.PracticeConfig(
-                    allowedGames, 
-                    configFiles,
-                    preset != null ? preset.toPreset() : null
-            );
+            return HubConfig.PracticeConfig.builder()
+                    .restrictGameJoining(restrictGameJoining != null ? restrictGameJoining : false)
+                    .allowedGames(allowedGames)
+                    .gameConfigs(configFiles)
+                    .preset(preset != null ? preset.toPreset() : null)
+                    .build();
         }
     }
     
