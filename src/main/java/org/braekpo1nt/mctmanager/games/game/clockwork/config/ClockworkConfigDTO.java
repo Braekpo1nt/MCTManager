@@ -35,6 +35,7 @@ record ClockworkConfigDTO(
         SoundDTO clockChime, 
         double initialChimeInterval, 
         double chimeIntervalDecrement, 
+        Boolean longMode,
         Team.OptionStatus collisionRule,
         @Nullable List<Material> preventInteractions,
         Scores scores, 
@@ -105,6 +106,7 @@ record ClockworkConfigDTO(
                 .clockChimeVolume(this.clockChime.getVolume())
                 .clockChimePitch(this.clockChime.getPitch())
                 .chaos(this.chaos)
+                .longMode(this.longMode != null ? this.longMode : false)
                 .collisionRule(this.collisionRule)
                 .wedges(newWedges)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
