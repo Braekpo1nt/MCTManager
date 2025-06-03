@@ -67,7 +67,6 @@ public class GameManager implements Listener {
     public static final String ADMIN_TEAM = "_Admins";
     public static final NamedTextColor ADMIN_COLOR = NamedTextColor.DARK_RED;
     private final Main plugin;
-    private final Map<GameType, MCTGame> activeGames = new HashMap<>();
     private GameEditor activeEditor = null;
     @Getter
     private final SidebarFactory sidebarFactory;
@@ -99,14 +98,15 @@ public class GameManager implements Listener {
     private final Map<UUID, MCTParticipant> onlineParticipants = new HashMap<>();
     @Getter
     private final List<Player> onlineAdmins = new ArrayList<>();
+    private final Map<GameInstanceId, MCTGame> activeGames = new HashMap<>();
     /**
      * A reference to which participant is in which game
      */
-    protected final Map<UUID, GameType> participantGames = new HashMap<>();
+    protected final Map<UUID, GameInstanceId> participantGames = new HashMap<>();
     /**
      * A reference to which admin is in which game
      */
-    protected final Map<UUID, GameType> adminGames = new HashMap<>();
+    protected final Map<UUID, GameInstanceId> adminGames = new HashMap<>();
     private final TabList tabList;
     private final @NotNull List<LeaderboardManager> leaderboardManagers;
     private final Sidebar sidebar; // TODO: make sidebar a thing of each state, not central
@@ -374,20 +374,20 @@ public class GameManager implements Listener {
         return mctScoreboard;
     }
     
-    public CommandResult joinParticipantToGame(@NotNull GameType gameType, @NotNull UUID uuid) {
+    public CommandResult joinParticipantToGame(@NotNull GameInstanceId id, @NotNull UUID uuid) {
         MCTParticipant mctParticipant = onlineParticipants.get(uuid);
         if (mctParticipant == null) {
             return CommandResult.failure(Component.text("You are not a participant"));
         }
-        return state.joinParticipantToGame(gameType, mctParticipant);
+        return state.joinParticipantToGame(id, mctParticipant);
     }
     
-    public CommandResult joinAdminToGame(@NotNull GameType gameType, @NotNull Player admin) {
+    public CommandResult joinAdminToGame(@NotNull GameInstanceId id, @NotNull Player admin) {
         
         if (!isAdmin(admin.getUniqueId())) {
             return CommandResult.failure("You are not an admin");
         }
-        return state.joinAdminToGame(gameType, admin);
+        return state.joinAdminToGame(id, admin);
     }
     
     public CommandResult returnParticipantToHub(@NotNull UUID uuid) {
@@ -418,6 +418,12 @@ public class GameManager implements Listener {
         }
         if (activeEditor != null) {
             return CommandResult.failure("Can't load the game state while an editor is running");
+        }
+        for (Player admin : new ArrayList<>(onlineAdmins)) {
+            state.onAdminQuit(admin);
+        }
+        for (MCTParticipant participant : new ArrayList<>(onlineParticipants.values())) {
+            state.onParticipantQuit(participant);
         }
         try {
             gameStateStorageUtil.loadGameState();
@@ -495,6 +501,7 @@ public class GameManager implements Listener {
         state.updateSidebarPersonalScores(onlineParticipants.values());
         // sidebar stop
         results.add(CommandResult.success(Component.text("Loaded gameState.json")));
+        state.onLoadGameState();
         return CompositeCommandResult.all(results);
     }
     
@@ -592,10 +599,11 @@ public class GameManager implements Listener {
      * @return the type of active game the given teamId is in,
      * or null if the team is not in a game
      */
-    public @Nullable GameType getTeamActiveGame(String teamId) {
-        for (MCTGame game : activeGames.values()) {
+    public @Nullable GameInstanceId getTeamActiveGame(String teamId) {
+        for (Map.Entry<GameInstanceId, MCTGame> entry : activeGames.entrySet()) {
+            MCTGame game = entry.getValue();
             if (game.containsTeam(teamId)) {
-                return game.getType();
+                return entry.getKey();
             }
         }
         return null;
@@ -612,8 +620,8 @@ public class GameManager implements Listener {
     /**
      * If a game of the specified type is currently going on, manually stops the game.
      */
-    public CommandResult stopGame(GameType gameType) {
-        return state.stopGame(gameType);
+    public CommandResult stopGame(GameInstanceId id) {
+        return state.stopGame(id);
     }
     
     /**
@@ -626,16 +634,16 @@ public class GameManager implements Listener {
     /**
      * Called by an active game when the game is over.
      */
-    public void gameIsOver(@NotNull GameType gameType, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants, @NotNull List<Player> gameAdmins) {
-        state.gameIsOver(gameType, teamScores, participantScores, gameParticipants, gameAdmins);
+    public void gameIsOver(@NotNull GameInstanceId id, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants, @NotNull List<Player> gameAdmins) {
+        state.gameIsOver(id, teamScores, participantScores, gameParticipants, gameAdmins);
     }
     
     /**
-     * @param gameType the game type to check
-     * @return true if the given game type is currently being played, false otherwise
+     * @param id the {@link GameInstanceId} to check
+     * @return true if the given game instance id is currently being played, false otherwise
      */
-    public boolean gameIsActive(@NotNull GameType gameType) {
-        return activeGames.containsKey(gameType);
+    public boolean gameIsActive(@NotNull GameInstanceId id) {
+        return activeGames.containsKey(id);
     }
     
     public CommandResult startEditor(@NotNull GameType gameType, @NotNull String configFile) {
@@ -1076,12 +1084,12 @@ public class GameManager implements Listener {
         return state.openHubMenu(participant);
     }
     
-    public int getGameIterations(@NotNull GameType gameType) {
-        return state.getGameIterations(gameType);
+    public int getGameIterations(@NotNull GameInstanceId id) {
+        return state.getGameIterations(id);
     }
     
-    public CommandResult undoGame(@NotNull GameType gameType, int iterationIndex) {
-        return state.undoGame(gameType, iterationIndex);
+    public CommandResult undoGame(@NotNull GameInstanceId id, int iterationIndex) {
+        return state.undoGame(id, iterationIndex);
     }
     
     public CommandResult modifyMaxGames(int newMaxGames) {
@@ -1122,12 +1130,12 @@ public class GameManager implements Listener {
         throw new RuntimeException(e);
     }
     
-    public @NotNull Set<GameType> getActiveGames() {
+    public @NotNull Set<GameInstanceId> getActiveGames() {
         return activeGames.keySet();
     }
     
-    public @Nullable MCTGame getActiveGame(@NotNull GameType gameType) {
-        return activeGames.get(gameType);
+    public @Nullable MCTGame getActiveGame(@NotNull GameInstanceId id) {
+        return activeGames.get(id);
     }
     
     /**

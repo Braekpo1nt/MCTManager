@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
@@ -65,6 +66,14 @@ public class PracticeState extends GameManagerState {
     public void cleanup() {
         super.cleanup();
         practiceManager.cleanup();
+    }
+    
+    @Override
+    public void onLoadGameState() {
+        practiceManager.setConfig(config.getPractice());
+        for (MCTParticipant participant : onlineParticipants.values()) {
+            participant.getInventory().close();
+        }
     }
     
     /**
@@ -131,23 +140,23 @@ public class PracticeState extends GameManagerState {
     }
     
     @Override
-    public CommandResult joinParticipantToGame(@NotNull GameType gameType, @NotNull MCTParticipant participant) {
+    public CommandResult joinParticipantToGame(@NotNull GameInstanceId id, @NotNull MCTParticipant participant) {
         if (config.getPractice().isRestrictGameJoining()) {
-            GameType teamGameType = context.getTeamActiveGame(participant.getTeamId());
-            if (gameType.equals(teamGameType)) { // if you're trying to join your team's game
-                return super.joinParticipantToGame(gameType, participant);
+            GameInstanceId teamGameId = context.getTeamActiveGame(participant.getTeamId());
+            if (id.equals(teamGameId)) { // if you're trying to join your team's game
+                return super.joinParticipantToGame(id, participant);
             } else { // you're trying to join another team's game
                 return CommandResult.failure(Component.empty()
                         .append(Component.text("Can't join another group's game")));
             }
         } else {
-            if (gameType == GameType.FARM_RUSH) {
+            if (id.getGameType() == GameType.FARM_RUSH) {
                 return CommandResult.failure(Component.empty()
                         .append(Component.text("Only one team can play "))
-                        .append(Component.text(gameType.getTitle()))
+                        .append(Component.text(id.getTitle()))
                         .append(Component.text(" at a time.")));
             }
-            return super.joinParticipantToGame(gameType, participant);
+            return super.joinParticipantToGame(id, participant);
         }
     }
     
@@ -185,7 +194,7 @@ public class PracticeState extends GameManagerState {
     
     
     @Override
-    protected void addScores(Map<String, Integer> newTeamScores, Map<UUID, Integer> newParticipantScores, GameType gameType) {
+    protected void addScores(Map<String, Integer> newTeamScores, Map<UUID, Integer> newParticipantScores, @NotNull GameInstanceId id) {
         Map<String, Integer> teamScores = newTeamScores.entrySet().stream()
                 .filter(e -> teams.containsKey(e.getKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -213,8 +222,8 @@ public class PracticeState extends GameManagerState {
     }
     
     @Override
-    protected void onParticipantJoinGame(@NotNull GameType gameType, MCTParticipant participant) {
-        super.onParticipantJoinGame(gameType, participant);
+    protected void onParticipantJoinGame(@NotNull GameInstanceId id, MCTParticipant participant) {
+        super.onParticipantJoinGame(id, participant);
         practiceManager.removeParticipant(participant.getUniqueId());
     }
     

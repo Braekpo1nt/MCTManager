@@ -5,6 +5,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.bukkit.command.Command;
@@ -27,8 +28,8 @@ public class EventUndoSubCommand extends TabSubCommand {
     
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length != 2) {
-            return CommandResult.failure(getUsage().of("<game>").of("<iteration>"));
+        if (args.length != 3) {
+            return CommandResult.failure(getUsage().of("<game>").of("<configFile.json>").of("<iteration>"));
         }
         String gameID = args[0];
         GameType gameType = GameType.fromID(gameID);
@@ -38,7 +39,10 @@ public class EventUndoSubCommand extends TabSubCommand {
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" is not a valid game")));
         }
-        String iterationNumberString = args[1];
+        
+        String configFile = args[1];
+        
+        String iterationNumberString = args[2];
         if (!CommandUtils.isInteger(iterationNumberString)) {
             return CommandResult.failure(Component.empty()
                     .append(Component.text(iterationNumberString)
@@ -46,24 +50,25 @@ public class EventUndoSubCommand extends TabSubCommand {
                     .append(Component.text(" is not an integer")));
         }
         int iterationNumber = Integer.parseInt(iterationNumberString);
-        return gameManager.undoGame(gameType, iterationNumber - 1);
+        return gameManager.undoGame(new GameInstanceId(gameType, configFile), iterationNumber - 1);
     }
     
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length != 2) {
-            return Collections.emptyList();
+        if (args.length == 3) {
+            String gameID = args[0];
+            GameType gameType = GameType.fromID(gameID);
+            if (gameType == null) {
+                return Collections.emptyList();
+            }
+            String configFile = args[1];
+            int iterations = gameManager.getGameIterations(new GameInstanceId(gameType, configFile));
+            if (iterations <= 0) {
+                return Collections.emptyList();
+            }
+            return generateNumberList(iterations);
         }
-        String gameID = args[0];
-        GameType gameType = GameType.fromID(gameID);
-        if (gameType == null) {
-            return Collections.emptyList();
-        }
-        int iterations = gameManager.getGameIterations(gameType);
-        if (iterations <= 0) {
-            return Collections.emptyList();
-        }
-        return generateNumberList(iterations);
+        return Collections.emptyList();
     }
     
     /**

@@ -5,6 +5,7 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.EventData;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.ScoreKeeper;
@@ -94,20 +95,20 @@ public abstract class EventState extends GameManagerState {
     }
     
     @Override
-    public int getGameIterations(@NotNull GameType gameType) {
-        return eventData.getGameIterations(gameType);
+    public int getGameIterations(@NotNull GameInstanceId id) {
+        return eventData.getGameIterations(id);
     }
     
     @Override
-    public CommandResult undoGame(@NotNull GameType gameType, int iterationIndex) {
-        if (!eventData.getScoreKeepers().containsKey(gameType)) {
+    public CommandResult undoGame(@NotNull GameInstanceId id, int iterationIndex) {
+        if (!eventData.getScoreKeepers().containsKey(id)) {
             return CommandResult.failure(Component.empty()
                     .append(Component.text("No points were tracked for "))
-                    .append(Component.text(gameType.getTitle())
+                    .append(Component.text(id.getTitle())
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(".")));
         }
-        List<ScoreKeeper> gameScoreKeepers = eventData.getScoreKeepers().get(gameType);
+        List<ScoreKeeper> gameScoreKeepers = eventData.getScoreKeepers().get(id);
         if (iterationIndex < 0) {
             return CommandResult.failure(Component.empty()
                     .append(Component.text(iterationIndex+1)
@@ -115,7 +116,7 @@ public abstract class EventState extends GameManagerState {
                     .append(Component.text(" is not a valid play-through")));
         }
         if (iterationIndex >= gameScoreKeepers.size()) {
-            return CommandResult.failure(Component.text(gameType.getTitle())
+            return CommandResult.failure(Component.text(id.getTitle())
                     .append(Component.text(" has only been played "))
                     .append(Component.text(gameScoreKeepers.size()))
                     .append(Component.text(" time(s). Can't undo play-through "))
@@ -128,13 +129,13 @@ public abstract class EventState extends GameManagerState {
                     .append(Component.text(iterationIndex + 1)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" of "))
-                    .append(Component.text(gameType.getTitle())
+                    .append(Component.text(id.getTitle())
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(".")));
         }
         undoScores(iterationScoreKeeper);
         gameScoreKeepers.set(iterationIndex, null); // remove tracked points for this iteration
-        Component report = createScoreKeeperReport(gameType, iterationScoreKeeper);
+        Component report = createScoreKeeperReport(id, iterationScoreKeeper);
         plugin.getServer().getConsoleSender().sendMessage(report);
         return CommandResult.success(report);
     }
@@ -166,15 +167,15 @@ public abstract class EventState extends GameManagerState {
     
     /**
      * Creates a report describing the scores associated with the given ScoreKeeper
-     * @param gameType The gameType the ScoreKeeper is associated with
+     * @param id The game instance id the ScoreKeeper is associated with
      * @param scoreKeeper The scorekeeper describing the given scores
      * @return A component with a report of the ScoreKeeper's scores
      */
     @NotNull
-    private Component createScoreKeeperReport(@NotNull GameType gameType, @NotNull ScoreKeeper scoreKeeper) {
+    private Component createScoreKeeperReport(@NotNull GameInstanceId id, @NotNull ScoreKeeper scoreKeeper) {
         TextComponent.Builder reportBuilder = Component.text()
                 .append(Component.text("|Scores for ("))
-                .append(Component.text(gameType.getTitle())
+                .append(Component.text(id.getTitle())
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text("):\n"))
                 .color(NamedTextColor.YELLOW);
@@ -271,9 +272,9 @@ public abstract class EventState extends GameManagerState {
     }
     
     @Override
-    public void addScores(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, GameType gameType) {
-        super.addScores(teamScores, participantScores, gameType);
-        eventData.trackScores(teamScores, participantScores, gameType);
+    public void addScores(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull GameInstanceId id) {
+        super.addScores(teamScores, participantScores, id);
+        eventData.trackScores(teamScores, participantScores, id);
     }
     // game stop
     

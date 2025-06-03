@@ -5,6 +5,7 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventHungerLoss;
 import org.braekpo1nt.mctmanager.games.base.GameBase;
@@ -48,11 +49,12 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
             @NotNull Main plugin, 
             @NotNull GameManager gameManager, 
             @NotNull Component title, 
-            @NotNull ExampleConfig config, 
+            @NotNull ExampleConfig config,
+            @NotNull String configFile,
             @NotNull Collection<Team> newTeams, 
             @NotNull Collection<Participant> newParticipants, 
             @NotNull List<Player> newAdmins) {
-        super(GameType.EXAMPLE, plugin, gameManager, title, new InitialState());
+        super(new GameInstanceId(GameType.EXAMPLE, configFile), plugin, gameManager, title, new InitialState());
         this.config = config;
         this.topbar = addUIManager(new BasicTopbar());
         addListener(new PreventHungerLoss<>(this));

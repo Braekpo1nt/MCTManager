@@ -5,11 +5,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetDTO;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -17,9 +19,8 @@ import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
@@ -90,25 +91,73 @@ class HubConfigDTO implements Validatable {
          * Defaults to false.
          */
         private Boolean restrictGameJoining;
-        private List<GameType> allowedGames;
-        private Map<GameType, String> configFiles;
+        private List<GameInfoDTO> allowedGames;
         private @Nullable PresetDTO.PresetConfigDTO preset;
         
         @Override
         public void validate(@NotNull Validator validator) {
             validator.notNull(allowedGames, "allowedGames");
-            validator.notNull(configFiles, "configFiles");
+            validator.validateList(allowedGames, "allowedGames");
+            Set<GameInstanceId> usedIds = new HashSet<>(allowedGames.size());
+            for (GameInfoDTO gameInfoDTO : allowedGames) {
+                GameInstanceId id = new GameInstanceId(gameInfoDTO.getGameType(), gameInfoDTO.getConfigFile());
+                validator.validate(!usedIds.contains(id), "allowedGames has duplicate game/config combo: \"%s\" and \"%s\"", id.getGameType(), id.getConfigFile());
+                usedIds.add(id);
+            }
             if (preset != null) {
                 preset.validate(validator.path("preset"));
             }
         }
         
         public HubConfig.PracticeConfig toPractice() {
+            List<HubConfig.GameInfo> games = toAllowedGames();
             return HubConfig.PracticeConfig.builder()
                     .restrictGameJoining(restrictGameJoining != null ? restrictGameJoining : false)
-                    .allowedGames(allowedGames)
-                    .gameConfigs(configFiles)
+                    .allowedGameIds(games.stream()
+                            .map(HubConfig.GameInfo::getId)
+                            .collect(Collectors.toSet()))
+                    .allowedGames(games)
                     .preset(preset != null ? preset.toPreset() : null)
+                    .build();
+        }
+        
+        private List<HubConfig.GameInfo> toAllowedGames() {
+            List<HubConfig.GameInfo> result = new ArrayList<>(allowedGames.size());
+            for (GameInfoDTO gameInfoDTO : allowedGames) {
+                HubConfig.GameInfo gameInfo = gameInfoDTO.toGameInfo();
+                result.add(gameInfo);
+            }
+            return result;
+        }
+    }
+    
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    static class GameInfoDTO implements Validatable {
+        private GameType gameType;
+        private String configFile;
+        private Material itemType;
+        private Component itemName;
+        private List<Component> itemLore;
+        
+        @Override
+        public void validate(@NotNull Validator validator) {
+            validator.notNull(gameType, "gameType");
+            validator.notNull(configFile, "configFile");
+            validator.notNull(itemType, "itemType");
+            validator.notNull(itemName, "itemName");
+            validator.notNull(itemLore, "itemLore");
+            validator.validate(!itemLore.contains(null), "itemLore can't have null entries");
+        }
+        
+        public HubConfig.GameInfo toGameInfo() {
+            return HubConfig.GameInfo.builder()
+                    .id(new GameInstanceId(gameType, configFile))
+                    .itemType(itemType)
+                    .itemName(itemName)
+                    .itemLore(itemLore)
                     .build();
         }
     }

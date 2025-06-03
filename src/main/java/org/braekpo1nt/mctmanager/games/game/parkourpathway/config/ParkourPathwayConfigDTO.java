@@ -44,7 +44,25 @@ class ParkourPathwayConfigDTO implements Validatable {
      * The chat message sent to all participants when the team spawns open. Null means no message will be sent.
      */
     private @Nullable Component teamSpawnsOpenMessage;
-    /** the list of puzzles for this parkour game */
+    /**
+     * The list of puzzles for this parkour game.<br>
+     * The first puzzle is the starting position. Players will be teleported to the 
+     * first puzzle's first checkpoint when they begin (unless there are team spawns, 
+     * see {@link #teamSpawns}), and new players who join mid-game are sent here as well. 
+     * Make sure the first puzzle's inBounds contains the entire area where players are 
+     * allowed to be while the countdowns are going before the game officially starts.
+     * <br>
+     * The last puzzle is considered the finish line 
+     * (when you reach the checkpoint of the last puzzle, y
+     * ou have won the game/beat all the puzzles
+     * <br>
+     * Each puzzle's inBounds must contain all the checkpoints of the puzzle after it (except the
+     * last puzzle, which is the finish line). Conversely, each puzzle's checkpoints must be 
+     * contained within the previous puzzle's inBounds (except the first puzzle, which has no
+     * previous puzzle). Without this restriction, players would be teleported to the start
+     * of their current puzzle before reaching the checkpoint for the next puzzle,
+     * because they would go out of bounds before they reach the checkpoints.
+     */
     private List<PuzzleDTO> puzzles;
     private @Nullable BoundingBox spectatorArea;
     private @Nullable List<Material> preventInteractions;

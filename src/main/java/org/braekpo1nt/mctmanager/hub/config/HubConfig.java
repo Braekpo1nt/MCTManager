@@ -4,15 +4,17 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetConfig;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 @Data
 @Builder
@@ -38,12 +40,30 @@ public class HubConfig {
          * unless their team already has members in it
          */
         private boolean restrictGameJoining;
-        private List<GameType> allowedGames;
-        private Map<GameType, String> gameConfigs;
+        /**
+         * The instance IDs of the allowed games to play during practice mode
+         * (same as those of {@link #allowedGames}, but for fast and convenient reference
+         */
+        private Set<GameInstanceId> allowedGameIds;
+        /**
+         * The allowed games to play during practice  mode
+         */
+        private List<GameInfo> allowedGames;
         /**
          * If null, no preset will be used. 
          */
         private @Nullable PresetConfig preset;
+    }
+    
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class GameInfo {
+        private @NotNull GameInstanceId id;
+        private @NotNull Material itemType;
+        private @NotNull Component itemName;
+        private @NotNull List<Component> itemLore;
     }
     
     @Data

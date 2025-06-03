@@ -2,35 +2,86 @@
   "version": "0.1.1",
   "world": "TestWorld",
   "spawn": {
-    "x": -0.5,
-    "y": 150,
-    "z": -0.5
+    "x": 0.5,
+    "y": 153,
+    "z": 0.5,
+    "yaw": -180,
+    "pitch": 0
   },
   "podium": {
-    "x": 61,
-    "y": 150,
-    "z": -42,
-    "yaw": 90,
+    "x": 0.5,
+    "y": 154,
+    "z": -84.5,
+    "yaw": 0,
     "pitch": 0
   },
   "podiumObservation": {
-    "x": 48,
-    "y": 148,
-    "z": -42,
-    "yaw": -90,
+    "x": 0.5,
+    "y": 152,
+    "z": -68.5,
+    "yaw": -180,
     "pitch": 0
   },
   "practice": {
-    "allowedGames": [
-      "CAPTURE_THE_FLAG",
-      "FOOT_RACE",
-      "SPLEEF",
-      "PARKOUR_PATHWAY"
-    ],
-    "configFiles": {
-      "CAPTURE_THE_FLAG": "bluemap.json"
+    "allowedGames": {
+      "FOOT_RACE": {
+        "configFile": "footracePractice.json",
+        "itemType": "FEATHER",
+        "itemName": "Foot Race",
+        "itemLore": [
+          "A racing game"
+        ]
+      },
+      "SURVIVAL_GAMES": {
+        "configFile": "default.json",
+        "itemType": "IRON_SWORD",
+        "itemName": "Survival Games",
+        "itemLore": [
+          "A fighting game"
+        ]
+      },
+      "CAPTURE_THE_FLAG": {
+        "configFile": "archPracticeCTF.json",
+        "itemType": "GRAY_BANNER",
+        "itemName": "Capture the Flag",
+        "itemLore": [
+          "A team capture the flag game"
+        ]
+      },
+      "SPLEEF": {
+        "configFile": "spleefPracticeConfig.json",
+        "itemType": "DIAMOND_SHOVEL",
+        "itemName": "Spleef",
+        "itemLore": [
+          "A falling game"
+        ]
+      },
+      "PARKOUR_PATHWAY": {
+        "configFile": "parkourEasyPractice.json",
+        "itemType": "LEATHER_BOOTS",
+        "itemName": "Parkour Pathway",
+        "itemLore": [
+          "A jumping game"
+        ]
+      },
+      "CLOCKWORK": {
+        "configFile": "clockworkPracticeConfig.json",
+        "itemType": "CLOCK",
+        "itemName": "Clockwork",
+        "itemLore": [
+          "A time-sensitive game"
+        ]
+      },
+      "FARM_RUSH": {
+        "configFile": "practiceFRush.json",
+        "itemType": "STONE_HOE",
+        "itemName": "Farm Rush",
+        "itemLore": [
+          "A farming game"
+        ]
+      }
     },
-    "preset": {
+    "preset_ignore": {
       "file": "practice1.json",
       "override": true,
       "resetScores": false,
@@ -43,31 +94,58 @@
     {
       "title": "§6§nTop 10",
       "location": {
-        "x": 0,
-        "y": 154,
-        "z": -144
+        "x": -62.5,
+        "y": 158,
+        "z": 61.5
       },
       "topPlayers": 10
     },
     {
       "location": {
-        "x": 49,
-        "y": 151,
-        "z": -29
+        "x": -54.5,
+        "y": 157,
+        "z": 69.5
       },
       "topPlayers": 5
     },
     {
       "title": "§6§nTop 5",
       "location": {
-        "x": 10,
-        "y": 153,
-        "z": 0
+        "x": 2.5,
+        "y": 156,
+        "z": -6.5
+      },
+      "topPlayers": 5
+    },
+    {
+      "title": "§6§nTop 5",
+      "location": {
+        "x": -1.5,
+        "y": 156,
+        "z": -6.5
+      },
+      "topPlayers": 5
+    },
+    {
+      "title": "§6§nTop 5",
+      "location": {
+        "x": -1.5,
+        "y": 156,
+        "z": 7.5
+      },
+      "topPlayers": 5
+    },
+    {
+      "title": "§6§nTop 5",
+      "location": {
+        "x": 2.5,
+        "y": 156,
+        "z": 7.5
       },
       "topPlayers": 5
     }
   ],
-  "yLimit": 130,
+  "yLimit": 120,
   "durations": {
     "tpToHub": 5
   },
@@ -110,6 +188,7 @@
     "LEGACY_WOOD_BUTTON",
     "LEVER",
     "LEGACY_LEVER",
-    "SWEET_BERRY_BUSH"
+    "SWEET_BERRY_BUSH",
+    "FARMLAND"
   ]
 }

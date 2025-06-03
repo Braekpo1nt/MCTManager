@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventHungerLoss;
@@ -67,10 +68,11 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
             @NotNull GameManager gameManager,
             @NotNull Component title,
             @NotNull FootRaceConfig config,
+            @NotNull String configFile,
             @NotNull Collection<Team> newTeams,
             @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
-        super(GameType.FOOT_RACE, plugin, gameManager, title, new InitialState());
+        super(new GameInstanceId(GameType.FOOT_RACE, configFile), plugin, gameManager, title, new InitialState());
         this.title = title;
         this.config = config;
         standings = new ArrayList<>(newParticipants.size());
