@@ -10,9 +10,8 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.display.BoxDisplay;
 import org.braekpo1nt.mctmanager.display.Display;
-import org.braekpo1nt.mctmanager.display.EmptyDisplay;
+import org.braekpo1nt.mctmanager.display.GroupDisplay;
 import org.braekpo1nt.mctmanager.display.LocationDisplay;
-import org.braekpo1nt.mctmanager.display.geometry.GeometryUtils;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
@@ -762,7 +761,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     private @NotNull Display puzzlesToDisplay(int puzzleIndex, int inBoundIndex, int checkPointIndex) {
         Preconditions.checkArgument(0 <= puzzleIndex && puzzleIndex < puzzles.size(), "index must be between [0, %s] inclusive", puzzles.size());
         Puzzle puzzle = puzzles.get(puzzleIndex);
-        Display display = puzzleToDisplay(puzzle, IN_BOUNDS_COLOR, HIGHLIGHT_IN_BOUNDS_COLOR, DETECTION_AREA_COLOR, HIGHLIGHT_DETECTION_AREA_COLOR, RESPAWN_COLOR, inBoundIndex, checkPointIndex);
+        GroupDisplay display = puzzleToDisplay(puzzle, IN_BOUNDS_COLOR, HIGHLIGHT_IN_BOUNDS_COLOR, DETECTION_AREA_COLOR, HIGHLIGHT_DETECTION_AREA_COLOR, RESPAWN_COLOR, inBoundIndex, checkPointIndex);
         int nextIndex = puzzleIndex + 1;
         if (nextIndex < puzzles.size()) {
             Puzzle nextPuzzle = puzzles.get(nextIndex);
@@ -783,8 +782,8 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
      * @param checkPointIndex the index of the checkPoint to highlight. -1 means don't highlight any checkPoint.
      * @return a Display of the given puzzle with the given colors
      */
-    private @NotNull Display puzzleToDisplay(@NotNull Puzzle puzzle, @NotNull Color inBoundsColor, @Nullable Color highlightInBoundsColor, @NotNull Color detectionAreaColor, @Nullable Color highLightDetectionAreaColor, @NotNull Color respawnColor, int inBoundIndex, int checkPointIndex) {
-        Display display = new EmptyDisplay();
+    private @NotNull GroupDisplay puzzleToDisplay(@NotNull Puzzle puzzle, @NotNull Color inBoundsColor, @Nullable Color highlightInBoundsColor, @NotNull Color detectionAreaColor, @Nullable Color highLightDetectionAreaColor, @NotNull Color respawnColor, int inBoundIndex, int checkPointIndex) {
+        GroupDisplay display = new GroupDisplay();
         for (int i = 0; i < puzzle.inBounds().size(); i++) {
             BoundingBox inBound = puzzle.inBounds().get(i);
             if (i == inBoundIndex && highlightInBoundsColor != null) {

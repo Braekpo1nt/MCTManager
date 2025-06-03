@@ -16,11 +16,6 @@ public class LocationDisplay implements Display {
     }
     
     @Override
-    public void addChild(@NotNull Display child) {
-        
-    }
-    
-    @Override
     public void show(@NotNull World world) {
         
     }
