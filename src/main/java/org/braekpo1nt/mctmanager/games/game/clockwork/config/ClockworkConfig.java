@@ -37,6 +37,12 @@ public class ClockworkConfig {
     private float clockChimeVolume;
     private float clockChimePitch;
     public Chaos chaos;
+    /**
+     * when true, the game ends when the final player dies, rather than triggering a win
+     * on the second-to-last team dying.
+     * Defaults to false.
+     */
+    public boolean longMode;
     public Team.OptionStatus collisionRule;
     private List<Wedge> wedges;
     private List<Material> preventInteractions;
