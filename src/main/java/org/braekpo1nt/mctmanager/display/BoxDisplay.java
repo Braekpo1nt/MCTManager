@@ -32,11 +32,75 @@ public class BoxDisplay implements Display {
     }
     
     public BoxDisplay(@NotNull BoundingBox boundingBox) {
-        this(boundingBox, Material.WHITE_STAINED_GLASS, true, Color.WHITE);
+        this(boundingBox, Material.GLASS, true, Color.WHITE);
     }
     
     public BoxDisplay(@NotNull BoundingBox boundingBox, Color glowColor) {
-        this(boundingBox, Material.WHITE_STAINED_GLASS, true, glowColor);
+        this(boundingBox, Material.GLASS, true, glowColor);
+    }
+    
+    public void setBoundingBox(@NotNull BoundingBox boundingBox) {
+        this.boundingBox = boundingBox;
+        if (showing) {
+            if (normal != null) {
+                normal.setTransformation(new Transformation(
+                        new Vector3f(), // no translation
+                        new AxisAngle4f(), // no left rotation
+                        new Vector3f(
+                                (float) boundingBox.getWidthX(),
+                                (float) boundingBox.getHeight(),
+                                (float) boundingBox.getWidthZ()),
+                        new AxisAngle4f() // no right rotation
+                ));
+            }
+            if (inverted != null) {
+                inverted.setTransformation(new Transformation(
+                        new Vector3f(), // no translation
+                        new AxisAngle4f(), // no left rotation
+                        new Vector3f(
+                                (float) -boundingBox.getWidthX(), // inverted on the x-axis
+                                (float) boundingBox.getHeight(),
+                                (float) boundingBox.getWidthZ()),
+                        new AxisAngle4f() // no right rotation
+                ));
+            }
+        }
+    }
+    
+    public void setMaterial(@NotNull Material material) {
+        this.material = material;
+        if (showing) {
+            if (normal != null) {
+                normal.setBlock(material.createBlockData());
+            }
+            if (inverted != null) {
+                inverted.setBlock(material.createBlockData());
+            }
+        }
+    }
+    
+    public void setGlowing(boolean glowing) {
+        this.glowing = glowing;
+        if (showing) {
+            if (normal != null) {
+                normal.setGlowing(glowing);
+            }
+            if (inverted != null) {
+                inverted.setGlowing(glowing);
+            }
+        }
+    }
+    
+    public void setGlowColor(@NotNull Color glowColor) {
+        this.glowColor = glowColor;
+        if (showing) {
+            if (normal != null) {
+                normal.setGlowColorOverride(glowColor);
+            }
+            if (inverted != null) {
+                inverted.setGlowColorOverride(glowColor);
+            }
+        }
     }
     
     @Override
@@ -49,8 +113,8 @@ public class BoxDisplay implements Display {
         if (showing) {
             return;
         }
-        this.showing = true;
-        this.normal = world.spawn(boundingBox.getMin().toLocation(world), BlockDisplay.class, entity -> {
+        showing = true;
+        normal = world.spawn(boundingBox.getMin().toLocation(world), BlockDisplay.class, entity -> {
             entity.setBlock(material.createBlockData());
             entity.setTransformation(new Transformation(
                     new Vector3f(), // no translation
@@ -64,7 +128,7 @@ public class BoxDisplay implements Display {
             entity.setGlowing(glowing);
             entity.setGlowColorOverride(glowColor);
         });
-        this.inverted = world.spawn(boundingBox.getMin().add(new Vector(boundingBox.getWidthX(),0, 0)).toLocation(world), BlockDisplay.class, entity -> { // offset on the x-axis
+        inverted = world.spawn(boundingBox.getMin().add(new Vector(boundingBox.getWidthX(),0, 0)).toLocation(world), BlockDisplay.class, entity -> { // offset on the x-axis
             entity.setBlock(material.createBlockData());
             entity.setTransformation(new Transformation(
                     new Vector3f(), // no translation
