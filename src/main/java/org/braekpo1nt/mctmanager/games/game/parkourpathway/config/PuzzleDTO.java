@@ -32,7 +32,10 @@ class PuzzleDTO implements Validatable {
      */
     private final List<BoundingBox> inBounds;
     /**
-     * the list of checkpoints that players must reach to begin this puzzle. They contain the respawn point for if they go out of bounds, and the detectionArea which they must be inside to leave their previous puzzle and begin this one.
+     * the list of checkpoints that players must reach to begin this puzzle. 
+     * They contain the respawn point for if they go out of bounds, 
+     * and the detectionArea which they must be inside to leave their 
+     * previous puzzle and begin this one.
      */
     private final List<CheckPointDTO> checkPoints;
     
@@ -176,7 +179,8 @@ class PuzzleDTO implements Validatable {
     Puzzle toPuzzle(World world) {
         return new Puzzle(
                 new ArrayList<>(inBounds),
-                checkPoints.stream().map(checkPointDTO -> checkPointDTO.toCheckPoint(world)).toList()
+                checkPoints.stream().map(checkPointDTO -> checkPointDTO.toCheckPoint(world))
+                        .collect(Collectors.toCollection(ArrayList::new))
         );
     }
     

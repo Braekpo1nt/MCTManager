@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventHungerLoss;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventItemDrop;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
@@ -44,10 +45,11 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
             @NotNull GameManager gameManager,
             @NotNull Component title,
             @NotNull ParkourPathwayConfig config,
+            @NotNull String configFile,
             @NotNull Collection<Team> newTeams,
             @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
-        super(GameType.PARKOUR_PATHWAY, plugin, gameManager, title, new InitialState());
+        super(new GameInstanceId(GameType.PARKOUR_PATHWAY, configFile), plugin, gameManager, title, new InitialState());
         this.config = config;
         addListener(new PreventHungerLoss<>(this));
         addListener(new PreventItemDrop<>(this, true));

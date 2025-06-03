@@ -6,6 +6,8 @@ import com.google.gson.GsonBuilder;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import lombok.extern.java.Log;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.FailureCommandResult;
 import org.braekpo1nt.mctmanager.commands.mct.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.mctdebug.MCTDebugCommand;
 import org.braekpo1nt.mctmanager.commands.readyup.ReadyUpCommand;
@@ -139,8 +141,9 @@ public class Main extends JavaPlugin {
             config = new HubConfigController(getDataFolder()).getDefaultConfig();
         }
         gameManager = initialGameManager(mctScoreboard, config);
-        boolean ableToLoadGameSate = gameManager.loadGameState();
-        if (!ableToLoadGameSate) {
+        CommandResult result = gameManager.loadGameState();
+        if (result instanceof FailureCommandResult) {
+            getServer().getConsoleSender().sendMessage(result.getMessageOrEmpty());
             Main.logger().severe("[MCTManager] Could not load game state from memory. Disabling plugin.");
             saveGameStateOnDisable = false;
             this.getServer().getPluginManager().disablePlugin(this);

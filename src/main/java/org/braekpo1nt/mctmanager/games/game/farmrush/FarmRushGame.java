@@ -11,6 +11,7 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
@@ -82,10 +83,11 @@ public class FarmRushGame extends GameBase<FarmRushParticipant, FarmRushTeam, Fa
             @NotNull GameManager gameManager,
             @NotNull Component title,
             @NotNull FarmRushConfig config,
+            @NotNull String configFile,
             @NotNull Collection<Team> newTeams,
             @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
-        super(GameType.FARM_RUSH, plugin, gameManager, title, new InitialState());
+        super(new GameInstanceId(GameType.FARM_RUSH, configFile), plugin, gameManager, title, new InitialState());
         this.config = config;
         this.materialBook = createMaterialBook();
         this.arenas = new ArrayList<>(newTeams.size());

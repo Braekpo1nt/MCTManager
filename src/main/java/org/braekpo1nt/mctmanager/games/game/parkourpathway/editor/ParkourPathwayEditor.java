@@ -647,7 +647,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         Location p = respawn.toBlockLocation();
         BoundingBox inBounds = createInBound(p);
         CheckPoint checkPoint = createCheckPoint(p);
-        return new Puzzle(List.of(inBounds), new ArrayList<>(List.of(checkPoint)));
+        return new Puzzle(new ArrayList<>(List.of(inBounds)), new ArrayList<>(List.of(checkPoint)));
     }
     
     private static BoundingBox createInBound(@NotNull Location origin) {

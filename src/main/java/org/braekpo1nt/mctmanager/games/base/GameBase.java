@@ -10,6 +10,7 @@ import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.base.listeners.GameListener;
 import org.braekpo1nt.mctmanager.games.base.states.GameStateBase;
@@ -53,6 +54,7 @@ import java.util.logging.Level;
 @Setter
 public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase, S extends GameStateBase<P, T>>  implements MCTGame, Listener {
     protected final @NotNull GameType type;
+    protected final @NotNull GameInstanceId gameInstanceId;
     protected final @NotNull Main plugin;
     protected final @NotNull GameManager gameManager;
     protected final @NotNull TimerManager timerManager;
@@ -81,7 +83,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     
     /**
      * Initialize data and start the game
-     * @param type the type associated with this game
+     * @param gameInstanceId the {@link GameInstanceId} associated with this game
      * @param plugin the plugin
      * @param gameManager the GameManager
      * @param title the game's initial title, displayed in the sidebar
@@ -91,12 +93,13 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      *                     exceptions. 
      */
     public GameBase(
-            @NotNull GameType type,
+            @NotNull GameInstanceId gameInstanceId,
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
             @NotNull Component title,
             @NotNull S initialState) {
-        this.type = type;
+        this.type = gameInstanceId.getGameType();
+        this.gameInstanceId = gameInstanceId;
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.sidebar = gameManager.createSidebar();
@@ -246,7 +249,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
         storedGameRules.clear();
         cleanup();
-        gameManager.gameIsOver(getType(), teamScores, participantScores, participants.values().stream().map(Participant::getUniqueId).toList(), admins);
+        gameManager.gameIsOver(getGameInstanceId(), teamScores, participantScores, participants.values().stream().map(Participant::getUniqueId).toList(), admins);
         participants.clear();
         admins.clear();
         Main.logger().info("Stopping " + type.getTitle());

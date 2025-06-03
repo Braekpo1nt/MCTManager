@@ -2,17 +2,20 @@ package org.braekpo1nt.mctmanager.games.gamemanager.practice;
 
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class Invite {
     /**
      * The game that the invite was regarding
      */
     @Getter
-    private final GameType gameType;
+    private final GameInstanceId id;
     /**
      * The teamId of the team who sent the invite
      */
@@ -28,9 +31,9 @@ public class Invite {
     private final Map<String, Boolean> rsvps;
     
     public Invite(
-            @NotNull GameType gameType,
+            @NotNull GameInstanceId id,
             @NotNull String initiator) {
-        this.gameType = gameType;
+        this.id = id;
         this.initiator = initiator;
         this.guests = new HashSet<>();
         this.rsvps = new HashMap<>();
@@ -103,7 +106,7 @@ public class Invite {
     
     public Component getStatusMenuTitle() {
         return Component.empty()
-                .append(Component.text(gameType.getTitle()))
+                .append(Component.text(id.getTitle()))
                 .append(Component.text(" Invite Status"));
     }
     

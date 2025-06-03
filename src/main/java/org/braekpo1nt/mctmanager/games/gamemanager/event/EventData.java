@@ -2,11 +2,11 @@ package org.braekpo1nt.mctmanager.games.gamemanager.event;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.Participant;
-import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +27,7 @@ public class EventData {
     @Setter
     private int maxGames;
     @Getter
+    // TODO: make this use GameInstanceId, not just GameType
     private final List<GameType> playedGames = new ArrayList<>();
     /**
      * contains the ScoreKeepers for the games played during the event. Cleared on start and end of event. 
@@ -39,7 +40,7 @@ public class EventData {
      * Otherwise, it contains the scores tracked for the given iteration. 
      */
     @Getter
-    private final Map<GameType, List<ScoreKeeper>> scoreKeepers = new HashMap<>();
+    private final Map<GameInstanceId, List<ScoreKeeper>> scoreKeepers = new HashMap<>();
     private static final ItemStack CROWN = new ItemStack(Material.CARVED_PUMPKIN);
     @Getter
     @Setter
@@ -62,10 +63,10 @@ public class EventData {
     }
     
     // score tracking start
-    public void trackScores(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, GameType gameType) {
-        List<ScoreKeeper> gameScoreKeepers = scoreKeepers.getOrDefault(gameType, new ArrayList<>());
+    public void trackScores(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, GameInstanceId id) {
+        List<ScoreKeeper> gameScoreKeepers = scoreKeepers.getOrDefault(id, new ArrayList<>());
         gameScoreKeepers.add(new ScoreKeeper(teamScores, participantScores));
-        scoreKeepers.put(gameType, gameScoreKeepers);
+        scoreKeepers.put(id, gameScoreKeepers);
     }
     
     // score tracking stop
@@ -113,7 +114,7 @@ public class EventData {
         return currentGameNumber >= maxGames + 1;
     }
     
-    public int getGameIterations(@NotNull GameType gameType) {
+    public int getGameIterations(@NotNull GameInstanceId gameType) {
         List<ScoreKeeper> gameScoreKeepers = scoreKeepers.get(gameType);
         if (gameScoreKeepers == null) {
             return 0;

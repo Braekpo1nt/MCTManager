@@ -5,6 +5,7 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventHungerLoss;
@@ -50,10 +51,11 @@ public class SpleefGame extends GameBase<SpleefParticipant, SpleefTeam, SpleefPa
             @NotNull GameManager gameManager,
             @NotNull Component title,
             @NotNull SpleefConfig config,
+            @NotNull String configFile,
             @NotNull Collection<Team> newTeams,
             @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
-        super(GameType.SPLEEF, plugin, gameManager, title, new InitialState());
+        super(new GameInstanceId(GameType.SPLEEF, configFile), plugin, gameManager, title, new InitialState());
         this.config = config;
         this.currentRound = 1;
         placeLayers(true);
