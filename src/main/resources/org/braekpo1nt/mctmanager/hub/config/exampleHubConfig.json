@@ -23,8 +23,9 @@
     "pitch": 0
   },
   "practice": {
-    "allowedGames": {
-      "FOOT_RACE": {
+    "allowedGames": [
+      {
+        "gameType": "FOOT_RACE",
         "configFile": "footracePractice.json",
         "itemType": "FEATHER",
         "itemName": "Foot Race",
@@ -32,23 +33,26 @@
           "A racing game"
         ]
       },
-      "SURVIVAL_GAMES": {
-        "configFile": "default.json",
-        "itemType": "IRON_SWORD",
-        "itemName": "Survival Games",
-        "itemLore": [
-          "A fighting game"
-        ]
-      },
-      "CAPTURE_THE_FLAG": {
+      {
+        "gameType": "CAPTURE_THE_FLAG",
         "configFile": "archPracticeCTF.json",
-        "itemType": "GRAY_BANNER",
-        "itemName": "Capture the Flag",
+        "itemType": "PURPLE_BANNER",
+        "itemName": "Capture the Flag (Arch)",
         "itemLore": [
           "A team capture the flag game"
         ]
       },
-      "SPLEEF": {
+      {
+        "gameType": "CAPTURE_THE_FLAG",
+        "configFile": "overgrowthPracticeCTF.json",
+        "itemType": "GREEN_BANNER",
+        "itemName": "Capture the Flag (Overgrowth)",
+        "itemLore": [
+          "A team capture the flag game"
+        ]
+      },
+      {
+        "gameType": "SPLEEF",
         "configFile": "spleefPracticeConfig.json",
         "itemType": "DIAMOND_SHOVEL",
         "itemName": "Spleef",
@@ -56,15 +60,26 @@
           "A falling game"
         ]
       },
-      "PARKOUR_PATHWAY": {
+      {
+        "gameType": "PARKOUR_PATHWAY",
         "configFile": "parkourEasyPractice.json",
         "itemType": "LEATHER_BOOTS",
-        "itemName": "Parkour Pathway",
+        "itemName": "Parkour Pathway (Easy)",
         "itemLore": [
           "A jumping game"
         ]
       },
-      "CLOCKWORK": {
+      {
+        "gameType": "PARKOUR_PATHWAY",
+        "configFile": "parkourHardPractice.json",
+        "itemType": "IRON_BOOTS",
+        "itemName": "Parkour Pathway (Hard)",
+        "itemLore": [
+          "A jumping game"
+        ]
+      },
+      {
+        "gameType": "CLOCKWORK",
         "configFile": "clockworkPracticeConfig.json",
         "itemType": "CLOCK",
         "itemName": "Clockwork",
@@ -72,7 +87,8 @@
           "A time-sensitive game"
         ]
       },
-      "FARM_RUSH": {
+      {
+        "gameType": "FARM_RUSH",
         "configFile": "practiceFRush.json",
         "itemType": "STONE_HOE",
         "itemName": "Farm Rush",
@@ -80,7 +96,7 @@
           "A farming game"
         ]
       }
-    },
+    ],
     "preset_ignore": {
       "file": "practice1.json",
       "override": true,
