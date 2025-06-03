@@ -35,6 +35,10 @@ public class BoxDisplay implements Display {
         this(boundingBox, Material.WHITE_STAINED_GLASS, true, Color.WHITE);
     }
     
+    public BoxDisplay(@NotNull BoundingBox boundingBox, Color glowColor) {
+        this(boundingBox, Material.WHITE_STAINED_GLASS, true, glowColor);
+    }
+    
     @Override
     public void addChild(@NotNull Display child) {
         

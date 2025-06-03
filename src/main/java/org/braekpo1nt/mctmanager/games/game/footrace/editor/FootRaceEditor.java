@@ -7,14 +7,14 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
+import org.braekpo1nt.mctmanager.display.BoxDisplay;
 import org.braekpo1nt.mctmanager.display.Display;
-import org.braekpo1nt.mctmanager.display.geometry.GeometryUtils;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfigController;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -125,7 +125,7 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
     private void initializeParticipant(Player participant) {
         participants.add(participant);
         currentCheckpoints.put(participant.getUniqueId(), 0);
-        displays.put(participant.getUniqueId(), new Display(plugin));
+        displays.put(participant.getUniqueId(), new BoxDisplay(new BoundingBox()));
         sidebar.addPlayer(participant);
         ParticipantInitializer.clearInventory(participant);
         participant.teleport(config.getStartingLocation());
@@ -176,7 +176,7 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
     private Display checkpointsToDisplay(int checkpointIndex) {
         Preconditions.checkArgument(0 <= checkpointIndex && checkpointIndex < config.getCheckpoints().size());
         BoundingBox checkpoint = config.getCheckpoints().get(checkpointIndex);
-        return new Display(plugin, GeometryUtils.toEdgePoints(checkpoint, 1.0), Color.RED);
+        return new BoxDisplay(checkpoint, Color.RED);
     }
     
     /**
@@ -189,7 +189,7 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
         if (oldDisplay != null) {
             oldDisplay.hide();
         }
-        newDisplay.show(participant);
+        newDisplay.show(participant.getWorld());
     }
     
     public void giveWands(Player participant) {

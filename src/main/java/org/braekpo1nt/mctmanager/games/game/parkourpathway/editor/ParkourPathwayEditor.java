@@ -8,9 +8,11 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
+import org.braekpo1nt.mctmanager.display.BoxDisplay;
 import org.braekpo1nt.mctmanager.display.Display;
+import org.braekpo1nt.mctmanager.display.EmptyDisplay;
+import org.braekpo1nt.mctmanager.display.LocationDisplay;
 import org.braekpo1nt.mctmanager.display.geometry.GeometryUtils;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
@@ -18,6 +20,7 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathway
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfigController;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.CheckPoint;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -38,7 +41,6 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,13 +62,11 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     private final ItemStack puzzleSelectWand;
     private final ItemStack inBoundSelectWand;
     private final ItemStack checkPointSelectWand;
-    private final ItemStack toggleDisplayWand;
     private final ItemStack addRemovePuzzleWand;
     private final ItemStack addRemoveInBoundWand;
     private final ItemStack addRemoveCheckPointWand;
     private final List<ItemStack> allWands = new ArrayList<>();
     // end wands
-    private boolean displayWalls = true;
     /**
      * The puzzles that we're editing
      */
@@ -117,9 +117,6 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
                 Component.text("Left Click: previous check point"),
                 Component.text("Right Click: next check point")
         ));
-        this.toggleDisplayWand = addWand("Toggle Display", List.of(
-                Component.text("Cycle between all faces and just edges")
-        ));
         this.addRemoveCheckPointWand = addWand("Add/Remove checkPoint", List.of(
                 Component.text("Left Click: add check point"),
                 Component.text("Right Click: remove check point")
@@ -168,15 +165,6 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         }
     }
     
-    /**
-     * Update the displays of all participant's current puzzles
-     */
-    private void reloadAllDisplays() {
-        for (Player participant : participants) {
-            reloadDisplay(participant);
-        }
-    }
-    
     private void reloadDisplaysForPuzzle(int puzzleIndex) {
         for (Player participant : participants) {
             int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
@@ -208,7 +196,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         if (oldDisplay != null) {
             oldDisplay.hide();
         }
-        newDisplay.show(participant);
+        newDisplay.show(participant.getWorld());
     }
     
     @Override
@@ -237,7 +225,6 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         puzzles = config.getPuzzles();
         displays = new HashMap<>(newParticipants.size());
         sidebar = gameManager.createSidebar();
-        displayWalls = true;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
@@ -255,7 +242,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         currentPuzzles.put(participant.getUniqueId(), 0);
         currentInBounds.put(participant.getUniqueId(), 0);
         currentCheckPoints.put(participant.getUniqueId(), 0);
-        displays.put(participant.getUniqueId(), new Display(plugin));
+        displays.put(participant.getUniqueId(), new BoxDisplay(new BoundingBox()));
         sidebar.addPlayer(participant);
         ParticipantInitializer.clearInventory(participant);
         participant.teleport(config.getStartingLocation());
@@ -277,7 +264,6 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         currentCheckPoints.clear();
         currentInBounds.clear();
         displays.clear();
-        displayWalls = true;
         Main.logger().info("Stopping Parkour Pathway editor");
     }
     
@@ -320,8 +306,6 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
             useInBoundSelectWand(participant, action);
         } else if (item.equals(checkPointSelectWand)) {
             useCheckpointSelectWand(participant, action);
-        } else if (item.equals(toggleDisplayWand)) {
-            useToggleDisplayWand(participant);
         } else if (item.equals(addRemoveCheckPointWand)) {
             useAddRemoveCheckPointWand(participant, action);
         } else if (item.equals(addRemoveInBoundWand)) {
@@ -524,16 +508,6 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
                 selectCheckPoint(participant, currentPuzzleCheckPoint - 1);
             }
         }
-    }
-    
-    private void useToggleDisplayWand(Player participant) {
-        displayWalls = !displayWalls;
-        if (displayWalls) {
-            participant.sendMessage("Displaying walls of inBounds");
-        } else {
-            participant.sendMessage("Only displaying edges of inBounds");
-        }
-        reloadAllDisplays();
     }
     
     private void useAddRemoveCheckPointWand(Player participant, Action action) {
@@ -810,29 +784,23 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
      * @return a Display of the given puzzle with the given colors
      */
     private @NotNull Display puzzleToDisplay(@NotNull Puzzle puzzle, @NotNull Color inBoundsColor, @Nullable Color highlightInBoundsColor, @NotNull Color detectionAreaColor, @Nullable Color highLightDetectionAreaColor, @NotNull Color respawnColor, int inBoundIndex, int checkPointIndex) {
-        Display display = new Display(plugin);
+        Display display = new EmptyDisplay();
         for (int i = 0; i < puzzle.inBounds().size(); i++) {
             BoundingBox inBound = puzzle.inBounds().get(i);
-            List<Vector> inBoundPoints;
-            if (displayWalls) {
-                inBoundPoints = GeometryUtils.toRectanglePoints(inBound, 2);
-            } else {
-                inBoundPoints = GeometryUtils.toEdgePoints(inBound, 2);
-            }
             if (i == inBoundIndex && highlightInBoundsColor != null) {
-                display.addChild(new Display(plugin, inBoundPoints, highlightInBoundsColor));
+                display.addChild(new BoxDisplay(inBound, highlightInBoundsColor));
             } else {
-                display.addChild(new Display(plugin, inBoundPoints, inBoundsColor));
+                display.addChild(new BoxDisplay(inBound, inBoundsColor));
             }
         }
         for (int i = 0; i < puzzle.checkPoints().size(); i++) {
             CheckPoint checkPoint = puzzle.checkPoints().get(i);
             if (i == checkPointIndex && highLightDetectionAreaColor != null) {
-                display.addChild(new Display(plugin, GeometryUtils.toEdgePoints(checkPoint.detectionArea(), 1), highLightDetectionAreaColor));
+                display.addChild(new BoxDisplay(checkPoint.detectionArea(), highLightDetectionAreaColor));
             } else {
-                display.addChild(new Display(plugin, GeometryUtils.toEdgePoints(checkPoint.detectionArea(), 1), detectionAreaColor));
+                display.addChild(new BoxDisplay(checkPoint.detectionArea(), detectionAreaColor));
             }
-            display.addChild(new Display(plugin, Collections.singletonList(checkPoint.respawn().toVector()), respawnColor));
+            display.addChild(new LocationDisplay(checkPoint.respawn(), respawnColor));
         }
         
         return display;

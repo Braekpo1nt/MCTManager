@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.display.BoxDisplay;
 import org.braekpo1nt.mctmanager.display.Display;
 import org.braekpo1nt.mctmanager.display.geometry.GeometryUtils;
 import org.bukkit.Color;
@@ -80,8 +81,9 @@ class BoundingBoxSubCommand extends TabSubCommand {
             return CommandResult.failure(Component.text("Only players can be shown a display"));
         }
         
-        Display display = new Display(plugin, GeometryUtils.toRectanglePoints(boundingBox, 1), Color.FUCHSIA);
-        display.show(player, 3*20);
+        Display display = new BoxDisplay(boundingBox, Color.FUCHSIA);
+        display.show(player.getWorld());
+        plugin.getServer().getScheduler().runTaskLater(plugin, display::hide, 3*20L);
         return CommandResult.success();
     }
     

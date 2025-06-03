@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.display.Display;
+import org.braekpo1nt.mctmanager.display.EdgeDisplay;
 import org.braekpo1nt.mctmanager.display.geometry.Edge;
 import org.bukkit.Color;
 import org.bukkit.command.Command;
@@ -89,8 +90,8 @@ class DistSubCommand extends TabSubCommand {
             return CommandResult.failure(Component.text("Only players can be shown a display"));
         }
     
-        Display display = new Display(plugin, new Edge(vector1, vector2).pointsAlongEdgeWithDistance(1.0), Color.FUCHSIA);
-        display.show(player, 3*20);
+        Display display = new EdgeDisplay(new Edge(vector1, vector2), Color.FUCHSIA);
+        plugin.getServer().getScheduler().runTaskLater(plugin, display::hide, 3*20L);
         return CommandResult.success();
     }
     
