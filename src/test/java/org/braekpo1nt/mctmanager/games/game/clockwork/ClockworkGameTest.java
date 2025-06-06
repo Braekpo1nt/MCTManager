@@ -73,6 +73,6 @@ public class ClockworkGameTest {
         gameManager.startGame(GameType.CLOCKWORK, "clockworkConfig.json");
         gameManager.getTimerManager().skip();
         gameManager.getTimerManager().skip();
-        gameManager.stopGame(new GameInstanceId(GameType.CLOCKWORK, "clockworkConfig.json"));
+        gameManager.stopGame(GameType.CLOCKWORK, "clockworkConfig.json");
     }
 }

@@ -101,7 +101,7 @@ public class PracticeManager {
                     .append(Component.text(" in "))
                     .append(Component.text(id.getTitle()))));
             main.addItem(new GuiItem(joinGame, event -> {
-                CommandResult commandResult = gameManager.joinParticipantToGame(id, participant.getUniqueId());
+                CommandResult commandResult = gameManager.joinParticipantToGame(id.getGameType(), id.getConfigFile(), participant.getUniqueId());
                 participant.sendMessage(commandResult.getMessageOrEmpty());
             }));
         }

@@ -237,9 +237,9 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
     
     @Override
     protected void cleanup() {
-        Bukkit.getScheduler().cancelTask(timerRefreshTaskId);
-        Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
-        Bukkit.getScheduler().cancelTask(standingsDisplayTaskId);
+        plugin.getServer().getScheduler().cancelTask(timerRefreshTaskId);
+        plugin.getServer().getScheduler().cancelTask(statusEffectsTaskId);
+        plugin.getServer().getScheduler().cancelTask(standingsDisplayTaskId);
         closeGlassBarrier();
         standings.clear();
     }
