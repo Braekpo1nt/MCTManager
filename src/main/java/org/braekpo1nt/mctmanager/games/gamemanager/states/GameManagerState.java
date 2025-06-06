@@ -323,7 +323,7 @@ public abstract class GameManagerState {
         }
     }
     
-    protected void displayStats(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores) {
+    protected void displayStats(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull GameInstanceId id) {
         List<MCTTeam> sortedTeams = teamScores.keySet().stream()
                 .map(teams::get)
                 .filter(t -> teamScores.containsKey(t.getTeamId()))
@@ -361,6 +361,16 @@ public abstract class GameManagerState {
                             .color(NamedTextColor.GOLD))
                     .append(Component.newline());
         }
+        
+        // TODO: adjust output to not show scores of 0 instead of specifically farm rush
+        if (id.getGameType() == GameType.FARM_RUSH) {
+            Audience.audience(
+                    Audience.audience(sortedTeams),
+                    plugin.getServer().getConsoleSender()
+            ).sendMessage(everyone.build());
+            return;
+        }
+        
         everyone.append(Component.text("\nTop 5 Participants:"))
                 .append(Component.newline());
         for (int i = 0; i < Math.min(sortedParticipants.size(), 5); i++) {
@@ -677,7 +687,7 @@ public abstract class GameManagerState {
             context.reportGameStateException("updating scores", e);
         }
         updateScoreVisuals(teams.values(), onlineParticipants.values());
-        displayStats(teamScores, participantScores);
+        displayStats(teamScores, participantScores, id);
     }
     
     /**

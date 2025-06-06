@@ -202,7 +202,7 @@ public class PracticeState extends GameManagerState {
                 .filter(e -> allParticipants.containsKey(e.getKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         // TODO: save scores for practice to special practice log, so Shotgun can use stats
-        displayStats(teamScores, participantScores);
+        displayStats(teamScores, participantScores, id);
     }
     
     @Override
