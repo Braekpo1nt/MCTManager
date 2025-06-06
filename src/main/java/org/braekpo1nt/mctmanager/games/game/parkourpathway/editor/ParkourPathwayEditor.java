@@ -48,11 +48,11 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
     
     private final ParkourPathwayConfigController configController;
     private ParkourPathwayConfig config;
-    private final Map<UUID, Display> displays;
     /**
      * The puzzles that we're editing
      */
     private List<Puzzle> puzzles;
+    private final Map<UUID, Display> displays;
     /**
      * the index of the puzzle each participant is editing
      */
