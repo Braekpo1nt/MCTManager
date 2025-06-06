@@ -1006,10 +1006,30 @@ public abstract class GameManagerState {
         if (isParticipantInGame(participant)) {
             return CommandResult.failure(Component.text("Already in a game"));
         }
+        GameInstanceId id;
         if (configFile == null) {
-            return CommandResult.failure(Component.text("Please provide a valid config file"));
+            List<GameInstanceId> activeIds = new ArrayList<>();
+            for (GameInstanceId gameInstanceId : activeGames.keySet()) {
+                if (gameInstanceId.getGameType().equals(gameType)) {
+                    activeIds.add(gameInstanceId);
+                }
+            }
+            if (activeIds.size() == 1) {
+                id = activeIds.getFirst();
+            } else if (activeIds.isEmpty()) {
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text("No "))
+                        .append(Component.text(gameType.getTitle()))
+                        .append(Component.text(" game is active right now")));
+            } else {
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text("More than one instance of "))
+                        .append(Component.text(gameType.getTitle()))
+                        .append(Component.text(" is active. Please specify a config.")));
+            }
+        } else {
+            id = new GameInstanceId(gameType, configFile);
         }
-        GameInstanceId id = new GameInstanceId(gameType, configFile);
         MCTGame activeGame = activeGames.get(id);
         if (activeGame == null) {
             return CommandResult.failure(Component.empty()
@@ -1059,10 +1079,30 @@ public abstract class GameManagerState {
         if (isAdminInGame(admin)) {
             return CommandResult.failure(Component.text("Already in a game"));
         }
+        GameInstanceId id;
         if (configFile == null) {
-            return CommandResult.failure("Please provide a valid config file");
+            List<GameInstanceId> activeIds = new ArrayList<>();
+            for (GameInstanceId gameInstanceId : activeGames.keySet()) {
+                if (gameInstanceId.getGameType().equals(gameType)) {
+                    activeIds.add(gameInstanceId);
+                }
+            }
+            if (activeIds.size() == 1) {
+                id = activeIds.getFirst();
+            } else if (activeIds.isEmpty()) {
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text("No "))
+                        .append(Component.text(gameType.getTitle()))
+                        .append(Component.text(" game is active right now")));
+            } else {
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text("More than one instance of "))
+                        .append(Component.text(gameType.getTitle()))
+                        .append(Component.text(" is active. Please specify a config.")));
+            }
+        } else {
+            id = new GameInstanceId(gameType, configFile);
         }
-        GameInstanceId id = new GameInstanceId(gameType, configFile);
         MCTGame activeGame = activeGames.get(id);
         if (activeGame == null) {
             return CommandResult.failure(Component.empty()
