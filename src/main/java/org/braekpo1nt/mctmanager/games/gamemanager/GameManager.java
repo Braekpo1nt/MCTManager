@@ -620,11 +620,8 @@ public class GameManager implements Listener {
         return team.isOnline();
     }
     
-    /**
-     * If a game of the specified type is currently going on, manually stops the game.
-     */
-    public CommandResult stopGame(GameInstanceId id) {
-        return state.stopGame(id);
+    public CommandResult stopGame(@NotNull GameType gameType, @Nullable String configFile) {
+        return state.stopGame(gameType, configFile);
     }
     
     /**

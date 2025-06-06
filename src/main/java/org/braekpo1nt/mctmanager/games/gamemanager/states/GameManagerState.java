@@ -585,7 +585,31 @@ public abstract class GameManagerState {
         updateSidebarTeamScores();
     }
     
-    public CommandResult stopGame(@NotNull GameInstanceId id) {
+    public CommandResult stopGame(@NotNull GameType gameType, @Nullable String configFile) {
+        GameInstanceId id;
+        if (configFile == null) {
+            List<GameInstanceId> activeIds = new ArrayList<>();
+            for (GameInstanceId gameInstanceId : activeGames.keySet()) {
+                if (gameInstanceId.getGameType().equals(gameType)) {
+                    activeIds.add(gameInstanceId);
+                }
+            }
+            if (activeIds.size() == 1) {
+                id = activeIds.getFirst();
+            } else if (activeIds.isEmpty()) {
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text("No "))
+                        .append(Component.text(gameType.getTitle()))
+                        .append(Component.text(" game is active right now")));
+            } else {
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text("More than one instance of "))
+                        .append(Component.text(gameType.getTitle()))
+                        .append(Component.text(" is active. Please specify a config.")));
+            }
+        } else {
+            id = new GameInstanceId(gameType, configFile);
+        }
         MCTGame game = activeGames.get(id);
         if (game == null) {
             return CommandResult.failure(Component.empty()
@@ -595,7 +619,12 @@ public abstract class GameManagerState {
                     .append(Component.text(" are active")));
         }
         game.stop();
-        return CommandResult.success();
+        return CommandResult.success(Component.empty()
+                .append(Component.text("Stopping "))
+                .append(Component.text(id.getTitle()))
+                .append(Component.text(" ("))
+                .append(Component.text(id.getConfigFile()))
+                .append(Component.text(")")));
     }
     
     public CommandResult stopAllGames() {

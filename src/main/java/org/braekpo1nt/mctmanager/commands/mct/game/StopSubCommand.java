@@ -32,7 +32,7 @@ public class StopSubCommand extends TabSubCommand {
         if (args.length == 0) {
             return gameManager.stopAllGames();
         }
-        if (args.length != 2) {
+        if (args.length > 2) {
             return CommandResult.failure(getUsage().of("<gameId|all>").of("[configFile.json]"));
         }
         
@@ -46,8 +46,13 @@ public class StopSubCommand extends TabSubCommand {
                     .append(Component.text(" is not a valid game")));
         }
         
-        String configFile = args[1];
-        return gameManager.stopGame(new GameInstanceId(gameType, configFile));
+        String configFile;
+        if (args.length == 2) {
+            configFile = args[1];
+        } else {
+            configFile = null;
+        }
+        return gameManager.stopGame(gameType, configFile);
     }
     
     @Override
