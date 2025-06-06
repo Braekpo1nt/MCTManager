@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.commands.mct.game;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -31,6 +32,20 @@ public class JoinSubCommand extends TabSubCommand {
         if (!(sender instanceof Player player)) {
             return CommandResult.failure("Only a player can use this command");
         }
+        if (args.length == 0) {
+            List<GameInstanceId> activeGameIds = gameManager.getActiveGameIds();
+            if (activeGameIds.size() == 1) {
+                GameInstanceId id = activeGameIds.getFirst();
+                return joinToGame(player, id.getGameType(), id.getConfigFile());
+            } else if (activeGameIds.isEmpty()) {
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text("No games are active right now")));
+            } else {
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text("Multiple games are active right now, please specify a game type")));
+            }
+        }
+        
         String gameID = args[0];
         GameType gameType = GameType.fromID(gameID);
         if (gameType == null) {
@@ -45,6 +60,10 @@ public class JoinSubCommand extends TabSubCommand {
             configFile = null;
         }
         
+        return joinToGame(player, gameType, configFile);
+    }
+    
+    public @NotNull CommandResult joinToGame(@NotNull Player player, @NotNull GameType gameType, @Nullable String configFile) {
         Participant participant = gameManager.getOnlineParticipant(player.getUniqueId());
         if (participant != null) {
             return gameManager.joinParticipantToGame(gameType, configFile, participant.getUniqueId());
@@ -55,8 +74,6 @@ public class JoinSubCommand extends TabSubCommand {
         }
         return CommandResult.failure("Only a participant or an admin can use this command");
     }
-    
-    
     
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {

@@ -1130,8 +1130,8 @@ public class GameManager implements Listener {
         throw new RuntimeException(e);
     }
     
-    public @NotNull Set<GameInstanceId> getActiveGames() {
-        return activeGames.keySet();
+    public @NotNull List<GameInstanceId> getActiveGameIds() {
+        return new ArrayList<>(activeGames.keySet());
     }
     
     public @Nullable MCTGame getActiveGame(@NotNull GameInstanceId id) {
