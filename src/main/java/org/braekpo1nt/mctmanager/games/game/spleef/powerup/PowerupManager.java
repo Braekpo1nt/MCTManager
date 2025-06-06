@@ -226,7 +226,12 @@ public class PowerupManager implements Listener {
      * @return true if the participant is allowed to receive a powerup (e.g. they've met all requirements)
      */
     private boolean canReceivePowerup(Participant participant, long currentTime) {
-        long lastPowerupTimestamp = lastPowerupTimestamps.get(participant.getUniqueId());
+        Long lastPowerupTimestamp = lastPowerupTimestamps.get(participant.getUniqueId());
+        // TODO: this is a patch for a greater issue. For some reason the result is sometimes null. Unable to replicate reliably. 
+        if (lastPowerupTimestamp == null) {
+            lastPowerupTimestamps.put(participant.getUniqueId(), currentTime);
+            return false;
+        }
         boolean enoughTimeHasPassed = currentTime - lastPowerupTimestamp >= config.getMinTimeBetween();
         return enoughTimeHasPassed && !hasMaxPowerups(participant);
     }
