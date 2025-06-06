@@ -56,6 +56,7 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
             @NotNull List<Player> newAdmins) {
         super(new GameInstanceId(GameType.PARKOUR_PATHWAY, configFile), plugin, gameManager, title, new InitialState());
         this.config = config;
+        startStatusEffectsTask();
         addListener(new PreventHungerLoss<>(this));
         addListener(new PreventItemDrop<>(this, true));
         closeGlassBarrier();
