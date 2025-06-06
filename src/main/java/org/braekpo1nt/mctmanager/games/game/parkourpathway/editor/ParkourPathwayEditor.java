@@ -11,7 +11,6 @@ import org.braekpo1nt.mctmanager.display.BoxDisplay;
 import org.braekpo1nt.mctmanager.display.Display;
 import org.braekpo1nt.mctmanager.display.GroupDisplay;
 import org.braekpo1nt.mctmanager.display.LocationDisplay;
-import org.braekpo1nt.mctmanager.games.editor.Admin;
 import org.braekpo1nt.mctmanager.games.editor.EditorBase;
 import org.braekpo1nt.mctmanager.games.editor.wand.Wand;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
@@ -44,7 +43,7 @@ import java.util.*;
 
 @Getter
 @Setter
-public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditorState> {
+public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwayEditorState> {
     
     private final ParkourPathwayConfigController configController;
     private ParkourPathwayConfig config;
@@ -81,7 +80,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
                         Component.text("(Crouch to adjust by 0.5 blocks)")
                 )))
                 .onInteract(event -> {
-                    Admin admin = admins.get(event.getPlayer().getUniqueId());
+                    ParkourAdmin admin = admins.get(event.getPlayer().getUniqueId());
                     Action action = event.getAction();
                     useInBoundsWand(admin, action);
                 })
@@ -93,7 +92,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
                         Component.text("(Crouch to adjust by 0.5 blocks)")
                 )))
                 .onInteract(event -> {
-                    Admin admin = admins.get(event.getPlayer().getUniqueId());
+                    ParkourAdmin admin = admins.get(event.getPlayer().getUniqueId());
                     Action action = event.getAction();
                     useDetectionAreaWand(admin, action);
                 })
@@ -105,7 +104,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
                         Component.text("(Crouch to get block position)")
                 )))
                 .onInteract(event -> {
-                    Admin admin = admins.get(event.getPlayer().getUniqueId());
+                    ParkourAdmin admin = admins.get(event.getPlayer().getUniqueId());
                     Action action = event.getAction();
                     useRespawnWand(admin, action);
                 })
@@ -117,7 +116,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
                         Component.text("(Crouch to be teleported)")
                 )))
                 .onInteract(event -> {
-                    Admin admin = admins.get(event.getPlayer().getUniqueId());
+                    ParkourAdmin admin = admins.get(event.getPlayer().getUniqueId());
                     Action action = event.getAction();
                     usePuzzleSelectWand(admin, action);
                 })
@@ -128,7 +127,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
                         Component.text("Right Click: next inBound")
                 )))
                 .onInteract(event -> {
-                    Admin admin = admins.get(event.getPlayer().getUniqueId());
+                    ParkourAdmin admin = admins.get(event.getPlayer().getUniqueId());
                     Action action = event.getAction();
                     useInBoundSelectWand(admin, action);
                 })
@@ -139,7 +138,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
                         Component.text("Right Click: next check point")
                 )))
                 .onInteract(event -> {
-                    Admin admin = admins.get(event.getPlayer().getUniqueId());
+                    ParkourAdmin admin = admins.get(event.getPlayer().getUniqueId());
                     Action action = event.getAction();
                     useCheckpointSelectWand(admin, action);
                 })
@@ -150,7 +149,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
                         Component.text("Right Click: remove check point")
                 )))
                 .onInteract(event -> {
-                    Admin admin = admins.get(event.getPlayer().getUniqueId());
+                    ParkourAdmin admin = admins.get(event.getPlayer().getUniqueId());
                     Action action = event.getAction();
                     useAddRemoveCheckPointWand(admin, action);
                 })
@@ -161,7 +160,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
                         Component.text("Right Click: remove inBound")
                 )))
                 .onInteract(event -> {
-                    Admin admin = admins.get(event.getPlayer().getUniqueId());
+                    ParkourAdmin admin = admins.get(event.getPlayer().getUniqueId());
                     Action action = event.getAction();
                     useAddRemoveInBoundWand(admin, action);
                 })
@@ -172,7 +171,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
                         Component.text("Right Click: remove puzzle")
                 )))
                 .onInteract(event -> {
-                    Admin admin = admins.get(event.getPlayer().getUniqueId());
+                    ParkourAdmin admin = admins.get(event.getPlayer().getUniqueId());
                     Action action = event.getAction();
                     useAddRemovePuzzleWand(admin, action);
                 })
@@ -186,7 +185,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
     }
     
     private void reloadDisplaysForPuzzle(int puzzleIndex) {
-        for (Admin admin : admins.values()) {
+        for (ParkourAdmin admin : admins.values()) {
             int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
             if (currentPuzzleIndex == puzzleIndex) {
                 reloadDisplay(admin);
@@ -198,7 +197,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
      * Update the display of the given participant's current puzzle
      * @param admin the participant to update the display for
      */
-    private void reloadDisplay(Admin admin) {
+    private void reloadDisplay(ParkourAdmin admin) {
         int currentPuzzle = currentPuzzles.get(admin.getUniqueId());
         int currentBound = currentInBounds.get(admin.getUniqueId());
         int currentCheckPoint = currentCheckPoints.get(admin.getUniqueId());
@@ -211,7 +210,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
      * @param admin the admin
      * @param newDisplay the display to replace the old one with
      */
-    private void replaceDisplay(@NotNull Admin admin, @NotNull Display newDisplay) {
+    private void replaceDisplay(@NotNull ParkourAdmin admin, @NotNull Display newDisplay) {
         Display oldDisplay = displays.put(admin.getUniqueId(), newDisplay);
         if (oldDisplay != null) {
             oldDisplay.hide();
@@ -231,8 +230,8 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
     }
     
     @Override
-    protected @NotNull Admin createAdmin(Player admin) {
-        return new Admin(admin);
+    protected @NotNull ParkourAdmin createAdmin(Player admin) {
+        return new ParkourAdmin(admin);
     }
     
     @Override
@@ -242,7 +241,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
     }
     
     @Override
-    protected void initializeAdmin(Admin admin) {
+    protected void initializeAdmin(ParkourAdmin admin) {
         currentPuzzles.put(admin.getUniqueId(), 0);
         currentInBounds.put(admin.getUniqueId(), 0);
         currentCheckPoints.put(admin.getUniqueId(), 0);
@@ -264,14 +263,14 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
     }
     
     @Override
-    protected void resetAdmin(Admin admin) {
+    protected void resetAdmin(ParkourAdmin admin) {
         Display display = displays.get(admin.getUniqueId());
         if (display != null) {
             display.hide();
         }
     }
     
-    private void useInBoundsWand(Admin admin, Action action) {
+    private void useInBoundsWand(ParkourAdmin admin, Action action) {
         BlockFace direction = EntityUtils.getPlayerDirection(admin.getPlayer().getLocation());
         int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
         int currentInBoundIndex = currentInBounds.get(admin.getUniqueId());
@@ -308,7 +307,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
         reloadDisplaysForPuzzle(currentPuzzleIndex);
     }
     
-    private void useDetectionAreaWand(Admin admin, Action action) {
+    private void useDetectionAreaWand(ParkourAdmin admin, Action action) {
         BlockFace direction = EntityUtils.getPlayerDirection(admin.getPlayer().getLocation());
         int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
         int currentCheckpointIndex = currentCheckPoints.get(admin.getUniqueId());
@@ -346,7 +345,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
         reloadDisplaysForPuzzle(currentPuzzleIndex);
     }
     
-    private void useRespawnWand(Admin admin, Action action) {
+    private void useRespawnWand(ParkourAdmin admin, Action action) {
         int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
         int currentCheckpointIndex = currentCheckPoints.get(admin.getUniqueId());
         Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
@@ -382,7 +381,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
         );
     }
     
-    private void usePuzzleSelectWand(Admin admin, Action action) {
+    private void usePuzzleSelectWand(ParkourAdmin admin, Action action) {
         int currentPuzzle = currentPuzzles.get(admin.getUniqueId());
         switch (action) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
@@ -408,7 +407,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
         }
     }
     
-    private void useInBoundSelectWand(Admin participant, Action action) {
+    private void useInBoundSelectWand(ParkourAdmin participant, Action action) {
         int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
         Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
         int currentInBound = currentInBounds.get(participant.getUniqueId());
@@ -437,7 +436,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
         }
     }
     
-    private void useCheckpointSelectWand(Admin participant, Action action) {
+    private void useCheckpointSelectWand(ParkourAdmin participant, Action action) {
         int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
         Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
         int currentPuzzleCheckPoint = currentCheckPoints.get(participant.getUniqueId());
@@ -466,7 +465,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
         }
     }
     
-    private void useAddRemoveCheckPointWand(Admin admin, Action action) {
+    private void useAddRemoveCheckPointWand(ParkourAdmin admin, Action action) {
         int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
         Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
         int numOfCheckPoints = currentPuzzle.checkPoints().size();
@@ -499,7 +498,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
         }
     }
     
-    private void useAddRemoveInBoundWand(Admin admin, Action action) {
+    private void useAddRemoveInBoundWand(ParkourAdmin admin, Action action) {
         int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
         Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
         int numOfInBounds = currentPuzzle.inBounds().size();
@@ -532,7 +531,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
         }
     }
     
-    private void useAddRemovePuzzleWand(Admin admin, Action action) {
+    private void useAddRemovePuzzleWand(ParkourAdmin admin, Action action) {
         int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
         switch (action) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
@@ -610,7 +609,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
         return new CheckPoint(newDetectionArea, p);
     }
     
-    public void selectPuzzle(Admin admin, int puzzleIndex, boolean teleport) {
+    public void selectPuzzle(ParkourAdmin admin, int puzzleIndex, boolean teleport) {
         selectPuzzle(admin, puzzleIndex, 0, 0, teleport);
     }
     
@@ -622,7 +621,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
      * @param checkPointIndex the checkPoint to pick (must be a valid index)
      * @param teleport whether to teleport the participant to the selected puzzle's first respawn
      */
-    public void selectPuzzle(Admin admin, int puzzleIndex, int inBoundsIndex, int checkPointIndex, boolean teleport) {
+    public void selectPuzzle(ParkourAdmin admin, int puzzleIndex, int inBoundsIndex, int checkPointIndex, boolean teleport) {
         Preconditions.checkArgument(0 <= puzzleIndex && puzzleIndex < puzzles.size(), "puzzleIndex %s out of bounds for length %s", puzzleIndex, puzzles.size());
         Puzzle selectedPuzzle = puzzles.get(puzzleIndex);
         Preconditions.checkArgument(0 <= inBoundsIndex && inBoundsIndex < selectedPuzzle.inBounds().size(), "inBoundsIndex %s out of bounds for length %s", puzzleIndex, selectedPuzzle.inBounds().size());
@@ -643,7 +642,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
         sidebar.updateLine(admin.getUniqueId(), "checkPoint", String.format("CheckPoint: %s/%s", checkPointIndex, selectedPuzzle.checkPoints().size() - 1));
     }
     
-    private void selectInBound(Admin admin, int inBoundIndex) {
+    private void selectInBound(ParkourAdmin admin, int inBoundIndex) {
         int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
         Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
         Preconditions.checkArgument(0 <= inBoundIndex && inBoundIndex < currentPuzzle.inBounds().size(), "inBoundIndex %s out of bounds for length %s", inBoundIndex, currentPuzzle.inBounds().size());
@@ -661,7 +660,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
      * @param admin the admin
      * @param checkPointIndex the checkPoint to pick (must be a valid index)
      */
-    private void selectCheckPoint(Admin admin, int checkPointIndex) {
+    private void selectCheckPoint(ParkourAdmin admin, int checkPointIndex) {
         int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
         Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
         Preconditions.checkArgument(0 <= checkPointIndex && checkPointIndex < currentPuzzle.checkPoints().size(), "checkPointIndex %s out of bounds for length %s", checkPointIndex, currentPuzzle.checkPoints().size());
@@ -677,7 +676,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
     
     @EventHandler
     public void onClickInventory(InventoryClickEvent event) {
-        Admin admin = admins.get(event.getWhoClicked().getUniqueId());
+        ParkourAdmin admin = admins.get(event.getWhoClicked().getUniqueId());
         if (admin == null) {
             return;
         }
@@ -689,7 +688,7 @@ public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditor
     
     @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
-        Admin admin = admins.get(event.getPlayer().getUniqueId());
+        ParkourAdmin admin = admins.get(event.getPlayer().getUniqueId());
         if (admin == null) {
             return;
         }
