@@ -374,14 +374,6 @@ public class GameManager implements Listener {
         return mctScoreboard;
     }
     
-    /**
-     * @deprecated removal
-     */
-    @Deprecated
-    public CommandResult joinParticipantToGame(@NotNull GameInstanceId id, @NotNull UUID uuid) {
-        return joinParticipantToGame(id.getGameType(), id.getConfigFile(), uuid);
-    }
-    
     public CommandResult joinParticipantToGame(@NotNull GameType gameType, @Nullable String configFile, @NotNull UUID uuid) {
         MCTParticipant mctParticipant = onlineParticipants.get(uuid);
         if (mctParticipant == null) {
