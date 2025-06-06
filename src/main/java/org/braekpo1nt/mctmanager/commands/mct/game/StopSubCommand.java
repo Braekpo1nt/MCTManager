@@ -1,10 +1,8 @@
 package org.braekpo1nt.mctmanager.commands.mct.game;
 
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.bukkit.command.Command;
@@ -12,7 +10,6 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -57,21 +54,6 @@ public class StopSubCommand extends TabSubCommand {
     
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length == 1) {
-            return CommandUtils.partialMatchTabList(
-                    gameManager.getActiveGames().stream()
-                            .map(id -> id.getGameType().getId())
-                            .toList(),
-                    args[0]);
-        }
-        if (args.length == 2) {
-            return CommandUtils.partialMatchTabList(
-                    gameManager.getActiveGames().stream()
-                            .map(GameInstanceId::getConfigFile)
-                            .toList(),
-                    args[1]);
-        }
-        
-        return Collections.emptyList();
+        return gameManager.tabCompleteActiveGame(args);
     }
 }

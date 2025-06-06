@@ -382,8 +382,8 @@ public class GameManager implements Listener {
         return state.joinParticipantToGame(gameType, configFile, mctParticipant);
     }
     
-    public @Nullable List<String> tabCompleteGameJoin(@NotNull String[] args) {
-        return state.tabCompleteGameJoin(args);
+    public @Nullable List<String> tabCompleteActiveGame(@NotNull String[] args) {
+        return state.tabCompleteActiveGame(args);
     }
     
     public CommandResult joinAdminToGame(@NotNull GameType gameType, @Nullable String configFile, @NotNull Player admin) {
