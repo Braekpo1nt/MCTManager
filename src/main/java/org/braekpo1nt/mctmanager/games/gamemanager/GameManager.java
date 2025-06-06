@@ -383,7 +383,7 @@ public class GameManager implements Listener {
     }
     
     public @Nullable List<String> tabCompleteActiveGame(@NotNull String[] args) {
-        return state.tabCompleteActiveGame(args);
+        return state.tabCompleteActiveGames(args);
     }
     
     public CommandResult joinAdminToGame(@NotNull GameType gameType, @Nullable String configFile, @NotNull Player admin) {

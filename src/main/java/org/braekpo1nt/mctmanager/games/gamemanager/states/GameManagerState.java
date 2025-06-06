@@ -1085,7 +1085,7 @@ public abstract class GameManagerState {
                 .append(Component.text(id.getTitle())));
     }
     
-    public @Nullable List<String> tabCompleteActiveGame(@NotNull String[] args) {
+    public @Nullable List<String> tabCompleteActiveGames(@NotNull String[] args) {
         if (args.length == 1) {
             return CommandUtils.partialMatchTabList(
                     activeGames.keySet().stream()
