@@ -28,6 +28,9 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +42,8 @@ import java.util.*;
 public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam, ParkourParticipant.QuitData, ParkourTeam.QuitData, ParkourPathwayState>  {
     
     private final ParkourPathwayConfig config;
+    private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
+    private int statusEffectsTaskId;
     
     public ParkourPathwayGame(
             @NotNull Main plugin,
@@ -74,6 +79,17 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         BlockPlacementUtils.createCubeReplace(config.getWorld(), glassBarrier, Material.GLASS, Material.AIR);
     }
     
+    private void startStatusEffectsTask() {
+        this.statusEffectsTaskId = new BukkitRunnable(){
+            @Override
+            public void run() {
+                for (Participant participant : participants.values()) {
+                    participant.addPotionEffect(INVISIBILITY);
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 60L).getTaskId();
+    }
+    
     @Override
     protected @NotNull World getWorld() {
         return config.getWorld();
@@ -90,6 +106,7 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
     
     @Override
     protected void cleanup() {
+        plugin.getServer().getScheduler().cancelTask(statusEffectsTaskId);
         openGlassBarrier();
     }
     
