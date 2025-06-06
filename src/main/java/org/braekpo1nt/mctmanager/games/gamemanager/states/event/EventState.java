@@ -276,12 +276,6 @@ public abstract class EventState extends GameManagerState {
         super.addScores(teamScores, participantScores, id);
         eventData.trackScores(teamScores, participantScores, id);
     }
-    
-    @Override
-    public CommandResult joinParticipantToGame(@NotNull GameType gameType, @Nullable String configFile, @NotNull MCTParticipant participant) {
-        return super.joinParticipantToGame(gameType, configFile, participant);
-    }
-    
     // game stop
     
     // leave/join start
