@@ -169,6 +169,7 @@ public class PracticeState extends GameManagerState {
     public CommandResult startEvent(int maxGames, int currentGameNumber) {
         try {
             EventConfig eventConfig = new EventConfigController(plugin.getDataFolder()).getConfig();
+            practiceManager.cleanup();
             context.setState(new ReadyUpState(context, contextReference, eventConfig, maxGames, currentGameNumber));
             return CommandResult.success(Component.text("Switched to event mode"));
         } catch (ConfigException e) {
