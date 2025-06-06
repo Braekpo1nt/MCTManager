@@ -83,7 +83,7 @@ class BoundingBoxSubCommand extends TabSubCommand {
         
         Display display = new BoxDisplay(boundingBox, Color.FUCHSIA);
         display.show(player.getWorld());
-        plugin.getServer().getScheduler().runTaskLater(plugin, display::hide, 3*20L);
+        plugin.getServer().getScheduler().runTaskLater(plugin, display::hide, 5*20L);
         return CommandResult.success();
     }
     

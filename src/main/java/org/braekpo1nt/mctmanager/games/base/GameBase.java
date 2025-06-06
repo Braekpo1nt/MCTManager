@@ -173,11 +173,11 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             P participant = createParticipant(newParticipant);
             T team = teams.get(participant.getTeamId());
             tabList.joinParticipant(participant.getParticipantID(), participant.getName(), participant.getTeamId(), false);
-            addParticipant(participant, team);
             participant.setGameMode(GameMode.ADVENTURE);
             ParticipantInitializer.clearStatusEffects(participant);
             ParticipantInitializer.clearInventory(participant);
             ParticipantInitializer.resetHealthAndHunger(participant);
+            addParticipant(participant, team);
             initializeParticipant(participant, team);
         }
         _initializeSidebar();

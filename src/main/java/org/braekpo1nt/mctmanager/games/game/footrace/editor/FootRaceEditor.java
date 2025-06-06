@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.display.BoxDisplay;
@@ -59,7 +60,11 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
     private Map<UUID, Integer> currentCheckpoints;
     private boolean editorStarted = false;
     
-    public FootRaceEditor(Main plugin, GameManager gameManager) {
+    public FootRaceEditor(
+            Main plugin, 
+            GameManager gameManager,
+            FootRaceConfig config,
+            Collection<Player> newAdmins) {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.controller = new FootRaceConfigController(plugin.getDataFolder(), getType().getId());
@@ -86,6 +91,20 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
                         Component.text("Right Click: remove checkpoint")
                 )
         );
+        participants = new ArrayList<>(newAdmins.size());
+        currentCheckpoints = new HashMap<>(newAdmins.size());
+        displays = new HashMap<>(newAdmins.size());
+        sidebar = gameManager.createSidebar();
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        for (Player newParticipant : newAdmins) {
+            initializeParticipant(newParticipant);
+        }
+        initializeSidebar();
+        for (Player newParticipant : newAdmins) {
+            selectCheckpoint(newParticipant, 0, false);
+        }
+        editorStarted = true;
+        Main.logger().info("Starting Foot Race editor");
     }
     
     /**
@@ -102,24 +121,6 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
         });
         allWands.add(newWand);
         return newWand;
-    }
-    
-    @Override
-    public void start(Collection<Player> newParticipants) {
-        participants = new ArrayList<>(newParticipants.size());
-        currentCheckpoints = new HashMap<>(newParticipants.size());
-        displays = new HashMap<>(newParticipants.size());
-        sidebar = gameManager.createSidebar();
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        for (Player newParticipant : newParticipants) {
-            initializeParticipant(newParticipant);
-        }
-        initializeSidebar();
-        for (Player newParticipant : newParticipants) {
-            selectCheckpoint(newParticipant, 0, false);
-        }
-        editorStarted = true;
-        Main.logger().info("Starting Foot Race editor");
     }
     
     private void initializeParticipant(Player participant) {
@@ -210,6 +211,18 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
         Main.logger().info("Stopping Foot Race editor");
     }
     
+    @Override
+    public void onAdminJoin(Player admin) {
+        // implement this
+        throw new UnsupportedOperationException("not yet implemented");
+    }
+    
+    @Override
+    public void onAdminQuit(UUID uuid) {
+        // implement this
+        throw new UnsupportedOperationException("not yet implemented");
+    }
+    
     private void resetParticipant(Player participant) {
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -227,21 +240,22 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
     }
     
     @Override
-    public boolean configIsValid(@NotNull String configFile) {
+    public CommandResult configIsValid(@NotNull String configFile) {
         controller.validateConfig(config, configFile);
-        return true;
+        return CommandResult.success(Component.text("Config is valid"));
     }
     
     @Override
-    public void saveConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
+    public CommandResult saveConfig(@NotNull String configFile, boolean skipValidation) throws ConfigIOException, ConfigInvalidException {
         controller.saveConfig(config, configFile);
+        return CommandResult.success(Component.text("Saved config"));
     }
     
     @Override
-    public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
+    public CommandResult loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
         this.config = controller.getConfig(configFile);
         if (!editorStarted) {
-            return;
+            return CommandResult.failure("Not started");
         }
         for (Player participant : participants) {
             selectCheckpoint(
@@ -250,6 +264,7 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
                     false
             );
         }
+        return CommandResult.success(Component.text("Loaded config"));
     }
     
     @EventHandler

@@ -10,8 +10,12 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
+import org.braekpo1nt.mctmanager.games.game.footrace.editor.FootRaceEditor;
+import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourPathwayEditor;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
@@ -109,6 +113,12 @@ public abstract class GameManagerState {
      * a game.
      */
     protected final Map<UUID, GameInstanceId> adminGames;
+    /**
+     * A reference to which admin is in which editor<br>
+     * If an admin's UUID is a key in this map, that admin is in 
+     * an editor.
+     */
+    protected final Map<UUID, GameInstanceId> adminEditors;
     @Setter
     protected @NotNull HubConfig config;
     
@@ -123,6 +133,7 @@ public abstract class GameManagerState {
         this.mctScoreboard = contextReference.getMctScoreboard();
         this.participantGames = contextReference.getParticipantGames();
         this.adminGames = contextReference.getAdminGames();
+        this.adminEditors = contextReference.getAdminEditors();
         this.plugin = contextReference.getPlugin();
         this.activeGames = contextReference.getActiveGames();
         this.gameStateStorageUtil = contextReference.getGameStateStorageUtil();
@@ -219,6 +230,19 @@ public abstract class GameManagerState {
     
     public void onAdminQuit(@NotNull Player admin) {
         onlineAdmins.remove(admin);
+        GameInstanceId gameInstanceId = adminGames.get(admin.getUniqueId());
+        if (gameInstanceId != null) {
+            MCTGame game = activeGames.get(gameInstanceId);
+            if (game != null) {
+                game.onAdminQuit(admin);
+            }
+        }
+        GameInstanceId editorId = adminEditors.get(admin.getUniqueId());
+        if (editorId != null) {
+            if (context.getActiveEditor() != null) {
+                context.getActiveEditor().onAdminQuit(admin.getUniqueId());
+            }
+        }
         tabList.hidePlayer(admin.getUniqueId());
         sidebar.removePlayer(admin);
         Component displayName = Component.text(admin.getName(), NamedTextColor.WHITE);
@@ -542,6 +566,53 @@ public abstract class GameManagerState {
         return CommandResult.success();
     }
     
+    public CommandResult startEditor(@NotNull GameType gameType, @NotNull String configFile) {
+        GameInstanceId gameInstanceId = new GameInstanceId(gameType, configFile);
+        if (!activeGames.isEmpty()) {
+            return CommandResult.failure(Component.text("Can't start an editor while any games are active"));
+        }
+        
+        if (onlineAdmins.isEmpty()) {
+            return CommandResult.failure(Component.text("There are no online admins. You can add admins using:\n")
+                    .append(Component.text("/mct admin add <member>")
+                            .decorate(TextDecoration.BOLD)
+                            .clickEvent(ClickEvent.suggestCommand("/mct admin add "))));
+        }
+        
+        if (editorIsRunning()) {
+            return CommandResult.failure(Component.text("An editor is already running. You must stop it before you can start another one."));
+        }
+        
+        if (!editorExists(gameType)) {
+            return CommandResult.failure(Component.text("Can't find editor for game type " + gameType));
+        }
+        
+        for (Player admin : onlineAdmins) {
+            onAdminJoinEditor(gameInstanceId, admin);
+        }
+        
+        try {
+            context.setActiveEditor(instantiateEditor(
+                    gameType,
+                    configFile,
+                    new ArrayList<>(onlineAdmins)
+            ));
+        } catch (Exception e) {
+            for (Player admin : onlineAdmins) {
+                onAdminReturnToHub(admin);
+            }
+            Main.logger().log(Level.SEVERE, String.format("Error starting editor %s", gameType), e);
+            return CommandResult.failure(Component.text("Can't start ")
+                    .append(Component.empty()
+                            .append(Component.text(gameType.name()))
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text("'s editor. Error starting editor. See console for details:\n"))
+                    .append(Component.text(e.getMessage()))
+                    .color(NamedTextColor.RED));
+        }
+        return CommandResult.success();
+    }
+    
     protected void onParticipantJoinGame(@NotNull GameInstanceId id, MCTParticipant participant) {
         participantGames.put(participant.getUniqueId(), id);
         tabList.hidePlayer(participant);
@@ -550,6 +621,12 @@ public abstract class GameManagerState {
     
     protected void onAdminJoinGame(@NotNull GameInstanceId id, Player admin) {
         adminGames.put(admin.getUniqueId(), id);
+        tabList.hidePlayer(admin);
+        sidebar.removePlayer(admin);
+    }
+    
+    protected void onAdminJoinEditor(@NotNull GameInstanceId id, Player admin) {
+        adminEditors.put(admin.getUniqueId(), id);
         tabList.hidePlayer(admin);
         sidebar.removePlayer(admin);
     }
@@ -568,6 +645,7 @@ public abstract class GameManagerState {
     
     protected void onAdminReturnToHub(@NotNull Player admin) {
         adminGames.remove(admin.getUniqueId());
+        adminEditors.remove(admin.getUniqueId());
         admin.setGameMode(GameMode.SPECTATOR);
         tabList.showPlayer(admin);
         sidebar.addPlayer(admin);
@@ -739,12 +817,106 @@ public abstract class GameManagerState {
         };
     }
     
+    /**
+     * @param gameType the game type to check for an editor of
+     * @return true if an editor for the given game type exists, false otherwise
+     */
+    protected boolean editorExists(@NotNull GameType gameType) {
+        return switch (gameType) {
+            case PARKOUR_PATHWAY,
+                 FOOT_RACE
+                    -> true;
+            default -> false;
+        };
+    }
+    
+    public boolean editorIsRunning() {
+        return context.getActiveEditor() != null;
+    }
+    
+    /**
+     * @param gameType the game type to get the {@link GameEditor} for
+     * @return the {@link GameEditor} associated with the given type, or null if there is no editor for the
+     * given type (or if the type is null).
+     */
+    protected @Nullable GameEditor instantiateEditor(
+            @NotNull GameType gameType,
+            String configFile,
+            Collection<Player> newAdmins
+    ) {
+        return switch (gameType) {
+            case PARKOUR_PATHWAY -> {
+                ParkourPathwayConfig config = new ParkourPathwayConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
+                yield new ParkourPathwayEditor(
+                        plugin,
+                        context,
+                        config,
+                        newAdmins
+                );
+            }
+            case FOOT_RACE -> {
+                FootRaceConfig config = new FootRaceConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
+                yield new FootRaceEditor(
+                        plugin,
+                        context,
+                        config,
+                        newAdmins
+                );
+            }
+            default -> null;
+        };
+    }
+    
     protected @NotNull Component createNewTitle(String baseTitle) {
         return Component.empty()
                 .append(Component.text(baseTitle))
                 .color(NamedTextColor.BLUE);
     }
-    // game stop
+    // game end
+    
+    // editor start
+    public CommandResult stopEditor() {
+        if (!editorIsRunning()) {
+            return CommandResult.failure(Component.text("No editor is running"));
+        }
+        context.getActiveEditor().stop();
+        context.setActiveEditor(null);
+        return CommandResult.success();
+    }
+    
+    /**
+     * Called by an active editor when the editor is ended
+     * @param editorAdmins the admins who were in the editor when it ended
+     */
+    public void editorIsOver(@NotNull Collection<Player> editorAdmins) {
+        for (Player admin : editorAdmins) {
+            onAdminReturnToHub(admin);
+            admin.teleport(config.getSpawn());
+            admin.sendMessage(Component.text("Returning to hub"));
+        }
+    }
+    
+    public CommandResult validateEditor(@NotNull String configFile) {
+        if (!editorIsRunning()) {
+            return CommandResult.failure(Component.text("No editor is running."));
+        }
+        return context.getActiveEditor().configIsValid(configFile);
+    }
+    
+    public CommandResult saveEditor(@NotNull String configFile, boolean skipValidation) {
+        if (!editorIsRunning()) {
+            return CommandResult.failure(Component.text("No editor is running."));
+        }
+        return context.getActiveEditor().saveConfig(configFile, skipValidation);
+    }
+    
+    public CommandResult loadEditor(@NotNull String configFile) {
+        if (!editorIsRunning()) {
+            return CommandResult.failure(Component.text("No editor is running"));
+        }
+        return context.getActiveEditor().loadConfig(configFile);
+    }
+    // editor end
     
     // commands start
     public CommandResult top(@NotNull MCTParticipant participant) {

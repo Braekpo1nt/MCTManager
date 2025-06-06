@@ -1,29 +1,30 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.editor;
 
 import com.google.common.base.Preconditions;
+import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.display.BoxDisplay;
 import org.braekpo1nt.mctmanager.display.Display;
 import org.braekpo1nt.mctmanager.display.GroupDisplay;
 import org.braekpo1nt.mctmanager.display.LocationDisplay;
+import org.braekpo1nt.mctmanager.games.editor.Admin;
+import org.braekpo1nt.mctmanager.games.editor.EditorBase;
+import org.braekpo1nt.mctmanager.games.editor.wand.Wand;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
-import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfig;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfigController;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.states.EditingState;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.states.InitialState;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.states.ParkourPathwayEditorState;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.CheckPoint;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
-import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
-import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.utils.EntityUtils;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.Color;
@@ -32,40 +33,22 @@ import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class ParkourPathwayEditor implements GameEditor, Configurable, Listener {
+@Getter
+@Setter
+public class ParkourPathwayEditor extends EditorBase<Admin, ParkourPathwayEditorState> {
     
-    private final Main plugin;
     private final ParkourPathwayConfigController configController;
     private ParkourPathwayConfig config;
-    private final GameManager gameManager;
-    private List<Player> participants = new ArrayList<>();
-    private Sidebar sidebar;
-    private Map<UUID, Display> displays;
-    // wands
-    private final ItemStack inBoundsWand;
-    private final ItemStack detectionAreaWand;
-    private final ItemStack respawnWand;
-    private final ItemStack puzzleSelectWand;
-    private final ItemStack inBoundSelectWand;
-    private final ItemStack checkPointSelectWand;
-    private final ItemStack addRemovePuzzleWand;
-    private final ItemStack addRemoveInBoundWand;
-    private final ItemStack addRemoveCheckPointWand;
-    private final List<ItemStack> allWands = new ArrayList<>();
-    // end wands
+    private final Map<UUID, Display> displays;
     /**
      * The puzzles that we're editing
      */
@@ -73,257 +56,231 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     /**
      * the index of the puzzle each participant is editing
      */
-    private Map<UUID, Integer> currentPuzzles;
+    private final Map<UUID, Integer> currentPuzzles;
     /**
      * the index of the inBounds box each participant is editing
      */
-    private Map<UUID, Integer> currentInBounds;
+    private final Map<UUID, Integer> currentInBounds;
     /**
      * The index of the checkpoint that a participant is editing in their current puzzle (since there can be multiple)
      */
-    private Map<UUID, Integer> currentCheckPoints;
-    private boolean editorStarted = false;
+    private final Map<UUID, Integer> currentCheckPoints;
     
-    public ParkourPathwayEditor(Main plugin, GameManager gameManager) {
-        this.plugin = plugin;
-        this.gameManager = gameManager;
+    public ParkourPathwayEditor(
+            Main plugin, 
+            GameManager gameManager, 
+            ParkourPathwayConfig config,
+            Collection<Player> newAdmins) {
+        super(GameType.PARKOUR_PATHWAY, plugin, gameManager, new InitialState());
         this.configController = new ParkourPathwayConfigController(plugin.getDataFolder(), getType().getId());
-        this.inBoundsWand = addWand("inBounds", List.of(
-                Component.text("Left Click: push box face away"),
-                Component.text("Right Click: pull box face toward"),
-                Component.text("(Crouch to adjust by 0.5 blocks)")
-        ));
-        this.detectionAreaWand = addWand("detectionArea", List.of(
-                Component.text("Left Click: push box face away"),
-                Component.text("Right Click: pull box face toward"),
-                Component.text("(Crouch to adjust by 0.5 blocks)")
-        ));
-        this.respawnWand = addWand("respawn", List.of(
-                Component.text("Left Click: set to current Location (exact)"),
-                Component.text("Right Click: set to current Location (rounded)"),
-                Component.text("(Crouch to get block position)")
-        ));
-        this.puzzleSelectWand = addWand("Puzzle Select", List.of(
-                Component.text("Left Click: previous puzzle"),
-                Component.text("Right Click: next puzzle"),
-                Component.text("(Crouch to be teleported)")
-        ));
-        this.inBoundSelectWand = addWand("inBound select", List.of(
-                Component.text("Left Click: previous inBound"),
-                Component.text("Right Click: next inBound")
-        ));
-        this.checkPointSelectWand = addWand("checkPoint Select", List.of(
-                Component.text("Left Click: previous check point"),
-                Component.text("Right Click: next check point")
-        ));
-        this.addRemoveCheckPointWand = addWand("Add/Remove checkPoint", List.of(
-                Component.text("Left Click: add check point"),
-                Component.text("Right Click: remove check point")
-        ));
-        this.addRemoveInBoundWand = addWand("Add/Remove inBound", List.of(
-                Component.text("Left Click: add inBound"),
-                Component.text("Right Click: remove inBound")
-        ));
-        this.addRemovePuzzleWand = addWand("Add/Remove Puzzle", List.of(
-                Component.text("Left Click: add puzzle"),
-                Component.text("Right Click: remove puzzle")
-        ));
-    }
-    
-    /**
-     * add a wand to the editor, with the given name and lore. Adds it to the list of all wands.
-     * @param name the display name of the wand
-     * @param lore the description of the wand
-     * @return the new wand
-     */
-    private ItemStack addWand(String name, List<Component> lore) {
-        ItemStack newWand = new ItemStack(Material.STICK);
-        newWand.editMeta(meta -> {
-            meta.displayName(Component.text(name));
-            meta.lore(lore);
-        });
-        allWands.add(newWand);
-        return newWand;
-    }
-    
-    @Override
-    public void loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
-        this.config = configController.getConfig(configFile);
-        if (!editorStarted) {
-            return;
-        }
+        this.config = config;
+        addWand(Wand.builder()
+                .wandItem(Wand.createWandItem(Material.STICK, "inBounds", List.of(
+                        Component.text("Left Click: push box face away"),
+                        Component.text("Right Click: pull box face toward"),
+                        Component.text("(Crouch to adjust by 0.5 blocks)")
+                )))
+                .onInteract(event -> {
+                    Admin admin = admins.get(event.getPlayer().getUniqueId());
+                    Action action = event.getAction();
+                    useInBoundsWand(admin, action);
+                })
+                .build());
+        addWand(Wand.builder()
+                .wandItem(Wand.createWandItem(Material.STICK, "detectionArea", List.of(
+                        Component.text("Left Click: push box face away"),
+                        Component.text("Right Click: pull box face toward"),
+                        Component.text("(Crouch to adjust by 0.5 blocks)")
+                )))
+                .onInteract(event -> {
+                    Admin admin = admins.get(event.getPlayer().getUniqueId());
+                    Action action = event.getAction();
+                    useDetectionAreaWand(admin, action);
+                })
+                .build());
+        addWand(Wand.builder()
+                .wandItem(Wand.createWandItem(Material.STICK, "respawn", List.of(
+                        Component.text("Left Click: set to current Location (exact)"),
+                        Component.text("Right Click: set to current Location (rounded)"),
+                        Component.text("(Crouch to get block position)")
+                )))
+                .onInteract(event -> {
+                    Admin admin = admins.get(event.getPlayer().getUniqueId());
+                    Action action = event.getAction();
+                    useRespawnWand(admin, action);
+                })
+                .build());
+        addWand(Wand.builder()
+                .wandItem(Wand.createWandItem(Material.STICK, "Puzzle Select", List.of(
+                        Component.text("Left Click: previous puzzle"),
+                        Component.text("Right Click: next puzzle"),
+                        Component.text("(Crouch to be teleported)")
+                )))
+                .onInteract(event -> {
+                    Admin admin = admins.get(event.getPlayer().getUniqueId());
+                    Action action = event.getAction();
+                    usePuzzleSelectWand(admin, action);
+                })
+                .build());
+        addWand(Wand.builder()
+                .wandItem(Wand.createWandItem(Material.STICK, "inBound select", List.of(
+                        Component.text("Left Click: previous inBound"),
+                        Component.text("Right Click: next inBound")
+                )))
+                .onInteract(event -> {
+                    Admin admin = admins.get(event.getPlayer().getUniqueId());
+                    Action action = event.getAction();
+                    useInBoundSelectWand(admin, action);
+                })
+                .build());
+        addWand(Wand.builder()
+                .wandItem(Wand.createWandItem(Material.STICK, "checkPoint Select", List.of(
+                        Component.text("Left Click: previous check point"),
+                        Component.text("Right Click: next check point")
+                )))
+                .onInteract(event -> {
+                    Admin admin = admins.get(event.getPlayer().getUniqueId());
+                    Action action = event.getAction();
+                    useCheckpointSelectWand(admin, action);
+                })
+                .build());
+        addWand(Wand.builder()
+                .wandItem(Wand.createWandItem(Material.STICK, "Add/Remove checkPoint", List.of(
+                        Component.text("Left Click: add check point"),
+                        Component.text("Right Click: remove check point")
+                )))
+                .onInteract(event -> {
+                    Admin admin = admins.get(event.getPlayer().getUniqueId());
+                    Action action = event.getAction();
+                    useAddRemoveCheckPointWand(admin, action);
+                })
+                .build());
+        addWand(Wand.builder()
+                .wandItem(Wand.createWandItem(Material.STICK, "Add/Remove inBound", List.of(
+                        Component.text("Left Click: add inBound"),
+                        Component.text("Right Click: remove inBound")
+                )))
+                .onInteract(event -> {
+                    Admin admin = admins.get(event.getPlayer().getUniqueId());
+                    Action action = event.getAction();
+                    useAddRemoveInBoundWand(admin, action);
+                })
+                .build());
+        addWand(Wand.builder()
+                .wandItem(Wand.createWandItem(Material.STICK, "Add/Remove Puzzle", List.of(
+                        Component.text("Left Click: add puzzle"),
+                        Component.text("Right Click: remove puzzle")
+                )))
+                .onInteract(event -> {
+                    Admin admin = admins.get(event.getPlayer().getUniqueId());
+                    Action action = event.getAction();
+                    useAddRemovePuzzleWand(admin, action);
+                })
+                .build());
+        currentPuzzles = new HashMap<>(newAdmins.size());
+        currentInBounds = new HashMap<>(newAdmins.size());
+        currentCheckPoints = new HashMap<>(newAdmins.size());
         puzzles = config.getPuzzles();
-        for (Player participant : participants) {
-            selectPuzzle(
-                    participant, 
-                    currentPuzzles.get(participant.getUniqueId()), 
-                    currentInBounds.get(participant.getUniqueId()), 
-                    currentCheckPoints.get(participant.getUniqueId()), 
-                    false
-            );
-        }
+        displays = new HashMap<>(newAdmins.size());
+        start(newAdmins);
     }
     
     private void reloadDisplaysForPuzzle(int puzzleIndex) {
-        for (Player participant : participants) {
-            int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
+        for (Admin admin : admins.values()) {
+            int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
             if (currentPuzzleIndex == puzzleIndex) {
-                reloadDisplay(participant);
+                reloadDisplay(admin);
             }
         }
     }
     
     /**
      * Update the display of the given participant's current puzzle
-     * @param participant the participant to update the display for
+     * @param admin the participant to update the display for
      */
-    private void reloadDisplay(Player participant) {
-        int currentPuzzle = currentPuzzles.get(participant.getUniqueId());
-        int currentBound = currentInBounds.get(participant.getUniqueId());
-        int currentCheckPoint = currentCheckPoints.get(participant.getUniqueId());
+    private void reloadDisplay(Admin admin) {
+        int currentPuzzle = currentPuzzles.get(admin.getUniqueId());
+        int currentBound = currentInBounds.get(admin.getUniqueId());
+        int currentCheckPoint = currentCheckPoints.get(admin.getUniqueId());
         Display display = puzzlesToDisplay(currentPuzzle, currentBound, currentCheckPoint);
-        replaceDisplay(participant, display);
+        replaceDisplay(admin, display);
     }
     
     /**
-     * Replaces the given participant's current display with the given newDisplay, hiding the old display and showing the new display. 
-     * @param participant the participant
+     * Replaces the given admin's current display with the given newDisplay, hiding the old display and showing the new display. 
+     * @param admin the admin
      * @param newDisplay the display to replace the old one with
      */
-    private void replaceDisplay(@NotNull Player participant, @NotNull Display newDisplay) {
-        Display oldDisplay = displays.put(participant.getUniqueId(), newDisplay);
+    private void replaceDisplay(@NotNull Admin admin, @NotNull Display newDisplay) {
+        Display oldDisplay = displays.put(admin.getUniqueId(), newDisplay);
         if (oldDisplay != null) {
             oldDisplay.hide();
         }
-        newDisplay.show(participant.getWorld());
+        newDisplay.show(admin.getPlayer().getWorld());
     }
     
     @Override
-    public boolean configIsValid(@NotNull String configFile) {
-        config.setPuzzles(puzzles);
-        configController.validateConfig(config, configFile);
-        return true;
-    }
-    
-    @Override
-    public void saveConfig(@NotNull String configFile) throws ConfigException {
-        configController.saveConfig(config, configFile);
-    }
-    
-    @Override
-    public GameType getType() {
+    public @NotNull GameType getType() {
         return GameType.PARKOUR_PATHWAY;
     }
     
     @Override
-    public void start(Collection<Player> newParticipants) {
-        participants = new ArrayList<>(newParticipants.size());
-        currentPuzzles = new HashMap<>(newParticipants.size());
-        currentInBounds = new HashMap<>(newParticipants.size());
-        currentCheckPoints = new HashMap<>(newParticipants.size());
-        puzzles = config.getPuzzles();
-        displays = new HashMap<>(newParticipants.size());
-        sidebar = gameManager.createSidebar();
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        for (Player participant : newParticipants) {
-            initializeParticipant(participant);
-        }
-        initializeSidebar();
-        for (Player participant : newParticipants) {
-            selectPuzzle(participant, 0, false);
-        }
-        editorStarted = true;
-        Main.logger().info("Starting Parkour Pathway editor");
-    }
-    
-    public void initializeParticipant(Player participant) {
-        participants.add(participant);
-        currentPuzzles.put(participant.getUniqueId(), 0);
-        currentInBounds.put(participant.getUniqueId(), 0);
-        currentCheckPoints.put(participant.getUniqueId(), 0);
-        displays.put(participant.getUniqueId(), new BoxDisplay(new BoundingBox()));
-        sidebar.addPlayer(participant);
-        ParticipantInitializer.clearInventory(participant);
-        participant.teleport(config.getStartingLocation());
-        ParticipantInitializer.resetHealthAndHunger(participant);
-        ParticipantInitializer.clearStatusEffects(participant);
-        giveWands(participant);
+    public void onAdminJoin(Player admin) {
+        // implement this
+        throw new UnsupportedOperationException("not yet implemented");
     }
     
     @Override
-    public void stop() {
-        HandlerList.unregisterAll(this);
-        editorStarted = false;
-        for (Player participant : participants) {
-            resetParticipant(participant);
-        }
-        clearSidebar();
-        participants.clear();
+    protected @NotNull Admin createAdmin(Player admin) {
+        return new Admin(admin);
+    }
+    
+    @Override
+    public void onAdminQuit(UUID uuid) {
+        // implement this
+        throw new UnsupportedOperationException("not yet implemented");
+    }
+    
+    @Override
+    protected void initializeAdmin(Admin admin) {
+        currentPuzzles.put(admin.getUniqueId(), 0);
+        currentInBounds.put(admin.getUniqueId(), 0);
+        currentCheckPoints.put(admin.getUniqueId(), 0);
+        displays.put(admin.getUniqueId(), new BoxDisplay(new BoundingBox()));
+        admin.getPlayer().teleport(config.getStartingLocation());
+    }
+    
+    @Override
+    protected @NotNull ParkourPathwayEditorState getStartState() {
+        return new EditingState(this);
+    }
+    
+    @Override
+    public void cleanup() {
         currentPuzzles.clear();
         currentCheckPoints.clear();
         currentInBounds.clear();
         displays.clear();
-        Main.logger().info("Stopping Parkour Pathway editor");
     }
     
-    private void resetParticipant(Player participant) {
-        ParticipantInitializer.resetHealthAndHunger(participant);
-        ParticipantInitializer.clearStatusEffects(participant);
-        ParticipantInitializer.clearInventory(participant);
-        Display display = displays.get(participant.getUniqueId());
-        sidebar.removePlayer(participant);
+    @Override
+    protected void resetAdmin(Admin admin) {
+        Display display = displays.get(admin.getUniqueId());
         if (display != null) {
             display.hide();
         }
     }
     
-    public void giveWands(Player participant) {
-        participant.getInventory().addItem(allWands.toArray(new ItemStack[0]));
-    }
-    
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        Player participant = event.getPlayer();
-        ItemStack item = event.getItem();
-        if (item == null) {
-            return;
-        }
-        if (!allWands.contains(item)) {
-            return;
-        }
-        event.setCancelled(true);
-        Action action = event.getAction();
-        if (item.equals(inBoundsWand)) {
-            useInBoundsWand(participant, action);
-        } else if (item.equals(detectionAreaWand)) {
-            useDetectionAreaWand(participant, action);
-        } else if (item.equals(respawnWand)) {
-            useRespawnWand(participant, action);
-        }  else if (item.equals(puzzleSelectWand)) {
-            usePuzzleSelectWand(participant, action);
-        } else if (item.equals(inBoundSelectWand)) {
-            useInBoundSelectWand(participant, action);
-        } else if (item.equals(checkPointSelectWand)) {
-            useCheckpointSelectWand(participant, action);
-        } else if (item.equals(addRemoveCheckPointWand)) {
-            useAddRemoveCheckPointWand(participant, action);
-        } else if (item.equals(addRemoveInBoundWand)) {
-            useAddRemoveInBoundWand(participant, action);
-        } else if (item.equals(addRemovePuzzleWand)) {
-            useAddRemovePuzzleWand(participant, action);
-        }
-    }
-    
-    private void useInBoundsWand(Player participant, Action action) {
-        BlockFace direction = EntityUtils.getPlayerDirection(participant.getLocation());
-        int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
-        int currentInBoundIndex = currentInBounds.get(participant.getUniqueId());
+    private void useInBoundsWand(Admin admin, Action action) {
+        BlockFace direction = EntityUtils.getPlayerDirection(admin.getPlayer().getLocation());
+        int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
+        int currentInBoundIndex = currentInBounds.get(admin.getUniqueId());
         Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
         BoundingBox inBounds = currentPuzzle.inBounds().get(currentInBoundIndex);
-        double increment = participant.isSneaking() ? 0.5 : 1.0;
+        double increment = admin.getPlayer().isSneaking() ? 0.5 : 1.0;
         switch (action) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
-                participant.sendMessage(Component.text("Expand ")
+                admin.sendMessage(Component.text("Expand ")
                         .append(Component.text("inBounds")
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(" "))
@@ -334,7 +291,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
                 inBounds.expand(direction, increment);
             }
             case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> {
-                participant.sendMessage(Component.text("Expand ")
+                admin.sendMessage(Component.text("Expand ")
                         .append(Component.text("inBounds")
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(" "))
@@ -351,17 +308,17 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         reloadDisplaysForPuzzle(currentPuzzleIndex);
     }
     
-    private void useDetectionAreaWand(Player participant, Action action) {
-        BlockFace direction = EntityUtils.getPlayerDirection(participant.getLocation());
-        int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
-        int currentCheckpointIndex = currentCheckPoints.get(participant.getUniqueId());
+    private void useDetectionAreaWand(Admin admin, Action action) {
+        BlockFace direction = EntityUtils.getPlayerDirection(admin.getPlayer().getLocation());
+        int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
+        int currentCheckpointIndex = currentCheckPoints.get(admin.getUniqueId());
         Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
         CheckPoint currentCheckpoint = currentPuzzle.checkPoints().get(currentCheckpointIndex);
         BoundingBox detectionArea = currentCheckpoint.detectionArea();
-        double increment = participant.isSneaking() ? 0.5 : 1.0;
+        double increment = admin.getPlayer().isSneaking() ? 0.5 : 1.0;
         switch (action) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
-                participant.sendMessage(Component.text("Expand ")
+                admin.sendMessage(Component.text("Expand ")
                         .append(Component.text("detectionArea")
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(" "))
@@ -372,7 +329,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
                 detectionArea.expand(direction, increment);
             }
             case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> {
-                participant.sendMessage(Component.text("Expand ")
+                admin.sendMessage(Component.text("Expand ")
                         .append(Component.text("detectionArea")
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(" "))
@@ -389,24 +346,24 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         reloadDisplaysForPuzzle(currentPuzzleIndex);
     }
     
-    private void useRespawnWand(Player participant, Action action) {
-        int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
-        int currentCheckpointIndex = currentCheckPoints.get(participant.getUniqueId());
+    private void useRespawnWand(Admin admin, Action action) {
+        int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
+        int currentCheckpointIndex = currentCheckPoints.get(admin.getUniqueId());
         Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
         CheckPoint currentCheckpoint = currentPuzzle.checkPoints().get(currentCheckpointIndex);
         Location respawn = currentCheckpoint.respawn();
-        Location location = participant.getLocation();
+        Location location = admin.getPlayer().getLocation();
         if (action.isRightClick()) {
             location = MathUtils.specialRound(location, 0.5, 45F);
         }
-        if (participant.isSneaking()) {
+        if (admin.getPlayer().isSneaking()) {
             location = location.toBlockLocation();
         }
         respawn.set(location.getX(), location.getY(), location.getZ());
         respawn.setYaw(location.getYaw());
         respawn.setPitch(location.getPitch());
         reloadDisplaysForPuzzle(currentPuzzleIndex);
-        participant.sendMessage(Component.text("Set ")
+        admin.sendMessage(Component.text("Set ")
                 .append(Component.text("respawn")
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text(" to "))
@@ -425,33 +382,33 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         );
     }
     
-    private void usePuzzleSelectWand(Player participant, Action action) {
-        int currentPuzzle = currentPuzzles.get(participant.getUniqueId());
+    private void usePuzzleSelectWand(Admin admin, Action action) {
+        int currentPuzzle = currentPuzzles.get(admin.getUniqueId());
         switch (action) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
                 if (currentPuzzle == puzzles.size() - 1) {
-                    participant.sendMessage(Component.text("Already at puzzle index ")
+                    admin.sendMessage(Component.text("Already at puzzle index ")
                                     .append(Component.text(currentPuzzle))
                                     .append(Component.text("/"))
                                     .append(Component.text(puzzles.size() - 1))
                             .color(NamedTextColor.RED));
                     return;
                 }
-                selectPuzzle(participant, currentPuzzle + 1, participant.isSneaking());
+                selectPuzzle(admin, currentPuzzle + 1, admin.getPlayer().isSneaking());
             }
             case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> {
                 if (currentPuzzle == 0) {
-                    participant.sendMessage(Component.text("Already at puzzle index 0/")
+                    admin.sendMessage(Component.text("Already at puzzle index 0/")
                                     .append(Component.text(puzzles.size() - 1))
                             .color(NamedTextColor.RED));
                     return;
                 }
-                selectPuzzle(participant, currentPuzzle - 1, participant.isSneaking());
+                selectPuzzle(admin, currentPuzzle - 1, admin.getPlayer().isSneaking());
             }
         }
     }
     
-    private void useInBoundSelectWand(Player participant, Action action) {
+    private void useInBoundSelectWand(Admin participant, Action action) {
         int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
         Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
         int currentInBound = currentInBounds.get(participant.getUniqueId());
@@ -480,7 +437,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         }
     }
     
-    private void useCheckpointSelectWand(Player participant, Action action) {
+    private void useCheckpointSelectWand(Admin participant, Action action) {
         int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
         Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
         int currentPuzzleCheckPoint = currentCheckPoints.get(participant.getUniqueId());
@@ -509,95 +466,95 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         }
     }
     
-    private void useAddRemoveCheckPointWand(Player participant, Action action) {
-        int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
+    private void useAddRemoveCheckPointWand(Admin admin, Action action) {
+        int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
         Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
         int numOfCheckPoints = currentPuzzle.checkPoints().size();
         switch (action) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
-                participant.sendMessage(Component.text("Add check point index ")
+                admin.sendMessage(Component.text("Add check point index ")
                         .append(Component.text(numOfCheckPoints))
                         .append(Component.text("/"))
                         .append(Component.text(numOfCheckPoints + 1))
                 );
-                CheckPoint newCheckPoint = createCheckPoint(participant.getLocation());
+                CheckPoint newCheckPoint = createCheckPoint(admin.getPlayer().getLocation());
                 currentPuzzle.checkPoints().add(newCheckPoint);
-                selectCheckPoint(participant, numOfCheckPoints);
+                selectCheckPoint(admin, numOfCheckPoints);
             }
             case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> {
                 if (numOfCheckPoints == 1) {
-                    participant.sendMessage(Component.text("There must be at least 1 check point")
+                    admin.sendMessage(Component.text("There must be at least 1 check point")
                             .color(NamedTextColor.RED));
                     return;
                 }
-                int currentPuzzleCheckPoint = currentCheckPoints.get(participant.getUniqueId());
+                int currentPuzzleCheckPoint = currentCheckPoints.get(admin.getUniqueId());
                 currentPuzzle.checkPoints().remove(currentPuzzleCheckPoint);
-                participant.sendMessage(Component.text("Remove check point index ")
+                admin.sendMessage(Component.text("Remove check point index ")
                         .append(Component.text(currentPuzzleCheckPoint))
                         .append(Component.text("/"))
                         .append(Component.text(numOfCheckPoints - 1))
                 );
-                selectCheckPoint(participant, 0);
+                selectCheckPoint(admin, 0);
             }
         }
     }
     
-    private void useAddRemoveInBoundWand(Player participant, Action action) {
-        int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
+    private void useAddRemoveInBoundWand(Admin admin, Action action) {
+        int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
         Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
         int numOfInBounds = currentPuzzle.inBounds().size();
         switch (action) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
-                participant.sendMessage(Component.text("Add inBound index ")
+                admin.sendMessage(Component.text("Add inBound index ")
                         .append(Component.text(numOfInBounds))
                         .append(Component.text("/"))
                         .append(Component.text(numOfInBounds + 1))
                 );
-                BoundingBox newInBound = createInBound(participant.getLocation());
+                BoundingBox newInBound = createInBound(admin.getPlayer().getLocation());
                 currentPuzzle.inBounds().add(newInBound);
-                selectInBound(participant, numOfInBounds);
+                selectInBound(admin, numOfInBounds);
             }
             case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> {
                 if (numOfInBounds == 1) {
-                    participant.sendMessage(Component.text("There must be at least 1 inBound")
+                    admin.sendMessage(Component.text("There must be at least 1 inBound")
                             .color(NamedTextColor.RED));
                     return;
                 }
-                int currentInBound = currentInBounds.get(participant.getUniqueId());
+                int currentInBound = currentInBounds.get(admin.getUniqueId());
                 currentPuzzle.inBounds().remove(currentInBound);
-                participant.sendMessage(Component.text("Remove inBound index ")
+                admin.sendMessage(Component.text("Remove inBound index ")
                         .append(Component.text(currentInBound))
                         .append(Component.text("/"))
                         .append(Component.text(numOfInBounds - 1))
                 );
-                selectInBound(participant, 0);
+                selectInBound(admin, 0);
             }
         }
     }
     
-    private void useAddRemovePuzzleWand(Player participant, Action action) {
-        int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
+    private void useAddRemovePuzzleWand(Admin admin, Action action) {
+        int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
         switch (action) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
                 int newPuzzleIndex = currentPuzzleIndex + 1;
-                participant.sendMessage(Component.text("Add puzzle index ")
+                admin.sendMessage(Component.text("Add puzzle index ")
                         .append(Component.text(newPuzzleIndex))
                         .append(Component.text("/"))
                         .append(Component.text(puzzles.size()))
                         .append(Component.text(". Max index is now "))
                         .append(Component.text(puzzles.size() + 1))
                 );
-                Puzzle newPuzzle = createPuzzle(participant.getLocation());
+                Puzzle newPuzzle = createPuzzle(admin.getPlayer().getLocation());
                 puzzles.add(newPuzzleIndex, newPuzzle);
-                selectPuzzle(participant, newPuzzleIndex, false);
+                selectPuzzle(admin, newPuzzleIndex, false);
             }
             case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> {
                 if (puzzles.size() == 3) {
-                    participant.sendMessage(Component.text("There must be at least 3 puzzles")
+                    admin.sendMessage(Component.text("There must be at least 3 puzzles")
                             .color(NamedTextColor.RED));
                     return;
                 }
-                participant.sendMessage(Component.text("Remove puzzle index ")
+                admin.sendMessage(Component.text("Remove puzzle index ")
                         .append(Component.text(currentPuzzleIndex))
                         .append(Component.text("/"))
                         .append(Component.text(puzzles.size()))
@@ -605,7 +562,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
                                 .append(Component.text(puzzles.size() - 1))
                 );
                 puzzles.remove(currentPuzzleIndex);
-                selectPuzzle(participant, currentPuzzleIndex - 1, false);
+                selectPuzzle(admin, currentPuzzleIndex - 1, false);
             }
         }
     }
@@ -653,75 +610,75 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         return new CheckPoint(newDetectionArea, p);
     }
     
-    private void selectPuzzle(Player participant, int puzzleIndex, boolean teleport) {
-        selectPuzzle(participant, puzzleIndex, 0, 0, teleport);
+    public void selectPuzzle(Admin admin, int puzzleIndex, boolean teleport) {
+        selectPuzzle(admin, puzzleIndex, 0, 0, teleport);
     }
     
     /**
      * Select the given puzzle for the given participant. Update the displays.
-     * @param participant the participant
+     * @param admin the participant
      * @param puzzleIndex the puzzle to pick (must be a valid index)
      * @param inBoundsIndex the inBounds to pick (must be a valid index)
      * @param checkPointIndex the checkPoint to pick (must be a valid index)
      * @param teleport whether to teleport the participant to the selected puzzle's first respawn
      */
-    private void selectPuzzle(Player participant, int puzzleIndex, int inBoundsIndex, int checkPointIndex, boolean teleport) {
+    public void selectPuzzle(Admin admin, int puzzleIndex, int inBoundsIndex, int checkPointIndex, boolean teleport) {
         Preconditions.checkArgument(0 <= puzzleIndex && puzzleIndex < puzzles.size(), "puzzleIndex %s out of bounds for length %s", puzzleIndex, puzzles.size());
         Puzzle selectedPuzzle = puzzles.get(puzzleIndex);
         Preconditions.checkArgument(0 <= inBoundsIndex && inBoundsIndex < selectedPuzzle.inBounds().size(), "inBoundsIndex %s out of bounds for length %s", puzzleIndex, selectedPuzzle.inBounds().size());
         Preconditions.checkArgument(0 <= checkPointIndex && checkPointIndex < selectedPuzzle.checkPoints().size(), "checkPointIndex %s out of bounds for length %s", puzzleIndex, selectedPuzzle.checkPoints().size());
-        currentPuzzles.put(participant.getUniqueId(), puzzleIndex);
-        currentInBounds.put(participant.getUniqueId(), inBoundsIndex);
-        currentCheckPoints.put(participant.getUniqueId(), checkPointIndex);
-        reloadDisplay(participant);
+        currentPuzzles.put(admin.getUniqueId(), puzzleIndex);
+        currentInBounds.put(admin.getUniqueId(), inBoundsIndex);
+        currentCheckPoints.put(admin.getUniqueId(), checkPointIndex);
+        reloadDisplay(admin);
         if (teleport) {
-            participant.teleport(selectedPuzzle.checkPoints().get(checkPointIndex).respawn());
+            admin.getPlayer().teleport(selectedPuzzle.checkPoints().get(checkPointIndex).respawn());
         }
-        participant.sendMessage(Component.text("Selected puzzle index ")
+        admin.sendMessage(Component.text("Selected puzzle index ")
                 .append(Component.text(puzzleIndex))
                 .append(Component.text("/"))
                 .append(Component.text(puzzles.size() - 1)));
-        sidebar.updateLine(participant.getUniqueId(), "puzzle", String.format("Puzzle: %s/%s", puzzleIndex, puzzles.size() - 1));
-        sidebar.updateLine(participant.getUniqueId(), "inBound", String.format("InBound: %s/%s", inBoundsIndex, selectedPuzzle.inBounds().size() - 1));
-        sidebar.updateLine(participant.getUniqueId(), "checkPoint", String.format("CheckPoint: %s/%s", checkPointIndex, selectedPuzzle.checkPoints().size() - 1));
+        sidebar.updateLine(admin.getUniqueId(), "puzzle", String.format("Puzzle: %s/%s", puzzleIndex, puzzles.size() - 1));
+        sidebar.updateLine(admin.getUniqueId(), "inBound", String.format("InBound: %s/%s", inBoundsIndex, selectedPuzzle.inBounds().size() - 1));
+        sidebar.updateLine(admin.getUniqueId(), "checkPoint", String.format("CheckPoint: %s/%s", checkPointIndex, selectedPuzzle.checkPoints().size() - 1));
     }
     
-    private void selectInBound(Player participant, int inBoundIndex) {
-        int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
+    private void selectInBound(Admin admin, int inBoundIndex) {
+        int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
         Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
         Preconditions.checkArgument(0 <= inBoundIndex && inBoundIndex < currentPuzzle.inBounds().size(), "inBoundIndex %s out of bounds for length %s", inBoundIndex, currentPuzzle.inBounds().size());
-        currentInBounds.put(participant.getUniqueId(), inBoundIndex);
-        reloadDisplay(participant);
-        participant.sendMessage(Component.text("Selected inBound index ")
+        currentInBounds.put(admin.getUniqueId(), inBoundIndex);
+        reloadDisplay(admin);
+        admin.sendMessage(Component.text("Selected inBound index ")
                 .append(Component.text(inBoundIndex))
                 .append(Component.text("/"))
                 .append(Component.text(currentPuzzle.inBounds().size() - 1)));
-        sidebar.updateLine(participant.getUniqueId(), "inBound", String.format("InBound: %s/%s", 0, currentPuzzle.inBounds().size() - 1));
+        sidebar.updateLine(admin.getUniqueId(), "inBound", String.format("InBound: %s/%s", 0, currentPuzzle.inBounds().size() - 1));
     }
     
     /**
-     * Select the given puzzle checkPoint for the given participant. Update the displays.
-     * @param participant the participant
+     * Select the given puzzle checkPoint for the given admin. Update the displays.
+     * @param admin the admin
      * @param checkPointIndex the checkPoint to pick (must be a valid index)
      */
-    private void selectCheckPoint(Player participant, int checkPointIndex) {
-        int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
+    private void selectCheckPoint(Admin admin, int checkPointIndex) {
+        int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
         Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
         Preconditions.checkArgument(0 <= checkPointIndex && checkPointIndex < currentPuzzle.checkPoints().size(), "checkPointIndex %s out of bounds for length %s", checkPointIndex, currentPuzzle.checkPoints().size());
-        currentCheckPoints.put(participant.getUniqueId(), checkPointIndex);
-        reloadDisplay(participant);
-        participant.sendMessage(Component.text("Selected check point index ")
+        currentCheckPoints.put(admin.getUniqueId(), checkPointIndex);
+        reloadDisplay(admin);
+        admin.sendMessage(Component.text("Selected check point index ")
                 .append(Component.text(checkPointIndex))
                 .append(Component.text("/"))
                 .append(Component.text(currentPuzzle.checkPoints().size() - 1)));
-        sidebar.updateLine(participant.getUniqueId(), "inBound", String.format("InBound: %s/%s", 0, currentPuzzle.inBounds().size() - 1));
-        sidebar.updateLine(participant.getUniqueId(), "checkPoint", String.format("CheckPoint: %s/%s", 0, currentPuzzle.checkPoints().size() - 1));
+        sidebar.updateLine(admin.getUniqueId(), "inBound", String.format("InBound: %s/%s", 0, currentPuzzle.inBounds().size() - 1));
+        sidebar.updateLine(admin.getUniqueId(), "checkPoint", String.format("CheckPoint: %s/%s", 0, currentPuzzle.checkPoints().size() - 1));
     }
     
     @EventHandler
     public void onClickInventory(InventoryClickEvent event) {
-        Player participant = ((Player) event.getWhoClicked());
-        if (!participants.contains(participant)) {
+        Admin admin = admins.get(event.getWhoClicked().getUniqueId());
+        if (admin == null) {
             return;
         }
         if (!GameManagerUtils.INV_REMOVE_ACTIONS.contains(event.getAction())) {
@@ -732,10 +689,8 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     
     @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
-        if (!participants.contains(event.getPlayer())) {
-            return;
-        }
-        if (!allWands.contains(event.getItemDrop().getItemStack())) {
+        Admin admin = admins.get(event.getPlayer().getUniqueId());
+        if (admin == null) {
             return;
         }
         event.setCancelled(true);
@@ -799,23 +754,18 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
             } else {
                 display.addChild(new BoxDisplay(checkPoint.detectionArea(), detectionAreaColor));
             }
-            display.addChild(new LocationDisplay(checkPoint.respawn(), respawnColor));
+            display.addChild(new LocationDisplay(checkPoint.respawn(), respawnColor, Material.GREEN_WOOL));
         }
         
         return display;
     }
     
-    private void initializeSidebar() {
+    @Override
+    protected void initializeSidebar() {
         sidebar.addLines(
                 new KeyLine("puzzle", ""),
                 new KeyLine("inBound", ""),
                 new KeyLine("checkPoint", "")
         );
     }
-    
-    private void clearSidebar() {
-        sidebar.deleteAllLines();
-        sidebar = null;
-    }
-    
 }

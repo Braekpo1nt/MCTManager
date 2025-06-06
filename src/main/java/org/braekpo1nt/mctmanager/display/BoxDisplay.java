@@ -32,11 +32,11 @@ public class BoxDisplay implements Display {
     }
     
     public BoxDisplay(@NotNull BoundingBox boundingBox) {
-        this(boundingBox, Material.GLASS, true, Color.WHITE);
+        this(boundingBox, Material.GLASS, false, Color.WHITE);
     }
     
     public BoxDisplay(@NotNull BoundingBox boundingBox, Color glowColor) {
-        this(boundingBox, Material.GLASS, true, glowColor);
+        this(boundingBox, Material.GLASS, false, glowColor);
     }
     
     public void setBoundingBox(@NotNull BoundingBox boundingBox) {
@@ -120,6 +120,8 @@ public class BoxDisplay implements Display {
                             (float) boundingBox.getWidthZ()),
                     new AxisAngle4f() // no right rotation
             ));
+            entity.setInterpolationDelay(0);
+            entity.setInterpolationDuration(10);
             entity.setGlowing(glowing);
             entity.setGlowColorOverride(glowColor);
         });
@@ -134,6 +136,8 @@ public class BoxDisplay implements Display {
                             (float) boundingBox.getWidthZ()),
                     new AxisAngle4f() // no right rotation
             ));
+            entity.setInterpolationDelay(0);
+            entity.setInterpolationDuration(10);
             entity.setGlowing(glowing);
             entity.setGlowColorOverride(glowColor);
         });
@@ -147,9 +151,11 @@ public class BoxDisplay implements Display {
         this.showing = false;
         if (this.normal != null) {
             this.normal.remove();
+            this.normal = null;
         }
         if (this.inverted != null) {
             this.inverted.remove();
+            this.inverted = null;
         }
     }
 }

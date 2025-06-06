@@ -5,6 +5,8 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.display.BoxDisplay;
 import org.braekpo1nt.mctmanager.display.Display;
+import org.braekpo1nt.mctmanager.display.EdgeDisplay;
+import org.braekpo1nt.mctmanager.display.geometry.Edge;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -62,7 +64,7 @@ public class MCTDebugCommand implements TabExecutor, Listener {
         
         Vector min = player.getLocation().toVector();
         Vector max = player.getLocation().toVector().add(new Vector(1, 2, 3));
-        Display display = new BoxDisplay(
+        Display boxDisplay = new BoxDisplay(
                 new BoundingBox(
                         min.getX(),
                         min.getY(),
@@ -72,15 +74,20 @@ public class MCTDebugCommand implements TabExecutor, Listener {
                         max.getZ()
                 )
         );
-        display.show(player.getWorld());
+        boxDisplay.show(player.getWorld());
+        
+        Display edgeDisplay = new EdgeDisplay(new Edge(min, max));
+        edgeDisplay.show(player.getWorld());
         player.sendMessage(Component.empty()
                 .append(Component.text("Creating display at min: "))
                 .append(Component.text(min.toString()))
                 .append(Component.text(", max: "))
                 .append(Component.text(max.toString()))
         );
+        
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            display.hide();
+            boxDisplay.hide();
+            edgeDisplay.hide();
             player.sendMessage("Hiding display");
         }, 20L*seconds);
         return true;
