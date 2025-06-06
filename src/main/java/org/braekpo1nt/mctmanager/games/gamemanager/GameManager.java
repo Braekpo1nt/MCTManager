@@ -374,20 +374,23 @@ public class GameManager implements Listener {
         return mctScoreboard;
     }
     
-    public CommandResult joinParticipantToGame(@NotNull GameInstanceId id, @NotNull UUID uuid) {
+    public CommandResult joinParticipantToGame(@NotNull GameType gameType, @Nullable String configFile, @NotNull UUID uuid) {
         MCTParticipant mctParticipant = onlineParticipants.get(uuid);
         if (mctParticipant == null) {
             return CommandResult.failure(Component.text("You are not a participant"));
         }
-        return state.joinParticipantToGame(id, mctParticipant);
+        return state.joinParticipantToGame(gameType, configFile, mctParticipant);
     }
     
-    public CommandResult joinAdminToGame(@NotNull GameInstanceId id, @NotNull Player admin) {
-        
+    public @Nullable List<String> tabCompleteActiveGame(@NotNull String[] args) {
+        return state.tabCompleteActiveGames(args);
+    }
+    
+    public CommandResult joinAdminToGame(@NotNull GameType gameType, @Nullable String configFile, @NotNull Player admin) {
         if (!isAdmin(admin.getUniqueId())) {
             return CommandResult.failure("You are not an admin");
         }
-        return state.joinAdminToGame(id, admin);
+        return state.joinAdminToGame(gameType, configFile, admin);
     }
     
     public CommandResult returnParticipantToHub(@NotNull UUID uuid) {
@@ -617,11 +620,8 @@ public class GameManager implements Listener {
         return team.isOnline();
     }
     
-    /**
-     * If a game of the specified type is currently going on, manually stops the game.
-     */
-    public CommandResult stopGame(GameInstanceId id) {
-        return state.stopGame(id);
+    public CommandResult stopGame(@NotNull GameType gameType, @Nullable String configFile) {
+        return state.stopGame(gameType, configFile);
     }
     
     /**
@@ -1130,8 +1130,8 @@ public class GameManager implements Listener {
         throw new RuntimeException(e);
     }
     
-    public @NotNull Set<GameInstanceId> getActiveGames() {
-        return activeGames.keySet();
+    public @NotNull List<GameInstanceId> getActiveGameIds() {
+        return new ArrayList<>(activeGames.keySet());
     }
     
     public @Nullable MCTGame getActiveGame(@NotNull GameInstanceId id) {

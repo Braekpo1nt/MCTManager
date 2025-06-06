@@ -8,6 +8,7 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
@@ -323,7 +324,7 @@ public abstract class GameManagerState {
         }
     }
     
-    protected void displayStats(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores) {
+    protected void displayStats(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull GameInstanceId id) {
         List<MCTTeam> sortedTeams = teamScores.keySet().stream()
                 .map(teams::get)
                 .filter(t -> teamScores.containsKey(t.getTeamId()))
@@ -361,6 +362,16 @@ public abstract class GameManagerState {
                             .color(NamedTextColor.GOLD))
                     .append(Component.newline());
         }
+        
+        // TODO: adjust output to not show scores of 0 instead of specifically farm rush
+        if (id.getGameType() == GameType.FARM_RUSH) {
+            Audience.audience(
+                    Audience.audience(sortedTeams),
+                    plugin.getServer().getConsoleSender()
+            ).sendMessage(everyone.build());
+            return;
+        }
+        
         everyone.append(Component.text("\nTop 5 Participants:"))
                 .append(Component.newline());
         for (int i = 0; i < Math.min(sortedParticipants.size(), 5); i++) {
@@ -574,7 +585,31 @@ public abstract class GameManagerState {
         updateSidebarTeamScores();
     }
     
-    public CommandResult stopGame(@NotNull GameInstanceId id) {
+    public CommandResult stopGame(@NotNull GameType gameType, @Nullable String configFile) {
+        GameInstanceId id;
+        if (configFile == null) {
+            List<GameInstanceId> activeIds = new ArrayList<>();
+            for (GameInstanceId gameInstanceId : activeGames.keySet()) {
+                if (gameInstanceId.getGameType().equals(gameType)) {
+                    activeIds.add(gameInstanceId);
+                }
+            }
+            if (activeIds.size() == 1) {
+                id = activeIds.getFirst();
+            } else if (activeIds.isEmpty()) {
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text("No "))
+                        .append(Component.text(gameType.getTitle()))
+                        .append(Component.text(" game is active right now")));
+            } else {
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text("More than one instance of "))
+                        .append(Component.text(gameType.getTitle()))
+                        .append(Component.text(" is active. Please specify a config.")));
+            }
+        } else {
+            id = new GameInstanceId(gameType, configFile);
+        }
         MCTGame game = activeGames.get(id);
         if (game == null) {
             return CommandResult.failure(Component.empty()
@@ -584,7 +619,12 @@ public abstract class GameManagerState {
                     .append(Component.text(" are active")));
         }
         game.stop();
-        return CommandResult.success();
+        return CommandResult.success(Component.empty()
+                .append(Component.text("Stopping "))
+                .append(Component.text(id.getTitle()))
+                .append(Component.text(" ("))
+                .append(Component.text(id.getConfigFile()))
+                .append(Component.text(")")));
     }
     
     public CommandResult stopAllGames() {
@@ -677,7 +717,7 @@ public abstract class GameManagerState {
             context.reportGameStateException("updating scores", e);
         }
         updateScoreVisuals(teams.values(), onlineParticipants.values());
-        displayStats(teamScores, participantScores);
+        displayStats(teamScores, participantScores, id);
     }
     
     /**
@@ -991,9 +1031,33 @@ public abstract class GameManagerState {
                 .append(team.getFormattedDisplayName()));
     }
     
-    public CommandResult joinParticipantToGame(@NotNull GameInstanceId id, @NotNull MCTParticipant participant) {
+    public CommandResult joinParticipantToGame(@NotNull GameType gameType, @Nullable String configFile, @NotNull MCTParticipant participant) {
         if (isParticipantInGame(participant)) {
             return CommandResult.failure(Component.text("Already in a game"));
+        }
+        GameInstanceId id;
+        if (configFile == null) {
+            List<GameInstanceId> activeIds = new ArrayList<>();
+            for (GameInstanceId gameInstanceId : activeGames.keySet()) {
+                if (gameInstanceId.getGameType().equals(gameType)) {
+                    activeIds.add(gameInstanceId);
+                }
+            }
+            if (activeIds.size() == 1) {
+                id = activeIds.getFirst();
+            } else if (activeIds.isEmpty()) {
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text("No "))
+                        .append(Component.text(gameType.getTitle()))
+                        .append(Component.text(" game is active right now")));
+            } else {
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text("More than one instance of "))
+                        .append(Component.text(gameType.getTitle()))
+                        .append(Component.text(" is active. Please specify a config.")));
+            }
+        } else {
+            id = new GameInstanceId(gameType, configFile);
         }
         MCTGame activeGame = activeGames.get(id);
         if (activeGame == null) {
@@ -1021,9 +1085,52 @@ public abstract class GameManagerState {
                 .append(Component.text(id.getTitle())));
     }
     
-    public CommandResult joinAdminToGame(@NotNull GameInstanceId id, @NotNull Player admin) {
+    public @Nullable List<String> tabCompleteActiveGames(@NotNull String[] args) {
+        if (args.length == 1) {
+            return CommandUtils.partialMatchTabList(
+                    activeGames.keySet().stream()
+                            .map(id -> id.getGameType().getId())
+                            .toList(),
+                    args[0]);
+        }
+        if (args.length == 2) {
+            return CommandUtils.partialMatchTabList(
+                    activeGames.keySet().stream()
+                            .map(GameInstanceId::getConfigFile)
+                            .toList(),
+                    args[1]);
+        }
+        
+        return Collections.emptyList();
+    }
+    
+    public CommandResult joinAdminToGame(@NotNull GameType gameType, @Nullable String configFile, @NotNull Player admin) {
         if (isAdminInGame(admin)) {
             return CommandResult.failure(Component.text("Already in a game"));
+        }
+        GameInstanceId id;
+        if (configFile == null) {
+            List<GameInstanceId> activeIds = new ArrayList<>();
+            for (GameInstanceId gameInstanceId : activeGames.keySet()) {
+                if (gameInstanceId.getGameType().equals(gameType)) {
+                    activeIds.add(gameInstanceId);
+                }
+            }
+            if (activeIds.size() == 1) {
+                id = activeIds.getFirst();
+            } else if (activeIds.isEmpty()) {
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text("No "))
+                        .append(Component.text(gameType.getTitle()))
+                        .append(Component.text(" game is active right now")));
+            } else {
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text("More than one instance of "))
+                        .append(Component.text(gameType.getTitle()))
+                        .append(Component.text(" is active. Please specify a config.")));
+            }
+        } else {
+            id = new GameInstanceId(gameType, configFile);
         }
         MCTGame activeGame = activeGames.get(id);
         if (activeGame == null) {

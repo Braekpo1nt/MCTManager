@@ -45,7 +45,7 @@ public class PlayingGameState extends EventState {
     @Override
     public void onParticipantJoin(@NotNull MCTParticipant participant) {
         super.onParticipantJoin(participant);
-        CommandResult commandResult = joinParticipantToGame(activeGameId, participant);
+        CommandResult commandResult = joinParticipantToGame(activeGameId.getGameType(), activeGameId.getConfigFile(), participant);
         if (!(commandResult instanceof SuccessCommandResult)) {
             CompositeCommandResult adminResult = new CompositeCommandResult(CommandResult.failure(Component.empty()
                     .append(Component.text("An error occurred joining "))
