@@ -40,6 +40,7 @@ public class ParkourPathwayStateBase implements ParkourPathwayState {
     public void onParticipantRejoin(ParkourParticipant participant, ParkourTeam team) {
         participant.teleport(context.getConfig().getStartingLocation());
         context.giveBoots(participant);
+        participant.addPotionEffect(context.getINVISIBILITY());
         context.updateCheckpointSidebar(participant);
     }
     
@@ -47,6 +48,7 @@ public class ParkourPathwayStateBase implements ParkourPathwayState {
     public void onNewParticipantJoin(ParkourParticipant participant, ParkourTeam team) {
         participant.teleport(context.getConfig().getStartingLocation());
         context.giveBoots(participant);
+        participant.addPotionEffect(context.getINVISIBILITY());
         context.updateCheckpointSidebar(participant);
     }
     

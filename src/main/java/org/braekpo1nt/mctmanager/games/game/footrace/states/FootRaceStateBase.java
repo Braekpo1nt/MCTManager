@@ -40,6 +40,7 @@ public class FootRaceStateBase implements FootRaceState {
     public void onParticipantRejoin(FootRaceParticipant participant, FootRaceTeam team) {
         context.getStandings().add(participant);
         context.giveBoots(participant);
+        participant.addPotionEffect(context.getINVISIBILITY());
         participant.setRespawnLocation(context.getConfig().getStartingLocation(), true);
         context.updateStandings();
         context.displayStandings();
@@ -57,6 +58,7 @@ public class FootRaceStateBase implements FootRaceState {
         participant.teleport(context.getConfig().getStartingLocation());
         participant.setRespawnLocation(context.getConfig().getStartingLocation(), true);
         context.giveBoots(participant);
+        participant.addPotionEffect(context.getINVISIBILITY());
         context.updateStandings();
         context.displayStandings();
         context.getSidebar().updateLine(participant.getUniqueId(), "lap",
