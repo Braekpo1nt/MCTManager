@@ -24,6 +24,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -140,11 +141,15 @@ public class PracticeState extends GameManagerState {
     }
     
     @Override
-    public CommandResult joinParticipantToGame(@NotNull GameInstanceId id, @NotNull MCTParticipant participant) {
+    public CommandResult joinParticipantToGame(@NotNull GameType gameType, @Nullable String configFile, @NotNull MCTParticipant participant) {
+        if (configFile == null) {
+            return CommandResult.failure(Component.text("Please provide a valid config file"));
+        }
+        GameInstanceId id = new GameInstanceId(gameType, configFile);
         if (config.getPractice().isRestrictGameJoining()) {
             GameInstanceId teamGameId = context.getTeamActiveGame(participant.getTeamId());
             if (id.equals(teamGameId)) { // if you're trying to join your team's game
-                return super.joinParticipantToGame(id, participant);
+                return super.joinParticipantToGame(gameType, configFile, participant);
             } else { // you're trying to join another team's game
                 return CommandResult.failure(Component.empty()
                         .append(Component.text("Can't join another group's game")));
@@ -156,7 +161,7 @@ public class PracticeState extends GameManagerState {
                         .append(Component.text(id.getTitle()))
                         .append(Component.text(" at a time.")));
             }
-            return super.joinParticipantToGame(id, participant);
+            return super.joinParticipantToGame(gameType, configFile, participant);
         }
     }
     

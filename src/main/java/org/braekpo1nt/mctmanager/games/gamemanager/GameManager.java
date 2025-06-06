@@ -374,20 +374,31 @@ public class GameManager implements Listener {
         return mctScoreboard;
     }
     
+    /**
+     * @deprecated removal
+     */
+    @Deprecated
     public CommandResult joinParticipantToGame(@NotNull GameInstanceId id, @NotNull UUID uuid) {
+        return joinParticipantToGame(id.getGameType(), id.getConfigFile(), uuid);
+    }
+    
+    public CommandResult joinParticipantToGame(@NotNull GameType gameType, @Nullable String configFile, @NotNull UUID uuid) {
         MCTParticipant mctParticipant = onlineParticipants.get(uuid);
         if (mctParticipant == null) {
             return CommandResult.failure(Component.text("You are not a participant"));
         }
-        return state.joinParticipantToGame(id, mctParticipant);
+        return state.joinParticipantToGame(gameType, configFile, mctParticipant);
     }
     
-    public CommandResult joinAdminToGame(@NotNull GameInstanceId id, @NotNull Player admin) {
-        
+    public @Nullable List<String> tabCompleteGameJoin(@NotNull String[] args) {
+        return state.tabCompleteGameJoin(args);
+    }
+    
+    public CommandResult joinAdminToGame(@NotNull GameType gameType, @Nullable String configFile, @NotNull Player admin) {
         if (!isAdmin(admin.getUniqueId())) {
             return CommandResult.failure("You are not an admin");
         }
-        return state.joinAdminToGame(id, admin);
+        return state.joinAdminToGame(gameType, configFile, admin);
     }
     
     public CommandResult returnParticipantToHub(@NotNull UUID uuid) {

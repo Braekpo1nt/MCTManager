@@ -8,6 +8,7 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
@@ -1001,10 +1002,14 @@ public abstract class GameManagerState {
                 .append(team.getFormattedDisplayName()));
     }
     
-    public CommandResult joinParticipantToGame(@NotNull GameInstanceId id, @NotNull MCTParticipant participant) {
+    public CommandResult joinParticipantToGame(@NotNull GameType gameType, @Nullable String configFile, @NotNull MCTParticipant participant) {
         if (isParticipantInGame(participant)) {
             return CommandResult.failure(Component.text("Already in a game"));
         }
+        if (configFile == null) {
+            return CommandResult.failure(Component.text("Please provide a valid config file"));
+        }
+        GameInstanceId id = new GameInstanceId(gameType, configFile);
         MCTGame activeGame = activeGames.get(id);
         if (activeGame == null) {
             return CommandResult.failure(Component.empty()
@@ -1031,10 +1036,33 @@ public abstract class GameManagerState {
                 .append(Component.text(id.getTitle())));
     }
     
-    public CommandResult joinAdminToGame(@NotNull GameInstanceId id, @NotNull Player admin) {
+    public @Nullable List<String> tabCompleteGameJoin(@NotNull String[] args) {
+        if (args.length == 1) {
+            return CommandUtils.partialMatchTabList(
+                    activeGames.keySet().stream()
+                            .map(id -> id.getGameType().getId())
+                            .toList(),
+                    args[0]);
+        }
+        if (args.length == 2) {
+            return CommandUtils.partialMatchTabList(
+                    activeGames.keySet().stream()
+                            .map(GameInstanceId::getConfigFile)
+                            .toList(),
+                    args[1]);
+        }
+        
+        return Collections.emptyList();
+    }
+    
+    public CommandResult joinAdminToGame(@NotNull GameType gameType, @Nullable String configFile, @NotNull Player admin) {
         if (isAdminInGame(admin)) {
             return CommandResult.failure(Component.text("Already in a game"));
         }
+        if (configFile == null) {
+            return CommandResult.failure("Please provide a valid config file");
+        }
+        GameInstanceId id = new GameInstanceId(gameType, configFile);
         MCTGame activeGame = activeGames.get(id);
         if (activeGame == null) {
             return CommandResult.failure(Component.empty()
