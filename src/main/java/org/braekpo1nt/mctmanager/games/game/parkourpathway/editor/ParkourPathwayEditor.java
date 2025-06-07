@@ -51,7 +51,6 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
      * The puzzles that we're editing
      */
     private List<Puzzle> puzzles;
-    private final Map<UUID, Display> displays;
     
     public ParkourPathwayEditor(
             Main plugin, 
@@ -165,7 +164,6 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                 })
                 .build());
         puzzles = config.getPuzzles();
-        displays = new HashMap<>(newAdmins.size());
         start(newAdmins);
     }
     
@@ -192,7 +190,8 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
      * @param newDisplay the display to replace the old one with
      */
     private void replaceDisplay(@NotNull ParkourAdmin admin, @NotNull Display newDisplay) {
-        Display oldDisplay = displays.put(admin.getUniqueId(), newDisplay);
+        Display oldDisplay = admin.getDisplay();
+        admin.setDisplay(newDisplay);
         if (oldDisplay != null) {
             oldDisplay.hide();
         }
@@ -226,7 +225,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
         admin.setCurrentPuzzle(0);
         admin.setCurrentInBound(0);
         admin.setCurrentCheckPoint(0);
-        displays.put(admin.getUniqueId(), new BoxDisplay(new BoundingBox()));
+        admin.setDisplay(new BoxDisplay(new BoundingBox()));
         admin.getPlayer().teleport(config.getStartingLocation());
     }
     
@@ -237,14 +236,12 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
     
     @Override
     public void cleanup() {
-        displays.clear();
     }
     
     @Override
     protected void resetAdmin(ParkourAdmin admin) {
-        Display display = displays.get(admin.getUniqueId());
-        if (display != null) {
-            display.hide();
+        if (admin.getDisplay() != null) {
+            admin.getDisplay().hide();
         }
     }
     

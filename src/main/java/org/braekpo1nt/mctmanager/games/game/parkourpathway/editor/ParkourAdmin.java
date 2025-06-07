@@ -3,8 +3,8 @@ package org.braekpo1nt.mctmanager.games.game.parkourpathway.editor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.braekpo1nt.mctmanager.display.Display;
 import org.braekpo1nt.mctmanager.games.editor.Admin;
-import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
