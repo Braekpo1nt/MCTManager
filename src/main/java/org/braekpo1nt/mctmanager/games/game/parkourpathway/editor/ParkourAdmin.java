@@ -14,8 +14,18 @@ import org.jetbrains.annotations.NotNull;
 public class ParkourAdmin extends Admin {
     
     private Display display;
+    /**
+     * the index of the puzzle this admin is editing
+     */
     private int currentPuzzle;
+    /**
+     * the index of the inBounds box this admin is editing
+     */
     private int currentInBound;
+    /**
+     * The index of the checkpoint that this admin is editing in their 
+     * current puzzle (since there can be multiple)
+     */
     private int currentCheckPoint;
     
     public ParkourAdmin(@NotNull Player player) {

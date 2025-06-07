@@ -53,10 +53,6 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
     private List<Puzzle> puzzles;
     private final Map<UUID, Display> displays;
     /**
-     * the index of the puzzle each participant is editing
-     */
-    private final Map<UUID, Integer> currentPuzzles;
-    /**
      * the index of the inBounds box each participant is editing
      */
     private final Map<UUID, Integer> currentInBounds;
@@ -176,7 +172,6 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                     useAddRemovePuzzleWand(admin, action);
                 })
                 .build());
-        currentPuzzles = new HashMap<>(newAdmins.size());
         currentInBounds = new HashMap<>(newAdmins.size());
         currentCheckPoints = new HashMap<>(newAdmins.size());
         puzzles = config.getPuzzles();
@@ -186,8 +181,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
     
     private void reloadDisplaysForPuzzle(int puzzleIndex) {
         for (ParkourAdmin admin : admins.values()) {
-            int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
-            if (currentPuzzleIndex == puzzleIndex) {
+            if (admin.getCurrentPuzzle() == puzzleIndex) {
                 reloadDisplay(admin);
             }
         }
@@ -198,10 +192,9 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
      * @param admin the participant to update the display for
      */
     private void reloadDisplay(ParkourAdmin admin) {
-        int currentPuzzle = currentPuzzles.get(admin.getUniqueId());
         int currentBound = currentInBounds.get(admin.getUniqueId());
         int currentCheckPoint = currentCheckPoints.get(admin.getUniqueId());
-        Display display = puzzlesToDisplay(currentPuzzle, currentBound, currentCheckPoint);
+        Display display = puzzlesToDisplay(admin.getCurrentPuzzle(), currentBound, currentCheckPoint);
         replaceDisplay(admin, display);
     }
     
@@ -242,7 +235,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
     
     @Override
     protected void initializeAdmin(ParkourAdmin admin) {
-        currentPuzzles.put(admin.getUniqueId(), 0);
+        admin.setCurrentPuzzle(0);
         currentInBounds.put(admin.getUniqueId(), 0);
         currentCheckPoints.put(admin.getUniqueId(), 0);
         displays.put(admin.getUniqueId(), new BoxDisplay(new BoundingBox()));
@@ -256,7 +249,6 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
     
     @Override
     public void cleanup() {
-        currentPuzzles.clear();
         currentCheckPoints.clear();
         currentInBounds.clear();
         displays.clear();
@@ -272,9 +264,8 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
     
     private void useInBoundsWand(ParkourAdmin admin, Action action) {
         BlockFace direction = EntityUtils.getPlayerDirection(admin.getPlayer().getLocation());
-        int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
         int currentInBoundIndex = currentInBounds.get(admin.getUniqueId());
-        Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
+        Puzzle currentPuzzle = puzzles.get(admin.getCurrentPuzzle());
         BoundingBox inBounds = currentPuzzle.inBounds().get(currentInBoundIndex);
         double increment = admin.getPlayer().isSneaking() ? 0.5 : 1.0;
         switch (action) {
@@ -304,14 +295,13 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                 return;
             }
         }
-        reloadDisplaysForPuzzle(currentPuzzleIndex);
+        reloadDisplaysForPuzzle(admin.getCurrentPuzzle());
     }
     
     private void useDetectionAreaWand(ParkourAdmin admin, Action action) {
         BlockFace direction = EntityUtils.getPlayerDirection(admin.getPlayer().getLocation());
-        int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
         int currentCheckpointIndex = currentCheckPoints.get(admin.getUniqueId());
-        Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
+        Puzzle currentPuzzle = puzzles.get(admin.getCurrentPuzzle());
         CheckPoint currentCheckpoint = currentPuzzle.checkPoints().get(currentCheckpointIndex);
         BoundingBox detectionArea = currentCheckpoint.detectionArea();
         double increment = admin.getPlayer().isSneaking() ? 0.5 : 1.0;
@@ -342,13 +332,12 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                 return;
             }
         }
-        reloadDisplaysForPuzzle(currentPuzzleIndex);
+        reloadDisplaysForPuzzle(admin.getCurrentPuzzle());
     }
     
     private void useRespawnWand(ParkourAdmin admin, Action action) {
-        int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
         int currentCheckpointIndex = currentCheckPoints.get(admin.getUniqueId());
-        Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
+        Puzzle currentPuzzle = puzzles.get(admin.getCurrentPuzzle());
         CheckPoint currentCheckpoint = currentPuzzle.checkPoints().get(currentCheckpointIndex);
         Location respawn = currentCheckpoint.respawn();
         Location location = admin.getPlayer().getLocation();
@@ -361,7 +350,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
         respawn.set(location.getX(), location.getY(), location.getZ());
         respawn.setYaw(location.getYaw());
         respawn.setPitch(location.getPitch());
-        reloadDisplaysForPuzzle(currentPuzzleIndex);
+        reloadDisplaysForPuzzle(admin.getCurrentPuzzle());
         admin.sendMessage(Component.text("Set ")
                 .append(Component.text("respawn")
                         .decorate(TextDecoration.BOLD))
@@ -382,92 +371,88 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
     }
     
     private void usePuzzleSelectWand(ParkourAdmin admin, Action action) {
-        int currentPuzzle = currentPuzzles.get(admin.getUniqueId());
         switch (action) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
-                if (currentPuzzle == puzzles.size() - 1) {
+                if (admin.getCurrentPuzzle() == puzzles.size() - 1) {
                     admin.sendMessage(Component.text("Already at puzzle index ")
-                                    .append(Component.text(currentPuzzle))
+                                    .append(Component.text(admin.getCurrentPuzzle()))
                                     .append(Component.text("/"))
                                     .append(Component.text(puzzles.size() - 1))
                             .color(NamedTextColor.RED));
                     return;
                 }
-                selectPuzzle(admin, currentPuzzle + 1, admin.getPlayer().isSneaking());
+                selectPuzzle(admin, admin.getCurrentPuzzle() + 1, admin.getPlayer().isSneaking());
             }
             case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> {
-                if (currentPuzzle == 0) {
+                if (admin.getCurrentPuzzle() == 0) {
                     admin.sendMessage(Component.text("Already at puzzle index 0/")
                                     .append(Component.text(puzzles.size() - 1))
                             .color(NamedTextColor.RED));
                     return;
                 }
-                selectPuzzle(admin, currentPuzzle - 1, admin.getPlayer().isSneaking());
+                selectPuzzle(admin, admin.getCurrentPuzzle() - 1, admin.getPlayer().isSneaking());
             }
         }
     }
     
-    private void useInBoundSelectWand(ParkourAdmin participant, Action action) {
-        int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
-        Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
-        int currentInBound = currentInBounds.get(participant.getUniqueId());
+    private void useInBoundSelectWand(ParkourAdmin admin, Action action) {
+        Puzzle currentPuzzle = puzzles.get(admin.getCurrentPuzzle());
+        int currentInBound = currentInBounds.get(admin.getUniqueId());
         int numOfInbounds = currentPuzzle.inBounds().size();
         switch (action) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
                 if (currentInBound == numOfInbounds - 1) {
-                    participant.sendMessage(Component.text("Already at inBound index ")
+                    admin.sendMessage(Component.text("Already at inBound index ")
                             .append(Component.text(currentInBound))
                             .append(Component.text("/"))
                             .append(Component.text(numOfInbounds - 1))
                             .color(NamedTextColor.RED));
                     return;
                 }
-                selectInBound(participant, currentInBound + 1);
+                selectInBound(admin, currentInBound + 1);
             }
             case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> {
                 if (currentInBound == 0) {
-                    participant.sendMessage(Component.text("Already at inBound index 0/")
+                    admin.sendMessage(Component.text("Already at inBound index 0/")
                             .append(Component.text(numOfInbounds - 1))
                             .color(NamedTextColor.RED));
                     return;
                 }
-                selectInBound(participant, currentInBound - 1);
+                selectInBound(admin, currentInBound - 1);
             }
         }
     }
     
-    private void useCheckpointSelectWand(ParkourAdmin participant, Action action) {
-        int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
-        Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
-        int currentPuzzleCheckPoint = currentCheckPoints.get(participant.getUniqueId());
+    private void useCheckpointSelectWand(ParkourAdmin admin, Action action) {
+        Puzzle currentPuzzle = puzzles.get(admin.getCurrentPuzzle());
+        int currentPuzzleCheckPoint = currentCheckPoints.get(admin.getUniqueId());
         int numOfCheckPoints = currentPuzzle.checkPoints().size();
         switch (action) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
                 if (currentPuzzleCheckPoint == numOfCheckPoints - 1) {
-                    participant.sendMessage(Component.text("Already at checkpoint index ")
+                    admin.sendMessage(Component.text("Already at checkpoint index ")
                             .append(Component.text(currentPuzzleCheckPoint))
                             .append(Component.text("/"))
                             .append(Component.text(numOfCheckPoints - 1))
                             .color(NamedTextColor.RED));
                     return;
                 }
-                selectCheckPoint(participant, currentPuzzleCheckPoint + 1);
+                selectCheckPoint(admin, currentPuzzleCheckPoint + 1);
             }
             case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> {
                 if (currentPuzzleCheckPoint == 0) {
-                    participant.sendMessage(Component.text("Already at puzzle 0/")
+                    admin.sendMessage(Component.text("Already at puzzle 0/")
                                     .append(Component.text(numOfCheckPoints - 1))
                             .color(NamedTextColor.RED));
                     return;
                 }
-                selectCheckPoint(participant, currentPuzzleCheckPoint - 1);
+                selectCheckPoint(admin, currentPuzzleCheckPoint - 1);
             }
         }
     }
     
     private void useAddRemoveCheckPointWand(ParkourAdmin admin, Action action) {
-        int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
-        Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
+        Puzzle currentPuzzle = puzzles.get(admin.getCurrentPuzzle());
         int numOfCheckPoints = currentPuzzle.checkPoints().size();
         switch (action) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
@@ -499,8 +484,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
     }
     
     private void useAddRemoveInBoundWand(ParkourAdmin admin, Action action) {
-        int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
-        Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
+        Puzzle currentPuzzle = puzzles.get(admin.getCurrentPuzzle());
         int numOfInBounds = currentPuzzle.inBounds().size();
         switch (action) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
@@ -532,10 +516,9 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
     }
     
     private void useAddRemovePuzzleWand(ParkourAdmin admin, Action action) {
-        int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
         switch (action) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
-                int newPuzzleIndex = currentPuzzleIndex + 1;
+                int newPuzzleIndex = admin.getCurrentPuzzle() + 1;
                 admin.sendMessage(Component.text("Add puzzle index ")
                         .append(Component.text(newPuzzleIndex))
                         .append(Component.text("/"))
@@ -554,14 +537,14 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                     return;
                 }
                 admin.sendMessage(Component.text("Remove puzzle index ")
-                        .append(Component.text(currentPuzzleIndex))
+                        .append(Component.text(admin.getCurrentPuzzle()))
                         .append(Component.text("/"))
                         .append(Component.text(puzzles.size()))
                         .append(Component.text(". Max index is now "))
                                 .append(Component.text(puzzles.size() - 1))
                 );
-                puzzles.remove(currentPuzzleIndex);
-                selectPuzzle(admin, currentPuzzleIndex - 1, false);
+                puzzles.remove(admin.getCurrentPuzzle());
+                selectPuzzle(admin, admin.getCurrentPuzzle() - 1, false);
             }
         }
     }
@@ -626,7 +609,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
         Puzzle selectedPuzzle = puzzles.get(puzzleIndex);
         Preconditions.checkArgument(0 <= inBoundsIndex && inBoundsIndex < selectedPuzzle.inBounds().size(), "inBoundsIndex %s out of bounds for length %s", puzzleIndex, selectedPuzzle.inBounds().size());
         Preconditions.checkArgument(0 <= checkPointIndex && checkPointIndex < selectedPuzzle.checkPoints().size(), "checkPointIndex %s out of bounds for length %s", puzzleIndex, selectedPuzzle.checkPoints().size());
-        currentPuzzles.put(admin.getUniqueId(), puzzleIndex);
+        admin.setCurrentPuzzle(puzzleIndex);
         currentInBounds.put(admin.getUniqueId(), inBoundsIndex);
         currentCheckPoints.put(admin.getUniqueId(), checkPointIndex);
         reloadDisplay(admin);
@@ -643,8 +626,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
     }
     
     private void selectInBound(ParkourAdmin admin, int inBoundIndex) {
-        int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
-        Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
+        Puzzle currentPuzzle = puzzles.get(admin.getCurrentPuzzle());
         Preconditions.checkArgument(0 <= inBoundIndex && inBoundIndex < currentPuzzle.inBounds().size(), "inBoundIndex %s out of bounds for length %s", inBoundIndex, currentPuzzle.inBounds().size());
         currentInBounds.put(admin.getUniqueId(), inBoundIndex);
         reloadDisplay(admin);
@@ -661,8 +643,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
      * @param checkPointIndex the checkPoint to pick (must be a valid index)
      */
     private void selectCheckPoint(ParkourAdmin admin, int checkPointIndex) {
-        int currentPuzzleIndex = currentPuzzles.get(admin.getUniqueId());
-        Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
+        Puzzle currentPuzzle = puzzles.get(admin.getCurrentPuzzle());
         Preconditions.checkArgument(0 <= checkPointIndex && checkPointIndex < currentPuzzle.checkPoints().size(), "checkPointIndex %s out of bounds for length %s", checkPointIndex, currentPuzzle.checkPoints().size());
         currentCheckPoints.put(admin.getUniqueId(), checkPointIndex);
         reloadDisplay(admin);
