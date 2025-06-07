@@ -24,7 +24,7 @@ public class EditingState extends ParkourPathwayEditorStateBase {
                     admin,
                     admin.getCurrentPuzzle(),
                     admin.getCurrentInBound(),
-                    context.getCurrentCheckPoints().get(admin.getUniqueId()),
+                    admin.getCurrentCheckPoint(),
                     false
             );
         }
