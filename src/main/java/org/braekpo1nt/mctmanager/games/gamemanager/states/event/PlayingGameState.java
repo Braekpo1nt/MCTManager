@@ -6,16 +6,13 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.SuccessCommandResult;
+import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
-import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
-import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.EventData;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -31,8 +28,12 @@ public class PlayingGameState extends EventState {
             @NotNull GameType gameType,
             @NotNull String gameConfigFile) {
         super(context, contextReference, eventData);
-        CommandResult commandResult = this.startGame(teams.keySet(), onlineAdmins, gameType, gameConfigFile);
         this.activeGameId = new GameInstanceId(gameType, gameConfigFile);
+    }
+    
+    @Override
+    public void enter() {
+        CommandResult commandResult = this.startGame(teams.keySet(), onlineAdmins, activeGameId.getGameType(), activeGameId.getConfigFile());
         if (!(commandResult instanceof SuccessCommandResult)) {
             context.messageAdmins(commandResult.getMessage());
             context.messageOnlineParticipants(Component.empty()
@@ -40,6 +41,11 @@ public class PlayingGameState extends EventState {
                             .color(NamedTextColor.DARK_RED)));
             context.setState(new WaitingInHubState(context, contextReference, eventData));
         }
+    }
+    
+    @Override
+    public void exit() {
+        // do nothing
     }
     
     @Override
@@ -59,6 +65,13 @@ public class PlayingGameState extends EventState {
     }
     
     @Override
+    public void onAdminJoin(@NotNull Player admin) {
+        super.onAdminJoin(admin);
+        CommandResult commandResult = joinAdminToGame(activeGameId.getGameType(), activeGameId.getConfigFile(), admin);
+        admin.sendMessage(commandResult.getMessageOrEmpty());
+    }
+    
+    @Override
     public void onSwitchMode() {
         // do nothing
     }
@@ -69,15 +82,6 @@ public class PlayingGameState extends EventState {
             return CommandResult.failure("Only one game can be run at a time during an event");
         }
         return super.startGame(teamIds, gameAdmins, gameType, configFile);
-    }
-    
-    @Override
-    public void onParticipantJoin(@NotNull PlayerJoinEvent event, @NotNull MCTParticipant participant) {
-        super.onParticipantJoin(event, participant);
-        MCTGame game = activeGames.get(activeGameId);
-        MCTTeam team = teams.get(participant.getTeamId());
-        game.onTeamJoin(team);
-        game.onParticipantJoin(participant);
     }
     
     @Override

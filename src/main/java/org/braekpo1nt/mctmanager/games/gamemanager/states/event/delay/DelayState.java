@@ -25,8 +25,8 @@ public abstract class DelayState extends EventState {
     }
     
     @Override
-    public void onParticipantJoin(@NotNull PlayerJoinEvent event, @NotNull MCTParticipant participant) {
-        super.onParticipantJoin(event, participant);
+    public void onParticipantJoin(@NotNull MCTParticipant participant) {
+        super.onParticipantJoin(participant);
         participant.teleport(config.getSpawn());
     }
 }
