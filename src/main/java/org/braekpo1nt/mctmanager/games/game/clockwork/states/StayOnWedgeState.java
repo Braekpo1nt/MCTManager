@@ -64,10 +64,8 @@ public class StayOnWedgeState extends RoundActiveState {
     private void killParticipantsNotOnWedge() {
         List<ClockworkParticipant> participantsToKill = new ArrayList<>();
         for (ClockworkParticipant participant : context.getParticipants().values()) {
-            if (participant.isAlive()) {
-                if (!currentWedge.contains(participant.getLocation().toVector())) {
-                    participantsToKill.add(participant);
-                }
+            if (participant.isAlive() && !currentWedge.contains(participant.getLocation().toVector())) {
+                participantsToKill.add(participant);
             }
         }
         if (participantsToKill.isEmpty()) {

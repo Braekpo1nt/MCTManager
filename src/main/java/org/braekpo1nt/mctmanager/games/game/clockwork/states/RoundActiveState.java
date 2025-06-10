@@ -32,9 +32,13 @@ public class RoundActiveState extends ClockworkStateBase {
     }
     
     /**
-     * @param participantsToKill the participants to kill
+     * @param newParticipantsToKill the participants to kill (each participant will be checked for alive 
+     *                              status before being killed)
      */
-    protected void killParticipants(Collection<ClockworkParticipant> participantsToKill) {
+    protected void killParticipants(Collection<ClockworkParticipant> newParticipantsToKill) {
+        Collection<ClockworkParticipant> participantsToKill = newParticipantsToKill.stream()
+                .filter(ClockworkParticipant::isAlive)
+                .toList();
         if (participantsToKill.isEmpty()) {
             return;
         }
@@ -112,6 +116,8 @@ public class RoundActiveState extends ClockworkStateBase {
     @Override
     public void onParticipantQuit(ClockworkParticipant participant, ClockworkTeam team) {
         super.onParticipantQuit(participant, team);
-        killParticipants(Collections.singletonList(participant));
+        if (participant.isAlive()) {
+            killParticipants(Collections.singletonList(participant));
+        }
     }
 }

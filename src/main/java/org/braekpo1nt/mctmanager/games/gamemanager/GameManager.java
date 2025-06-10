@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.games.gamemanager;
 
 import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
 import lombok.Getter;
-import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -62,7 +61,6 @@ import java.util.stream.Collectors;
  */
 public class GameManager implements Listener {
     
-    @Setter
     public @NotNull GameManagerState state;
     public static final String ADMIN_TEAM = "_Admins";
     public static final NamedTextColor ADMIN_COLOR = NamedTextColor.DARK_RED;
@@ -145,6 +143,19 @@ public class GameManager implements Listener {
                 .leaderboardManagers(this.leaderboardManagers)
                 .build();
         this.state = new MaintenanceState(this, contextReference);
+        this.state.enter();
+    }
+    
+    /**
+     * {@link GameManagerState#exit()} will be called on the current state,
+     * then the current state will be assigned to the new state, finally {@link GameManagerState#enter()}
+     * will be called on the current state
+     * @param state the new state
+     */
+    public void setState(@NotNull GameManagerState state) {
+        this.state.exit();
+        this.state = state;
+        this.state.enter();
     }
     
     public CommandResult switchMode(@NotNull String mode) {

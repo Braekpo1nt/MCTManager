@@ -136,6 +136,16 @@ public abstract class GameManagerState {
         this.config = context.getConfig();
     }
     
+    /**
+     * Called after this state is assigned to the context
+     */
+    public abstract void enter();
+    
+    /**
+     * Called before this state is un-assigned from the context
+     */
+    public abstract void exit();
+    
     public abstract CommandResult switchMode(@NotNull String mode);
     
     public void cleanup() {
@@ -153,7 +163,7 @@ public abstract class GameManagerState {
     }
     
     // leave/join start
-    public void onAdminJoin(@NotNull PlayerJoinEvent event, @NotNull Player admin) {
+    public final void onAdminJoin(@NotNull PlayerJoinEvent event, @NotNull Player admin) {
         onAdminJoin(admin);
         event.joinMessage(GameManagerUtils.replaceWithDisplayName(admin, event.joinMessage()));
     }
@@ -173,7 +183,7 @@ public abstract class GameManagerState {
         updateSidebarTeamScores();
     }
     
-    public void onParticipantJoin(@NotNull PlayerJoinEvent event, @NotNull MCTParticipant participant) {
+    public final void onParticipantJoin(@NotNull PlayerJoinEvent event, @NotNull MCTParticipant participant) {
         onParticipantJoin(participant);
         event.joinMessage(GameManagerUtils.replaceWithDisplayName(participant, event.joinMessage()));
     }
@@ -213,12 +223,20 @@ public abstract class GameManagerState {
         }
     }
     
-    public void onAdminQuit(@NotNull PlayerQuitEvent event, @NotNull Player admin) {
+    public final void onAdminQuit(@NotNull PlayerQuitEvent event, @NotNull Player admin) {
         event.quitMessage(GameManagerUtils.replaceWithDisplayName(admin, event.quitMessage()));
         onAdminQuit(admin);
     }
     
     public void onAdminQuit(@NotNull Player admin) {
+        GameInstanceId id = adminGames.get(admin.getUniqueId());
+        if (id != null) {
+            MCTGame activeGame = activeGames.get(id);
+            if (activeGame != null) {
+                activeGame.onAdminQuit(admin);
+            }
+            onAdminReturnToHub(admin);
+        }
         onlineAdmins.remove(admin);
         tabList.hidePlayer(admin.getUniqueId());
         sidebar.removePlayer(admin);
@@ -227,7 +245,7 @@ public abstract class GameManagerState {
         admin.playerListName(displayName);
     }
     
-    public void onParticipantQuit(@NotNull PlayerQuitEvent event, @NotNull MCTParticipant participant) {
+    public final void onParticipantQuit(@NotNull PlayerQuitEvent event, @NotNull MCTParticipant participant) {
         event.quitMessage(GameManagerUtils.replaceWithDisplayName(participant, event.quitMessage()));
         onParticipantQuit(participant);
     }
@@ -248,9 +266,7 @@ public abstract class GameManagerState {
                 activeGame.onParticipantQuit(participant.getUniqueId());
                 activeGame.onTeamQuit(participant.getTeamId());
             }
-            participantGames.remove(participant.getUniqueId());
-            tabList.showPlayer(participant);
-            sidebar.addPlayer(participant);
+            onParticipantReturnToHub(participant);
         }
         MCTTeam team = teams.get(participant.getTeamId());
         team.quitOnlineMember(participant.getUniqueId());
