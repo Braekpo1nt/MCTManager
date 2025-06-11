@@ -61,18 +61,6 @@ public class VotingState extends EventState {
     }
     
     @Override
-    public void cleanup() {
-        super.cleanup();
-        exit();
-    }
-    
-    @Override
-    public void onSwitchMode() {
-        voteManager.cancelVote();
-        timer.cancel();
-    }
-    
-    @Override
     public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
         voteManager.cancelVote();
         timer.cancel();

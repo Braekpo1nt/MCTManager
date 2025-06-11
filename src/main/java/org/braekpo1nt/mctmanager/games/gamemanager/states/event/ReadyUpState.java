@@ -162,19 +162,6 @@ public class ReadyUpState extends EventState {
     }
     
     @Override
-    public void cleanup() {
-        super.cleanup();
-        exit();
-    }
-    
-    @Override
-    public void onSwitchMode() {
-        topbar.cleanup();
-        readyUpManager.cleanup();
-        plugin.getServer().getScheduler().cancelTask(readyUpPromptTaskId);
-    }
-    
-    @Override
     public CommandResult startEvent(int maxGames, int currentGameNumber) {
         topbar.cleanup();
         plugin.getServer().getScheduler().cancelTask(readyUpPromptTaskId);

@@ -14,7 +14,13 @@ public class GatesOpeningState extends GameplayState {
         context.openGates();
         spawnItemDrops();
         context.getPlugin().getServer().getScheduler().runTaskLater(context.getPlugin(), 
-                () -> context.setState(new FightingState(context)), 
+                () -> {
+                    if (context.getConfig().shouldStartCaptureTheFlag() && suddenDeathThresholdReached()) {
+                        context.setState(new SuddenDeathCountdownState(context));
+                    } else {
+                        context.setState(new FightingState(context));
+                    }
+                }, 
                 config.getAntiSuffocationDuration());
     }
     

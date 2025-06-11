@@ -903,6 +903,18 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     /**
+     * Convenience method to send the same message to all admins,
+     * and the console sender
+     * @param message the message to send
+     */
+    public void messageAdmins(@NotNull Component message) {
+        Audience.audience(
+                Audience.audience(admins),
+                plugin.getServer().getConsoleSender()
+        ).sendMessage(message);
+    }
+    
+    /**
      * Convenience method to send the same title to all participants and admins
      * @param title the title to send
      */

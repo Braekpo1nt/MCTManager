@@ -41,14 +41,4 @@ public class StartingGameDelayState extends DelayState {
         timer.cancel();
     }
     
-    @Override
-    public void cleanup() {
-        super.cleanup();
-        exit();
-    }
-    
-    @Override
-    public void onSwitchMode() {
-        timer.cancel();
-    }
 }

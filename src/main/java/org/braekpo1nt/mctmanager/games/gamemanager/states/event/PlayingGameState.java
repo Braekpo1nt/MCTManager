@@ -72,11 +72,6 @@ public class PlayingGameState extends EventState {
     }
     
     @Override
-    public void onSwitchMode() {
-        // do nothing
-    }
-    
-    @Override
     public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
         if (!activeGames.isEmpty()) {
             return CommandResult.failure("Only one game can be run at a time during an event");

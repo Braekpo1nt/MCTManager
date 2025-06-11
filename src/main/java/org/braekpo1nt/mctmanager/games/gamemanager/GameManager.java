@@ -182,6 +182,7 @@ public class GameManager implements Listener {
     }
     
     public void cleanup() {
+        state.exit();
         state.cleanup();
     }
     
