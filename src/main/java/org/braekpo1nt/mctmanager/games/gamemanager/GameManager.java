@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.gamemanager;
 
 import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
 import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
