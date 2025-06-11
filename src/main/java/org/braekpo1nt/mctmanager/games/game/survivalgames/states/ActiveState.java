@@ -265,7 +265,9 @@ public class ActiveState extends SurvivalGamesStateBase {
         SurvivalGamesTeam team = context.getTeams().get(teamId);
         context.updateAliveCount(team);
         for (SurvivalGamesParticipant teammate : team.getParticipants()) {
-            context.getGlowManager().hideGlowing(teammate, participant);
+            if (!teammate.equals(participant)) {
+                context.getGlowManager().hideGlowing(teammate, participant);
+            }
         }
         for (Player admin : context.getAdmins()) {
             context.getGlowManager().hideGlowing(admin, participant);
