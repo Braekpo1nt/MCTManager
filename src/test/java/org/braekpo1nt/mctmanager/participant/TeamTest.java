@@ -40,7 +40,7 @@ class TeamTest {
     
     @Test
     void farmRushEquals() {
-        FarmRushTeam teamData = new FarmRushTeam(team, mock(Arena.class), 0);
+        FarmRushTeam teamData = new FarmRushTeam(team, mock(Arena.class), 0, 0);
         
         Assertions.assertEquals(team, teamData);
     }

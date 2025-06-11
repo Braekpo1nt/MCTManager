@@ -148,13 +148,13 @@ class FarmRushConfigDTO implements Validatable {
          */
         private @Nullable Integer maxScore;
         /**
-         * The score cap, beyond which players are not allowed to gain points from selling items.
+         * The sell cap, beyond which players are not allowed to gain points from selling items.
          * Note that if this is greater than 1 but less than {@link #maxScore}, then players
          * will be unable to reach the max score through selling items. 
          * If this is less than 1, then no score cap is in effect. 
          * Defaults to -1.
          */
-        private @Nullable Integer scoreCap;
+        private @Nullable Integer sellCap;
         /**
          * the percentage of the {@link #maxScore} that each team can reach before the
          * other teams are warned. If this is negative, no warning will be given.
@@ -245,7 +245,7 @@ class FarmRushConfigDTO implements Validatable {
                 .gracePeriodDuration(this.durations.gracePeriod)
                 .materialScores(this.scores.materialScores)
                 .maxScore(this.scores.maxScore != null ? this.scores.maxScore : -1)
-                .scoreCap(this.scores.scoreCap != null ? this.scores.scoreCap : -1)
+                .sellCap(this.scores.sellCap != null ? this.scores.sellCap : -1)
                 .warningThreshold(this.scores.warningThreshold)
                 .winnerBonus(this.scores.winnerBonus)
                 .doNotGiveBookDebug(this.doNotGiveBookDebug)
