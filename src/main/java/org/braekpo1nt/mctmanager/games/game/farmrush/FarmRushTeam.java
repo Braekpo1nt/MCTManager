@@ -14,13 +14,20 @@ import org.jetbrains.annotations.NotNull;
 @ToString(callSuper = true)
 public class FarmRushTeam extends ScoredTeamData<FarmRushParticipant> {
     private final Arena arena;
+    private int sellPoints;
     
     public FarmRushTeam(
             @NotNull Team team, 
             @NotNull Arena arena, 
-            int score) {
+            int score,
+            int sellPoints) {
         super(team, score);
         this.arena = arena;
+        this.sellPoints = sellPoints;
+    }
+    
+    public void addSellPoints(int points) {
+        this.sellPoints += points;
     }
     
     public FarmRushTeam(
@@ -29,19 +36,22 @@ public class FarmRushTeam extends ScoredTeamData<FarmRushParticipant> {
         this(
                 team, 
                 quitData.getArena(), 
-                quitData.getScore()
+                quitData.getScore(),
+                quitData.getSellPoints()
         );
     }
     
     public QuitData getQuitData() {
         return new QuitData(
                 this.arena,
-                getScore());
+                getScore(),
+                this.sellPoints);
     }
     
     @Data
     public static class QuitData implements QuitDataBase {
         private final Arena arena;
         private final int score;
+        private final int sellPoints;
     }
 }
