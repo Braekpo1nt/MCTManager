@@ -67,7 +67,7 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
         super.onParticipantRejoin(participant, team);
         participant.setAlive(false);
         participant.setGameMode(GameMode.SPECTATOR);
-        updateAliveCount();
+        updateAliveCount(getAliveCount());
     }
     
     @Override
@@ -77,15 +77,16 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
         participant.setGameMode(GameMode.SURVIVAL);
         giveTool(participant);
         powerupManager.addParticipant(participant);
-        updateAliveCount();
+        updateAliveCount(getAliveCount());
     }
     
     @Override
     public void onParticipantQuit(SpleefParticipant participant, SpleefTeam team) {
         if (participant.isAlive()) {
             Component deathMessage = Component.empty()
-                    .append(Component.text(participant.getName()))
+                    .append(participant.displayName())
                     .append(Component.text(" left early. Their life is forfeit."));
+            context.messageAllParticipants(deathMessage);
             PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant.getPlayer(),
                     DamageSource.builder(DamageType.GENERIC).build(), Collections.emptyList(), 0, deathMessage);
             onParticipantDeath(fakeDeathEvent, participant);
@@ -128,20 +129,9 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
         return getAliveCount() < 2;
     }
     
-    /**
-     * @return the number of participants who are alive in this round
-     */
-    private long getAliveCount() {
-        return context.getParticipants().values().stream().filter(SpleefParticipant::isAlive).count();
-    }
-    
-    private void updateAliveCount() {
-        long aliveCount = getAliveCount();
-        Component alive = Component.empty()
-                .append(Component.text("Alive: "))
-                .append(Component.text(aliveCount));
-        context.getSidebar().updateLine("alive", alive);
-        context.getAdminSidebar().updateLine("alive", alive);
+    @Override
+    protected void updateAliveCount(long aliveCount) {
+        super.updateAliveCount(aliveCount);
         decayManager.setAliveCount(aliveCount);
         decayManager.setAlivePercent(aliveCount / (double) context.getParticipants().size());
     }
@@ -155,7 +145,7 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
                 .toList();
         context.awardParticipantPoints(awardedParticipants, context.getConfig().getSurviveScore());
         
-        updateAliveCount();
+        updateAliveCount(getAliveCount());
     }
     
     @Override
