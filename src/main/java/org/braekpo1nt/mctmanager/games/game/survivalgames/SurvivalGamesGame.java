@@ -75,9 +75,9 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
         worldBorder = config.getWorld().getWorldBorder();
         glowManager.registerListeners();
         fillAllChests();
-        initializeGlowManager();
         setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
         start(newTeams, newParticipants, newAdmins);
+        initializeGlowManager();
         for (SurvivalGamesTeam team : teams.values()) {
             updateAliveCount(team);
         }
@@ -121,25 +121,6 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
             for (Player admin : admins) {
                 glowManager.showGlowing(admin, participant);
             }
-        }
-    }
-    
-    /**
-     * Make the participant glow to their teammates, and their teammates glow to them
-     * (but don't glow to themselves). Also makes the participant glow to the admins.
-     * @param participant the participant to show their teammates to
-     */
-    public void initializeGlowing(Participant participant) {
-        for (SurvivalGamesParticipant other : participants.values()) {
-            if (!other.equals(participant)) {
-                if (participant.getTeamId().equals(other.getTeamId())) {
-                    glowManager.showGlowing(participant, other);
-                    glowManager.showGlowing(other, participant);
-                }
-            }
-        }
-        for (Player admin : admins) {
-            glowManager.showGlowing(admin, participant);
         }
     }
     

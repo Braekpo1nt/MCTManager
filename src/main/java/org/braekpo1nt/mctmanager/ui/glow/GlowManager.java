@@ -1,7 +1,8 @@
 package org.braekpo1nt.mctmanager.ui.glow;
 
 import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.event.*;
+import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import com.github.retrooper.packetevents.event.SimplePacketListenerAbstract;
 import com.github.retrooper.packetevents.event.simple.PacketPlaySendEvent;
 import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 import com.github.retrooper.packetevents.protocol.entity.data.EntityDataTypes;
@@ -129,7 +130,7 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
     public void cleanup() {
         for (PlayerData playerData : playerDatas.values()) {
             Player target = playerData.getPlayer();
-            List<EntityData> entityMetadata = getEntityMetadata(target, false);
+            List<EntityData<?>> entityMetadata = getEntityMetadata(target, false);
             for (UUID viewerUUID : playerData.getViewersList()) {
                 Player viewer = playerDatas.get(viewerUUID).getPlayer();
                 sendGlowingPacket(viewer, target.getEntityId(), entityMetadata);
@@ -146,9 +147,9 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
      * @param glowing whether the entity should be glowing
      * @return an entity metadata which indicates that the given entity is or is not glowing
      */
-    private static List<EntityData> getEntityMetadata(Entity entity, boolean glowing) {
+    private static List<EntityData<?>> getEntityMetadata(Entity entity, boolean glowing) {
         byte trueEntityDataByte = UIUtils.getTrueEntityDataByte(entity, glowing);
-        return Collections.singletonList(new EntityData(0, EntityDataTypes.BYTE, trueEntityDataByte));
+        return Collections.singletonList(new EntityData<>(0, EntityDataTypes.BYTE, trueEntityDataByte));
     }
     
     /**
@@ -158,7 +159,7 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
      * @param targetEntityId the entity ID of the entity which should be glowing
      * @param entityMetadata the metadata which includes a flag indicating the glowing status
      */
-    private static void sendGlowingPacket(Player viewer, int targetEntityId, List<EntityData> entityMetadata) {
+    private static void sendGlowingPacket(Player viewer, int targetEntityId, List<EntityData<?>> entityMetadata) {
         WrapperPlayServerEntityMetadata packet = new WrapperPlayServerEntityMetadata(
                 targetEntityId,
                 entityMetadata
@@ -270,8 +271,30 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
         viewerPlayerData.addTarget(targetUUID);
         targetPlayerData.addViewer(viewerUUID);
         
-        List<EntityData> entityMetadata = getEntityMetadata(target, true);
+        List<EntityData<?>> entityMetadata = getEntityMetadata(target, true);
         sendGlowingPacket(viewer, target.getEntityId(), entityMetadata);
+    }
+    
+    /**
+     * Hide the target's glowing effect from the viewer
+     * @param viewer the viewer. 
+     *               Must be a player contained in this manager
+     * @param target the target (the player who should glow). 
+     *               Must be a player contained in this manager.
+     */
+    public void hideGlowing(Player viewer, Participant target) {
+        hideGlowing(viewer.getUniqueId(), target.getUniqueId());
+    }
+    
+    /**
+     * Hide the target's glowing effect from the viewer
+     * @param viewer the viewer. 
+     *               Must be a player contained in this manager
+     * @param target the target (the player who should glow). 
+     *               Must be a player contained in this manager.
+     */
+    public void hideGlowing(Participant viewer, Participant target) {
+        hideGlowing(viewer.getUniqueId(), target.getUniqueId());
     }
     
     /**
@@ -304,7 +327,7 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
         viewerPlayerData.removeTarget(targetUUID);
         targetPlayerData.removeViewer(viewerUUID);
         
-        List<EntityData> entityMetadata = getEntityMetadata(target, false);
+        List<EntityData<?>> entityMetadata = getEntityMetadata(target, false);
         sendGlowingPacket(viewer, target.getEntityId(), entityMetadata);
     }
     
@@ -340,7 +363,7 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
         mapper.remove(player.getEntityId());
         
         Player removedPlayer = removedPlayerData.getPlayer();
-        List<EntityData> removedPlayerMetadata = getEntityMetadata(removedPlayer, false);
+        List<EntityData<?>> removedPlayerMetadata = getEntityMetadata(removedPlayer, false);
         // removed player should no longer glow. iterate through viewers
         // and update their packets:
         UUID removedUUID = removedPlayer.getUniqueId();
@@ -357,15 +380,15 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
             PlayerData targetPlayerData = playerDatas.get(targetUUID);
             Player target = targetPlayerData.getPlayer();
             targetPlayerData.removeViewer(removedUUID);
-            List<EntityData> targetMetadata = getEntityMetadata(target, false);
+            List<EntityData<?>> targetMetadata = getEntityMetadata(target, false);
             sendGlowingPacket(removedPlayer, target.getEntityId(), targetMetadata);
         }
     }
     
     @Override
+    @SuppressWarnings("unchecked")
     public void onPacketPlaySend(PacketPlaySendEvent event) {
         if (event.getPacketType().equals(PacketType.Play.Server.ENTITY_METADATA)) {
-            
             UUID viewerUUID = event.getUser().getUUID();
             PlayerData viewerPlayerData = playerDatas.get(viewerUUID);
             if (viewerPlayerData == null) {
@@ -374,7 +397,6 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
             }
             WrapperPlayServerEntityMetadata packet = new WrapperPlayServerEntityMetadata(event);
             int entityId = packet.getEntityId();
-            Player player = event.getPlayer();
             UUID targetUUID = mapper.get(entityId);
             if (targetUUID == null) {
                 // if the packet entity is not in the mapper, then it's a player in this manager, and we don't need to proceed
@@ -384,8 +406,12 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
                 // if the viewer can't see the target's glow effect, then do not proceed
                 return;
             }
-            List<EntityData> entityMetadata = packet.getEntityMetadata();
-            EntityData baseEntityData = entityMetadata.stream().filter(entityData -> entityData.getIndex() == 0 && entityData.getType() == EntityDataTypes.BYTE).findFirst().orElse(null);
+            List<EntityData<?>> entityMetadata = packet.getEntityMetadata(); 
+            // the unchecked cast warning is suppressed by the annotation on this method
+            EntityData<Byte> baseEntityData = (EntityData<Byte>) entityMetadata.stream()
+                    .filter(entityData -> entityData.getIndex() == 0 && entityData.getType() == EntityDataTypes.BYTE)
+                    .findFirst()
+                    .orElse(null);
             if (baseEntityData == null) {
                 return;
             }
@@ -393,7 +419,7 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
             event.markForReEncode(true);
             // if the base entity data is included in this packet, 
             // we need to make sure that the "glowing" flag is set to true
-            byte flags = (byte) baseEntityData.getValue();
+            byte flags = baseEntityData.getValue();
             flags |= (byte) 0x40;
             baseEntityData.setValue(flags);
         }
@@ -406,7 +432,6 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
             }
             WrapperPlayServerSpawnEntity packet = new WrapperPlayServerSpawnEntity(event);
             int entityId = packet.getEntityId();
-            Player player = event.getPlayer();
             UUID targetUUID = mapper.get(entityId);
             if (targetUUID == null) {
                 // if the packet entity is not in the mapper, then it's a player in this manager, and we don't need to proceed
@@ -422,7 +447,7 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
                 return;
             }
             plugin.getServer().getScheduler().runTask(plugin, () -> {
-                List<EntityData> initialUpdateMetadata = getEntityMetadata(targetPlayerData.getPlayer(), true);
+                List<EntityData<?>> initialUpdateMetadata = getEntityMetadata(targetPlayerData.getPlayer(), true);
                 sendGlowingPacket(viewerPlayerData.getPlayer(), entityId, initialUpdateMetadata);
             });
         }

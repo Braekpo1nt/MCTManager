@@ -20,6 +20,7 @@ import org.bukkit.GameMode;
 import org.bukkit.WorldBorder;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
+import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -264,6 +265,12 @@ public class ActiveState extends SurvivalGamesStateBase {
         addDeath(participant);
         SurvivalGamesTeam team = context.getTeams().get(teamId);
         context.updateAliveCount(team);
+        for (SurvivalGamesParticipant teammate : team.getParticipants()) {
+            context.getGlowManager().hideGlowing(teammate, participant);
+        }
+        for (Player admin : context.getAdmins()) {
+            context.getGlowManager().hideGlowing(admin, participant);
+        }
         if (!team.isAlive()) {
             onTeamDeath(context.getTeams().get(teamId));
         }
