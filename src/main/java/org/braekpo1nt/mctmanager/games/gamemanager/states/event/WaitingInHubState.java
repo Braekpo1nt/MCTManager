@@ -16,7 +16,6 @@ import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.jetbrains.annotations.NotNull;
 
@@ -50,18 +49,6 @@ public class WaitingInHubState extends EventState {
     
     @Override
     public void exit() {
-        waitingInHubTimer.cancel();
-        disableTips();
-    }
-    
-    @Override
-    public void cleanup() {
-        super.cleanup();
-        exit();
-    }
-    
-    @Override
-    public void onSwitchMode() {
         waitingInHubTimer.cancel();
         disableTips();
     }

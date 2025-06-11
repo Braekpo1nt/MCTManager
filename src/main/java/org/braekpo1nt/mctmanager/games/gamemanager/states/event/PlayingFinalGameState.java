@@ -1,5 +1,7 @@
 package org.braekpo1nt.mctmanager.games.gamemanager.states.event;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
@@ -18,6 +20,13 @@ public class PlayingFinalGameState extends PlayingGameState {
     @Override
     protected void postGame() {
         context.setState(new PodiumState(context, contextReference, eventData));
+    }
+    
+    @Override
+    protected @NotNull Component createNewTitle(String baseTitle) {
+        return Component.empty()
+                .append(Component.text(baseTitle))
+                .color(NamedTextColor.BLUE);
     }
     
     @Override

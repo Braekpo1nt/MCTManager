@@ -73,12 +73,6 @@ public class PracticeState extends GameManagerState {
     }
     
     @Override
-    public void cleanup() {
-        super.cleanup();
-        exit();
-    }
-    
-    @Override
     public void onLoadGameState() {
         practiceManager.setConfig(config.getPractice());
         for (MCTParticipant participant : onlineParticipants.values()) {

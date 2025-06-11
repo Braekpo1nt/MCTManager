@@ -185,7 +185,7 @@ record ColossalCombatConfigDTO(
                 .color(NamedTextColor.GREEN);
         /** 
          * the max number of players on each team for the capture the flag countdown to start. 
-         * defaults to 1. Negative values will never be triggered.
+         * defaults to 1. Values less than one means sudden death will never be triggered.
          */
         private int maxPlayers = 1;
         /**

@@ -194,7 +194,7 @@ public class ActiveState extends FootRaceStateBase {
         ));
         if (context.getNumOfFinishedParticipants() == 1) {
             context.messageAllParticipants(Component.empty()
-                    .append(Component.text(participant.getName()))
+                    .append(participant.displayName())
                     .append(Component.text(" finished 1st in "))
                     .append(timeComponent)
                     .append(Component.text("! "))
@@ -215,7 +215,7 @@ public class ActiveState extends FootRaceStateBase {
             startEndRaceCountDown();
             return;
         }
-        context.messageAllParticipants(Component.text(participant.getName())
+        context.messageAllParticipants(participant.displayName()
                 .append(Component.text(" finished "))
                 .append(placementComponent)
                 .append(Component.text(" in "))
