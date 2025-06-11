@@ -7,8 +7,6 @@ import org.braekpo1nt.mctmanager.games.game.spleef.*;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.PowerupManager;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
-import org.bukkit.damage.DamageSource;
-import org.bukkit.damage.DamageType;
 import org.bukkit.event.Event;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -18,7 +16,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
 import java.util.List;
 
 public class RoundActiveState extends SpleefStateBase implements SpleefInterface {
