@@ -16,6 +16,10 @@ import java.util.Set;
 public class PodiumState extends EventState {
     public PodiumState(@NotNull GameManager context, @NotNull ContextReference contextReference, @NotNull EventData eventData) {
         super(context, contextReference, eventData);
+    }
+    
+    @Override
+    public void enter() {
         sidebar.updateLine("currentGame", getCurrentGameLine());
         if (eventData.getWinningTeam() != null) {
             sidebar.addLine("winner", Component.empty()
@@ -35,29 +39,18 @@ public class PodiumState extends EventState {
     }
     
     @Override
+    public void exit() {
+        if (eventData.getWinningTeam() != null) {
+            for (MCTParticipant participant : eventData.getWinningTeam().getOnlineMembers()) {
+                eventData.removeCrown(participant);
+            }
+        }
+        sidebar.deleteLine("winner");
+    }
+    
+    @Override
     public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
         return CommandResult.failure("Can't start a game, the event is over.");
-    }
-    
-    @Override
-    public void cleanup() {
-        super.cleanup();
-        if (eventData.getWinningTeam() != null) {
-            for (MCTParticipant participant : eventData.getWinningTeam().getOnlineMembers()) {
-                eventData.removeCrown(participant);
-            }
-        }
-        sidebar.deleteLine("winner");
-    }
-    
-    @Override
-    public void onSwitchMode() {
-        if (eventData.getWinningTeam() != null) {
-            for (MCTParticipant participant : eventData.getWinningTeam().getOnlineMembers()) {
-                eventData.removeCrown(participant);
-            }
-        }
-        sidebar.deleteLine("winner");
     }
     
     @Override

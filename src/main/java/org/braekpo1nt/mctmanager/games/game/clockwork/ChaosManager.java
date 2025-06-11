@@ -52,8 +52,8 @@ public class ChaosManager implements Listener {
         maxArrows = config.getChaos().arrows().initial().max();
         minFallingBlocks = config.getChaos().fallingBlocks().initial().min();
         maxFallingBlocks = config.getChaos().fallingBlocks().initial().max();
-        minDelay += config.getChaos().summonDelay().initial().min();
-        maxDelay += config.getChaos().summonDelay().initial().max();
+        minDelay = config.getChaos().summonDelay().initial().min();
+        maxDelay = config.getChaos().summonDelay().initial().max();
     }
     
     public void incrementChaos() {
@@ -83,6 +83,7 @@ public class ChaosManager implements Listener {
         if (((long) minDelay) >= ((long) maxDelay + 1)) {
             maxDelay = minDelay;
         }
+        Main.logf("Chaos incremented: arrows[%s,%s], blocks[%s,%s], delay[%s,%s]", minArrows, maxArrows, minFallingBlocks, maxFallingBlocks, minDelay, maxDelay);
     }
     
     /**

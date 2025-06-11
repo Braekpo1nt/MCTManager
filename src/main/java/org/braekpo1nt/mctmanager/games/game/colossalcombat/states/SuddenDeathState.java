@@ -9,7 +9,6 @@ import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -33,9 +32,7 @@ public class SuddenDeathState extends GameplayState {
                         .append(Component.text("Capture the Flag"))
                         .color(NamedTextColor.DARK_PURPLE)
         ));
-        context.messageAllParticipants(Component.empty()
-                .append(Component.text("Sudden death has begun. Capture the flag to win!"))
-                .color(NamedTextColor.DARK_PURPLE));
+        context.messageAllParticipants(config.getFlagSpawnMessage());
         flagPosition = config.getFlagLocation();
         BlockPlacementUtils.placeFlag(config.getFlagMaterial(), flagPosition, config.getInitialFlagDirection());
     }
@@ -48,12 +45,19 @@ public class SuddenDeathState extends GameplayState {
         }
     }
     
+    
     @Override
-    public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull ColossalParticipant participant) {
+    protected void onParticipantDeath(@NotNull ColossalParticipant participant) {
+        super.onParticipantDeath(participant);
         if (hasFlag(participant.getUniqueId())) {
             dropFlag(participant);
         }
-        super.onParticipantDeath(event, participant);
+        if (context.getTeams().get(participant.getTeamId()).isDead()) {
+            switch (participant.getAffiliation()) {
+                case NORTH -> onTeamWinRound(southTeam);
+                case SOUTH -> onTeamWinRound(northTeam);
+            }
+        }
     }
     
     /**

@@ -296,6 +296,7 @@ public class VoteManager implements Listener {
         ChestGui gui = guis.remove(voter.getUniqueId());
         gui.setOnClose(event -> {});
         gui.getInventory().close();
+        voter.getInventory().remove(NETHER_STAR);
     }
     
     public void executeVote() {

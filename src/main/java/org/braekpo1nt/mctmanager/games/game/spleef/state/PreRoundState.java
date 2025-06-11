@@ -17,6 +17,7 @@ public class PreRoundState extends SpleefStateBase {
             ParticipantInitializer.clearInventory(participant);
             participant.setGameMode(GameMode.ADVENTURE);
         }
+        updateAliveCount(context.getParticipants().size());
         Component roundLine = Component.empty()
                 .append(Component.text("Round "))
                 .append(Component.text(context.getCurrentRound()))

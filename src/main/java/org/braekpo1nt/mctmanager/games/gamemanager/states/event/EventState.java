@@ -52,12 +52,10 @@ public abstract class EventState extends GameManagerState {
     public CommandResult switchMode(@NotNull String mode) {
         switch (mode) {
             case "maintenance" -> {
-                onSwitchMode();
                 context.setState(new MaintenanceState(context, contextReference));
                 return CommandResult.success(Component.text("Switched to maintenance mode"));
             }
             case "practice" -> {
-                onSwitchMode();
                 context.setState(new PracticeState(context, contextReference));
                 return CommandResult.success(Component.text("Switched to practice mode"));
             }
@@ -72,11 +70,6 @@ public abstract class EventState extends GameManagerState {
             }
         }
     }
-    
-    /**
-     * Code to be run when the mode is switched
-     */
-    public abstract void onSwitchMode();
     
     @Override
     public Sidebar createSidebar() {

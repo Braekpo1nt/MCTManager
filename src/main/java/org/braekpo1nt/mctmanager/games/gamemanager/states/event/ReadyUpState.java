@@ -52,7 +52,7 @@ public class ReadyUpState extends EventState {
     
     private final ReadyUpTopbar topbar;
     private final ReadyUpManager readyUpManager;
-    private final int readyUpPromptTaskId;
+    private int readyUpPromptTaskId;
     
     public ReadyUpState(
             @NotNull GameManager context, 
@@ -61,21 +61,24 @@ public class ReadyUpState extends EventState {
             int maxGames,
             int startingGameNumber) {
         super(context, contextReference, eventConfig, startingGameNumber, maxGames);
+        this.readyUpManager = new ReadyUpManager();
+        this.topbar = new ReadyUpTopbar();
+    }
+    
+    @Override
+    public void enter() {
         context.stopAllGames();
         for (MCTParticipant participant : onlineParticipants.values()) {
             returnParticipantToHub(participant);
         }
         setupSidebar();
         sidebar.updateLine("currentGame", getCurrentGameLine());
-        this.readyUpManager = new ReadyUpManager();
         for (String teamId : teams.keySet()) {
             readyUpManager.addTeam(teamId);
         }
         for (OfflineParticipant offlineParticipant : allParticipants.values()) {
             readyUpManager.unReadyParticipant(offlineParticipant.getUniqueId(), offlineParticipant.getTeamId());
         }
-        
-        this.topbar = new ReadyUpTopbar();
         for (MCTTeam team : teams.values()) {
             topbar.addTeam(team.getTeamId(), team.getColor());
             if (readyUpManager.teamIsReady(team.getTeamId())) {
@@ -113,7 +116,7 @@ public class ReadyUpState extends EventState {
             }
         }.runTaskTimer(plugin, 0L, 2*20L).getTaskId();
         
-        PresetConfig presetConfig = eventConfig.getPreset();
+        PresetConfig presetConfig = eventData.getConfig().getPreset();
         if (presetConfig != null) {
             CommandResult commandResult = GameManagerUtils.applyPreset(
                     plugin,
@@ -127,6 +130,13 @@ public class ReadyUpState extends EventState {
                     presetConfig.isKickUnWhitelisted());
             context.messageAdmins(commandResult.getMessageOrEmpty());
         }
+    }
+    
+    @Override
+    public void exit() {
+        topbar.cleanup();
+        readyUpManager.cleanup();
+        plugin.getServer().getScheduler().cancelTask(readyUpPromptTaskId);
     }
     
     protected void setupSidebar() {
@@ -149,21 +159,6 @@ public class ReadyUpState extends EventState {
         );
         updateSidebarTeamScores();
         updateSidebarPersonalScores(onlineParticipants.values());
-    }
-    
-    @Override
-    public void cleanup() {
-        super.cleanup();
-        topbar.cleanup();
-        readyUpManager.cleanup();
-        plugin.getServer().getScheduler().cancelTask(readyUpPromptTaskId);
-    }
-    
-    @Override
-    public void onSwitchMode() {
-        topbar.cleanup();
-        readyUpManager.cleanup();
-        plugin.getServer().getScheduler().cancelTask(readyUpPromptTaskId);
     }
     
     @Override

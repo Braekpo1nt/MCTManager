@@ -708,9 +708,9 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     /**
-     * <p>Award the given points to the given participant. The points will be multiplied by 
+     * <p>Award the given points to the given participants. The points will be multiplied by 
      * {@link GameManager#getMultiplier()} before being awarded, and points will be reflected 
-     * in the participant's team as well.</p>
+     * in the participants' team as well.</p>
      * <p>{@link #sidebar} will also be updated to reflect the score. </p>
      * @param awardedParticipants the participants to be awarded personal points
      * @param points the points to be awarded (un-multiplied, base points)
@@ -722,6 +722,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             participant.awardPoints(multiplied);
             T team = teams.get(participant.getTeamId());
             team.addPoints(multiplied);
+            awardedTeams.add(team);
         }
         displayParticipantScores(awardedParticipants);
         displayTeamScores(awardedTeams);
@@ -898,6 +899,18 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         Audience.audience(
                 Audience.audience(admins),
                 Audience.audience(participants.values())
+        ).sendMessage(message);
+    }
+    
+    /**
+     * Convenience method to send the same message to all admins,
+     * and the console sender
+     * @param message the message to send
+     */
+    public void messageAdmins(@NotNull Component message) {
+        Audience.audience(
+                Audience.audience(admins),
+                plugin.getServer().getConsoleSender()
         ).sendMessage(message);
     }
     

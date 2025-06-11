@@ -46,6 +46,10 @@ public class PracticeState extends GameManagerState {
                 onlineParticipants.values().stream()
                         .filter(participant -> !isParticipantInGame(participant.getUniqueId()))
                         .toList());
+    }
+    
+    @Override
+    public void enter() {
         setupSidebar();
         PresetConfig presetConfig = config.getPractice().getPreset();
         if (presetConfig != null) {
@@ -64,8 +68,7 @@ public class PracticeState extends GameManagerState {
     }
     
     @Override
-    public void cleanup() {
-        super.cleanup();
+    public void exit() {
         practiceManager.cleanup();
     }
     
