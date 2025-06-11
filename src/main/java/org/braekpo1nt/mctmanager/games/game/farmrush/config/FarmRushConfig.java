@@ -70,6 +70,14 @@ public class FarmRushConfig {
      */
     private int maxScore;
     /**
+     * The score cap, beyond which players are not allowed to gain points from selling items.
+     * Note that if this is greater than 1 but less than {@link #maxScore}, then players
+     * will be unable to reach the max score through selling items. 
+     * If this is less than 1, then no score cap is in effect. 
+     * Defaults to -1.
+     */
+    private int scoreCap;
+    /**
      * the percentage of the {@link #maxScore} that a team can reach before 
      * the other teams are alerted that they are x% of the way there.
      * If this is negative, don't warn.

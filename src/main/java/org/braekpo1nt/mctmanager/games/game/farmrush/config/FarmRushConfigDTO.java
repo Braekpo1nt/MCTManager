@@ -66,7 +66,10 @@ class FarmRushConfigDTO implements Validatable {
      */
     private @Nullable Boolean buildArenas;
     /**
-     * The details of the arena. When generating arenas for the game, the first one placed down will have its origin at {@link ArenaDTO#getOrigin()}, and successive ones will be placed on a grid according to the defined size. Please ensure that the {@link ArenaDTO#getSize()} attribute is the correct dimensions of the {@link #arenaFile} schematic file's dimensions. 
+     * The details of the arena. When generating arenas for the game, the first one placed down will have its 
+     * origin at {@link ArenaDTO#getSchematicOrigin()}, and successive ones will be placed on a grid 
+     * according to the defined size. Please ensure that the {@link ArenaDTO#getBounds()} attribute is 
+     * the correct dimensions of the {@link #arenaFile} schematic file's dimensions. 
      */
     private ArenaDTO arena;
     private @Nullable List<Material> preventInteractions;
@@ -143,7 +146,15 @@ class FarmRushConfigDTO implements Validatable {
          * then no maximum score is set and the game will end after the time runs out.
          * Defaults to -1.
          */
-        private int maxScore = -1;
+        private @Nullable Integer maxScore;
+        /**
+         * The score cap, beyond which players are not allowed to gain points from selling items.
+         * Note that if this is greater than 1 but less than {@link #maxScore}, then players
+         * will be unable to reach the max score through selling items. 
+         * If this is less than 1, then no score cap is in effect. 
+         * Defaults to -1.
+         */
+        private @Nullable Integer scoreCap;
         /**
          * the percentage of the {@link #maxScore} that each team can reach before the
          * other teams are warned. If this is negative, no warning will be given.
@@ -233,7 +244,8 @@ class FarmRushConfigDTO implements Validatable {
                 .gameOverDuration(this.durations.gameOver)
                 .gracePeriodDuration(this.durations.gracePeriod)
                 .materialScores(this.scores.materialScores)
-                .maxScore(this.scores.maxScore)
+                .maxScore(this.scores.maxScore != null ? this.scores.maxScore : -1)
+                .scoreCap(this.scores.scoreCap != null ? this.scores.scoreCap : -1)
                 .warningThreshold(this.scores.warningThreshold)
                 .winnerBonus(this.scores.winnerBonus)
                 .doNotGiveBookDebug(this.doNotGiveBookDebug)
