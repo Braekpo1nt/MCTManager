@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.display.Display;
 import org.braekpo1nt.mctmanager.display.EdgeDisplay;
 import org.braekpo1nt.mctmanager.display.geometry.Edge;
 import org.bukkit.Color;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -90,7 +91,7 @@ class DistSubCommand extends TabSubCommand {
             return CommandResult.failure(Component.text("Only players can be shown a display"));
         }
     
-        Display display = new EdgeDisplay(new Edge(vector1, vector2), Color.FUCHSIA);
+        Display display = new EdgeDisplay(player.getWorld(), new Edge(vector1, vector2), Material.PINK_WOOL);
         plugin.getServer().getScheduler().runTaskLater(plugin, display::hide, 3*20L);
         return CommandResult.success();
     }

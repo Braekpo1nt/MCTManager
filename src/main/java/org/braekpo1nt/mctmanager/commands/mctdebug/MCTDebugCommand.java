@@ -8,22 +8,16 @@ import org.braekpo1nt.mctmanager.display.Display;
 import org.braekpo1nt.mctmanager.display.EdgeDisplay;
 import org.braekpo1nt.mctmanager.display.geometry.Edge;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
-import org.bukkit.Color;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
-import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.util.BoundingBox;
-import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.AxisAngle4f;
-import org.joml.Vector3f;
 
 import java.util.Collections;
 import java.util.List;
@@ -65,6 +59,7 @@ public class MCTDebugCommand implements TabExecutor, Listener {
         Vector min = player.getLocation().toVector();
         Vector max = player.getLocation().toVector().add(new Vector(1, 2, 3));
         Display boxDisplay = new BoxDisplay(
+                player.getWorld(), 
                 new BoundingBox(
                         min.getX(),
                         min.getY(),
@@ -72,12 +67,13 @@ public class MCTDebugCommand implements TabExecutor, Listener {
                         max.getX(), 
                         max.getY(), 
                         max.getZ()
-                )
+                ),
+                Material.GLASS
         );
-        boxDisplay.show(player.getWorld());
+        boxDisplay.show();
         
-        Display edgeDisplay = new EdgeDisplay(new Edge(min, max));
-        edgeDisplay.show(player.getWorld());
+        Display edgeDisplay = new EdgeDisplay(player.getWorld(), new Edge(min, max), Material.RED_WOOL);
+        edgeDisplay.show();
         player.sendMessage(Component.empty()
                 .append(Component.text("Creating display at min: "))
                 .append(Component.text(min.toString()))

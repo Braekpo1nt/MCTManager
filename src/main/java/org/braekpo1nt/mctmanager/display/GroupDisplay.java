@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.display;
 
-import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -18,9 +17,9 @@ public class GroupDisplay implements Display {
     }
     
     @Override
-    public void show(@NotNull World world) {
+    public void show() {
         for (Display child : children) {
-            child.show(world);
+            child.show();
         }
     }
     

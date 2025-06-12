@@ -195,7 +195,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
         if (oldDisplay != null) {
             oldDisplay.hide();
         }
-        newDisplay.show(admin.getPlayer().getWorld());
+        newDisplay.show();
     }
     
     @Override
@@ -225,7 +225,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
         admin.setCurrentPuzzle(0);
         admin.setCurrentInBound(0);
         admin.setCurrentCheckPoint(0);
-        admin.setDisplay(new BoxDisplay(new BoundingBox()));
+        admin.setDisplay(new BoxDisplay(config.getWorld(), new BoundingBox(), Material.GLASS));
         admin.getPlayer().teleport(config.getStartingLocation());
     }
     
@@ -672,11 +672,11 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
     private @NotNull Display puzzlesToDisplay(int puzzleIndex, int inBoundIndex, int checkPointIndex) {
         Preconditions.checkArgument(0 <= puzzleIndex && puzzleIndex < puzzles.size(), "index must be between [0, %s] inclusive", puzzles.size());
         Puzzle puzzle = puzzles.get(puzzleIndex);
-        GroupDisplay display = puzzleToDisplay(puzzle, IN_BOUNDS_COLOR, HIGHLIGHT_IN_BOUNDS_COLOR, DETECTION_AREA_COLOR, HIGHLIGHT_DETECTION_AREA_COLOR, RESPAWN_COLOR, inBoundIndex, checkPointIndex);
+        GroupDisplay display = puzzleToDisplay(puzzle, Material.GLASS, Material.GLASS, Material.GLASS, Material.GLASS, Material.GREEN_WOOL, inBoundIndex, checkPointIndex);
         int nextIndex = puzzleIndex + 1;
         if (nextIndex < puzzles.size()) {
             Puzzle nextPuzzle = puzzles.get(nextIndex);
-            Display nextDisplay = puzzleToDisplay(nextPuzzle, NEXT_IN_BOUNDS_COLOR, null, NEXT_DETECTION_AREA_COLOR, null, NEXT_RESPAWN_COLOR, -1, -1);
+            Display nextDisplay = puzzleToDisplay(nextPuzzle, Material.GLASS, null, Material.GLASS, null, Material.GREEN_WOOL, -1, -1);
             display.addChild(nextDisplay);
         }
         return display;
@@ -685,32 +685,32 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
     /**
      * Create a display to represent the given puzzle
      * @param puzzle the puzzle to display
-     * @param inBoundsColor the color for the puzzle's inBounds box
-     * @param detectionAreaColor the color for the puzzle's detectionArea
-     * @param highLightDetectionAreaColor the color for the puzzle's detectionArea which should be highlighted
-     * @param respawnColor the color for the puzzle's respawn point
+     * @param inBoundsMat the Material for the puzzle's inBounds box
+     * @param detectionAreaMat the Material for the puzzle's detectionArea
+     * @param highLightDetectionAreaMat the Material for the puzzle's detectionArea which should be highlighted
+     * @param respawnMat the color for the puzzle's respawn point
      * @param inBoundIndex the index of the inBounds box to highlight. -1 means don't highlight any box.
      * @param checkPointIndex the index of the checkPoint to highlight. -1 means don't highlight any checkPoint.
      * @return a Display of the given puzzle with the given colors
      */
-    private @NotNull GroupDisplay puzzleToDisplay(@NotNull Puzzle puzzle, @NotNull Color inBoundsColor, @Nullable Color highlightInBoundsColor, @NotNull Color detectionAreaColor, @Nullable Color highLightDetectionAreaColor, @NotNull Color respawnColor, int inBoundIndex, int checkPointIndex) {
+    private @NotNull GroupDisplay puzzleToDisplay(@NotNull Puzzle puzzle, @NotNull Material inBoundsMat, @Nullable Material highlightInBoundsMat, @NotNull Material detectionAreaMat, @Nullable Material highLightDetectionAreaMat, @NotNull Material respawnMat, int inBoundIndex, int checkPointIndex) {
         GroupDisplay display = new GroupDisplay();
         for (int i = 0; i < puzzle.inBounds().size(); i++) {
             BoundingBox inBound = puzzle.inBounds().get(i);
-            if (i == inBoundIndex && highlightInBoundsColor != null) {
-                display.addChild(new BoxDisplay(inBound, highlightInBoundsColor));
+            if (i == inBoundIndex && highlightInBoundsMat != null) {
+                display.addChild(new BoxDisplay(config.getWorld(), inBound, highlightInBoundsMat));
             } else {
-                display.addChild(new BoxDisplay(inBound, inBoundsColor));
+                display.addChild(new BoxDisplay(config.getWorld(), inBound, inBoundsMat));
             }
         }
         for (int i = 0; i < puzzle.checkPoints().size(); i++) {
             CheckPoint checkPoint = puzzle.checkPoints().get(i);
-            if (i == checkPointIndex && highLightDetectionAreaColor != null) {
-                display.addChild(new BoxDisplay(checkPoint.detectionArea(), highLightDetectionAreaColor));
+            if (i == checkPointIndex && highLightDetectionAreaMat != null) {
+                display.addChild(new BoxDisplay(config.getWorld(), checkPoint.detectionArea(), highLightDetectionAreaMat));
             } else {
-                display.addChild(new BoxDisplay(checkPoint.detectionArea(), detectionAreaColor));
+                display.addChild(new BoxDisplay(config.getWorld(), checkPoint.detectionArea(), detectionAreaMat));
             }
-            display.addChild(new LocationDisplay(checkPoint.respawn(), respawnColor, Material.GREEN_WOOL));
+            display.addChild(new LocationDisplay(checkPoint.respawn(), respawnMat));
         }
         
         return display;

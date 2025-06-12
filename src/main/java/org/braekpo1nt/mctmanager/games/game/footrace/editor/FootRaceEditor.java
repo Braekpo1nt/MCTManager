@@ -21,7 +21,6 @@ import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.utils.EntityUtils;
-import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
@@ -126,7 +125,7 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
     private void initializeParticipant(Player participant) {
         participants.add(participant);
         currentCheckpoints.put(participant.getUniqueId(), 0);
-        displays.put(participant.getUniqueId(), new BoxDisplay(new BoundingBox()));
+        displays.put(participant.getUniqueId(), new BoxDisplay(config.getWorld(), new BoundingBox(), Material.GLASS));
         sidebar.addPlayer(participant);
         ParticipantInitializer.clearInventory(participant);
         participant.teleport(config.getStartingLocation());
@@ -177,7 +176,7 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
     private Display checkpointsToDisplay(int checkpointIndex) {
         Preconditions.checkArgument(0 <= checkpointIndex && checkpointIndex < config.getCheckpoints().size());
         BoundingBox checkpoint = config.getCheckpoints().get(checkpointIndex);
-        return new BoxDisplay(checkpoint, Color.RED);
+        return new BoxDisplay(config.getWorld(), checkpoint, Material.RED_WOOL);
     }
     
     /**
@@ -190,7 +189,7 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
         if (oldDisplay != null) {
             oldDisplay.hide();
         }
-        newDisplay.show(participant.getWorld());
+        newDisplay.show();
     }
     
     public void giveWands(Player participant) {
