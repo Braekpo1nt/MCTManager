@@ -82,54 +82,48 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                     editInBounds(admin, -0.5);
                 })
                 .build());
-        addWand(Wand.builder()
-                .wandItem(Wand.createWandItem(Material.GLASS_PANE, "Add/Remove inBound", List.of(
-                        Component.text("Left Click: add inBound"),
-                        Component.text("Right Click: remove inBound")
-                )))
-                .onLeftClick(event -> {
-                    ParkourAdmin admin = admins.get(event.getPlayer().getUniqueId());
+        addWand(new SpecialWand<>(Material.GLASS_PANE, "Add/Remove inBound", List.of(
+                Component.text("Left Click: add inBound"),
+                Component.text("Right Click: remove inBound"))))
+                .onLeftClick((event, admin) -> {
                     Puzzle currentPuzzle = puzzles.get(admin.getCurrentPuzzle());
                     PuzzleRenderer puzzleRenderer = puzzleRenderers.get(admin.getCurrentPuzzle());
                     int numOfInBounds = currentPuzzle.getInBounds().size();
-                    admin.sendMessage(Component.text("Add inBound index ")
-                            .append(Component.text(numOfInBounds))
-                            .append(Component.text("/"))
-                            .append(Component.text(numOfInBounds + 1))
-                    );
                     BoundingBox newInBound = createInBound(admin.getPlayer().getLocation());
                     currentPuzzle.addInBound(newInBound);
                     puzzleRenderer.addInBound(newInBound);
                     selectInBound(admin, numOfInBounds);
+                    return CommandResult.success(Component.text("Add inBound index ")
+                            .append(Component.text(numOfInBounds))
+                            .append(Component.text("/"))
+                            .append(Component.text(numOfInBounds + 1))
+                    );
                 })
-                .onRightClick(event -> {
-                    ParkourAdmin admin = admins.get(event.getPlayer().getUniqueId());
+                .onRightClick((event, admin) -> {
                     Puzzle currentPuzzle = puzzles.get(admin.getCurrentPuzzle());
                     PuzzleRenderer puzzleRenderer = puzzleRenderers.get(admin.getCurrentPuzzle());
                     int numOfInBounds = currentPuzzle.getInBounds().size();
                     if (numOfInBounds == 1) {
-                        admin.sendMessage(Component.text("There must be at least 1 inBound")
+                        return CommandResult.failure(Component.text("There must be at least 1 inBound")
                                 .color(NamedTextColor.RED));
-                        return;
                     }
                     int removalIndex = admin.getCurrentInBound();
-                    admin.sendMessage(Component.text("Remove inBound index ")
+                    selectInBound(admin, 0);
+                    currentPuzzle.removeInBound(removalIndex);
+                    puzzleRenderer.removeInBound(removalIndex);
+                    return CommandResult.success(Component.text("Remove inBound index ")
                             .append(Component.text(removalIndex))
                             .append(Component.text("/"))
                             .append(Component.text(numOfInBounds - 1))
                     );
-                    selectInBound(admin, 0);
-                    currentPuzzle.removeInBound(removalIndex);
-                    puzzleRenderer.removeInBound(removalIndex);
+                });
+        addWand(new SpecialWand<>(Wand.createWandItem(Material.STICK, "test", Collections.emptyList())))
+                .onLeftClick((event, admin) -> {
+                    return CommandResult.success(Component.text("You have left clicked test"));
                 })
-                .build());
-        SpecialWand<ParkourAdmin> w = addWand(new SpecialWand<>(Wand.createWandItem(Material.STICK, "test", Collections.emptyList())));
-        w.setOnLeftClick((event, admin) -> {
-            return CommandResult.success(Component.text("You have left clicked test"));
-        });
-        w.setOnRightClick(((event, admin) -> {
-            return CommandResult.success(Component.text("YOu have right clicked test"));
-        }));
+                .onRightClick(((event, admin) -> {
+                    return CommandResult.success(Component.text("YOu have right clicked test"));
+                }));
         /*
         addWand(Wand.builder()
                 .build());
