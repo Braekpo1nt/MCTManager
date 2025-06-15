@@ -48,19 +48,19 @@ public class SpecialWand<T extends Audience> {
         this.wandItem = wandItem;
     }
     
-    public CommandResult onPlayerInteract(@NotNull PlayerInteractEvent event, @NotNull T user) {
+    public void onPlayerInteract(@NotNull PlayerInteractEvent event, @NotNull T user) {
         ItemStack usedItem = event.getItem();
         if (usedItem == null) {
-            return null;
+            return;
         }
         if (!usedItem.getType().equals(wandItem.getType())) {
-            return null;
+            return;
         }
         if (!usedItem.getItemMeta().equals(wandItem.getItemMeta())) {
-            return null;
+            return;
         }
         if (event.useItemInHand() == Event.Result.DENY) {
-            return null;
+            return;
         }
         List<CommandResult> results = new ArrayList<>();
         event.setUseItemInHand(Event.Result.DENY);
@@ -108,10 +108,9 @@ public class SpecialWand<T extends Audience> {
         CommandResult result = CompositeCommandResult.all(results);
         Component message = result.getMessage();
         if (message == null) {
-            return null;
+            return;
         }
         user.sendMessage(message);
-        return result;
     }
     
 }
