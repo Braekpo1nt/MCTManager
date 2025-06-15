@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.editor.states.EditorStateBase;
+import org.braekpo1nt.mctmanager.games.editor.wand.SpecialWand;
 import org.braekpo1nt.mctmanager.games.editor.wand.Wand;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
@@ -41,6 +42,7 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
     protected final @NotNull Map<UUID, A> admins;
     protected final @NotNull Component title;
     protected final @NotNull Collection<Wand> wands;
+    protected final @NotNull Collection<SpecialWand<A>> specialWands;
     
     protected @NotNull S state;
     
@@ -68,6 +70,7 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
         this.sidebar = gameManager.createSidebar();
         this.admins = new HashMap<>();
         this.wands = new ArrayList<>();
+        this.specialWands = new ArrayList<>();
         this.state = initialState;
     }
     
@@ -77,6 +80,11 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
      */
     protected void addWand(@NotNull Wand wand) {
         wands.add(wand);
+    }
+    
+    protected @NotNull SpecialWand<A> addWand(@NotNull SpecialWand<A> specialWand) {
+        specialWands.add(specialWand);
+        return specialWand;
     }
     
     /**
@@ -174,6 +182,7 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
         admins.put(admin.getUniqueId(), admin);
         sidebar.addPlayer(admin.getPlayer());
         admin.getPlayer().getInventory().addItem(wands.stream().map(Wand::getWandItem).toArray(ItemStack[]::new));
+        admin.getPlayer().getInventory().addItem(specialWands.stream().map(SpecialWand::getWandItem).toArray(ItemStack[]::new));
     }
     
     /**
@@ -273,6 +282,9 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
         }
         for (Wand wand : wands) {
             wand.onPlayerInteract(event);
+        }
+        for (SpecialWand<A> specialWand : specialWands) {
+            specialWand.onPlayerInteract(event, admin);
         }
         state.onAdminInteract(event, admin);
     }

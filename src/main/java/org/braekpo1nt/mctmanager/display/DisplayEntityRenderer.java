@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.display;
 
-import lombok.Builder;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.entity.Display;

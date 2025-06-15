@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.display;
 
+import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -11,21 +12,29 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
-public class BoxDisplay implements Display {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class BoxRenderer implements Renderer {
     
-    private final @NotNull World world;
+    public static List<BoxRenderer> of(@NotNull World world, @NotNull List<BoundingBox> boundingBoxes, @NotNull BlockData blockData) {
+        return boundingBoxes.stream()
+                .map(boundingBox -> new BoxRenderer(world, boundingBox, blockData))
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+    
     private final @NotNull BlockDisplayEntityRenderer normal;
     private final @NotNull BlockDisplayEntityRenderer inverted;
+    @Getter
+    private @NotNull Location location;
     
-    
-    public BoxDisplay(@NotNull World world, @NotNull BoundingBox boundingBox, @NotNull Material material) {
-        this.world = world;
+    public BoxRenderer(@NotNull World world, @NotNull BoundingBox boundingBox, @NotNull BlockData blockData) {
         Vector origin = boundingBox.getMin();
-        Location location = origin.toLocation(world);
+        this.location = origin.toLocation(world);
         Location invertedLocation = invertOrigin(origin, boundingBox.getWidthX()).toLocation(world);
         Transformation transformation = boundingBoxToTransformation(boundingBox);
         Transformation invertedTransformation = boundingBoxToTransformationInverted(boundingBox);
-        BlockData blockData = material.createBlockData();
         this.normal = new BlockDisplayEntityRenderer(
                 location,
                 transformation,
@@ -36,6 +45,10 @@ public class BoxDisplay implements Display {
                 invertedTransformation,
                 blockData
         );
+    }
+    
+    public BoxRenderer(@NotNull World world, @NotNull BoundingBox boundingBox, @NotNull Material material) {
+        this(world, boundingBox, material.createBlockData());
     }
     
     private @NotNull Transformation boundingBoxToTransformation(@NotNull BoundingBox box) {
@@ -68,14 +81,20 @@ public class BoxDisplay implements Display {
     
     public void setBoundingBox(@NotNull BoundingBox boundingBox) {
         Vector origin = boundingBox.getMin();
-        Location location = origin.toLocation(world);
-        Location invertedLocation = invertOrigin(origin, boundingBox.getWidthX()).toLocation(world);
+        this.location = origin.toLocation(location.getWorld());
+        Location invertedLocation = invertOrigin(origin, boundingBox.getWidthX())
+                .toLocation(location.getWorld());
         Transformation transformation = boundingBoxToTransformation(boundingBox);
         Transformation invertedTransformation = boundingBoxToTransformationInverted(boundingBox);
         normal.setLocation(location);
         inverted.setLocation(invertedLocation);
         normal.setTransformation(transformation);
         inverted.setTransformation(invertedTransformation);
+    }
+    
+    public void setGlowing(boolean glowing) {
+        normal.setGlowing(glowing);
+        inverted.setGlowing(glowing);
     }
     
     @Override

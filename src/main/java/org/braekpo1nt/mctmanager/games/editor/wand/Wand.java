@@ -21,7 +21,7 @@ import java.util.function.Consumer;
 public class Wand {
     
     @Getter
-    private final @NotNull ItemStack wandItem;
+    protected final @NotNull ItemStack wandItem;
     
     @Builder.Default
     private @NotNull Consumer<PlayerInteractEvent> onInteract = event -> {};
@@ -100,6 +100,7 @@ public class Wand {
             return;
         }
         if (event.useItemInHand() != Event.Result.DENY) {
+            event.setUseItemInHand(Event.Result.DENY);
             onInteract.accept(event);
             Action action = event.getAction();
             if (event.getPlayer().isSneaking()) {

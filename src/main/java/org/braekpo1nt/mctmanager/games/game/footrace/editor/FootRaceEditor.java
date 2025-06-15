@@ -8,8 +8,8 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
-import org.braekpo1nt.mctmanager.display.BoxDisplay;
-import org.braekpo1nt.mctmanager.display.Display;
+import org.braekpo1nt.mctmanager.display.BoxRenderer;
+import org.braekpo1nt.mctmanager.display.Renderer;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfigController;
@@ -46,7 +46,7 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
     private FootRaceConfig config;
     private Sidebar sidebar;
     private List<Player> participants;
-    private Map<UUID, Display> displays;
+    private Map<UUID, Renderer> displays;
     // wands
     private final ItemStack checkpointWand;
     private final ItemStack checkpointSelectWand;
@@ -125,7 +125,7 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
     private void initializeParticipant(Player participant) {
         participants.add(participant);
         currentCheckpoints.put(participant.getUniqueId(), 0);
-        displays.put(participant.getUniqueId(), new BoxDisplay(config.getWorld(), new BoundingBox(), Material.GLASS));
+        displays.put(participant.getUniqueId(), new BoxRenderer(config.getWorld(), new BoundingBox(), Material.GLASS));
         sidebar.addPlayer(participant);
         ParticipantInitializer.clearInventory(participant);
         participant.teleport(config.getStartingLocation());
@@ -169,14 +169,14 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
      */
     private void reloadDisplay(Player participant) {
         int currentCheckpoint = currentCheckpoints.get(participant.getUniqueId());
-        Display display = checkpointsToDisplay(currentCheckpoint);
+        Renderer display = checkpointsToDisplay(currentCheckpoint);
         replaceDisplay(participant, display);
     }
     
-    private Display checkpointsToDisplay(int checkpointIndex) {
+    private Renderer checkpointsToDisplay(int checkpointIndex) {
         Preconditions.checkArgument(0 <= checkpointIndex && checkpointIndex < config.getCheckpoints().size());
         BoundingBox checkpoint = config.getCheckpoints().get(checkpointIndex);
-        return new BoxDisplay(config.getWorld(), checkpoint, Material.RED_WOOL);
+        return new BoxRenderer(config.getWorld(), checkpoint, Material.RED_WOOL);
     }
     
     /**
@@ -184,8 +184,8 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
      * @param participant the participant
      * @param newDisplay the display to replace the old one with
      */
-    private void replaceDisplay(@NotNull Player participant, @NotNull Display newDisplay) {
-        Display oldDisplay = displays.put(participant.getUniqueId(), newDisplay);
+    private void replaceDisplay(@NotNull Player participant, @NotNull Renderer newDisplay) {
+        Renderer oldDisplay = displays.put(participant.getUniqueId(), newDisplay);
         if (oldDisplay != null) {
             oldDisplay.hide();
         }
@@ -226,7 +226,7 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.clearInventory(participant);
-        Display display = displays.get(participant.getUniqueId());
+        Renderer display = displays.get(participant.getUniqueId());
         sidebar.removePlayer(participant);
         if (display != null) {
             display.hide();

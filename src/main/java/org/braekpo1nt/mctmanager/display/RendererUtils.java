@@ -9,7 +9,7 @@ import org.bukkit.util.Vector;
 
 import java.util.List;
 
-public class DisplayUtils {
+public class RendererUtils {
     
     /**
      * 
@@ -36,15 +36,15 @@ public class DisplayUtils {
     }
     
     public static void displayPoints(List<Vector> points, Player viewer) {
-        DisplayUtils.displayPoints(points, viewer, 1, 1.0F, Color.RED);
+        RendererUtils.displayPoints(points, viewer, 1, 1.0F, Color.RED);
     }
     
     public static void displayPoints(List<Vector> points, Player viewer, Color color) {
-        DisplayUtils.displayPoints(points, viewer, 1, 1.0F, color);
+        RendererUtils.displayPoints(points, viewer, 1, 1.0F, color);
     }
     
     public static void displayPoints(List<Vector> points, Player viewer, int count, float size) {
-        DisplayUtils.displayPoints(points, viewer, count, size, Color.RED);
+        RendererUtils.displayPoints(points, viewer, count, size, Color.RED);
     }
     
     public static void displayPoints(List<Vector> points, Player viewer, int count, float size, Color color) {
@@ -53,7 +53,7 @@ public class DisplayUtils {
         }
     }
     
-    private DisplayUtils() {
+    private RendererUtils() {
         // do not instantiate
     }
 }

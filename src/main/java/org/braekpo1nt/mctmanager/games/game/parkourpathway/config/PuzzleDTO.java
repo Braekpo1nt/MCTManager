@@ -97,7 +97,7 @@ class PuzzleDTO implements Validatable {
     }
     
     static @NotNull PuzzleDTO fromPuzzle(Puzzle puzzle) {
-        return new PuzzleDTO(puzzle.inBounds(), CheckPointDTO.from(puzzle.checkPoints()));
+        return new PuzzleDTO(puzzle.getInBounds(), CheckPointDTO.from(puzzle.getCheckPoints()));
     }
     
     /**
@@ -160,7 +160,7 @@ class PuzzleDTO implements Validatable {
         }
         
         static CheckPointDTO from(CheckPoint checkPoint) {
-            return new CheckPointDTO(checkPoint.detectionArea(), LocationDTO.from(checkPoint.respawn()));
+            return new CheckPointDTO(checkPoint.getDetectionArea(), LocationDTO.from(checkPoint.getRespawn()));
         }
         
         static List<CheckPointDTO> from(List<CheckPoint> checkPoints) {

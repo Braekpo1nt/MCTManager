@@ -1,11 +1,13 @@
 package org.braekpo1nt.mctmanager.display;
 
+import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class EntityRenderer<T extends Entity> implements Display {
+public abstract class EntityRenderer<T extends Entity> implements Renderer {
+    @Getter
     protected @NotNull Location location;
     protected boolean glowing;
     protected @Nullable T entity;

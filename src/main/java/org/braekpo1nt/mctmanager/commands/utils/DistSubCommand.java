@@ -8,10 +8,9 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.display.Display;
-import org.braekpo1nt.mctmanager.display.EdgeDisplay;
+import org.braekpo1nt.mctmanager.display.Renderer;
+import org.braekpo1nt.mctmanager.display.EdgeRenderer;
 import org.braekpo1nt.mctmanager.display.geometry.Edge;
-import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -91,7 +90,8 @@ class DistSubCommand extends TabSubCommand {
             return CommandResult.failure(Component.text("Only players can be shown a display"));
         }
     
-        Display display = new EdgeDisplay(player.getWorld(), new Edge(vector1, vector2), Material.PINK_WOOL);
+        Renderer display = new EdgeRenderer(player.getWorld(), new Edge(vector1, vector2), Material.PINK_WOOL);
+        display.show();
         plugin.getServer().getScheduler().runTaskLater(plugin, display::hide, 3*20L);
         return CommandResult.success();
     }

@@ -35,8 +35,8 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
         context.giveSkipItem(participant, participant.getUnusedSkips());
         Location respawn = context.getConfig()
                 .getPuzzle(participant.getCurrentPuzzle())
-                .checkPoints().get(participant.getCurrentPuzzleCheckpoint())
-                .respawn();
+                .getCheckPoints().get(participant.getCurrentPuzzleCheckpoint())
+                .getRespawn();
         participant.teleport(respawn);
         context.giveBoots(participant);
         context.updateCheckpointSidebar(participant);
@@ -82,8 +82,8 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
     }
     
     private void onParticipantOutOfBounds(ParkourParticipant participant, Puzzle currentPuzzle) {
-        CheckPoint currentCheckPoint = currentPuzzle.checkPoints().get(participant.getCurrentPuzzleCheckpoint());
-        Location respawn = currentCheckPoint.respawn().setDirection(participant.getLocation().getDirection());
+        CheckPoint currentCheckPoint = currentPuzzle.getCheckPoints().get(participant.getCurrentPuzzleCheckpoint());
+        Location respawn = currentCheckPoint.getRespawn().setDirection(participant.getLocation().getDirection());
         participant.teleport(respawn);
     }
     
@@ -94,9 +94,9 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
      * @return -1 if v isn't inside the given puzzle's detection areas. Otherwise, returns the index of the puzzle's CheckPoint that v is inside.
      */
     private int participantReachedCheckPoint(Vector v, Puzzle puzzle) {
-        for (int i = 0; i < puzzle.checkPoints().size(); i++) {
-            CheckPoint nextCheckPoint = puzzle.checkPoints().get(i);
-            if (nextCheckPoint.detectionArea().contains(v)) {
+        for (int i = 0; i < puzzle.getCheckPoints().size(); i++) {
+            CheckPoint nextCheckPoint = puzzle.getCheckPoints().get(i);
+            if (nextCheckPoint.getDetectionArea().contains(v)) {
                 return i;
             }
         }
@@ -263,7 +263,7 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
         participant.setCurrentPuzzleCheckpoint(0);
         context.updateCheckpointSidebar(participant);
         Puzzle newPuzzle = config.getPuzzle(puzzleIndex);
-        participant.teleport(newPuzzle.checkPoints().getFirst().respawn());
+        participant.teleport(newPuzzle.getCheckPoints().getFirst().getRespawn());
         if (puzzleIndex >= config.getPuzzlesSize()-1) {
             onParticipantFinish(participant, false);
         } else {

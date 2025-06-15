@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.display;
 
+import lombok.Getter;
 import org.braekpo1nt.mctmanager.display.geometry.Edge;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -10,15 +11,16 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-public class EdgeDisplay implements Display {
+public class EdgeRenderer implements Renderer {
     
-    private final @NotNull World world;
     private final @NotNull BlockDisplayEntityRenderer renderer;
+    @Getter
+    private @NotNull Location location;
     
-    public EdgeDisplay(@NotNull World world, @NotNull Edge edge, @NotNull Material material) {
-        this.world = world;
+    public EdgeRenderer(@NotNull World world, @NotNull Edge edge, @NotNull Material material) {
+        this.location = edge.getA().toLocation(world);
         this.renderer = new BlockDisplayEntityRenderer(
-                edge.getA().toLocation(world), 
+                location, 
                 edgeToTransformation(edge), 
                 material.createBlockData()
         );
@@ -41,7 +43,8 @@ public class EdgeDisplay implements Display {
     }
     
     public void setEdge(@NotNull Edge edge) {
-        renderer.setLocation(edge.getA().toLocation(world));
+        this.location = edge.getA().toLocation(location.getWorld());
+        renderer.setLocation(location);
         renderer.setTransformation(edgeToTransformation(edge));
     }
     

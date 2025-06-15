@@ -1,12 +1,14 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.util.BoundingBox;
 
 /**
  * Represents a checkpoint within a puzzle.
  */
+@Getter
 @AllArgsConstructor
 public class CheckPoint {
     /**
@@ -29,13 +31,5 @@ public class CheckPoint {
      */
     public CheckPoint copy() {
         return new CheckPoint(detectionArea.clone(), respawn.clone());
-    }
-    
-    public BoundingBox detectionArea() {
-        return detectionArea;
-    }
-    
-    public Location respawn() {
-        return respawn;
     }
 }

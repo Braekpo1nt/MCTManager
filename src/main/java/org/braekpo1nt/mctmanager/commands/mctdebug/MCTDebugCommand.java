@@ -3,19 +3,14 @@ package org.braekpo1nt.mctmanager.commands.mctdebug;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.display.BoxDisplay;
-import org.braekpo1nt.mctmanager.display.Display;
-import org.braekpo1nt.mctmanager.display.EdgeDisplay;
-import org.braekpo1nt.mctmanager.display.geometry.Edge;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
-import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
-import org.bukkit.util.BoundingBox;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,44 +43,22 @@ public class MCTDebugCommand implements TabExecutor, Listener {
             return true;
         }
         
-        if (args.length != 1) {
+        if (args.length != 0) {
             sender.sendMessage(Component.text("Usage: /mctdebug <arg> [options]")
                     .color(NamedTextColor.RED));
             return true;
         }
-        String secondsStr = args[0];
-        long seconds = Long.parseLong(secondsStr);
         
-        Vector min = player.getLocation().toVector();
-        Vector max = player.getLocation().toVector().add(new Vector(1, 2, 3));
-        Display boxDisplay = new BoxDisplay(
-                player.getWorld(), 
-                new BoundingBox(
-                        min.getX(),
-                        min.getY(),
-                        min.getZ(),
-                        max.getX(), 
-                        max.getY(), 
-                        max.getZ()
-                ),
-                Material.GLASS
-        );
-        boxDisplay.show();
+        CommandResult result = CompositeCommandResult.all(
+                List.of(
+                        CommandResult.success(Component.text("First line")),
+                        CommandResult.success()
+                ));
+        Component message = result.getMessage();
+        if (message != null) {
+            player.sendMessage(message);
+        }
         
-        Display edgeDisplay = new EdgeDisplay(player.getWorld(), new Edge(min, max), Material.RED_WOOL);
-        edgeDisplay.show();
-        player.sendMessage(Component.empty()
-                .append(Component.text("Creating display at min: "))
-                .append(Component.text(min.toString()))
-                .append(Component.text(", max: "))
-                .append(Component.text(max.toString()))
-        );
-        
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            boxDisplay.hide();
-            edgeDisplay.hide();
-            player.sendMessage("Hiding display");
-        }, 20L*seconds);
         return true;
     }
     

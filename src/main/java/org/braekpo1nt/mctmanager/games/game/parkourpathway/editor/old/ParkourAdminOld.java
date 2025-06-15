@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.game.parkourpathway.editor;
+package org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.old;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -11,8 +11,9 @@ import org.jetbrains.annotations.NotNull;
 @ToString(callSuper = true)
 @Getter
 @Setter
-public class ParkourAdmin extends Admin {
+public class ParkourAdminOld extends Admin {
     
+    private Renderer display;
     /**
      * the index of the puzzle this admin is editing
      */
@@ -27,7 +28,7 @@ public class ParkourAdmin extends Admin {
      */
     private int currentCheckPoint;
     
-    public ParkourAdmin(@NotNull Player player) {
+    public ParkourAdminOld(@NotNull Player player) {
         super(player);
     }
 }

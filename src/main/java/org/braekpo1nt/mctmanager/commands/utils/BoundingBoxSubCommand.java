@@ -7,9 +7,8 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.display.BoxDisplay;
-import org.braekpo1nt.mctmanager.display.Display;
-import org.bukkit.Color;
+import org.braekpo1nt.mctmanager.display.BoxRenderer;
+import org.braekpo1nt.mctmanager.display.Renderer;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -81,7 +80,7 @@ class BoundingBoxSubCommand extends TabSubCommand {
             return CommandResult.failure(Component.text("Only players can be shown a display"));
         }
         
-        Display display = new BoxDisplay(player.getWorld(), boundingBox, Material.GLASS);
+        Renderer display = new BoxRenderer(player.getWorld(), boundingBox, Material.GLASS);
         display.show();
         plugin.getServer().getScheduler().runTaskLater(plugin, display::hide, 5*20L);
         return CommandResult.success();

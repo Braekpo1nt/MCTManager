@@ -12,44 +12,44 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class RedstoneDustDisplay {
+public class RedstoneDustRenderer {
     private static final int MAX_TICKS = 60*8*20;
     private final @NotNull Main plugin;
     private final int maxTicks;
     private @NotNull List<Vector> points;
     private @NotNull Color color;
     private int taskId;
-    private final @NotNull List<@NotNull RedstoneDustDisplay> children = new ArrayList<>();
+    private final @NotNull List<@NotNull RedstoneDustRenderer> children = new ArrayList<>();
     
-    public RedstoneDustDisplay(@NotNull Main plugin) {
+    public RedstoneDustRenderer(@NotNull Main plugin) {
         this.plugin = plugin;
         this.points = Collections.emptyList();
         this.color = Color.RED;
         this.maxTicks = MAX_TICKS;
     }
     
-    public RedstoneDustDisplay(@NotNull Main plugin, @NotNull List<@NotNull Vector> points, @NotNull Color color, int maxTicks) {
+    public RedstoneDustRenderer(@NotNull Main plugin, @NotNull List<@NotNull Vector> points, @NotNull Color color, int maxTicks) {
         this.plugin = plugin;
         this.points = points;
         this.color = color;
         this.maxTicks = maxTicks;
     }
     
-    public RedstoneDustDisplay(@NotNull Main plugin, @NotNull List<@NotNull Vector> points) {
+    public RedstoneDustRenderer(@NotNull Main plugin, @NotNull List<@NotNull Vector> points) {
         this.plugin = plugin;
         this.points = points;
         this.color = Color.RED;
         this.maxTicks = MAX_TICKS;
     }
     
-    public RedstoneDustDisplay(@NotNull Main plugin, @NotNull List<@NotNull Vector> points, @NotNull Color color) {
+    public RedstoneDustRenderer(@NotNull Main plugin, @NotNull List<@NotNull Vector> points, @NotNull Color color) {
         this.plugin = plugin;
         this.points = points;
         this.color = color;
         this.maxTicks = MAX_TICKS;
     }
     
-    public RedstoneDustDisplay(@NotNull Main plugin, @NotNull List<@NotNull Vector> points, int maxTicks) {
+    public RedstoneDustRenderer(@NotNull Main plugin, @NotNull List<@NotNull Vector> points, int maxTicks) {
         this.plugin = plugin;
         this.points = points;
         this.color = Color.RED;
@@ -64,7 +64,7 @@ public class RedstoneDustDisplay {
         this.color = color;
     }
     
-    public void addChild(@NotNull RedstoneDustDisplay child) {
+    public void addChild(@NotNull RedstoneDustRenderer child) {
         children.add(child);
     }
     
@@ -88,7 +88,7 @@ public class RedstoneDustDisplay {
                 }
             }.runTaskTimerAsynchronously(plugin, 0L, 1L).getTaskId();
         }
-        for (RedstoneDustDisplay child : children) {
+        for (RedstoneDustRenderer child : children) {
             child.show(viewer);
         }
     }
@@ -98,15 +98,15 @@ public class RedstoneDustDisplay {
      * @param viewer the player to show the Display to
      */
     private void displayPoints(Player viewer) {
-        DisplayUtils.displayPoints(points, viewer, color);
-        for (RedstoneDustDisplay child : children) {
+        RendererUtils.displayPoints(points, viewer, color);
+        for (RedstoneDustRenderer child : children) {
             child.displayPoints(viewer);
         }
     }
     
     public void hide() {
         Bukkit.getScheduler().cancelTask(taskId);
-        for (RedstoneDustDisplay child : children) {
+        for (RedstoneDustRenderer child : children) {
             child.hide();
         }
     }
