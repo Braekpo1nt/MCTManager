@@ -8,6 +8,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -62,5 +63,13 @@ public class CheckpointRenderer implements Renderer {
     public void setGlowing(boolean glowing) {
         detectionArea.setGlowing(glowing);
         respawn.setGlowing(glowing);
+    }
+    
+    public void setDetectionArea(@NotNull BoundingBox boundingBox) {
+        detectionArea.setBoundingBox(boundingBox);
+    }
+    
+    public void setRespawn(@NotNull Location location) {
+        respawn.setLocation(location);
     }
 }

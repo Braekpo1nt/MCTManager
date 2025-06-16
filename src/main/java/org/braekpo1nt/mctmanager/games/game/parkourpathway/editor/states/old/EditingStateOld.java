@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.states.old;
 
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.old.ParkourAdminOld;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.old.ParkourPathwayEditorOld;
@@ -15,7 +16,7 @@ public class EditingStateOld extends ParkourPathwayEditorStateBaseOld {
     }
     
     @Override
-    public void loadConfig(@NotNull String configFile) throws ConfigException {
+    public @NotNull CommandResult loadConfig(@NotNull String configFile) throws ConfigException {
         super.loadConfig(configFile);
         context.setPuzzles(context.getConfig().getPuzzles());
         for (ParkourAdminOld admin : context.getAdmins().values()) {

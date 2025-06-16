@@ -63,5 +63,17 @@ public class Puzzle {
     public void removeInBound(int index) {
         inBounds.remove(index);
     }
+    
+    public void addCheckPoint(CheckPoint newCheckPoint) {
+        checkPoints.add(newCheckPoint);
+    }
+    
+    public void removeCheckpoint(int index) {
+        checkPoints.remove(index);
+    }
+    
+    public CheckPoint getCheckPoint(int currentCheckPoint) {
+        return checkPoints.get(currentCheckPoint);
+    }
 }
 

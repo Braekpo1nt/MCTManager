@@ -29,8 +29,8 @@ public class BlockDisplayEntityRenderer extends DisplayEntityRenderer<BlockDispl
             false,
             Color.WHITE,
             transformation,
-            0,
-            0,
+            1,
+            1,
             blockData
         );
     }

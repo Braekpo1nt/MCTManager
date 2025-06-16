@@ -3,12 +3,17 @@ package org.braekpo1nt.mctmanager.commands.utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
+import org.braekpo1nt.mctmanager.display.LocationRenderer;
+import org.braekpo1nt.mctmanager.display.Renderer;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -20,14 +25,17 @@ import java.util.List;
 
 class LocationSubCommand extends TabSubCommand {
     
-    public LocationSubCommand(@NotNull String name) {
+    private final Main plugin;
+    
+    public LocationSubCommand(Main plugin, @NotNull String name) {
         super(name);
+        this.plugin = plugin;
     }
     
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length > 1) {
-            return CommandResult.failure(getUsage().of("[<playerName>]"));
+        if (args.length > 2) {
+            return CommandResult.failure(getUsage().of("[<playerName>]").of("[true|false]"));
         }
         
         if (args.length == 1) {
@@ -47,6 +55,18 @@ class LocationSubCommand extends TabSubCommand {
             return CommandResult.failure(Component.text("Only a player can use this command"));
         }
         displayLocation(sender, player.getLocation());
+        
+        if (args.length < 2) {
+            return CommandResult.success();
+        }
+        Boolean shouldDisplay = CommandUtils.toBoolean(args[1]);
+        if (shouldDisplay == null) {
+            return CommandResult.failure(Component.text(args[1])
+                    .append(Component.text(" is not a boolean value")));
+        }
+        Renderer display = new LocationRenderer(player.getLocation(), Material.PINK_WOOL);
+        display.show();
+        plugin.getServer().getScheduler().runTaskLater(plugin, display::hide, 5*20L);
         return CommandResult.success();
     }
     

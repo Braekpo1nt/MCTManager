@@ -18,5 +18,6 @@ public interface GameEditor extends Configurable {
     
     CommandResult configIsValid(@NotNull String configFile);
     
+    // TODO: evaluate whether this method actually throws the suggested errors
     CommandResult saveConfig(@NotNull String configFile, boolean skipValidation) throws ConfigIOException, ConfigInvalidException;
 }

@@ -11,7 +11,6 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.editor.states.EditorStateBase;
-import org.braekpo1nt.mctmanager.games.editor.wand.SpecialWand;
 import org.braekpo1nt.mctmanager.games.editor.wand.Wand;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
@@ -20,6 +19,7 @@ import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -41,9 +41,9 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
     protected final @NotNull Sidebar sidebar;
     protected final @NotNull Map<UUID, A> admins;
     protected final @NotNull Component title;
-    protected final @NotNull Collection<Wand> wands;
-    protected final @NotNull Collection<SpecialWand<A>> specialWands;
+    protected final @NotNull Collection<Wand<A>> wands;
     
+    protected @NotNull String configFile;
     protected @NotNull S state;
     
     /**
@@ -57,11 +57,13 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
      *                     exceptions. 
      */
     public EditorBase(
-            @NotNull GameType type, 
+            @NotNull GameType type,
+            @NotNull String configFile,
             @NotNull Main plugin, 
             @NotNull GameManager gameManager,
             @NotNull S initialState) {
         this.type = type;
+        this.configFile = configFile;
         this.title = Component.empty()
                 .append(Component.text("Editing: "))
                 .append(Component.text(type.getTitle()));
@@ -69,22 +71,30 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
         this.gameManager = gameManager;
         this.sidebar = gameManager.createSidebar();
         this.admins = new HashMap<>();
-        this.wands = new ArrayList<>();
-        this.specialWands = new ArrayList<>();
+        this.wands = initialWands();
         this.state = initialState;
     }
     
-    /**
-     * 
-     * @param wand the {@link Wand} to add
-     */
-    protected void addWand(@NotNull Wand wand) {
-        wands.add(wand);
+    protected @NotNull List<Wand<A>> initialWands() {
+        return new ArrayList<>(List.of(
+                new Wand<A>(Material.LIME_DYE, "Save config", List.of(
+                        Component.text("Left Click: Validate the config"),
+                        Component.text("Right Click: Save the config"),
+                        Component.text("- (Crouch to skip validation)")
+                ))
+                        .onLeftClickAir((event, admin) -> configIsValid(configFile))
+                        .onRightClickAir((event, admin) -> saveConfig(configFile, false))
+                        .onRightSneakClickAir((event, admin) -> saveConfig(configFile, true)),
+                new Wand<A>(Material.RED_DYE, "Load config", List.of(
+                        Component.text("Right Click: Load the config")
+                ))
+                        .onRightClickAir((event, admin) -> loadConfig(configFile))
+        ));
     }
     
-    protected @NotNull SpecialWand<A> addWand(@NotNull SpecialWand<A> specialWand) {
-        specialWands.add(specialWand);
-        return specialWand;
+    protected @NotNull Wand<A> addWand(@NotNull Wand<A> wand) {
+        wands.add(wand);
+        return wand;
     }
     
     /**
@@ -182,7 +192,6 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
         admins.put(admin.getUniqueId(), admin);
         sidebar.addPlayer(admin.getPlayer());
         admin.getPlayer().getInventory().addItem(wands.stream().map(Wand::getWandItem).toArray(ItemStack[]::new));
-        admin.getPlayer().getInventory().addItem(specialWands.stream().map(SpecialWand::getWandItem).toArray(ItemStack[]::new));
     }
     
     /**
@@ -214,8 +223,9 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
     
     @Override
     public CommandResult configIsValid(@NotNull String configFile) {
+        CommandResult result;
         try {
-            state.validateConfig(configFile);
+            result = state.validateConfig(configFile);
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, String.format("Error validating config for editor %s", type.getTitle()), e);
             return CommandResult.failure(Component.text("Config is not valid for ")
@@ -224,7 +234,8 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
                     .append(Component.text(". See console for details:\n"))
                     .append(Component.text(e.getMessage())));
         }
-        return CommandResult.success(Component.text("Config is valid."));
+        this.configFile = configFile;
+        return result;
     }
     
     @Override
@@ -246,7 +257,7 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
             results.add(CommandResult.success(Component.text("Skipping validation")));
         }
         try {
-            state.saveConfig(configFile);
+            results.add(state.saveConfig(configFile));
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, String.format("Error saving config for editor %s", type.getTitle()), e);
             return CommandResult.failure(Component.text("An error occurred while attempting to save the config for ")
@@ -255,14 +266,15 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
                     .append(Component.text(". See console for details:\n"))
                     .append(Component.text(e.getMessage())));
         }
-        results.add(CommandResult.success(Component.text("Config is saved.")));
+        this.configFile = configFile;
         return CompositeCommandResult.all(results);
     }
     
     @Override
     public CommandResult loadConfig(@NotNull String configFile) throws ConfigIOException, ConfigInvalidException {
+        CommandResult result;
         try {
-            state.loadConfig(configFile);
+            result = state.loadConfig(configFile);
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, String.format("Error loading config for editor %s", type.getTitle()), e);
             return CommandResult.failure(Component.text("Can't start ")
@@ -271,7 +283,8 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
                     .append(Component.text(". Error loading config file. See console for details:\n"))
                     .append(Component.text(e.getMessage())));
         }
-        return CommandResult.success(Component.text("Config loaded."));
+        this.configFile = configFile;
+        return result;
     }
     
     @EventHandler
@@ -280,12 +293,7 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
         if (admin == null) {
             return;
         }
-        for (Wand wand : wands) {
-            wand.onPlayerInteract(event);
-        }
-        for (SpecialWand<A> specialWand : specialWands) {
-            specialWand.onPlayerInteract(event, admin);
-        }
+        wands.forEach(wand -> wand.onPlayerInteract(event, admin));
         state.onAdminInteract(event, admin);
     }
 }

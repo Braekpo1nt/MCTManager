@@ -13,7 +13,7 @@ public abstract class DisplayEntityRenderer<T extends Display> extends EntityRen
     public static final Transformation NO_TRANSFORMATION = new Transformation(
             new Vector3f(),
             new Quaternionf(),
-            new Vector3f(),
+            new Vector3f(1, 1, 1),
             new Quaternionf()
     );
     

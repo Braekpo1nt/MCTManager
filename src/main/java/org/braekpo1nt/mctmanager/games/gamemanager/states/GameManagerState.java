@@ -907,6 +907,7 @@ public abstract class GameManagerState {
                         plugin,
                         context,
                         config,
+                        configFile,
                         newAdmins
                 );
             }

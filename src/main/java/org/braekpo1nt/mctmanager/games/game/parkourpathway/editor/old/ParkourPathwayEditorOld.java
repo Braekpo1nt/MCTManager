@@ -7,12 +7,12 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.display.BoxRenderer;
 import org.braekpo1nt.mctmanager.display.GroupRenderer;
 import org.braekpo1nt.mctmanager.display.LocationRenderer;
 import org.braekpo1nt.mctmanager.display.Renderer;
 import org.braekpo1nt.mctmanager.games.editor.EditorBase;
-import org.braekpo1nt.mctmanager.games.editor.wand.SpecialWand;
 import org.braekpo1nt.mctmanager.games.editor.wand.Wand;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfig;
@@ -41,7 +41,6 @@ import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -65,109 +64,6 @@ public class ParkourPathwayEditorOld extends EditorBase<ParkourAdminOld, Parkour
         super(GameType.PARKOUR_PATHWAY, plugin, gameManager, new InitialStateOld());
         this.configController = new ParkourPathwayConfigController(plugin.getDataFolder(), getType().getId());
         this.config = config;
-        addWand(Wand.builder()
-                .wandItem(SpecialWand.createWandItem(Material.STICK, "inBounds", List.of(
-                        Component.text("Left Click: push box face away"),
-                        Component.text("Right Click: pull box face toward"),
-                        Component.text("(Crouch to adjust by 0.5 blocks)")
-                )))
-                .onInteract(event -> {
-                    ParkourAdminOld admin = admins.get(event.getPlayer().getUniqueId());
-                    Action action = event.getAction();
-                    useInBoundsWand(admin, action);
-                })
-                .build());
-        addWand(Wand.builder()
-                .wandItem(SpecialWand.createWandItem(Material.STICK, "Add/Remove inBound", List.of(
-                        Component.text("Left Click: add inBound"),
-                        Component.text("Right Click: remove inBound")
-                )))
-                .onInteract(event -> {
-                    ParkourAdminOld admin = admins.get(event.getPlayer().getUniqueId());
-                    Action action = event.getAction();
-                    useAddRemoveInBoundWand(admin, action);
-                })
-                .build());
-        addWand(Wand.builder()
-                .wandItem(SpecialWand.createWandItem(Material.STICK, "detectionArea", List.of(
-                        Component.text("Left Click: push box face away"),
-                        Component.text("Right Click: pull box face toward"),
-                        Component.text("(Crouch to adjust by 0.5 blocks)")
-                )))
-                .onInteract(event -> {
-                    ParkourAdminOld admin = admins.get(event.getPlayer().getUniqueId());
-                    Action action = event.getAction();
-                    useDetectionAreaWand(admin, action);
-                })
-                .build());
-        addWand(Wand.builder()
-                .wandItem(SpecialWand.createWandItem(Material.STICK, "respawn", List.of(
-                        Component.text("Left Click: set to current Location (exact)"),
-                        Component.text("Right Click: set to current Location (rounded)"),
-                        Component.text("(Crouch to get block position)")
-                )))
-                .onInteract(event -> {
-                    ParkourAdminOld admin = admins.get(event.getPlayer().getUniqueId());
-                    Action action = event.getAction();
-                    useRespawnWand(admin, action);
-                })
-                .build());
-        addWand(Wand.builder()
-                .wandItem(SpecialWand.createWandItem(Material.STICK, "Puzzle Select", List.of(
-                        Component.text("Left Click: previous puzzle"),
-                        Component.text("Right Click: next puzzle"),
-                        Component.text("(Crouch to be teleported)")
-                )))
-                .onInteract(event -> {
-                    ParkourAdminOld admin = admins.get(event.getPlayer().getUniqueId());
-                    Action action = event.getAction();
-                    usePuzzleSelectWand(admin, action);
-                })
-                .build());
-        addWand(Wand.builder()
-                .wandItem(SpecialWand.createWandItem(Material.STICK, "inBound select", List.of(
-                        Component.text("Left Click: previous inBound"),
-                        Component.text("Right Click: next inBound")
-                )))
-                .onInteract(event -> {
-                    ParkourAdminOld admin = admins.get(event.getPlayer().getUniqueId());
-                    Action action = event.getAction();
-                    useInBoundSelectWand(admin, action);
-                })
-                .build());
-        addWand(Wand.builder()
-                .wandItem(SpecialWand.createWandItem(Material.STICK, "checkPoint Select", List.of(
-                        Component.text("Left Click: previous check point"),
-                        Component.text("Right Click: next check point")
-                )))
-                .onInteract(event -> {
-                    ParkourAdminOld admin = admins.get(event.getPlayer().getUniqueId());
-                    Action action = event.getAction();
-                    useCheckpointSelectWand(admin, action);
-                })
-                .build());
-        addWand(Wand.builder()
-                .wandItem(SpecialWand.createWandItem(Material.STICK, "Add/Remove checkPoint", List.of(
-                        Component.text("Left Click: add check point"),
-                        Component.text("Right Click: remove check point")
-                )))
-                .onInteract(event -> {
-                    ParkourAdminOld admin = admins.get(event.getPlayer().getUniqueId());
-                    Action action = event.getAction();
-                    useAddRemoveCheckPointWand(admin, action);
-                })
-                .build());
-        addWand(Wand.builder()
-                .wandItem(SpecialWand.createWandItem(Material.STICK, "Add/Remove Puzzle", List.of(
-                        Component.text("Left Click: add puzzle"),
-                        Component.text("Right Click: remove puzzle")
-                )))
-                .onInteract(event -> {
-                    ParkourAdminOld admin = admins.get(event.getPlayer().getUniqueId());
-                    Action action = event.getAction();
-                    useAddRemovePuzzleWand(admin, action);
-                })
-                .build());
         puzzles = config.getPuzzles();
         start(newAdmins);
     }
@@ -209,20 +105,8 @@ public class ParkourPathwayEditorOld extends EditorBase<ParkourAdminOld, Parkour
     }
     
     @Override
-    public void onAdminJoin(Player admin) {
-        // implement this
-        throw new UnsupportedOperationException("not yet implemented");
-    }
-    
-    @Override
     protected @NotNull ParkourAdminOld createAdmin(Player admin) {
         return new ParkourAdminOld(admin);
-    }
-    
-    @Override
-    public void onAdminQuit(UUID uuid) {
-        // implement this
-        throw new UnsupportedOperationException("not yet implemented");
     }
     
     @Override
@@ -336,7 +220,8 @@ public class ParkourPathwayEditorOld extends EditorBase<ParkourAdminOld, Parkour
         respawn.setYaw(location.getYaw());
         respawn.setPitch(location.getPitch());
         reloadDisplaysForPuzzle(admin.getCurrentPuzzle());
-        admin.sendMessage(Component.text("Set ")
+        admin.sendMessage(Component.empty()
+                .append(Component.text("Set "))
                 .append(Component.text("respawn")
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text(" to "))
@@ -362,8 +247,7 @@ public class ParkourPathwayEditorOld extends EditorBase<ParkourAdminOld, Parkour
                     admin.sendMessage(Component.text("Already at puzzle index ")
                                     .append(Component.text(admin.getCurrentPuzzle()))
                                     .append(Component.text("/"))
-                                    .append(Component.text(puzzles.size() - 1))
-                            .color(NamedTextColor.RED));
+                                    .append(Component.text(puzzles.size() - 1)));
                     return;
                 }
                 selectPuzzle(admin, admin.getCurrentPuzzle() + 1, admin.getPlayer().isSneaking());
@@ -371,8 +255,7 @@ public class ParkourPathwayEditorOld extends EditorBase<ParkourAdminOld, Parkour
             case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> {
                 if (admin.getCurrentPuzzle() == 0) {
                     admin.sendMessage(Component.text("Already at puzzle index 0/")
-                                    .append(Component.text(puzzles.size() - 1))
-                            .color(NamedTextColor.RED));
+                                    .append(Component.text(puzzles.size() - 1)));
                     return;
                 }
                 selectPuzzle(admin, admin.getCurrentPuzzle() - 1, admin.getPlayer().isSneaking());
@@ -386,7 +269,8 @@ public class ParkourPathwayEditorOld extends EditorBase<ParkourAdminOld, Parkour
         switch (action) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
                 if (admin.getCurrentInBound() == numOfInbounds - 1) {
-                    admin.sendMessage(Component.text("Already at inBound index ")
+                    admin.sendMessage(Component.empty()
+                            .append(Component.text("Already at inBound index "))
                             .append(Component.text(admin.getCurrentInBound()))
                             .append(Component.text("/"))
                             .append(Component.text(numOfInbounds - 1))
@@ -424,7 +308,7 @@ public class ParkourPathwayEditorOld extends EditorBase<ParkourAdminOld, Parkour
             }
             case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> {
                 if (admin.getCurrentCheckPoint() == 0) {
-                    admin.sendMessage(Component.text("Already at puzzle 0/")
+                    admin.sendMessage(Component.text("Already at checkpoint index 0/")
                                     .append(Component.text(numOfCheckPoints - 1))
                             .color(NamedTextColor.RED));
                     return;
@@ -442,9 +326,9 @@ public class ParkourPathwayEditorOld extends EditorBase<ParkourAdminOld, Parkour
                 admin.sendMessage(Component.text("Add check point index ")
                         .append(Component.text(numOfCheckPoints))
                         .append(Component.text("/"))
-                        .append(Component.text(numOfCheckPoints + 1))
+                        .append(Component.text(numOfCheckPoints))
                 );
-                CheckPoint newCheckPoint = createCheckPoint(admin.getPlayer().getLocation());
+                CheckPoint newCheckPoint = ParkourPathwayEditor.createCheckPoint(admin.getPlayer().getLocation());
                 currentPuzzle.getCheckPoints().add(newCheckPoint);
                 selectCheckPoint(admin, numOfCheckPoints);
             }
@@ -507,7 +391,7 @@ public class ParkourPathwayEditorOld extends EditorBase<ParkourAdminOld, Parkour
                         .append(Component.text(". Max index is now "))
                         .append(Component.text(puzzles.size() + 1))
                 );
-                Puzzle newPuzzle = createPuzzle(admin.getPlayer().getLocation());
+                Puzzle newPuzzle = ParkourPathwayEditor.createPuzzle(admin.getPlayer().getLocation());
                 puzzles.add(newPuzzleIndex, newPuzzle);
                 selectPuzzle(admin, newPuzzleIndex, false);
             }
@@ -528,37 +412,6 @@ public class ParkourPathwayEditorOld extends EditorBase<ParkourAdminOld, Parkour
                 selectPuzzle(admin, admin.getCurrentPuzzle() - 1, false);
             }
         }
-    }
-    
-    /**
-     * Create a new Puzzle at the given position
-     * @param respawn the position of the respawn within the first checkpoint of the puzzle
-     * @return a new Puzzle with a single checkpoint. inBounds will be 2x3x2.
-     * @see ParkourPathwayEditorOld#createCheckPoint(Location) 
-     */
-    private Puzzle createPuzzle(@NotNull Location respawn) {
-        Location p = respawn.toBlockLocation();
-        BoundingBox inBounds = ParkourPathwayEditor.createInBound(p);
-        CheckPoint checkPoint = createCheckPoint(p);
-        return new Puzzle(new ArrayList<>(List.of(inBounds)), new ArrayList<>(List.of(checkPoint)));
-    }
-    
-    /**
-     * Creates a basic check point at the given location
-     * @param respawn the location of the respawn for the check point
-     * @return a new check point with the given respawn and a 1x2x1 detection area
-     */
-    @NotNull
-    private static CheckPoint createCheckPoint(@NotNull Location respawn) {
-        Location p = respawn.toBlockLocation();
-        BoundingBox newDetectionArea = new BoundingBox(
-                p.getX(),
-                p.getY(),
-                p.getZ(),
-                p.getX() + 1,
-                p.getY() + 2,
-                p.getZ() + 1);
-        return new CheckPoint(newDetectionArea, p);
     }
     
     public void selectPuzzle(ParkourAdminOld admin, int puzzleIndex, boolean teleport) {
