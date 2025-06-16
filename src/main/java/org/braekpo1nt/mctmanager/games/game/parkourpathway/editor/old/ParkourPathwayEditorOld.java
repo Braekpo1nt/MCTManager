@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.display.GroupRenderer;
 import org.braekpo1nt.mctmanager.display.LocationRenderer;
 import org.braekpo1nt.mctmanager.display.Renderer;
 import org.braekpo1nt.mctmanager.games.editor.EditorBase;
+import org.braekpo1nt.mctmanager.games.editor.wand.SpecialWand;
 import org.braekpo1nt.mctmanager.games.editor.wand.Wand;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfig;
@@ -65,7 +66,7 @@ public class ParkourPathwayEditorOld extends EditorBase<ParkourAdminOld, Parkour
         this.configController = new ParkourPathwayConfigController(plugin.getDataFolder(), getType().getId());
         this.config = config;
         addWand(Wand.builder()
-                .wandItem(Wand.createWandItem(Material.STICK, "inBounds", List.of(
+                .wandItem(SpecialWand.createWandItem(Material.STICK, "inBounds", List.of(
                         Component.text("Left Click: push box face away"),
                         Component.text("Right Click: pull box face toward"),
                         Component.text("(Crouch to adjust by 0.5 blocks)")
@@ -77,7 +78,7 @@ public class ParkourPathwayEditorOld extends EditorBase<ParkourAdminOld, Parkour
                 })
                 .build());
         addWand(Wand.builder()
-                .wandItem(Wand.createWandItem(Material.STICK, "Add/Remove inBound", List.of(
+                .wandItem(SpecialWand.createWandItem(Material.STICK, "Add/Remove inBound", List.of(
                         Component.text("Left Click: add inBound"),
                         Component.text("Right Click: remove inBound")
                 )))
@@ -88,7 +89,7 @@ public class ParkourPathwayEditorOld extends EditorBase<ParkourAdminOld, Parkour
                 })
                 .build());
         addWand(Wand.builder()
-                .wandItem(Wand.createWandItem(Material.STICK, "detectionArea", List.of(
+                .wandItem(SpecialWand.createWandItem(Material.STICK, "detectionArea", List.of(
                         Component.text("Left Click: push box face away"),
                         Component.text("Right Click: pull box face toward"),
                         Component.text("(Crouch to adjust by 0.5 blocks)")
@@ -100,7 +101,7 @@ public class ParkourPathwayEditorOld extends EditorBase<ParkourAdminOld, Parkour
                 })
                 .build());
         addWand(Wand.builder()
-                .wandItem(Wand.createWandItem(Material.STICK, "respawn", List.of(
+                .wandItem(SpecialWand.createWandItem(Material.STICK, "respawn", List.of(
                         Component.text("Left Click: set to current Location (exact)"),
                         Component.text("Right Click: set to current Location (rounded)"),
                         Component.text("(Crouch to get block position)")
@@ -112,7 +113,7 @@ public class ParkourPathwayEditorOld extends EditorBase<ParkourAdminOld, Parkour
                 })
                 .build());
         addWand(Wand.builder()
-                .wandItem(Wand.createWandItem(Material.STICK, "Puzzle Select", List.of(
+                .wandItem(SpecialWand.createWandItem(Material.STICK, "Puzzle Select", List.of(
                         Component.text("Left Click: previous puzzle"),
                         Component.text("Right Click: next puzzle"),
                         Component.text("(Crouch to be teleported)")
@@ -124,7 +125,7 @@ public class ParkourPathwayEditorOld extends EditorBase<ParkourAdminOld, Parkour
                 })
                 .build());
         addWand(Wand.builder()
-                .wandItem(Wand.createWandItem(Material.STICK, "inBound select", List.of(
+                .wandItem(SpecialWand.createWandItem(Material.STICK, "inBound select", List.of(
                         Component.text("Left Click: previous inBound"),
                         Component.text("Right Click: next inBound")
                 )))
@@ -135,7 +136,7 @@ public class ParkourPathwayEditorOld extends EditorBase<ParkourAdminOld, Parkour
                 })
                 .build());
         addWand(Wand.builder()
-                .wandItem(Wand.createWandItem(Material.STICK, "checkPoint Select", List.of(
+                .wandItem(SpecialWand.createWandItem(Material.STICK, "checkPoint Select", List.of(
                         Component.text("Left Click: previous check point"),
                         Component.text("Right Click: next check point")
                 )))
@@ -146,7 +147,7 @@ public class ParkourPathwayEditorOld extends EditorBase<ParkourAdminOld, Parkour
                 })
                 .build());
         addWand(Wand.builder()
-                .wandItem(Wand.createWandItem(Material.STICK, "Add/Remove checkPoint", List.of(
+                .wandItem(SpecialWand.createWandItem(Material.STICK, "Add/Remove checkPoint", List.of(
                         Component.text("Left Click: add check point"),
                         Component.text("Right Click: remove check point")
                 )))
@@ -157,7 +158,7 @@ public class ParkourPathwayEditorOld extends EditorBase<ParkourAdminOld, Parkour
                 })
                 .build());
         addWand(Wand.builder()
-                .wandItem(Wand.createWandItem(Material.STICK, "Add/Remove Puzzle", List.of(
+                .wandItem(SpecialWand.createWandItem(Material.STICK, "Add/Remove Puzzle", List.of(
                         Component.text("Left Click: add puzzle"),
                         Component.text("Right Click: remove puzzle")
                 )))

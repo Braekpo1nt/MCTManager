@@ -4,15 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import net.kyori.adventure.text.Component;
-import org.bukkit.Material;
 import org.bukkit.event.Event;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
 import java.util.function.Consumer;
 
 @Setter
@@ -58,36 +55,6 @@ public class Wand {
     @Builder.Default
     private @NotNull Consumer<PlayerInteractEvent> onLeftSneakClickBlock = event -> {};
     
-    public Wand(@NotNull ItemStack wandItem) {
-        this.wandItem = wandItem;
-    }
-    
-    public Wand(
-            @NotNull Material material, 
-            @NotNull Component displayName, 
-            @NotNull List<Component> lore) {
-        this(createWandItem(material, displayName, lore));
-    }
-    
-    /**
-     * @param material the material
-     * @param displayName the display name
-     * @param lore the lore
-     * @return an ItemStack using the given attributes
-     */
-    public static ItemStack createWandItem(@NotNull Material material, @NotNull Component displayName, @NotNull List<Component> lore) {
-        ItemStack item = new ItemStack(material);
-        item.editMeta(meta -> {
-            meta.displayName(displayName);
-            meta.lore(lore);
-        });
-        return item;
-    }
-    
-    public static ItemStack createWandItem(@NotNull Material material, @NotNull String displayName, @NotNull List<Component> lore) {
-        return createWandItem(material, Component.text(displayName), lore);
-    }
-    
     public void onPlayerInteract(@NotNull PlayerInteractEvent event) {
         ItemStack usedItem = event.getItem();
         if (usedItem == null) {
@@ -100,7 +67,7 @@ public class Wand {
             return;
         }
         if (event.useItemInHand() != Event.Result.DENY) {
-            event.setUseItemInHand(Event.Result.DENY);
+            event.setCancelled(true);
             onInteract.accept(event);
             Action action = event.getAction();
             if (event.getPlayer().isSneaking()) {

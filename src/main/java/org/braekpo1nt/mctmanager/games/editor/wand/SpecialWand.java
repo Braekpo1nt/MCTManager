@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.games.editor.wand;
 
 import lombok.Getter;
-import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
@@ -17,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 
+@SuppressWarnings("UnusedReturnValue")
 public class SpecialWand<T extends Audience> {
     
     @Getter
@@ -49,7 +49,26 @@ public class SpecialWand<T extends Audience> {
     }
     
     public SpecialWand(@NotNull Material material, @NotNull String displayName, @NotNull List<Component> lore) {
-        this.wandItem = Wand.createWandItem(material, displayName, lore);
+        this.wandItem = createWandItem(material, displayName, lore);
+    }
+    
+    /**
+     * @param material the material
+     * @param displayName the display name
+     * @param lore the lore
+     * @return an ItemStack using the given attributes
+     */
+    public static ItemStack createWandItem(@NotNull Material material, @NotNull Component displayName, @NotNull List<Component> lore) {
+        ItemStack item = new ItemStack(material);
+        item.editMeta(meta -> {
+            meta.displayName(displayName);
+            meta.lore(lore);
+        });
+        return item;
+    }
+    
+    public static ItemStack createWandItem(@NotNull Material material, @NotNull String displayName, @NotNull List<Component> lore) {
+        return createWandItem(material, Component.text(displayName), lore);
     }
     
     public void onPlayerInteract(@NotNull PlayerInteractEvent event, @NotNull T user) {
@@ -67,7 +86,7 @@ public class SpecialWand<T extends Audience> {
             return;
         }
         List<CommandResult> results = new ArrayList<>();
-        event.setUseItemInHand(Event.Result.DENY);
+        event.setCancelled(true);
         results.add(onInteract.apply(event, user));
         Action action = event.getAction();
         if (event.getPlayer().isSneaking()) {

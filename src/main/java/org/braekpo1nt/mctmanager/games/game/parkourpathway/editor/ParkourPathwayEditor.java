@@ -60,7 +60,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
         this.puzzleRenderers = createPuzzleEdits(config);
         puzzleRenderers.forEach(PuzzleRenderer::show);
         addWand(Wand.builder()
-                .wandItem(Wand.createWandItem(Material.GLASS, "inBounds", List.of(
+                .wandItem(SpecialWand.createWandItem(Material.GLASS, "inBounds", List.of(
                         Component.text("Left Click: push box face away"),
                         Component.text("Right Click: pull box face toward"),
                         Component.text("(Crouch to adjust by 0.5 blocks)")
@@ -117,7 +117,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                             .append(Component.text(numOfInBounds - 1))
                     );
                 });
-        addWand(new SpecialWand<>(Wand.createWandItem(Material.STICK, "test", Collections.emptyList())))
+        addWand(new SpecialWand<>(SpecialWand.createWandItem(Material.STICK, "test", Collections.emptyList())))
                 .onLeftClick((event, admin) -> {
                     return CommandResult.success(Component.text("You have left clicked test"));
                 })
