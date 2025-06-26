@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourAdmin;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourPathwayEditor;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.PuzzleRenderer;
 import org.jetbrains.annotations.NotNull;
+import net.kyori.adventure.text.Component;
 
 import java.util.List;
 
@@ -44,5 +45,6 @@ public class EditingState extends ParkourPathwayEditorStateBase {
             );
             admin.sendMessage(selectResult.getMessageOrEmpty());
         }
+        return CommandResult.success(Component.text("Loaded config"));
     }
 }

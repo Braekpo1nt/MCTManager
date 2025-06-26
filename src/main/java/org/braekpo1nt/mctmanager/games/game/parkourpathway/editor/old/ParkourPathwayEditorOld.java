@@ -60,8 +60,9 @@ public class ParkourPathwayEditorOld extends EditorBase<ParkourAdminOld, Parkour
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
             @NotNull ParkourPathwayConfig config,
+            @NotNull String configFile,
             @NotNull Collection<Player> newAdmins) {
-        super(GameType.PARKOUR_PATHWAY, plugin, gameManager, new InitialStateOld());
+        super(GameType.PARKOUR_PATHWAY, configFile, plugin, gameManager, new InitialStateOld());
         this.configController = new ParkourPathwayConfigController(plugin.getDataFolder(), getType().getId());
         this.config = config;
         puzzles = config.getPuzzles();
