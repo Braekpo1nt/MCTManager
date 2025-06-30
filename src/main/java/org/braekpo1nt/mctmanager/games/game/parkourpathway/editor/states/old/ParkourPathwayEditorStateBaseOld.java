@@ -56,6 +56,7 @@ public class ParkourPathwayEditorStateBaseOld implements ParkourPathwayEditorSta
     public @NotNull CommandResult loadConfig(@NotNull String configFile) throws ConfigException {
         ParkourPathwayConfig config = context.getConfigController().getConfig(configFile);
         context.setConfig(config);
+        return CommandResult.success();
     }
     
     @Override

@@ -28,5 +28,6 @@ public class EditingStateOld extends ParkourPathwayEditorStateBaseOld {
                     false
             );
         }
+        return CommandResult.success();
     }
 }
