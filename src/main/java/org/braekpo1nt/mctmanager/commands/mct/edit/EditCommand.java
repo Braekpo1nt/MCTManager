@@ -32,7 +32,9 @@ public class EditCommand extends CommandManager {
                     return CommandResult.failure(Component.text("No editor is running."));
                 }
                 String configFile = args[0];
-                return gameManager.validateEditor(configFile);
+                CommandResult result = gameManager.validateEditor(configFile);
+                CommandUtils.refreshGameConfigs(plugin);
+                return result;
             }
             
             @Override
