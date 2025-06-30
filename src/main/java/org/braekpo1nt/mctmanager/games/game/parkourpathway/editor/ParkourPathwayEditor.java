@@ -83,7 +83,8 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                 .onLeftClick((event, admin) -> selectPuzzle(admin, admin.getCurrentPuzzle() + 1, 0, 0, false))
                 .onLeftSneakClick((event, admin) -> selectPuzzle(admin, admin.getCurrentPuzzle() + 1, 0, 0, true))
                 .onRightClick((event, admin) -> selectPuzzle(admin, admin.getCurrentPuzzle() - 1, 0, 0, false))
-                .onRightSneakClick((event, admin) -> selectPuzzle(admin, admin.getCurrentPuzzle() - 1, 0, 0, true));
+                .onRightSneakClick((event, admin) -> selectPuzzle(admin, admin.getCurrentPuzzle() - 1, 0, 0, true))
+                .onDrop((event, admin) -> CommandResult.success(Component.text("Dropped puzzle select")));
         addWand(new Wand<>(Material.TRIAL_KEY, "Add/Remove Puzzle", List.of(
                 Component.text("Left Click: add puzzle"),
                 Component.text("Right Click: remove puzzle")

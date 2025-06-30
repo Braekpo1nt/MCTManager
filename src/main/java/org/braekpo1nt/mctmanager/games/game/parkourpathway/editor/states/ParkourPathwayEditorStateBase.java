@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfig;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourAdmin;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourPathwayEditor;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -64,6 +65,11 @@ public class ParkourPathwayEditorStateBase implements ParkourPathwayEditorState 
     
     @Override
     public void onAdminInteract(PlayerInteractEvent event, ParkourAdmin admin) {
+        
+    }
+    
+    @Override
+    public void onAdminDropItem(PlayerDropItemEvent event, ParkourAdmin admin) {
         
     }
 }

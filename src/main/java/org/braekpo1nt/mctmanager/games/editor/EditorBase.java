@@ -24,6 +24,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -295,5 +296,15 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
         }
         wands.forEach(wand -> wand.onPlayerInteract(event, admin));
         state.onAdminInteract(event, admin);
+    }
+    
+    @EventHandler
+    public void onPlayerDropItem(PlayerDropItemEvent event) {
+        A admin = admins.get(event.getPlayer().getUniqueId());
+        if (admin == null) {
+            return;
+        }
+        wands.forEach(wand -> wand.onPlayerDropItem(event, admin));
+        state.onAdminDropItem(event, admin);
     }
 }

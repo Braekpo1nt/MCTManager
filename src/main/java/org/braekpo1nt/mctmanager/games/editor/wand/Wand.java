@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommand
 import org.bukkit.Material;
 import org.bukkit.event.Event;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -44,12 +45,14 @@ public class Wand<T extends Audience> {
     private @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftSneakClickAir = (event, user) -> CommandResult.success();
     private @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftSneakClickBlock = (event, user) -> CommandResult.success();
     
+    private @NotNull BiFunction<PlayerDropItemEvent, T, CommandResult> onDrop = (event, user) -> CommandResult.success();
+    
     public Wand(@NotNull ItemStack wandItem) {
         this.wandItem = wandItem;
     }
     
     public Wand(@NotNull Material material, @NotNull String displayName, @NotNull List<Component> lore) {
-        this.wandItem = createWandItem(material, displayName, lore);
+        this(createWandItem(material, displayName, lore));
     }
     
     /**
@@ -136,6 +139,26 @@ public class Wand<T extends Audience> {
         user.sendMessage(message);
     }
     
+    public void onPlayerDropItem(@NotNull PlayerDropItemEvent event, @NotNull T user) {
+        ItemStack droppedItem = event.getItemDrop().getItemStack();
+        if (!droppedItem.getType().equals(wandItem.getType())) {
+            return;
+        }
+        if (!droppedItem.getItemMeta().equals(wandItem.getItemMeta())) {
+            return;
+        }
+        if (event.isCancelled()) {
+            return;
+        }
+        event.setCancelled(true);
+        CommandResult result = onDrop.apply(event, user);
+        Component message = result.getMessage();
+        if (message == null) {
+            return;
+        }
+        user.sendMessage(message);
+    }
+    
     public Wand<T> onInteract(@NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onInteract) {
         this.onInteract = onInteract;
         return this;
@@ -198,6 +221,11 @@ public class Wand<T extends Audience> {
     
     public Wand<T> onLeftSneakClickBlock(@NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftSneakClickBlock) {
         this.onLeftSneakClickBlock = onLeftSneakClickBlock;
+        return this;
+    }
+    
+    public Wand<T> onDrop(@NotNull BiFunction<PlayerDropItemEvent, T, CommandResult> onDrop) {
+        this.onDrop = onDrop;
         return this;
     }
 }
