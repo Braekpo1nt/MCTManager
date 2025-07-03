@@ -1,6 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.editor;
 
-import org.braekpo1nt.mctmanager.display.BoxRenderer;
+import org.braekpo1nt.mctmanager.display.boundingbox.RectBoxRenderer;
 import org.braekpo1nt.mctmanager.display.Renderer;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.CheckPoint;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
@@ -14,11 +14,11 @@ import java.util.List;
 
 public class PuzzleRenderer implements Renderer {
     
-    private final List<BoxRenderer> inBounds;
+    private final List<RectBoxRenderer> inBounds;
     private final List<CheckpointRenderer> checkpoints;
     
     public PuzzleRenderer(@NotNull World world, @NotNull Puzzle puzzle) {
-        this.inBounds = BoxRenderer.of(world, puzzle.getInBounds(), Material.GLASS.createBlockData());
+        this.inBounds = RectBoxRenderer.of(world, puzzle.getInBounds(), Material.RED_STAINED_GLASS);
         this.checkpoints = CheckpointRenderer.of(world, puzzle.getCheckPoints(), Material.BLUE_STAINED_GLASS, Material.GREEN_WOOL);
     }
     
@@ -29,13 +29,13 @@ public class PuzzleRenderer implements Renderer {
     
     @Override
     public void show() {
-        inBounds.forEach(BoxRenderer::show);
+        inBounds.forEach(RectBoxRenderer::show);
         checkpoints.forEach(CheckpointRenderer::show);
     }
     
     @Override
     public void hide() {
-        inBounds.forEach(BoxRenderer::hide);
+        inBounds.forEach(RectBoxRenderer::hide);
         checkpoints.forEach(CheckpointRenderer::hide);
     }
     
@@ -71,11 +71,11 @@ public class PuzzleRenderer implements Renderer {
     }
     
     public void addInBound(BoundingBox boundingBox) {
-        BoxRenderer newInBound = new BoxRenderer(
-                getLocation().getWorld(),
-                boundingBox,
-                Material.GLASS
-        );
+        RectBoxRenderer newInBound = RectBoxRenderer.builder()
+                .world(getLocation().getWorld())
+                .boundingBox(boundingBox)
+                .blockData(Material.GLASS.createBlockData())
+                .build();
         newInBound.show();
         this.inBounds.add(
                 newInBound
@@ -83,7 +83,7 @@ public class PuzzleRenderer implements Renderer {
     }
     
     public void removeInBound(int index) {
-        BoxRenderer removed = this.inBounds.remove(index);
+        RectBoxRenderer removed = this.inBounds.remove(index);
         removed.hide();
     }
     

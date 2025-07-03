@@ -1,0 +1,19 @@
+package org.braekpo1nt.mctmanager.display.delegates;
+
+import org.braekpo1nt.mctmanager.display.Renderer;
+import org.bukkit.Color;
+import org.bukkit.entity.Display;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * The interface for any Renderer which requires the ability set attributes specific to
+ * {@link Display} entities, such as glow color and brightness
+ */
+public interface DisplayDelegate extends Renderer {
+    void setGlowColor(@NotNull Color glowColor);
+    void setBrightness(@Nullable Display.Brightness brightness);
+    void setInterpolationDuration(int interpolationDuration);
+    void setTeleportDuration(int teleportDuration);
+    void setGlowing(boolean glowing);
+}

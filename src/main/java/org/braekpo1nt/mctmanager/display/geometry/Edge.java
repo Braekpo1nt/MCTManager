@@ -1,6 +1,8 @@
 package org.braekpo1nt.mctmanager.display.geometry;
 
 import com.google.common.base.Objects;
+import org.braekpo1nt.mctmanager.utils.EntityUtils;
+import org.bukkit.Location;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -30,6 +32,17 @@ public class Edge {
     public Edge(double x1, double y1, double z1, Vector b) {
         this.a = new Vector(x1, y1, z1);
         this.b = b;
+    }
+    
+    /**
+     * @param location the location to make the edge from
+     * @param length the length (in blocks) to make the edge
+     * @return an {@link Edge} from the location to the point along the vector of length {@code length} 
+     * in the direction of the pitch and yaw of the location  
+     */
+    public static Edge from(Location location, double length) {
+        Vector direction = EntityUtils.getDirection(location).multiply(length);
+        return new Edge(location.toVector(), location.toVector().add(direction));
     }
     
     public Vector getA() {
@@ -167,6 +180,7 @@ public class Edge {
         double maxY = max.getY();
         double maxZ = max.getZ();
         
+        // vertices of the rectangular prism
         Vector a = new Vector(minX, minY, minZ);
         Vector b = new Vector(minX, minY, maxZ);
         Vector c = new Vector(maxX, minY, minZ);

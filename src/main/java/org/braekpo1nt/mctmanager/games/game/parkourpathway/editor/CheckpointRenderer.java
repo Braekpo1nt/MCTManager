@@ -1,8 +1,8 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.editor;
 
-import org.braekpo1nt.mctmanager.display.BoxRenderer;
-import org.braekpo1nt.mctmanager.display.LocationRenderer;
-import org.braekpo1nt.mctmanager.display.Renderer;
+import org.braekpo1nt.mctmanager.display.*;
+import org.braekpo1nt.mctmanager.display.boundingbox.BoundingBoxRenderer;
+import org.braekpo1nt.mctmanager.display.boundingbox.RectBoxRenderer;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.CheckPoint;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -35,12 +35,19 @@ public class CheckpointRenderer implements Renderer {
         return of(world, checkPoints, detectionAreaBlock.createBlockData(), respawnBlock.createBlockData());
     }
     
-    private final BoxRenderer detectionArea;
+    private final BoundingBoxRenderer detectionArea;
     private final LocationRenderer respawn;
     
     public CheckpointRenderer(@NotNull World world, @NotNull CheckPoint checkPoint, @NotNull BlockData detectionAreaBlock, @NotNull BlockData respawnBlock) {
-        this.detectionArea = new BoxRenderer(world, checkPoint.getDetectionArea(), detectionAreaBlock);
-        this.respawn = new LocationRenderer(checkPoint.getRespawn(), respawnBlock);
+        this.detectionArea = RectBoxRenderer.builder()
+                .world(world)
+                .boundingBox(checkPoint.getDetectionArea())
+                .blockData(detectionAreaBlock)
+                .build();
+        this.respawn = LocationRenderer.builder()
+                .location(checkPoint.getRespawn())
+                .blockData(respawnBlock)
+                .build();
     }
     
     @Override

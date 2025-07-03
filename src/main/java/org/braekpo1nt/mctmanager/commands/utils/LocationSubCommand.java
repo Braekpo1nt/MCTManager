@@ -64,7 +64,10 @@ class LocationSubCommand extends TabSubCommand {
             return CommandResult.failure(Component.text(args[1])
                     .append(Component.text(" is not a boolean value")));
         }
-        Renderer display = new LocationRenderer(player.getLocation(), Material.PINK_WOOL);
+        Renderer display = LocationRenderer.builder()
+                .location(player.getLocation())
+                .blockData(Material.PINK_WOOL.createBlockData())
+                .build();
         display.show();
         plugin.getServer().getScheduler().runTaskLater(plugin, display::hide, 5*20L);
         return CommandResult.success();

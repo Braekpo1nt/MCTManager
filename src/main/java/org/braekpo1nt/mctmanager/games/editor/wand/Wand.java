@@ -8,10 +8,11 @@ import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommand
 import org.bukkit.Material;
 import org.bukkit.event.Event;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,8 +46,6 @@ public class Wand<T extends Audience> {
     private @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftSneakClickAir = (event, user) -> CommandResult.success();
     private @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftSneakClickBlock = (event, user) -> CommandResult.success();
     
-    private @NotNull BiFunction<PlayerDropItemEvent, T, CommandResult> onDrop = (event, user) -> CommandResult.success();
-    
     public Wand(@NotNull ItemStack wandItem) {
         this.wandItem = wandItem;
     }
@@ -74,22 +73,22 @@ public class Wand<T extends Audience> {
         return createWandItem(material, Component.text(displayName), lore);
     }
     
+    @Contract("null -> false")
+    public boolean isWandItem(@Nullable ItemStack item) {
+        return item != null 
+                && item.getType().equals(wandItem.getType()) 
+                && item.getItemMeta().equals(wandItem.getItemMeta());
+    }
+    
     public void onPlayerInteract(@NotNull PlayerInteractEvent event, @NotNull T user) {
         ItemStack usedItem = event.getItem();
-        if (usedItem == null) {
-            return;
-        }
-        if (!usedItem.getType().equals(wandItem.getType())) {
-            return;
-        }
-        if (!usedItem.getItemMeta().equals(wandItem.getItemMeta())) {
+        if (!isWandItem(usedItem)) {
             return;
         }
         if (event.useItemInHand() == Event.Result.DENY) {
             return;
         }
         List<CommandResult> results = new ArrayList<>();
-        event.setCancelled(true);
         results.add(onInteract.apply(event, user));
         Action action = event.getAction();
         if (event.getPlayer().isSneaking()) {
@@ -131,27 +130,8 @@ public class Wand<T extends Audience> {
                 }
             }
         }
-        CommandResult result = CompositeCommandResult.all(results);
-        Component message = result.getMessage();
-        if (message == null) {
-            return;
-        }
-        user.sendMessage(message);
-    }
-    
-    public void onPlayerDropItem(@NotNull PlayerDropItemEvent event, @NotNull T user) {
-        ItemStack droppedItem = event.getItemDrop().getItemStack();
-        if (!droppedItem.getType().equals(wandItem.getType())) {
-            return;
-        }
-        if (!droppedItem.getItemMeta().equals(wandItem.getItemMeta())) {
-            return;
-        }
-        if (event.isCancelled()) {
-            return;
-        }
         event.setCancelled(true);
-        CommandResult result = onDrop.apply(event, user);
+        CommandResult result = CompositeCommandResult.all(results);
         Component message = result.getMessage();
         if (message == null) {
             return;
@@ -221,11 +201,6 @@ public class Wand<T extends Audience> {
     
     public Wand<T> onLeftSneakClickBlock(@NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftSneakClickBlock) {
         this.onLeftSneakClickBlock = onLeftSneakClickBlock;
-        return this;
-    }
-    
-    public Wand<T> onDrop(@NotNull BiFunction<PlayerDropItemEvent, T, CommandResult> onDrop) {
-        this.onDrop = onDrop;
         return this;
     }
 }

@@ -1,26 +1,34 @@
-package org.braekpo1nt.mctmanager.display;
+package org.braekpo1nt.mctmanager.display.boundingbox;
 
 import lombok.Getter;
+import org.braekpo1nt.mctmanager.display.delegates.BlockDisplayDelegate;
+import org.braekpo1nt.mctmanager.display.BlockDisplayEntityRenderer;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class BoxRenderer implements Renderer {
+/**
+ * Renders a BoundingBox using a single block, scaled to the size of the BoundingBox.
+ * Includes an inverted block of the same size and location so that it can be viewed from the inside. 
+ */
+public class BlockBoxRenderer implements BoundingBoxRenderer {
     
-    public static List<BoxRenderer> of(@NotNull World world, @NotNull List<BoundingBox> boundingBoxes, @NotNull BlockData blockData) {
+    public static List<BlockBoxRenderer> of(@NotNull World world, @NotNull List<BoundingBox> boundingBoxes, @NotNull BlockData blockData) {
         return boundingBoxes.stream()
-                .map(boundingBox -> new BoxRenderer(world, boundingBox, blockData))
+                .map(boundingBox -> new BlockBoxRenderer(world, boundingBox, blockData))
                 .collect(Collectors.toCollection(ArrayList::new));
     }
     
@@ -29,26 +37,29 @@ public class BoxRenderer implements Renderer {
     @Getter
     private @NotNull Location location;
     
-    public BoxRenderer(@NotNull World world, @NotNull BoundingBox boundingBox, @NotNull BlockData blockData) {
+    public BlockBoxRenderer(@NotNull World world, @NotNull BoundingBox boundingBox, @Nullable BlockData blockData) {
+        Objects.requireNonNull(world, "world can't be null");
+        Objects.requireNonNull(boundingBox, "boundingBox can't be null");
         Vector origin = boundingBox.getMin();
         this.location = origin.toLocation(world);
         Location invertedLocation = invertOrigin(origin, boundingBox.getWidthX()).toLocation(world);
         Transformation transformation = boundingBoxToTransformation(boundingBox);
         Transformation invertedTransformation = boundingBoxToTransformationInverted(boundingBox);
-        this.normal = new BlockDisplayEntityRenderer(
-                location,
-                transformation,
-                blockData
-        );
-        this.inverted = new BlockDisplayEntityRenderer(
-                invertedLocation,
-                invertedTransformation,
-                blockData
-        );
+        this.normal = BlockDisplayEntityRenderer.builder()
+                .location(location)
+                .transformation(transformation)
+                .blockData(blockData)
+                .build();
+        this.inverted = BlockDisplayEntityRenderer.builder()
+                .location(invertedLocation)
+                .transformation(invertedTransformation)
+                .blockData(blockData)
+                .build();
     }
     
-    public BoxRenderer(@NotNull World world, @NotNull BoundingBox boundingBox, @NotNull Material material) {
-        this(world, boundingBox, material.createBlockData());
+    @Override
+    public @NotNull Collection<? extends BlockDisplayDelegate> getRenderers() {
+        return List.of(normal, inverted);
     }
     
     private @NotNull Transformation boundingBoxToTransformation(@NotNull BoundingBox box) {
@@ -79,6 +90,7 @@ public class BoxRenderer implements Renderer {
         return vector.clone().add(new Vector(offset, 0, 0));
     }
     
+    @Override
     public void setBoundingBox(@NotNull BoundingBox boundingBox) {
         Vector origin = boundingBox.getMin();
         this.location = origin.toLocation(location.getWorld());
@@ -90,22 +102,5 @@ public class BoxRenderer implements Renderer {
         inverted.setLocation(invertedLocation);
         normal.setTransformation(transformation);
         inverted.setTransformation(invertedTransformation);
-    }
-    
-    public void setGlowing(boolean glowing) {
-        normal.setGlowing(glowing);
-        inverted.setGlowing(glowing);
-    }
-    
-    @Override
-    public void show() {
-        normal.show();
-        inverted.show();
-    }
-    
-    @Override
-    public void hide() {
-        normal.hide();
-        inverted.hide();
     }
 }

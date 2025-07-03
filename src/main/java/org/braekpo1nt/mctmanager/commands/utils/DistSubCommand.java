@@ -90,7 +90,11 @@ class DistSubCommand extends TabSubCommand {
             return CommandResult.failure(Component.text("Only players can be shown a display"));
         }
     
-        Renderer display = new EdgeRenderer(player.getWorld(), new Edge(vector1, vector2), Material.PINK_WOOL);
+        Renderer display = EdgeRenderer.builder()
+                .world(player.getWorld())
+                .edge(new Edge(vector1, vector2))
+                .blockData(Material.PINK_WOOL.createBlockData())
+                .build();
         display.show();
         plugin.getServer().getScheduler().runTaskLater(plugin, display::hide, 3*20L);
         return CommandResult.success();

@@ -1,8 +1,14 @@
 package org.braekpo1nt.mctmanager.display.geometry.rectangle;
 
 
+import org.braekpo1nt.mctmanager.display.RectangleRenderer;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +31,7 @@ public class YZRectangle implements Rectangle {
         this.zLength = Math.max(z1, z2) - minZ;
     }
     
+    @Override
     public @NotNull List<@NotNull Vector> toPoints(double distance) {
         List<Vector> points = new ArrayList<>();
         int numPointsY = (int) Math.ceil(yLength / distance);
@@ -43,4 +50,28 @@ public class YZRectangle implements Rectangle {
         return points;
     }
     
+    @Override
+    public @NotNull Transformation toTransformation() {
+        return new Transformation(
+                new Vector3f(), // translation relative to display location
+                new Quaternionf(), // no left rotation
+                new Vector3f(RectangleRenderer.THICKNESS, (float) yLength, (float) zLength), // YZ face, thin X
+                new Quaternionf() // no right rotation
+        );
+    }
+    
+    @Override
+    public @NotNull Location getOrigin(@NotNull World world) {
+        return new Location(world, x, minY, minZ);
+    }
+    
+    @Override
+    public @NotNull Location getCenter(@NotNull World world) {
+        return new Location(world, x, minY+yLength/2, minZ+zLength/2);
+    }
+    
+    @Override
+    public String toString() {
+        return String.format("YZ (%s, %s, %s) (%s, %s, %s)", x, minY, minZ, x, minY+yLength, minZ+zLength);
+    }
 }

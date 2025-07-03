@@ -72,12 +72,12 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
         this.gameManager = gameManager;
         this.sidebar = gameManager.createSidebar();
         this.admins = new HashMap<>();
-        this.wands = initialWands();
+        this.wands = new ArrayList<>(2);
         this.state = initialState;
     }
     
-    protected @NotNull List<Wand<A>> initialWands() {
-        return new ArrayList<>(List.of(
+    protected @NotNull List<Wand<A>> defaultWands() {
+        return List.of(
                 new Wand<A>(Material.LIME_DYE, "Save config", List.of(
                         Component.text("Left Click: Validate the config"),
                         Component.text("Right Click: Save the config"),
@@ -90,7 +90,7 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
                         Component.text("Right Click: Load the config")
                 ))
                         .onRightClickAir((event, admin) -> loadConfig(configFile))
-        ));
+        );
     }
     
     protected @NotNull Wand<A> addWand(@NotNull Wand<A> wand) {
@@ -106,6 +106,7 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
      */
     protected void start(@NotNull Collection<Player> newAdmins) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        wands.addAll(defaultWands());
         for (Player newAdmin : newAdmins) {
             A admin = createAdmin(newAdmin);
             admin.getPlayer().setGameMode(GameMode.CREATIVE);
@@ -215,6 +216,9 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
         admins.remove(uuid);
         admin.getPlayer().setGameMode(GameMode.SPECTATOR);
         _resetAdmin(admin);
+        if (admins.isEmpty()) {
+            stop();
+        }
     }
     
     @Override
@@ -304,7 +308,11 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
         if (admin == null) {
             return;
         }
-        wands.forEach(wand -> wand.onPlayerDropItem(event, admin));
+        boolean isWand = wands.stream().anyMatch(wand -> wand.isWandItem(event.getItemDrop().getItemStack()));
+        if (isWand) {
+            event.setCancelled(true);
+            return;
+        }
         state.onAdminDropItem(event, admin);
     }
 }

@@ -16,7 +16,6 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.game.footrace.editor.FootRaceEditor;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourPathwayEditor;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.old.ParkourPathwayEditorOld;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
@@ -948,8 +947,6 @@ public abstract class GameManagerState {
     public void editorIsOver(@NotNull Collection<Player> editorAdmins) {
         for (Player admin : editorAdmins) {
             onAdminReturnToHub(admin);
-            admin.teleport(config.getSpawn());
-            admin.sendMessage(Component.text("Returning to hub"));
         }
     }
     

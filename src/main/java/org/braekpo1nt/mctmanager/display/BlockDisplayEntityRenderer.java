@@ -1,42 +1,37 @@
 package org.braekpo1nt.mctmanager.display;
 
+import lombok.Builder;
+import org.braekpo1nt.mctmanager.display.delegates.BlockDisplayDelegate;
 import org.bukkit.Color;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.BlockDisplay;
+import org.bukkit.entity.Display;
 import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 
-public class BlockDisplayEntityRenderer extends DisplayEntityRenderer<BlockDisplay> {
+/**
+ * A Renderer representing a {@link BlockDisplay} entity
+ */
+public class BlockDisplayEntityRenderer extends DisplayEntityRenderer<BlockDisplay> implements BlockDisplayDelegate {
     
     private @NotNull BlockData blockData;
     
+    @Builder
     public BlockDisplayEntityRenderer(
             @NotNull Location location, 
             boolean glowing, 
-            @NotNull Color glowColor, 
-            @NotNull Transformation transformation, 
+            @Nullable Color glowColor, 
+            @Nullable Display.Brightness brightness,
+            @Nullable Transformation transformation, 
             int interpolationDuration, 
             int teleportDuration,
-            @NotNull BlockData blockData) {
-        super(location, glowing, glowColor, transformation, interpolationDuration, teleportDuration);
-        this.blockData = blockData;
-    }
-    
-    public BlockDisplayEntityRenderer(@NotNull Location location, @NotNull Transformation transformation, @NotNull BlockData blockData) {
-        this(
-            location,
-            false,
-            Color.WHITE,
-            transformation,
-            1,
-            1,
-            blockData
-        );
-    }
-    
-    public BlockDisplayEntityRenderer(@NotNull Location location, @NotNull BlockData blockData) {
-        this(location, DisplayEntityRenderer.NO_TRANSFORMATION, blockData);
+            @Nullable BlockData blockData) {
+        super(location, glowing, glowColor, brightness, transformation, interpolationDuration, teleportDuration);
+        this.blockData = (blockData != null) ? blockData : Material.GRASS_BLOCK.createBlockData();
     }
     
     @Override
@@ -50,6 +45,7 @@ public class BlockDisplayEntityRenderer extends DisplayEntityRenderer<BlockDispl
         entity.setBlock(blockData);
     }
     
+    @Override
     public void setBlockData(@NotNull BlockData blockData) {
         this.blockData = blockData;
         if (entity == null) {

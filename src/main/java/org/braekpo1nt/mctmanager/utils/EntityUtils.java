@@ -76,6 +76,30 @@ public final class EntityUtils {
     }
     
     /**
+     * @param location the location to get the direction vector from
+     * @return a normalized direction vector in the direction of the location's pitch and yaw
+     */
+    public static @NotNull Vector getDirection(@NotNull Location location) {
+        return getDirection(location.getYaw(), location.getPitch());
+    }
+    
+    /**
+     * @param yaw the yaw for the direction vector
+     * @param pitch the pitch for the direction vector
+     * @return a normalized direction vector in the direction of the given pitch and yaw
+     */
+    public static @NotNull Vector getDirection(float yaw, float pitch) {
+        double yawRad = Math.toRadians(yaw);
+        double pitchRad = Math.toRadians(pitch);
+        
+        double x = -Math.cos(pitchRad) * Math.sin(yawRad);
+        double y = -Math.sin(pitchRad);
+        double z = Math.cos(pitchRad) * Math.cos(yawRad);
+        
+        return new Vector(x, y, z).normalize();
+    }
+    
+    /**
      * If there is at least one solid block above the given entity's position,
      * teleports the entity to the position one block above the highest solid block.
      * @param entity the entity to teleport.
