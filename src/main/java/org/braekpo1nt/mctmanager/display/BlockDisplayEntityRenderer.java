@@ -11,7 +11,6 @@ import org.bukkit.entity.Display;
 import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector3f;
 
 /**
  * A Renderer representing a {@link BlockDisplay} entity
@@ -52,6 +51,11 @@ public class BlockDisplayEntityRenderer extends DisplayEntityRenderer<BlockDispl
             return;
         }
         entity.setBlock(blockData);
+    }
+    
+    @Override
+    public @NotNull BlockData getBlockData() {
+        return blockData;
     }
     
 }

@@ -9,6 +9,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
+import org.braekpo1nt.mctmanager.display.boundingbox.BoundingBoxRendererImpl;
 import org.braekpo1nt.mctmanager.games.editor.EditorBase;
 import org.braekpo1nt.mctmanager.games.editor.wand.Wand;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
@@ -91,7 +92,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                 .onLeftClick((event, admin) -> {
                     int newPuzzleIndex = admin.getCurrentPuzzle() + 1;
                     Puzzle newPuzzle = createPuzzle(admin.getPlayer().getLocation());
-                    PuzzleRenderer newPuzzleRenderer = new PuzzleRenderer(config.getWorld(), newPuzzle);
+                    PuzzleRenderer newPuzzleRenderer = new PuzzleRenderer(config.getWorld(), newPuzzle, availableTypes[inBoundsType], availableTypes[checkpointType]);
                     newPuzzleRenderer.show();
                     puzzles.add(newPuzzleIndex, newPuzzle);
                     puzzleRenderers.add(newPuzzleIndex, newPuzzleRenderer);
@@ -127,7 +128,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                                     .append(Component.text(puzzles.size() - 1)))
                     );
                 });
-        addWand(new Wand<>(Material.GLASS, "inBounds", List.of(
+        addWand(new Wand<>(PuzzleRenderer.IN_BOUND_BLOCK_HIGHLIGHTED, "inBounds", List.of(
                         Component.text("Left Click: push box face away"),
                         Component.text("Right Click: pull box face toward"),
                         Component.text("(Crouch to adjust by 0.5 blocks)")
@@ -136,7 +137,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                 .onLeftSneakClick((event, admin) -> editInBounds(admin, 0.5))
                 .onRightClick((event, admin) -> editInBounds(admin, -1.0))
                 .onRightSneakClick((event, admin) -> editInBounds(admin, -0.5));
-        addWand(new Wand<>(Material.GLASS_PANE, "Add/Remove inBound", List.of(
+        addWand(new Wand<>(PuzzleRenderer.IN_BOUND_BLOCK, "Add/Remove inBound", List.of(
                 Component.text("Left Click: add inBound"),
                 Component.text("Right Click: remove inBound"))))
                 .onLeftClick((event, admin) -> {
@@ -175,7 +176,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                                     .append(Component.text(numOfInBounds - 1))
                             ));
                 });
-        addWand(new Wand<>(Material.GLASS_PANE, "inBound select", List.of(
+        addWand(new Wand<>(PuzzleRenderer.IN_BOUND_BLOCK, "inBound select", List.of(
                 Component.text("Left Click: previous inBound"),
                 Component.text("Right Click: next inBound")
         )))
@@ -201,7 +202,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                     return selectInBound(admin, admin.getCurrentInBound() - 1);
                 });
         
-        addWand(new Wand<>(Material.BLUE_STAINED_GLASS, "detectionArea", List.of(
+        addWand(new Wand<>(PuzzleRenderer.DETECTION_AREA_BLOCK_HIGHLIGHTED, "detectionArea", List.of(
                 Component.text("Left Click: push box face away"),
                 Component.text("Right Click: pull box face toward"),
                 Component.text("(Crouch to adjust by 0.5 blocks)")
@@ -210,7 +211,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                 .onLeftSneakClick((event, admin) -> editCheckpoint(admin, 0.5))
                 .onRightClick((event, admin) -> editCheckpoint(admin, -1.0))
                 .onRightSneakClick((event, admin) -> editCheckpoint(admin, -0.5));
-        addWand(new Wand<>(Material.BLUE_STAINED_GLASS_PANE, "checkPoint Select", List.of(
+        addWand(new Wand<>(PuzzleRenderer.DETECTION_AREA_BLOCK, "checkPoint Select", List.of(
                 Component.text("Left Click: previous check point"),
                 Component.text("Right Click: next check point")
         )))
@@ -235,7 +236,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                     }
                     return selectCheckPoint(admin, admin.getCurrentCheckPoint() - 1);
                 });
-        addWand(new Wand<>(Material.BLUE_STAINED_GLASS_PANE, "Add/Remove checkPoint", List.of(
+        addWand(new Wand<>(PuzzleRenderer.DETECTION_AREA_BLOCK, "Add/Remove checkPoint", List.of(
                 Component.text("Left Click: add check point"),
                 Component.text("Right Click: remove check point")
         )))
@@ -273,7 +274,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                                     .append(Component.text(numOfCheckPoints - 1)))
                     );
                 });
-        addWand(new Wand<>(Material.GREEN_WOOL, "respawn", List.of(
+        addWand(new Wand<>(PuzzleRenderer.RESPAWN_BLOCK_HIGHLIGHTED, "respawn", List.of(
                 Component.text("Left Click: set to current Location (exact)"),
                 Component.text("Right Click: set to current Location (rounded)"),
                 Component.text("(Crouch to get block position)")
@@ -291,15 +292,46 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                                 0.5, 
                                 45F)
                                 .toBlockLocation()));
-//        addWand(new Wand<>(Material.BLUE_STAINED_GLASS, "respawn", List.of(
-//                Component.text("Left Click: set to current Location (exact)"),
-//                Component.text("Right Click: set to current Location (rounded)"),
-//                Component.text("(Crouch to get block position)")
-//        )))
-//                .onLeftClick((event, admin) -> {
-//                    
-//                });
+        addWand(new Wand<>(Material.GLASS, "Toggle Type", List.of(
+                Component.text("Left Click: cycle the display type for inBounds"),
+                Component.text("Right Click: cycle the display type for checkpoints")
+        )))
+                .onLeftClick(((event, admin) -> cycleInBoundsType()))
+                .onRightClick(((event, admin) -> cycleCheckpointType()));
         start(newAdmins);
+    }
+    
+    private int inBoundsType = 0;
+    private int checkpointType = 0;
+    private BoundingBoxRendererImpl.Type[] availableTypes = new BoundingBoxRendererImpl.Type[]{
+            BoundingBoxRendererImpl.Type.EDGE_BLOCK,
+            BoundingBoxRendererImpl.Type.EDGE
+    };
+    
+    private CommandResult cycleInBoundsType() {
+        inBoundsType++;
+        if (inBoundsType >= availableTypes.length) {
+            inBoundsType = 0;
+        }
+        BoundingBoxRendererImpl.Type typeSelection = availableTypes[inBoundsType];
+        puzzleRenderers.forEach(puzzleRenderer -> puzzleRenderer.setInBoundsType(typeSelection));
+        return CommandResult.success(Component.empty()
+                .append(Component.text("Set inBounds display type to "))
+                .append(Component.text(typeSelection.toString())
+                        .decorate(TextDecoration.BOLD)));
+    }
+    
+    private CommandResult cycleCheckpointType() {
+        checkpointType++;
+        if (checkpointType >= BoundingBoxRendererImpl.Type.values().length) {
+            checkpointType = 0;
+        }
+        BoundingBoxRendererImpl.Type typeSelection = BoundingBoxRendererImpl.Type.values()[checkpointType];
+        puzzleRenderers.forEach(puzzleRenderer -> puzzleRenderer.setCheckpointType(typeSelection));
+        return CommandResult.success(Component.empty()
+                .append(Component.text("Set checkpoints display type to "))
+                .append(Component.text(typeSelection.toString())
+                        .decorate(TextDecoration.BOLD)));
     }
     
     private CommandResult editRespawn(ParkourAdmin admin, Location respawn) {
@@ -480,7 +512,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
     
     public List<PuzzleRenderer> createPuzzleRenderers(ParkourPathwayConfig config) {
         return config.getPuzzles().stream()
-                .map(puzzle -> new PuzzleRenderer(config.getWorld(), puzzle))
+                .map(puzzle -> new PuzzleRenderer(config.getWorld(), puzzle, availableTypes[inBoundsType], availableTypes[checkpointType]))
                 .collect(Collectors.toCollection(ArrayList::new));
     }
     

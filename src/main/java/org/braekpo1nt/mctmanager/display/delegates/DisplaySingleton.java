@@ -39,6 +39,31 @@ public interface DisplaySingleton<T extends DisplayDelegate> extends DisplayDele
         getRenderer().setTeleportDuration(teleportDuration);
     }
     
+    @Override
+    default @NotNull Color getGlowColor() {
+        return getRenderer().getGlowColor();
+    }
+    
+    @Override
+    default @Nullable Display.Brightness getBrightness() {
+        return getRenderer().getBrightness();
+    }
+    
+    @Override
+    default int getInterpolationDuration() {
+        return getRenderer().getInterpolationDuration();
+    }
+    
+    @Override
+    default int getTeleportDuration() {
+        return getRenderer().getTeleportDuration();
+    }
+    
+    @Override
+    default boolean isGlowing() {
+        return getRenderer().isGlowing();
+    }
+    
     // Renderer
     @Override
     default void show() {

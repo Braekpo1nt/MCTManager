@@ -11,9 +11,17 @@ import java.util.Collection;
 /**
  * A convenience interface for implementing {@link DisplayDelegate} on a {@link Renderer} which
  * is composed of multiple {@link DisplayDelegate} renderers
+ * @param <T> The type of the primary renderer, must extend {@link DisplayDelegate}
+ *           so that it can delegate its attributes.
  */
-public interface DisplayComposite extends DisplayDelegate {
+public interface DisplayComposite<T extends DisplayDelegate> extends DisplayDelegate {
     @NotNull Collection<? extends DisplayDelegate> getRenderers();
+    
+    /**
+     * @return a single, primary renderer. Used to get attributes
+     * about this {@link DisplayDelegate}
+     */
+    @NotNull T getPrimaryRenderer();
     
     // DisplayEntityRenderer
     @Override
@@ -50,5 +58,30 @@ public interface DisplayComposite extends DisplayDelegate {
     @Override
     default void hide() {
         getRenderers().forEach(Renderer::hide);
+    }
+    
+    @Override
+    default @NotNull Color getGlowColor() {
+        return getPrimaryRenderer().getGlowColor();
+    }
+    
+    @Override
+    default @Nullable Display.Brightness getBrightness() {
+        return getPrimaryRenderer().getBrightness();
+    }
+    
+    @Override
+    default int getInterpolationDuration() {
+        return getPrimaryRenderer().getInterpolationDuration();
+    }
+    
+    @Override
+    default int getTeleportDuration() {
+        return getPrimaryRenderer().getTeleportDuration();
+    }
+    
+    @Override
+    default boolean isGlowing() {
+        return getPrimaryRenderer().isGlowing();
     }
 }

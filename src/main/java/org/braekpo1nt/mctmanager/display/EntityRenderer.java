@@ -31,6 +31,7 @@ public abstract class EntityRenderer<T extends Entity> implements Renderer {
     @Override
     public void show() {
         entity = location.getWorld().spawn(location, getClazz());
+        entity.setGlowing(glowing);
         show(entity);
     }
     

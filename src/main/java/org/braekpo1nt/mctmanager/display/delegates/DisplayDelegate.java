@@ -16,4 +16,10 @@ public interface DisplayDelegate extends Renderer {
     void setInterpolationDuration(int interpolationDuration);
     void setTeleportDuration(int teleportDuration);
     void setGlowing(boolean glowing);
+    
+    @NotNull Color getGlowColor();
+    @Nullable Display.Brightness getBrightness();
+    int getInterpolationDuration();
+    int getTeleportDuration();
+    boolean isGlowing();
 }

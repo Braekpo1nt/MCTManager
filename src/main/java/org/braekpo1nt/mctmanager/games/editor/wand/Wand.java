@@ -10,6 +10,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 @SuppressWarnings("UnusedReturnValue")
 public class Wand<T extends Audience> {
@@ -45,6 +47,11 @@ public class Wand<T extends Audience> {
     private @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftSneakClick = (event, user) -> CommandResult.success();
     private @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftSneakClickAir = (event, user) -> CommandResult.success();
     private @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftSneakClickBlock = (event, user) -> CommandResult.success();
+    
+    /**
+     * Called on every {@link #onHoldTick(PlayerInventory, Audience)}
+     */
+    private @NotNull Function<T, CommandResult> onHoldTick = (user) -> CommandResult.success();
     
     public Wand(@NotNull ItemStack wandItem) {
         this.wandItem = wandItem;
@@ -132,6 +139,26 @@ public class Wand<T extends Audience> {
         }
         event.setCancelled(true);
         CommandResult result = CompositeCommandResult.all(results);
+        Component message = result.getMessage();
+        if (message == null) {
+            return;
+        }
+        user.sendMessage(message);
+    }
+    
+    /**
+     * Called every X ticks by the controlling context when a given user is holding this wand.
+     * X is determined by the controlling context.
+     * If the item in {@link PlayerInventory#getItemInMainHand()} is this {@link Wand}'s {@link Wand#isWandItem(ItemStack)},
+     * then {@link #onHoldTick} is called. Otherwise, nothing happens.
+     * @param user the user to check if they are holding this wand, and if they are perform the {@link #onHoldTick} action
+     */
+    public void onHoldTick(@NotNull PlayerInventory userInventory, @NotNull T user) {
+        ItemStack heldItem = userInventory.getItemInMainHand();
+        if (!isWandItem(heldItem)) {
+            return;
+        }
+        CommandResult result = onHoldTick.apply(user);
         Component message = result.getMessage();
         if (message == null) {
             return;

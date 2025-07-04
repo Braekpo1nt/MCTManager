@@ -54,6 +54,13 @@ public class Edge {
     }
     
     /**
+     * @return the midpoint (center) along the edge
+     */
+    public Vector getMidPoint() {
+        return a.clone().add(b).multiply(0.5);
+    }
+    
+    /**
      * @param n the number of points to get
      * @return a list of n points along the edge, equally spaced
      */

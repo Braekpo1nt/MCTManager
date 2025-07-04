@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.display;
 
+import lombok.Getter;
 import org.braekpo1nt.mctmanager.display.delegates.DisplayDelegate;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -27,10 +28,14 @@ public abstract class DisplayEntityRenderer<T extends Display> extends EntityRen
             new Quaternionf()
     );
     
+    @Getter
     private @NotNull Color glowColor;
+    @Getter
     private @Nullable Display.Brightness brightness;
     private @NotNull Transformation transformation;
+    @Getter
     private int interpolationDuration;
+    @Getter
     private int teleportDuration;
     
     public DisplayEntityRenderer(
@@ -126,5 +131,10 @@ public abstract class DisplayEntityRenderer<T extends Display> extends EntityRen
                 scale,
                 old.getRightRotation()
         ));
+    }
+    
+    @Override
+    public boolean isGlowing() {
+        return glowing;
     }
 }

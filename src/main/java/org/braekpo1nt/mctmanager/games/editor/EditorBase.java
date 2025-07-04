@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.editor;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
@@ -27,6 +28,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -46,6 +48,7 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
     
     protected @NotNull String configFile;
     protected @NotNull S state;
+    private int wandTickTaskId;
     
     /**
      * 
@@ -99,6 +102,16 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
     }
     
     /**
+     * Kicks off a task in which every {@link Wand} in {@link #wands}'s 
+     * {@link Wand#onHoldTick(PlayerInventory, Audience)} method is called for every {@link A} in {@link #admins}
+     */
+    protected void startWandTick() {
+        this.wandTickTaskId = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            admins.values().forEach(admin -> wands.forEach(wand -> wand.onHoldTick(admin.getPlayer().getInventory(), admin)));
+        }, 0L, 10L).getTaskId();
+    }
+    
+    /**
      * <p>Call this after all fields have been initialized. 
      * This initializes all admins, 
      * and finally assigns {@link #getStartState()} to {@link #state}.</p>
@@ -117,6 +130,7 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
             initializeAdmin(admin);
         }
         _initializeSidebar();
+        startWandTick();
         this.state = getStartState();
     }
     
@@ -134,6 +148,7 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
     @Override
     public void stop() {
         HandlerList.unregisterAll(this);
+        plugin.getServer().getScheduler().cancelTask(wandTickTaskId);
         state.cleanup();
         for (A admin : admins.values()) {
             _resetAdmin(admin);

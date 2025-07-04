@@ -17,4 +17,9 @@ public interface BlockDisplaySingleton extends DisplaySingleton<BlockDisplayDele
     default void setBlockData(@NotNull BlockData blockData) {
         getRenderer().setBlockData(blockData);
     }
+    
+    @Override
+    default @NotNull BlockData getBlockData() {
+        return getRenderer().getBlockData();
+    }
 }

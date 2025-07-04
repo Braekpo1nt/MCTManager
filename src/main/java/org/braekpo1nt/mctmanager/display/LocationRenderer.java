@@ -5,6 +5,7 @@ import lombok.Getter;
 import org.braekpo1nt.mctmanager.display.delegates.BlockDisplayComposite;
 import org.braekpo1nt.mctmanager.display.delegates.BlockDisplayDelegate;
 import org.braekpo1nt.mctmanager.display.geometry.Edge;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
@@ -41,18 +42,26 @@ public class LocationRenderer implements BlockDisplayComposite {
      */
     @Builder
     public LocationRenderer(
-            @NotNull Location location, 
-            @Nullable Float scale, 
-            @Nullable Double directionLength, 
-            @Nullable Float directionStrokeWidth, 
-            @Nullable BlockData blockData, 
+            @NotNull Location location,
+            @Nullable Float scale,
+            @Nullable Double directionLength,
+            @Nullable Float directionStrokeWidth,
+            boolean glowing,
+            @Nullable Color glowColor,
+            int interpolationDuration,
+            int teleportDuration,
+            @Nullable BlockData blockData,
             @Nullable BlockData directionBlockData) {
         this.location = location;
         float scaleFactor = (scale != null) ? scale : 0.6f;
-        this.directionLength = (directionLength != null) ? directionLength : 1;
+        this.directionLength = (directionLength != null) ? directionLength : 1.2;
         this.positionRenderer = BlockDisplayEntityRenderer.builder()
                 .location(location)
                 .blockData(blockData)
+                .glowing(glowing)
+                .glowColor(glowColor)
+                .interpolationDuration(interpolationDuration)
+                .teleportDuration(teleportDuration)
                 .transformation(
                         new Transformation(
                                 new Vector3f(scaleFactor / -2f),
@@ -65,7 +74,11 @@ public class LocationRenderer implements BlockDisplayComposite {
         this.directionRenderer = EdgeRenderer.builder()
                 .world(location.getWorld())
                 .edge(Edge.from(location, this.directionLength))
-                .strokeWidth((directionStrokeWidth != null) ? directionStrokeWidth : 0.2f)
+                .strokeWidth((directionStrokeWidth != null) ? directionStrokeWidth : 0.15f)
+                .glowing(glowing)
+                .glowColor(glowColor)
+                .interpolationDuration(interpolationDuration)
+                .teleportDuration(teleportDuration)
                 .blockData((directionBlockData != null) ? directionBlockData : Material.BLUE_WOOL.createBlockData())
                 .build();
     }
@@ -101,6 +114,11 @@ public class LocationRenderer implements BlockDisplayComposite {
     @Override
     public @NotNull Collection<? extends BlockDisplayDelegate> getRenderers() {
         return List.of(positionRenderer, directionRenderer);
+    }
+    
+    @Override
+    public @NotNull BlockDisplayDelegate getPrimaryRenderer() {
+        return positionRenderer;
     }
     
     public void setLocation(@NotNull Location location) {

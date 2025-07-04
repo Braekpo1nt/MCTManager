@@ -2,11 +2,11 @@ package org.braekpo1nt.mctmanager.display.boundingbox;
 
 import lombok.Builder;
 import lombok.Getter;
-import org.braekpo1nt.mctmanager.display.delegates.BlockDisplayDelegate;
 import org.braekpo1nt.mctmanager.display.RectangleRenderer;
+import org.braekpo1nt.mctmanager.display.delegates.BlockDisplayDelegate;
 import org.braekpo1nt.mctmanager.display.geometry.rectangle.Rectangle;
+import org.bukkit.Color;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Display;
@@ -15,30 +15,14 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Displays the faces of a BoundingBox using a series of faces, rather than a single block
  */
 public class RectBoxRenderer implements BoundingBoxRenderer {
-    
-    public static List<RectBoxRenderer> of(@NotNull World world, @NotNull List<BoundingBox> boundingBoxes, @NotNull BlockData blockData) {
-        return boundingBoxes.stream()
-                .map(boundingBox -> RectBoxRenderer.builder()
-                        .world(world)
-                        .boundingBox(boundingBox)
-                        .blockData(blockData)
-                        .build())
-                .collect(Collectors.toCollection(ArrayList::new));
-    }
-    
-    public static List<RectBoxRenderer> of(@NotNull World world, @NotNull List<BoundingBox> boundingBoxes, @NotNull Material material) {
-        return of(world, boundingBoxes, material.createBlockData());
-    }
     
     @Getter
     private @NotNull Location location;
@@ -46,7 +30,15 @@ public class RectBoxRenderer implements BoundingBoxRenderer {
     private final List<RectangleRenderer> rectRenderers;
     
     @Builder
-    public RectBoxRenderer(@NotNull World world, @NotNull BoundingBox boundingBox, @Nullable Display.Brightness brightness, @NotNull BlockData blockData) {
+    public RectBoxRenderer(
+            @NotNull World world,
+            @NotNull BoundingBox boundingBox,
+            @Nullable Display.Brightness brightness,
+            boolean glowing,
+            @Nullable Color glowColor,
+            int interpolationDuration,
+            int teleportDuration,
+            @Nullable BlockData blockData) {
         Objects.requireNonNull(world, "world can't be null");
         Objects.requireNonNull(boundingBox, "boundingBox can't be null");
         Vector origin = boundingBox.getMin();
@@ -58,6 +50,10 @@ public class RectBoxRenderer implements BoundingBoxRenderer {
                         .rectangle(rect)
                         .blockData(blockData)
                         .brightness(brightness)
+                        .glowing(glowing)
+                        .glowColor(glowColor)
+                        .interpolationDuration(interpolationDuration)
+                        .teleportDuration(teleportDuration)
                         .build())
                 .toList();
     }
@@ -65,6 +61,11 @@ public class RectBoxRenderer implements BoundingBoxRenderer {
     @Override
     public @NotNull Collection<? extends BlockDisplayDelegate> getRenderers() {
         return rectRenderers;
+    }
+    
+    @Override
+    public @NotNull BlockDisplayDelegate getPrimaryRenderer() {
+        return rectRenderers.getFirst();
     }
     
     @Override

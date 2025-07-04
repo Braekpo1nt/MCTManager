@@ -5,6 +5,7 @@ import lombok.Getter;
 import org.braekpo1nt.mctmanager.display.delegates.BlockDisplayDelegate;
 import org.braekpo1nt.mctmanager.display.delegates.BlockDisplaySingleton;
 import org.braekpo1nt.mctmanager.display.geometry.rectangle.Rectangle;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
@@ -31,7 +32,15 @@ public class RectangleRenderer implements Renderer, BlockDisplaySingleton {
     private final @NotNull BlockDisplayEntityRenderer renderer;
     
     @Builder
-    public RectangleRenderer(@NotNull World world, @NotNull Rectangle rectangle, @Nullable Display.Brightness brightness, @NotNull BlockData blockData) {
+    public RectangleRenderer(
+            @NotNull World world, 
+            @NotNull Rectangle rectangle,
+            @Nullable Display.Brightness brightness,
+            boolean glowing,
+            @Nullable Color glowColor,
+            int interpolationDuration,
+            int teleportDuration,
+            @Nullable BlockData blockData) {
         Objects.requireNonNull(world, "world can't be null");
         Objects.requireNonNull(rectangle, "rectangle can't be null");
         this.location = rectangle.getOrigin(world);
@@ -39,8 +48,12 @@ public class RectangleRenderer implements Renderer, BlockDisplaySingleton {
         this.renderer = BlockDisplayEntityRenderer.builder()
                 .location(this.location)
                 .transformation(transformation)
+                .glowing(glowing)
+                .glowColor(glowColor)
                 .blockData(blockData)
                 .brightness(brightness)
+                .interpolationDuration(interpolationDuration)
+                .teleportDuration(teleportDuration)
                 .build();
     }
     

@@ -1,75 +1,67 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.editor;
 
-import org.braekpo1nt.mctmanager.display.*;
-import org.braekpo1nt.mctmanager.display.boundingbox.BoundingBoxRenderer;
-import org.braekpo1nt.mctmanager.display.boundingbox.RectBoxRenderer;
+import lombok.Builder;
+import org.braekpo1nt.mctmanager.display.LocationRenderer;
+import org.braekpo1nt.mctmanager.display.boundingbox.BoundingBoxRendererImpl;
+import org.braekpo1nt.mctmanager.display.delegates.DisplayComposite;
+import org.braekpo1nt.mctmanager.display.delegates.DisplayDelegate;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.CheckPoint;
+import org.bukkit.Color;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
-public class CheckpointRenderer implements Renderer {
+public class CheckpointRenderer implements DisplayComposite<DisplayDelegate> {
     
-    public static List<CheckpointRenderer> of(
-            @NotNull World world, 
-            @NotNull List<CheckPoint> checkPoints, 
-            @NotNull BlockData detectionAreaBlock, 
-            @NotNull BlockData respawnBlock) {
-        return checkPoints.stream()
-                .map(checkPoint -> new CheckpointRenderer(world, checkPoint, detectionAreaBlock, respawnBlock))
-                .collect(Collectors.toCollection(ArrayList::new));
-    }
-    
-    public static List<CheckpointRenderer> of(
-            @NotNull World world,
-            @NotNull List<CheckPoint> checkPoints,
-            @NotNull Material detectionAreaBlock,
-            @NotNull Material respawnBlock) {
-        return of(world, checkPoints, detectionAreaBlock.createBlockData(), respawnBlock.createBlockData());
-    }
-    
-    private final BoundingBoxRenderer detectionArea;
+    private final BoundingBoxRendererImpl detectionArea;
     private final LocationRenderer respawn;
     
-    public CheckpointRenderer(@NotNull World world, @NotNull CheckPoint checkPoint, @NotNull BlockData detectionAreaBlock, @NotNull BlockData respawnBlock) {
-        this.detectionArea = RectBoxRenderer.builder()
+    @Builder
+    public CheckpointRenderer(
+            @NotNull World world,
+            @NotNull CheckPoint checkPoint,
+            @Nullable BoundingBoxRendererImpl.Type type,
+            @NotNull Color glowColor,
+            int interpolationDuration,
+            int teleportDuration,
+            @NotNull BlockData detectionAreaBlock,
+            @NotNull BlockData respawnBlock) {
+        this.detectionArea = BoundingBoxRendererImpl.builder()
                 .world(world)
                 .boundingBox(checkPoint.getDetectionArea())
+                .type(type)
                 .blockData(detectionAreaBlock)
+                .glowColor(glowColor)
+                .interpolationDuration(interpolationDuration)
+                .teleportDuration(teleportDuration)
                 .build();
         this.respawn = LocationRenderer.builder()
                 .location(checkPoint.getRespawn())
                 .blockData(respawnBlock)
+                .interpolationDuration(interpolationDuration)
+                .teleportDuration(teleportDuration)
                 .build();
+    }
+    
+    @Override
+    public @NotNull DisplayDelegate getPrimaryRenderer() {
+        return detectionArea;
+    }
+    
+    @Override
+    public @NotNull Collection<? extends DisplayDelegate> getRenderers() {
+        return List.of(detectionArea, respawn);
     }
     
     @Override
     public @NotNull Location getLocation() {
         return respawn.getLocation();
-    }
-    
-    @Override
-    public void show() {
-        detectionArea.show();
-        respawn.show();
-    }
-    
-    @Override
-    public void hide() {
-        detectionArea.hide();
-        respawn.hide();
-    }
-    
-    public void setGlowing(boolean glowing) {
-        detectionArea.setGlowing(glowing);
-        respawn.setGlowing(glowing);
     }
     
     public void setDetectionArea(@NotNull BoundingBox boundingBox) {
@@ -78,5 +70,17 @@ public class CheckpointRenderer implements Renderer {
     
     public void setRespawn(@NotNull Location location) {
         respawn.setLocation(location);
+    }
+    
+    public void setDetectionAreaBlock(@NotNull BlockData blockData) {
+        detectionArea.setBlockData(blockData);
+    }
+    
+    public void setRespawnBlock(@NotNull BlockData blockData) {
+        respawn.setPositionBlockData(blockData);
+    }
+    
+    public void setDetectionAreaType(BoundingBoxRendererImpl.Type type) {
+        detectionArea.setType(type);
     }
 }

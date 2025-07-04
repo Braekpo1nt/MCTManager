@@ -1,11 +1,14 @@
 package org.braekpo1nt.mctmanager.display.boundingbox;
 
+import lombok.Builder;
 import lombok.Getter;
-import org.braekpo1nt.mctmanager.display.delegates.BlockDisplayDelegate;
 import org.braekpo1nt.mctmanager.display.BlockDisplayEntityRenderer;
+import org.braekpo1nt.mctmanager.display.delegates.BlockDisplayDelegate;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.entity.Display;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
@@ -14,11 +17,9 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Renders a BoundingBox using a single block, scaled to the size of the BoundingBox.
@@ -26,18 +27,21 @@ import java.util.stream.Collectors;
  */
 public class BlockBoxRenderer implements BoundingBoxRenderer {
     
-    public static List<BlockBoxRenderer> of(@NotNull World world, @NotNull List<BoundingBox> boundingBoxes, @NotNull BlockData blockData) {
-        return boundingBoxes.stream()
-                .map(boundingBox -> new BlockBoxRenderer(world, boundingBox, blockData))
-                .collect(Collectors.toCollection(ArrayList::new));
-    }
-    
     private final @NotNull BlockDisplayEntityRenderer normal;
     private final @NotNull BlockDisplayEntityRenderer inverted;
     @Getter
     private @NotNull Location location;
     
-    public BlockBoxRenderer(@NotNull World world, @NotNull BoundingBox boundingBox, @Nullable BlockData blockData) {
+    @Builder
+    public BlockBoxRenderer(
+            @NotNull World world, 
+            @NotNull BoundingBox boundingBox,
+            @Nullable Display.Brightness brightness,
+            boolean glowing,
+            @Nullable Color glowColor,
+            int interpolationDuration,
+            int teleportDuration,
+            @Nullable BlockData blockData) {
         Objects.requireNonNull(world, "world can't be null");
         Objects.requireNonNull(boundingBox, "boundingBox can't be null");
         Vector origin = boundingBox.getMin();
@@ -49,17 +53,32 @@ public class BlockBoxRenderer implements BoundingBoxRenderer {
                 .location(location)
                 .transformation(transformation)
                 .blockData(blockData)
+                .brightness(brightness)
+                .glowing(glowing)
+                .glowColor(glowColor)
+                .interpolationDuration(interpolationDuration)
+                .teleportDuration(teleportDuration)
                 .build();
         this.inverted = BlockDisplayEntityRenderer.builder()
                 .location(invertedLocation)
                 .transformation(invertedTransformation)
                 .blockData(blockData)
+                .brightness(brightness)
+                .glowing(glowing)
+                .glowColor(glowColor)
+                .interpolationDuration(interpolationDuration)
+                .teleportDuration(teleportDuration)
                 .build();
     }
     
     @Override
     public @NotNull Collection<? extends BlockDisplayDelegate> getRenderers() {
         return List.of(normal, inverted);
+    }
+    
+    @Override
+    public @NotNull BlockDisplayDelegate getPrimaryRenderer() {
+        return normal;
     }
     
     private @NotNull Transformation boundingBoxToTransformation(@NotNull BoundingBox box) {
