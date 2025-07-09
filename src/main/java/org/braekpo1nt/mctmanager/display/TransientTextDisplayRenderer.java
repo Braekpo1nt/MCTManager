@@ -4,8 +4,8 @@ import lombok.Builder;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.display.delegates.DisplayDelegate;
 import org.braekpo1nt.mctmanager.display.delegates.DisplaySingleton;
-import org.braekpo1nt.mctmanager.display.delegates.TextDisplayDelegate;
-import org.braekpo1nt.mctmanager.display.delegates.TextDisplaySingleton;
+import org.braekpo1nt.mctmanager.display.delegates.HasText;
+import org.braekpo1nt.mctmanager.display.delegates.HasTextSingleton;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.entity.Display;
@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
  * Designed to take up as few resources as possible by deleting the entity if
  * the text is set to null. 
  */
-public class TransientTextDisplayRenderer implements DisplaySingleton, TextDisplaySingleton {
+public class TransientTextDisplayRenderer implements DisplaySingleton, HasTextSingleton {
     
     private final TextDisplayEntityRenderer renderer;
     private @Nullable Component text;
@@ -56,7 +56,7 @@ public class TransientTextDisplayRenderer implements DisplaySingleton, TextDispl
     }
     
     @Override
-    public @NotNull TextDisplayDelegate getTextDisplay() {
+    public @NotNull HasText getHasText() {
         return renderer;
     }
     

@@ -23,5 +23,8 @@ public interface HasBlockData {
         setBlockData(material.createBlockData());
     }
     
+    /**
+     * @return the BlockData this implementation has
+     */
     @NotNull BlockData getBlockData();
 }

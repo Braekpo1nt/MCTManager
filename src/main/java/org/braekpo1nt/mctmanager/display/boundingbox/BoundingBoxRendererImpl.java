@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
  * A Renderer for displaying BoundingBoxes, which can shift between multiple types of display
  * (e.g. wireframe, faces, inverted, etc.)
  */
-public class BoundingBoxRendererImpl implements BoundingBoxRenderer, DisplaySingleton, HasBlockDataSingleton, TextDisplaySingleton {
+public class BoundingBoxRendererImpl implements BoundingBoxRenderer, DisplaySingleton, HasBlockDataSingleton, HasTextSingleton {
     
     private @NotNull BoundingBoxRenderer state;
     
@@ -214,7 +214,7 @@ public class BoundingBoxRendererImpl implements BoundingBoxRenderer, DisplaySing
     }
     
     @Override
-    public @NotNull TextDisplayDelegate getTextDisplay() {
+    public @NotNull HasText getHasText() {
         return titleRenderer;
     }
     

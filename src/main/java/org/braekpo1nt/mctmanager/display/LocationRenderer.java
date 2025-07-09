@@ -21,7 +21,7 @@ import java.util.List;
 /**
  * A Renderer to display a {@link org.bukkit.Location}
  */
-public class LocationRenderer implements HasBlockDataSingleton, DisplayComposite, TextDisplaySingleton {
+public class LocationRenderer implements HasBlockDataSingleton, DisplayComposite, HasTextSingleton {
     
     /**
      * The default length (in blocks) of the direction vector edge renderer
@@ -166,7 +166,7 @@ public class LocationRenderer implements HasBlockDataSingleton, DisplayComposite
     
     
     @Override
-    public @NotNull TextDisplayDelegate getTextDisplay() {
+    public @NotNull HasText getHasText() {
         return titleRenderer;
     }
 }

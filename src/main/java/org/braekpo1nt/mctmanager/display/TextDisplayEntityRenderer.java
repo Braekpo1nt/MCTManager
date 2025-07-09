@@ -2,7 +2,7 @@ package org.braekpo1nt.mctmanager.display;
 
 import lombok.Builder;
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.display.delegates.TextDisplayDelegate;
+import org.braekpo1nt.mctmanager.display.delegates.HasText;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.entity.Display;
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A Renderer representing a {@link TextDisplay} entity
  */
-public class TextDisplayEntityRenderer extends DisplayEntityRenderer<TextDisplay> implements TextDisplayDelegate {
+public class TextDisplayEntityRenderer extends DisplayEntityRenderer<TextDisplay> implements HasText {
     
     private @NotNull Component text;
     

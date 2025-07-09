@@ -12,8 +12,15 @@ import java.util.Collection;
  */
 public interface HasBlockDataComposite extends HasBlockDataSingleton {
     
+    /**
+     * @return all the {@link HasBlockData} implementations that make up this composite
+     */
     @NotNull Collection<? extends HasBlockData> getHasBlockDatas();
     
+    /**
+     * Sets the BlockData for all {@link #getHasBlockDatas()}
+     * @param blockData The BlockData for the {@link org.bukkit.entity.BlockDisplay}
+     */
     @Override
     default void setBlockData(@NotNull BlockData blockData) {
         getHasBlockDatas().forEach(r -> r.setBlockData(blockData));

@@ -7,8 +7,8 @@ import org.braekpo1nt.mctmanager.display.TransientTextDisplayRenderer;
 import org.braekpo1nt.mctmanager.display.boundingbox.BoundingBoxRendererImpl;
 import org.braekpo1nt.mctmanager.display.delegates.DisplayComposite;
 import org.braekpo1nt.mctmanager.display.delegates.DisplayDelegate;
-import org.braekpo1nt.mctmanager.display.delegates.TextDisplayDelegate;
-import org.braekpo1nt.mctmanager.display.delegates.TextDisplaySingleton;
+import org.braekpo1nt.mctmanager.display.delegates.HasText;
+import org.braekpo1nt.mctmanager.display.delegates.HasTextSingleton;
 import org.braekpo1nt.mctmanager.display.geometry.Edge;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 
-public class CheckpointRenderer implements DisplayComposite, TextDisplaySingleton {
+public class CheckpointRenderer implements DisplayComposite, HasTextSingleton {
     private @NotNull BoundingBox detectionArea;
     private final double length;
     private final BoundingBoxRendererImpl detectionAreaRenderer;
@@ -89,7 +89,7 @@ public class CheckpointRenderer implements DisplayComposite, TextDisplaySingleto
     }
     
     @Override
-    public @NotNull TextDisplayDelegate getTextDisplay() {
+    public @NotNull HasText getHasText() {
         return title;
     }
     

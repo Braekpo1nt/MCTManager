@@ -10,14 +10,19 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface HasBlockDataSingleton extends HasBlockData {
     
+    /**
+     * @return the {@link HasBlockData} implementation that makes up this singleton
+     */
     @NotNull
     HasBlockData getHasBlockData();
     
+    /** {@inheritDoc} */
     @Override
     default void setBlockData(@NotNull BlockData blockData) {
         getHasBlockData().setBlockData(blockData);
     }
     
+    /** {@inheritDoc} */
     @Override
     default @NotNull BlockData getBlockData() {
         return getHasBlockData().getBlockData();
