@@ -2,8 +2,9 @@ package org.braekpo1nt.mctmanager.display.boundingbox;
 
 import lombok.Builder;
 import lombok.Getter;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.display.BlockDisplayEntityRenderer;
-import org.braekpo1nt.mctmanager.display.delegates.BlockDisplayDelegate;
+import org.braekpo1nt.mctmanager.display.delegates.*;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -25,10 +26,12 @@ import java.util.Objects;
  * Renders a BoundingBox using a single block, scaled to the size of the BoundingBox.
  * Includes an inverted block of the same size and location so that it can be viewed from the inside. 
  */
-public class BlockBoxRenderer implements BoundingBoxRenderer {
+public class BlockBoxRenderer implements BoundingBoxRenderer, DisplayComposite, HasBlockDataComposite {
     
     private final @NotNull BlockDisplayEntityRenderer normal;
     private final @NotNull BlockDisplayEntityRenderer inverted;
+    @Getter
+    private @NotNull BoundingBox boundingBox;
     @Getter
     private @NotNull Location location;
     
@@ -37,6 +40,8 @@ public class BlockBoxRenderer implements BoundingBoxRenderer {
             @NotNull World world, 
             @NotNull BoundingBox boundingBox,
             @Nullable Display.Brightness brightness,
+            @Nullable Component customName,
+            boolean customNameVisible,
             boolean glowing,
             @Nullable Color glowColor,
             int interpolationDuration,
@@ -46,6 +51,7 @@ public class BlockBoxRenderer implements BoundingBoxRenderer {
         Objects.requireNonNull(boundingBox, "boundingBox can't be null");
         Vector origin = boundingBox.getMin();
         this.location = origin.toLocation(world);
+        this.boundingBox = boundingBox.clone();
         Location invertedLocation = invertOrigin(origin, boundingBox.getWidthX()).toLocation(world);
         Transformation transformation = boundingBoxToTransformation(boundingBox);
         Transformation invertedTransformation = boundingBoxToTransformationInverted(boundingBox);
@@ -54,6 +60,8 @@ public class BlockBoxRenderer implements BoundingBoxRenderer {
                 .transformation(transformation)
                 .blockData(blockData)
                 .brightness(brightness)
+                .customName(customName)
+                .customNameVisible(customNameVisible)
                 .glowing(glowing)
                 .glowColor(glowColor)
                 .interpolationDuration(interpolationDuration)
@@ -69,16 +77,6 @@ public class BlockBoxRenderer implements BoundingBoxRenderer {
                 .interpolationDuration(interpolationDuration)
                 .teleportDuration(teleportDuration)
                 .build();
-    }
-    
-    @Override
-    public @NotNull Collection<? extends BlockDisplayDelegate> getRenderers() {
-        return List.of(normal, inverted);
-    }
-    
-    @Override
-    public @NotNull BlockDisplayDelegate getPrimaryRenderer() {
-        return normal;
     }
     
     private @NotNull Transformation boundingBoxToTransformation(@NotNull BoundingBox box) {
@@ -112,6 +110,7 @@ public class BlockBoxRenderer implements BoundingBoxRenderer {
     @Override
     public void setBoundingBox(@NotNull BoundingBox boundingBox) {
         Vector origin = boundingBox.getMin();
+        this.boundingBox = boundingBox.clone();
         this.location = origin.toLocation(location.getWorld());
         Location invertedLocation = invertOrigin(origin, boundingBox.getWidthX())
                 .toLocation(location.getWorld());
@@ -121,5 +120,26 @@ public class BlockBoxRenderer implements BoundingBoxRenderer {
         inverted.setLocation(invertedLocation);
         normal.setTransformation(transformation);
         inverted.setTransformation(invertedTransformation);
+    }
+    
+    
+    @Override
+    public @NotNull DisplayDelegate getDisplay() {
+        return normal;
+    }
+    
+    @Override
+    public @NotNull HasBlockData getHasBlockData() {
+        return normal;
+    }
+    
+    @Override
+    public @NotNull Collection<? extends DisplayDelegate> getDisplays() {
+        return List.of(normal, inverted);
+    }
+    
+    @Override
+    public @NotNull Collection<? extends HasBlockData> getHasBlockDatas() {
+        return List.of(normal, inverted);
     }
 }

@@ -1,7 +1,9 @@
 package org.braekpo1nt.mctmanager.display.boundingbox;
 
 import lombok.Builder;
-import org.braekpo1nt.mctmanager.display.delegates.BlockDisplayDelegate;
+import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.display.TransientTextDisplayRenderer;
+import org.braekpo1nt.mctmanager.display.delegates.*;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -11,19 +13,16 @@ import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Collections;
-
 /**
  * A Renderer for displaying BoundingBoxes, which can shift between multiple types of display
  * (e.g. wireframe, faces, inverted, etc.)
  */
-public class BoundingBoxRendererImpl implements BoundingBoxRenderer {
+public class BoundingBoxRendererImpl implements BoundingBoxRenderer, DisplaySingleton, HasBlockDataSingleton, TextDisplaySingleton {
     
     private @NotNull BoundingBoxRenderer state;
-    private boolean shown;
     
     private @NotNull BoundingBox boundingBox;
+    private final @NotNull TransientTextDisplayRenderer titleRenderer;
     private final @NotNull World world;
     
     /**
@@ -60,26 +59,41 @@ public class BoundingBoxRendererImpl implements BoundingBoxRenderer {
             @NotNull BoundingBox boundingBox,
             @Nullable Type type,
             @Nullable Display.Brightness brightness,
+            @Nullable Component title,
+            @Nullable Component customName,
+            boolean customNameVisible,
             boolean glowing,
             @Nullable Color glowColor,
             int interpolationDuration,
             int teleportDuration,
             @Nullable BlockData blockData) {
         this.world = world;
-        this.boundingBox = boundingBox;
+        this.boundingBox = boundingBox.clone();
         this.state = createState(
                 (type != null) ? type : Type.BLOCK,
                 brightness,
+                customName,
+                customNameVisible,
                 glowing,
                 glowColor,
                 interpolationDuration,
                 teleportDuration,
                 blockData);
+        this.titleRenderer = TransientTextDisplayRenderer.builder()
+                .location(titleLocation(boundingBox))
+                .text(title)
+                .billboard(Display.Billboard.CENTER)
+                .brightness(brightness)
+                .interpolationDuration(interpolationDuration)
+                .teleportDuration(teleportDuration)
+                .build();
     }
     
     private @NotNull BoundingBoxRenderer createState(
             @NotNull Type type,
             @Nullable Display.Brightness brightness,
+            @Nullable Component customName,
+            boolean customNameVisible,
             boolean glowing,
             @Nullable Color glowColor,
             int interpolationDuration,
@@ -90,6 +104,8 @@ public class BoundingBoxRendererImpl implements BoundingBoxRenderer {
                     .world(world)
                     .boundingBox(boundingBox)
                     .brightness(brightness)
+                    .customName(customName)
+                    .customNameVisible(customNameVisible)
                     .glowing(glowing)
                     .glowColor(glowColor)
                     .interpolationDuration(interpolationDuration)
@@ -100,6 +116,8 @@ public class BoundingBoxRendererImpl implements BoundingBoxRenderer {
                     .world(world)
                     .boundingBox(boundingBox)
                     .brightness(brightness)
+                    .customName(customName)
+                    .customNameVisible(customNameVisible)
                     .glowing(glowing)
                     .glowColor(glowColor)
                     .interpolationDuration(interpolationDuration)
@@ -110,6 +128,8 @@ public class BoundingBoxRendererImpl implements BoundingBoxRenderer {
                     .world(world)
                     .boundingBox(boundingBox)
                     .brightness(brightness)
+                    .customName(customName)
+                    .customNameVisible(customNameVisible)
                     .glowing(glowing)
                     .glowColor(glowColor)
                     .interpolationDuration(interpolationDuration)
@@ -120,6 +140,8 @@ public class BoundingBoxRendererImpl implements BoundingBoxRenderer {
                     .world(world)
                     .boundingBox(boundingBox)
                     .brightness(brightness)
+                    .customName(customName)
+                    .customNameVisible(customNameVisible)
                     .glowing(glowing)
                     .glowColor(glowColor)
                     .interpolationDuration(interpolationDuration)
@@ -134,6 +156,8 @@ public class BoundingBoxRendererImpl implements BoundingBoxRenderer {
         BoundingBoxRenderer newState = createState(
                 type,
                 oldState.getBrightness(),
+                oldState.customName(),
+                oldState.isCustomNameVisible(),
                 oldState.isGlowing(),
                 oldState.getGlowColor(),
                 oldState.getInterpolationDuration(),
@@ -141,7 +165,7 @@ public class BoundingBoxRendererImpl implements BoundingBoxRenderer {
                 oldState.getBlockData()
         );
         
-        if (shown) {
+        if (showing()) {
             oldState.hide();
             newState.show();
         }
@@ -157,27 +181,41 @@ public class BoundingBoxRendererImpl implements BoundingBoxRenderer {
     public void setBoundingBox(@NotNull BoundingBox boundingBox) {
         this.boundingBox = boundingBox;
         state.setBoundingBox(boundingBox);
+        titleRenderer.setLocation(titleLocation(boundingBox));
+    }
+    
+    protected @NotNull Location titleLocation(@NotNull BoundingBox boundingBox) {
+        return new Location(
+                world,
+                boundingBox.getCenterX(),
+                boundingBox.getMaxY(),
+                boundingBox.getCenterZ()
+        );
+    }
+    
+    public void setTitle(@Nullable Component title) {
+        this.titleRenderer.setText(title);
     }
     
     @Override
-    public @NotNull Collection<? extends BlockDisplayDelegate> getRenderers() {
-        return Collections.singletonList(state);
+    public @NotNull BoundingBox getBoundingBox() {
+        return boundingBox;
     }
     
     @Override
-    public @NotNull BlockDisplayDelegate getPrimaryRenderer() {
+    public @NotNull HasBlockData getHasBlockData() {
+        return state;
+    }
+    
+    
+    @Override
+    public @NotNull DisplayDelegate getDisplay() {
         return state;
     }
     
     @Override
-    public void show() {
-        BoundingBoxRenderer.super.show();
-        shown = true;
+    public @NotNull TextDisplayDelegate getTextDisplay() {
+        return titleRenderer;
     }
     
-    @Override
-    public void hide() {
-        BoundingBoxRenderer.super.hide();
-        shown = false;
-    }
 }

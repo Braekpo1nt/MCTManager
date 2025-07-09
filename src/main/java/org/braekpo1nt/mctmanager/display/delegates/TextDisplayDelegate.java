@@ -7,6 +7,6 @@ import org.jetbrains.annotations.NotNull;
  * The interface for any Renderer which allows you to set attributes specific to
  * {@link org.bukkit.entity.TextDisplay}, such as text or background color
  */
-public interface TextDisplayDelegate extends DisplayDelegate {
+public interface TextDisplayDelegate {
     void setText(@NotNull Component text);
 }

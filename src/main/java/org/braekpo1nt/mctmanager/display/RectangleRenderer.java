@@ -2,8 +2,11 @@ package org.braekpo1nt.mctmanager.display;
 
 import lombok.Builder;
 import lombok.Getter;
-import org.braekpo1nt.mctmanager.display.delegates.BlockDisplayDelegate;
-import org.braekpo1nt.mctmanager.display.delegates.BlockDisplaySingleton;
+import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.display.delegates.DisplayDelegate;
+import org.braekpo1nt.mctmanager.display.delegates.DisplaySingleton;
+import org.braekpo1nt.mctmanager.display.delegates.HasBlockData;
+import org.braekpo1nt.mctmanager.display.delegates.HasBlockDataSingleton;
 import org.braekpo1nt.mctmanager.display.geometry.rectangle.Rectangle;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -22,7 +25,7 @@ import java.util.Objects;
  * A Renderer representing a {@link Rectangle}. Uses the {@link Rectangle#toTransformation()} method
  * to transform a {@link BlockDisplayEntityRenderer} into a flat surface aligned to the given rectangle. 
  */
-public class RectangleRenderer implements Renderer, BlockDisplaySingleton {
+public class RectangleRenderer implements DisplaySingleton, HasBlockDataSingleton {
     
     // BlockDisplay defaults to a cube aligned Y-up
     public static final Vector3f DEFAULT_UP = new Vector3f(0, 1, 0);
@@ -36,6 +39,8 @@ public class RectangleRenderer implements Renderer, BlockDisplaySingleton {
             @NotNull World world, 
             @NotNull Rectangle rectangle,
             @Nullable Display.Brightness brightness,
+            @Nullable Component customName,
+            boolean customNameVisible,
             boolean glowing,
             @Nullable Color glowColor,
             int interpolationDuration,
@@ -48,6 +53,8 @@ public class RectangleRenderer implements Renderer, BlockDisplaySingleton {
         this.renderer = BlockDisplayEntityRenderer.builder()
                 .location(this.location)
                 .transformation(transformation)
+                .customName(customName)
+                .customNameVisible(customNameVisible)
                 .glowing(glowing)
                 .glowColor(glowColor)
                 .blockData(blockData)
@@ -55,11 +62,6 @@ public class RectangleRenderer implements Renderer, BlockDisplaySingleton {
                 .interpolationDuration(interpolationDuration)
                 .teleportDuration(teleportDuration)
                 .build();
-    }
-    
-    @Override
-    public @NotNull BlockDisplayDelegate getRenderer() {
-        return renderer;
     }
     
     public void setRectangle(@NotNull Vector origin, @NotNull Vector edge1, @NotNull Vector edge2) {
@@ -75,5 +77,15 @@ public class RectangleRenderer implements Renderer, BlockDisplaySingleton {
         Transformation transformation = rectangle.toTransformation();
         renderer.setLocation(location);
         renderer.setTransformation(transformation);
+    }
+    
+    @Override
+    public @NotNull DisplayDelegate getDisplay() {
+        return renderer;
+    }
+    
+    @Override
+    public @NotNull HasBlockData getHasBlockData() {
+        return renderer;
     }
 }

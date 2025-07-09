@@ -6,6 +6,8 @@ import org.braekpo1nt.mctmanager.config.dto.YawPitch;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -73,6 +75,27 @@ public final class EntityUtils {
                 return BlockFace.SOUTH;
             }
         }
+    }
+    
+    /**
+     * @param boundingBox the bounding box to expand
+     * @param player the player whose direction should determine the expansion block face
+     * @param increment the amount to expand by
+     * @return a clone of the given bounding box, expanded in the direction the given player is looking by the given increment
+     */
+    public static @NotNull BoundingBox expandBoundingBox(@NotNull BoundingBox boundingBox, Player player, double increment) {
+        BlockFace direction = EntityUtils.getPlayerDirection(player.getLocation());
+        return expandBoundingBox(boundingBox, direction, increment);
+    }
+    
+    /**
+     * @param boundingBox the bounding box to expand
+     * @param direction the player whose direction should determine the expansion block face
+     * @param increment the amount to expand by
+     * @return a clone of the given bounding box, expanded in the direction the given player is looking by the given increment
+     */
+    public static @NotNull BoundingBox expandBoundingBox(@NotNull BoundingBox boundingBox, BlockFace direction, double increment) {
+        return boundingBox.clone().expand(direction, increment);
     }
     
     /**

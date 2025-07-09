@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.display;
 
 import lombok.Getter;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
@@ -15,12 +16,24 @@ import java.util.Objects;
 public abstract class EntityRenderer<T extends Entity> implements Renderer {
     @Getter
     protected @NotNull Location location;
+    @Getter
+    protected @Nullable Component customName;
+    @Getter
+    protected boolean customNameVisible;
     protected boolean glowing;
     protected @Nullable T entity;
+    private boolean showing;
     
-    public EntityRenderer(@NotNull Location location, boolean glowing) {
+    public EntityRenderer(
+            @NotNull Location location, 
+            @Nullable Component customName, 
+            boolean customNameVisible, 
+            boolean glowing) {
         this.location = Objects.requireNonNull(location, "location can't be null");
+        this.customName = customName;
+        this.customNameVisible = customNameVisible;
         this.glowing = glowing;
+        this.showing = false;
     }
     
     /**
@@ -30,9 +43,20 @@ public abstract class EntityRenderer<T extends Entity> implements Renderer {
     
     @Override
     public void show() {
+        if (showing) {
+            return;
+        }
+        showing = true;
         entity = location.getWorld().spawn(location, getClazz());
+        entity.customName(customName);
+        entity.setCustomNameVisible(customNameVisible);
         entity.setGlowing(glowing);
         show(entity);
+    }
+    
+    @Override
+    public boolean showing() {
+        return showing;
     }
     
     /**
@@ -50,6 +74,26 @@ public abstract class EntityRenderer<T extends Entity> implements Renderer {
         entity.teleport(location);
     }
     
+    public void customName(@Nullable Component customName) {
+        this.customName = customName;
+        if (entity == null) {
+            return;
+        }
+        entity.customName(customName);
+    }
+    
+    public @Nullable Component customName() {
+        return customName;
+    }
+    
+    public void setCustomNameVisible(boolean customNameVisible) {
+        this.customNameVisible = customNameVisible;
+        if (entity == null) {
+            return;
+        }
+        entity.setCustomNameVisible(customNameVisible);
+    }
+    
     public void setGlowing(boolean glowing) {
         this.glowing = glowing;
         if (entity == null) {
@@ -60,6 +104,10 @@ public abstract class EntityRenderer<T extends Entity> implements Renderer {
     
     @Override
     public void hide() {
+        if (!showing) {
+            return;
+        }
+        showing = false;
         if (entity == null) {
             return;
         }

@@ -13,5 +13,7 @@ public interface Renderer {
     
     void show();
     
+    boolean showing();
+    
     void hide();
 }

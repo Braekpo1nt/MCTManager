@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.editor;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
@@ -53,16 +52,16 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
         return new Puzzle(new ArrayList<>(List.of(inBounds)), new ArrayList<>(List.of(checkPoint)));
     }
     
-    @Data
-    static class PuzzleEdit {
-        private final @NotNull Puzzle puzzle;
-        private final @NotNull PuzzleRenderer puzzleRenderer;
-    }
-    
     private final ParkourPathwayConfigController configController;
     private @NotNull ParkourPathwayConfig config;
     private @NotNull List<Puzzle> puzzles;
     private final List<PuzzleRenderer> puzzleRenderers;
+    private int inBoundsType = 0;
+    private int checkpointType = 0;
+    private BoundingBoxRendererImpl.Type[] availableTypes = new BoundingBoxRendererImpl.Type[]{
+            BoundingBoxRendererImpl.Type.EDGE_BLOCK,
+            BoundingBoxRendererImpl.Type.EDGE
+    };
     
     public ParkourPathwayEditor(
             @NotNull Main plugin,
@@ -103,7 +102,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                                     .append(Component.text("Add puzzle index "))
                                     .append(Component.text(newPuzzleIndex))
                                     .append(Component.text("/"))
-                                    .append(Component.text(puzzles.size()))
+                                    .append(Component.text(puzzles.size())) //TODO: is this correct numbers?
                                     .append(Component.text(". Max index is now "))
                                     .append(Component.text(puzzles.size() + 1)))
                     );
@@ -114,14 +113,13 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                                 .append(Component.text("There must be at least 3 puzzles")));
                     }
                     puzzles.remove(admin.getCurrentPuzzle());
-                    PuzzleRenderer puzzleRenderer = puzzleRenderers.remove(admin.getCurrentPuzzle());
-                    puzzleRenderer.hide();
+                    puzzleRenderers.remove(admin.getCurrentPuzzle()).hide();
                     CommandResult selectResult = selectPuzzle(admin, Math.max(admin.getCurrentPuzzle() - 1, 0), 0, 0, false);
                     return new CompositeCommandResult(
                             selectResult,
                             CommandResult.success(Component.empty()
                                     .append(Component.text("Remove puzzle index "))
-                                    .append(Component.text(admin.getCurrentPuzzle()))
+                                    .append(Component.text(admin.getCurrentPuzzle())) // TODO: is the the right number?
                                     .append(Component.text("/"))
                                     .append(Component.text(puzzles.size()))
                                     .append(Component.text(". Max index is now "))
@@ -146,7 +144,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                     int numOfInBounds = currentPuzzle.getInBounds().size();
                     BoundingBox newInBound = createInBound(admin.getPlayer().getLocation());
                     currentPuzzle.addInBound(newInBound);
-                    puzzleRenderer.addInBound(newInBound);
+                    puzzleRenderer.addInBound(newInBound, availableTypes[inBoundsType]);
                     CommandResult selectResult = selectInBound(admin, numOfInBounds);
                     return new CompositeCommandResult(
                             selectResult,
@@ -246,7 +244,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                     int numOfCheckPoints = currentPuzzle.getCheckPoints().size();
                     CheckPoint newCheckPoint = createCheckPoint(admin.getPlayer().getLocation());
                     currentPuzzle.addCheckPoint(newCheckPoint);
-                    puzzleRenderer.addCheckPoint(newCheckPoint);
+                    puzzleRenderer.addCheckPoint(newCheckPoint, availableTypes[checkpointType]);
                     CommandResult selectResult = selectCheckPoint(admin, numOfCheckPoints);
                     return new CompositeCommandResult(
                             selectResult,
@@ -301,13 +299,6 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
         start(newAdmins);
     }
     
-    private int inBoundsType = 0;
-    private int checkpointType = 0;
-    private BoundingBoxRendererImpl.Type[] availableTypes = new BoundingBoxRendererImpl.Type[]{
-            BoundingBoxRendererImpl.Type.EDGE_BLOCK,
-            BoundingBoxRendererImpl.Type.EDGE
-    };
-    
     private CommandResult cycleInBoundsType() {
         inBoundsType++;
         if (inBoundsType >= availableTypes.length) {
@@ -323,10 +314,10 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
     
     private CommandResult cycleCheckpointType() {
         checkpointType++;
-        if (checkpointType >= BoundingBoxRendererImpl.Type.values().length) {
+        if (checkpointType >= availableTypes.length) {
             checkpointType = 0;
         }
-        BoundingBoxRendererImpl.Type typeSelection = BoundingBoxRendererImpl.Type.values()[checkpointType];
+        BoundingBoxRendererImpl.Type typeSelection = availableTypes[checkpointType];
         puzzleRenderers.forEach(puzzleRenderer -> puzzleRenderer.setCheckpointType(typeSelection));
         return CommandResult.success(Component.empty()
                 .append(Component.text("Set checkpoints display type to "))
@@ -390,13 +381,15 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                 admin.getCurrentInBound(), 
                 admin.getCurrentCheckPoint(), 
                 false);
+        puzzleRenderers.get(puzzleIndex).setHighlight(
+                inBoundsIndex, 
+                checkPointIndex, 
+                true);
         
-        PuzzleRenderer newPuzzleRenderer = puzzleRenderers.get(puzzleIndex);
         admin.setCurrentPuzzle(puzzleIndex);
         admin.setCurrentInBound(inBoundsIndex);
         admin.setCurrentCheckPoint(checkPointIndex);
         
-        newPuzzleRenderer.setHighlight(inBoundsIndex, checkPointIndex, true);
         Puzzle selectedPuzzle = puzzles.get(puzzleIndex);
         if (teleport) {
             Location respawn = selectedPuzzle.getCheckPoints().get(checkPointIndex).getRespawn();
@@ -410,7 +403,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                 .append(Component.text(puzzles.size() - 1)));
     }
     
-    private void updateSidebarSelection(ParkourAdmin admin) {
+    public void updateSidebarSelection(ParkourAdmin admin) {
         Puzzle selectedPuzzle = puzzles.get(admin.getCurrentPuzzle());
         sidebar.updateLine(admin.getUniqueId(), "puzzle", Component.empty()
                 .append(Component.text("Puzzle: "))
@@ -459,9 +452,15 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
         BlockFace direction = EntityUtils.getPlayerDirection(admin.getPlayer().getLocation());
         Puzzle currentPuzzle = puzzles.get(admin.getCurrentPuzzle());
         PuzzleRenderer puzzleRenderer = puzzleRenderers.get(admin.getCurrentPuzzle());
-        BoundingBox inBounds = currentPuzzle.getInBounds().get(admin.getCurrentInBound());
-        inBounds.expand(direction, increment);
-        puzzleRenderer.setInBounds(admin.getCurrentInBound(), inBounds);
+        
+        BoundingBox newInBound = EntityUtils.expandBoundingBox(
+                currentPuzzle.getInBounds().get(admin.getCurrentInBound()), 
+                direction, 
+                increment
+        );
+        currentPuzzle.setInBound(admin.getCurrentInBound(), newInBound);
+        puzzleRenderer.setInBounds(admin.getCurrentInBound(), newInBound);
+        
         return CommandResult.success(Component.text("Expand ")
                 .append(Component.text("inBounds")
                         .decorate(TextDecoration.BOLD))

@@ -20,17 +20,21 @@ import java.util.stream.Collectors;
 
 public class PuzzleRenderer implements Renderer {
     
+    private boolean showing;
     private final List<BoundingBoxRendererImpl> inBounds;
     private final List<CheckpointRenderer> checkpoints;
-    public static final @NotNull Material IN_BOUND_BLOCK = Material.LIGHT_GRAY_STAINED_GLASS;
+    public static final @NotNull Material IN_BOUND_BLOCK = Material.PINK_STAINED_GLASS;
     public static final @NotNull Material DETECTION_AREA_BLOCK = Material.LIGHT_BLUE_STAINED_GLASS;
     public static final @NotNull Material RESPAWN_BLOCK = Material.LIME_WOOL;
     
     public static final @NotNull Material IN_BOUND_BLOCK_HIGHLIGHTED = Material.RED_STAINED_GLASS;
     public static final @NotNull Material DETECTION_AREA_BLOCK_HIGHLIGHTED = Material.BLUE_STAINED_GLASS;
     public static final @NotNull Material RESPAWN_BLOCK_HIGHLIGHTED = Material.GREEN_WOOL;
+    private final Color IN_BOUND_GLOW = Color.RED;
+    private final Color CHECKPOINT_GLOW = Color.BLUE;
     
     public PuzzleRenderer(@NotNull World world, @NotNull Puzzle puzzle, @Nullable BoundingBoxRendererImpl.Type inBoundType, @Nullable BoundingBoxRendererImpl.Type checkpointType) {
+        this.showing = false;
         BlockData inBoundBlockData = IN_BOUND_BLOCK.createBlockData();
         this.inBounds = puzzle.getInBounds().stream()
                 .map(boundingBox -> BoundingBoxRendererImpl.builder()
@@ -38,6 +42,7 @@ public class PuzzleRenderer implements Renderer {
                         .boundingBox(boundingBox)
                         .type(inBoundType)
                         .blockData(inBoundBlockData)
+                        .glowColor(IN_BOUND_GLOW)
                         .interpolationDuration(1)
                         .teleportDuration(1)
                         .build())
@@ -51,7 +56,7 @@ public class PuzzleRenderer implements Renderer {
                         .detectionAreaBlock(detectionAreaBlockData)
                         .respawnBlock(respawnBlockData)
                         .type(checkpointType)
-                        .glowColor(Color.BLUE)
+                        .glowColor(CHECKPOINT_GLOW)
                         .interpolationDuration(1)
                         .teleportDuration(1)
                         .build())
@@ -65,12 +70,25 @@ public class PuzzleRenderer implements Renderer {
     
     @Override
     public void show() {
+        if (showing) {
+            return;
+        }
+        showing = true;
         inBounds.forEach(BoundingBoxRenderer::show);
         checkpoints.forEach(CheckpointRenderer::show);
     }
     
     @Override
+    public boolean showing() {
+        return showing;
+    }
+    
+    @Override
     public void hide() {
+        if (!showing) {
+            return;
+        }
+        showing = false;
         inBounds.forEach(BoundingBoxRenderer::hide);
         checkpoints.forEach(CheckpointRenderer::hide);
     }
@@ -111,11 +129,14 @@ public class PuzzleRenderer implements Renderer {
         checkpoint.setRespawnBlock(highlight ? RESPAWN_BLOCK_HIGHLIGHTED.createBlockData() : RESPAWN_BLOCK.createBlockData());
     }
     
-    public void addInBound(BoundingBox boundingBox) {
+    public void addInBound(BoundingBox boundingBox, BoundingBoxRendererImpl.Type type) {
         BoundingBoxRendererImpl newInBound = BoundingBoxRendererImpl.builder()
-                .world(getLocation().getWorld())
                 .boundingBox(boundingBox)
-                .blockData(Material.GLASS.createBlockData())
+                .type(type)
+                .blockData(IN_BOUND_BLOCK.createBlockData())
+                .glowColor(IN_BOUND_GLOW)
+                .interpolationDuration(1)
+                .teleportDuration(1)
                 .build();
         newInBound.show();
         this.inBounds.add(
@@ -128,13 +149,16 @@ public class PuzzleRenderer implements Renderer {
         removed.hide();
     }
     
-    public void addCheckPoint(CheckPoint checkPoint) {
+    public void addCheckPoint(CheckPoint checkPoint, BoundingBoxRendererImpl.Type type) {
         CheckpointRenderer newCheckPoint = CheckpointRenderer.builder()
                 .world(getLocation().getWorld())
                 .checkPoint(checkPoint)
                 .detectionAreaBlock(DETECTION_AREA_BLOCK.createBlockData())
                 .respawnBlock(RESPAWN_BLOCK.createBlockData())
-                .glowColor(Color.BLUE)
+                .type(type)
+                .glowColor(CHECKPOINT_GLOW)
+                .interpolationDuration(1)
+                .teleportDuration(1)
                 .build();
         newCheckPoint.show();
         this.checkpoints.add(newCheckPoint);

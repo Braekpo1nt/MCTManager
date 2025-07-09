@@ -20,15 +20,28 @@ public class TextDisplayEntityRenderer extends DisplayEntityRenderer<TextDisplay
     
     @Builder
     public TextDisplayEntityRenderer(
-            @NotNull Location location, 
+            @NotNull Location location,
+            @Nullable Component customName,
+            boolean customNameVisible,
             boolean glowing, 
             @Nullable Color glowColor,
             @Nullable Display.Brightness brightness,
             @Nullable Transformation transformation, 
             int interpolationDuration, 
             int teleportDuration, 
+            @Nullable Display.Billboard billboard,
             @Nullable Component text) {
-        super(location, glowing, glowColor, brightness, transformation, interpolationDuration, teleportDuration);
+        super(
+                location, 
+                customName,
+                customNameVisible,
+                glowing, 
+                glowColor, 
+                brightness, 
+                transformation, 
+                interpolationDuration, 
+                teleportDuration, 
+                billboard);
         this.text = (text != null) ? text : Component.empty();
     }
     

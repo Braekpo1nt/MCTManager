@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.display;
 
 import lombok.Getter;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.display.delegates.DisplayDelegate;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -37,21 +38,27 @@ public abstract class DisplayEntityRenderer<T extends Display> extends EntityRen
     private int interpolationDuration;
     @Getter
     private int teleportDuration;
+    @Getter
+    private @NotNull Display.Billboard billboard;
     
     public DisplayEntityRenderer(
-            @NotNull Location location, 
+            @NotNull Location location,
+            @Nullable Component customName,
+            boolean customNameVisible,
             boolean glowing,
             @Nullable Color glowColor,
             @Nullable Display.Brightness brightness,
             @Nullable Transformation transformation,
             int interpolationDuration,
-            int teleportDuration) {
-        super(location, glowing);
+            int teleportDuration,
+            @Nullable Display.Billboard billboard) {
+        super(location, customName, customNameVisible, glowing);
         this.glowColor = (glowColor != null) ? glowColor : Color.WHITE;
         this.brightness = brightness;
         this.transformation = (transformation != null) ? transformation : NO_TRANSFORMATION;
         this.interpolationDuration = interpolationDuration;
         this.teleportDuration = teleportDuration;
+        this.billboard = (billboard != null) ? billboard : Display.Billboard.FIXED;
     }
     
     @Override
@@ -61,6 +68,7 @@ public abstract class DisplayEntityRenderer<T extends Display> extends EntityRen
         entity.setTransformation(transformation);
         entity.setInterpolationDuration(interpolationDuration);
         entity.setTeleportDuration(teleportDuration);
+        entity.setBillboard(billboard);
     }
     
     @Override
@@ -105,6 +113,15 @@ public abstract class DisplayEntityRenderer<T extends Display> extends EntityRen
             return;
         }
         entity.setTeleportDuration(teleportDuration);
+    }
+    
+    @Override
+    public void setBillboard(@NotNull Display.Billboard billboard) {
+        this.billboard = billboard;
+        if (entity == null) {
+            return;
+        }
+        entity.setBillboard(billboard);
     }
     
     public void setTranslation(@NotNull Vector3f translation) {

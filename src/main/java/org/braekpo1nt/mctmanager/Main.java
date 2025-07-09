@@ -4,6 +4,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -17,7 +18,8 @@ import io.papermc.paper.command.brigadier.argument.resolvers.BlockPositionResolv
 import io.papermc.paper.command.brigadier.argument.resolvers.FinePositionResolver;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import lombok.extern.java.Log;
-import org.braekpo1nt.mctmanager.commands.argumenttypes.BoxRendererTypeArgument;
+import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.EnumResolver;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.FailureCommandResult;
@@ -30,9 +32,7 @@ import org.braekpo1nt.mctmanager.commands.utils.UtilsCommand;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.display.EdgeRenderer;
 import org.braekpo1nt.mctmanager.display.RectangleRenderer;
-import org.braekpo1nt.mctmanager.display.boundingbox.BoundingBoxRenderer;
 import org.braekpo1nt.mctmanager.display.boundingbox.BoundingBoxRendererImpl;
-import org.braekpo1nt.mctmanager.display.boundingbox.RectBoxRenderer;
 import org.braekpo1nt.mctmanager.display.geometry.Edge;
 import org.braekpo1nt.mctmanager.display.geometry.rectangle.Rectangle;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
@@ -47,6 +47,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -232,11 +233,20 @@ public class Main extends JavaPlugin {
                                     return Command.SINGLE_SUCCESS;
                                 }))
                         .then(Commands.literal("settype")
-                                .then(Commands.argument("type", new BoxRendererTypeArgument())
+                                .then(Commands.argument("type", new EnumResolver<>(BoundingBoxRendererImpl.Type.class, BoundingBoxRendererImpl.Type.values()))
                                         .executes(ctx -> {
                                             if (boxRenderer != null) {
                                                 BoundingBoxRendererImpl.Type type = ctx.getArgument("type", BoundingBoxRendererImpl.Type.class);
                                                 boxRenderer.setType(type);
+                                            }
+                                            return Command.SINGLE_SUCCESS;
+                                        })))
+                        .then(Commands.literal("glowing")
+                                .then(Commands.argument("glowing", BoolArgumentType.bool())
+                                        .executes(ctx -> {
+                                            boolean glowing = BoolArgumentType.getBool(ctx, "glowing");
+                                            if (boxRenderer != null) {
+                                                boxRenderer.setGlowing(glowing);
                                             }
                                             return Command.SINGLE_SUCCESS;
                                         })))
@@ -276,6 +286,15 @@ public class Main extends JavaPlugin {
                                                     edge(ctx.getSource().getLocation().getWorld(), new Edge(from, to), stroke);
                                                     return Command.SINGLE_SUCCESS;
                                                 })))))
+                .then(Commands.literal("enumtest")
+                        .then(Commands.argument("value", new EnumResolver<>(BlockFace.class, BlockFace.values()))
+                                .executes(ctx -> {
+                                    BlockFace value = ctx.getArgument("value", BlockFace.class);
+                                    ctx.getSource().getSender().sendMessage(Component.empty()
+                                            .append(Component.text("You chose "))
+                                            .append(Component.text(value.toString())));
+                                    return Command.SINGLE_SUCCESS;
+                                })))
                 .build();
         
         // Brigadier commands
@@ -346,6 +365,8 @@ public class Main extends JavaPlugin {
                     .boundingBox(boundingBox)
                     .blockData(Material.LIME_STAINED_GLASS.createBlockData())
                     .brightness(brightness)
+                    .customName(Component.text("rectbox"))
+                    .customNameVisible(true)
                     .build();
             boxRenderer.show();
         } else {

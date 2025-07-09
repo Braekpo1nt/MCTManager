@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.states;
 
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
+import org.braekpo1nt.mctmanager.display.Renderer;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourAdmin;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourPathwayEditor;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.PuzzleRenderer;
@@ -25,13 +26,13 @@ public class EditingState extends ParkourPathwayEditorStateBase {
     
     @Override
     public @NotNull CommandResult loadConfig(@NotNull String configFile) throws ConfigException {
-        super.loadConfig(configFile);
+        CommandResult result = super.loadConfig(configFile);
         context.setPuzzles(context.getConfig().getPuzzles());
         List<PuzzleRenderer> puzzleRenderers = context.getPuzzleRenderers();
-        puzzleRenderers.forEach(PuzzleRenderer::hide);
+        puzzleRenderers.forEach(Renderer::hide);
         puzzleRenderers.clear();
         puzzleRenderers.addAll(context.createPuzzleRenderers(context.getConfig()));
-        puzzleRenderers.forEach(PuzzleRenderer::show);
+        puzzleRenderers.forEach(Renderer::show);
         for (ParkourAdmin admin : context.getAdmins().values()) {
             int puzzleIndex = 
                     admin.getCurrentPuzzle() < context.getPuzzles().size() ? 
@@ -45,6 +46,6 @@ public class EditingState extends ParkourPathwayEditorStateBase {
             );
             admin.sendMessage(selectResult.getMessageOrEmpty());
         }
-        return CommandResult.success(Component.text("Loaded config"));
+        return result;
     }
 }

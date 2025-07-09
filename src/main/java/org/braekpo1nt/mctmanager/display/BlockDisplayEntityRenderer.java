@@ -1,7 +1,8 @@
 package org.braekpo1nt.mctmanager.display;
 
 import lombok.Builder;
-import org.braekpo1nt.mctmanager.display.delegates.BlockDisplayDelegate;
+import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.display.delegates.HasBlockData;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -15,21 +16,34 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A Renderer representing a {@link BlockDisplay} entity
  */
-public class BlockDisplayEntityRenderer extends DisplayEntityRenderer<BlockDisplay> implements BlockDisplayDelegate {
+public class BlockDisplayEntityRenderer extends DisplayEntityRenderer<BlockDisplay> implements HasBlockData {
     
     private @NotNull BlockData blockData;
     
     @Builder
     public BlockDisplayEntityRenderer(
-            @NotNull Location location, 
+            @NotNull Location location,
+            @Nullable Component customName,
+            boolean customNameVisible,
             boolean glowing, 
             @Nullable Color glowColor, 
             @Nullable Display.Brightness brightness,
             @Nullable Transformation transformation, 
             int interpolationDuration, 
             int teleportDuration,
+            @Nullable Display.Billboard billboard,
             @Nullable BlockData blockData) {
-        super(location, glowing, glowColor, brightness, transformation, interpolationDuration, teleportDuration);
+        super(
+                location,
+                customName,
+                customNameVisible,
+                glowing, 
+                glowColor, 
+                brightness, 
+                transformation, 
+                interpolationDuration, 
+                teleportDuration, 
+                billboard);
         this.blockData = (blockData != null) ? blockData : Material.GRASS_BLOCK.createBlockData();
     }
     

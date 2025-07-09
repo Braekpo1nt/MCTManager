@@ -2,8 +2,11 @@ package org.braekpo1nt.mctmanager.display;
 
 import lombok.Builder;
 import lombok.Getter;
-import org.braekpo1nt.mctmanager.display.delegates.BlockDisplayDelegate;
-import org.braekpo1nt.mctmanager.display.delegates.BlockDisplaySingleton;
+import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.display.delegates.DisplayDelegate;
+import org.braekpo1nt.mctmanager.display.delegates.DisplaySingleton;
+import org.braekpo1nt.mctmanager.display.delegates.HasBlockData;
+import org.braekpo1nt.mctmanager.display.delegates.HasBlockDataSingleton;
 import org.braekpo1nt.mctmanager.display.geometry.Edge;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -22,7 +25,7 @@ import java.util.Objects;
 /**
  * A Renderer representing an edge between two points
  */
-public class EdgeRenderer implements BlockDisplaySingleton {
+public class EdgeRenderer implements DisplaySingleton, HasBlockDataSingleton {
     
     private final @NotNull BlockDisplayEntityRenderer renderer;
     /**
@@ -49,6 +52,8 @@ public class EdgeRenderer implements BlockDisplaySingleton {
             @Nullable Float strokeWidth, 
             @Nullable Boolean centered,
             @Nullable Display.Brightness brightness,
+            @Nullable Component customName,
+            boolean customNameVisible,
             boolean glowing,
             @Nullable Color glowColor,
             int interpolationDuration,
@@ -65,6 +70,8 @@ public class EdgeRenderer implements BlockDisplaySingleton {
                 .transformation(createTransformation())
                 .blockData(blockData)
                 .brightness(brightness)
+                .customName(customName)
+                .customNameVisible(customNameVisible)
                 .glowing(glowing)
                 .glowColor(glowColor)
                 .interpolationDuration(interpolationDuration)
@@ -73,7 +80,12 @@ public class EdgeRenderer implements BlockDisplaySingleton {
     }
     
     @Override
-    public @NotNull BlockDisplayDelegate getRenderer() {
+    public @NotNull DisplayDelegate getDisplay() {
+        return renderer;
+    }
+    
+    @Override
+    public @NotNull HasBlockData getHasBlockData() {
         return renderer;
     }
     

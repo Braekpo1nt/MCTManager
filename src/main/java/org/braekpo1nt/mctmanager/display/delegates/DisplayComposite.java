@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.display.delegates;
 
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.display.Renderer;
 import org.bukkit.Color;
 import org.bukkit.entity.Display;
@@ -14,74 +15,53 @@ import java.util.Collection;
  * @param <T> The type of the primary renderer, must extend {@link DisplayDelegate}
  *           so that it can delegate its attributes.
  */
-public interface DisplayComposite<T extends DisplayDelegate> extends DisplayDelegate {
-    @NotNull Collection<? extends DisplayDelegate> getRenderers();
-    
-    /**
-     * @return a single, primary renderer. Used to get attributes
-     * about this {@link DisplayDelegate}
-     */
-    @NotNull T getPrimaryRenderer();
+public interface DisplayComposite extends DisplaySingleton {
+    @NotNull Collection<? extends DisplayDelegate> getDisplays();
     
     // DisplayEntityRenderer
     @Override
+    default void customName(@Nullable Component customName) {
+        getDisplay().customName(customName);
+    }
+    
+    @Override
     default void setGlowing(boolean glowing) {
-        getRenderers().forEach(r -> r.setGlowing(glowing));
+        getDisplays().forEach(r -> r.setGlowing(glowing));
     }
     
     @Override
     default void setGlowColor(@NotNull Color glowColor) {
-        getRenderers().forEach(r -> r.setGlowColor(glowColor));
+        getDisplays().forEach(r -> r.setGlowColor(glowColor));
     }
     
     @Override
     default void setBrightness(@Nullable Display.Brightness brightness) {
-        getRenderers().forEach(r -> r.setBrightness(brightness));
+        getDisplays().forEach(r -> r.setBrightness(brightness));
     }
     
     @Override
     default void setInterpolationDuration(int interpolationDuration) {
-        getRenderers().forEach(r -> r.setInterpolationDuration(interpolationDuration));
+        getDisplays().forEach(r -> r.setInterpolationDuration(interpolationDuration));
     }
     
     @Override
     default void setTeleportDuration(int teleportDuration) {
-        getRenderers().forEach(r -> r.setTeleportDuration(teleportDuration));
+        getDisplays().forEach(r -> r.setTeleportDuration(teleportDuration));
+    }
+    
+    @Override
+    default void setBillboard(Display.@NotNull Billboard billboard) {
+        getDisplays().forEach(r -> r.setBillboard(billboard));
     }
     
     // Renderer
     @Override
     default void show() {
-        getRenderers().forEach(Renderer::show);
+        getDisplays().forEach(Renderer::show);
     }
     
     @Override
     default void hide() {
-        getRenderers().forEach(Renderer::hide);
-    }
-    
-    @Override
-    default @NotNull Color getGlowColor() {
-        return getPrimaryRenderer().getGlowColor();
-    }
-    
-    @Override
-    default @Nullable Display.Brightness getBrightness() {
-        return getPrimaryRenderer().getBrightness();
-    }
-    
-    @Override
-    default int getInterpolationDuration() {
-        return getPrimaryRenderer().getInterpolationDuration();
-    }
-    
-    @Override
-    default int getTeleportDuration() {
-        return getPrimaryRenderer().getTeleportDuration();
-    }
-    
-    @Override
-    default boolean isGlowing() {
-        return getPrimaryRenderer().isGlowing();
+        getDisplays().forEach(Renderer::hide);
     }
 }

@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 
-public class CheckpointRenderer implements DisplayComposite<DisplayDelegate> {
+public class CheckpointRenderer implements DisplayComposite {
     
     private final BoundingBoxRendererImpl detectionArea;
     private final LocationRenderer respawn;
@@ -50,12 +50,12 @@ public class CheckpointRenderer implements DisplayComposite<DisplayDelegate> {
     }
     
     @Override
-    public @NotNull DisplayDelegate getPrimaryRenderer() {
+    public @NotNull DisplayDelegate getDisplay() {
         return detectionArea;
     }
     
     @Override
-    public @NotNull Collection<? extends DisplayDelegate> getRenderers() {
+    public @NotNull Collection<? extends DisplayDelegate> getDisplays() {
         return List.of(detectionArea, respawn);
     }
     

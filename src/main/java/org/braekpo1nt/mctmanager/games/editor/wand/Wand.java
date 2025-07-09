@@ -230,4 +230,9 @@ public class Wand<T extends Audience> {
         this.onLeftSneakClickBlock = onLeftSneakClickBlock;
         return this;
     }
+    
+    public Wand<T> onHoldTick(@NotNull Function<T, CommandResult> onHoldTick) {
+        this.onHoldTick = onHoldTick;
+        return this;
+    }
 }

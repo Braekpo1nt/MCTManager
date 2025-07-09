@@ -1,21 +1,21 @@
-package org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.states;
+package org.braekpo1nt.mctmanager.games.game.footrace.editor.states;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfig;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourAdmin;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourPathwayEditor;
+import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
+import org.braekpo1nt.mctmanager.games.game.footrace.editor.FootRaceAdmin;
+import org.braekpo1nt.mctmanager.games.game.footrace.editor.FootRaceEditor;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class ParkourPathwayEditorStateBase implements ParkourPathwayEditorState {
+public class FootRaceEditorStateBase implements FootRaceEditorState {
     
-    protected final @NotNull ParkourPathwayEditor context;
+    protected final @NotNull FootRaceEditor context;
     
-    public ParkourPathwayEditorStateBase(@NotNull ParkourPathwayEditor context) {
+    public FootRaceEditorStateBase(@NotNull FootRaceEditor context) {
         this.context = context;
     }
     
@@ -25,18 +25,16 @@ public class ParkourPathwayEditorStateBase implements ParkourPathwayEditorState 
     }
     
     @Override
-    public void onAdminJoin(ParkourAdmin admin) {
-        context.selectPuzzle(
+    public void onAdminJoin(FootRaceAdmin admin) {
+        context.selectCheckpoint(
                 admin,
-                admin.getCurrentPuzzle(),
-                admin.getCurrentInBound(),
-                admin.getCurrentCheckPoint(),
+                admin.getCurrentCheckpoint(),
                 true
         );
     }
     
     @Override
-    public void onAdminQuit(ParkourAdmin admin) {
+    public void onAdminQuit(FootRaceAdmin admin) {
         
     }
     
@@ -61,7 +59,7 @@ public class ParkourPathwayEditorStateBase implements ParkourPathwayEditorState 
     
     @Override
     public @NotNull CommandResult loadConfig(@NotNull String configFile) throws ConfigException {
-        ParkourPathwayConfig config = context.getConfigController().getConfig(configFile);
+        FootRaceConfig config = context.getConfigController().getConfig(configFile);
         context.setConfig(config);
         return CommandResult.success(Component.empty()
                 .append(Component.text("Loaded config from "))
@@ -70,12 +68,12 @@ public class ParkourPathwayEditorStateBase implements ParkourPathwayEditorState 
     }
     
     @Override
-    public void onAdminInteract(PlayerInteractEvent event, ParkourAdmin admin) {
+    public void onAdminInteract(PlayerInteractEvent event, FootRaceAdmin admin) {
         
     }
     
     @Override
-    public void onAdminDropItem(PlayerDropItemEvent event, ParkourAdmin admin) {
+    public void onAdminDropItem(PlayerDropItemEvent event, FootRaceAdmin admin) {
         
     }
 }

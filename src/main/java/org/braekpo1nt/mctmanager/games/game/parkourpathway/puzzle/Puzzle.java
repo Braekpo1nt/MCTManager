@@ -75,5 +75,9 @@ public class Puzzle {
     public CheckPoint getCheckPoint(int currentCheckPoint) {
         return checkPoints.get(currentCheckPoint);
     }
+    
+    public void setInBound(int index, BoundingBox inBound) {
+        inBounds.set(index, inBound);
+    }
 }
 

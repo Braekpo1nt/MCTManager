@@ -10,12 +10,11 @@ import java.util.Collection;
  * A convenience interface for implementing {@link TextDisplayDelegate} on a {@link Renderer} which
  * is composed of multiple {@link TextDisplayDelegate} renderers
  */
-public interface TextDisplayComposite extends DisplayComposite, TextDisplayDelegate {
-    @Override
-    @NotNull Collection<? extends TextDisplayDelegate> getRenderers();
+public interface TextDisplayComposite extends TextDisplaySingleton {
+    @NotNull Collection<? extends TextDisplayDelegate> getTextDisplays();
     
     @Override
     default void setText(@NotNull Component text) {
-        getRenderers().forEach(r -> r.setText(text));
+        getTextDisplays().forEach(r -> r.setText(text));
     }
 }

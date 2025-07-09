@@ -13,11 +13,6 @@ import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
-import org.braekpo1nt.mctmanager.games.game.footrace.editor.FootRaceEditor;
-import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourPathwayEditor;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfigController;
@@ -37,16 +32,21 @@ import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfigContro
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfigController;
+import org.braekpo1nt.mctmanager.games.game.footrace.editor.FootRaceEditor;
+import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfig;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfigController;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourPathwayEditor;
 import org.braekpo1nt.mctmanager.games.game.spleef.SpleefGame;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfigController;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfig;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfigController;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
@@ -916,6 +916,7 @@ public abstract class GameManagerState {
                         plugin,
                         context,
                         config,
+                        configFile,
                         newAdmins
                 );
             }
