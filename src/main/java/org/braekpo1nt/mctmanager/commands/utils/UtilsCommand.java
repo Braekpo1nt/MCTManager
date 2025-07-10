@@ -10,7 +10,7 @@ public class UtilsCommand extends MasterCommandManager {
         super(plugin, "utils");
         addSubCommand(new DistSubCommand(plugin, "dist"));
         addSubCommand(new BoundingBoxSubCommand(plugin, "boundingbox"));
-        addSubCommand(new LocationSubCommand("location"));
+        addSubCommand(new LocationSubCommand(plugin,"location"));
         addSubCommand(new VectorSubCommand("vector"));
         addSubCommand(new YawPitchSubCommand("yawpitch"));
         onInit(plugin.getServer().getPluginManager());

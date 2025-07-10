@@ -91,8 +91,8 @@ public class ParkourPathwayStateBase implements ParkourPathwayState {
     public void onParticipantRespawn(PlayerRespawnEvent event, ParkourParticipant participant) {
         Location respawn = context.getConfig()
                 .getPuzzle(participant.getCurrentPuzzle())
-                .checkPoints().get(participant.getCurrentPuzzleCheckpoint())
-                .respawn();
+                .getCheckPoints().get(participant.getCurrentPuzzleCheckpoint())
+                .getRespawn();
         event.setRespawnLocation(respawn);
     }
     

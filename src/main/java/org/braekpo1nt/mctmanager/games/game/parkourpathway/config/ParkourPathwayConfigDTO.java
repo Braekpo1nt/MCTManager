@@ -185,7 +185,7 @@ class ParkourPathwayConfigDTO implements Validatable {
             newTeamSpawns = TeamSpawnDTO.toTeamSpawns(newWorld, this.getTeamSpawns());
         }
         List<Puzzle> newPuzzles = PuzzleDTO.toPuzzles(newWorld, this.getPuzzles());
-        Location newStartingLocation = newPuzzles.getFirst().checkPoints().getFirst().respawn();
+        Location newStartingLocation = newPuzzles.getFirst().getCheckPoints().getFirst().getRespawn();
         
         ParkourPathwayConfig.ParkourPathwayConfigBuilder builder = ParkourPathwayConfig.builder()
                 .world(newWorld)

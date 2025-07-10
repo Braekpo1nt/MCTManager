@@ -7,9 +7,9 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.display.Display;
-import org.braekpo1nt.mctmanager.display.geometry.GeometryUtils;
-import org.bukkit.Color;
+import org.braekpo1nt.mctmanager.display.boundingbox.RectBoxRenderer;
+import org.braekpo1nt.mctmanager.display.Renderer;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -80,8 +80,13 @@ class BoundingBoxSubCommand extends TabSubCommand {
             return CommandResult.failure(Component.text("Only players can be shown a display"));
         }
         
-        Display display = new Display(plugin, GeometryUtils.toRectanglePoints(boundingBox, 1), Color.FUCHSIA);
-        display.show(player, 3*20);
+        Renderer display = RectBoxRenderer.builder()
+                .world(player.getWorld())
+                .boundingBox(boundingBox)
+                .blockData(Material.GLASS.createBlockData())
+                .build();
+        display.show();
+        plugin.getServer().getScheduler().runTaskLater(plugin, display::hide, 10*20L);
         return CommandResult.success();
     }
     

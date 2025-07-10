@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -11,6 +12,7 @@ import java.util.stream.Collectors;
 /**
  * Represents a puzzle in a parkour pathway game.
  */
+@Getter
 @AllArgsConstructor
 public class Puzzle {
     /**
@@ -25,14 +27,6 @@ public class Puzzle {
      * Each checkpoint contains a respawn point and detection area.
      */
     private final List<CheckPoint> checkPoints;
-    
-    public List<BoundingBox> inBounds() {
-        return inBounds;
-    }
-    
-    public List<CheckPoint> checkPoints() {
-        return checkPoints;
-    }
     
     /**
      * Creates a copy of this puzzle.
@@ -60,6 +54,30 @@ public class Puzzle {
             }
         }
         return false;
+    }
+    
+    public void addInBound(BoundingBox newInBound) {
+        inBounds.add(newInBound);
+    }
+    
+    public void removeInBound(int index) {
+        inBounds.remove(index);
+    }
+    
+    public void addCheckPoint(CheckPoint newCheckPoint) {
+        checkPoints.add(newCheckPoint);
+    }
+    
+    public void removeCheckpoint(int index) {
+        checkPoints.remove(index);
+    }
+    
+    public CheckPoint getCheckPoint(int currentCheckPoint) {
+        return checkPoints.get(currentCheckPoint);
+    }
+    
+    public void setInBound(int index, BoundingBox inBound) {
+        inBounds.set(index, inBound);
     }
 }
 
