@@ -59,6 +59,8 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     private final SurvivalGamesConfig config;
     private final WorldBorder worldBorder;
     
+    private int currentRound;
+    
     public SurvivalGamesGame(
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
@@ -78,9 +80,6 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
         setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
         start(newTeams, newParticipants, newAdmins);
         initializeGlowManager();
-        for (SurvivalGamesTeam team : teams.values()) {
-            updateAliveCount(team);
-        }
         if (newTeams.size() < 2) {
             messageAllParticipants(Component.empty()
                     .append(Component.text(GameType.SURVIVAL_GAMES.getTitle()))
@@ -91,8 +90,6 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
                             .append(Component.text(" to stop the game."))
                             .color(NamedTextColor.RED)));
         }
-        initializeWorldBorder();
-        createPlatformsAndTeleportTeams();
         Main.logger().info("Started Survival Games");
     }
     
@@ -240,15 +237,36 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     }
     
     @Override
-    protected void initializeSidebar() {
-        topbar.setMiddle(Component.empty());
+    protected void initializeAdminSidebar() {
+        adminSidebar.addLines(
+                new KeyLine("round", Component.empty()
+                        .append(Component.text("Round 1/"))
+                        .append(Component.text(config.getRounds()))),
+                new KeyLine("timer", "")
+        );
     }
     
     @Override
-    protected void initializeAdminSidebar() {
-        adminSidebar.addLines(
-                new KeyLine("timer", "")
-        );
+    protected void initializeSidebar() {
+        topbar.setMiddle(Component.empty());
+        sidebar.addLines(
+                new KeyLine("round", Component.empty()
+                        .append(Component.text("Round 1/"))
+                        .append(Component.text(config.getRounds())))
+                );
+    }
+    
+    /**
+     * Update the sidebars to reflect the current round
+     */
+    public void updateRoundLine() {
+        Component roundLine = Component.empty()
+                .append(Component.text("Round "))
+                .append(Component.text(currentRound))
+                .append(Component.text("/"))
+                .append(Component.text(config.getRounds()));
+        sidebar.updateLine("round", roundLine);
+        adminSidebar.updateLine("round", roundLine);
     }
     
     @Override
@@ -260,7 +278,7 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
         scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
     }
     
-    private void initializeWorldBorder() {
+    public void initializeWorldBorder() {
         worldBorder.setCenter(config.getWorldBorderCenterX(), config.getWorldBorderCenterZ());
         worldBorder.setSize(config.getInitialBorderSize());
         worldBorder.setDamageAmount(config.getWorldBorderDamageAmount());

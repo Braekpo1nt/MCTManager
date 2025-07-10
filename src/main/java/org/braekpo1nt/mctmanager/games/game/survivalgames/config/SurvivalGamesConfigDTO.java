@@ -60,6 +60,10 @@ class SurvivalGamesConfigDTO implements Validatable {
      */
     private Vector platformCenter;
     private List<Platform> platforms;
+    /**
+     * The number of rounds. 
+     */
+    private int rounds;
     /** 
      * If true, players will be unable to open any block inventories that aren't spawn chests or map chests. 
      * Defaults to true. 
@@ -130,6 +134,7 @@ class SurvivalGamesConfigDTO implements Validatable {
             validator.validate(this.removeArea.contains(pos),
                     "mapChestCoord (%s) is not inside removeArea (%s)", pos, this.removeArea);
         }
+        validator.validate(this.rounds >= 1, "rounds must be greater than 0");
         validator.notNull(this.platforms, "platforms");
         validator.validate(!this.platforms.isEmpty(), "platforms must have at least one element");
         for (SurvivalGamesConfigDTO.Platform platform : this.platforms) {
@@ -150,12 +155,12 @@ class SurvivalGamesConfigDTO implements Validatable {
                 "scores");
         validator.notNull(this.durations,
                 "durations");
-        validator.validate(this.durations.start() >= 0,
-                "durations.start (%s) can't be negative", this.durations.start());
-        validator.validate(this.durations.invulnerability() >= 0,
-                "durations.invulnerability (%s) can't be negative", this.durations.invulnerability());
-        validator.validate(this.durations.end() >= 0,
-                "durations.end (%s) can't be negative", this.durations.end());
+        validator.validate(this.durations.roundStarting >= 0,
+                "durations.start (%s) can't be negative", this.durations.roundStarting);
+        validator.validate(this.durations.invulnerability >= 0,
+                "durations.invulnerability (%s) can't be negative", this.durations.invulnerability);
+        validator.validate(this.durations.gameOver >= 0,
+                "durations.end (%s) can't be negative", this.durations.gameOver);
         validator.notNull(this.description, "description");
     }
     
@@ -221,8 +226,10 @@ class SurvivalGamesConfigDTO implements Validatable {
                 .platformBarriers(newPlatformBarriers)
                 .platformSpawns(newPlatformSpawns)
                 .adminSpawn(newAdminSpawn)
-                .startDuration(this.durations.start)
-                .endDuration(this.durations.end)
+                .rounds(this.rounds)
+                .roundStartingDuration(this.durations.roundStarting)
+                .gameOverDuration(this.durations.gameOver)
+                .roundOverDuration(this.durations.roundOver)
                 .gracePeriodDuration(this.durations.invulnerability)
                 .killScore(this.scores.kill)
                 .surviveTeamScore(this.scores.surviveTeam)
@@ -279,12 +286,26 @@ class SurvivalGamesConfigDTO implements Validatable {
     record Scores(int kill, int surviveTeam, int firstPlace, int secondPlace, int thirdPlace) {
     }
     
-    /**
-     * 
-     * @param start the delay before the game starts, the time spent on the platforms before they disappear
-     * @param invulnerability the duration of the invulnerability once the platforms disappear
-     * @param end the delay after the game ends, allows for some celebration time before armor and items are taken away and the teleport back to the hub starts
-     */
-    record Durations(int start, int invulnerability, int end, int description) {
+    @Data
+    static class Durations {
+        /**
+         * the delay before the game starts, the time spent on the platforms before they disappear
+         */
+        @SerializedName(value = "roundStarting", alternate = {"start"})
+        private int roundStarting;
+        private int roundOver;
+        /**
+         * the duration of the invulnerability once the platforms disappear
+         */
+        private int invulnerability;
+        /**
+         * the delay after the game ends, allows for some celebration time before armor and items are taken away and the teleport back to the hub starts
+         */
+        @SerializedName(value = "gameOver", alternate = {"end"})
+        private int gameOver;
+        /**
+         * How long the description should show
+         */
+        private int description;
     }
 }

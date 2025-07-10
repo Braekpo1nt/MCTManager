@@ -9,7 +9,6 @@ import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class GameOverState extends SurvivalGamesStateBase {
@@ -19,7 +18,7 @@ public class GameOverState extends SurvivalGamesStateBase {
         Audience.audience(context.getParticipants().values()).showTitle(UIUtils.gameOverTitle());
         context.getAdminSidebar().addLine("over", "");
         context.getTimerManager().start(Timer.builder()
-                .duration(context.getConfig().getEndDuration())
+                .duration(context.getConfig().getGameOverDuration())
                 .withSidebar(context.getAdminSidebar(), "over")
                 .sidebarPrefix(Component.text("Game Over: "))
                 .withTopbar(context.getTopbar())
