@@ -190,6 +190,12 @@ public class Main extends JavaPlugin {
         new TopCommand(this, gameManager);
         new TeamMsgCommand(this, gameManager);
         
+        registerCommands();
+        
+        alwaysGiveNightVision();
+    }
+    
+    protected void registerCommands() {
         LiteralCommandNode<CommandSourceStack> ctDebugCommand = Commands.literal("ctdebug")
                 .then(Commands.literal("freeRect")
                         .then(Commands.argument("edge1", ArgumentTypes.finePosition())
@@ -301,8 +307,6 @@ public class Main extends JavaPlugin {
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> {
             commands.registrar().register(ctDebugCommand);
         });
-    
-        alwaysGiveNightVision();
     }
     
     private @Nullable BoundingBoxRendererImpl boxRenderer;
