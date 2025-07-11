@@ -155,7 +155,7 @@ public abstract class FastBoardBase<T> {
                 packetSbResetScore = lookup.findConstructor(resetScoreClass, removeScoreType);
                 blankNumberFormat = blankField.isPresent() ? blankField.get().get(null) : null;
             } else if (VersionType.V1_17.isHigherOrEqual()) {
-                Class<?> enumSbAction = FastReflection.nmsClass("server", "ScoreboardServer$Action", "ServerScoreboard$Method");
+                Class<?> enumSbAction = FastReflection.nmsOptionalClass("server", "ScoreboardServer$Action", "ServerScoreboard$Method").orElse(null);
                 MethodType scoreType = MethodType.methodType(void.class, enumSbAction, String.class, String.class, int.class);
                 packetSbSetScore = lookup.findConstructor(packetSbScoreClass, scoreType);
             } else {
