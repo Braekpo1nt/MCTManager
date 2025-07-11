@@ -56,7 +56,7 @@ dependencies {
 
     testImplementation 'io.papermc.paper:paper-api:1.21.7-R0.1-SNAPSHOT'
     compileOnly 'io.papermc.paper:paper-api:1.21.7-R0.1-SNAPSHOT'
-    compileOnly 'com.github.decentsoftware-eu:decentholograms:2.9.3'
+    compileOnly 'com.github.decentsoftware-eu:decentholograms:2.9.4'
 
     // This would normally be compileOnly, but it's implementation so that the MockBukkit
     // tests can work. I mock PacketEventsAPI in the test folders to be a no-op implementation.
