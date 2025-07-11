@@ -168,7 +168,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
                     .append(participant.displayName())
                     .append(Component.text(" left early. Their life is forfeit."));
             PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant.getPlayer(),
-                    DamageSource.builder(DamageType.GENERIC).build(), Collections.emptyList(), 0, deathMessage);
+                    DamageSource.builder(DamageType.GENERIC).build(), Collections.emptyList(), 0, 0, 0, 0, deathMessage, true);
             this.onParticipantDeath(fakeDeathEvent, participant);
         }
         super.onParticipantQuit(participant, team);

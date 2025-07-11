@@ -88,7 +88,7 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
                     .append(Component.text(" left early. Their life is forfeit."));
             context.messageAllParticipants(deathMessage);
             PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant.getPlayer(),
-                    DamageSource.builder(DamageType.GENERIC).build(), Collections.emptyList(), 0, deathMessage);
+                    DamageSource.builder(DamageType.GENERIC).build(), Collections.emptyList(), 0, 0, 0, 0, deathMessage, true);
             onParticipantDeath(fakeDeathEvent, participant);
         }
     }

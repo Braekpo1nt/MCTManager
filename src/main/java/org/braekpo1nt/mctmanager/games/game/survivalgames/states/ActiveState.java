@@ -202,7 +202,7 @@ public class ActiveState extends SurvivalGamesStateBase {
                     .append(participant.displayName())
                     .append(Component.text(" left early. Their life is forfeit."));
             PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant.getPlayer(), 
-                    DamageSource.builder(DamageType.GENERIC).build(), drops, droppedExp, deathMessage);
+                    DamageSource.builder(DamageType.GENERIC).build(), drops, droppedExp, 0, 0, 0, deathMessage, true);
             this.onParticipantDeath(fakeDeathEvent, participant);
         }
     }
