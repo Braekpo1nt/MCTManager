@@ -1,6 +1,6 @@
 package org.braekpo1nt.mctmanager.utils;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
+import org.mockbukkit.mockbukkit.MockBukkit;
 import org.bukkit.Material;
 import org.bukkit.WorldCreator;
 import org.bukkit.util.BoundingBox;
