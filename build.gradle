@@ -1,11 +1,10 @@
 plugins {
     id 'java'
     id 'com.gradleup.shadow' version '8.3.0'
-//    id "io.freefair.lombok" version "8.6"
 }
 
 group = 'org.braekpo1nt'
-version = '2.0.0'
+version = '2.0.1'
 
 repositories {
     mavenCentral()
