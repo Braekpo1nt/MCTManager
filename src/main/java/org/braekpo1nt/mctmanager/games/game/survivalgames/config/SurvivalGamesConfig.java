@@ -28,9 +28,11 @@ public class SurvivalGamesConfig {
     private List<BoundingBox> platformBarriers;
     private List<Location> platformSpawns;
     private Location adminSpawn;
-    private int startDuration;
+    private int rounds;
+    private int roundStartingDuration;
     private int gracePeriodDuration;
-    private int endDuration;
+    private int gameOverDuration;
+    private int roundOverDuration;
     private int killScore;
     private int surviveTeamScore;
     private int firstPlaceScore;

@@ -155,6 +155,11 @@ public class SpleefGame extends GameBase<SpleefParticipant, SpleefTeam, SpleefPa
     }
     
     @Override
+    protected void resetAdmin(Player admin) {
+        
+    }
+    
+    @Override
     protected void initializeAdminSidebar() {
         adminSidebar.addLines(
                 new KeyLine("round", Component.empty()
@@ -163,11 +168,6 @@ public class SpleefGame extends GameBase<SpleefParticipant, SpleefTeam, SpleefPa
                 new KeyLine("timer", ""),
                 new KeyLine("alive", Component.empty())
         );
-    }
-    
-    @Override
-    protected void resetAdmin(Player admin) {
-        
     }
     
     @Override

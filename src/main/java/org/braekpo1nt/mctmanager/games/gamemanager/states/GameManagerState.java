@@ -290,6 +290,7 @@ public abstract class GameManagerState {
                 activeGame.onTeamQuit(participant.getTeamId());
             }
             onParticipantReturnToHub(participant);
+            participant.teleport(config.getSpawn());
         }
         MCTTeam team = teams.get(participant.getTeamId());
         team.quitOnlineMember(participant.getUniqueId());

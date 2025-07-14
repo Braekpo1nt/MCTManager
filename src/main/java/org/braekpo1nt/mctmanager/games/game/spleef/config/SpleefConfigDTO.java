@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.annotations.SerializedName;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
