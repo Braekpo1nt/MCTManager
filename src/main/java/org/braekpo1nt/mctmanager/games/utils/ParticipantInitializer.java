@@ -54,7 +54,7 @@ public class ParticipantInitializer {
     }
     
     public static void resetHealthAndHunger(Player participant) {
-        participant.setHealth(Objects.requireNonNull(participant.getAttribute(Attribute.GENERIC_MAX_HEALTH)).getDefaultValue());
+        participant.setHealth(Objects.requireNonNull(participant.getAttribute(Attribute.MAX_HEALTH)).getDefaultValue());
         participant.setFoodLevel(20);
         participant.setSaturation(5);
     }

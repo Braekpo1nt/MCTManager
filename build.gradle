@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'org.braekpo1nt'
-version = '2.0.1'
+version = '3.0.0'
 
 repositories {
     mavenCentral()
@@ -46,22 +46,24 @@ configurations {
 }
 
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+    implementation("org.junit.jupiter:junit-jupiter:5.13.3")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher") // needed to resolve discrepancy between this and MockBukkit
+    testImplementation 'org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.64.0'
+
     testImplementation 'org.mockito:mockito-core:5.2.0'
-    testImplementation 'io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT'
-    testImplementation 'com.github.seeseemelk:MockBukkit-v1.21:3.133.2'
     testImplementation 'org.slf4j:slf4j-jdk14:2.0.5'
-    
-    compileOnly 'io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT'
-    compileOnly 'com.github.decentsoftware-eu:decentholograms:2.9.3'
+
+    testImplementation 'io.papermc.paper:paper-api:1.21.7-R0.1-SNAPSHOT'
+    compileOnly 'io.papermc.paper:paper-api:1.21.7-R0.1-SNAPSHOT'
+    compileOnly 'com.github.decentsoftware-eu:decentholograms:2.9.5'
 
     // This would normally be compileOnly, but it's implementation so that the MockBukkit
     // tests can work. I mock PacketEventsAPI in the test folders to be a no-op implementation.
-    implementation 'com.github.retrooper:packetevents-spigot:2.8.0'
+    implementation 'com.github.retrooper:packetevents-spigot:2.9.1'
     implementation 'com.google.code.gson:gson:2.10.1'
-    implementation 'com.sk89q.worldedit:worldedit-bukkit:7.3.6'
+    implementation 'com.sk89q.worldedit:worldedit-bukkit:7.4.0-SNAPSHOT'
     implementation 'com.github.stefvanschie.inventoryframework:IF:0.10.19'
-    shade 'com.github.stefvanschie.inventoryframework:IF:0.10.19'
+    shade 'com.github.stefvanschie.inventoryframework:IF:0.11.2'
     
     // lombok
     compileOnly 'org.projectlombok:lombok:1.18.36'
