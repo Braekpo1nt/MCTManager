@@ -43,6 +43,7 @@ public abstract class SurvivalGamesStateBase implements SurvivalGamesState {
         context.getTopbar().linkToTeam(participant.getUniqueId(), participant.getTeamId());
         context.initializeKillCount(participant);
         context.updateAliveCount(team);
+        context.updateRoundLine();
         initializeGlowing(participant);
     }
     
@@ -51,6 +52,7 @@ public abstract class SurvivalGamesStateBase implements SurvivalGamesState {
         context.getTopbar().linkToTeam(participant.getUniqueId(), participant.getTeamId());
         context.initializeKillCount(participant);
         context.updateAliveCount(team);
+        context.updateRoundLine();
         initializeGlowing(participant);
     }
     

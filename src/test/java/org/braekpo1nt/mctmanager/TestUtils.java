@@ -1,6 +1,6 @@
 package org.braekpo1nt.mctmanager;
 
-import be.seeseemelk.mockbukkit.command.ConsoleCommandSenderMock;
+import org.mockbukkit.mockbukkit.command.ConsoleCommandSenderMock;
 import com.google.gson.*;
 import net.kyori.adventure.text.*;
 import org.jetbrains.annotations.NotNull;

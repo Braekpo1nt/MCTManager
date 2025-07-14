@@ -74,6 +74,7 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
         this.topbar = addUIManager(new ManyBattleTopbar());
         this.glowManager = addUIManager(new GlowManager(plugin));
         this.config = config;
+        this.currentRound = 1;
         worldBorder = config.getWorld().getWorldBorder();
         glowManager.registerListeners();
         fillAllChests();
@@ -151,7 +152,7 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     /**
      * Fill all chests in the survivalgames world, map chests and spawn chests
      */
-    private void fillAllChests() {
+    public void fillAllChests() {
         fillSpawnChests();
         fillMapChests();
     }
@@ -239,27 +240,24 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     @Override
     protected void initializeAdminSidebar() {
         adminSidebar.addLines(
-                new KeyLine("round", Component.empty()
-                        .append(Component.text("Round 1/"))
-                        .append(Component.text(config.getRounds()))),
-                new KeyLine("timer", "")
+                new KeyLine("round", Component.empty()),
+                new KeyLine("timer", Component.empty())
         );
     }
     
     @Override
     protected void initializeSidebar() {
         topbar.setMiddle(Component.empty());
-        sidebar.addLines(
-                new KeyLine("round", Component.empty()
-                        .append(Component.text("Round 1/"))
-                        .append(Component.text(config.getRounds())))
-                );
+        sidebar.addLine("round", Component.empty());
     }
     
     /**
      * Update the sidebars to reflect the current round
      */
     public void updateRoundLine() {
+        if (config.getRounds() <= 1) {
+            return;
+        }
         Component roundLine = Component.empty()
                 .append(Component.text("Round "))
                 .append(Component.text(currentRound))
@@ -351,7 +349,7 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
         // do nothing
     }
     
-    private void clearFloorItems() {
+    public void clearFloorItems() {
         for (Item item : config.getWorld().getEntitiesByClass(Item.class)) {
             if (config.getRemoveArea().contains(item.getLocation().toVector())) {
                 item.remove();
@@ -359,7 +357,7 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
         }
     }
     
-    private void clearAllChests() {
+    public void clearAllChests() {
         List<Vector> allChestCoords = new ArrayList<>(config.getSpawnChestCoords());
         allChestCoords.addAll(config.getMapChestCoords());
         for (Vector coords : allChestCoords) {
@@ -370,7 +368,7 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
         }
     }
     
-    private void clearContainers() {
+    public void clearContainers() {
         if (!config.shouldClearContainers()) {
             return;
         }

@@ -1,7 +1,7 @@
 package org.braekpo1nt.mctmanager;
 
-import be.seeseemelk.mockbukkit.ServerMock;
-import be.seeseemelk.mockbukkit.entity.PlayerMock;
+import org.mockbukkit.mockbukkit.ServerMock;
+import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import io.papermc.paper.entity.LookAnchor;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;

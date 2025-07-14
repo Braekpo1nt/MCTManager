@@ -13,6 +13,7 @@ public class DescriptionState extends OnPlatformsState {
         for (SurvivalGamesTeam team : context.getTeams().values()) {
             context.updateAliveCount(team);
         }
+        context.updateRoundLine();
         context.createPlatformsAndTeleportTeams();
         context.messageAllParticipants(context.getConfig().getDescription());
         context.getTimerManager().start(Timer.builder()
@@ -20,7 +21,13 @@ public class DescriptionState extends OnPlatformsState {
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .withTopbar(context.getTopbar())
                 .sidebarPrefix(Component.text("Starting soon: "))
-                .onCompletion(() -> context.setState(new PreRoundState(context)))
+                .onCompletion(() -> {
+                    if (context.getConfig().getRounds() <= 1) {
+                        context.setState(new OneRoundStartingState(context));
+                    } else {
+                        context.setState(new PreRoundState(context));
+                    }
+                })
                 .build());
     }
 }

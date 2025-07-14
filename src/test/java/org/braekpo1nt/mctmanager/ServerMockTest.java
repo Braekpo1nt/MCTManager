@@ -1,7 +1,7 @@
 package org.braekpo1nt.mctmanager;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
-import be.seeseemelk.mockbukkit.ServerMock;
+import org.mockbukkit.mockbukkit.MockBukkit;
+import org.mockbukkit.mockbukkit.ServerMock;
 import org.junit.jupiter.api.*;
 
 import java.io.File;

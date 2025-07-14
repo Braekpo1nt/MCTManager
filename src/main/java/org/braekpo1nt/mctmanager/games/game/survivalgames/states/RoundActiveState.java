@@ -31,7 +31,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public class ActiveState extends SurvivalGamesStateBase {
+public class RoundActiveState extends SurvivalGamesStateBase {
     
     private final Main plugin;
     private final TimerManager timerManager;
@@ -48,7 +48,7 @@ public class ActiveState extends SurvivalGamesStateBase {
     private @Nullable Timer borderShrinking;
     private @Nullable Timer gracePeriodTimer;
     
-    public ActiveState(@NotNull SurvivalGamesGame context) {
+    public RoundActiveState(@NotNull SurvivalGamesGame context) {
         super(context);
         this.plugin = context.getPlugin();
         this.timerManager = context.getTimerManager();
@@ -202,7 +202,7 @@ public class ActiveState extends SurvivalGamesStateBase {
                     .append(participant.displayName())
                     .append(Component.text(" left early. Their life is forfeit."));
             PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant.getPlayer(), 
-                    DamageSource.builder(DamageType.GENERIC).build(), drops, droppedExp, deathMessage);
+                    DamageSource.builder(DamageType.GENERIC).build(), drops, droppedExp, 0, 0, 0, deathMessage, true);
             this.onParticipantDeath(fakeDeathEvent, participant);
         }
     }
@@ -334,6 +334,10 @@ public class ActiveState extends SurvivalGamesStateBase {
         if (gracePeriodTimer != null) {
             gracePeriodTimer.cancel();
         }
-        context.setState(new GameOverState(context));
+        if (context.getCurrentRound() < context.getConfig().getRounds()) {
+            context.setState(new RoundOverState(context));
+        } else {
+            context.setState(new GameOverState(context));
+        }
     }
 }
