@@ -5,7 +5,9 @@ import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesParticipant;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesTeam;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.GameMode;
+import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -41,7 +43,7 @@ public abstract class SurvivalGamesStateBase implements SurvivalGamesState {
         context.getTopbar().linkToTeam(participant.getUniqueId(), participant.getTeamId());
         context.initializeKillCount(participant);
         context.updateAliveCount(team);
-        context.initializeGlowing(participant);
+        initializeGlowing(participant);
     }
     
     @Override
@@ -49,7 +51,31 @@ public abstract class SurvivalGamesStateBase implements SurvivalGamesState {
         context.getTopbar().linkToTeam(participant.getUniqueId(), participant.getTeamId());
         context.initializeKillCount(participant);
         context.updateAliveCount(team);
-        context.initializeGlowing(participant);
+        initializeGlowing(participant);
+    }
+    
+    /**
+     * Make the participant glow to their teammates, and their teammates glow to them
+     * (but don't glow to themselves). Also makes the participant glow to the admins.
+     * @param participant the participant to show their teammates to
+     */
+    private void initializeGlowing(SurvivalGamesParticipant participant) {
+        for (SurvivalGamesParticipant other : context.getParticipants().values()) {
+            if (!other.equals(participant)) {
+                if (participant.getTeamId().equals(other.getTeamId())) {
+                    context.getGlowManager().showGlowing(participant, other);
+                    if (participant.isAlive()) {
+                        context.getGlowManager().showGlowing(other, participant);
+                    }
+                }
+            }
+        }
+        if (!participant.isAlive()) {
+            return;
+        }
+        for (Player admin : context.getAdmins()) {
+            context.getGlowManager().showGlowing(admin, participant);
+        }
     }
     
     @Override

@@ -6,24 +6,23 @@ import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.game.footrace.editor.FootRaceEditor;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourPathwayEditor;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.GameManagerState;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.MaintenanceState;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.hub.config.HubConfig;
+import org.braekpo1nt.mctmanager.hub.config.HubConfigController;
 import org.braekpo1nt.mctmanager.hub.leaderboard.LeaderboardManager;
 import org.braekpo1nt.mctmanager.participant.ColorAttributes;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
@@ -60,12 +59,13 @@ import java.util.stream.Collectors;
  */
 public class GameManager implements Listener {
     
-    @Setter
     public @NotNull GameManagerState state;
     public static final String ADMIN_TEAM = "_Admins";
     public static final NamedTextColor ADMIN_COLOR = NamedTextColor.DARK_RED;
     private final Main plugin;
-    private final Map<GameType, MCTGame> activeGames = new HashMap<>();
+    // TODO: remove these getter and setter and make this a map like activeGames
+    @Getter
+    @Setter
     private GameEditor activeEditor = null;
     @Getter
     private final SidebarFactory sidebarFactory;
@@ -97,18 +97,26 @@ public class GameManager implements Listener {
     private final Map<UUID, MCTParticipant> onlineParticipants = new HashMap<>();
     @Getter
     private final List<Player> onlineAdmins = new ArrayList<>();
+    private final Map<GameInstanceId, MCTGame> activeGames = new HashMap<>();
     /**
      * A reference to which participant is in which game
      */
-    protected final Map<UUID, GameType> participantGames = new HashMap<>();
+    protected final Map<UUID, GameInstanceId> participantGames = new HashMap<>();
     /**
      * A reference to which admin is in which game
      */
-    protected final Map<UUID, GameType> adminGames = new HashMap<>();
+    protected final Map<UUID, GameInstanceId> adminGames = new HashMap<>();
+    /**
+     * A reference to which admin is in which editor<br>
+     * If an admin's UUID is a key in this map, that admin is in 
+     * an editor.
+     */
+    protected final Map<UUID, GameInstanceId> adminEditors = new HashMap<>();
     private final TabList tabList;
     private final @NotNull List<LeaderboardManager> leaderboardManagers;
     private final Sidebar sidebar; // TODO: make sidebar a thing of each state, not central
-    private final @NotNull HubConfig config;
+    @Getter
+    private @NotNull HubConfig config;
     
     public GameManager(Main plugin, 
                        Scoreboard mctScoreboard, 
@@ -135,14 +143,27 @@ public class GameManager implements Listener {
                 .onlineAdmins(this.onlineAdmins)
                 .participantGames(this.participantGames)
                 .adminGames(this.adminGames)
+                .adminEditors(this.adminEditors)
                 .plugin(this.plugin)
-                .config(this.config)
                 .gameStateStorageUtil(this.gameStateStorageUtil)
                 .sidebarFactory(this.sidebarFactory)
                 .sidebar(this.sidebar)
                 .leaderboardManagers(this.leaderboardManagers)
                 .build();
         this.state = new MaintenanceState(this, contextReference);
+        this.state.enter();
+    }
+    
+    /**
+     * {@link GameManagerState#exit()} will be called on the current state,
+     * then the current state will be assigned to the new state, finally {@link GameManagerState#enter()}
+     * will be called on the current state
+     * @param state the new state
+     */
+    public void setState(@NotNull GameManagerState state) {
+        this.state.exit();
+        this.state = state;
+        this.state.enter();
     }
     
     public CommandResult switchMode(@NotNull String mode) {
@@ -169,6 +190,7 @@ public class GameManager implements Listener {
     }
     
     public void cleanup() {
+        state.exit();
         state.cleanup();
     }
     
@@ -214,19 +236,6 @@ public class GameManager implements Listener {
                     .append(Component.newline());
         }
         plugin.getServer().getConsoleSender().sendMessage(builder.build());
-    }
-    
-    /**
-     * @param gameType the game type to get the {@link GameEditor} for
-     * @return the {@link GameEditor} associated with the given type, or null if there is no editor for the
-     * given type (or if the type is null).
-     */
-    private @Nullable GameEditor instantiateEditor(GameType gameType) {
-        return switch (gameType) {
-            case PARKOUR_PATHWAY -> new ParkourPathwayEditor(plugin, this);
-            case FOOT_RACE -> new FootRaceEditor(plugin, this);
-            default -> null;
-        };
     }
     
     @EventHandler(priority = EventPriority.LOWEST) // happens first
@@ -372,20 +381,23 @@ public class GameManager implements Listener {
         return mctScoreboard;
     }
     
-    public CommandResult joinParticipantToGame(@NotNull GameType gameType, @NotNull UUID uuid) {
+    public CommandResult joinParticipantToGame(@NotNull GameType gameType, @Nullable String configFile, @NotNull UUID uuid) {
         MCTParticipant mctParticipant = onlineParticipants.get(uuid);
         if (mctParticipant == null) {
             return CommandResult.failure(Component.text("You are not a participant"));
         }
-        return state.joinParticipantToGame(gameType, mctParticipant);
+        return state.joinParticipantToGame(gameType, configFile, mctParticipant);
     }
     
-    public CommandResult joinAdminToGame(@NotNull GameType gameType, @NotNull Player admin) {
-        
+    public @Nullable List<String> tabCompleteActiveGame(@NotNull String[] args) {
+        return state.tabCompleteActiveGames(args);
+    }
+    
+    public CommandResult joinAdminToGame(@NotNull GameType gameType, @Nullable String configFile, @NotNull Player admin) {
         if (!isAdmin(admin.getUniqueId())) {
             return CommandResult.failure("You are not an admin");
         }
-        return state.joinAdminToGame(gameType, admin);
+        return state.joinAdminToGame(gameType, configFile, admin);
     }
     
     public CommandResult returnParticipantToHub(@NotNull UUID uuid) {
@@ -410,12 +422,36 @@ public class GameManager implements Listener {
         return state.createSidebar();
     }
     
-    public boolean loadGameState() {
+    public @NotNull CommandResult loadGameState() {
+        if (!activeGames.isEmpty()) {
+            return CommandResult.failure("Can't load the game state while a game is running");
+        }
+        if (activeEditor != null) {
+            return CommandResult.failure("Can't load the game state while an editor is running");
+        }
+        for (Player admin : new ArrayList<>(onlineAdmins)) {
+            state.onAdminQuit(admin);
+        }
+        for (MCTParticipant participant : new ArrayList<>(onlineParticipants.values())) {
+            state.onParticipantQuit(participant);
+        }
         try {
             gameStateStorageUtil.loadGameState();
         } catch (ConfigException e) {
             reportGameStateException("loading game state", e);
-            return false;
+            return CommandResult.failure("Unable to load game state, see console for details.");
+        }
+        List<CommandResult> results = new ArrayList<>();
+        try {
+            this.config = new HubConfigController(plugin.getDataFolder()).getConfig();
+            this.leaderboardManagers.forEach(LeaderboardManager::tearDown);
+            this.leaderboardManagers.clear();
+            this.leaderboardManagers.addAll(createLeaderboardManagers());
+            state.setConfig(this.config);
+            results.add(CommandResult.success(Component.text("Loaded hub config")));
+        } catch (ConfigException e) {
+            results.add(CommandResult.failure(Component.text("Could not load hub config. See console for details.")));
+            Main.logger().log(Level.SEVERE, String.format("Could not load new hub config, reverting to last working one. See console for details. %s", e.getMessage()), e);
         }
         gameStateStorageUtil.setupScoreboard(mctScoreboard);
         teams.clear();
@@ -474,7 +510,9 @@ public class GameManager implements Listener {
         state.updateSidebarTeamScores();
         state.updateSidebarPersonalScores(onlineParticipants.values());
         // sidebar stop
-        return true;
+        results.add(CommandResult.success(Component.text("Loaded gameState.json")));
+        state.onLoadGameState();
+        return CompositeCommandResult.all(results);
     }
     
     public void saveGameState() {
@@ -511,6 +549,10 @@ public class GameManager implements Listener {
      */
     public CommandResult startGame(@NotNull GameType gameType, @NotNull String configFile) {
         return state.startGame(teams.keySet(), onlineAdmins, gameType, configFile);
+    }
+    
+    public CommandResult startEditor(@NotNull GameType gameType, @NotNull String configFile) {
+        return state.startEditor(gameType, configFile);
     }
     
     /**
@@ -571,10 +613,11 @@ public class GameManager implements Listener {
      * @return the type of active game the given teamId is in,
      * or null if the team is not in a game
      */
-    public @Nullable GameType getTeamActiveGame(String teamId) {
-        for (MCTGame game : activeGames.values()) {
+    public @Nullable GameInstanceId getTeamActiveGame(String teamId) {
+        for (Map.Entry<GameInstanceId, MCTGame> entry : activeGames.entrySet()) {
+            MCTGame game = entry.getValue();
             if (game.containsTeam(teamId)) {
-                return game.getType();
+                return entry.getKey();
             }
         }
         return null;
@@ -588,11 +631,8 @@ public class GameManager implements Listener {
         return team.isOnline();
     }
     
-    /**
-     * If a game of the specified type is currently going on, manually stops the game.
-     */
-    public CommandResult stopGame(GameType gameType) {
-        return state.stopGame(gameType);
+    public CommandResult stopGame(@NotNull GameType gameType, @Nullable String configFile) {
+        return state.stopGame(gameType, configFile);
     }
     
     /**
@@ -605,67 +645,33 @@ public class GameManager implements Listener {
     /**
      * Called by an active game when the game is over.
      */
-    public void gameIsOver(@NotNull GameType gameType, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants, @NotNull List<Player> gameAdmins) {
-        state.gameIsOver(gameType, teamScores, participantScores, gameParticipants, gameAdmins);
+    public void gameIsOver(@NotNull GameInstanceId id, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants, @NotNull List<Player> gameAdmins) {
+        state.gameIsOver(id, teamScores, participantScores, gameParticipants, gameAdmins);
     }
     
     /**
-     * @param gameType the game type to check
-     * @return true if the given game type is currently being played, false otherwise
+     * Called by an active editor when the editor is ended
+     * @param editorAdmins the admins who were in the editor when it ended
      */
-    public boolean gameIsActive(@NotNull GameType gameType) {
-        return activeGames.containsKey(gameType);
+    public void editorIsOver(@NotNull Collection<Player> editorAdmins) {
+        state.editorIsOver(editorAdmins);
     }
     
-    public CommandResult startEditor(@NotNull GameType gameType, @NotNull String configFile) {
-        if (!activeGames.isEmpty()) {
-            return CommandResult.failure(Component.text("Can't start an editor while any games are active"));
-        }
-        
-        if (onlineParticipants.isEmpty()) {
-            return CommandResult.failure(Component.text("There are no online participants. You can add participants using:\n")
-                    .append(Component.text("/mct team join <team> <member>")
-                            .decorate(TextDecoration.BOLD)
-                            .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
-        }
-        
-        if (editorIsRunning()) {
-            return CommandResult.failure(Component.text("An editor is already running. You must stop it before you can start another one."));
-        }
-        
-        GameEditor selectedEditor = instantiateEditor(gameType);
-        if (selectedEditor == null) {
-            return CommandResult.failure(Component.text("Can't find editor for game type " + gameType));
-        }
-        
-        // make sure config loads
-        try {
-            selectedEditor.loadConfig(configFile);
-        } catch (ConfigException e) {
-            Main.logger().log(Level.SEVERE, String.format("Error loading config for editor %s", selectedEditor), e);
-            return CommandResult.failure(Component.text("Can't start ")
-                    .append(Component.text(gameType.name())
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(". Error loading config file. See console for details:\n"))
-                    .append(Component.text(e.getMessage())));
-        }
-        
-        selectedEditor.start(Participant.toPlayersList(onlineParticipants.values()));
-        activeEditor = selectedEditor;
-        return CommandResult.success();
+    /**
+     * @param id the {@link GameInstanceId} to check
+     * @return true if the given game instance id is currently being played, false otherwise
+     */
+    public boolean gameIsActive(@NotNull GameInstanceId id) {
+        return activeGames.containsKey(id);
     }
     
+    // editor start
     public CommandResult stopEditor() {
-        if (!editorIsRunning()) {
-            return CommandResult.failure(Component.text("No editor is running."));
-        }
-        activeEditor.stop();
-        activeEditor = null;
-        return CommandResult.success();
+        return state.stopEditor();
     }
     
     public boolean editorIsRunning() {
-        return activeEditor != null;
+        return state.editorIsRunning();
     }
     
     /**
@@ -679,79 +685,20 @@ public class GameManager implements Listener {
     }
     
     public CommandResult validateEditor(@NotNull String configFile) {
-        if (!editorIsRunning()) {
-            return CommandResult.failure(Component.text("No editor is running."));
-        }
-        try {
-            activeEditor.configIsValid(configFile);
-        } catch (ConfigException e) {
-            Main.logger().log(Level.SEVERE, String.format("Error validating config for editor %s", activeEditor.getType()), e);
-            return CommandResult.failure(Component.text("Config is not valid for ")
-                    .append(Component.text(activeEditor.getType().name())
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(". See console for details:\n"))
-                    .append(Component.text(e.getMessage())));
-        }
-        return CommandResult.success(Component.text("Config is valid."));
+        return state.validateEditor(configFile);
     }
     
     /**
      * @param skipValidation if true, validation will be skipped and the config will be saved even if invalid, if false the config will only save if it is valid
      */
     public CommandResult saveEditor(@NotNull String configFile, boolean skipValidation) {
-        if (!editorIsRunning()) {
-            return CommandResult.failure(Component.text("No editor is running."));
-        }
-        if (!skipValidation) {
-            try {
-                activeEditor.configIsValid(configFile);
-            } catch (ConfigException e) {
-                Main.logger().log(Level.SEVERE, String.format("Error validating config for editor %s", activeEditor.getType()), e);
-                return CommandResult.failure(
-                        Component.text("Config is not valid for ")
-                                .append(Component.text(activeEditor.getType().name())
-                                        .decorate(TextDecoration.BOLD))
-                                .append(Component.text(". See console for details:\n"))
-                                .append(Component.text(e.getMessage()))
-                ).and(CommandResult.failure(
-                        Component.text("Skipping save. If you wish to force the save, use ")
-                                .append(Component.text("/mct edit save true")
-                                        .clickEvent(ClickEvent.suggestCommand("/mct edit save true"))
-                                        .decorate(TextDecoration.BOLD))
-                ));
-            }
-        }
-        try {
-            activeEditor.saveConfig(configFile);
-        } catch (ConfigException e) {
-            Main.logger().log(Level.SEVERE, String.format("Error saving config for editor %s", activeEditor.getType()), e);
-            return CommandResult.failure(Component.text("An error occurred while attempting to save the config for ")
-                    .append(Component.text(activeEditor.getType().name())
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(". See console for details:\n"))
-                    .append(Component.text(e.getMessage())));
-        }
-        if (skipValidation) {
-            return CommandResult.success(Component.text("Skipping validation"))
-                    .and(CommandResult.success(Component.text("Config is saved.")));
-        } else {
-            return CommandResult.success(Component.text("Config is saved."));
-        }
+        return state.saveEditor(configFile, skipValidation);
     }
     
     public CommandResult loadEditor(@NotNull String configFile) {
-        try {
-            activeEditor.loadConfig(configFile);
-        } catch (ConfigException e) {
-            Main.logger().log(Level.SEVERE, String.format("Error loading config for editor %s", activeEditor.getType()), e);
-            return CommandResult.failure(Component.text("Can't start ")
-                    .append(Component.text(activeEditor.getType().name())
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(". Error loading config file. See console for details:\n"))
-                    .append(Component.text(e.getMessage())));
-        }
-        return CommandResult.success(Component.text("Config loaded."));
+        return state.loadEditor(configFile);
     }
+    // editor end
     
     //====================================================
     // GameStateStorageUtil accessors and helpers
@@ -1020,6 +967,16 @@ public class GameManager implements Listener {
         Audience.audience(onlineParticipants.values()).sendMessage(message);
     }
     
+    // commands start
+    public CommandResult top(@NotNull UUID uuid) {
+        MCTParticipant participant = onlineParticipants.get(uuid);
+        if (participant == null) {
+            return CommandResult.failure(Component.text("Not a participant"));
+        }
+        return state.top(participant);
+    }
+    // commands end
+    
     // event start
     public CommandResult readyUpParticipant(@NotNull UUID uuid) {
         MCTParticipant participant = onlineParticipants.get(uuid);
@@ -1045,12 +1002,12 @@ public class GameManager implements Listener {
         return state.openHubMenu(participant);
     }
     
-    public int getGameIterations(@NotNull GameType gameType) {
-        return state.getGameIterations(gameType);
+    public int getGameIterations(@NotNull GameInstanceId id) {
+        return state.getGameIterations(id);
     }
     
-    public CommandResult undoGame(@NotNull GameType gameType, int iterationIndex) {
-        return state.undoGame(gameType, iterationIndex);
+    public CommandResult undoGame(@NotNull GameInstanceId id, int iterationIndex) {
+        return state.undoGame(id, iterationIndex);
     }
     
     public CommandResult modifyMaxGames(int newMaxGames) {
@@ -1091,12 +1048,12 @@ public class GameManager implements Listener {
         throw new RuntimeException(e);
     }
     
-    public @NotNull Set<GameType> getActiveGames() {
-        return activeGames.keySet();
+    public @NotNull List<GameInstanceId> getActiveGameIds() {
+        return new ArrayList<>(activeGames.keySet());
     }
     
-    public @Nullable MCTGame getActiveGame(@NotNull GameType gameType) {
-        return activeGames.get(gameType);
+    public @Nullable MCTGame getActiveGame(@NotNull GameInstanceId id) {
+        return activeGames.get(id);
     }
     
     /**

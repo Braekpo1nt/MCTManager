@@ -3,22 +3,22 @@ package org.braekpo1nt.mctmanager.commands.mctdebug;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.display.RectangleRenderer;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.ClassPicker;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.Loadout;
-import org.braekpo1nt.mctmanager.participant.Participant;
-import org.bukkit.Color;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * A utility command for testing various things, so I don't have to create a new command. 
@@ -50,30 +50,6 @@ public class MCTDebugCommand implements TabExecutor, Listener {
                     .color(NamedTextColor.RED));
             return true;
         }
-        
-        Collection<Participant> onlineParticipants = gameManager.getOnlineParticipants();
-        Map<String, Loadout> loadoutMap = new HashMap<>();
-        loadoutMap.put("KNIGHT", new Loadout(
-                Component.empty()
-                        .append(Component.text("Knight")),
-                new ItemStack(Material.STONE_SWORD),
-                new ItemStack[] {new ItemStack(Material.STONE_SWORD)})
-        );
-        loadoutMap.put("ARCHER", new Loadout(
-                Component.empty()
-                        .append(Component.text("Archer")),
-                new ItemStack(Material.BOW),
-                new ItemStack[] {new ItemStack(Material.BOW)})
-        );
-        loadoutMap.put("ASSASSIN", new Loadout(
-                Component.empty()
-                        .append(Component.text("Assassin")),
-                new ItemStack(Material.IRON_SWORD),
-                new ItemStack[] {new ItemStack(Material.IRON_SWORD)})
-        );
-        ClassPicker classPicker = new ClassPicker(plugin, onlineParticipants, Color.WHITE, loadoutMap);
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> classPicker.stop(false), 60*20L);
-        
         return true;
     }
     

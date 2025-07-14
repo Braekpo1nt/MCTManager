@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class CompositeCommandResult implements CommandResult {
     
@@ -24,14 +25,22 @@ public class CompositeCommandResult implements CommandResult {
     
     @Override
     public @Nullable Component getMessage() {
+        if (commandResults.isEmpty()) {
+            return null;
+        }
+        List<Component> messages = commandResults.stream()
+                .map(CommandResult::getMessage)
+                .filter(Objects::nonNull)
+                .toList();
+        if (messages.isEmpty()) {
+            return null;
+        }
         TextComponent.Builder result = Component.text();
-        for (int i = 0; i < commandResults.size(); i++) {
-            CommandResult commandResult = commandResults.get(i);
-            if (commandResult.getMessage() != null) {
-                result.append(commandResult.getMessage());
-                if (i < commandResults.size() - 1) {
-                    result.append(Component.newline());
-                }
+        for (int i = 0; i < messages.size(); i++) {
+            Component message = messages.get(i);
+            result.append(message);
+            if (i < messages.size() - 1) {
+                result.append(Component.newline());
             }
         }
         return result.asComponent();

@@ -5,6 +5,7 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventItemDrop;
@@ -43,10 +44,11 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
             @NotNull GameManager gameManager, 
             @NotNull Component title, 
             @NotNull CaptureTheFlagConfig config, 
+            @NotNull String configFile,
             @NotNull Collection<Team> newTeams, 
             @NotNull Collection<Participant> newParticipants, 
             @NotNull List<Player> newAdmins) {
-        super(GameType.CAPTURE_THE_FLAG, plugin, gameManager, title, new InitialState());
+        super(new GameInstanceId(GameType.CAPTURE_THE_FLAG, configFile), plugin, gameManager, title, new InitialState());
         this.config = config;
         this.topbar = addUIManager(new BattleTopbar());
         Set<String> teamIds = Participant.getTeamIds(newParticipants);

@@ -53,8 +53,7 @@ public class MCTCommand extends MasterCommandManager {
         addSubCommand(new SubCommand("load") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                gameManager.loadGameState();
-                return CommandResult.success(Component.text("Loaded gameState.json"));
+                return gameManager.loadGameState();
             }
         });
         addSubCommand(new ScoreCommand(plugin, gameManager, "score"));

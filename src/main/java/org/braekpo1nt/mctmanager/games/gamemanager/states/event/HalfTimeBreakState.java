@@ -26,7 +26,7 @@ public class HalfTimeBreakState extends WaitingInHubState {
     }
     
     @Override
-    protected Timer startTimer() {
+    protected Timer getTimer() {
         return context.getTimerManager().start(Timer.builder()
                 .duration(eventData.getConfig().getHalftimeBreakDuration())
                 .withSidebar(sidebar, "timer")

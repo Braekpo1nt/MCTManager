@@ -8,6 +8,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
@@ -63,19 +64,20 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
             @NotNull GameManager gameManager,
             @NotNull Component title,
             @NotNull SurvivalGamesConfig config,
+            @NotNull String configFile,
             @NotNull Collection<Team> newTeams,
             @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
-        super(GameType.SURVIVAL_GAMES, plugin, gameManager, title, new InitialState());
+        super(new GameInstanceId(GameType.SURVIVAL_GAMES, configFile), plugin, gameManager, title, new InitialState());
         this.topbar = addUIManager(new ManyBattleTopbar());
         this.glowManager = addUIManager(new GlowManager(plugin));
         this.config = config;
         worldBorder = config.getWorld().getWorldBorder();
         glowManager.registerListeners();
         fillAllChests();
-        initializeGlowManager();
         setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
         start(newTeams, newParticipants, newAdmins);
+        initializeGlowManager();
         for (SurvivalGamesTeam team : teams.values()) {
             updateAliveCount(team);
         }
@@ -119,25 +121,6 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
             for (Player admin : admins) {
                 glowManager.showGlowing(admin, participant);
             }
-        }
-    }
-    
-    /**
-     * Make the participant glow to their teammates, and their teammates glow to them
-     * (but don't glow to themselves). Also makes the participant glow to the admins.
-     * @param participant the participant to show their teammates to
-     */
-    public void initializeGlowing(Participant participant) {
-        for (SurvivalGamesParticipant other : participants.values()) {
-            if (!other.equals(participant)) {
-                if (participant.getTeamId().equals(other.getTeamId())) {
-                    glowManager.showGlowing(participant, other);
-                    glowManager.showGlowing(other, participant);
-                }
-            }
-        }
-        for (Player admin : admins) {
-            glowManager.showGlowing(admin, participant);
         }
     }
     

@@ -36,15 +36,25 @@ public class StayOnWedgeState extends RoundActiveState {
                 .sidebarPrefix(Component.text("Stay on wedge: "))
                 .onCompletion(() -> {
                     List<ClockworkTeam> livingTeams = getLivingTeams();
-                    if (livingTeams.size() >= 2) {
-                        context.incrementChaos();
-                        context.setState(new BreatherState(context));
-                    } else if (livingTeams.size() == 1) {
-                        context.getChaosManager().stop();
-                        onTeamWinsRound(livingTeams.getFirst());
-                    } else { // 0 teams are alive
-                        context.getChaosManager().stop();
-                        onAllTeamsLoseRound();
+                    if (config.isLongMode()) { // if we should be in long mode
+                        if (livingTeams.isEmpty()) { // 0 teams are alive
+                            context.getChaosManager().stop();
+                            onAllTeamsLoseRound();
+                        } else { // at least 1 team is alive
+                            context.incrementChaos();
+                            context.setState(new BreatherState(context));
+                        }
+                    } else {
+                        if (livingTeams.size() >= 2) {
+                            context.incrementChaos();
+                            context.setState(new BreatherState(context));
+                        } else if (livingTeams.size() == 1) {
+                            context.getChaosManager().stop();
+                            onTeamWinsRound(livingTeams.getFirst());
+                        } else { // 0 teams are alive
+                            context.getChaosManager().stop();
+                            onAllTeamsLoseRound();
+                        }
                     }
                 })
                 .name("stayOnWedgeDelay")
@@ -54,10 +64,8 @@ public class StayOnWedgeState extends RoundActiveState {
     private void killParticipantsNotOnWedge() {
         List<ClockworkParticipant> participantsToKill = new ArrayList<>();
         for (ClockworkParticipant participant : context.getParticipants().values()) {
-            if (participant.isAlive()) {
-                if (!currentWedge.contains(participant.getLocation().toVector())) {
-                    participantsToKill.add(participant);
-                }
+            if (participant.isAlive() && !currentWedge.contains(participant.getLocation().toVector())) {
+                participantsToKill.add(participant);
             }
         }
         if (participantsToKill.isEmpty()) {

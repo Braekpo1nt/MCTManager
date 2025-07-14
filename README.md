@@ -30,6 +30,13 @@ Required plugins. Read this or you will get errors.
   - If you don't give this permission to all participants, they will be able to respawn by disconnecting and reconnecting, and will often be in the wrong game mode when being teleported to different worlds. 
 - The leaderboard holograms depends on [DecentHolograms](https://www.spigotmc.org/resources/decentholograms-1-8-1-21-1-papi-support-no-dependencies.96927/), another soft dependency
 
+# Attribution
+The following libraries are used in the making of MCTManager:
+
+- [Inventory Framework (IF)](https://github.com/stefvanschie/IF)
+- [FastBoard](https://github.com/MrMicky-FR/FastBoard)
+- [ProtocolLib](https://www.spigotmc.org/resources/protocollib.1997/)
+
 # Adding to your server
 Download the latest official build from the [releases](https://github.com/Braekpo1nt/MCTManager/releases) page and add it to your Minecraft Paper server's `plugins/` directory.
 

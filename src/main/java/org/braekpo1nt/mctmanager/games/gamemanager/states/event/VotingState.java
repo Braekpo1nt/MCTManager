@@ -26,7 +26,7 @@ public class VotingState extends EventState {
         List<GameType> votingPool = new ArrayList<>(VoteManager.votableGames());
         votingPool.removeAll(eventData.getPlayedGames());
         this.voteManager = new VoteManager(plugin, this::onVoteExecuted, votingPool, new HashSet<>(onlineParticipants.values()));
-        this.timer = context.getTimerManager().start(Timer.builder()
+        this.timer = Timer.builder()
                 .duration(eventData.getConfig().getVotingDuration())
                 .withSidebar(sidebar, "timer")
                 .sidebarPrefix(Component.text("Voting: "))
@@ -38,7 +38,18 @@ public class VotingState extends EventState {
                         voteManager.resumeVote();
                     }
                 })
-                .build());
+                .build();
+    }
+    
+    @Override
+    public void enter() {
+        context.getTimerManager().start(timer);
+    }
+    
+    @Override
+    public void exit() {
+        voteManager.cancelVote();
+        timer.cancel();
     }
     
     protected void onVoteExecuted(GameType gameType, String configFile) {
@@ -47,19 +58,6 @@ public class VotingState extends EventState {
         context.setState(new StartingGameDelayState(
                 context, contextReference, eventData,
                 gameType, chosenConfigFile));
-    }
-    
-    @Override
-    public void cleanup() {
-        super.cleanup();
-        voteManager.cancelVote();
-        timer.cancel();
-    }
-    
-    @Override
-    public void onSwitchMode() {
-        voteManager.cancelVote();
-        timer.cancel();
     }
     
     @Override

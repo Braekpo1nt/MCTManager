@@ -53,7 +53,8 @@ public class FarmRushConfig {
      */
     private Arena firstArena;
     /**
-     * The file location of the arena, relative to the Plugin's data folder
+     * The file location of the arena, relative to the Plugin's data folder and farm-rush folder
+     * e.g. /home/container/plugins/MCTManager/farm-rush/filename.schem
      */
     private String arenaFile;
     private @NotNull List<Material> preventInteractions;
@@ -68,6 +69,14 @@ public class FarmRushConfig {
      * Defaults to -1.
      */
     private int maxScore;
+    /**
+     * The sell cap, beyond which players are not allowed to gain points from selling items.
+     * Note that if this is greater than 1 but less than {@link #maxScore}, then players
+     * will be unable to reach the max score through selling items. 
+     * If this is less than 1, then no score cap is in effect. 
+     * Defaults to -1.
+     */
+    private int sellCap;
     /**
      * the percentage of the {@link #maxScore} that a team can reach before 
      * the other teams are alerted that they are x% of the way there.
@@ -95,6 +104,10 @@ public class FarmRushConfig {
         return maxScore >= 1;
     }
     
+    public boolean shouldEnforceScoreCap() {
+        return sellCap >= 1;
+    }
+    
     public boolean shouldWarnAtThreshold() {
         return warningThreshold >= 0;
     }
@@ -106,5 +119,4 @@ public class FarmRushConfig {
     public boolean shouldBuildArenas() {
         return buildArenas;
     }
-    
 }

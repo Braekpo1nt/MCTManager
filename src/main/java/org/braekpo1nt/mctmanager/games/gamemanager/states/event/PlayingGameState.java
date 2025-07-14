@@ -6,22 +6,20 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.SuccessCommandResult;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
-import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.EventData;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public class PlayingGameState extends EventState {
     
-    private final GameType activeGameType;
+    private final GameInstanceId activeGameId;
     
     public PlayingGameState(
             @NotNull GameManager context,
@@ -30,8 +28,12 @@ public class PlayingGameState extends EventState {
             @NotNull GameType gameType,
             @NotNull String gameConfigFile) {
         super(context, contextReference, eventData);
-        CommandResult commandResult = this.startGame(teams.keySet(), onlineAdmins, gameType, gameConfigFile);
-        this.activeGameType = gameType;
+        this.activeGameId = new GameInstanceId(gameType, gameConfigFile);
+    }
+    
+    @Override
+    public void enter() {
+        CommandResult commandResult = this.startGame(teams.keySet(), onlineAdmins, activeGameId.getGameType(), activeGameId.getConfigFile());
         if (!(commandResult instanceof SuccessCommandResult)) {
             context.messageAdmins(commandResult.getMessage());
             context.messageOnlineParticipants(Component.empty()
@@ -42,15 +44,20 @@ public class PlayingGameState extends EventState {
     }
     
     @Override
+    public void exit() {
+        // do nothing
+    }
+    
+    @Override
     public void onParticipantJoin(@NotNull MCTParticipant participant) {
         super.onParticipantJoin(participant);
-        CommandResult commandResult = joinParticipantToGame(activeGameType, participant);
+        CommandResult commandResult = joinParticipantToGame(activeGameId.getGameType(), activeGameId.getConfigFile(), participant);
         if (!(commandResult instanceof SuccessCommandResult)) {
             CompositeCommandResult adminResult = new CompositeCommandResult(CommandResult.failure(Component.empty()
                     .append(Component.text("An error occurred joining "))
                     .append(participant.displayName())
                     .append(Component.text(" to "))
-                    .append(Component.text(activeGameType.getTitle()))
+                    .append(Component.text(activeGameId.getTitle()))
                     .append(Component.text(":"))),
                     commandResult);
             context.messageAdmins(adminResult.getMessage());
@@ -58,8 +65,10 @@ public class PlayingGameState extends EventState {
     }
     
     @Override
-    public void onSwitchMode() {
-        // do nothing
+    public void onAdminJoin(@NotNull Player admin) {
+        super.onAdminJoin(admin);
+        CommandResult commandResult = joinAdminToGame(activeGameId.getGameType(), activeGameId.getConfigFile(), admin);
+        admin.sendMessage(commandResult.getMessageOrEmpty());
     }
     
     @Override
@@ -71,22 +80,13 @@ public class PlayingGameState extends EventState {
     }
     
     @Override
-    public void onParticipantJoin(@NotNull PlayerJoinEvent event, @NotNull MCTParticipant participant) {
-        super.onParticipantJoin(event, participant);
-        MCTGame game = activeGames.get(activeGameType);
-        MCTTeam team = teams.get(participant.getTeamId());
-        game.onTeamJoin(team);
-        game.onParticipantJoin(participant);
-    }
-    
-    @Override
-    public void gameIsOver(@NotNull GameType gameType, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants, @NotNull List<Player> gameAdmins) {
-        super.gameIsOver(gameType, teamScores, participantScores, gameParticipants, gameAdmins);
+    public void gameIsOver(@NotNull GameInstanceId id, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants, @NotNull List<Player> gameAdmins) {
+        super.gameIsOver(id, teamScores, participantScores, gameParticipants, gameAdmins);
         postGame();
     }
     
     protected void postGame() {
-        eventData.getPlayedGames().add(activeGameType);
+        eventData.getPlayedGames().add(activeGameId.getGameType());
         eventData.setCurrentGameNumber(eventData.getCurrentGameNumber() + 1);
         if (eventData.isItHalfTime()) {
             context.setState(new HalfTimeBreakState(context, contextReference, eventData));
@@ -96,13 +96,13 @@ public class PlayingGameState extends EventState {
     }
     
     @Override
-    public CommandResult undoGame(@NotNull GameType gameType, int iterationIndex) {
-        if (gameType == activeGameType) {
+    public CommandResult undoGame(@NotNull GameInstanceId id, int iterationIndex) {
+        if (activeGameId.equals(id)) {
             return CommandResult.failure(Component.text("Can't undo ")
-                    .append(Component.text(gameType.getTitle())
+                    .append(Component.text(id.getTitle())
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" because it is in progress")));
         }
-        return super.undoGame(gameType, iterationIndex);
+        return super.undoGame(id, iterationIndex);
     }
 }

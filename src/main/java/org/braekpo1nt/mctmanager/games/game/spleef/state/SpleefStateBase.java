@@ -76,6 +76,21 @@ public class SpleefStateBase implements SpleefState {
         
     }
     
+    /**
+     * @return the number of participants who are alive in this round
+     */
+    protected long getAliveCount() {
+        return context.getParticipants().values().stream().filter(SpleefParticipant::isAlive).count();
+    }
+    
+    protected void updateAliveCount(long aliveCount) {
+        Component alive = Component.empty()
+                .append(Component.text("Alive: "))
+                .append(Component.text(aliveCount));
+        context.getSidebar().updateLine("alive", alive);
+        context.getAdminSidebar().updateLine("alive", alive);
+    }
+    
     @Override
     public void onParticipantMove(@NotNull PlayerMoveEvent event, @NotNull SpleefParticipant participant) {
         CompositeGeometry safetyArea = context.getConfig().getSafetyArea();

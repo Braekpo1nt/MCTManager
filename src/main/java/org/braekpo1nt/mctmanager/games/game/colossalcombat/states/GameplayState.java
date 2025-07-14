@@ -40,10 +40,19 @@ public abstract class GameplayState extends ColossalCombatStateBase {
     }
     
     /**
+     * @return true if the number of participants alive on each team is at or below
+     * the required amount to trigger the sudden death timer
+     */
+    protected boolean suddenDeathThresholdReached() {
+        return context.getNorthTeam().getAlive() <= config.getCaptureTheFlagMaximumPlayers()
+                && context.getSouthTeam().getAlive() <= config.getCaptureTheFlagMaximumPlayers();
+    }
+    
+    /**
      * Only called when a non-{@link Affiliation#SPECTATOR} dies
      * @param participant a non-spectator who died
      */
-    private void onParticipantDeath(@NotNull ColossalParticipant participant) {
+    protected void onParticipantDeath(@NotNull ColossalParticipant participant) {
         participant.setAlive(false);
         context.updateAliveStatus(participant.getAffiliation());
         context.addDeath(participant);
@@ -53,12 +62,6 @@ public abstract class GameplayState extends ColossalCombatStateBase {
             if (killerParticipant != null) {
                 UIUtils.showKillTitle(killerParticipant, participant);
                 context.addKill(killerParticipant);
-            }
-        }
-        if (context.getTeams().get(participant.getTeamId()).isDead()) {
-            switch (participant.getAffiliation()) {
-                case NORTH -> onTeamWinRound(southTeam);
-                case SOUTH -> onTeamWinRound(northTeam);
             }
         }
     }

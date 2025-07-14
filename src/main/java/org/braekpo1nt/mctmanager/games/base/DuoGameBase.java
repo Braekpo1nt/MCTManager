@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.base;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.base.states.GameStateBase;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
@@ -19,14 +20,14 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
     protected final @NotNull T southTeam;
     
     public DuoGameBase(
-            @NotNull GameType type,
+            @NotNull GameInstanceId gameInstanceId,
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
             @NotNull Component title,
             @NotNull S initialState,
             @NotNull T northTeam,
             @NotNull T southTeam) {
-        super(type, plugin, gameManager, title, initialState);
+        super(gameInstanceId, plugin, gameManager, title, initialState);
         if (northTeam.getAffiliation() != Affiliation.NORTH) {
             throw new IllegalArgumentException("northTeam.getAffiliation() must be NORTH");
         }

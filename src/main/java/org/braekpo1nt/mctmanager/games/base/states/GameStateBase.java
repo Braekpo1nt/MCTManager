@@ -2,6 +2,8 @@ package org.braekpo1nt.mctmanager.games.base.states;
 
 
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
+import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.participant.*;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -102,4 +104,11 @@ public interface GameStateBase<P extends ParticipantData, T extends ScoredTeamDa
     void onParticipantRespawn(PlayerRespawnEvent event, P participant);
     
     void onParticipantPostRespawn(PlayerPostRespawnEvent event, P participant);
+    
+    default @NotNull CommandResult top(@NotNull P participant) {
+        return CommandResult.failure(Component.empty()
+                .append(Component.text("Can't use "))
+                .append(Component.text("/top"))
+                .append(Component.text(" at this time.")));
+    }
 }

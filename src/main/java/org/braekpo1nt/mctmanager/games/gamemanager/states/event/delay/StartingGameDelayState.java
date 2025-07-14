@@ -1,8 +1,8 @@
 package org.braekpo1nt.mctmanager.games.gamemanager.states.event.delay;
 
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.EventData;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.event.PlayingGameState;
@@ -19,7 +19,7 @@ public class StartingGameDelayState extends DelayState {
             @NotNull GameType gameType,
             @NotNull String gameConfigFile) {
         super(context, contextReference, eventData);
-        this.timer = context.getTimerManager().start(Timer.builder()
+        this.timer = Timer.builder()
                 .duration(eventData.getConfig().getStartingGameDuration())
                 .withSidebar(sidebar, "timer")
                 .sidebarPrefix(Component.empty()
@@ -28,17 +28,17 @@ public class StartingGameDelayState extends DelayState {
                 .onCompletion(() -> {
                     context.setState(new PlayingGameState(context, contextReference, eventData, gameType, gameConfigFile));
                 })
-                .build());
+                .build();
     }
     
     @Override
-    public void cleanup() {
-        super.cleanup();
-        timer.cancel();
+    public void enter() {
+        context.getTimerManager().start(timer);
     }
     
     @Override
-    public void onSwitchMode() {
+    public void exit() {
         timer.cancel();
     }
+    
 }

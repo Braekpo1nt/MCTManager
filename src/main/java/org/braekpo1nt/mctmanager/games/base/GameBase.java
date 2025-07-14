@@ -8,7 +8,9 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.base.listeners.GameListener;
 import org.braekpo1nt.mctmanager.games.base.states.GameStateBase;
@@ -52,6 +54,7 @@ import java.util.logging.Level;
 @Setter
 public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase, S extends GameStateBase<P, T>>  implements MCTGame, Listener {
     protected final @NotNull GameType type;
+    protected final @NotNull GameInstanceId gameInstanceId;
     protected final @NotNull Main plugin;
     protected final @NotNull GameManager gameManager;
     protected final @NotNull TimerManager timerManager;
@@ -80,7 +83,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     
     /**
      * Initialize data and start the game
-     * @param type the type associated with this game
+     * @param gameInstanceId the {@link GameInstanceId} associated with this game
      * @param plugin the plugin
      * @param gameManager the GameManager
      * @param title the game's initial title, displayed in the sidebar
@@ -90,12 +93,13 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      *                     exceptions. 
      */
     public GameBase(
-            @NotNull GameType type,
+            @NotNull GameInstanceId gameInstanceId,
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
             @NotNull Component title,
             @NotNull S initialState) {
-        this.type = type;
+        this.type = gameInstanceId.getGameType();
+        this.gameInstanceId = gameInstanceId;
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.sidebar = gameManager.createSidebar();
@@ -169,11 +173,11 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             P participant = createParticipant(newParticipant);
             T team = teams.get(participant.getTeamId());
             tabList.joinParticipant(participant.getParticipantID(), participant.getName(), participant.getTeamId(), false);
-            addParticipant(participant, team);
             participant.setGameMode(GameMode.ADVENTURE);
             ParticipantInitializer.clearStatusEffects(participant);
             ParticipantInitializer.clearInventory(participant);
             ParticipantInitializer.resetHealthAndHunger(participant);
+            addParticipant(participant, team);
             initializeParticipant(participant, team);
         }
         _initializeSidebar();
@@ -245,7 +249,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
         storedGameRules.clear();
         cleanup();
-        gameManager.gameIsOver(getType(), teamScores, participantScores, participants.values().stream().map(Participant::getUniqueId).toList(), admins);
+        gameManager.gameIsOver(getGameInstanceId(), teamScores, participantScores, participants.values().stream().map(Participant::getUniqueId).toList(), admins);
         participants.clear();
         admins.clear();
         Main.logger().info("Stopping " + type.getTitle());
@@ -704,9 +708,9 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     /**
-     * <p>Award the given points to the given participant. The points will be multiplied by 
+     * <p>Award the given points to the given participants. The points will be multiplied by 
      * {@link GameManager#getMultiplier()} before being awarded, and points will be reflected 
-     * in the participant's team as well.</p>
+     * in the participants' team as well.</p>
      * <p>{@link #sidebar} will also be updated to reflect the score. </p>
      * @param awardedParticipants the participants to be awarded personal points
      * @param points the points to be awarded (un-multiplied, base points)
@@ -718,6 +722,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             participant.awardPoints(multiplied);
             T team = teams.get(participant.getTeamId());
             team.addPoints(multiplied);
+            awardedTeams.add(team);
         }
         displayParticipantScores(awardedParticipants);
         displayTeamScores(awardedTeams);
@@ -873,6 +878,19 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     // EventHandlers end
     
+    // commands start
+    @Override
+    public @NotNull CommandResult top(@NotNull UUID uuid) {
+        P participant = participants.get(uuid);
+        if (participant == null) {
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text("Not a participant in "))
+                    .append(Component.text(getType().getTitle())));
+        }
+        return state.top(participant);
+    }
+    // commands end
+    
     /**
      * Convenience method to send the same message to all participants and admins
      * @param message the message to send
@@ -881,6 +899,18 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         Audience.audience(
                 Audience.audience(admins),
                 Audience.audience(participants.values())
+        ).sendMessage(message);
+    }
+    
+    /**
+     * Convenience method to send the same message to all admins,
+     * and the console sender
+     * @param message the message to send
+     */
+    public void messageAdmins(@NotNull Component message) {
+        Audience.audience(
+                Audience.audience(admins),
+                plugin.getServer().getConsoleSender()
         ).sendMessage(message);
     }
     

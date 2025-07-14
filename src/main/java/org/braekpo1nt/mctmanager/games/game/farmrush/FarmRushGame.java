@@ -9,9 +9,7 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfig;
@@ -19,6 +17,8 @@ import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupManager;
 import org.braekpo1nt.mctmanager.games.game.farmrush.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.farmrush.states.FarmRushState;
 import org.braekpo1nt.mctmanager.games.game.farmrush.states.InitialState;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -82,10 +82,11 @@ public class FarmRushGame extends GameBase<FarmRushParticipant, FarmRushTeam, Fa
             @NotNull GameManager gameManager,
             @NotNull Component title,
             @NotNull FarmRushConfig config,
+            @NotNull String configFile,
             @NotNull Collection<Team> newTeams,
             @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
-        super(GameType.FARM_RUSH, plugin, gameManager, title, new InitialState());
+        super(new GameInstanceId(GameType.FARM_RUSH, configFile), plugin, gameManager, title, new InitialState());
         this.config = config;
         this.materialBook = createMaterialBook();
         this.arenas = new ArrayList<>(newTeams.size());
@@ -195,9 +196,9 @@ public class FarmRushGame extends GameBase<FarmRushParticipant, FarmRushTeam, Fa
      */
     public void placeArenas(@NotNull Collection<Arena> arenas) {
         if (config.shouldBuildArenas()) {
-            File schematicFile = new File(plugin.getDataFolder(), config.getArenaFile());
-            List<Vector> origins = arenas.stream().map(arena -> arena.getBounds().getMin()).toList();
-            BlockPlacementUtils.placeSchematic(config.getWorld(), origins, schematicFile);
+            File schematicFile = new File(new File(plugin.getDataFolder(), getType().getId()), config.getArenaFile());
+            List<Vector> schematicOrigins = arenas.stream().map(Arena::getSchematicOrigin).toList();
+            BlockPlacementUtils.placeSchematic(config.getWorld(), schematicOrigins, schematicFile);
         }
         for (Arena arena : arenas) {
             Block delivery = arena.getDelivery().getBlock();
@@ -295,10 +296,14 @@ public class FarmRushGame extends GameBase<FarmRushParticipant, FarmRushTeam, Fa
     }
     
     @Override
+    public void stop() {
+        removeArenas(teams.values().stream().map(FarmRushTeam::getArena).toList());
+        super.stop();
+    }
+    
+    @Override
     protected void cleanup() {
         removeRecipes();
-        removeArenas(teams.values().stream().map(FarmRushTeam::getArena).toList());
-        TopCommand.setEnabled(false);
         powerupManager.stop();
     }
     
@@ -335,7 +340,7 @@ public class FarmRushGame extends GameBase<FarmRushParticipant, FarmRushTeam, Fa
     @Override
     protected @NotNull FarmRushTeam createTeam(Team team) {
         Arena arena = createArena();
-        return new FarmRushTeam(team, arena, 0);
+        return new FarmRushTeam(team, arena, 0, 0);
     }
     
     @Override

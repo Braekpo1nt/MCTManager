@@ -1,12 +1,16 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.states;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushParticipant;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushTeam;
 import org.braekpo1nt.mctmanager.games.game.farmrush.ItemSale;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.utils.EntityUtils;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -135,8 +139,21 @@ public abstract class GameplayState extends FarmRushStateBase {
             for (UUID uuid : team.getMemberUUIDs()) {
                 context.getParticipants().get(uuid).getPlayer().sendMessage(message);
             }
+            if (context.getConfig().shouldEnforceScoreCap()) {
+                if (team.getScore() + totalScore >= context.getConfig().getSellCap()) {
+                    totalScore = context.getConfig().getSellCap() - team.getSellPoints();
+                    for (UUID uuid : team.getMemberUUIDs()) {
+                        context.getParticipants().get(uuid).getPlayer().sendMessage(Component.empty()
+                                .append(Component.text("You have reached the sell cap of "))
+                                .append(Component.text((int) (context.getConfig().getSellCap() * gameManager.getMultiplier()))
+                                        .decorate(TextDecoration.BOLD)
+                                        .color(NamedTextColor.GOLD)));
+                    }
+                }
+            }
             if (totalScore > 0) {
                 context.awardPoints(team, totalScore);
+                team.addSellPoints(totalScore);
             }
         }
         return soldItems;
@@ -182,5 +199,10 @@ public abstract class GameplayState extends FarmRushStateBase {
             }
         }
         return count;
+    }
+    
+    @Override
+    public @NotNull CommandResult top(@NotNull FarmRushParticipant participant) {
+        return EntityUtils.top(participant.getPlayer());
     }
 }

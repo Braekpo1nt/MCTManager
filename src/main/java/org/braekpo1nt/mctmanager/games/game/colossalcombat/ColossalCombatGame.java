@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.base.Affiliation;
 import org.braekpo1nt.mctmanager.games.base.DuoGameBase;
@@ -49,13 +50,14 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
             @NotNull GameManager gameManager,
             @NotNull Component title,
             @NotNull ColossalCombatConfig config,
+            @NotNull String configFile,
             @NotNull Team newNorth,
             @NotNull Team newSouth,
             @NotNull Collection<Team> newTeams,
             @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
         super(
-                GameType.FINAL, 
+                new GameInstanceId(GameType.FINAL, configFile), 
                 plugin, 
                 gameManager, 
                 title, 

@@ -76,11 +76,11 @@ public class HubConfigController extends ConfigController<HubConfigDTO> {
                 defaultLocation, 
                 defaultLocation, 
                 defaultLocation, 
-                new HubConfigDTO.PracticeDTO(
-                        Collections.emptyList(), 
-                        Collections.emptyMap(),
-                        null
-                ), 
+                HubConfigDTO.PracticeDTO.builder()
+                        .restrictGameJoining(false)
+                        .allowedGames(Collections.emptyList())
+                        .preset(null)
+                        .build(),
                 Collections.emptyList(), 
                 Collections.emptyList(), 
                 yLimit, 

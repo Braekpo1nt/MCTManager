@@ -21,7 +21,16 @@ public class MaintenanceState extends GameManagerState {
             @NotNull GameManager context,
             @NotNull ContextReference contextReference) {
         super(context, contextReference);
+    }
+    
+    @Override
+    public void enter() {
         setupSidebar();
+    }
+    
+    @Override
+    public void exit() {
+        // do nothing
     }
     
     /**

@@ -36,4 +36,8 @@ public class MockMain extends Main {
                 config);
     }
     
+    @Override
+    protected void registerCommands() {
+        // do nothing
+    }
 }

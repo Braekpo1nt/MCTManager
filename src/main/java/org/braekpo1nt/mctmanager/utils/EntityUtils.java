@@ -1,10 +1,15 @@
 package org.braekpo1nt.mctmanager.utils;
 
+import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.dto.YawPitch;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 public final class EntityUtils {
     
@@ -73,18 +78,64 @@ public final class EntityUtils {
     }
     
     /**
+     * @param boundingBox the bounding box to expand
+     * @param player the player whose direction should determine the expansion block face
+     * @param increment the amount to expand by
+     * @return a clone of the given bounding box, expanded in the direction the given player is looking by the given increment
+     */
+    public static @NotNull BoundingBox expandBoundingBox(@NotNull BoundingBox boundingBox, Player player, double increment) {
+        BlockFace direction = EntityUtils.getPlayerDirection(player.getLocation());
+        return expandBoundingBox(boundingBox, direction, increment);
+    }
+    
+    /**
+     * @param boundingBox the bounding box to expand
+     * @param direction the player whose direction should determine the expansion block face
+     * @param increment the amount to expand by
+     * @return a clone of the given bounding box, expanded in the direction the given player is looking by the given increment
+     */
+    public static @NotNull BoundingBox expandBoundingBox(@NotNull BoundingBox boundingBox, BlockFace direction, double increment) {
+        return boundingBox.clone().expand(direction, increment);
+    }
+    
+    /**
+     * @param location the location to get the direction vector from
+     * @return a normalized direction vector in the direction of the location's pitch and yaw
+     */
+    public static @NotNull Vector getDirection(@NotNull Location location) {
+        return getDirection(location.getYaw(), location.getPitch());
+    }
+    
+    /**
+     * @param yaw the yaw for the direction vector
+     * @param pitch the pitch for the direction vector
+     * @return a normalized direction vector in the direction of the given pitch and yaw
+     */
+    public static @NotNull Vector getDirection(float yaw, float pitch) {
+        double yawRad = Math.toRadians(yaw);
+        double pitchRad = Math.toRadians(pitch);
+        
+        double x = -Math.cos(pitchRad) * Math.sin(yawRad);
+        double y = -Math.sin(pitchRad);
+        double z = Math.cos(pitchRad) * Math.cos(yawRad);
+        
+        return new Vector(x, y, z).normalize();
+    }
+    
+    /**
      * If there is at least one solid block above the given entity's position,
      * teleports the entity to the position one block above the highest solid block.
      * @param entity the entity to teleport.
      */
-    public static void top(Entity entity) {
+    public static @NotNull CommandResult top(Entity entity) {
         Location topBlock = BlockPlacementUtils.getTopBlock(entity.getLocation());
         if (topBlock == null) {
-            return;
+            return CommandResult.failure("You are at the top");
         }
         Location topLoc = topBlock.add(0, 1, 0);
         entity.teleport(topLoc);
-        entity.sendMessage("Teleported to top");
+        return CommandResult.success(Component.empty()
+                .append(Component.text("Teleported to top ")));
     }
     
     private EntityUtils() {

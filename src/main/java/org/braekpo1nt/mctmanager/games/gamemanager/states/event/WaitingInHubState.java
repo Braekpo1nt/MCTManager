@@ -16,7 +16,6 @@ import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,37 +32,35 @@ public class WaitingInHubState extends EventState {
     
     public WaitingInHubState(@NotNull GameManager context, @NotNull ContextReference contextReference, @NotNull EventData eventData) {
         super(context, contextReference, eventData);
+        waitingInHubTimer = getTimer();
+    }
+    
+    @Override
+    public void enter() {
         Component message = Component.text("Score multiplier: ")
                 .append(Component.text(eventData.getPointMultiplier()))
                 .color(NamedTextColor.GOLD);
         context.messageOnlineParticipants(message);
         context.messageAdmins(message);
         sidebar.updateLine("currentGame", getCurrentGameLine());
-        waitingInHubTimer = startTimer();
+        context.getTimerManager().start(waitingInHubTimer);
         startActionBarTips();
     }
     
     @Override
-    public void cleanup() {
-        super.cleanup();
+    public void exit() {
         waitingInHubTimer.cancel();
         disableTips();
     }
     
-    @Override
-    public void onSwitchMode() {
-        waitingInHubTimer.cancel();
-        disableTips();
-    }
-    
-    protected Timer startTimer() {
+    protected Timer getTimer() {
         Component prefix;
         if (eventData.allGamesHaveBeenPlayed()) {
             prefix = Component.text("Final round: ");
         } else {
             prefix = Component.text("Vote starts in: ");
         }
-        return context.getTimerManager().start(Timer.builder()
+        return Timer.builder()
                 .duration(eventData.getConfig().getWaitingInHubDuration())
                 .withSidebar(sidebar, "timer")
                 .sidebarPrefix(prefix)
@@ -75,7 +72,7 @@ public class WaitingInHubState extends EventState {
                         context.setState(new VotingState(context, contextReference, eventData));
                     }
                 })
-                .build());
+                .build();
     }
     
     protected void disableTips() {
@@ -125,9 +122,10 @@ public class WaitingInHubState extends EventState {
     }
     
     @Override
-    public void onParticipantJoin(@NotNull PlayerJoinEvent event, @NotNull MCTParticipant participant) {
-        super.onParticipantJoin(event, participant);
+    public void onParticipantJoin(@NotNull MCTParticipant participant) {
+        super.onParticipantJoin(participant);
         participant.teleport(config.getSpawn());
+        
     }
     
     /**

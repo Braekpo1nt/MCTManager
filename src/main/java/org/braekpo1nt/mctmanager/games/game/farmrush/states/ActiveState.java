@@ -23,7 +23,6 @@ public class ActiveState extends GameplayState {
     
     public ActiveState(@NotNull FarmRushGame context) {
         super(context);
-        TopCommand.setEnabled(true);
         slashTopMessage = Component.empty()
                 .append(Component.text("Use "))
                 .append(Component.text("/top")

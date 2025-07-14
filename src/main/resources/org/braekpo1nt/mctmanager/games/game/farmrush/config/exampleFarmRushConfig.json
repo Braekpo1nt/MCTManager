@@ -2,16 +2,11 @@
   "version": "0.1.2",
   "world": "TestWorld",
   "adminLocation": {
-    "x": -1,
-    "y": 110,
-    "z": -1
+    "x": 75,
+    "y": 153,
+    "z": -8
   },
-  "arenaFile": "farmRushArena.schem",
-  "firstArenaOrigin": {
-    "x": 0,
-    "y": 0,
-    "z": 0
-  },
+  "arenaFile": "farmRushPractice.schem",
   "loadout": {
     "contents": {
       "0": {
@@ -53,47 +48,57 @@
       }
     }
   },
+  "buildArenas": false,
+  "clearArenas": false,
   "arena": {
-    "size": {
-      "sizeX": 47,
-      "sizeY": 179,
-      "sizeZ": 47
+    "schematicOrigin": {
+      "x": 80,
+      "y": 130,
+      "z": -16
+    },
+    "bounds": {
+      "minX": 81,
+      "minY": 131,
+      "minZ": -15,
+      "maxX": 96,
+      "maxY": 163,
+      "maxZ": 0
     },
     "barnDoor": {
-      "minX": 10,
-      "minY": 137,
-      "minZ": 41,
-      "maxX": 10,
-      "maxY": 140,
-      "maxZ": 43
+      "minX": 90,
+      "minY": 150,
+      "minZ": -14,
+      "maxX": 91,
+      "maxY": 150,
+      "maxZ": -12
     },
     "barn": {
-      "minX": 1,
-      "minY": 135,
-      "minZ": 32,
-      "maxX": 11,
-      "maxY": 146,
-      "maxZ": 46
+      "minX": 90,
+      "minY": 150,
+      "minZ": -15,
+      "maxX": 95,
+      "maxY": 154,
+      "maxZ": -10
     },
     "spawn": {
-      "x": 5,
-      "y": 137,
-      "z": 42,
-      "yaw": -90,
+      "x": 92.5,
+      "y": 151,
+      "z": -10.5,
+      "yaw": 90,
       "pitch": 0
     },
     "starterChest": {
-      "x": 9,
-      "y": 137,
-      "z": 38
+      "x": 94,
+      "y": 151,
+      "z": -11
     },
     "starterChestBlockFace": "WEST",
     "delivery": {
-      "x": 9,
-      "y": 137,
-      "z": 39
+      "x": 94,
+      "y": 151,
+      "z": -12
     },
-    "deliveryBlockFace": "UP"
+    "deliveryBlockFace": "WEST"
   },
   "recipes": [
     {
@@ -121,7 +126,7 @@
   "powerups": {
     "cropGrower": {
       "ticksPerCycle": 100,
-      "radius": 4.0,
+      "radius": 5.0,
       "customModelData": 1,
       "growCycles": 5,
       "growthChance": 0.5,
@@ -186,58 +191,83 @@
     }
   },
   "durations": {
-    "description": 10,
-    "starting": 10,
-    "gameDuration": 600,
-    "gameOver": 10,
-    "gracePeriod": 30
+    "description": 15,
+    "starting": 15,
+    "gameDuration": 300,
+    "gameOver": 20,
+    "gracePeriod": 45
   },
   "scores": {
-    "maxScore": 3000,
-    "warningThreshold": -1,
+    "maxScore": 10000,
+    "warningThreshold": 0.5,
     "winnerBonus": 500,
     "materialScores": {
       "IRON_INGOT": {
-        "requiredAmount": 3,
-        "score": 4
+        "requiredAmount": 1,
+        "score": 100
       },
       "RAW_IRON": {
-        "requiredAmount": 2,
-        "score": 2
+        "requiredAmount": 1,
+        "score": 75
       },
-      "DIAMOND": {
+      "COAL": {
+        "requiredAmount": 1,
+        "score": 15
+      },
+      "RAW_COPPER": {
+        "requiredAmount": 1,
+        "score": 4
+      },
+      "COPPER_INGOT": {
         "requiredAmount": 1,
         "score": 6
       },
-      "OBSIDIAN": {
-        "requiredAmount": 3,
+      "GRANITE": {
+        "requiredAmount": 1,
         "score": 4
       },
-      "GRANITE": {
-        "requiredAmount": 16,
-        "score": 1
+      "DIORITE": {
+        "requiredAmount": 1,
+        "score": 4
       },
       "WHEAT": {
-        "requiredAmount": 20,
-        "score": 1
+        "requiredAmount": 1,
+        "score": 2
       },
-      "RAW_BEEF": {
-        "requiredAmount": 8,
-        "score": 1
+      "BEEF": {
+        "requiredAmount": 1,
+        "score": 4
       },
       "COOKED_BEEF": {
-        "requiredAmount": 4,
-        "score": 1
+        "requiredAmount": 1,
+        "score": 8
       },
       "LEATHER": {
-        "requiredAmount": 10,
-        "score": 1
-      },
-      "BONE": {
-        "requiredAmount": 6,
-        "score": 1
+        "requiredAmount": 1,
+        "score": 15
       }
     }
   },
-  "description": "Farm Rush description"
+  "description": [
+    "",
+    {
+      "text": "-----------------------",
+      "bold": true,
+      "color": "gray"
+    },
+    {
+      "text": "\n"
+    },
+    {
+      "text": "How to play Farm Rush\nSell items in the barrel for points\nSee prices in the book\nCrop Grower boosts crops growth\nAnimal Grower boosts animal breeding\nGet as many points as possible in the time provided\nSee video for more info",
+      "color": "yellow"
+    },
+    {
+      "text": "\n"
+    },
+    {
+      "text": "----------------------",
+      "color": "gray"
+    }
+  ]
 }

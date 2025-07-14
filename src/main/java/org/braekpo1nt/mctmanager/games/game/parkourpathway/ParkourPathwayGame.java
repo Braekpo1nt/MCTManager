@@ -6,6 +6,9 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
+import org.braekpo1nt.mctmanager.games.base.listeners.PreventHungerLoss;
+import org.braekpo1nt.mctmanager.games.base.listeners.PreventItemDrop;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
@@ -25,6 +28,9 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,17 +42,23 @@ import java.util.*;
 public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam, ParkourParticipant.QuitData, ParkourTeam.QuitData, ParkourPathwayState>  {
     
     private final ParkourPathwayConfig config;
+    private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
+    private int statusEffectsTaskId;
     
     public ParkourPathwayGame(
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
             @NotNull Component title,
             @NotNull ParkourPathwayConfig config,
+            @NotNull String configFile,
             @NotNull Collection<Team> newTeams,
             @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
-        super(GameType.PARKOUR_PATHWAY, plugin, gameManager, title, new InitialState());
+        super(new GameInstanceId(GameType.PARKOUR_PATHWAY, configFile), plugin, gameManager, title, new InitialState());
         this.config = config;
+        startStatusEffectsTask();
+        addListener(new PreventHungerLoss<>(this));
+        addListener(new PreventItemDrop<>(this, true));
         closeGlassBarrier();
         start(newTeams, newParticipants, newAdmins);
     }
@@ -68,6 +80,17 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         BlockPlacementUtils.createCubeReplace(config.getWorld(), glassBarrier, Material.GLASS, Material.AIR);
     }
     
+    private void startStatusEffectsTask() {
+        this.statusEffectsTaskId = new BukkitRunnable(){
+            @Override
+            public void run() {
+                for (Participant participant : participants.values()) {
+                    participant.addPotionEffect(INVISIBILITY);
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 60L).getTaskId();
+    }
+    
     @Override
     protected @NotNull World getWorld() {
         return config.getWorld();
@@ -84,6 +107,7 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
     
     @Override
     protected void cleanup() {
+        plugin.getServer().getScheduler().cancelTask(statusEffectsTaskId);
         openGlassBarrier();
     }
     
