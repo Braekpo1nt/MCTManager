@@ -60,6 +60,13 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
      */
     private double chimeInterval;
     
+    @Override
+    public void setState(@NotNull ClockworkState state) {
+        this.state.exit();
+        this.state = state;
+        this.state.enter();
+    }
+    
     public ClockworkGame(
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
@@ -80,6 +87,7 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
         this.participantsVisible = true;
         this.statusEffectTaskId = startStatusEffectTask();
         start(newTeams, newParticipants, newAdmins);
+        state.enter(); // TODO: this is because only clockwork uses the enter/exit method. If we did the whole structure this way, then we wouldn't need the do-nothing state, we could simply assign the state and run "state.enter()" at the end of the "start()" method
     }
     
     /**

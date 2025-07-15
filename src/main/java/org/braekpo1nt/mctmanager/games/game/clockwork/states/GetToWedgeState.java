@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork.states;
 
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkParticipant;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkTeam;
@@ -10,10 +11,18 @@ import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GetToWedgeState extends RoundActiveState {
+    
+    private @Nullable Timer timer;
+    
     public GetToWedgeState(@NotNull ClockworkGame context) {
         super(context);
+    }
+    
+    @Override
+    public void enter() {
         turnOnCollisions();
         if (context.getConfig().getGetToWedgeMessage() != null) {
             context.titleAllParticipants(UIUtils.defaultTitle(
@@ -22,14 +31,23 @@ public class GetToWedgeState extends RoundActiveState {
             ));
         }
         context.getChaosManager().resume();
-        context.getTimerManager().start(Timer.builder()
+        timer = context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getGetToWedgeDuration())
                 .withSidebar(context.getSidebar(), "timer")
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .sidebarPrefix(Component.text("Get to wedge! "))
-                .onCompletion(() -> context.setState(new StayOnWedgeState(context)))
+                .onCompletion(() -> {
+                    context.setState(new StayOnWedgeState(context));
+                })
                 .name("startGetToWedgeDelay")
                 .build());
+    }
+    
+    @Override
+    public void exit() {
+        if (timer != null) {
+            timer.cancel();
+        }
     }
     
     private void turnOnCollisions() {
