@@ -13,7 +13,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class ClockworkStateBase implements ClockworkState{
+public abstract class ClockworkStateBase implements ClockworkState {
     
     protected final @NotNull ClockworkGame context;
     

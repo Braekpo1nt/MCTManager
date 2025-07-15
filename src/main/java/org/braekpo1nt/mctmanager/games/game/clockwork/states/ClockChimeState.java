@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork.states;
 
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkParticipant;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkTeam;
@@ -15,11 +16,15 @@ import org.jetbrains.annotations.NotNull;
 public class ClockChimeState extends RoundActiveState {
     
     private final @NotNull ClockworkConfig config;
-    private final int clockChimeTaskId;
+    private int clockChimeTaskId;
     
     public ClockChimeState(@NotNull ClockworkGame context) {
         super(context);
         this.config = context.getConfig();
+    }
+    
+    @Override
+    public void enter() {
         context.getSidebar().updateLine("timer", "Chiming...");
         context.getAdminSidebar().updateLine("timer", "Chiming...");
         context.setNumberOfChimes(context.getRandom().nextInt(1, 13));
@@ -36,6 +41,11 @@ public class ClockChimeState extends RoundActiveState {
                 count--;
             }
         }.runTaskTimer(context.getPlugin(), 0L, (long) context.getChimeInterval()).getTaskId();
+    }
+    
+    @Override
+    public void exit() {
+        context.getPlugin().getServer().getScheduler().cancelTask(clockChimeTaskId);
     }
     
     @Override

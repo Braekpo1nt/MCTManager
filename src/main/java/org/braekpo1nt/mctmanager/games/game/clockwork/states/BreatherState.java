@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork.states;
 
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkParticipant;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkTeam;
@@ -10,10 +11,18 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class BreatherState extends RoundActiveState {
+    
+    private @Nullable Timer timer;
+    
     public BreatherState(@NotNull ClockworkGame context) {
         super(context);
+    }
+    
+    @Override
+    public void enter() {
         context.getChaosManager().pause();
         turnOffCollisions();
         for (ClockworkParticipant participant : context.getParticipants().values()) {
@@ -22,14 +31,23 @@ public class BreatherState extends RoundActiveState {
                 participant.setArrowsInBody(0);
             }
         }
-        context.getTimerManager().start(Timer.builder()
+        timer = context.getTimerManager().start(Timer.builder()
                 .duration(config.getBreatherDuration())
                 .withSidebar(context.getSidebar(), "timer")
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .sidebarPrefix(Component.text("Clock chimes in: "))
-                .onCompletion(() -> context.setState(new ClockChimeState(context)))
+                .onCompletion(() -> {
+                    context.setState(new ClockChimeState(context));
+                })
                 .name("startBreatherDelay")
                 .build());
+    }
+    
+    @Override
+    public void exit() {
+        if (timer != null) {
+            timer.cancel();
+        }
     }
     
     private void turnOffCollisions() {

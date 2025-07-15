@@ -3,19 +3,24 @@ package org.braekpo1nt.mctmanager.games.game.clockwork.states;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkParticipant;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkTeam;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.GameMode;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class RoundActiveState extends ClockworkStateBase {
+public abstract class RoundActiveState extends ClockworkStateBase {
     
     protected final @NotNull ClockworkConfig config;
     
@@ -92,7 +97,6 @@ public class RoundActiveState extends ClockworkStateBase {
                     .append(newlyKilledTeam.getFormattedDisplayName())
                     .append(Component.text(" has been eliminated"))
                     .color(NamedTextColor.GREEN));
-            
             context.awardTeamPoints(survivingTeams, config.getTeamEliminationScore());
         }
     }

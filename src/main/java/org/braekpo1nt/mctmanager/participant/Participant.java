@@ -32,6 +32,13 @@ import java.util.stream.Collectors;
 @ToString(callSuper = true)
 public class Participant extends OfflineParticipant implements AudienceDelegate {
     
+    public static String toString(Collection<? extends Participant> participants) {
+        return participants.stream()
+                .map(Participant::getName)
+                .toList()
+                .toString();
+    }
+    
     /**
      * @param participants the participants list to get the list of players from
      * @return a list of the players contained in the given list of {@link Participant}s
