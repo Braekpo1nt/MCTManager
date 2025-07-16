@@ -16,6 +16,7 @@ import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import io.papermc.paper.command.brigadier.argument.resolvers.BlockPositionResolver;
 import io.papermc.paper.command.brigadier.argument.resolvers.FinePositionResolver;
+import io.papermc.paper.math.FinePosition;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import lombok.extern.java.Log;
 import net.kyori.adventure.text.Component;
@@ -50,6 +51,7 @@ import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -197,6 +199,24 @@ public class Main extends JavaPlugin {
     
     protected void registerCommands() {
         LiteralCommandNode<CommandSourceStack> ctDebugCommand = Commands.literal("ctdebug")
+                .then(Commands.literal("elytra")
+                        .then(Commands.argument("location", ArgumentTypes.blockPosition())
+                                .executes(ctx -> {
+                                    Location location = ctx.getArgument("location", BlockPositionResolver.class)
+                                            .resolve(ctx.getSource())
+                                            .toLocation(ctx.getSource().getLocation().getWorld());
+                                    if (!(ctx.getSource().getExecutor() instanceof Player player)) {
+                                        ctx.getSource().getSender().sendMessage("Must be a player to run this command");
+                                        return Command.SINGLE_SUCCESS;
+                                    }
+                                    player.teleport(location);
+                                    player.getInventory().setChestplate(new ItemStack(Material.ELYTRA));
+                                    this.getServer().getScheduler().runTaskLater(this, () -> {
+                                        player.setGliding(true);
+                                        player.sendMessage("You are flying");
+                                    }, 10L);
+                                    return Command.SINGLE_SUCCESS;
+                                })))
                 .then(Commands.literal("freeRect")
                         .then(Commands.argument("edge1", ArgumentTypes.finePosition())
                                 .then(Commands.argument("edge2", ArgumentTypes.finePosition())

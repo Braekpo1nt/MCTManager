@@ -21,6 +21,8 @@ import org.braekpo1nt.mctmanager.ui.topbar.BasicTopbar;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -165,5 +167,14 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
         scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
         scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
         scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.NEVER);
+    }
+    
+    @EventHandler
+    public void onEntityToggleGlide(EntityToggleGlideEvent event) {
+        ExampleParticipant participant = participants.get(event.getEntity().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        state.onParticipantToggleGlide(event, participant);
     }
 }
