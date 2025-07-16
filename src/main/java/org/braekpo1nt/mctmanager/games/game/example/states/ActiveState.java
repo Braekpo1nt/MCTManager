@@ -14,7 +14,6 @@ import org.bukkit.Material;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -22,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ActiveState extends ExampleStateBase {
     
-    private @Nullable Timer flyTimer;
+    private final @Nullable Timer flyTimer;
     private @Nullable Timer playingTimer;
     private int flyTaskId;
     private final BoundingBox noFlyZone;
@@ -116,18 +115,50 @@ public class ActiveState extends ExampleStateBase {
         }
         
         Location to = event.getTo();
-        if (noFlyZone.contains(to.toVector())) {
-            Location from = event.getFrom();
-            event.setTo(
-                    new Location(
-                            participant.getWorld(),
-                             noFlyZone.getMinX() <= to.getX() && to.getX() <= noFlyZone.getMaxX() ? from.getX() : to.getX(),
-                             to.getY(),
-                             noFlyZone.getMinZ() <= to.getZ() && to.getZ() <= noFlyZone.getMaxZ() ? from.getZ() : to.getZ(),
-                            to.getYaw(),
-                            to.getPitch()
-                    )
-            );
+        if (!noFlyZone.contains(to.toVector())) {
+            return;
+        }
+        Location from = event.getFrom();
+        Point2D newTo2D = closestPointOnRectangle(
+                noFlyZone.getMinX(), noFlyZone.getMinZ(),
+                noFlyZone.getMaxX(), noFlyZone.getMaxZ(),
+                to.x(), to.z()
+        );
+        Location newTo = new Location(
+                to.getWorld(),
+                newTo2D.x(),
+                to.y(),
+                newTo2D.z(),
+                to.getYaw(),
+                to.getPitch()
+        );
+//        Main.logf("newTo: (%s,%s) distance=%s", newTo2D.x, newTo2D.z, from.distance(newTo));
+        event.setTo(newTo);
+        
+    }
+    
+    public record Point2D(double x, double z) {
+    }
+    
+    public static Point2D closestPointOnRectangle(double minX, double minZ,
+                                                  double maxX, double maxZ,
+                                                  double tx, double tz) {
+        double distLeft   = tx - minX;
+        double distRight  = maxX - tx;
+        double distTop    = tz - minZ;
+        double distBottom = maxZ - tz;
+        
+        double minDist = Math.min(Math.min(distLeft, distRight),
+                Math.min(distTop, distBottom));
+        
+        if (minDist == distLeft) {
+            return new Point2D(minX, tz);
+        } else if (minDist == distRight) {
+            return new Point2D(maxX, tz);
+        } else if (minDist == distTop) {
+            return new Point2D(tx, minZ);
+        } else {
+            return new Point2D(tx, maxZ);
         }
     }
     
