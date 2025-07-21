@@ -115,29 +115,36 @@ public class ActiveState extends ExampleStateBase {
         }
         
         Location to = event.getTo();
+        Location from = event.getFrom();
         if (!noFlyZone.contains(to.toVector())) {
+            Main.logf("old dist=%s", from.distance(to));
             return;
         }
-        Location from = event.getFrom();
-        Point2D newTo2D = closestPointOnRectangle(
+        Vector closestToTo = closestPointOnRectangle(
                 noFlyZone.getMinX(), noFlyZone.getMinZ(),
                 noFlyZone.getMaxX(), noFlyZone.getMaxZ(),
                 to.x(), to.z()
-        );
-        Location newTo = new Location(
+        ).toVector(to.y());
+        Vector dir = closestToTo.clone().subtract(from.toVector()).normalize();
+        Vector newToVec = from.toVector().add(dir);
+        
+        Location newToLoc = new Location(
                 to.getWorld(),
-                newTo2D.x(),
+                newToVec.getX(),
                 to.y(),
-                newTo2D.z(),
+                newToVec.getZ(),
                 to.getYaw(),
                 to.getPitch()
         );
-//        Main.logf("newTo: (%s,%s) distance=%s", newTo2D.x, newTo2D.z, from.distance(newTo));
-        event.setTo(newTo);
+        Main.logf("old dist=%s new dist=%s", from.distance(to), from.distance(newToLoc));
+        event.setTo(newToLoc);
         
     }
     
     public record Point2D(double x, double z) {
+        public Vector toVector(double y) {
+            return new Vector(x, y, z);
+        }
     }
     
     public static Point2D closestPointOnRectangle(double minX, double minZ,
