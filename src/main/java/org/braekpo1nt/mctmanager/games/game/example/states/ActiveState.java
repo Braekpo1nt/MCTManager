@@ -115,28 +115,19 @@ public class ActiveState extends ExampleStateBase {
         }
         
         Location to = event.getTo();
-        Location from = event.getFrom();
         if (!noFlyZone.contains(to.toVector())) {
-            Main.logf("old dist=%s", from.distance(to));
             return;
         }
-        Vector closestToTo = closestPointOnRectangle(
-                noFlyZone.getMinX(), noFlyZone.getMinZ(),
-                noFlyZone.getMaxX(), noFlyZone.getMaxZ(),
-                to.x(), to.z()
-        ).toVector(to.y());
-        Vector dir = closestToTo.clone().subtract(from.toVector()).normalize();
-        Vector newToVec = from.toVector().add(dir);
+        Location from = event.getFrom();
         
         Location newToLoc = new Location(
                 to.getWorld(),
-                newToVec.getX(),
-                to.y(),
-                newToVec.getZ(),
-                to.getYaw(),
+                from.getX(),
+                from.getY() - 1,
+                from.getZ(),
+                to.getYaw() + 180,
                 to.getPitch()
         );
-        Main.logf("old dist=%s new dist=%s", from.distance(to), from.distance(newToLoc));
         event.setTo(newToLoc);
         
     }
