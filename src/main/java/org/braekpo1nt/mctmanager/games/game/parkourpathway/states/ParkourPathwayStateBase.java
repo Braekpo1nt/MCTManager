@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourTeam;
 import org.bukkit.Location;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -99,5 +100,10 @@ public class ParkourPathwayStateBase implements ParkourPathwayState {
     @Override
     public void onParticipantPostRespawn(PlayerPostRespawnEvent event, ParkourParticipant participant) {
         
+    }
+    
+    @Override
+    public void onParticipantToggleGlide(@NotNull EntityToggleGlideEvent event, ParkourParticipant participant) {
+        // do nothing
     }
 }

@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
  * Common functionality for when players should be on their platforms,
  * new teams should get a new platform, and no damage should be taken
  */
-public class OnPlatformsState extends SurvivalGamesStateBase {
+public abstract class OnPlatformsState extends SurvivalGamesStateBase {
     
     public OnPlatformsState(@NotNull SurvivalGamesGame context) {
         super(context);
@@ -49,4 +49,5 @@ public class OnPlatformsState extends SurvivalGamesStateBase {
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.clearInventory(participant);
     }
+    
 }

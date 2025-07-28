@@ -5,6 +5,8 @@ import org.bukkit.World;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 /**
  * An abstraction of {@link Location} for gson serialization/deserialization purposes.
  * <p>
@@ -33,6 +35,12 @@ public class LocationDTO {
     
     public static LocationDTO from(Location respawn) {
         return new LocationDTO(respawn);
+    }
+    
+    public static List<Location> toLocations(@NotNull List<LocationDTO> dtos, @NotNull World world) {
+        return dtos.stream()
+                .map(l -> l.toLocation(world))
+                .toList();
     }
     
     /**

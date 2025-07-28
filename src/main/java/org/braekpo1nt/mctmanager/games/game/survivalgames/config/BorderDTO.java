@@ -1,58 +1,81 @@
 package org.braekpo1nt.mctmanager.games.game.survivalgames.config;
 
+import lombok.Data;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.Border;
+import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 
-/**
- * @param center            the center of the world border
- * @param initialBorderSize The size that the border should start at
- * @param damageAmount      the amount of damage a player takes when outside the border plus the border buffer.
- * @param damageBuffer      the amount of blocks a player may safely be outside the border before taking damage.
- * @param warningDistance   the warning distance that causes the screen to be tinted red when the player is within the specified number of blocks from the border.
- * @param warningTime       the warning time that causes the screen to be tinted red when a contracting border will reach the player within the specified time.
- * @param borderStages      The stages the border should progress through
- */
-record BorderDTO(
-        Center center,
-        double initialBorderSize,
-        double damageAmount,
-        double damageBuffer,
-        int warningDistance,
-        int warningTime,
-        List<BorderStage> borderStages) implements Validatable {
+@Data
+class BorderDTO implements Validatable {
+    /** the center of the world border */
+    private Center center;
+    /** The size that the border should start at */
+    private double initialBorderSize;
+    /** the amount of damage a player takes when outside the border plus the border buffer. */
+    private double damageAmount;
+    /** the amount of blocks a player may safely be outside the border before taking damage. */
+    private double damageBuffer;
+    /** the warning distance that causes the screen to be tinted red when the player is within the specified number of blocks from the border. */
+    private int warningDistance;
+    /** the warning time that causes the screen to be tinted red when a contracting border will reach the player within the specified time. */
+    private int warningTime;
+    /**
+     * The locations where players can respawn
+     * If none exist, then the first platform spawn will be used
+     */
+    private @Nullable List<LocationDTO> respawnLocations;
+    /**
+     * The number of stages that respawning is allowed. 
+     * After this many stages, respawning will be disabled.
+     * Can't be more than the total number of {@link #borderStages}. 
+     * If this is less than 1, no respawning will occur through the duration of the game.
+     * Defaults to 0.
+     */
+    private int respawnStages;
+    /**
+     * The amount of time it takes for a dead participant to respawn (in seconds)
+     * Defaults to 10s
+     */
+    private @Nullable Integer respawnTime;
+    /** The stages the border should progress through */
+    private List<BorderStageDTO> borderStages;
     
     @Override
     public void validate(@NotNull Validator validator) {
-        validator.validate(this.center != null, "border.center can't be null");
+        validator.validate(this.center != null, "center can't be null");
         validator.validate(this.initialBorderSize >= 1.0,
-                "border.initialBorderSize can't be less than 1.0: %s", this.initialBorderSize());
-        validator.validate(this.borderStages != null,
-                "border.borderStages can't be null");
-        validator.validate(this.borderStages.size() >= 1,
-                "border.borderStages must have at least one stage");
+                "initialBorderSize can't be less than 1.0: %s", this.initialBorderSize);
+        validator.notEmpty(this.borderStages, "borderStages");
         validator.validateList(this.borderStages, "borderStages");
+        validator.validate(this.respawnStages <= borderStages.size(), "respawnStages must be less than or equal to the total number of borderStages (%d)", borderStages.size());
+        if (this.respawnTime != null) {
+            validator.validate(this.respawnTime >= 0, "respawnTime (%s) can't be negative", this.respawnTime);
+        }
     }
     
     record Center(double x, double z) {
     }
     
-    /**
-     * @param size     The size (in blocks) the border will be at this stage. The border will shrink from the previous stage's size to this stage's size over this stage's duration
-     * @param delay    the border will stay at the previous stage's size for this many seconds
-     * @param duration the border will take this many seconds to transition from the previous stage's size to this stage's size
-     */
-    record BorderStage(int size, int delay, int duration) implements Validatable {
-        @Override
-        public void validate(@NotNull Validator validator) {
-            validator.validate(this.size >= 1.0,
-                    "size (%s) can't be less than 1.0", this.size);
-            validator.validate(this.delay >= 0,
-                    "delay (%S) can't be negative", this.delay);
-            validator.validate(this.duration >= 0,
-                    "duration (%S) can't be negative", this.duration);
-        }
+    public Border toBorder(@NotNull World world) {
+        return Border.builder()
+                .centerX(center.x())
+                .centerZ(center.z())
+                .initialBorderSize(initialBorderSize)
+                .damageAmount(damageAmount)
+                .damageBuffer(damageBuffer)
+                .warningDistance(warningDistance)
+                .warningTime(warningTime)
+                .respawnStages(respawnStages)
+                .respawnTime(this.respawnTime != null ? this.respawnTime : 10)
+                .respawnLocations(respawnLocations != null ? LocationDTO.toLocations(respawnLocations, world) : Collections.emptyList())
+                .stages(BorderStageDTO.toBorderStages(borderStages))
+                .build();
     }
 }

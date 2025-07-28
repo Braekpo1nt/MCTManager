@@ -3,7 +3,6 @@ package org.braekpo1nt.mctmanager.ui;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
@@ -31,6 +30,7 @@ import java.util.logging.Level;
 
 public class UIUtils {
     
+    public static final Title EMPTY_TITLE = defaultTitle(Component.empty(), Component.empty());
     private static final Component KILL_PREFIX = Component.empty()
             .append(Component.text(" ⚔ ")
                     .color(NamedTextColor.GREEN))
@@ -293,7 +293,7 @@ public class UIUtils {
      * @param args optional args for the reason format string
      */
     public static void logUIError(@NotNull String reason, Object... args) {
-        Main.logger().log(Level.SEVERE, "A UI error occurred. Failing gracefully.",
+        Main.logger().log(Level.WARNING, "A UI error occurred. Failing gracefully.",
                 new UIException(String.format(reason, args)));
     }
 }

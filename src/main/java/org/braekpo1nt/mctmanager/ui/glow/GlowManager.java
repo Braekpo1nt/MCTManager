@@ -109,6 +109,19 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
         public boolean canSee(UUID target) {
             return targets.contains(target);
         }
+        
+        public String debugToString(Map<UUID, PlayerData> playerDataMap) {
+            StringBuilder builder = new StringBuilder();
+            for (UUID targetUUID : targets) {
+                String targetName = playerDataMap.get(targetUUID).getPlayer().getName();
+                builder
+                        .append(player.getName())
+                        .append("->")
+                        .append(targetName)
+                ;
+            }
+            return builder.toString();
+        }
     }
     
     /**
@@ -283,7 +296,7 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
      *               Must be a player contained in this manager.
      */
     public void hideGlowing(Player viewer, Participant target) {
-        hideGlowing(viewer.getUniqueId(), target.getUniqueId());
+        hideGlowing(viewer.getUniqueId(), viewer.getName(), target.getUniqueId(), target.getName());
     }
     
     /**
@@ -294,7 +307,7 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
      *               Must be a player contained in this manager.
      */
     public void hideGlowing(Participant viewer, Participant target) {
-        hideGlowing(viewer.getUniqueId(), target.getUniqueId());
+        hideGlowing(viewer.getUniqueId(), viewer.getName(), target.getUniqueId(), target.getName());
     }
     
     /**
@@ -304,20 +317,20 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
      * @param targetUUID the UUID of the target (the player who should glow). 
      *               Must be a player contained in this manager.
      */
-    public void hideGlowing(UUID viewerUUID, UUID targetUUID) {
+    public void hideGlowing(UUID viewerUUID, String viewerName, UUID targetUUID, String targetName) {
         PlayerData viewerPlayerData = playerDatas.get(viewerUUID);
         if (viewerPlayerData == null) {
-            UIUtils.logUIError("Viewer player with UUID %s is not in this manager", viewerUUID);
+            UIUtils.logUIError("Viewer %s is not in this manager (UUID %s)", viewerName, viewerUUID);
             return;
         }
         PlayerData targetPlayerData = playerDatas.get(targetUUID);
         if (targetPlayerData == null) {
-            UIUtils.logUIError("Target player with UUID %s is not in this manager", targetUUID);
+            UIUtils.logUIError("Target %s is not in this manager (UUID %s)", targetName, targetUUID);
             return;
         }
         
         if (!viewerPlayerData.canSee(targetUUID)) {
-            UIUtils.logUIError("Viewer with UUID %s doesn't see target with UUID %s glowing", viewerUUID, targetUUID);
+            UIUtils.logUIError("Viewer %s doesn't see target %s glowing (viewerUUID=%s, targetUUID=%s)", viewerName, targetName, viewerUUID, targetUUID);
             return;
         }
         // (no need to check the viewers because they are maintained in tandem)
@@ -451,5 +464,16 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
                 sendGlowingPacket(viewerPlayerData.getPlayer(), entityId, initialUpdateMetadata);
             });
         }
+    }
+    
+    public String debugToString() {
+        StringBuilder builder = new StringBuilder("Viewer->Target:\n");
+        for (PlayerData playerData : playerDatas.values()) {
+            builder
+                    .append(playerData.debugToString(playerDatas))
+                    .append("\n")
+            ;
+        }
+        return builder.toString();
     }
 }

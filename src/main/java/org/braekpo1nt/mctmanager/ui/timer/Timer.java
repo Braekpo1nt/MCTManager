@@ -25,6 +25,12 @@ import java.util.logging.Level;
 
 public class Timer extends BukkitRunnable {
     
+    public static void cancel(@Nullable Timer timer) {
+        if (timer != null) {
+            timer.cancel();
+        }
+    }
+    
     @Override
     public String toString() {
         return "Timer{" +

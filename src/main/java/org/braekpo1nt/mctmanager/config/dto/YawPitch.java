@@ -6,4 +6,11 @@ package org.braekpo1nt.mctmanager.config.dto;
  * @param pitch the pitch of a Location
  */
 public record YawPitch(float yaw, float pitch) {
+    public float getPitch() {
+        return pitch;
+    }
+    
+    public float getYaw() {
+        return yaw;
+    }
 }

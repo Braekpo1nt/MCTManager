@@ -35,6 +35,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -875,6 +876,15 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             return;
         }
         state.onParticipantPostRespawn(event, participant);
+    }
+    
+    @EventHandler
+    public void onEntityToggleGlide(EntityToggleGlideEvent event) {
+        P participant = participants.get(event.getEntity().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        state.onParticipantToggleGlide(event, participant);
     }
     // EventHandlers end
     

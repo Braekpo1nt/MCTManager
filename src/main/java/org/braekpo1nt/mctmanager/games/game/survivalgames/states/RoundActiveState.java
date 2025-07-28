@@ -1,8 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.survivalgames.states;
 
-import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesParticipant;
@@ -12,41 +10,35 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.ManyBattleTopbar;
-import org.braekpo1nt.mctmanager.utils.LogType;
+import org.braekpo1nt.mctmanager.utils.EntityUtils;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.WorldBorder;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public class RoundActiveState extends SurvivalGamesStateBase {
+public abstract class RoundActiveState extends SurvivalGamesStateBase {
     
-    private final Main plugin;
-    private final TimerManager timerManager;
-    private final SurvivalGamesConfig config;
-    private final Sidebar adminSidebar;
-    private final ManyBattleTopbar topbar;
-    private final WorldBorder worldBorder;
-    /**
-     * the index of the border stage
-     */
-    private int borderStageIndex = 0;
-    private boolean gracePeriod = false;
-    private @Nullable Timer borderDelay;
-    private @Nullable Timer borderShrinking;
-    private @Nullable Timer gracePeriodTimer;
+    protected final Main plugin;
+    protected final TimerManager timerManager;
+    protected final SurvivalGamesConfig config;
+    protected final Sidebar adminSidebar;
+    protected final ManyBattleTopbar topbar;
+    protected final WorldBorder worldBorder;
+    private int respawnTaskId;
     
     public RoundActiveState(@NotNull SurvivalGamesGame context) {
         super(context);
@@ -56,139 +48,71 @@ public class RoundActiveState extends SurvivalGamesStateBase {
         this.adminSidebar = context.getAdminSidebar();
         this.topbar = context.getTopbar();
         this.worldBorder = context.getWorldBorder();
-        context.removePlatforms();
-        startGracePeriodTimer();
     }
     
-    private void startGracePeriodTimer() {
-        gracePeriod = true;
-        Component gracePeriodDuration = TimeStringUtils.getTimeComponent(config.getGracePeriodDuration());
-        Component gracePeriodStarted = Component.empty()
-                .append(gracePeriodDuration)
-                .append(Component.text(" grace period"))
-                .color(NamedTextColor.GREEN);
-        context.messageAllParticipants(gracePeriodStarted);
-        Audience.audience(context.getParticipants().values()).showTitle(UIUtils.defaultTitle(
-                Component.empty(),
-                gracePeriodStarted
-        ));
-        gracePeriodTimer = timerManager.start(Timer.builder()
-                .duration(config.getGracePeriodDuration())
-                .withTopbar(topbar)
-                .topbarPrefix(Component.text("Grace Period: "))
-                .onCompletion(() -> {
-                    gracePeriod = false;
-                    Component gracePeriodEnded = Component.empty()
-                            .append(Component.text("Grace period ended"))
-                            .color(NamedTextColor.RED);
-                    context.messageAllParticipants(gracePeriodEnded);
-                    Audience.audience(context.getParticipants().values()).showTitle(UIUtils.defaultTitle(
-                            Component.empty(),
-                            gracePeriodEnded
-                    ));
-                    startBorderDelay();
-                })
-                .build());
+    @Override
+    public void enter() {
+        this.respawnTaskId = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            context.getParticipants().values()
+                    .forEach(p -> {
+                        if (!p.isRespawning()) {
+                            return;
+                        }
+                        if (p.isAlive()) {
+                            return;
+                        }
+                        if (p.getRespawnCountdown() == 0) {
+                            p.showTitle(UIUtils.EMPTY_TITLE);
+                            respawnParticipant(p);
+                            return;
+                        }
+                        p.showTitle(UIUtils.defaultTitle(
+                                Component.empty()
+                                        .append(Component.text("Respawning in")),
+                                Component.empty()
+                                        .append(Component.text(p.getRespawnCountdown()))
+                                        .color(TimeStringUtils.getColorForTime(p.getRespawnCountdown()))
+                        ));
+                        p.setRespawnCountdown(p.getRespawnCountdown() - 1);
+                    });
+        }, 0L, 20L).getTaskId();
     }
     
-    private void startBorderDelay() {
-        borderDelay = timerManager.start(Timer.builder()
-                .duration(config.getDelays()[borderStageIndex])
-                .withSidebar(adminSidebar, "timer")
-                .withTopbar(topbar)
-                .sidebarPrefix(Component.text("Border: ")
-                        .color(NamedTextColor.LIGHT_PURPLE))
-                .topbarPrefix(Component.text("Border: ")
-                        .color(NamedTextColor.LIGHT_PURPLE))
-                .timerColor(NamedTextColor.LIGHT_PURPLE)
-                .onCompletion(() -> {
-                    int size = config.getSizes()[borderStageIndex];
-                    int duration = config.getDurations()[borderStageIndex];
-                    worldBorder.setSize(size, duration);
-                    sendBorderShrinkAnnouncement(duration, size);
-                    startBorderShrinking();
-                })
-                .build());
+    @Override
+    public void exit() {
+        plugin.getServer().getScheduler().cancelTask(respawnTaskId);
     }
     
-    private void startBorderShrinking() {
-        borderShrinking = timerManager.start(Timer.builder()
-                .duration(config.getDurations()[borderStageIndex])
-                .withSidebar(adminSidebar, "timer")
-                .withTopbar(topbar)
-                .sidebarPrefix(Component.text("Border shrinking: ")
-                        .color(NamedTextColor.RED))
-                .topbarPrefix(Component.text("Border shrinking: ")
-                        .color(NamedTextColor.RED))
-                .timerColor(NamedTextColor.RED)
-                .onCompletion(() -> {
-                    borderStageIndex++;
-                    if (borderStageIndex >= config.getDelays().length) {
-                        startSuddenDeath();
-                        return;
-                    }
-                    int delay = config.getDelays()[borderStageIndex];
-                    sendBorderDelayAnnouncement(delay);
-                    startBorderDelay();
-                })
-                .build());
-    }
-    
-    /**
-     * Sends a chat message to all participants saying the border is delaying
-     * @param delay The delay in seconds
-     */
-    private void sendBorderDelayAnnouncement(int delay) {
-        String timeString = TimeStringUtils.getTimeString(delay);
-        context.messageAllParticipants(Component.text("Border will not shrink for "+timeString));
-    }
-    
-    private void startSuddenDeath() {
-        Component message = Component.empty()
-                        .append(Component.text("Sudden Death")
-                                .color(NamedTextColor.RED));
-        topbar.setMiddle(message);
-        adminSidebar.updateLine("timer", message);
-        context.messageAllParticipants(Component.empty()
-                .append(Component.text("Sudden death!")
-                    .color(NamedTextColor.RED)));
-    }
-    
-    /**
-     * Sends a chat message to all participants saying the border is shrinking
-     * @param duration The duration of the shrink in seconds
-     * @param size The size of the border in blocks
-     */
-    private void sendBorderShrinkAnnouncement(int duration, int size) {
-        String timeString = TimeStringUtils.getTimeString(duration);
-        context.messageAllParticipants(Component.empty()
-                .append(Component.text("Border shrinking to "))
-                .append(Component.text(size))
-                .append(Component.text(" for "))
-                .append(Component.text(timeString))
-                .color(NamedTextColor.RED)
-        );
-        Audience.audience(
-                Audience.audience(context.getAdmins()),
-                Audience.audience(context.getParticipants().values())
-        ).showTitle(UIUtils.defaultTitle(
-                Component.empty(),
-                Component.text("Border shrinking")
-                        .color(NamedTextColor.RED)
-        ));
+    @Override
+    public void cleanup() {
+        for (int flyTaskId : context.getGlideTaskIds()) {
+            plugin.getServer().getScheduler().cancelTask(flyTaskId);
+        }
+        context.getParticipants().values().forEach(p -> p.setShouldGlide(false));
     }
     
     @Override
     public void onParticipantRejoin(SurvivalGamesParticipant participant, SurvivalGamesTeam team) {
+        participant.setAlive(false); // participants are dead when joining
         super.onParticipantRejoin(participant, team);
         participant.setGameMode(GameMode.SPECTATOR);
+        updateRespawnLine();
+        participant.teleport(config.getPlatformSpawns().getFirst());
+        if (allowRespawn()) {
+            initiateParticipantRespawnCountdown(participant);
+        }
     }
     
     @Override
     public void onNewParticipantJoin(SurvivalGamesParticipant participant, SurvivalGamesTeam team) {
+        participant.setAlive(false); // participants are dead when joining
         super.onNewParticipantJoin(participant, team);
+        participant.setGameMode(GameMode.SPECTATOR);
+        updateRespawnLine();
         participant.teleport(config.getPlatformSpawns().getFirst());
-        participant.setRespawnLocation(config.getPlatformSpawns().getFirst(), true);
+        if (allowRespawn()) {
+            initiateParticipantRespawnCountdown(participant);
+        }
     }
     
     @Override
@@ -209,10 +133,7 @@ public class RoundActiveState extends SurvivalGamesStateBase {
     
     @Override
     public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull SurvivalGamesParticipant participant) {
-        if (gracePeriod) {
-            Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "SurvivalGames.ActiveState.onPlayerDamage()->invulnerable cancelled");
-            event.setCancelled(true);
-        }
+        // do nothing
     }
     
     @Override
@@ -227,13 +148,87 @@ public class RoundActiveState extends SurvivalGamesStateBase {
         onParticipantDeath(killed);
     }
     
-    private void onParticipantGetKill(@NotNull SurvivalGamesParticipant killer, @NotNull SurvivalGamesParticipant killed) {
-        if (!context.getParticipants().containsKey(killer.getUniqueId())) {
+    /**
+     * Used to respawn a participant mid-game and send them into glide mode
+     * @param participant the participant to respawn
+     */
+    public void respawnParticipant(SurvivalGamesParticipant participant) {
+        participant.setAlive(true);
+        participant.setRespawning(false);
+        Location respawn = selectRespawnLocation();
+        participant.teleport(respawn);
+        participant.setGameMode(GameMode.ADVENTURE);
+        SurvivalGamesTeam team = context.getTeams().get(participant.getTeamId());
+        context.updateAliveCount(team);
+        int flyTaskId = plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            participant.getPlayer().setGliding(true);
+            participant.setShouldGlide(true);
+        }, 10L).getTaskId();
+        context.getGlideTaskIds().add(flyTaskId);
+        for (SurvivalGamesParticipant viewer : team.getParticipants()) {
+            if (!viewer.equals(participant)) {
+                context.getGlowManager().showGlowing(viewer, participant);
+            }
+        }
+        for (Player admin : context.getAdmins()) {
+            context.getGlowManager().showGlowing(admin, participant);
+        }
+    }
+    
+    /**
+     * @return a random respawn location based on the current border stage
+     */
+    private Location selectRespawnLocation() {
+        List<Location> respawnLocations = context.getCurrentBorderStage().getLocationsInside(config.getBorder().getCenterX(), config.getBorder().getCenterZ(), config.getRespawnLocations());
+        if (respawnLocations.isEmpty()) {
+            return config.getPlatformSpawns().getFirst();
+        } else {
+            return respawnLocations
+                    .get(context.getRandom()
+                            .nextInt(respawnLocations.size()));
+        }
+    }
+    
+    public void initiateParticipantRespawnCountdown(SurvivalGamesParticipant participant) {
+        participant.setRespawning(true);
+        SurvivalGamesTeam team = context.getTeams().get(participant.getTeamId());
+        team.sendMessage(Component.empty()
+                .append(participant.displayName())
+                .append(Component.text(" will respawn in "))
+                .append(Component.text(config.getBorder().getRespawnTime()))
+                .append(Component.text(" seconds"))
+                .color(team.getColor()));
+        participant.setRespawnCountdown(config.getBorder().getRespawnTime());
+    }
+    
+    @Override
+    public void onParticipantMove(@NotNull PlayerMoveEvent event, @NotNull SurvivalGamesParticipant participant) {
+        if (participant.isShouldGlide()) {
+            handleGliding(participant);
+        }
+    }
+    
+    private void handleGliding(@NotNull SurvivalGamesParticipant participant) {
+        if (EntityUtils.isOnGround(participant.getLocation(), 1)) {
+            participant.setShouldGlide(false);
+            participant.getPlayer().setGliding(false); // this has to come first, or the setGliding will trigger the canceled event
+        }
+    }
+    
+    @Override
+    public void onParticipantToggleGlide(@NotNull EntityToggleGlideEvent event, SurvivalGamesParticipant participant) {
+        if (!participant.isShouldGlide()) {
             return;
         }
+        event.setCancelled(true);
+    }
+    
+    private void onParticipantGetKill(@NotNull SurvivalGamesParticipant killer, @NotNull SurvivalGamesParticipant killed) {
         addKill(killer);
         UIUtils.showKillTitle(killer, killed);
-        context.awardPoints(killer, config.getKillScore());
+        if (!killer.getTeamId().equals(killed.getTeamId())) {
+            context.awardPoints(killer, config.getKillScore());
+        }
     }
     
     /**
@@ -264,13 +259,16 @@ public class RoundActiveState extends SurvivalGamesStateBase {
         addDeath(participant);
         SurvivalGamesTeam team = context.getTeams().get(teamId);
         context.updateAliveCount(team);
-        for (SurvivalGamesParticipant teammate : team.getParticipants()) {
-            if (!teammate.equals(participant)) {
-                context.getGlowManager().hideGlowing(teammate, participant);
+        for (SurvivalGamesParticipant viewer : team.getParticipants()) {
+            if (!viewer.equals(participant)) {
+                context.getGlowManager().hideGlowing(viewer, participant);
             }
         }
-        for (Player admin : context.getAdmins()) {
-            context.getGlowManager().hideGlowing(admin, participant);
+        for (Player viewer : context.getAdmins()) {
+            context.getGlowManager().hideGlowing(viewer, participant);
+        }
+        if (allowRespawn()) {
+            initiateParticipantRespawnCountdown(participant);
         }
         if (!team.isAlive()) {
             onTeamDeath(context.getTeams().get(teamId));
@@ -282,13 +280,30 @@ public class RoundActiveState extends SurvivalGamesStateBase {
      * @param deadTeam the team who just died
      */
     private void onTeamDeath(SurvivalGamesTeam deadTeam) {
+        if (allowRespawn()) {
+            onTeamTempDeath(deadTeam);
+        } else {
+            onTeamPermadeath(deadTeam);
+        }
+    }
+    
+    private void onTeamTempDeath(SurvivalGamesTeam deadTeam) {
+        context.messageAllParticipants(Component.empty()
+                .append(deadTeam.getFormattedDisplayName())
+                .append(Component.text(" has been eliminated, but will respawn.")));
+    }
+    
+    private void onTeamPermadeath(SurvivalGamesTeam deadTeam) {
         context.messageAllParticipants(Component.empty()
                 .append(deadTeam.getFormattedDisplayName())
                 .append(Component.text(" has been eliminated.")));
         List<SurvivalGamesTeam> livingTeams = getLivingTeams();
         for (SurvivalGamesTeam livingTeam : livingTeams) {
             context.awardPoints(livingTeam, config.getSurviveTeamScore());
-            context.displayScore(livingTeam);
+        }
+        if (!getRespawningTeams().isEmpty()) {
+            // there is still battle to be had
+            return;
         }
         switch (livingTeams.size()) {
             case 2 -> {
@@ -320,24 +335,40 @@ public class RoundActiveState extends SurvivalGamesStateBase {
                 .toList();
     }
     
+    /**
+     * @return a list of the teams which are dead, but have at least 1 team member who is respawning
+     */
+    private @NotNull List<SurvivalGamesTeam> getRespawningTeams() {
+        return context.getTeams().values().stream()
+                .filter(SurvivalGamesTeam::isRespawning)
+                .toList();
+    }
+    
     private void onTeamWin(SurvivalGamesTeam winningTeam) {
         plugin.getServer().sendMessage(Component.text("Team ")
                 .append(winningTeam.getFormattedDisplayName())
                 .append(Component.text(" wins!")));
         context.awardPoints(winningTeam, config.getFirstPlaceScore());
-        if (borderDelay != null) {
-            borderDelay.cancel();
-        }
-        if (borderShrinking != null) {
-            borderShrinking.cancel();
-        }
-        if (gracePeriodTimer != null) {
-            gracePeriodTimer.cancel();
-        }
         if (context.getCurrentRound() < context.getConfig().getRounds()) {
             context.setState(new RoundOverState(context));
         } else {
             context.setState(new GameOverState(context));
         }
+    }
+    
+    protected boolean allowRespawn() {
+        return config.getBorder().allowRespawn(context.getBorderStageIndex());
+    }
+    
+    /**
+     * Update the sidebars to reflect the current respawn status
+     */
+    protected void updateRespawnLine() {
+        if (config.getBorder().neverRespawn()) {
+            return;
+        }
+        Component respawnLine = config.getBorder().getRespawnLine(context.getBorderStageIndex());
+        context.getAdminSidebar().updateLine("respawn", respawnLine);
+        context.getSidebar().updateLine("respawn", respawnLine);
     }
 }

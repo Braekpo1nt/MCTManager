@@ -126,4 +126,12 @@ public class OfflineParticipant implements AudienceDelegate {
         return displayName;
     }
     
+    /**
+     * @param offlineParticipant the participant to check if they are on the same team or not
+     * @return true if the {@link #getTeamId()} of this participant matches that of the given participant
+     */
+    public boolean sameTeam(OfflineParticipant offlineParticipant) {
+        return getTeamId().equals(offlineParticipant.getTeamId());
+    }
+    
 }

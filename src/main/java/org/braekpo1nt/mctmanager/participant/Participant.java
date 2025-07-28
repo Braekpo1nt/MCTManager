@@ -115,6 +115,7 @@ public class Participant extends OfflineParticipant implements AudienceDelegate 
     /**
      * Delegate for {@link Player#getName()}
      */
+    @Override
     public @NotNull String getName() {
         return player.getName();
     }
@@ -172,6 +173,7 @@ public class Participant extends OfflineParticipant implements AudienceDelegate 
     /**
      * Delegate for {@link Player#displayName()}
      */
+    @Override
     public @NotNull Component displayName() {
         return player.displayName();
     }
