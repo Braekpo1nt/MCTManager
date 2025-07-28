@@ -111,7 +111,8 @@ public class ExampleStateBase implements ExampleState {
         
     }
     
-    public void onParticipantToggleGlide(EntityToggleGlideEvent event, ExampleParticipant participant) {
+    @Override
+    public void onParticipantToggleGlide(@NotNull EntityToggleGlideEvent event, ExampleParticipant participant) {
         
     }
 }

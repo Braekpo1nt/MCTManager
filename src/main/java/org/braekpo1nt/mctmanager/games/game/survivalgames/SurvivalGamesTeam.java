@@ -22,6 +22,13 @@ public class SurvivalGamesTeam extends ScoredTeamData<SurvivalGamesParticipant> 
         return getParticipants().stream().anyMatch(SurvivalGamesParticipant::isAlive);
     }
     
+    /**
+     * @return true if at least one participant of this team is respawning, false otherwise
+     */
+    public boolean isRespawning() {
+        return getParticipants().stream().anyMatch(SurvivalGamesParticipant::isRespawning);
+    }
+    
     public int getAlive() {
         return (int) getParticipants().stream().filter(SurvivalGamesParticipant::isAlive).count();
     }

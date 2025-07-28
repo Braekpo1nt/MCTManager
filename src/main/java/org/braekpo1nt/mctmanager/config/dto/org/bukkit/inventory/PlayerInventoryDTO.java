@@ -13,10 +13,10 @@ public class PlayerInventoryDTO extends InventoryDTO {
     public void validate(@NotNull Validator validator) {
         super.validate(validator);
         validator.notNull(contents, "contents");
-        validator.validate(contents.size() <= MAX_SIZE, "contents can't contain more than %s entries", MAX_SIZE);
+        validator.validate(contents.size() <= MAX_SIZE, "contents can't contain more than %d entries", MAX_SIZE);
         for (Map.Entry<Integer, ItemStackDTO> entry : contents.entrySet()) {
             int slot = entry.getKey();
-            validator.validate(0 <= slot && slot <= MAX_SIZE - 1, "contents[%d] must be between 0 and %d (inclusive)", slot, MAX_SIZE - 1);
+            validator.validate(0 <= slot && slot <= MAX_SIZE - 1, "contents[%d].slot must be between 0 and %d (inclusive)", slot, MAX_SIZE - 1);
             ItemStackDTO item = entry.getValue();
             if (item != null) {
                 item.validate(validator.path("contents[%s]", slot));

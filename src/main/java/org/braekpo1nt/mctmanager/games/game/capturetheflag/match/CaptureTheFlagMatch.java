@@ -25,6 +25,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Item;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -433,6 +434,11 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
         Audience.audience(
                 participants.values()
         ).sendMessage(message);
+    }
+    
+    @Override
+    public void onParticipantToggleGlide(@NotNull EntityToggleGlideEvent event, CTFParticipant participant) {
+        // do nothing
     }
     
 }

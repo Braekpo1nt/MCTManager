@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.participant.*;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -104,6 +105,8 @@ public interface GameStateBase<P extends ParticipantData, T extends ScoredTeamDa
     void onParticipantRespawn(PlayerRespawnEvent event, P participant);
     
     void onParticipantPostRespawn(PlayerPostRespawnEvent event, P participant);
+    
+    void onParticipantToggleGlide(@NotNull EntityToggleGlideEvent event, P participant);
     
     default @NotNull CommandResult top(@NotNull P participant) {
         return CommandResult.failure(Component.empty()

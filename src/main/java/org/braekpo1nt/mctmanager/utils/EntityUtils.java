@@ -142,4 +142,16 @@ public final class EntityUtils {
         // do not instantiate
     }
     
+    /**
+     * @param location the location to check if it is on the ground
+     * @param tolerance the tolerance (in blocks) of detection. How far down a solid block must be to assume they are on the ground.
+     * @return true if the nearest solid block below the given location is within the given tolerance
+     */
+    public static boolean isOnGround(@NotNull Location location, double tolerance) {
+        Location solidBlockBelow = BlockPlacementUtils.getSolidBlockBelow(location);
+        if (solidBlockBelow.equals(location)) {
+            return false;
+        }
+        return !(solidBlockBelow.distance(location) > tolerance);
+    }
 }

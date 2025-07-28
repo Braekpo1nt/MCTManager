@@ -8,16 +8,17 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfig;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.states.InitialState;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.states.SurvivalGamesState;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.glow.GlowManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.topbar.ManyBattleTopbar;
@@ -58,7 +59,17 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     private final GlowManager glowManager;
     private final SurvivalGamesConfig config;
     private final WorldBorder worldBorder;
+    private final Random random;
     
+    /**
+     * the index of the border stage
+     */
+    private int borderStageIndex;
+    /**
+     * A list of task ids representing when participants should be set to gliding mode,
+     * but need to be cancelled if anything stops the game early
+     */
+    private final List<Integer> glideTaskIds;
     private int currentRound;
     
     public SurvivalGamesGame(
@@ -74,13 +85,14 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
         this.topbar = addUIManager(new ManyBattleTopbar());
         this.glowManager = addUIManager(new GlowManager(plugin));
         this.config = config;
+        this.glideTaskIds = new ArrayList<>();
+        this.random = new Random();
         this.currentRound = 1;
+        this.borderStageIndex = 0;
         worldBorder = config.getWorld().getWorldBorder();
         glowManager.registerListeners();
         fillAllChests();
         setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
-        start(newTeams, newParticipants, newAdmins);
-        initializeGlowManager();
         if (newTeams.size() < 2) {
             messageAllParticipants(Component.empty()
                     .append(Component.text(GameType.SURVIVAL_GAMES.getTitle()))
@@ -91,7 +103,24 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
                             .append(Component.text(" to stop the game."))
                             .color(NamedTextColor.RED)));
         }
+        start(newTeams, newParticipants, newAdmins);
+        state.enter(); // TODO: remove this when you update the GameBase to include the enter/exit functionality
         Main.logger().info("Started Survival Games");
+    }
+    
+    /**
+     * Convenience method for getting the current border stage 
+     * @return teh current border stage
+     */
+    public BorderStage getCurrentBorderStage() {
+        return config.getBorderStages().get(borderStageIndex);
+    }
+    
+    @Override
+    public void setState(@NotNull SurvivalGamesState state) {
+        this.state.exit();
+        this.state = state;
+        this.state.enter();
     }
     
     @Override
@@ -102,24 +131,6 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     @Override
     protected @NotNull World getWorld() {
         return config.getWorld();
-    }
-    
-    /**
-     * Set up all the appropriate glowing effects for the start of the game
-     */
-    private void initializeGlowManager() {
-        for (Participant participant : participants.values()) {
-            for (Participant target : participants.values()) {
-                if (!participant.equals(target)) {
-                    if (participant.getTeamId().equals(target.getTeamId())) {
-                        glowManager.showGlowing(participant, target);
-                    }
-                }
-            }
-            for (Player admin : admins) {
-                glowManager.showGlowing(admin, participant);
-            }
-        }
     }
     
     @Override
@@ -241,14 +252,18 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     protected void initializeAdminSidebar() {
         adminSidebar.addLines(
                 new KeyLine("round", Component.empty()),
-                new KeyLine("timer", Component.empty())
+                new KeyLine("timer", Component.empty()),
+                new KeyLine("respawn", Component.empty())
         );
     }
     
     @Override
     protected void initializeSidebar() {
         topbar.setMiddle(Component.empty());
-        sidebar.addLine("round", Component.empty());
+        sidebar.addLines(
+                new KeyLine("round", Component.empty()),
+                new KeyLine("respawn", Component.empty())
+        );
     }
     
     /**
@@ -274,15 +289,6 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
         scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
         scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
         scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
-    }
-    
-    public void initializeWorldBorder() {
-        worldBorder.setCenter(config.getWorldBorderCenterX(), config.getWorldBorderCenterZ());
-        worldBorder.setSize(config.getInitialBorderSize());
-        worldBorder.setDamageAmount(config.getWorldBorderDamageAmount());
-        worldBorder.setDamageBuffer(config.getWorldBorderDamageBuffer());
-        worldBorder.setWarningDistance(config.getWorldBorderWarningDistance());
-        worldBorder.setWarningTime(config.getWorldBorderWarningTime());
     }
     
     /**

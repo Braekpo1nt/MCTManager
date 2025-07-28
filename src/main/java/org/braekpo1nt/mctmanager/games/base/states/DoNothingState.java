@@ -4,6 +4,7 @@ import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import org.braekpo1nt.mctmanager.participant.ParticipantData;
 import org.braekpo1nt.mctmanager.participant.ScoredTeamData;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -84,6 +85,11 @@ public interface DoNothingState<P extends ParticipantData, T extends ScoredTeamD
     
     @Override
     default void onParticipantPostRespawn(PlayerPostRespawnEvent event, P participant) {
+        
+    }
+    
+    @Override
+    default void onParticipantToggleGlide(@NotNull EntityToggleGlideEvent event, P participant) {
         
     }
 }

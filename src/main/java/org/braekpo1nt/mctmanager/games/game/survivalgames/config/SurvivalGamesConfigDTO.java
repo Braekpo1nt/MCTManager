@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.config.dto.YawPitch;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.NamespacedKeyDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.PlayerInventoryDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.utils.EntityUtils;
@@ -38,6 +39,10 @@ class SurvivalGamesConfigDTO implements Validatable {
      * the information about the world border
      */
     private BorderDTO border;
+    /**
+     * The items a player starts out with at the beginning of the round (this can be empty or left out)
+     */
+    private @Nullable PlayerInventoryDTO starterLoadout;
     /**
      * The loot table for the spawn chests
      */
@@ -97,6 +102,9 @@ class SurvivalGamesConfigDTO implements Validatable {
                 "Could not find world \"%s\"", this.world);
         if (spectatorArea != null) {
             validator.validate(spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
+        }
+        if (starterLoadout != null) {
+            starterLoadout.validate(validator.path("starterLoadout"));
         }
         validator.notNull(this.removeArea,
                 "removeArea");
@@ -201,15 +209,6 @@ class SurvivalGamesConfigDTO implements Validatable {
             newAdminSpawn.setPitch(direction.pitch());
         }
         
-        List<BorderDTO.BorderStage> borderStages = this.border.borderStages();
-        int[] sizes = new int[borderStages.size()];
-        int[] delays = new int[borderStages.size()];
-        int[] durations = new int[borderStages.size()];
-        for (int i = 0; i < borderStages.size(); i++) {
-            sizes[i] = borderStages.get(i).size();
-            delays[i] = borderStages.get(i).delay();
-            durations[i] = borderStages.get(i).duration();
-        }
         return SurvivalGamesConfig.builder()
                 .world(newWorld)
                 .spectatorBoundary(this.spectatorArea == null ? null : 
@@ -232,6 +231,7 @@ class SurvivalGamesConfigDTO implements Validatable {
                 .roundOverDuration(this.durations.roundOver)
                 .gracePeriodDuration(this.durations.invulnerability)
                 .killScore(this.scores.kill)
+                .starterLoadout(this.starterLoadout != null ? this.starterLoadout.toInventoryContents() : null)
                 .surviveTeamScore(this.scores.surviveTeam)
                 .firstPlaceScore(this.scores.firstPlace)
                 .secondPlaceScore(this.scores.secondPlace)
@@ -239,16 +239,8 @@ class SurvivalGamesConfigDTO implements Validatable {
                 .lockOtherInventories(this.lockOtherInventories)
                 .shouldClearContainers(this.shouldClearContainers)
                 .showDeathCount(this.showDeathCount)
-                .initialBorderSize(this.border.initialBorderSize())
-                .worldBorderCenterX(this.border.center().x())
-                .worldBorderCenterZ(this.border.center().z())
-                .worldBorderDamageAmount(this.border.damageAmount())
-                .worldBorderDamageBuffer(this.border.damageBuffer())
-                .worldBorderWarningDistance(this.border.warningDistance())
-                .worldBorderWarningTime(this.border.warningTime())
-                .sizes(sizes)
-                .delays(delays)
-                .durations(durations)
+                .initialBorderSize(this.border.getInitialBorderSize())
+                .border(border.toBorder(newWorld))
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .descriptionDuration(this.durations.description)
                 .description(this.description)

@@ -132,34 +132,6 @@ public class ActiveState extends ExampleStateBase {
         
     }
     
-    public record Point2D(double x, double z) {
-        public Vector toVector(double y) {
-            return new Vector(x, y, z);
-        }
-    }
-    
-    public static Point2D closestPointOnRectangle(double minX, double minZ,
-                                                  double maxX, double maxZ,
-                                                  double tx, double tz) {
-        double distLeft   = tx - minX;
-        double distRight  = maxX - tx;
-        double distTop    = tz - minZ;
-        double distBottom = maxZ - tz;
-        
-        double minDist = Math.min(Math.min(distLeft, distRight),
-                Math.min(distTop, distBottom));
-        
-        if (minDist == distLeft) {
-            return new Point2D(minX, tz);
-        } else if (minDist == distRight) {
-            return new Point2D(maxX, tz);
-        } else if (minDist == distTop) {
-            return new Point2D(tx, minZ);
-        } else {
-            return new Point2D(tx, maxZ);
-        }
-    }
-    
     public boolean shouldStopGliding(@NotNull ExampleParticipant participant) {
         Location location = participant.getLocation();
         Location solidBlockBelow = BlockPlacementUtils.getSolidBlockBelow(location);
@@ -176,7 +148,7 @@ public class ActiveState extends ExampleStateBase {
     }
     
     @Override
-    public void onParticipantToggleGlide(EntityToggleGlideEvent event, ExampleParticipant participant) {
+    public void onParticipantToggleGlide(@NotNull EntityToggleGlideEvent event, ExampleParticipant participant) {
         if (!participant.isGliding()) {
             return;
         }

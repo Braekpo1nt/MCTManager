@@ -5,9 +5,9 @@ import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesParticipant;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesTeam;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -45,6 +45,7 @@ public abstract class SurvivalGamesStateBase implements SurvivalGamesState {
         context.updateAliveCount(team);
         context.updateRoundLine();
         initializeGlowing(participant);
+        participant.setRespawnLocation(context.getConfig().getPlatformSpawns().getFirst(), true);
     }
     
     @Override
@@ -54,6 +55,7 @@ public abstract class SurvivalGamesStateBase implements SurvivalGamesState {
         context.updateAliveCount(team);
         context.updateRoundLine();
         initializeGlowing(participant);
+        participant.setRespawnLocation(context.getConfig().getPlatformSpawns().getFirst(), true);
     }
     
     /**
@@ -62,13 +64,14 @@ public abstract class SurvivalGamesStateBase implements SurvivalGamesState {
      * @param participant the participant to show their teammates to
      */
     private void initializeGlowing(SurvivalGamesParticipant participant) {
-        for (SurvivalGamesParticipant other : context.getParticipants().values()) {
-            if (!other.equals(participant)) {
-                if (participant.getTeamId().equals(other.getTeamId())) {
-                    context.getGlowManager().showGlowing(participant, other);
-                    if (participant.isAlive()) {
-                        context.getGlowManager().showGlowing(other, participant);
-                    }
+        SurvivalGamesTeam team = context.getTeams().get(participant.getTeamId());
+        for (SurvivalGamesParticipant teammate : team.getParticipants()) {
+            if (!teammate.equals(participant)) {
+                if (teammate.isAlive()) {
+                    context.getGlowManager().showGlowing(participant, teammate);
+                }
+                if (participant.isAlive()) {
+                    context.getGlowManager().showGlowing(teammate, participant);
                 }
             }
         }
@@ -121,5 +124,10 @@ public abstract class SurvivalGamesStateBase implements SurvivalGamesState {
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.clearInventory(participant);
+    }
+    
+    @Override
+    public void onParticipantToggleGlide(@NotNull EntityToggleGlideEvent event, SurvivalGamesParticipant participant) {
+        // do nothing
     }
 }

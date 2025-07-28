@@ -135,4 +135,50 @@ public class MathUtils {
         // Calculate the distance between the point and the closest point on the bounding box
         return closestPoint.distance(point);
     }
+    
+    public static Point2D closestPointOnRectangle(double minX, double minZ,
+                                                  double maxX, double maxZ,
+                                                  double tx, double tz) {
+        double distLeft   = tx - minX;
+        double distRight  = maxX - tx;
+        double distTop    = tz - minZ;
+        double distBottom = maxZ - tz;
+        
+        double minDist = Math.min(Math.min(distLeft, distRight),
+                Math.min(distTop, distBottom));
+        
+        if (minDist == distLeft) {
+            return new Point2D(minX, tz);
+        } else if (minDist == distRight) {
+            return new Point2D(maxX, tz);
+        } else if (minDist == distTop) {
+            return new Point2D(tx, minZ);
+        } else {
+            return new Point2D(tx, maxZ);
+        }
+    }
+    
+    public record Point2D(double x, double z) {
+        public Vector toVector(double y) {
+            return new Vector(x, y, z);
+        }
+    }
+    
+    /**
+     * 
+     * @param centerX the x coord of the center of the square
+     * @param centerZ the z coord of the center of the square
+     * @param size the size of one side of the square (not the distance from the center)
+     * @param pointX the x coord of the point to check
+     * @param pointZ the z coord of the point to check
+     * @return true if the given point is inside the square defined by the given center and side length
+     */
+    public static boolean pointIsInsideSquare(double centerX, double centerZ, double size, double pointX, double pointZ) {
+        double halfSize = size / 2;
+        double minX = centerX - halfSize;
+        double maxX = centerX + halfSize;
+        double minZ = centerZ - halfSize;
+        double maxZ = centerZ + halfSize;
+        return (minX <= pointX && pointX <= maxX) && (minZ <= pointZ && pointZ <= maxZ);
+    }
 }

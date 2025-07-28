@@ -10,5 +10,4 @@ import org.bukkit.event.entity.EntityToggleGlideEvent;
  */
 public interface ExampleState extends GameStateBase<ExampleParticipant, ExampleTeam> {
     // Any method declarations specific to this game's states
-    void onParticipantToggleGlide(EntityToggleGlideEvent event, ExampleParticipant participant);
 }

@@ -28,11 +28,13 @@ public class PreRoundState extends ClockworkStateBase {
             participant.setArrowsInBody(0);
             participant.setGameMode(GameMode.ADVENTURE);
         }
+        context.setChimeInterval(context.getConfig().getInitialChimeInterval());
         Component roundLine = Component.empty()
                 .append(Component.text("Round "))
                 .append(Component.text(context.getCurrentRound()))
                 .append(Component.text("/"))
                 .append(Component.text(context.getConfig().getRounds()));
+        context.setChimeInterval(context.getConfig().getInitialChimeInterval());
         context.getSidebar().updateLine("round", roundLine);
         context.getAdminSidebar().updateLine("round", roundLine);
         context.titleAllParticipants(UIUtils.roundXTitle(context.getCurrentRound()));

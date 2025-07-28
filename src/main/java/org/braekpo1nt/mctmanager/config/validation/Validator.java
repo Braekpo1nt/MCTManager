@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -85,6 +86,19 @@ public class Validator {
     public void notNull(Object object, String subPath, Object... args) {
         if (object == null) {
             throw new ConfigInvalidException(this.path + "." + String.format(subPath, args) + " can't be null");
+        }
+    }
+    
+    /**
+     * 
+     * @param collection the collection that must be both non-null and non-empty
+     * @param objectName the name of the object which should not be empty
+     */
+    @Contract("null, _ -> fail")
+    public void notEmpty(Collection<?> collection, String objectName) {
+        notNull(collection, objectName);
+        if (collection.isEmpty()) {
+            throw new ConfigInvalidException(this.path + "." + objectName + " can't be empty");
         }
     }
     
