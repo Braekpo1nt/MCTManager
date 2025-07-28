@@ -52,6 +52,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -199,6 +200,21 @@ public class Main extends JavaPlugin {
     
     protected void registerCommands() {
         LiteralCommandNode<CommandSourceStack> ctDebugCommand = Commands.literal("ctdebug")
+                .then(Commands.literal("custommodel")
+                        .executes(ctx -> {
+                            if (!(ctx.getSource().getExecutor() instanceof Player player)) {
+                                ctx.getSource().getSender().sendMessage("Must be a player to run this command");
+                                return Command.SINGLE_SUCCESS;
+                            }
+                            ItemStack itemStack = new ItemStack(Material.SNOWBALL);
+                            itemStack.editMeta(meta -> {
+                                CustomModelDataComponent customModelDataComponent = meta.getCustomModelDataComponent();
+                                customModelDataComponent.getStrings().add("playerswapball");
+                                meta.setCustomModelDataComponent(customModelDataComponent);
+                            });
+                            player.getInventory().addItem(itemStack);
+                            return Command.SINGLE_SUCCESS;
+                        }))
                 .then(Commands.literal("elytra")
                         .then(Commands.argument("location", ArgumentTypes.blockPosition())
                                 .executes(ctx -> {
