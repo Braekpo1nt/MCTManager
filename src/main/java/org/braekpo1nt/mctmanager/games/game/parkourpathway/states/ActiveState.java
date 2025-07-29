@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ActiveState extends GamePlayState {
     private final Timer mainTimer;
+    private final int skipCooldownTaskId;
     /**
      * a countdown that restarts every time a player reaches a new checkpoint.
      * If players don't reach a new checkpoint by the time it runs out,
@@ -30,6 +31,13 @@ public class ActiveState extends GamePlayState {
             context.giveSkipItem(participant, config.getNumOfSkips());
             participant.setUnusedSkips(config.getNumOfSkips());
         }
+        skipCooldownTaskId = context.getPlugin().getServer().getScheduler().runTaskTimer(context.getPlugin(), () -> {
+            context.getParticipants().values().forEach(participant -> {
+                if (participant.getSkipCooldown() > 0) {
+                    participant.setSkipCooldown(participant.getSkipCooldown() - 1);
+                }
+            });
+        }, 0L, 20L).getTaskId();
         mainTimer = context.getTimerManager().start(Timer.builder()
                 .duration(config.getTimeLimitDuration())
                 .completionSeconds(config.getMercyRuleAlertDuration())
@@ -39,6 +47,7 @@ public class ActiveState extends GamePlayState {
                     if (mercyRuleTimer != null) {
                         mercyRuleTimer.cancel();
                     }
+                    context.getPlugin().getServer().getScheduler().cancelTask(skipCooldownTaskId);
                     context.setState(new EndingState(context));
                 })
                 .build());
@@ -49,11 +58,14 @@ public class ActiveState extends GamePlayState {
         if (this.mercyRuleTimer != null) {
             this.mercyRuleTimer.cancel();
         }
+        context.getPlugin().getServer().getScheduler().cancelTask(skipCooldownTaskId);
     }
     
     @Override
     protected void stop() {
         cleanup();
+        // TODO: move this to exit() method
+        context.getPlugin().getServer().getScheduler().cancelTask(skipCooldownTaskId);
         context.setState(new GameOverState(context));
     }
     
@@ -111,6 +123,8 @@ public class ActiveState extends GamePlayState {
                     mainTimer.cancel();
                     context.getSidebar().updateLine("timer", Component.empty());
                     context.getAdminSidebar().updateLine("timer", Component.empty());
+                    // TODO: move this to exit() method
+                    context.getPlugin().getServer().getScheduler().cancelTask(skipCooldownTaskId);
                     context.setState(new GameOverState(context));
                 })
                 .build().start(context.getPlugin());
