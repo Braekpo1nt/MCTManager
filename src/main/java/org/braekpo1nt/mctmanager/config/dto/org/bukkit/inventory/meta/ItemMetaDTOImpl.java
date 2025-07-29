@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta;
 
 import lombok.Data;
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta.components.CustomModelDataComponentDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.persistence.PersistentDataContainerDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
@@ -10,9 +11,11 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +33,12 @@ public class ItemMetaDTOImpl implements ItemMetaDTO, Validatable {
     protected @Nullable Set<ItemFlag> itemFlags;
     protected boolean unbreakable;
     protected @Nullable Map<Attribute, List<AttributeModifier>> attributeModifiers;
+    /**
+     * @deprecated because paper is deprecating {@link ItemMeta#setCustomModelData(Integer)}
+     */
+    @Deprecated
     protected @Nullable Integer customModelData;
+    protected @Nullable CustomModelDataComponentDTO customModelDataComponent;
     protected @Nullable PersistentDataContainerDTO persistentDataContainer;
     
     @Override
@@ -63,6 +71,10 @@ public class ItemMetaDTOImpl implements ItemMetaDTO, Validatable {
         return this.lore != null;
     }
     
+    /**
+     * @deprecated because paper is deprecating {@link ItemMeta#hasCustomModelData()}
+     */
+    @Deprecated
     @Override
     public boolean hasCustomModelData() {
         return this.customModelData != null;
@@ -72,7 +84,10 @@ public class ItemMetaDTOImpl implements ItemMetaDTO, Validatable {
      * Check if this ItemMetaDTOImpl has customModelData first with the {@link ItemMetaDTOImpl#hasCustomModelData()}
      * @return the customModelData, if this ItemMetaDTOImpl has one
      * @throws IllegalStateException if {@link ItemMetaDTOImpl#customModelData} is null
+     * @deprecated because paper is deprecating {@link ItemMeta#getCustomModelData()}
      */
+    @Deprecated
+    @Override
     public int getCustomModelData() {
         if (this.customModelData == null) {
             throw new IllegalStateException("customModelData is null (this ItemMetaDTO does not have customModelData)");
@@ -87,7 +102,9 @@ public class ItemMetaDTOImpl implements ItemMetaDTO, Validatable {
     
     @Override
     public void validate(@NotNull Validator validator) {
-        // nothing to validate
+        if (customModelDataComponent != null) {
+            customModelDataComponent.validate(validator.path("customModelDataComponent"));
+        }
     }
     
     /**
@@ -96,8 +113,9 @@ public class ItemMetaDTOImpl implements ItemMetaDTO, Validatable {
      * @return the provided ItemMeta, after all the attributes have been set 
      * to this ItemMetaDTO's attributes
      */
+    @Override
     public ItemMeta toItemMeta(ItemMeta meta, Material type) {
-        // TODO: Implement "components" category from Recipe json. misode.github.io/recipe/
+        // TODO: Implement "components" category from Recipe json.misode.github.io/recipe/
         if (displayName != null) {
             meta.displayName(displayName);
         }
@@ -118,8 +136,19 @@ public class ItemMetaDTOImpl implements ItemMetaDTO, Validatable {
         if (persistentDataContainer != null) {
             persistentDataContainer.toPersistentDataContainer(meta.getPersistentDataContainer());
         }
+        if (customModelDataComponent != null) {
+            meta.setCustomModelDataComponent(
+                    customModelDataComponent.toCustomModelDataComponent(
+                            meta.getCustomModelDataComponent()
+                    )
+            );
+        }
+        // TODO: remove this deprecated usage of customModelData
         if (customModelData != null) {
-            meta.setCustomModelData(customModelData);
+            CustomModelDataComponent component = meta.getCustomModelDataComponent();
+            List<Float> newFloats = new ArrayList<>(component.getFloats());
+            newFloats.add((float) customModelData);
+            meta.setCustomModelDataComponent(component);
         }
         return meta;
     }
