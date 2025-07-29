@@ -234,6 +234,16 @@
             "volume": 100,
             "pitch": 1
           }
+        },
+        "item": {
+          "type": "SNOWBALL",
+          "itemMeta": {
+            "displayName": "Player Swapper",
+            "lore": [
+              "Throw this at another player",
+              "to swap positions with them."
+            ]
+          }
         }
       },
       "BLOCK_BREAKER": {
@@ -250,6 +260,16 @@
             "volume": 100,
             "pitch": 1
           }
+        },
+        "item": {
+          "type": "SNOWBALL",
+          "itemMeta": {
+            "displayName": "Block Breaker",
+            "lore": [
+              "Throw this at a block",
+              "to break it."
+            ]
+          }
         }
       },
       "SHIELD": {
@@ -265,6 +285,16 @@
             "key": "entity.endermite.hurt",
             "volume": 100,
             "pitch": 1
+          }
+        },
+        "item": {
+          "type": "LAPIS_LAZULI",
+          "itemMeta": {
+            "displayName": "Swap Shield",
+            "lore": [
+              "- Activates automatically",
+              "- Single use"
+            ]
           }
         }
       }

@@ -33,14 +33,26 @@ public interface ItemMetaDTO extends Validatable, PersistentDataHolderDTO {
     
     boolean hasLore();
     
+    /**
+     * @deprecated because paper is deprecating {@link ItemMeta#hasCustomModelData()}
+     */
+    @Deprecated
     boolean hasCustomModelData();
     
     boolean isUnbreakable();
     
     void setUnbreakable(boolean unbreakable);
     
+    /**
+     * @deprecated because paper is deprecating {@link ItemMeta#getCustomModelData()}
+     */
+    @Deprecated
     int getCustomModelData();
     
+    /**
+     * @deprecated because paper is deprecating {@link ItemMeta#setCustomModelData(Integer)}
+     */
+    @Deprecated
     void setCustomModelData(@Nullable Integer customModelData);
     
 }

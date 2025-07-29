@@ -2,12 +2,11 @@ package org.braekpo1nt.mctmanager.games.gamemanager.event;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfig;
-import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.Participant;
-import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,14 +40,9 @@ public class EventData {
      */
     @Getter
     private final Map<GameInstanceId, List<ScoreKeeper>> scoreKeepers = new HashMap<>();
-    private static final ItemStack CROWN = new ItemStack(Material.CARVED_PUMPKIN);
     @Getter
     @Setter
     private @Nullable MCTTeam winningTeam;
-    
-    static {
-        CROWN.editMeta(meta -> meta.setCustomModelData(1));
-    }
     
     public EventData(@NotNull EventConfig config, int startingGameNumber, int maxGames) {
         this.config = config;
@@ -72,12 +66,12 @@ public class EventData {
     // score tracking stop
     
     public void giveCrown(Participant participant) {
-        participant.getInventory().setHelmet(CROWN);
+        participant.getInventory().setHelmet(config.getCrown());
     }
     
     public void removeCrown(Participant participant) {
         ItemStack helmet = participant.getInventory().getHelmet();
-        if (helmet != null && helmet.equals(CROWN)) {
+        if (helmet != null && helmet.equals(config.getCrown())) {
             participant.getInventory().setHelmet(null);
         }
     }

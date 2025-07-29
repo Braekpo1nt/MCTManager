@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.Tip;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetConfig;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,6 +42,10 @@ public class EventConfig {
      * If null, no preset is applied.
      */
     private @Nullable PresetConfig preset;
+    /**
+     * The crown to give to players when they win the event
+     */
+    private ItemStack crown;
     private Component title;
     
 }

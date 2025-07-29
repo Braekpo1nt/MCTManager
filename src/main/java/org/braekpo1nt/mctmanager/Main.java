@@ -7,6 +7,7 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -14,6 +15,7 @@ import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
+import io.papermc.paper.command.brigadier.argument.CustomArgumentType;
 import io.papermc.paper.command.brigadier.argument.resolvers.BlockPositionResolver;
 import io.papermc.paper.command.brigadier.argument.resolvers.FinePositionResolver;
 import io.papermc.paper.math.FinePosition;
@@ -63,6 +65,7 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -206,15 +209,21 @@ public class Main extends JavaPlugin {
                                 ctx.getSource().getSender().sendMessage("Must be a player to run this command");
                                 return Command.SINGLE_SUCCESS;
                             }
-                            ItemStack itemStack = new ItemStack(Material.SNOWBALL);
-                            itemStack.editMeta(meta -> {
-                                CustomModelDataComponent customModelDataComponent = meta.getCustomModelDataComponent();
-                                customModelDataComponent.getStrings().add("playerswapball");
-                                meta.setCustomModelDataComponent(customModelDataComponent);
-                            });
-                            player.getInventory().addItem(itemStack);
+                            givePlayerCustomModelItem(player, new ItemStack(Material.SNOWBALL), "playerswapball");
                             return Command.SINGLE_SUCCESS;
-                        }))
+                        })
+                        .then(Commands.argument("item", ArgumentTypes.itemStack())
+                                .then(Commands.argument("modelstring", StringArgumentType.word())
+                                        .executes(ctx -> {
+                                            if (!(ctx.getSource().getExecutor() instanceof Player player)) {
+                                                ctx.getSource().getSender().sendMessage("Must be a player to run this command");
+                                                return Command.SINGLE_SUCCESS;
+                                            }
+                                            ItemStack itemStack = ctx.getArgument("item", ItemStack.class);
+                                            String modelstring = ctx.getArgument("modelstring", String.class);
+                                            givePlayerCustomModelItem(player, itemStack, modelstring);
+                                            return Command.SINGLE_SUCCESS;
+                                        }))))
                 .then(Commands.literal("elytra")
                         .then(Commands.argument("location", ArgumentTypes.blockPosition())
                                 .executes(ctx -> {
@@ -343,6 +352,17 @@ public class Main extends JavaPlugin {
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> {
             commands.registrar().register(ctDebugCommand);
         });
+    }
+    
+    private static void givePlayerCustomModelItem(Player player, ItemStack itemStack, String customModelString) {
+        itemStack.editMeta(meta -> {
+            CustomModelDataComponent customModelDataComponent = meta.getCustomModelDataComponent();
+            List<String> newStrings = new ArrayList<>(customModelDataComponent.getStrings());
+            newStrings.add(customModelString);
+            customModelDataComponent.setStrings(newStrings);
+            meta.setCustomModelDataComponent(customModelDataComponent);
+        });
+        player.getInventory().addItem(itemStack);
     }
     
     private @Nullable BoundingBoxRendererImpl boxRenderer;

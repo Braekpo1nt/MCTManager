@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
 import com.google.common.base.Preconditions;
-import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
@@ -140,10 +139,11 @@ record SpleefConfigDTO(
                 .tool(this.getTool())
                 .minTimeBetween(this.getMinTimeBetween())
                 .maxPowerups(this.getMaxPowerups())
+                .playerSwapper(powerups.getPowerups().getPlayerSwapper().toPowerup(Powerup.Type.PLAYER_SWAPPER))
+                .blockBreaker(powerups.getPowerups().getBlockBreaker().toPowerup(Powerup.Type.BLOCK_BREAKER))
+                .shield(powerups.getPowerups().getShield().toPowerup(Powerup.Type.SHIELD))
                 .initialLoadout(this.getInitialLoadout())
                 .sourceToPowerupWeights(this.getSourcePowerups())
-                .userSounds(this.getUserSounds())
-                .affectedSounds(this.getAffectedSounds())
                 .stages(DecayStageDTO.toDecayStages(this.decayStages))
                 .rounds(this.rounds)
                 .surviveScore(this.scores.survive)
@@ -158,42 +158,6 @@ record SpleefConfigDTO(
                                 this.startingLocations.getFirst().toLocation(newWorld)))
                 .description(this.description)
                 .build();
-    }
-    
-    private Map<Powerup.Type, Sound> getUserSounds() {
-        HashMap<Powerup.Type, Sound> userSounds = new HashMap<>(Powerup.Type.values().length);
-        if (this.powerups != null) {
-            if (this.powerups.powerups() != null) {
-                for (Map.Entry<Powerup.Type, @Nullable PowerupDTO> entry : this.powerups.powerups().entrySet()) {
-                    Powerup.Type type = entry.getKey();
-                    PowerupDTO powerupDTO = entry.getValue();
-                    if (powerupDTO != null) {
-                        if (powerupDTO.getUserSound() != null) {
-                            userSounds.put(type, powerupDTO.getUserSound().toSound());
-                        }
-                    }
-                }
-            }
-        }
-        return userSounds;
-    }
-    
-    private Map<Powerup.Type, Sound> getAffectedSounds() {
-        HashMap<Powerup.Type, Sound> affectedSounds = new HashMap<>(Powerup.Type.values().length);
-        if (this.powerups != null) {
-            if (this.powerups.powerups() != null) {
-                for (Map.Entry<Powerup.Type, @Nullable PowerupDTO> entry : this.powerups.powerups().entrySet()) {
-                    Powerup.Type type = entry.getKey();
-                    PowerupDTO powerupDTO = entry.getValue();
-                    if (powerupDTO != null) {
-                        if (powerupDTO.getAffectedSound() != null) {
-                            affectedSounds.put(type, powerupDTO.getAffectedSound().toSound());
-                        }
-                    }
-                }
-            }
-        }
-        return affectedSounds;
     }
     
     @NotNull ItemStack getTool() {
@@ -219,14 +183,14 @@ record SpleefConfigDTO(
     
     private long getMinTimeBetween() {
         if (this.powerups != null) {
-            return this.powerups.minTimeBetween();
+            return this.powerups.getMinTimeBetween();
         }
         return 0L;
     }
     
     private int getMaxPowerups() {
         if (this.powerups != null) {
-            return this.powerups.maxPowerups();
+            return this.powerups.getMaxPowerups();
         }
         return 0;
     }

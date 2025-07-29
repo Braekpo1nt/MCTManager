@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.powerup;
 
-import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -42,56 +41,6 @@ public class PowerupManager implements Listener {
     private int powerupTimerTaskId;
     private boolean shouldGivePowerups = false;
     
-    /**
-     * a list of all powerups
-     */
-    private static final List<Powerup> powerups;
-    /**
-     * a map of {@link Powerup.Type} to their respective {@link Powerup} (for convenience)
-     */
-    private static final Map<Powerup.Type, Powerup> typeToPowerup;
-    static {
-        ItemStack playerSwapperItem = new ItemStack(Material.SNOWBALL);
-        playerSwapperItem.editMeta(meta -> {
-            meta.displayName(Component.text("Player Swapper"));
-            meta.lore(List.of(
-                    Component.text("Throw this at another player"),
-                    Component.text("to swap positions with them.")
-            ));
-            meta.setCustomModelData(2);
-        });
-        Powerup playerSwapper = new Powerup(playerSwapperItem, Powerup.Type.PLAYER_SWAPPER);
-        
-        ItemStack blockBreakerItem = new ItemStack(Material.SNOWBALL);
-        blockBreakerItem.editMeta(meta -> {
-            meta.displayName(Component.text("Block Breaker"));
-            meta.lore(List.of(
-                    Component.text("Throw this at a block"),
-                    Component.text("to break it.")
-            ));
-            meta.setCustomModelData(1);
-        });
-        Powerup blockBreaker = new Powerup(blockBreakerItem, Powerup.Type.BLOCK_BREAKER);
-    
-        ItemStack shieldItem = new ItemStack(Material.LAPIS_LAZULI);
-        shieldItem.editMeta(meta -> {
-            meta.displayName(Component.text("Swap Shield"));
-            meta.lore(List.of(
-                    Component.text("- Activates automatically"),
-                    Component.text("- Single use")
-            ));
-            meta.setCustomModelData(3);
-        });
-        Powerup shield = new Powerup(shieldItem, Powerup.Type.SHIELD);
-        
-        powerups = List.of(playerSwapper, blockBreaker, shield);
-        typeToPowerup = Map.of(
-                Powerup.Type.PLAYER_SWAPPER, playerSwapper,
-                Powerup.Type.BLOCK_BREAKER, blockBreaker,
-                Powerup.Type.SHIELD, shield
-        );
-    }
-    
     public PowerupManager(Main plugin, SpleefConfig config) {
         this.plugin = plugin;
         this.config = config;
@@ -101,7 +50,6 @@ public class PowerupManager implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         participants = new HashMap<>(newParticipants.size());
         lastPowerupTimestamps = new HashMap<>(newParticipants.size());
-        setUpPowerups();
         for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -113,7 +61,7 @@ public class PowerupManager implements Listener {
         for (Map.Entry<Powerup.Type, Integer> entry : config.getInitialLoadout().entrySet()) {
             Powerup.Type type = entry.getKey();
             int amount = entry.getValue();
-            ItemStack powerup = typeToPowerup.get(type).getItem().asQuantity(amount);
+            ItemStack powerup = config.getPowerup(type).getItem().asQuantity(amount);
             participant.getInventory().addItem(powerup);
         }
         lastPowerupTimestamps.put(participant.getUniqueId(), System.currentTimeMillis());
@@ -164,16 +112,6 @@ public class PowerupManager implements Listener {
         this.shouldGivePowerups = shouldGivePowerups;
     }
     
-    /**
-     * sets up the powerups using the default values and values from the config
-     */
-    private void setUpPowerups() {
-        for (Powerup powerup : powerups) {
-            powerup.setUserSound(config.getUserSound(powerup.getType()));
-            powerup.setAffectedSound(config.getAffectedSound(powerup.getType()));
-        }
-    }
-    
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(powerupTimerTaskId);
     }
@@ -216,7 +154,7 @@ public class PowerupManager implements Listener {
      */
     private @NotNull ItemStack getRandomPowerup(@Nullable Powerup.Source source) {
         Powerup.Type selectedType = MathUtils.getWeightedRandomValue(config.getPowerupWeights(source));
-        Powerup selectedPowerup = typeToPowerup.get(selectedType);
+        Powerup selectedPowerup = config.getPowerup(selectedType);
         return selectedPowerup.getItem();
     }
     
@@ -299,10 +237,14 @@ public class PowerupManager implements Listener {
         if (itemMeta == null) {
             return null;
         }
-        for (Powerup powerup : powerups) {
-            if (powerup.getItem().getItemMeta().equals(itemMeta)) {
-                return powerup;
-            }
+        if (config.getPlayerSwapper().getItem().getItemMeta().equals(itemMeta)) {
+            return config.getPlayerSwapper();
+        }
+        if (config.getBlockBreaker().getItem().getItemMeta().equals(itemMeta)) {
+            return config.getBlockBreaker();
+        }
+        if (config.getShield().getItem().getItemMeta().equals(itemMeta)) {
+            return config.getShield();
         }
         return null;
     }
@@ -367,12 +309,11 @@ public class PowerupManager implements Listener {
             return;
         }
         hitBlock.setType(Material.AIR);
-        Powerup blockBreaker = typeToPowerup.get(Powerup.Type.BLOCK_BREAKER);
-        if (blockBreaker.getAffectedSound() != null) {
-            config.getWorld().playSound(blockBreaker.getAffectedSound(), hitBlock.getX(), hitBlock.getY(), hitBlock.getZ());
+        if (config.getBlockBreaker().getAffectedSound() != null) {
+            config.getWorld().playSound(config.getBlockBreaker().getAffectedSound(), hitBlock.getX(), hitBlock.getY(), hitBlock.getZ());
         }
-        if (blockBreaker.getUserSound() != null) {
-            shooter.playSound(blockBreaker.getUserSound());
+        if (config.getBlockBreaker().getUserSound() != null) {
+            shooter.playSound(config.getBlockBreaker().getUserSound());
         }
     }
     
@@ -396,13 +337,12 @@ public class PowerupManager implements Listener {
      * @param target the player who had a shield and used it
      */
     private void useShield(Player shooter, Player target) {
-        target.getInventory().removeItemAnySlot(typeToPowerup.get(Powerup.Type.SHIELD).getItem());
-        Powerup shield = typeToPowerup.get(Powerup.Type.SHIELD);
-        if (shield.getUserSound() != null) {
-            target.playSound(shield.getUserSound());
+        target.getInventory().removeItemAnySlot(config.getShield().getItem());
+        if (config.getShield().getUserSound() != null) {
+            target.playSound(config.getShield().getUserSound());
         }
-        if (shield.getAffectedSound() != null) {
-            shooter.playSound(shield.getAffectedSound());
+        if (config.getShield().getAffectedSound() != null) {
+            shooter.playSound(config.getShield().getAffectedSound());
         }
     }
     
@@ -411,12 +351,11 @@ public class PowerupManager implements Listener {
         Location targetLoc = target.getLocation();
         shooter.teleport(targetLoc);
         target.teleport(shooterLoc);
-        Powerup playerSwapper = typeToPowerup.get(Powerup.Type.PLAYER_SWAPPER);
-        if (playerSwapper.getUserSound() != null) {
-            target.playSound(playerSwapper.getUserSound());
+        if (config.getPlayerSwapper().getUserSound() != null) {
+            target.playSound(config.getPlayerSwapper().getUserSound());
         }
-        if (playerSwapper.getAffectedSound() != null) {
-            shooter.playSound(playerSwapper.getAffectedSound());
+        if (config.getPlayerSwapper().getAffectedSound() != null) {
+            shooter.playSound(config.getPlayerSwapper().getAffectedSound());
         }
     }
     
@@ -426,15 +365,16 @@ public class PowerupManager implements Listener {
      * @param type the type of powerup to check for
      * @return true if the given item is the given type of powerup 
      */
+    @SuppressWarnings("SameParameterValue")
     private boolean isPowerup(@Nullable ItemStack item, @NotNull Powerup.Type type) {
         if (item == null) {
             return false;
         }
-        Powerup shield = itemToPowerup(item);
-        if (shield == null) {
+        Powerup powerup = itemToPowerup(item);
+        if (powerup == null) {
             return false;
         }
-        return shield.getType().equals(type);
+        return powerup.getType().equals(type);
     }
     
     /**

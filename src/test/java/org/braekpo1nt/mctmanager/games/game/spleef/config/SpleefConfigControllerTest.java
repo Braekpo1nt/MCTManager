@@ -59,11 +59,6 @@ class SpleefConfigControllerTest {
     }
     
     @Test
-    void testBackwardsCompatibility() {
-        wellFormedJsonValidData("exampleSpleefConfig_v0.1.0.json");
-    }
-    
-    @Test
     void wellFormedJsonInvalidData() {
         InputStream inputStream = controller.getClass().getResourceAsStream(exampleConfigFileName);
         JsonObject json = TestUtils.inputStreamToJson(inputStream);

@@ -1,9 +1,11 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
+import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.Powerup;
+import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,16 +14,27 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * @param minTimeBetween the minimum time (in milliseconds) between getting powerups. Players should not get two powerups one after another immediately. 0 means no restriction. Defaults to 0
- * @param maxPowerups    limit the number of powerups a player can have. If they are at max, they won't collect any more until they use some of them. 0 means players can't hold any powerups at all. Negative values indicate unlimited powerup collection. Defaults to 0
- * @param initialLoadout the initial loadout of powerups in the participant's inventories at the start of every round. Null means empty. The key is the type powerup, the value is how many of that powerup the players are given.
- * @param powerups       configuration of powerup attributes, such as the sounds that come from them.
- * @param sources        configuration of the sources, such as their likelihood of giving a powerup and what powerups come from it.
- */
-record PowerupsDTO(long minTimeBetween, int maxPowerups, @Nullable Map<Powerup.Type, @Nullable Integer> initialLoadout,
-                   @Nullable Map<Powerup.Type, @Nullable PowerupDTO> powerups,
-                   @Nullable Map<Powerup.Source, @Nullable SourceDTO> sources) implements Validatable {
+
+@Data
+class PowerupsDTO implements Validatable {
+    
+    /**
+     * the minimum time (in milliseconds) between getting powerups. Players should not get two powerups one after another immediately. 0 means no restriction. Defaults to 0
+     */
+    private long minTimeBetween;
+    /**
+     * limit the number of powerups a player can have. If they are at max, they won't collect any more until they use some of them. 0 means players can't hold any powerups at all. Negative values indicate unlimited powerup collection. Defaults to 0
+     */
+    private int maxPowerups;
+    /**
+     * the initial loadout of powerups in the participant's inventories at the start of every round. Null means empty. The key is the type powerup, the value is how many of that powerup the players are given.
+     */
+    private @Nullable Map<Powerup.Type, @Nullable Integer> initialLoadout;
+    private PowerupDetails powerups;
+    /**
+     * configuration of the sources, such as their likelihood of giving a powerup and what powerups come from it.
+     */
+    private @Nullable Map<Powerup.Source, @Nullable SourceDTO> sources;
     
     @NotNull Map<Powerup.Type, @NotNull Integer> getInitialLoadout() {
         if (initialLoadout == null) {
@@ -62,9 +75,8 @@ record PowerupsDTO(long minTimeBetween, int maxPowerups, @Nullable Map<Powerup.T
             validator.validate(!initialLoadout.containsValue(null), "initialLoadout can't have null entries");
         }
         
-        if (powerups != null) {
-            validator.validateMap(this.powerups, "powerups");
-        }
+        validator.notNull(this.powerups, "powerups");
+        powerups.validate(validator.path("powerups"));
         
         if (sources != null) {
             validator.validateMap(this.sources, "sources");
@@ -136,5 +148,29 @@ record PowerupsDTO(long minTimeBetween, int maxPowerups, @Nullable Map<Powerup.T
             result.put(source, -1.0);
         }
         return result;
+    }
+    
+    @Data
+    static class PowerupDetails implements Validatable {
+        @SerializedName(value = "playerSwapper", alternate = {"PLAYER_SWAPPER"})
+        private PowerupDTO playerSwapper;
+        @SerializedName(value = "blockBreaker", alternate = {"BLOCK_BREAKER"})
+        private PowerupDTO blockBreaker;
+        @SerializedName(value = "shield", alternate = {"SHIELD"})
+        private PowerupDTO shield;
+        
+        @Override
+        public void validate(@NotNull Validator validator) {
+            validator.notNull(playerSwapper, "playerSwapper");
+            playerSwapper.validate(validator.path("playerSwapper"));
+            validator.validate(playerSwapper.hasRequiredMaterial(Material.SNOWBALL), "playerSwapper.item.type must be SNOWBALL");
+            
+            validator.notNull(blockBreaker, "blockBreaker");
+            blockBreaker.validate(validator.path("blockBreaker"));
+            validator.validate(blockBreaker.hasRequiredMaterial(Material.SNOWBALL), "blockBreaker.item.type must be SNOWBALL");
+            
+            validator.notNull(shield, "shield");
+            shield.validate(validator.path("shield"));
+        }
     }
 }

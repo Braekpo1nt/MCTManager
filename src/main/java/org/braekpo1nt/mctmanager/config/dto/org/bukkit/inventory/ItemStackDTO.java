@@ -33,6 +33,7 @@ public class ItemStackDTO implements Validatable {
     /**
      * The ItemMeta of the item, can be null
      */
+    @SerializedName(value = "itemMeta", alternate = {"meta"})
     private @Nullable ItemMetaDTO itemMeta;
     /**
      * The enchantments on the item. Each NamespacedKey represents an enchantment

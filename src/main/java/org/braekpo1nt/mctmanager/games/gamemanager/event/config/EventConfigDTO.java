@@ -3,22 +3,27 @@ package org.braekpo1nt.mctmanager.games.gamemanager.event.config;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.ItemStackDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
-import org.braekpo1nt.mctmanager.games.gamemanager.event.Tip;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.gamemanager.event.Tip;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetDTO;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Map;
-
 import java.util.List;
+import java.util.Map;
 
 /**
  * @param title the title of the event, used in the sidebar and for announcing the winner
  * @param multipliers must have at least one element. The nth multiplier is used on the nth game in the event. If there are x multipliers, and we're on game z where z is greater than x, the xth multiplier is used. A multiplier will be multiplied by all points awarded during it's paired game.
+ * @param crown the crown to give to participants when they win the event. Defaults to a pumpkin with the {@code custom_model_data={strings:['ctwinnercrown']}} model data
  * @param durations various durations during the event
  */
 record EventConfigDTO(
@@ -30,6 +35,7 @@ record EventConfigDTO(
         @Nullable String colossalCombatConfig,
         Tips tips,
         PresetDTO.PresetConfigDTO preset,
+        @Nullable ItemStackDTO crown,
         Durations durations) implements Validatable {
     
     @Override
@@ -50,6 +56,9 @@ record EventConfigDTO(
         if (preset != null) {
             preset.validate(validator.path("preset"));
         }
+        if (crown != null) {
+            crown.validate(validator.path("crown"));
+        }
         validator.validate(this.durations.waitingInHub() >= 0, "durations.waitingInHub can't be negative");
         validator.validate(this.durations.halftimeBreak() >= 0, "durations.halftimeBreak can't be negative");
         validator.validate(this.durations.voting() >= 0, "durations.voting can't be negative");
@@ -58,6 +67,19 @@ record EventConfigDTO(
     }
     
     EventConfig toConfig() {
+        ItemStack newCrown;
+        if (crown != null) {
+            newCrown = crown.toItemStack();
+        } else {
+            newCrown = new ItemStack(Material.CARVED_PUMPKIN);
+            newCrown.editMeta(meta -> {
+                CustomModelDataComponent customModelDataComponent = meta.getCustomModelDataComponent();
+                List<String> newStrings = new ArrayList<>(customModelDataComponent.getStrings());
+                newStrings.add("ctwinnercrown");
+                customModelDataComponent.setStrings(newStrings);
+                meta.setCustomModelDataComponent(customModelDataComponent);
+            });
+        }
         return EventConfig.builder()
                 .waitingInHubDuration(this.durations.waitingInHub)
                 .halftimeBreakDuration(this.durations.halftimeBreak)
@@ -71,6 +93,7 @@ record EventConfigDTO(
                 .gameConfigs(this.gameConfigs != null ? this.gameConfigs : Collections.emptyMap())
                 .colossalCombatConfig(this.colossalCombatConfig != null ? this.colossalCombatConfig : "default.json")
                 .preset(this.preset != null ? this.preset.toPreset() : null)
+                .crown(newCrown)
                 .title(this.title)
                 .build();
     }
