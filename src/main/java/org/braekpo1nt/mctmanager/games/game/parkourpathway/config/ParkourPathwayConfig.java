@@ -50,6 +50,10 @@ public class ParkourPathwayConfig {
     private int maxSkipPuzzle;
     private List<Material> preventInteractions;
     private int descriptionDuration;
+    /**
+     * The duration in seconds of a skip cooldown
+     */
+    private int skipCooldownDuration;
     private Component description;
     
     public int getPuzzlesSize() {

@@ -13,7 +13,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class ActiveState extends GamePlayState {
     private final Timer mainTimer;
-    private final int skipCooldownTaskId;
     /**
      * a countdown that restarts every time a player reaches a new checkpoint.
      * If players don't reach a new checkpoint by the time it runs out,
@@ -29,15 +28,9 @@ public class ActiveState extends GamePlayState {
         restartMercyRuleCountdown();
         for (ParkourParticipant participant : context.getParticipants().values()) {
             context.giveSkipItem(participant, config.getNumOfSkips());
+            participant.setSkipCooldown(0);
             participant.setUnusedSkips(config.getNumOfSkips());
         }
-        skipCooldownTaskId = context.getPlugin().getServer().getScheduler().runTaskTimer(context.getPlugin(), () -> {
-            context.getParticipants().values().forEach(participant -> {
-                if (participant.getSkipCooldown() > 0) {
-                    participant.setSkipCooldown(participant.getSkipCooldown() - 1);
-                }
-            });
-        }, 0L, 20L).getTaskId();
         mainTimer = context.getTimerManager().start(Timer.builder()
                 .duration(config.getTimeLimitDuration())
                 .completionSeconds(config.getMercyRuleAlertDuration())

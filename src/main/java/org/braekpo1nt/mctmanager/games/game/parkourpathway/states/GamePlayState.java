@@ -24,10 +24,19 @@ import org.jetbrains.annotations.NotNull;
  */
 abstract class GamePlayState extends ParkourPathwayStateBase {
     protected final ParkourPathwayConfig config;
+    protected final int skipCooldownTaskId;
     
     public GamePlayState(@NotNull ParkourPathwayGame context) {
         super(context);
         this.config = context.getConfig();
+        skipCooldownTaskId = context.getPlugin().getServer().getScheduler()
+                .runTaskTimer(context.getPlugin(), () -> 
+                        context.getParticipants().values().forEach(participant -> {
+                            if (participant.getSkipCooldown() > 0) {
+                                participant.setSkipCooldown(participant.getSkipCooldown() - 1);
+                            }
+                        }
+                    ), 0L, 20L).getTaskId();
     }
     
     @Override
@@ -228,6 +237,13 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
     
     @Override
     public void onParticipantInteract(@NotNull PlayerInteractEvent event, @NotNull ParkourParticipant participant) {
+        if (participant.getSkipCooldown() > 0) {
+            participant.sendActionBar(Component.empty()
+                    .append(Component.text("Skip cooldown for "))
+                    .append(Component.text(participant.getSkipCooldown()))
+                    .append(Component.text("s")));
+            return;
+        }
         if (participant.getUnusedSkips() <= 0) {
             return;
         }
@@ -253,6 +269,7 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
             // should not occur because of above check
             return;
         }
+        participant.setSkipCooldown(config.getSkipCooldownDuration());
         participant.getInventory().removeItemAnySlot(config.getSkipItem());
         participant.setUnusedSkips(participant.getUnusedSkips() - 1);
         onParticipantSkippedToCheckpoint(participant, nextPuzzleIndex);

@@ -23,6 +23,7 @@ public class EndingState extends GamePlayState {
                         context.awardPointsForUnusedSkips(participant);
                         participant.setGameMode(GameMode.SPECTATOR);
                     }
+                    context.getPlugin().getServer().getScheduler().cancelTask(skipCooldownTaskId);
                     context.setState(new GameOverState(context));
                 })
                 .build());
@@ -35,6 +36,7 @@ public class EndingState extends GamePlayState {
     
     @Override
     protected void stop() {
+        context.getPlugin().getServer().getScheduler().cancelTask(skipCooldownTaskId);
         context.setState(new GameOverState(context));
     }
 }
