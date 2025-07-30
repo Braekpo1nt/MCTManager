@@ -72,6 +72,9 @@ public class FarmRushGame extends GameBase<FarmRushParticipant, FarmRushTeam, Fa
     );
     
     private final PowerupManager powerupManager = new PowerupManager(this);
+    /**
+     * The book item for telling people what costs what
+     */
     private @Nullable final ItemStack materialBook;
     private final FarmRushConfig config;
     private final @NotNull List<Arena> arenas;
