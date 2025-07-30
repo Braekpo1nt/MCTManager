@@ -203,6 +203,7 @@ public class Main extends JavaPlugin {
     
     protected void registerCommands() {
         LiteralCommandNode<CommandSourceStack> ctDebugCommand = Commands.literal("ctdebug")
+                .requires(sender -> sender.getSender().isOp())
                 .then(Commands.literal("custommodel")
                         .executes(ctx -> {
                             if (!(ctx.getSource().getExecutor() instanceof Player player)) {
