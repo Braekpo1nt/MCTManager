@@ -28,6 +28,7 @@ public class ActiveState extends GamePlayState {
         restartMercyRuleCountdown();
         for (ParkourParticipant participant : context.getParticipants().values()) {
             context.giveSkipItem(participant, config.getNumOfSkips());
+            participant.setSkipCooldown(0);
             participant.setUnusedSkips(config.getNumOfSkips());
         }
         mainTimer = context.getTimerManager().start(Timer.builder()
@@ -39,6 +40,7 @@ public class ActiveState extends GamePlayState {
                     if (mercyRuleTimer != null) {
                         mercyRuleTimer.cancel();
                     }
+                    context.getPlugin().getServer().getScheduler().cancelTask(skipCooldownTaskId);
                     context.setState(new EndingState(context));
                 })
                 .build());
@@ -49,11 +51,14 @@ public class ActiveState extends GamePlayState {
         if (this.mercyRuleTimer != null) {
             this.mercyRuleTimer.cancel();
         }
+        context.getPlugin().getServer().getScheduler().cancelTask(skipCooldownTaskId);
     }
     
     @Override
     protected void stop() {
         cleanup();
+        // TODO: move this to exit() method
+        context.getPlugin().getServer().getScheduler().cancelTask(skipCooldownTaskId);
         context.setState(new GameOverState(context));
     }
     
@@ -111,6 +116,8 @@ public class ActiveState extends GamePlayState {
                     mainTimer.cancel();
                     context.getSidebar().updateLine("timer", Component.empty());
                     context.getAdminSidebar().updateLine("timer", Component.empty());
+                    // TODO: move this to exit() method
+                    context.getPlugin().getServer().getScheduler().cancelTask(skipCooldownTaskId);
                     context.setState(new GameOverState(context));
                 })
                 .build().start(context.getPlugin());

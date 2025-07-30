@@ -31,6 +31,11 @@ public class ParkourParticipant extends ParticipantData {
      * The number of skip items this participant has (or should have)
      */
     private int unusedSkips;
+    /**
+     * The skip cooldown in seconds. When this is greater than 0, 
+     * a participant can't use their skip.
+     */
+    private int skipCooldown;
     
     public ParkourParticipant(@NotNull Participant participant, int score) {
         super(participant, score);
@@ -38,6 +43,7 @@ public class ParkourParticipant extends ParticipantData {
         this.currentPuzzle = 0;
         this.currentPuzzleCheckpoint = 0;
         this.unusedSkips = 0;
+        this.skipCooldown = 0;
     }
     
     public ParkourParticipant(@NotNull Participant participant, @NotNull ParkourParticipant.QuitData quitData) {
@@ -46,6 +52,7 @@ public class ParkourParticipant extends ParticipantData {
         this.currentPuzzle = quitData.getCurrentPuzzle();
         this.currentPuzzleCheckpoint = quitData.getCurrentPuzzleCheckpoint();
         this.unusedSkips = quitData.getUnusedSkips();
+        this.skipCooldown = 0;
     }
     
     public QuitData getQuitData() {

@@ -1463,6 +1463,11 @@ public abstract class GameManagerState {
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text(" is no longer an admin")));
     }
+    
+    public void onAdminDamage(@NotNull EntityDamageEvent event, @NotNull Player admin) {
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "GameManagerState.onAdminDamage()->admin");
+        event.setCancelled(true);
+    }
     // admin stop
     
     // event handlers start

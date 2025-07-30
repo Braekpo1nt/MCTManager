@@ -139,24 +139,34 @@ public class LeaderboardManager {
         
         public String toBoldLine() {
             return LegacyComponentSerializer.legacyAmpersand().serialize(Component.empty()
-                    .append(Component.text(placement))
-                    .append(Component.text(". "))
+                    .append(Component.empty()
+                            .append(Component.text(placement))
+                            .append(Component.text(". "))
+                            .color(NamedTextColor.GOLD)
+                    )
                     .append(displayName)
-                    .append(Component.text(" - "))
-                    .append(Component.text(score))
-                    .color(NamedTextColor.GOLD)
+                    .append(Component.empty()
+                            .append(Component.text(" - "))
+                            .append(Component.text(score))
+                            .color(NamedTextColor.GOLD)
+                    )
                     .decorate(TextDecoration.BOLD)
             );
         }
         
         public String toLine() {
             return LegacyComponentSerializer.legacyAmpersand().serialize(Component.empty()
-                    .append(Component.text(placement))
-                    .append(Component.text(". "))
+                    .append(Component.empty()
+                            .append(Component.text(placement))
+                            .append(Component.text(". "))
+                            .color(NamedTextColor.GOLD)
+                    )
                     .append(displayName)
-                    .append(Component.text(" - "))
-                    .append(Component.text(score))
-                    .color(NamedTextColor.GOLD)
+                    .append(Component.empty()
+                            .append(Component.text(" - "))
+                            .append(Component.text(score))
+                            .color(NamedTextColor.GOLD)
+                    )
             );
         }
     }

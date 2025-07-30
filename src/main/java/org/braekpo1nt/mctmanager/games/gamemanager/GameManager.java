@@ -344,10 +344,17 @@ public class GameManager implements Listener {
             return;
         }
         MCTParticipant participant = onlineParticipants.get(event.getEntity().getUniqueId());
-        if (participant == null) {
+        if (participant != null) {
+            state.onParticipantDamage(event, participant);
             return;
         }
-        state.onParticipantDamage(event, participant);
+        if (!(event.getEntity() instanceof Player admin)) {
+            return;
+        }
+        if (!onlineAdmins.contains(admin)) {
+            return;
+        }
+        state.onAdminDamage(event, admin);
     }
     
     @EventHandler

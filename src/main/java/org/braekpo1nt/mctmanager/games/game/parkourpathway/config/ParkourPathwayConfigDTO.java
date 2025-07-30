@@ -76,7 +76,7 @@ class ParkourPathwayConfigDTO implements Validatable {
     
     @Data
     @AllArgsConstructor
-    static class Skips {
+    static class Skips implements Validatable {
         /** the number of skips each player gets. 0 or negative means no skips. */
         private int numOfSkips;
         /** the item that players interact with to use their skips. Defaults to lapis lazuli */
@@ -87,6 +87,10 @@ class ParkourPathwayConfigDTO implements Validatable {
         private @Nullable List<Component> itemLore;
         /** the number of points to award for unused skips */
         private int unusedSkipScore;
+        /**
+         * The cooldown in seconds of a skip. Defaults to 1. Must be positive.
+         */
+        private @Nullable Integer skipCooldown;
         /**
          * The puzzle after which no skips are allowed, and players
          * will be given points for their remaining unused skips.
@@ -110,6 +114,13 @@ class ParkourPathwayConfigDTO implements Validatable {
                     Component.text("the current puzzle")
             );
         }
+        
+        @Override
+        public void validate(@NotNull Validator validator) {
+            if (skipCooldown != null) {
+                validator.validate(skipCooldown >= 0, "skipCooldown must be positive");
+            }
+        }
     }
     
     @Override
@@ -132,7 +143,11 @@ class ParkourPathwayConfigDTO implements Validatable {
         validator.validate(this.getDurations().getCheckpointCounter() >= 1, "durations.checkpointCounter (%s) can't be less than 1", this.getDurations().getCheckpointCounter());
         validator.validate(this.getDurations().getCheckpointCounterAlert() >= 1 && this.getDurations().getCheckpointCounter() >= this.getDurations().getCheckpointCounterAlert(), "durations.checkpointCounterAlert (%s) can't be less than 0 or greater than durations.checkpointCounter", this.getDurations().getCheckpointCounterAlert());
         validator.validate(this.getDurations().getGameOver() >= 0, "durations.gameOver can't be negative");
-    
+        
+        if (skips != null) {
+            skips.validate(validator.path("skips"));
+        }
+        
         validator.notNull(this.getPuzzles(), "puzzles");
         validator.validate(this.getPuzzles().size() >= 3, "puzzles must have at least 3 puzzles");
         validatePuzzles(validator);
@@ -219,6 +234,8 @@ class ParkourPathwayConfigDTO implements Validatable {
                     .numOfSkips(this.skips.getNumOfSkips())
                     .unusedSkipScore(this.skips.getUnusedSkipScore())
                     .maxSkipPuzzle(this.skips.getMaxSkipPuzzle())
+                    .skipCooldownDuration(this.skips.getSkipCooldown() != null 
+                            ? this.skips.getSkipCooldown() : 1)
                     .skipItem(skipItem);
         } else {
             builder
@@ -249,6 +266,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                         config.getSkipItem().getItemMeta().displayName(), 
                         config.getSkipItem().getItemMeta().lore(), 
                         config.getUnusedSkipScore(), 
+                        config.getSkipCooldownDuration(),
                         config.getMaxSkipPuzzle()))
                 .durations(new Durations(config.getTeamSpawnsDuration(), 
                         config.getStartingDuration(), 
