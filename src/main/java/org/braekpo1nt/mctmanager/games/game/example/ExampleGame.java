@@ -4,10 +4,12 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
-import org.braekpo1nt.mctmanager.games.base.GameBase;
+import org.braekpo1nt.mctmanager.games.base.WandsGameBase;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventHungerLoss;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventItemDrop;
+import org.braekpo1nt.mctmanager.games.editor.wand.Wand;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.example.config.ExampleConfig;
 import org.braekpo1nt.mctmanager.games.game.example.states.DescriptionSate;
@@ -30,7 +32,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, ExampleParticipant.QuitData, ExampleTeam.QuitData, ExampleState> {
+public class ExampleGame extends WandsGameBase<ExampleParticipant, ExampleTeam, ExampleParticipant.QuitData, ExampleTeam.QuitData, ExampleState> {
     
     private final ExampleConfig config;
     private final BasicTopbar topbar;
@@ -58,7 +60,19 @@ public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, Examp
         this.config = config;
         this.topbar = addUIManager(new BasicTopbar());
         addListener(new PreventHungerLoss<>(this));
-        addListener(new PreventItemDrop<>(this, true));
+        addListener(new PreventItemDrop<>(this, true, itemStack -> {
+            Wand<ExampleParticipant> wand = getWand(itemStack);
+            return wand != null && wand.shouldNotDrop();
+        }));
+        addWand(Wand.<ExampleParticipant>builder().wandItem(Wand.createWandItem(Material.BOOK, "Point Accumulator", List.of(
+                Component.text("Click to get a point")
+        )))
+                .onRightClick((event, participant) -> {
+                    awardPoints(participant, 1);
+                    return CommandResult.success();
+                })
+                .shouldNotDrop(true)
+                .build());
         start(newTeams, newParticipants, newAdmins);
         Main.logger().info("Started Example Game");
     }

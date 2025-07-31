@@ -10,12 +10,12 @@ import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.base.listeners.GameListener;
 import org.braekpo1nt.mctmanager.games.base.states.GameStateBase;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.*;
@@ -812,6 +812,15 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         if (participant == null) {
             return;
         }
+        onParticipantInteract(event, participant);
+    }
+    
+    /**
+     * Called when a participant in this game triggers a {@link PlayerInteractEvent}
+     * @param event the event
+     * @param participant the participant who triggered the event
+     */
+    protected void onParticipantInteract(@NotNull PlayerInteractEvent event, P participant) {
         Block clickedBlock = event.getClickedBlock();
         if (clickedBlock != null && shouldPreventInteractions(clickedBlock.getType())) {
             event.setUseInteractedBlock(Event.Result.DENY);

@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.editor.wand;
 
+import lombok.Builder;
 import lombok.Getter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -17,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -26,39 +28,77 @@ public class Wand<T extends Audience> {
     @Getter
     protected final @NotNull ItemStack wandItem;
     
-    private @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onInteract = (event, user) -> CommandResult.success();
+    private final @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onInteract;
     
     /**
      * Called on every {@link Action#isRightClick()}
      */
-    private @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onRightClick = (event, user) -> CommandResult.success();
-    private @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onRightClickAir = (event, user) -> CommandResult.success();
-    private @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onRightClickBlock = (event, user) -> CommandResult.success();
-    private @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onRightSneakClick = (event, user) -> CommandResult.success();
-    private @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onRightSneakClickAir = (event, user) -> CommandResult.success();
-    private @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onRightSneakClickBlock = (event, user) -> CommandResult.success();
+    private final @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onRightClick;
+    private final @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onRightClickAir;
+    private final @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onRightClickBlock;
+    private final @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onRightSneakClick;
+    private final @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onRightSneakClickAir;
+    private final @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onRightSneakClickBlock;
     
     /**
      * Called on every {@link Action#isLeftClick()}
      */
-    private @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftClick = (event, user) -> CommandResult.success();
-    private @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftClickAir = (event, user) -> CommandResult.success();
-    private @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftClickBlock = (event, user) -> CommandResult.success();
-    private @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftSneakClick = (event, user) -> CommandResult.success();
-    private @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftSneakClickAir = (event, user) -> CommandResult.success();
-    private @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftSneakClickBlock = (event, user) -> CommandResult.success();
+    private final @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftClick;
+    private final @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftClickAir;
+    private final @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftClickBlock;
+    private final @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftSneakClick;
+    private final @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftSneakClickAir;
+    private final @NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftSneakClickBlock;
     
     /**
      * Called on every {@link #onHoldTick(PlayerInventory, Audience)}
      */
-    private @NotNull Function<T, CommandResult> onHoldTick = (user) -> CommandResult.success();
+    private final @NotNull Function<T, CommandResult> onHoldTick;
     
-    public Wand(@NotNull ItemStack wandItem) {
-        this.wandItem = wandItem;
-    }
+    /**
+     * True if you're allowed to drop the item, false if you are not allowed to drop the item
+     */
+    private final boolean shouldNotDrop;
     
-    public Wand(@NotNull Material material, @NotNull String displayName, @NotNull List<Component> lore) {
-        this(createWandItem(material, displayName, lore));
+    @Builder
+    public Wand(
+            @NotNull ItemStack wandItem,
+            @Nullable BiFunction<PlayerInteractEvent, T, CommandResult> onInteract,
+            @Nullable BiFunction<PlayerInteractEvent, T, CommandResult> onRightClick,
+            @Nullable BiFunction<PlayerInteractEvent, T, CommandResult> onRightClickAir,
+            @Nullable BiFunction<PlayerInteractEvent, T, CommandResult> onRightClickBlock,
+            @Nullable BiFunction<PlayerInteractEvent, T, CommandResult> onRightSneakClick,
+            @Nullable BiFunction<PlayerInteractEvent, T, CommandResult> onRightSneakClickAir,
+            @Nullable BiFunction<PlayerInteractEvent, T, CommandResult> onRightSneakClickBlock,
+            
+            @Nullable  BiFunction<PlayerInteractEvent, T, CommandResult> onLeftClick,
+            @Nullable BiFunction<PlayerInteractEvent, T, CommandResult> onLeftClickAir,
+            @Nullable BiFunction<PlayerInteractEvent, T, CommandResult> onLeftClickBlock,
+            @Nullable BiFunction<PlayerInteractEvent, T, CommandResult> onLeftSneakClick,
+            @Nullable BiFunction<PlayerInteractEvent, T, CommandResult> onLeftSneakClickAir,
+            @Nullable BiFunction<PlayerInteractEvent, T, CommandResult> onLeftSneakClickBlock,
+            
+            @Nullable Function<T, CommandResult> onHoldTick,
+            boolean shouldNotDrop
+            ) {
+        this.wandItem = Objects.requireNonNull(wandItem, "wandItem can't be null");
+        this.onInteract = (onInteract != null) ? onInteract : (event, user) -> CommandResult.success();
+        this.onRightClick = (onRightClick != null) ? onRightClick : (event, user) -> CommandResult.success();
+        this.onRightClickAir = (onRightClickAir != null) ? onRightClickAir : (event, user) -> CommandResult.success();
+        this.onRightClickBlock = (onRightClickBlock != null) ? onRightClickBlock : (event, user) -> CommandResult.success();
+        this.onRightSneakClick = (onRightSneakClick != null) ? onRightSneakClick : (event, user) -> CommandResult.success();
+        this.onRightSneakClickAir = (onRightSneakClickAir != null) ? onRightSneakClickAir : (event, user) -> CommandResult.success();
+        this.onRightSneakClickBlock = (onRightSneakClickBlock != null) ? onRightSneakClickBlock : (event, user) -> CommandResult.success();
+        
+        this.onLeftClick = (onLeftClick != null) ? onLeftClick : (event, user) -> CommandResult.success();
+        this.onLeftClickAir = (onLeftClickAir != null) ? onLeftClickAir : (event, user) -> CommandResult.success();
+        this.onLeftClickBlock = (onLeftClickBlock != null) ? onLeftClickBlock : (event, user) -> CommandResult.success();
+        this.onLeftSneakClick = (onLeftSneakClick != null) ? onLeftSneakClick : (event, user) -> CommandResult.success();
+        this.onLeftSneakClickAir = (onLeftSneakClickAir != null) ? onLeftSneakClickAir : (event, user) -> CommandResult.success();
+        this.onLeftSneakClickBlock = (onLeftSneakClickBlock != null) ? onLeftSneakClickBlock : (event, user) -> CommandResult.success();
+        
+        this.onHoldTick = (onHoldTick != null) ? onHoldTick : (user) -> CommandResult.success();
+        this.shouldNotDrop = shouldNotDrop;
     }
     
     /**
@@ -85,6 +125,13 @@ public class Wand<T extends Audience> {
         return item != null 
                 && item.getType().equals(wandItem.getType()) 
                 && item.getItemMeta().equals(wandItem.getItemMeta());
+    }
+    
+    /**
+     * @return True if you're allowed to drop the item, false if you are not allowed to drop the item
+     */
+    public boolean shouldNotDrop() {
+        return shouldNotDrop;
     }
     
     public void onPlayerInteract(@NotNull PlayerInteractEvent event, @NotNull T user) {
@@ -164,75 +211,5 @@ public class Wand<T extends Audience> {
             return;
         }
         user.sendMessage(message);
-    }
-    
-    public Wand<T> onInteract(@NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onInteract) {
-        this.onInteract = onInteract;
-        return this;
-    }
-    
-    public Wand<T> onRightClick(@NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onRightClick) {
-        this.onRightClick = onRightClick;
-        return this;
-    }
-    
-    public Wand<T> onRightClickAir(@NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onRightClickAir) {
-        this.onRightClickAir = onRightClickAir;
-        return this;
-    }
-    
-    public Wand<T> onRightClickBlock(@NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onRightClickBlock) {
-        this.onRightClickBlock = onRightClickBlock;
-        return this;
-    }
-    
-    public Wand<T> onRightSneakClick(@NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onRightSneakClick) {
-        this.onRightSneakClick = onRightSneakClick;
-        return this;
-    }
-    
-    public Wand<T> onRightSneakClickAir(@NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onRightSneakClickAir) {
-        this.onRightSneakClickAir = onRightSneakClickAir;
-        return this;
-    }
-    
-    public Wand<T> onRightSneakClickBlock(@NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onRightSneakClickBlock) {
-        this.onRightSneakClickBlock = onRightSneakClickBlock;
-        return this;
-    }
-    
-    public Wand<T> onLeftClick(@NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftClick) {
-        this.onLeftClick = onLeftClick;
-        return this;
-    }
-    
-    public Wand<T> onLeftClickAir(@NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftClickAir) {
-        this.onLeftClickAir = onLeftClickAir;
-        return this;
-    }
-    
-    public Wand<T> onLeftClickBlock(@NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftClickBlock) {
-        this.onLeftClickBlock = onLeftClickBlock;
-        return this;
-    }
-    
-    public Wand<T> onLeftSneakClick(@NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftSneakClick) {
-        this.onLeftSneakClick = onLeftSneakClick;
-        return this;
-    }
-    
-    public Wand<T> onLeftSneakClickAir(@NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftSneakClickAir) {
-        this.onLeftSneakClickAir = onLeftSneakClickAir;
-        return this;
-    }
-    
-    public Wand<T> onLeftSneakClickBlock(@NotNull BiFunction<PlayerInteractEvent, T, CommandResult> onLeftSneakClickBlock) {
-        this.onLeftSneakClickBlock = onLeftSneakClickBlock;
-        return this;
-    }
-    
-    public Wand<T> onHoldTick(@NotNull Function<T, CommandResult> onHoldTick) {
-        this.onHoldTick = onHoldTick;
-        return this;
     }
 }
