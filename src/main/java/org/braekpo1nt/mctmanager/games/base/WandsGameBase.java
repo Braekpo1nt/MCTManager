@@ -15,6 +15,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,7 +58,7 @@ public abstract class WandsGameBase<P extends ParticipantData, T extends ScoredT
     
     /**
      * Kicks off a task in which every {@link Wand} in {@link #wands}'s 
-     * {@link Wand#onHoldTick(PlayerInventory, Audience)} method is called for every {@link A} in {@link #admins}
+     * {@link Wand#onHoldTick(PlayerInventory, Audience)} method is called for every {@link P} in {@link #admins}
      */
     protected void startWandTick() {
         this.wandTickTaskId = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
@@ -93,6 +94,36 @@ public abstract class WandsGameBase<P extends ParticipantData, T extends ScoredT
         return wands.stream()
                 .map(Wand::getWandItem)
                 .toArray(ItemStack[]::new);
+    }
+    
+    /**
+     * @param itemStack the itemStack to check if it is a wand
+     * @return true if the given itemStack is a wand item
+     */
+    public boolean isWand(@Nullable ItemStack itemStack) {
+        if (itemStack == null) {
+            return false;
+        }
+        return wands.stream()
+                .anyMatch(wand -> wand.isWandItem(itemStack));
+    }
+    
+    /**
+     * Remove the wand items from the given participant's inventory
+     * @param participant the participant
+     */
+    public void removeWandItems(P participant) {
+        participant.getInventory().removeItem(getWandItems());
+    }
+    
+    public @Nullable Wand<P> getWand(@Nullable ItemStack itemStack) {
+        if (itemStack == null) {
+            return null;
+        }
+        return wands.stream()
+                .filter(wand -> wand.isWandItem(itemStack))
+                .findFirst()
+                .orElse(null);
     }
     
     @Override

@@ -81,18 +81,20 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
     
     protected @NotNull List<Wand<A>> defaultWands() {
         return List.of(
-                new Wand<A>(Material.LIME_DYE, "Save config", List.of(
+                Wand.<A>builder().wandItem(Wand.createWandItem(Material.LIME_DYE, "Save config", List.of(
                         Component.text("Left Click: Validate the config"),
                         Component.text("Right Click: Save the config"),
                         Component.text("- (Crouch to skip validation)")
-                ))
+                )))
                         .onLeftClickAir((event, admin) -> configIsValid(configFile))
                         .onRightClickAir((event, admin) -> saveConfig(configFile, false))
-                        .onRightSneakClickAir((event, admin) -> saveConfig(configFile, true)),
-                new Wand<A>(Material.RED_DYE, "Load config", List.of(
+                        .onRightSneakClickAir((event, admin) -> saveConfig(configFile, true))
+                        .build(),
+                Wand.<A>builder().wandItem(Wand.createWandItem(Material.RED_DYE, "Load config", List.of(
                         Component.text("Right Click: Load the config")
-                ))
+                )))
                         .onRightClickAir((event, admin) -> loadConfig(configFile))
+                        .build()
         );
     }
     
@@ -323,7 +325,9 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
         if (admin == null) {
             return;
         }
-        boolean isWand = wands.stream().anyMatch(wand -> wand.isWandItem(event.getItemDrop().getItemStack()));
+        boolean isWand = wands.stream().anyMatch(wand -> 
+                wand.isWandItem(event.getItemDrop().getItemStack()) && wand.shouldNotDrop()
+        );
         if (isWand) {
             event.setCancelled(true);
             return;
