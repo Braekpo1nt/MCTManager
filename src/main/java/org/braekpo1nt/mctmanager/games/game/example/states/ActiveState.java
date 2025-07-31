@@ -14,6 +14,7 @@ import org.bukkit.Material;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +30,10 @@ public class ActiveState extends ExampleStateBase {
     
     public ActiveState(ExampleGame context) {
         super(context);
+        ItemStack[] wandItems = context.getWandItems();
+        for (ExampleParticipant participant : context.getParticipants().values()) {
+            participant.getInventory().addItem(wandItems);
+        }
         Vector s = context.getConfig().getStartingLocation().toVector();
         this.noFlyZone = new BoundingBox(
                 s.getX() - 5,
