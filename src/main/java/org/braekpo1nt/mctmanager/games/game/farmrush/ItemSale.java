@@ -3,8 +3,6 @@ package org.braekpo1nt.mctmanager.games.game.farmrush;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.braekpo1nt.mctmanager.config.validation.Validatable;
-import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
 
