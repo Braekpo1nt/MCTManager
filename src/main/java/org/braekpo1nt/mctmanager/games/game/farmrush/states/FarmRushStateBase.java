@@ -135,4 +135,9 @@ public class FarmRushStateBase implements FarmRushState {
     public void onParticipantToggleGlide(@NotNull EntityToggleGlideEvent event, FarmRushParticipant participant) {
         // do nothing
     }
+    
+    @Override
+    public void showMaterialGui(FarmRushParticipant participant) {
+        context.showMaterialGui(participant);
+    }
 }

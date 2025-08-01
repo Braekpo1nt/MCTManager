@@ -3,7 +3,6 @@ package org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs;
 import lombok.Builder;
 import lombok.Data;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.CropGrower;
-import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupManager;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupType;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;

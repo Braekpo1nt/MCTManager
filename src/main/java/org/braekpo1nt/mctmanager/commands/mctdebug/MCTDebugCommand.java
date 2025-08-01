@@ -46,6 +46,7 @@ public class MCTDebugCommand implements TabExecutor, Listener {
                     .color(NamedTextColor.RED));
             return true;
         }
+        
         return true;
     }
     
