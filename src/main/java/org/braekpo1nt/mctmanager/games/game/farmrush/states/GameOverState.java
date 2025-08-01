@@ -15,6 +15,7 @@ public class GameOverState extends FarmRushStateBase {
     
     public GameOverState(@NotNull FarmRushGame context) {
         super(context);
+        // TODO: make sure guis are closed
         context.getPowerupManager().stop();
         Audience.audience(context.getParticipants().values().stream().map(Participant::getPlayer).toList()).showTitle(UIUtils.gameOverTitle());
         context.getSidebar().addLine("over", Component.empty());
@@ -29,5 +30,10 @@ public class GameOverState extends FarmRushStateBase {
                     context.stop();
                 })
                 .build());
+    }
+    
+    @Override
+    public void showMaterialGui(FarmRushParticipant participant) {
+        // do nothing
     }
 }

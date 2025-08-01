@@ -1,12 +1,17 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.states;
 
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
+import com.github.stefvanschie.inventoryframework.gui.GuiItem;
+import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
+import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
+import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
+import com.github.stefvanschie.inventoryframework.pane.Pane;
+import com.github.stefvanschie.inventoryframework.pane.StaticPane;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
-import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
-import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushParticipant;
-import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushTeam;
+import org.braekpo1nt.mctmanager.games.game.farmrush.*;
 import org.braekpo1nt.mctmanager.utils.LogType;
+import org.bukkit.Material;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
@@ -17,10 +22,15 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class FarmRushStateBase implements FarmRushState {
     
@@ -134,5 +144,10 @@ public class FarmRushStateBase implements FarmRushState {
     @Override
     public void onParticipantToggleGlide(@NotNull EntityToggleGlideEvent event, FarmRushParticipant participant) {
         // do nothing
+    }
+    
+    @Override
+    public void showMaterialGui(FarmRushParticipant participant) {
+        context.showMaterialGui(participant);
     }
 }

@@ -167,7 +167,11 @@ class FarmRushConfigDTO implements Validatable {
          * Can't be negative. Defaults to 0. 
          */
         private int winnerBonus = 0;
-        private Map<Material, ItemSale> materialScores;
+        private Map<Material, ItemSaleDTO> materialScores;
+        
+        public Map<Material, ItemSale> getMaterialScores() {
+            return ItemSaleDTO.toItemSales(materialScores);
+        }
         
         @Override
         public void validate(@NotNull Validator validator) {
@@ -243,7 +247,7 @@ class FarmRushConfigDTO implements Validatable {
                 .gameDuration(this.durations.gameDuration)
                 .gameOverDuration(this.durations.gameOver)
                 .gracePeriodDuration(this.durations.gracePeriod)
-                .materialScores(this.scores.materialScores)
+                .materialScores(this.scores.getMaterialScores())
                 .maxScore(this.scores.maxScore != null ? this.scores.maxScore : -1)
                 .sellCap(this.scores.sellCap != null ? this.scores.sellCap : -1)
                 .warningThreshold(this.scores.warningThreshold)
