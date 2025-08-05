@@ -221,5 +221,56 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
         }
         state.onParticipantFoodLevelChange(event, participant);
     }
-    
+    @EventHandler
+    public void onPlayerDeath(org.bukkit.event.entity.PlayerDeathEvent event) {
+        Player deceased = event.getEntity();
+        UUID deceasedId = deceased.getUniqueId();
+        CTFParticipant deceasedParticipant = participants.get(deceasedId);
+        if (deceasedParticipant == null) {
+            // Not a tracked participant (admin)
+            return;
+        }
+
+        String deathMessage = event.getDeathMessage();
+        if (deathMessage == null || deathMessage.isEmpty()) {
+            return;
+        }
+
+        // Find the match this player was part of
+        MatchPairing activeMatch = RoundManager.getMatchPairing(deceasedParticipant.getTeamId(), roundManager.getCurrentRound());
+        if (activeMatch == null) {
+            return;
+        }
+
+        // Send to participants in same match
+        for (CTFParticipant otherParticipant : participants.values()) {
+            UUID otherId = otherParticipant.getUniqueId();
+            Player otherPlayer = plugin.getServer().getPlayer(otherId);
+            if (otherPlayer == null || !otherPlayer.isOnline()) continue;
+
+            String otherTeam = otherParticipant.getTeamId();
+            MatchPairing otherMatch = RoundManager.getMatchPairing(otherTeam, roundManager.getCurrentRound());
+
+            if (otherMatch != null) {
+                // If the player is in the same match, send the message
+                if (activeMatch.equals(otherMatch)) {
+                    otherPlayer.sendMessage(deathMessage);
+                } else if (RoundManager.getMatchPairing(otherTeam, roundManager.getCurrentRound()) == null) {
+                    // If on-deck, see all deaths
+                    otherPlayer.sendMessage(deathMessage);
+                }
+            }
+        }
+
+        // Send to all admins
+        for (Player admin : admins) {
+            if (admin != null && admin.isOnline()) {
+                admin.sendMessage(deathMessage);
+            }
+        }
+
+        // Prevent broadcast to all players
+        event.setDeathMessage(null);
+    }
+
 }
