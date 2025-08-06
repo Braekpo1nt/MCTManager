@@ -34,14 +34,14 @@ import java.util.*;
 @Getter
 @Setter
 public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFParticipant.QuitData, CTFTeam.QuitData, CaptureTheFlagState> {
-    
+
     private final BattleTopbar topbar;
     private final RoundManager roundManager;
     private final CaptureTheFlagConfig config;
 
 
     private final Map<String, CTFTeam> quitTeams = new HashMap<>();
-    
+
     public CaptureTheFlagGame(
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
@@ -76,53 +76,53 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
     protected @NotNull World getWorld() {
         return config.getWorld();
     }
-    
+
     @Override
     protected @NotNull CaptureTheFlagState getStartState() {
         return new DescriptionState(this);
     }
-    
+
     @Override
     protected @NotNull CTFParticipant createParticipant(Participant participant) {
         return new CTFParticipant(participant, 0, 0, 0);
     }
-    
+
     @Override
     protected @NotNull CTFParticipant createParticipant(Participant participant, CTFParticipant.QuitData quitData) {
         return new CTFParticipant(participant, quitData);
     }
-    
+
     @Override
     protected @NotNull CTFParticipant.QuitData getQuitData(CTFParticipant participant) {
         return participant.getQuitData();
     }
-    
+
     @Override
     protected void initializeParticipant(CTFParticipant participant, CTFTeam team) {
         topbar.setKillsAndDeaths(participant.getUniqueId(), 0, 0);
         participant.teleport(config.getSpawnObservatory());
     }
-    
+
     @Override
     protected void initializeTeam(CTFTeam team) {
-        
+
     }
-    
+
     @Override
     protected @NotNull CTFTeam createTeam(Team team) {
         return new CTFTeam(team, 0);
     }
-    
+
     @Override
     protected @NotNull CTFTeam createTeam(Team team, CTFTeam.QuitData quitData) {
         return new CTFTeam(team, quitData);
     }
-    
+
     @Override
     protected @NotNull CTFTeam.QuitData getQuitData(CTFTeam team) {
         return team.getQuitData();
     }
-    
+
     /**
      * @param teamId the teamId of the team which might have quit, or might be online
      * @return the team with the given id if they are online or if they quit
@@ -139,12 +139,12 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
         }
         throw new IllegalStateException(String.format("Attempted to access a team which never joined (id %s", teamId));
     }
-    
+
     @Override
     protected void resetParticipant(CTFParticipant participant, CTFTeam team) {
-        
+
     }
-    
+
     @Override
     protected void setupTeamOptions(org.bukkit.scoreboard.@NotNull Team scoreboardTeam, @NotNull CTFTeam team) {
         scoreboardTeam.setAllowFriendlyFire(false);
@@ -153,34 +153,34 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
         scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
         scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.NEVER);
     }
-    
+
     @Override
     protected void initializeAdmin(Player admin) {
         admin.teleport(config.getSpawnObservatory());
     }
-    
+
     @Override
     protected void cleanup() {
-        
+
     }
-    
+
     @Override
     protected void initializeSidebar() {
         sidebar.addLines(
                 new KeyLine("round", "")
         );
     }
-    
+
     @Override
     protected @Nullable SpectatorBoundary getSpectatorBoundary() {
         return config.getSpectatorBoundary();
     }
-    
+
     @Override
     protected boolean shouldPreventInteractions(@NotNull Material type) {
         return config.getPreventInteractions().contains(type);
     }
-    
+
     /**
      * Updates the round line of the sidebar for the given player
      * to reflect the current round and number of total rounds
@@ -196,7 +196,7 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
         sidebar.updateLine(uuid, "round", roundLine);
         adminSidebar.updateLine("round", roundLine);
     }
-    
+
     /**
      * Updates the round line of the sidebar for all participants and admins
      * to reflect the current round and number of total rounds
@@ -211,7 +211,14 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
         sidebar.updateLine("round", roundLine);
         adminSidebar.updateLine("round", roundLine);
     }
-    
+
+    @Override
+    @NotNull
+    public List<Player> getAdmins() {
+        return super.getAdmins();
+    }
+
+
     @Override
     protected void initializeAdminSidebar() {
         adminSidebar.addLines(
@@ -219,12 +226,12 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
                 new KeyLine("timer", "")
         );
     }
-    
+
     @Override
     protected void resetAdmin(Player admin) {
-        
+
     }
-    
+
     @EventHandler
     public void onFoodLevelChange(FoodLevelChangeEvent event) {
         CTFParticipant participant = participants.get(event.getEntity().getUniqueId());
@@ -233,6 +240,7 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
         }
         state.onParticipantFoodLevelChange(event, participant);
     }
+
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player deceased = event.getEntity();
@@ -240,49 +248,36 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
         String deceasedTeam = this.getTeam(deceased.getUniqueId());
         String killerTeam = (killer != null) ? this.getTeam(killer.getUniqueId()) : null;
 
-
         if (deceasedTeam == null) {
             event.setDeathMessage(null);
             return;
         }
 
-        // Get the current round
         List<MatchPairing> currentRound = roundManager.getCurrentRound();
-
-        // Get the match the deceased is in
         MatchPairing deceasedMatch = RoundManager.getMatchPairing(deceasedTeam, currentRound);
-
-        // Get list of all players who should see the message
         List<Player> recipients = new ArrayList<>();
 
         for (Player online : Bukkit.getOnlinePlayers()) {
-            String teamId = this.getTeam(online.getUniqueId());
-
-
-            if (teamId == null) {
-                continue; // Skip players without a team
-            }
-
-            // Admins always see the message
-            if (teamId.equalsIgnoreCase("_Admins")) {
+            if (this.getAdmins().contains(online)) {
                 recipients.add(online);
                 continue;
             }
 
-            // In same match as the deceased
+            String teamId = this.getTeam(online.getUniqueId());
+            if (teamId == null) continue;
+
             MatchPairing theirMatch = RoundManager.getMatchPairing(teamId, currentRound);
             if (deceasedMatch != null && theirMatch != null && deceasedMatch.equals(theirMatch)) {
                 recipients.add(online);
                 continue;
             }
 
-            // On-deck (not currently playing)
-            if (RoundManager.getMatchPairing(teamId, currentRound) == null) {
+            if (theirMatch == null) { // on deck
                 recipients.add(online);
             }
         }
 
-        // Send the message manually
+
         String message = event.getDeathMessage();
         event.setDeathMessage(null); // prevent global broadcast
 

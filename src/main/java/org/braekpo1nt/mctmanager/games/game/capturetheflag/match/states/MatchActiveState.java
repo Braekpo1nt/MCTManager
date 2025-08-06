@@ -30,13 +30,14 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     
     private final Arena arena;
     private final GameManager gameManager;
-    
+
     public MatchActiveState(CaptureTheFlagMatch context) {
         super(context);
         this.arena = context.getArena();
@@ -229,7 +230,9 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
             onBothTeamsLose(Component.text("Both teams are dead."));
         }
     }
-    
+
+
+
     private void dropSouthFlag(Participant northParticipant) {
         context.getSouthTeam().sendMessage(Component.empty()
                 .append(Component.text("Your flag was dropped"))
@@ -499,7 +502,9 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         context.setSouthFlagPosition(arena.southFlag());
         BlockPlacementUtils.placeFlag(context.getSouthBanner(), context.getSouthFlagPosition(), BlockFace.NORTH);
     }
-    
+
+
     // South participant move end
-    
+
+
 }
