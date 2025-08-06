@@ -18,12 +18,14 @@ import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
+import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,17 +38,18 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
     private final BattleTopbar topbar;
     private final RoundManager roundManager;
     private final CaptureTheFlagConfig config;
-    
+
+
     private final Map<String, CTFTeam> quitTeams = new HashMap<>();
     
     public CaptureTheFlagGame(
             @NotNull Main plugin,
-            @NotNull GameManager gameManager, 
-            @NotNull Component title, 
-            @NotNull CaptureTheFlagConfig config, 
+            @NotNull GameManager gameManager,
+            @NotNull Component title,
+            @NotNull CaptureTheFlagConfig config,
             @NotNull String configFile,
-            @NotNull Collection<Team> newTeams, 
-            @NotNull Collection<Participant> newParticipants, 
+            @NotNull Collection<Team> newTeams,
+            @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
         super(new GameInstanceId(GameType.CAPTURE_THE_FLAG, configFile), plugin, gameManager, title, new InitialState());
         this.config = config;
@@ -58,8 +61,17 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
         start(newTeams, newParticipants, newAdmins);
         updateRoundLine();
         Main.logger().info("Starting Capture the Flag");
+
     }
-    
+
+    public @Nullable String getTeam(@NotNull UUID uuid) {
+        CTFParticipant participant = participants.get(uuid);
+        if (participant == null) {
+            return null;
+        }
+        return participant.getTeamId();
+    }
+
     @Override
     protected @NotNull World getWorld() {
         return config.getWorld();
@@ -222,55 +234,64 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
         state.onParticipantFoodLevelChange(event, participant);
     }
     @EventHandler
-    public void onPlayerDeath(org.bukkit.event.entity.PlayerDeathEvent event) {
+    public void onPlayerDeath(PlayerDeathEvent event) {
         Player deceased = event.getEntity();
-        UUID deceasedId = deceased.getUniqueId();
-        CTFParticipant deceasedParticipant = participants.get(deceasedId);
-        if (deceasedParticipant == null) {
-            // Not a tracked participant (admin)
+        Player killer = deceased.getKiller();
+        String deceasedTeam = this.getTeam(deceased.getUniqueId());
+        String killerTeam = (killer != null) ? this.getTeam(killer.getUniqueId()) : null;
+
+
+        if (deceasedTeam == null) {
+            event.setDeathMessage(null);
             return;
         }
 
-        String deathMessage = event.getDeathMessage();
-        if (deathMessage == null || deathMessage.isEmpty()) {
-            return;
-        }
+        // Get the current round
+        List<MatchPairing> currentRound = roundManager.getCurrentRound();
 
-        // Find the match this player was part of
-        MatchPairing activeMatch = RoundManager.getMatchPairing(deceasedParticipant.getTeamId(), roundManager.getCurrentRound());
-        if (activeMatch == null) {
-            return;
-        }
+        // Get the match the deceased is in
+        MatchPairing deceasedMatch = RoundManager.getMatchPairing(deceasedTeam, currentRound);
 
-        // Send to participants in same match
-        for (CTFParticipant otherParticipant : participants.values()) {
-            UUID otherId = otherParticipant.getUniqueId();
-            Player otherPlayer = plugin.getServer().getPlayer(otherId);
-            if (otherPlayer == null || !otherPlayer.isOnline()) continue;
+        // Get list of all players who should see the message
+        List<Player> recipients = new ArrayList<>();
 
-            String otherTeam = otherParticipant.getTeamId();
-            MatchPairing otherMatch = RoundManager.getMatchPairing(otherTeam, roundManager.getCurrentRound());
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            String teamId = this.getTeam(online.getUniqueId());
 
-            if (otherMatch != null) {
-                // If the player is in the same match, send the message
-                if (activeMatch.equals(otherMatch)) {
-                    otherPlayer.sendMessage(deathMessage);
-                } else if (RoundManager.getMatchPairing(otherTeam, roundManager.getCurrentRound()) == null) {
-                    // If on-deck, see all deaths
-                    otherPlayer.sendMessage(deathMessage);
-                }
+
+            if (teamId == null) {
+                continue; // Skip players without a team
+            }
+
+            // Admins always see the message
+            if (teamId.equalsIgnoreCase("_Admins")) {
+                recipients.add(online);
+                continue;
+            }
+
+            // In same match as the deceased
+            MatchPairing theirMatch = RoundManager.getMatchPairing(teamId, currentRound);
+            if (deceasedMatch != null && theirMatch != null && deceasedMatch.equals(theirMatch)) {
+                recipients.add(online);
+                continue;
+            }
+
+            // On-deck (not currently playing)
+            if (RoundManager.getMatchPairing(teamId, currentRound) == null) {
+                recipients.add(online);
             }
         }
 
-        // Send to all admins
-        for (Player admin : admins) {
-            if (admin != null && admin.isOnline()) {
-                admin.sendMessage(deathMessage);
-            }
-        }
+        // Send the message manually
+        String message = event.getDeathMessage();
+        event.setDeathMessage(null); // prevent global broadcast
 
-        // Prevent broadcast to all players
-        event.setDeathMessage(null);
+        for (Player p : recipients) {
+            p.sendMessage(message);
+        }
     }
+
+
+
 
 }
