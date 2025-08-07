@@ -250,18 +250,22 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
             return;
         }
 
+        // Get match participants and admin players
         Collection<CTFMatchParticipant> matchParticipants = context.getParticipants().values();
 
-        Set<Player> adminPlayers = context.getParentContext().getAdmins().stream()
-                .map(admin -> admin.getPlayer())
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+        Collection<? > admins = context.getParentContext().getAdmins();
 
+        // Send to match participants (they only see deaths from their match)
         for (CTFMatchParticipant participant : matchParticipants) {
             participant.sendMessage(deathMessage);
         }
 
+
+        Set<Player> participantPlayers = matchParticipants.stream()
+                .map(CTFMatchParticipant::getPlayer)
+                .collect(Collectors.toSet());
     }
+
 
 
 
