@@ -16,6 +16,7 @@ import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.LogType;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
@@ -32,6 +33,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     
@@ -199,15 +202,17 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     private boolean allParticipantsAreDead() {
         return context.getParticipants().values().stream().noneMatch(CTFMatchParticipant::isAlive);
     }
-    
+
     @Override
     public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull CTFMatchParticipant participant) {
         if (!participant.isAlive()) {
             return;
         }
+
         participant.setAlive(false);
         event.getDrops().clear();
         event.setDroppedExp(0);
+
         if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
             if (hasSouthFlag(participant)) {
                 dropSouthFlag(participant);
@@ -217,8 +222,11 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
                 dropNorthFlag(participant);
             }
         }
+
         context.updateAliveStatus(participant.getAffiliation());
         context.addDeath(participant);
+
+        // Handle killer logic
         Player killerPlayer = participant.getKiller();
         if (killerPlayer != null) {
             CTFMatchParticipant killer = context.getParticipants().get(killerPlayer.getUniqueId());
@@ -226,8 +234,38 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
                 onParticipantGetKill(killer, participant);
             }
         }
+
+        sendFilteredDeathMessage(event, participant);
+
+        event.setDeathMessage(null);
+
         if (allParticipantsAreDead()) {
             onBothTeamsLose(Component.text("Both teams are dead."));
+        }
+    }
+
+    private void sendFilteredDeathMessage(@NotNull PlayerDeathEvent event, @NotNull CTFMatchParticipant deadParticipant) {
+        Component deathMessage = event.deathMessage();
+        if (deathMessage == null) {
+            return;
+        }
+
+        Set<Player> matchParticipants = context.getParticipants().values().stream()
+                .map(CTFMatchParticipant::getPlayer)
+                .collect(Collectors.toSet());
+
+        Set<Player> adminPlayers = context.getParentContext().getAdmins().stream()
+                .map(admin -> admin.getPlayer())
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        for (Player participant : matchParticipants) {
+            participant.sendMessage(deathMessage);
+        }
+        for (Player admin : adminPlayers) {
+            if (!matchParticipants.contains(admin)) { // Avoid duplicate messages
+                admin.sendMessage(deathMessage);
+            }
         }
     }
 
