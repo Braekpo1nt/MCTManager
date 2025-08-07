@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
@@ -64,13 +65,15 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
 
     }
 
-    public @Nullable String getTeam(@NotNull UUID uuid) {
+    public @NotNull String getTeam(@NotNull UUID uuid) {
         CTFParticipant participant = participants.get(uuid);
         if (participant == null) {
-            return null;
+            throw new IllegalArgumentException("Participant with UUID " + uuid + " not found.");
         }
         return participant.getTeamId();
     }
+
+
 
     @Override
     protected @NotNull World getWorld() {
@@ -212,12 +215,6 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
         adminSidebar.updateLine("round", roundLine);
     }
 
-    @Override
-    @NotNull
-    public List<Player> getAdmins() {
-        return super.getAdmins();
-    }
-
 
     @Override
     protected void initializeAdminSidebar() {
@@ -242,7 +239,7 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
     }
 
     @EventHandler
-    public void onPlayerDeath(PlayerDeathEvent event) {
+    public void onParticipantDeath(PlayerDeathEvent event) {
         Player deceased = event.getEntity();
         Player killer = deceased.getKiller();
         String deceasedTeam = this.getTeam(deceased.getUniqueId());
@@ -277,12 +274,11 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
             }
         }
 
-
         String message = event.getDeathMessage();
         event.setDeathMessage(null); // prevent global broadcast
 
-        for (Player p : recipients) {
-            p.sendMessage(message);
+        if (message != null) {
+            Audience.audience(recipients).sendMessage(Component.text(message));
         }
     }
 
