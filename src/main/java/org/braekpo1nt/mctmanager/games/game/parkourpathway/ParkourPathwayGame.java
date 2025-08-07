@@ -43,13 +43,15 @@ import java.util.*;
 
 @Getter
 @Setter
-public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam, ParkourParticipant.QuitData, ParkourTeam.QuitData, ParkourPathwayState>  {
+public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam, ParkourParticipant.QuitData, ParkourTeam.QuitData, ParkourPathwayState> {
 
     private final ParkourPathwayConfig config;
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
     private int statusEffectsTaskId;
 
-    // Chat toggle management
+    /**
+     * Chat toggle management
+     */
     private final Map<UUID, ParkourPathwayConfig.ChatMode> playerChatModes = new HashMap<>();
     private final Map<UUID, Long> chatToggleCooldowns = new HashMap<>();
 
@@ -117,14 +119,18 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
     protected void cleanup() {
         plugin.getServer().getScheduler().cancelTask(statusEffectsTaskId);
         openGlassBarrier();
-        // Clear chat mode data
+        /**
+         * Clear chat mode data
+         */
         playerChatModes.clear();
         chatToggleCooldowns.clear();
     }
 
     @Override
     protected @NotNull ParkourParticipant createParticipant(Participant participant) {
-        // Initialize chat mode for new participant
+        /**
+         * Initialize chat mode for new participant
+         */
         if (config.isChatToggleEnabled()) {
             playerChatModes.put(participant.getUniqueId(), config.getDefaultChatMode());
         }
@@ -133,7 +139,9 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
 
     @Override
     protected @NotNull ParkourParticipant createParticipant(Participant participant, ParkourParticipant.QuitData quitData) {
-        // Initialize chat mode for returning participant
+        /**
+         * Initialize chat mode for returning participant
+         */
         if (config.isChatToggleEnabled()) {
             playerChatModes.put(participant.getUniqueId(), config.getDefaultChatMode());
         }
@@ -228,7 +236,9 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
             return false;
         }
 
-        // Get current mode and cycle to next
+        /**
+         * Get current mode and cycle to next
+         */
         ParkourPathwayConfig.ChatMode currentMode = playerChatModes.getOrDefault(playerId, config.getDefaultChatMode());
         ParkourPathwayConfig.ChatMode newMode;
 
@@ -246,17 +256,23 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
                 newMode = ParkourPathwayConfig.ChatMode.ALL;
         }
 
-        // Update mode and cooldown
+        /**
+         * Update mode and cooldown
+         */
         playerChatModes.put(playerId, newMode);
         chatToggleCooldowns.put(playerId, currentTime + (config.getChatToggleCooldown() * 1000L));
 
-        // Update the item in their inventory
+        /**
+         * Update the item in their inventory
+         */
         ItemStack chatItem = participant.getInventory().getItem(1);
         if (chatItem != null && chatItem.getType() == config.getChatToggleItem().getType()) {
             updateChatToggleItemLore(participant, chatItem);
         }
 
-        // Send confirmation message
+        /**
+         * Send confirmation message
+         */
         String modeText;
         NamedTextColor modeColor;
         switch (newMode) {
@@ -292,13 +308,11 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         return playerChatModes.getOrDefault(participant.getUniqueId(), config.getDefaultChatMode());
     }
 
-    /**
-     * Manually give all participants the chat toggle item (useful for debugging)
-     */
-
     @Override
     protected @NotNull ParkourParticipant.QuitData getQuitData(ParkourParticipant participant) {
-        // Clean up chat data when participant quits
+        /**
+         * Clean up chat data when participant quits
+         */
         playerChatModes.remove(participant.getUniqueId());
         chatToggleCooldowns.remove(participant.getUniqueId());
         return participant.getQuitData();
@@ -418,9 +432,15 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
     private final Map<UUID, NotificationMode> checkpointNotificationsMode = new HashMap<>();
 
     public enum NotificationMode {
-        ALL,    // See everyone's checkpoints
-        TEAM,   // See only your team's checkpoints
-        DISABLED // See only your own checkpoints
+        ALL,    /**
+         * See everyone's checkpoints
+         */
+        TEAM,   /**
+         * See only your team's checkpoints
+         */
+        DISABLED /**
+         * See only your own checkpoints
+         */
     }
 
     @Override
@@ -437,73 +457,107 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
 
-        // Check if they're holding the chat toggle item (Green Dye)
+        /**
+         * Check if they're holding the chat toggle item (Green Dye)
+         */
         if (item == null || !isNotificationToggleItem(item)) {
             return;
         }
 
-        // Check if chat toggle is enabled
+        /**
+         * Check if chat toggle is enabled
+         */
         if (!config.isChatToggleEnabled()) {
             return;
         }
-        // Only Participants can use this item.
+        /**
+         * Only Participants can use this item.
+         */
         if (!getParticipants().containsKey(player.getUniqueId())) {
             return;
         }
 
-        // Check cooldown
+        /**
+         * Check cooldown
+         */
         UUID playerId = player.getUniqueId();
         long now = System.currentTimeMillis();
         Long lastToggle = chatToggleCooldowns.get(playerId);
 
         if (lastToggle != null && (now - lastToggle) < (config.getChatToggleCooldown() * 1000)) {
-            // Still on cooldown
+            /**
+             * Still on cooldown
+             */
             return;
         }
 
-        event.setCancelled(true); // Prevent other interactions
+        event.setCancelled(true); /**
+         * Prevent other interactions
+         */
 
-        // Get current setting (default is ALL)
+        /**
+         * Get current setting (default is ALL)
+         */
         NotificationMode currentMode = checkpointNotificationsMode.getOrDefault(playerId, NotificationMode.ALL);
 
-        // Cycle to next mode: ALL -> TEAM -> DISABLED -> ALL
+        /**
+         * Cycle to next mode: ALL -> TEAM -> DISABLED -> ALL
+         */
         NotificationMode newMode = getNextNotificationMode(currentMode);
         checkpointNotificationsMode.put(playerId, newMode);
 
-        // Update cooldown
+        /**
+         * Update cooldown
+         */
         chatToggleCooldowns.put(playerId, now);
 
-        // Update the item in their hand with new lore
+        /**
+         * Update the item in their hand with new lore
+         */
         updateNotificationToggleItem(player, newMode);
 
-        // Send feedback message
+        /**
+         * Send feedback message
+         */
         String status = getNotificationModeDisplayName(newMode);
         NamedTextColor color = getNotificationModeColor(newMode);
         player.sendMessage(Component.text("Checkpoint notifications: " + status).color(color));
     }
 
-    // Method to check if a player should see a specific checkpoint notification
+    /**
+     * Method to check if a player should see a specific checkpoint notification
+     */
     public boolean shouldShowCheckpointNotification(UUID viewerId, UUID achieverId) {
         NotificationMode viewerMode = checkpointNotificationsMode.getOrDefault(viewerId, NotificationMode.ALL);
 
-        // Always show your own checkpoints
+        /**
+         * Always show your own checkpoints
+         */
         if (viewerId.equals(achieverId)) {
             return true;
         }
 
         switch (viewerMode) {
             case ALL:
-                return true; // Show everyone's checkpoints
+                return true; /**
+             * Show everyone's checkpoints
+             */
             case TEAM:
-                // Only show teammate checkpoints
+                /**
+                 * Only show teammate checkpoints
+                 */
                 return areOnSameTeam(viewerId, achieverId);
             case DISABLED:
             default:
-                return false; // Only show your own
+                return false; /**
+             * Only show your own
+             */
         }
     }
 
-    // Helper method to check if two players are on the same team
+    /**
+     * Helper method to check if two players are on the same team
+     */
     private boolean areOnSameTeam(UUID player1Id, UUID player2Id) {
         ParkourParticipant participant1 = getParticipants().get(player1Id);
         ParkourParticipant participant2 = getParticipants().get(player2Id);
@@ -518,7 +572,9 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         return team1 != null && team2 != null && team1.equals(team2);
     }
 
-    // New method to send messages only to players who want to see this specific checkpoint notification
+    /**
+     * New method to send messages only to players who want to see this specific checkpoint notification
+     */
     public void messageParticipantsWithNotifications(Component message, UUID achieverId) {
         for (UUID participantId : getParticipants().keySet()) {
             if (shouldShowCheckpointNotification(participantId, achieverId)) {
@@ -530,16 +586,19 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         }
     }
 
-
     private boolean isNotificationToggleItem(ItemStack item) {
         ItemStack configItem = config.getChatToggleItem();
 
-        // Check material
+        /**
+         * Check material
+         */
         if (item.getType() != configItem.getType()) {
             return false;
         }
 
-        // Check display name
+        /**
+         * Check display name
+         */
         if (!item.hasItemMeta() || !configItem.hasItemMeta()) {
             return item.hasItemMeta() == configItem.hasItemMeta();
         }
@@ -563,12 +622,16 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
     }
 
     private void updateNotificationToggleItem(Player player, NotificationMode mode) {
-        // Check main hand first
+        /**
+         * Check main hand first
+         */
         ItemStack item = player.getInventory().getItemInMainHand();
         boolean isMainHand = true;
 
         if (!isNotificationToggleItem(item)) {
-            // Check offhand
+            /**
+             * Check offhand
+             */
             item = player.getInventory().getItemInOffHand();
             isMainHand = false;
             if (!isNotificationToggleItem(item)) {
@@ -582,7 +645,9 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
             meta.lore(newLore);
         });
 
-        // Update the item in inventory
+        /**
+         * Update the item in inventory
+         */
         if (isMainHand) {
             player.getInventory().setItemInMainHand(item);
         } else {
@@ -647,7 +712,9 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         }
     }
 
-    // Method to give players the notification toggle item
+    /**
+     * Method to give players the notification toggle item
+     */
     private void giveNotificationToggleItem(Player player) {
         if (!config.isChatToggleEnabled()) {
             return;
@@ -656,7 +723,9 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         ItemStack toggleItem = new ItemStack(config.getChatToggleItem().getType());
         toggleItem.editMeta(meta -> {
             meta.displayName(Component.text("Checkpoint Notifications").color(NamedTextColor.AQUA));
-            meta.lore(getNotificationToggleLore(NotificationMode.ALL)); // Default to ALL mode
+            meta.lore(getNotificationToggleLore(NotificationMode.ALL)); /**
+             * Default to ALL mode
+             */
         });
 
         player.getInventory().addItem(toggleItem);
@@ -674,5 +743,4 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
             }
         }
     }
-
 }
