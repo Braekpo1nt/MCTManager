@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 public class TeamSpawnsDescription extends ParkourPathwayStateBase {
-    
+
     /**
      * The available teamSpawns
      */
@@ -22,13 +22,15 @@ public class TeamSpawnsDescription extends ParkourPathwayStateBase {
      * A map of teamIds to their {@link TeamSpawn}s
      */
     private @NotNull Map<String, TeamSpawn> teamsToSpawns;
-    
+
     public TeamSpawnsDescription(@NotNull ParkourPathwayGame context, @NotNull List<TeamSpawn> teamSpawns) {
         super(context);
         this.teamSpawns = teamSpawns;
         this.teamsToSpawns = createTeamSpawns();
         for (ParkourParticipant participant : context.getParticipants().values()) {
             teamsToSpawns.get(participant.getTeamId()).teleport(participant);
+            // Give chat toggle item to each participant
+            context.giveChatToggleItem(participant);
         }
         context.messageAllParticipants(context.getConfig().getDescription());
         context.getTimerManager().start(Timer.builder()
@@ -45,7 +47,7 @@ public class TeamSpawnsDescription extends ParkourPathwayStateBase {
                 })
                 .build());
     }
-    
+
     @Override
     public void cleanup() {
         for (TeamSpawn teamSpawn : teamsToSpawns.values()) {
@@ -53,7 +55,7 @@ public class TeamSpawnsDescription extends ParkourPathwayStateBase {
         }
         teamsToSpawns.clear();
     }
-    
+
     /**
      * @return a map of teamIds to their {@link TeamSpawn}s
      */
@@ -70,7 +72,7 @@ public class TeamSpawnsDescription extends ParkourPathwayStateBase {
         }
         return result;
     }
-    
+
     @Override
     public void onNewTeamJoin(ParkourTeam team) {
         super.onNewTeamJoin(team);
@@ -80,19 +82,25 @@ public class TeamSpawnsDescription extends ParkourPathwayStateBase {
         this.teamsToSpawns = createTeamSpawns();
         for (ParkourParticipant participant : context.getParticipants().values()) {
             teamsToSpawns.get(participant.getTeamId()).teleport(participant);
+            // Give chat toggle item when team rejoins
+            context.giveChatToggleItem(participant);
         }
     }
-    
-    
+
+
     @Override
     public void onParticipantRejoin(ParkourParticipant participant, ParkourTeam team) {
         super.onParticipantRejoin(participant, team);
         teamsToSpawns.get(participant.getTeamId()).teleport(participant);
+        // Give chat toggle item to rejoining participant
+        context.giveChatToggleItem(participant);
     }
-    
+
     @Override
     public void onNewParticipantJoin(ParkourParticipant participant, ParkourTeam team) {
         super.onNewParticipantJoin(participant, team);
         teamsToSpawns.get(participant.getTeamId()).teleport(participant);
+        // Give chat toggle item to new participant
+        context.giveChatToggleItem(participant);
     }
 }
