@@ -30,10 +30,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class MatchActiveState extends CaptureTheFlagMatchStateBase {
@@ -213,6 +210,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         event.getDrops().clear();
         event.setDroppedExp(0);
 
+        // Handle flag dropping based on affiliation
         if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
             if (hasSouthFlag(participant)) {
                 dropSouthFlag(participant);
@@ -235,9 +233,11 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
             }
         }
 
+        // Send filtered death messages
         sendFilteredDeathMessage(event, participant);
 
-        event.setDeathMessage(null);
+        // Cancel the original death message to prevent duplicate messages
+        event.deathMessage(null);
 
         if (allParticipantsAreDead()) {
             onBothTeamsLose(Component.text("Both teams are dead."));
@@ -250,23 +250,17 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
             return;
         }
 
-        Set<Player> matchParticipants = context.getParticipants().values().stream()
-                .map(CTFMatchParticipant::getPlayer)
-                .collect(Collectors.toSet());
+        Collection<CTFMatchParticipant> matchParticipants = context.getParticipants().values();
 
         Set<Player> adminPlayers = context.getParentContext().getAdmins().stream()
                 .map(admin -> admin.getPlayer())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        for (Player participant : matchParticipants) {
+        for (CTFMatchParticipant participant : matchParticipants) {
             participant.sendMessage(deathMessage);
         }
-        for (Player admin : adminPlayers) {
-            if (!matchParticipants.contains(admin)) { // Avoid duplicate messages
-                admin.sendMessage(deathMessage);
-            }
-        }
+
     }
 
 

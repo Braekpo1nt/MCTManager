@@ -65,16 +65,6 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
 
     }
 
-    public @NotNull String getTeam(@NotNull UUID uuid) {
-        CTFParticipant participant = participants.get(uuid);
-        if (participant == null) {
-            throw new IllegalArgumentException("Participant with UUID " + uuid + " not found.");
-        }
-        return participant.getTeamId();
-    }
-
-
-
     @Override
     protected @NotNull World getWorld() {
         return config.getWorld();
