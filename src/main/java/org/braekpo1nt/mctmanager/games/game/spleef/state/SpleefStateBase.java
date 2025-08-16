@@ -20,7 +20,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class SpleefStateBase implements SpleefState {
+public abstract class SpleefStateBase implements SpleefState {
     
     protected final @NotNull SpleefGame context;
     

@@ -8,17 +8,25 @@ import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.GameMode;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class RoundOverState extends SpleefStateBase {
+    
+    private @Nullable Timer timer;
+    
     public RoundOverState(@NotNull SpleefGame context) {
         super(context);
+    }
+    
+    @Override
+    public void enter() {
         for (SpleefParticipant participant : context.getParticipants().values()) {
             participant.setGameMode(GameMode.SPECTATOR);
             ParticipantInitializer.clearInventory(participant);
             participant.setAlive(true);
         }
         context.titleAllParticipants(UIUtils.roundOverTitle());
-        context.getTimerManager().start(Timer.builder()
+        timer = context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getRoundOverDuration())
                 .withSidebar(context.getSidebar(), "timer")
                 .withSidebar(context.getAdminSidebar(), "timer")
@@ -33,5 +41,10 @@ public class RoundOverState extends SpleefStateBase {
                     }
                 })
                 .build());
+    }
+    
+    @Override
+    public void exit() {
+        Timer.cancel(timer);
     }
 }

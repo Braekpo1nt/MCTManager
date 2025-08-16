@@ -4,10 +4,18 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.example.ExampleGame;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.jetbrains.annotations.Nullable;
 
 public class DescriptionSate extends ExampleStateBase {
+    
+    private @Nullable Timer timer;
+    
     public DescriptionSate(ExampleGame context) {
         super(context);
+    }
+    
+    @Override
+    public void enter() {
         Audience audience = Audience.audience(
                 Audience.audience(context.getParticipants().values()),
                 Audience.audience(context.getAdmins())
@@ -15,7 +23,7 @@ public class DescriptionSate extends ExampleStateBase {
         audience.sendMessage(Component.empty()
                 .append(Component.text("The DescriptionState has begin")));
         audience.sendMessage(context.getConfig().getDescription());
-        context.getTimerManager().start(Timer.builder()
+        timer = context.getTimerManager().start(Timer.builder()
                 .duration(10)
                 .withSidebar(context.getSidebar(), "timer")
                 .withSidebar(context.getAdminSidebar(), "timer")
@@ -28,4 +36,8 @@ public class DescriptionSate extends ExampleStateBase {
                 .build());
     }
     
+    @Override
+    public void exit() {
+        Timer.cancel(timer);
+    }
 }

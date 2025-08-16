@@ -5,13 +5,4 @@ import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesParticipa
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesTeam;
 
 public class InitialState implements SurvivalGamesState, DoNothingState<SurvivalGamesParticipant, SurvivalGamesTeam> {
-    @Override
-    public void enter() {
-        
-    }
-    
-    @Override
-    public void exit() {
-        
-    }
 }

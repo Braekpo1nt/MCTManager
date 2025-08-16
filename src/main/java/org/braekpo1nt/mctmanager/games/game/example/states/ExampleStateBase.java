@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The default method implementations for all states (except {@link InitialState}).
  */
-public class ExampleStateBase implements ExampleState {
+public abstract class ExampleStateBase implements ExampleState {
     
     protected final ExampleGame context;
     

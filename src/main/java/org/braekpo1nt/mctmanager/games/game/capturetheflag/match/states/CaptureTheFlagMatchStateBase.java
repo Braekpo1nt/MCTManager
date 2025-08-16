@@ -16,7 +16,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class CaptureTheFlagMatchStateBase implements CaptureTheFlagMatchState {
+public abstract class CaptureTheFlagMatchStateBase implements CaptureTheFlagMatchState {
     
     protected final @NotNull CaptureTheFlagMatch context;
     
