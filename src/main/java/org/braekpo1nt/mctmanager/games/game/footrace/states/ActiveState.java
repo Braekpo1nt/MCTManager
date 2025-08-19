@@ -3,7 +3,6 @@ package org.braekpo1nt.mctmanager.games.game.footrace.states;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceParticipant;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceTeam;
@@ -28,31 +27,43 @@ import java.util.UUID;
 public class ActiveState extends FootRaceStateBase {
     
     private final FootRaceConfig config;
-    private final GameManager gameManager;
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
     private final TimerManager timerManager;
     private @Nullable Timer endRaceTimer;
+    private int timerRefreshTaskId;
+    private int standingsDisplayTaskId;
     
     public ActiveState(@NotNull FootRaceGame context) {
         super(context);
-        this.gameManager = context.getGameManager();
         this.config = context.getConfig();
         this.sidebar = context.getSidebar();
         this.adminSidebar = context.getAdminSidebar();
         this.timerManager = context.getTimerManager();
-        startRace();
     }
     
-    private void startRace() {
+    @Override
+    public void enter() {
         context.openGlassBarrier();
         context.setRaceStartTime(System.currentTimeMillis());
         startTimerRefreshTask();
         startStandingsUpdateTask();
     }
     
+    @Override
+    public void exit() {
+        context.getPlugin().getServer().getScheduler().cancelTask(timerRefreshTaskId);
+        context.getPlugin().getServer().getScheduler().cancelTask(standingsDisplayTaskId);
+    }
+    
+    @Override
+    public void cleanup() {
+        context.getPlugin().getServer().getScheduler().cancelTask(timerRefreshTaskId);
+        context.getPlugin().getServer().getScheduler().cancelTask(standingsDisplayTaskId);
+    }
+    
     private void startTimerRefreshTask() {
-        context.setTimerRefreshTaskId(new BukkitRunnable(){
+        timerRefreshTaskId = new BukkitRunnable(){
             @Override
             public void run() {
                 long elapsedTime = System.currentTimeMillis() - context.getRaceStartTime();
@@ -74,7 +85,7 @@ public class ActiveState extends FootRaceStateBase {
                     );
                 }
             }
-        }.runTaskTimer(context.getPlugin(), 0, 1).getTaskId());
+        }.runTaskTimer(context.getPlugin(), 0, 1).getTaskId();
     }
     
     @Override
@@ -100,13 +111,13 @@ public class ActiveState extends FootRaceStateBase {
     }
     
     private void startStandingsUpdateTask() {
-        context.setStandingsDisplayTaskId(new BukkitRunnable() {
+        standingsDisplayTaskId = new BukkitRunnable() {
             @Override
             public void run() {
                 context.updateStandings();
                 context.displayStandings();
             }
-        }.runTaskTimer(context.getPlugin(), 0L, 1L).getTaskId());
+        }.runTaskTimer(context.getPlugin(), 0L, 1L).getTaskId();
     }
     
     @Override

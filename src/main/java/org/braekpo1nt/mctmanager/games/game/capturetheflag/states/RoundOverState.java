@@ -15,13 +15,20 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class RoundOverState extends CaptureTheFlagStateBase {
     
+    private @Nullable Timer timer;
+    
     public RoundOverState(CaptureTheFlagGame context) {
         super(context);
+    }
+    
+    @Override
+    public void enter() {
         Audience.audience(context.getParticipants().values()).showTitle(UIUtils.roundOverTitle());
-        context.getTimerManager().start(Timer.builder()
+        timer = context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getRoundOverDuration())
                 .withTopbar(context.getTopbar())
                 .withSidebar(context.getAdminSidebar(), "timer")
@@ -31,6 +38,11 @@ public class RoundOverState extends CaptureTheFlagStateBase {
                     context.setState(new PreRoundState(context));
                 })
                 .build());
+    }
+    
+    @Override
+    public void exit() {
+        Timer.cancel(timer);
     }
     
     @Override

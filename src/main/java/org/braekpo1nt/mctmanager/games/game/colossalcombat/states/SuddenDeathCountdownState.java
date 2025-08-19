@@ -7,13 +7,18 @@ import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalCombatGame;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalParticipant;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SuddenDeathCountdownState extends GameplayState {
     
-    private final Timer suddenDeathTimer;
+    private @Nullable Timer suddenDeathTimer;
     
     public SuddenDeathCountdownState(@NotNull ColossalCombatGame context) {
         super(context);
+    }
+    
+    @Override
+    public void enter() {
         context.messageAdmins(Component.empty()
                 .append(Component.text(config.getCaptureTheFlagMaximumPlayers()))
                 .append(Component.text(" players are alive on each team. Triggering sudden death countdown. Only admins can see this message."))
@@ -25,6 +30,11 @@ public class SuddenDeathCountdownState extends GameplayState {
                 .sidebarPrefix(Component.text("Sudden Death: "))
                 .onCompletion(() -> context.setState(new SuddenDeathState(context)))
                 .build());
+    }
+    
+    @Override
+    public void exit() {
+        Timer.cancel(suddenDeathTimer);
     }
     
     @Override
@@ -41,6 +51,6 @@ public class SuddenDeathCountdownState extends GameplayState {
     @Override
     public void cleanup() {
         super.cleanup();
-        suddenDeathTimer.cancel();
+        Timer.cancel(suddenDeathTimer);
     }
 }

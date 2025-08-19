@@ -22,14 +22,23 @@ import org.jetbrains.annotations.Nullable;
 
 public class ActiveState extends ExampleStateBase {
     
-    private final @Nullable Timer flyTimer;
+    private @Nullable Timer flyTimer;
     private @Nullable Timer playingTimer;
     private int flyTaskId;
-    private final BoundingBox noFlyZone;
-    private final BoundingBoxRenderer noFlyZoneRenderer;
+    private @Nullable BoundingBox noFlyZone;
+    private final @NotNull BoundingBoxRenderer noFlyZoneRenderer;
     
     public ActiveState(ExampleGame context) {
         super(context);
+        this.noFlyZoneRenderer = BlockBoxRenderer.builder()
+                .world(context.getConfig().getWorld())
+                .boundingBox(noFlyZone)
+                .blockData(Material.RED_STAINED_GLASS.createBlockData())
+                .build();
+    }
+    
+    @Override
+    public void enter() {
         ItemStack[] wandItems = context.getWandItems();
         for (ExampleParticipant participant : context.getParticipants().values()) {
             participant.getInventory().addItem(wandItems);
@@ -43,54 +52,52 @@ public class ActiveState extends ExampleStateBase {
                 s.getY() + 70,
                 s.getZ() + 5
         );
-        this.noFlyZoneRenderer = BlockBoxRenderer.builder()
-                .world(context.getConfig().getWorld())
-                .boundingBox(noFlyZone)
-                .blockData(Material.RED_STAINED_GLASS.createBlockData())
-                .build();
         Audience.audience(
                 Audience.audience(context.getParticipants().values()),
                 Audience.audience(context.getAdmins())
         ).sendMessage(Component.empty()
                 .append(Component.text("The ActiveState has begun")));
         flyTimer = context.getTimerManager().start(Timer.builder()
-                        .duration(10)
-                        .withSidebar(context.getSidebar(), "timer")
-                        .withSidebar(context.getAdminSidebar(), "timer")
-                        .sidebarPrefix(Component.text("Flying in: "))
-                        .onCompletion(() -> {
-                            noFlyZoneRenderer.show();
-                            for (ExampleParticipant participant : context.getParticipants().values()) {
-                                participant.teleport(participant.getLocation().add(new Vector(0, 100, 0)));
-                            }
-                            flyTaskId = context.getPlugin().getServer().getScheduler().runTaskLater(context.getPlugin(), () -> {
-                                for (ExampleParticipant participant : context.getParticipants().values()) {
-                                    participant.getPlayer().setGliding(true);
-                                    participant.setGliding(true);
-                                }
-                            }, 10L).getTaskId();
-                            playingTimer = context.getTimerManager().start(Timer.builder()
-                                    .duration(60)
-                                    .withSidebar(context.getSidebar(), "timer")
-                                    .withSidebar(context.getAdminSidebar(), "timer")
-                                    .sidebarPrefix(Component.text("Playing: "))
-                                    .onCompletion(() -> {
-                                        noFlyZoneRenderer.hide();
-                                        context.setState(new GameOverState(context));
-                                    })
-                                    .build());
-                        })
+                .duration(10)
+                .withSidebar(context.getSidebar(), "timer")
+                .withSidebar(context.getAdminSidebar(), "timer")
+                .sidebarPrefix(Component.text("Flying in: "))
+                .onCompletion(() -> {
+                    noFlyZoneRenderer.show();
+                    for (ExampleParticipant participant : context.getParticipants().values()) {
+                        participant.teleport(participant.getLocation().add(new Vector(0, 100, 0)));
+                    }
+                    flyTaskId = context.getPlugin().getServer().getScheduler().runTaskLater(context.getPlugin(), () -> {
+                        for (ExampleParticipant participant : context.getParticipants().values()) {
+                            participant.getPlayer().setGliding(true);
+                            participant.setGliding(true);
+                        }
+                    }, 10L).getTaskId();
+                    playingTimer = context.getTimerManager().start(Timer.builder()
+                            .duration(60)
+                            .withSidebar(context.getSidebar(), "timer")
+                            .withSidebar(context.getAdminSidebar(), "timer")
+                            .sidebarPrefix(Component.text("Playing: "))
+                            .onCompletion(() -> {
+                                noFlyZoneRenderer.hide();
+                                context.setState(new GameOverState(context));
+                            })
+                            .build());
+                })
                 .build());
     }
     
     @Override
+    public void exit() {
+        Timer.cancel(flyTimer);
+        Timer.cancel(playingTimer);
+        context.getPlugin().getServer().getScheduler().cancelTask(flyTaskId);
+    }
+    
+    @Override
     public void cleanup() {
-        if (flyTimer != null) {
-            flyTimer.cancel();
-        }
-        if (playingTimer != null) {
-            playingTimer.cancel();
-        }
+        Timer.cancel(flyTimer);
+        Timer.cancel(playingTimer);
         context.getPlugin().getServer().getScheduler().cancelTask(flyTaskId);
         noFlyZoneRenderer.hide();
     }

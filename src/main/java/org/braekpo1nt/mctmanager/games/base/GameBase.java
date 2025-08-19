@@ -155,7 +155,8 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     /**
      * <p>Call this after all fields have been initialized. 
      * This initializes all the participants and teams, 
-     * and finally assigns {@link #getStartState()} to {@link #state}.</p>
+     * and finally assigns {@link #getStartState()} to {@link #state}
+     * and calls {@link GameStateBase#enter()} on the newly assigned state.</p>
      * @param newTeams the teams going into the game
      * @param newParticipants the participants going into the game
      * @param newAdmins the admins going into the game
@@ -190,6 +191,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         _initializeAdminSidebar();
         // admin end
         this.state = getStartState();
+        this.state.enter();
     }
     
     /**
@@ -212,10 +214,16 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     protected abstract @NotNull S getStartState();
     
     /**
+     * Calls {@link GameStateBase#exit()} on the old {@link #state},
+     * assigns the given state to {@link #state}, 
+     * then calls {@link GameStateBase#enter()} on the new {@link #state}
      * @param state assign a state to this game
      */
-    public void setState(@NotNull S state) {
+    // TODO: remove final
+    public final void setState(@NotNull S state) {
+        this.state.exit();
         this.state = state;
+        this.state.enter();
     }
     
     // cleanup start

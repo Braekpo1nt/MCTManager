@@ -5,15 +5,15 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourParticipant;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourTeam;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
-import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 public class TeamSpawnsDescription extends ParkourPathwayStateBase {
-
+    
     /**
      * The available teamSpawns
      */
@@ -22,18 +22,23 @@ public class TeamSpawnsDescription extends ParkourPathwayStateBase {
      * A map of teamIds to their {@link TeamSpawn}s
      */
     private @NotNull Map<String, TeamSpawn> teamsToSpawns;
-
+    private @Nullable Timer timer;
+    
     public TeamSpawnsDescription(@NotNull ParkourPathwayGame context, @NotNull List<TeamSpawn> teamSpawns) {
         super(context);
         this.teamSpawns = teamSpawns;
         this.teamsToSpawns = createTeamSpawns();
+    }
+    
+    @Override
+    public void enter() {
         for (ParkourParticipant participant : context.getParticipants().values()) {
             teamsToSpawns.get(participant.getTeamId()).teleport(participant);
             // Give chat toggle item to each participant
             context.giveChatToggleItem(participant);
         }
         context.messageAllParticipants(context.getConfig().getDescription());
-        context.getTimerManager().start(Timer.builder()
+        timer = context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getDescriptionDuration())
                 .withSidebar(context.getSidebar(), "timer")
                 .withSidebar(context.getAdminSidebar(), "timer")
@@ -47,7 +52,12 @@ public class TeamSpawnsDescription extends ParkourPathwayStateBase {
                 })
                 .build());
     }
-
+    
+    @Override
+    public void exit() {
+        Timer.cancel(timer);
+    }
+    
     @Override
     public void cleanup() {
         for (TeamSpawn teamSpawn : teamsToSpawns.values()) {
@@ -55,7 +65,7 @@ public class TeamSpawnsDescription extends ParkourPathwayStateBase {
         }
         teamsToSpawns.clear();
     }
-
+    
     /**
      * @return a map of teamIds to their {@link TeamSpawn}s
      */
@@ -72,7 +82,7 @@ public class TeamSpawnsDescription extends ParkourPathwayStateBase {
         }
         return result;
     }
-
+    
     @Override
     public void onNewTeamJoin(ParkourTeam team) {
         super.onNewTeamJoin(team);
@@ -82,12 +92,10 @@ public class TeamSpawnsDescription extends ParkourPathwayStateBase {
         this.teamsToSpawns = createTeamSpawns();
         for (ParkourParticipant participant : context.getParticipants().values()) {
             teamsToSpawns.get(participant.getTeamId()).teleport(participant);
-            // Give chat toggle item when team rejoins
-            context.giveChatToggleItem(participant);
         }
     }
-
-
+    
+    
     @Override
     public void onParticipantRejoin(ParkourParticipant participant, ParkourTeam team) {
         super.onParticipantRejoin(participant, team);
@@ -95,7 +103,7 @@ public class TeamSpawnsDescription extends ParkourPathwayStateBase {
         // Give chat toggle item to rejoining participant
         context.giveChatToggleItem(participant);
     }
-
+    
     @Override
     public void onNewParticipantJoin(ParkourParticipant participant, ParkourTeam team) {
         super.onNewParticipantJoin(participant, team);

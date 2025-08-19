@@ -6,7 +6,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchParticipant;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchTeam;
@@ -32,16 +31,20 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.Collections;
+import java.util.Objects;
 
 public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     
     private final Arena arena;
-    private final GameManager gameManager;
-
+    
     public MatchActiveState(CaptureTheFlagMatch context) {
         super(context);
         this.arena = context.getArena();
-        this.gameManager = context.getGameManager();
+    }
+    
+    @Override
+    public void enter() {
         for (CTFMatchParticipant participant : context.getParticipants().values()) {
             participant.closeInventory();
             participant.setAlive(true);
@@ -53,6 +56,11 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         } else if (context.getSouthTeam().size() == 0) {
             onTeamForfeit(context.getSouthTeam());
         }
+    }
+    
+    @Override
+    public void exit() {
+        // do nothing
     }
     
     private void onTeamForfeit(@NotNull Team forfeit) {
@@ -211,6 +219,16 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         event.setDroppedExp(0);
 
         // Handle flag dropping based on affiliation
+        
+        // new code start
+        event.setShowDeathMessages(false);
+        Component deathMessage = event.deathMessage();
+        if (deathMessage != null) {
+            context.messageAllParticipants(deathMessage);
+            context.getParentContext().messageAllParticipants(deathMessage);
+        }
+        // new code stop
+        
         if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
             if (hasSouthFlag(participant)) {
                 dropSouthFlag(participant);
@@ -265,10 +283,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
                 .map(CTFMatchParticipant::getPlayer)
                 .collect(Collectors.toSet());
     }
-
-
-
-
+    
     private void dropSouthFlag(Participant northParticipant) {
         context.getSouthTeam().sendMessage(Component.empty()
                 .append(Component.text("Your flag was dropped"))
@@ -538,9 +553,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         context.setSouthFlagPosition(arena.southFlag());
         BlockPlacementUtils.placeFlag(context.getSouthBanner(), context.getSouthFlagPosition(), BlockFace.NORTH);
     }
-
-
+    
     // South participant move end
-
-
+    
 }

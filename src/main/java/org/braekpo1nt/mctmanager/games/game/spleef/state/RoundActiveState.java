@@ -30,6 +30,10 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
         super(context);
         this.decayManager = new DecayManager(context.getPlugin(), context.getConfig(), this);
         this.powerupManager = new PowerupManager(context.getPlugin(), context.getConfig());
+    }
+    
+    @Override
+    public void enter() {
         for (SpleefParticipant participant : context.getParticipants().values()) {
             giveTool(participant);
             participant.setAlive(true);
@@ -39,6 +43,11 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
         decayManager.setAlivePercent(1.0);
         decayManager.start();
         powerupManager.start(context.getParticipants().values());
+    }
+    
+    @Override
+    public void exit() {
+        // do nothing
     }
     
     @Override

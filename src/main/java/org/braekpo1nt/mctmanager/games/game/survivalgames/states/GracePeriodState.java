@@ -61,9 +61,7 @@ public class GracePeriodState extends RoundActiveState {
     
     @Override
     public void exit() {
-        if (gracePeriodTimer != null) {
-            gracePeriodTimer.cancel();
-        }
+        Timer.cancel(gracePeriodTimer);
         super.exit();
     }
     
