@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushParticipant;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * After the timer has reached the grace period limit, or at least one
@@ -16,9 +17,15 @@ import org.jetbrains.annotations.NotNull;
  */
 public class GracePeriodState extends GameplayState {
     
+    private @Nullable Timer timer;
+    
     public GracePeriodState(@NotNull FarmRushGame context) {
         super(context);
-        context.getTimerManager().start(Timer.builder()
+    }
+    
+    @Override
+    public void enter() {
+        timer = context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getGracePeriodDuration())
                 .withSidebar(context.getSidebar(), "timer")
                 .withSidebar(context.getAdminSidebar(), "timer")
@@ -27,6 +34,11 @@ public class GracePeriodState extends GameplayState {
                 .timerColor(NamedTextColor.RED)
                 .onCompletion(() -> context.setState(new GameOverState(context)))
                 .build());
+    }
+    
+    @Override
+    public void exit() {
+        Timer.cancel(timer);
     }
     
     @Override

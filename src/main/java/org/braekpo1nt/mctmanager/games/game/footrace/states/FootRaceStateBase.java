@@ -14,7 +14,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class FootRaceStateBase implements FootRaceState {
+public abstract class FootRaceStateBase implements FootRaceState {
     
     protected final @NotNull FootRaceGame context;
     

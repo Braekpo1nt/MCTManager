@@ -11,10 +11,18 @@ import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.GameMode;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class RoundOverState extends ColossalCombatStateBase {
+    
+    private @Nullable Timer timer;
+    
     public RoundOverState(@NotNull ColossalCombatGame context) {
         super(context);
+    }
+    
+    @Override
+    public void enter() {
         for (ColossalParticipant participant : context.getParticipants().values()) {
             if (participant.getAffiliation() != Affiliation.SPECTATOR) {
                 participant.setGameMode(GameMode.SPECTATOR);
@@ -25,7 +33,7 @@ public class RoundOverState extends ColossalCombatStateBase {
             }
         }
         context.titleAllParticipants(UIUtils.roundOverTitle());
-        context.getTimerManager().start(Timer.builder()
+        timer = context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getRoundOverDuration())
                 .withTopbar(context.getTopbar())
                 .withSidebar(context.getAdminSidebar(), "timer")
@@ -34,6 +42,11 @@ public class RoundOverState extends ColossalCombatStateBase {
                     context.setState(new PreRoundState(context));
                 })
                 .build());
+    }
+    
+    @Override
+    public void exit() {
+        Timer.cancel(timer);
     }
     
     @Override

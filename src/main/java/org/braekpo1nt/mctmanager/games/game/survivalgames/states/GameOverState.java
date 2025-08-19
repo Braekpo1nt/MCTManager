@@ -46,9 +46,7 @@ public class GameOverState extends SurvivalGamesStateBase {
     
     @Override
     public void exit() {
-        if (timer != null) {
-            timer.cancel();
-        }
+        Timer.cancel(timer);
     }
     
     @Override

@@ -24,6 +24,16 @@ public interface DoNothingState<P extends ParticipantData, T extends ScoredTeamD
     }
     
     @Override
+    default void exit() {
+        
+    }
+    
+    @Override
+    default void enter() {
+        
+    }
+    
+    @Override
     default void onTeamRejoin(T team) {
         
     }

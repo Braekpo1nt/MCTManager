@@ -107,6 +107,22 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
         start(newParticipants);
     }
     
+    @Override
+    public void enter() {
+        // do nothing
+    }
+    
+    @Override
+    public void exit() {
+        // do nothing
+    }
+    
+    public void setState(@NotNull CaptureTheFlagMatchState state) {
+        this.state.exit();
+        this.state = state;
+        this.state.enter();
+    }
+    
     public void nextState() {
         state.nextState();
     }

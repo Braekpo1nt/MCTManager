@@ -24,6 +24,10 @@ public class SuddenDeathState extends GameplayState {
     
     public SuddenDeathState(@NotNull ColossalCombatGame context) {
         super(context);
+    }
+    
+    @Override
+    public void enter() {
         context.titleAllParticipants(UIUtils.defaultTitle(
                 Component.empty()
                         .append(Component.text("Sudden Death"))
@@ -35,6 +39,13 @@ public class SuddenDeathState extends GameplayState {
         context.messageAllParticipants(config.getFlagSpawnMessage());
         flagPosition = config.getFlagLocation();
         BlockPlacementUtils.placeFlag(config.getFlagMaterial(), flagPosition, config.getInitialFlagDirection());
+    }
+    
+    @Override
+    public void exit() {
+        if (flagPosition != null) {
+            flagPosition.getBlock().setType(Material.AIR);
+        }
     }
     
     @Override

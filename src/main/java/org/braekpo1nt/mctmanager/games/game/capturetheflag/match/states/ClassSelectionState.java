@@ -26,6 +26,18 @@ public class ClassSelectionState extends CaptureTheFlagMatchStateBase {
     }
     
     @Override
+    public void enter() {
+        northClassPicker.start();
+        southClassPicker.start();
+    }
+    
+    @Override
+    public void exit() {
+        northClassPicker.stop(false);
+        southClassPicker.stop(false);
+    }
+    
+    @Override
     public void nextState() {
         northClassPicker.stop(true);
         southClassPicker.stop(true);

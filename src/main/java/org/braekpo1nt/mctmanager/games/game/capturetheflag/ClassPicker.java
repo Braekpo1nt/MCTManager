@@ -19,6 +19,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -27,6 +28,7 @@ public class ClassPicker implements Listener {
     private final Component NETHER_STAR_NAME = Component.text("Pick a class");
     
     private final Map<UUID, String> pickedBattleClasses = new HashMap<>();
+    private final Main plugin;
     private final Map<UUID, Participant> teamMates;
     private final Map<UUID, ChestGui> guis;
     private final Map<String, Loadout> loadouts;
@@ -38,12 +40,16 @@ public class ClassPicker implements Listener {
             Collection<T> newTeamMates,
             @NotNull Color leatherColor,
             Map<String, Loadout> loadouts) {
+        this.plugin = plugin;
         this.teamMates = new HashMap<>(newTeamMates.size());
         this.guis = new HashMap<>(newTeamMates.size());
         this.loadouts = new HashMap<>(loadouts);
         this.leatherColor = leatherColor;
         this.battleClassGuiItems = createGuiItems();
-        for (Participant teamMate : newTeamMates) {
+    }
+    
+    public void start() {
+        for (Participant teamMate : teamMates.values()) {
             this.teamMates.put(teamMate.getUniqueId(), teamMate);
             ChestGui gui = createGui();
             this.guis.put(teamMate.getUniqueId(), gui);

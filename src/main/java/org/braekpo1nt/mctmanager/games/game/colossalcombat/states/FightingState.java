@@ -22,4 +22,14 @@ public class FightingState extends GameplayState {
             context.setState(new SuddenDeathCountdownState(context));
         }
     }
+    
+    @Override
+    public void enter() {
+        // do nothing
+    }
+    
+    @Override
+    public void exit() {
+        // do nothing
+    }
 }

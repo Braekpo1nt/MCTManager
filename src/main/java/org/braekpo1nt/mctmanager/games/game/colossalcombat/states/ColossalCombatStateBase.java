@@ -15,7 +15,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class ColossalCombatStateBase implements ColossalCombatState {
+public abstract class ColossalCombatStateBase implements ColossalCombatState {
     protected final @NotNull ColossalCombatGame context;
     
     public ColossalCombatStateBase(@NotNull ColossalCombatGame context) {

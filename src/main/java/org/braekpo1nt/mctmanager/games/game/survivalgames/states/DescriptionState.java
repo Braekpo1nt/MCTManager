@@ -40,8 +40,6 @@ public class DescriptionState extends OnPlatformsState {
     
     @Override
     public void exit() {
-        if (timer != null) {
-            timer.cancel();
-        }
+        Timer.cancel(timer);
     }
 }

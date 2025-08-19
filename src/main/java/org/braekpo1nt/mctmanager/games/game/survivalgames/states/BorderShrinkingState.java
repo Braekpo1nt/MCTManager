@@ -78,9 +78,7 @@ public class BorderShrinkingState extends RoundActiveState {
     
     @Override
     public void exit() {
-        if (borderShrinking != null) {
-            borderShrinking.cancel();
-        }
+        Timer.cancel(borderShrinking);
         super.exit();
     }
 }

@@ -14,7 +14,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class ParkourPathwayStateBase implements ParkourPathwayState {
+public abstract class ParkourPathwayStateBase implements ParkourPathwayState {
     
     protected final @NotNull ParkourPathwayGame context;
     
