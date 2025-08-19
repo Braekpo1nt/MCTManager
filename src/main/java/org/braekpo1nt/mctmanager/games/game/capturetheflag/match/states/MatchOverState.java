@@ -9,6 +9,10 @@ public class MatchOverState extends CaptureTheFlagMatchStateBase {
     
     public MatchOverState(CaptureTheFlagMatch context) {
         super(context);
+    }
+    
+    @Override
+    public void enter() {
         for (CTFMatchParticipant participant : context.getParticipants().values()) {
             if (participant.isAlive()) {
                 participant.teleport(context.getConfig().getSpawnObservatory());
@@ -20,6 +24,11 @@ public class MatchOverState extends CaptureTheFlagMatchStateBase {
             }
         }
         context.getMatchIsOver().run();
+    }
+    
+    @Override
+    public void exit() {
+        // do nothing
     }
     
     @Override

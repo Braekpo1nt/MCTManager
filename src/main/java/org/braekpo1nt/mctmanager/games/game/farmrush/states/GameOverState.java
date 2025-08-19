@@ -8,17 +8,24 @@ import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GameOverState extends FarmRushStateBase {
     
+    private @Nullable Timer timer;
+    
     public GameOverState(@NotNull FarmRushGame context) {
         super(context);
+    }
+    
+    @Override
+    public void enter() {
         // TODO: make sure guis are closed
         context.getPowerupManager().stop();
         Audience.audience(context.getParticipants().values().stream().map(Participant::getPlayer).toList()).showTitle(UIUtils.gameOverTitle());
         context.getSidebar().addLine("over", Component.empty());
         context.getAdminSidebar().addLine("over", Component.empty());
-        context.getTimerManager().start(Timer.builder()
+        timer = context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getGameOverDuration())
                 .withSidebar(context.getSidebar(), "over")
                 .withSidebar(context.getAdminSidebar(), "over")
@@ -28,6 +35,11 @@ public class GameOverState extends FarmRushStateBase {
                     context.stop();
                 })
                 .build());
+    }
+    
+    @Override
+    public void exit() {
+        Timer.cancel(timer);
     }
     
     @Override

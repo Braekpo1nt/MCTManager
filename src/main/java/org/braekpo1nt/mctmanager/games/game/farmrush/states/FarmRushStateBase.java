@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 
-public class FarmRushStateBase implements FarmRushState {
+public abstract class FarmRushStateBase implements FarmRushState {
     
     protected final @NotNull FarmRushGame context;
     

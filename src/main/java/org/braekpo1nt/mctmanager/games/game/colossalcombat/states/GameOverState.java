@@ -10,12 +10,20 @@ import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.GameMode;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GameOverState extends ColossalCombatStateBase {
+    
+    private @Nullable Timer timer;
+    
     public GameOverState(@NotNull ColossalCombatGame context) {
         super(context);
+    }
+    
+    @Override
+    public void enter() {
         context.getAdminSidebar().addLine("over", "");
-        context.getTimerManager().start(Timer.builder()
+        timer = context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getGameOverDuration())
                 .withSidebar(context.getAdminSidebar(), "over")
                 .sidebarPrefix(Component.text("Game Over: "))
@@ -25,6 +33,11 @@ public class GameOverState extends ColossalCombatStateBase {
                     context.stop();
                 })
                 .build());
+    }
+    
+    @Override
+    public void exit() {
+        Timer.cancel(timer);
     }
     
     @Override

@@ -18,7 +18,6 @@ import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
-import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.glow.GlowManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.topbar.ManyBattleTopbar;
@@ -104,7 +103,6 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
                             .color(NamedTextColor.RED)));
         }
         start(newTeams, newParticipants, newAdmins);
-        state.enter(); // TODO: remove this when you update the GameBase to include the enter/exit functionality
         Main.logger().info("Started Survival Games");
     }
     
@@ -114,13 +112,6 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
      */
     public BorderStage getCurrentBorderStage() {
         return config.getBorderStages().get(borderStageIndex);
-    }
-    
-    @Override
-    public void setState(@NotNull SurvivalGamesState state) {
-        this.state.exit();
-        this.state = state;
-        this.state.enter();
     }
     
     @Override

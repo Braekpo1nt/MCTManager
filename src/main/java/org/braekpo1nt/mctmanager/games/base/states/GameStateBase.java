@@ -18,6 +18,18 @@ import org.jetbrains.annotations.NotNull;
 public interface GameStateBase<P extends ParticipantData, T extends ScoredTeamData<P>> {
     
     void cleanup();
+
+//    default void enter() {
+//        
+//    }
+//    
+//    default void exit() {
+//        
+//    }
+    
+    void enter();
+    
+    void exit();
     
     // join start
     /**

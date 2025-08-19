@@ -10,15 +10,18 @@ import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushTeam;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DescriptionState extends FarmRushStateBase {
     
+    private @Nullable Timer timer;
+    
     public DescriptionState(@NotNull FarmRushGame context) {
         super(context);
-        startTimer();
     }
     
-    protected void startTimer() {
+    @Override
+    public void enter() {
         context.messageAllParticipants(context.getConfig().getDescription());
         if (context.getConfig().shouldEnforceMaxScore()) {
             context.messageAllParticipants(Component.empty()
@@ -29,13 +32,18 @@ public class DescriptionState extends FarmRushStateBase {
                     .append(Component.text(" points wins!"))
             );
         }
-        context.getTimerManager().start(Timer.builder()
+        timer = context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getDescriptionDuration())
                 .withSidebar(context.getSidebar(), "timer")
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .sidebarPrefix(Component.text("Starting soon: "))
                 .onCompletion(() -> context.setState(new StartingState(context)))
                 .build());
+    }
+    
+    @Override
+    public void exit() {
+        Timer.cancel(timer);
     }
     
     @Override
