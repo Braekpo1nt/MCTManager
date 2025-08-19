@@ -52,7 +52,7 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
     /**
      * Chat toggle management
      */
-    private final Map<UUID, ParkourPathwayConfig.ChatMode> playerChatModes = new HashMap<>();
+    private final Map<UUID, ChatMode> playerChatModes = new HashMap<>();
     private final Map<UUID, Long> chatToggleCooldowns = new HashMap<>();
 
     public ParkourPathwayGame(
@@ -183,7 +183,7 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
      * @param chatItem the chat toggle item to update
      */
     public void updateChatToggleItemLore(Participant participant, ItemStack chatItem) {
-        ParkourPathwayConfig.ChatMode currentMode = playerChatModes.getOrDefault(
+        ChatMode currentMode = playerChatModes.getOrDefault(
                 participant.getUniqueId(), config.getDefaultChatMode());
 
         List<Component> lore;
@@ -239,21 +239,21 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         /**
          * Get current mode and cycle to next
          */
-        ParkourPathwayConfig.ChatMode currentMode = playerChatModes.getOrDefault(playerId, config.getDefaultChatMode());
-        ParkourPathwayConfig.ChatMode newMode;
+        ChatMode currentMode = playerChatModes.getOrDefault(playerId, config.getDefaultChatMode());
+        ChatMode newMode;
 
         switch (currentMode) {
             case ALL:
-                newMode = ParkourPathwayConfig.ChatMode.TEAM;
+                newMode = ChatMode.TEAM;
                 break;
             case TEAM:
-                newMode = ParkourPathwayConfig.ChatMode.OFF;
+                newMode = ChatMode.OFF;
                 break;
             case OFF:
-                newMode = ParkourPathwayConfig.ChatMode.ALL;
+                newMode = ChatMode.ALL;
                 break;
             default:
-                newMode = ParkourPathwayConfig.ChatMode.ALL;
+                newMode = ChatMode.ALL;
         }
 
         /**
@@ -304,7 +304,7 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
      * @param participant the participant to get the chat mode for
      * @return the participant's current chat mode
      */
-    public ParkourPathwayConfig.ChatMode getChatMode(Participant participant) {
+    public ChatMode getChatMode(Participant participant) {
         return playerChatModes.getOrDefault(participant.getUniqueId(), config.getDefaultChatMode());
     }
 

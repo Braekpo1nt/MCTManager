@@ -7,7 +7,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.ChatMode;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.bukkit.Bukkit;
@@ -169,7 +169,7 @@ class ParkourPathwayConfigDTO implements Validatable {
         /**
          * the default chat mode when players join. Defaults to ALL
          */
-        private @Nullable ParkourPathwayConfig.ChatMode defaultMode;
+        private @Nullable ChatMode defaultMode;
         /**
          * The cooldown in seconds between chat mode changes. Defaults to 2.
          */
@@ -204,8 +204,8 @@ class ParkourPathwayConfigDTO implements Validatable {
             );
         }
         
-        public @NotNull ParkourPathwayConfig.ChatMode getDefaultMode() {
-            return (defaultMode != null) ? defaultMode : ParkourPathwayConfig.ChatMode.ALL;
+        public @NotNull ChatMode getDefaultMode() {
+            return (defaultMode != null) ? defaultMode : ChatMode.ALL;
         }
         
         public int getToggleCooldown() {
@@ -366,7 +366,7 @@ class ParkourPathwayConfigDTO implements Validatable {
             builder
                     .chatToggleEnabled(false)
                     .chatToggleItem(new ItemStack(Material.GREEN_DYE))
-                    .defaultChatMode(ParkourPathwayConfig.ChatMode.ALL)
+                    .defaultChatMode(ChatMode.ALL)
                     .chatToggleCooldown(2);
         }
         

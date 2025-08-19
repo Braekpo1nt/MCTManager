@@ -7,7 +7,6 @@ import lombok.ToString;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.ParticipantData;
 import org.braekpo1nt.mctmanager.participant.QuitDataBase;
-import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
 
 @ToString(callSuper = true)
@@ -24,7 +23,7 @@ public class ParkourParticipant extends ParticipantData {
      */
     private int currentPuzzle;
     /**
-     * The index of the checkpoint that the participant is on for their 
+     * The index of the checkpoint that the participant is on for their
      * current puzzle (since each puzzle may have multiple checkpoints)
      */
     private int currentPuzzleCheckpoint;
@@ -33,10 +32,11 @@ public class ParkourParticipant extends ParticipantData {
      */
     private int unusedSkips;
     /**
-     * The skip cooldown in seconds. When this is greater than 0, 
+     * The skip cooldown in seconds. When this is greater than 0,
      * a participant can't use their skip.
      */
     private int skipCooldown;
+    
     
     public ParkourParticipant(@NotNull Participant participant, int score) {
         super(participant, score);
