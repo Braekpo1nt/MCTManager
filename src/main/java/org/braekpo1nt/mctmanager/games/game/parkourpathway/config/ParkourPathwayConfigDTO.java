@@ -26,10 +26,10 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 class ParkourPathwayConfigDTO implements Validatable {
-
+    
     private String version;
     private String world;
-
+    
     /**
      * the larger glass barrier meant to close off all participants from the puzzles until it is time to race. If null, no glass barrier will be created.
      */
@@ -79,19 +79,29 @@ class ParkourPathwayConfigDTO implements Validatable {
     private Scores scores;
     private Durations durations;
     private Component description;
-
+    
     @Data
     @AllArgsConstructor
     static class Skips implements Validatable {
-        /** the number of skips each player gets. 0 or negative means no skips. */
+        /**
+         * the number of skips each player gets. 0 or negative means no skips.
+         */
         private int numOfSkips;
-        /** the item that players interact with to use their skips. Defaults to lapis lazuli */
+        /**
+         * the item that players interact with to use their skips. Defaults to lapis lazuli
+         */
         private @Nullable Material item;
-        /** the display name of the skip item. Defaults to "Skip Puzzle" */
+        /**
+         * the display name of the skip item. Defaults to "Skip Puzzle"
+         */
         private @Nullable Component itemName;
-        /** the lore of the skip item. Defaults to "Right click to skip the current puzzle" */
+        /**
+         * the lore of the skip item. Defaults to "Right click to skip the current puzzle"
+         */
         private @Nullable List<Component> itemLore;
-        /** the number of points to award for unused skips */
+        /**
+         * the number of points to award for unused skips
+         */
         private int unusedSkipScore;
         /**
          * The cooldown in seconds of a skip. Defaults to 1. Must be positive.
@@ -105,22 +115,22 @@ class ParkourPathwayConfigDTO implements Validatable {
          * do the same.
          */
         private int maxSkipPuzzle;
-
+        
         public @NotNull Material getItem() {
             return (item != null) ? item : Material.LAPIS_LAZULI;
         }
-
+        
         public @NotNull Component getItemName() {
             return (itemName != null) ? itemName : Component.text("Skip Puzzle");
         }
-
+        
         public @NotNull List<Component> getItemLore() {
             return (itemLore != null) ? itemLore : List.of(
                     Component.text("Right click to skip"),
                     Component.text("the current puzzle")
             );
         }
-
+        
         @Override
         public void validate(@NotNull Validator validator) {
             if (skipCooldown != null) {
@@ -128,66 +138,80 @@ class ParkourPathwayConfigDTO implements Validatable {
             }
         }
     }
-
+    
     @Data
     @AllArgsConstructor
     static class ChatToggle implements Validatable {
-        /** the item that players interact with to toggle chat modes. Defaults to GREEN_DYE */
+        /**
+         * the item that players interact with to toggle chat modes. Defaults to GREEN_DYE
+         */
         private @Nullable Material item;
-        /** the display name of the chat toggle item. Defaults to "Chat Toggle" */
+        /**
+         * the display name of the chat toggle item. Defaults to "Chat Toggle"
+         */
         private @Nullable Component itemName;
-        /** the lore of the chat toggle item when in ALL mode */
+        /**
+         * the lore of the chat toggle item when in ALL mode
+         */
         private @Nullable List<Component> allChatLore;
-        /** the lore of the chat toggle item when in TEAM mode */
+        /**
+         * the lore of the chat toggle item when in TEAM mode
+         */
         private @Nullable List<Component> teamChatLore;
-        /** the lore of the chat toggle item when in OFF mode */
+        /**
+         * the lore of the chat toggle item when in OFF mode
+         */
         private @Nullable List<Component> offChatLore;
-        /** whether the chat toggle feature is enabled. Defaults to true */
+        /**
+         * whether the chat toggle feature is enabled. Defaults to true
+         */
         private boolean enabled = true;
-        /** the default chat mode when players join. Defaults to ALL */
+        /**
+         * the default chat mode when players join. Defaults to ALL
+         */
         private @Nullable ParkourPathwayConfig.ChatMode defaultMode;
         /**
          * The cooldown in seconds between chat mode changes. Defaults to 2.
          */
         private @Nullable Integer toggleCooldown;
-
+        
         public @NotNull Material getItem() {
             return (item != null) ? item : Material.GREEN_DYE;
         }
-
+        
         public @NotNull Component getItemName() {
             return (itemName != null) ? itemName : Component.text("Chat Toggle");
         }
-
+        
         public @NotNull List<Component> getAllChatLore() {
             return (allChatLore != null) ? allChatLore : List.of(
                     Component.text("Chat Mode: §aAll Players"),
                     Component.text("Right click to change")
             );
         }
-
+        
         public @NotNull List<Component> getTeamChatLore() {
             return (teamChatLore != null) ? teamChatLore : List.of(
                     Component.text("Chat Mode: §eTeam Only"),
                     Component.text("Right click to change")
             );
         }
-
+        
         public @NotNull List<Component> getOffChatLore() {
             return (offChatLore != null) ? offChatLore : List.of(
                     Component.text("Chat Mode: §cDisabled"),
                     Component.text("Right click to change")
             );
         }
-
+        
         public @NotNull ParkourPathwayConfig.ChatMode getDefaultMode() {
             return (defaultMode != null) ? defaultMode : ParkourPathwayConfig.ChatMode.ALL;
         }
-
+        
         public int getToggleCooldown() {
             return (toggleCooldown != null) ? toggleCooldown : 2;
         }
-
+        
         @Override
         public void validate(@NotNull Validator validator) {
             if (toggleCooldown != null) {
@@ -195,9 +219,8 @@ class ParkourPathwayConfigDTO implements Validatable {
             }
         }
     }
-
-
-
+    
+    
     @Override
     public void validate(@NotNull Validator validator) {
         validator.notNull(this.getVersion(), "version");
@@ -218,25 +241,25 @@ class ParkourPathwayConfigDTO implements Validatable {
         validator.validate(this.getDurations().getCheckpointCounter() >= 1, "durations.checkpointCounter (%s) can't be less than 1", this.getDurations().getCheckpointCounter());
         validator.validate(this.getDurations().getCheckpointCounterAlert() >= 1 && this.getDurations().getCheckpointCounter() >= this.getDurations().getCheckpointCounterAlert(), "durations.checkpointCounterAlert (%s) can't be less than 0 or greater than durations.checkpointCounter", this.getDurations().getCheckpointCounterAlert());
         validator.validate(this.getDurations().getGameOver() >= 0, "durations.gameOver can't be negative");
-
+        
         if (skips != null) {
             skips.validate(validator.path("skips"));
         }
-
+        
         if (chatToggle != null) {
             chatToggle.validate(validator.path("chatToggle"));
         }
-
+        
         validator.notNull(this.getPuzzles(), "puzzles");
         validator.validate(this.getPuzzles().size() >= 3, "puzzles must have at least 3 puzzles");
         validatePuzzles(validator);
-
+        
         if (this.getTeamSpawns() != null) {
             validateTeamSpawns(validator);
         }
         validator.notNull(this.getDescription(), "description");
     }
-
+    
     private void validatePuzzles(Validator validator) {
         for (int i = 0; i < puzzles.size(); i++) {
             PuzzleDTO puzzle = puzzles.get(i);
@@ -244,14 +267,14 @@ class ParkourPathwayConfigDTO implements Validatable {
             puzzle.validate(validator.path("puzzles[%d]", i));
             if (i - 1 >= 0) {
                 PuzzleDTO previousPuzzle = puzzles.get(i - 1);
-                for (int j = 0 ; j < puzzle.getCheckPoints().size(); j++) {
+                for (int j = 0; j < puzzle.getCheckPoints().size(); j++) {
                     PuzzleDTO.CheckPointDTO checkPoint = puzzle.getCheckPoints().get(j);
                     validator.validate(previousPuzzle.isInBounds(checkPoint.getDetectionArea()), "at least one entry in puzzles[%s].inBounds must contain puzzles[%s].checkPoints[%s].detectionArea", i - 1, i, j);
                 }
             }
         }
     }
-
+    
     private void validateTeamSpawns(Validator validator) {
         if (this.teamSpawns == null) {
             return;
@@ -266,14 +289,14 @@ class ParkourPathwayConfigDTO implements Validatable {
             validator.validate(firstPuzzle.isInBounds(teamSpawnDTO.getSpawn().toVector()), "teamSpawns[%d].spawn must be contained in at least one of the inBounds boxes of puzzles[0]", i);
         }
     }
-
+    
     ParkourPathwayConfig toConfig() {
         World newWorld = Bukkit.getWorld(this.getWorld());
         Preconditions.checkArgument(newWorld != null, "Could not find world \"%s\"", this.getWorld());
         BoundingBox newGlassBarrier = null;
         if (this.getGlassBarrier() != null) {
             newGlassBarrier = this.getGlassBarrier();
-
+            
         }
         List<TeamSpawn> newTeamSpawns = null;
         if (this.getTeamSpawns() != null) {
@@ -281,7 +304,7 @@ class ParkourPathwayConfigDTO implements Validatable {
         }
         List<Puzzle> newPuzzles = PuzzleDTO.toPuzzles(newWorld, this.getPuzzles());
         Location newStartingLocation = newPuzzles.getFirst().getCheckPoints().getFirst().getRespawn();
-
+        
         ParkourPathwayConfig.ParkourPathwayConfigBuilder builder = ParkourPathwayConfig.builder()
                 .world(newWorld)
                 .startingLocation(newStartingLocation)
@@ -303,7 +326,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .descriptionDuration(this.durations.description)
                 .description(this.description);
-
+        
         // Handle skips
         if (this.skips != null && this.skips.getNumOfSkips() > 0) {
             ItemStack skipItem = new ItemStack(this.skips.getItem());
@@ -325,7 +348,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                     .maxSkipPuzzle(0)
                     .skipItem(new ItemStack(Material.LAPIS_LAZULI));
         }
-
+        
         // Handle chat toggle
         if (this.chatToggle != null && this.chatToggle.isEnabled()) {
             ItemStack chatToggleItem = new ItemStack(this.chatToggle.getItem());
@@ -346,10 +369,10 @@ class ParkourPathwayConfigDTO implements Validatable {
                     .defaultChatMode(ParkourPathwayConfig.ChatMode.ALL)
                     .chatToggleCooldown(2);
         }
-
+        
         return builder.build();
     }
-
+    
     public static ParkourPathwayConfigDTO fromConfig(ParkourPathwayConfig config) {
         ChatToggle chatToggleConfig = null;
         if (config.isChatToggleEnabled()) {
@@ -364,7 +387,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                     config.getChatToggleCooldown()
             );
         }
-
+        
         return ParkourPathwayConfigDTO.builder()
                 .version(Main.VALID_CONFIG_VERSIONS.getLast())
                 .world(config.getWorld().getName())
@@ -395,7 +418,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                 .description(config.getDescription())
                 .build();
     }
-
+    
     @Getter
     @AllArgsConstructor
     @NoArgsConstructor
@@ -409,7 +432,7 @@ class ParkourPathwayConfigDTO implements Validatable {
          */
         private int[] win;
     }
-
+    
     @Getter
     @AllArgsConstructor
     @NoArgsConstructor

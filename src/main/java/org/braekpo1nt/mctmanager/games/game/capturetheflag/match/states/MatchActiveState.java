@@ -15,7 +15,6 @@ import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.LogType;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
@@ -29,10 +28,11 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     
@@ -81,11 +81,11 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
                 .append(reason));
         Audience.audience(context.getParticipants().values()).showTitle(
                 Title.title(
-                    Component.empty()
-                            .append(Component.text("Match Over!"))
-                            .color(NamedTextColor.RED),
-                    reason, 
-                    UIUtils.DEFAULT_TIMES
+                        Component.empty()
+                                .append(Component.text("Match Over!"))
+                                .color(NamedTextColor.RED),
+                        reason,
+                        UIUtils.DEFAULT_TIMES
                 )
         );
         context.setState(new MatchOverState(context));
@@ -202,22 +202,23 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     
     /**
      * Checks if all participants are dead.
+     *
      * @return True if all participants are dead, false if at least one participant is alive
      */
     private boolean allParticipantsAreDead() {
         return context.getParticipants().values().stream().noneMatch(CTFMatchParticipant::isAlive);
     }
-
+    
     @Override
     public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull CTFMatchParticipant participant) {
         if (!participant.isAlive()) {
             return;
         }
-
+        
         participant.setAlive(false);
         event.getDrops().clear();
         event.setDroppedExp(0);
-
+        
         // Handle flag dropping based on affiliation
         
         // new code start
@@ -234,14 +235,14 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
                 dropSouthFlag(participant);
             }
         } else {
-            if (hasNorthFlag(participant)){
+            if (hasNorthFlag(participant)) {
                 dropNorthFlag(participant);
             }
         }
-
+        
         context.updateAliveStatus(participant.getAffiliation());
         context.addDeath(participant);
-
+        
         // Handle killer logic
         Player killerPlayer = participant.getKiller();
         if (killerPlayer != null) {
@@ -250,35 +251,35 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
                 onParticipantGetKill(killer, participant);
             }
         }
-
+        
         // Send filtered death messages
         sendFilteredDeathMessage(event, participant);
-
+        
         // Cancel the original death message to prevent duplicate messages
         event.deathMessage(null);
-
+        
         if (allParticipantsAreDead()) {
             onBothTeamsLose(Component.text("Both teams are dead."));
         }
     }
-
+    
     private void sendFilteredDeathMessage(@NotNull PlayerDeathEvent event, @NotNull CTFMatchParticipant deadParticipant) {
         Component deathMessage = event.deathMessage();
         if (deathMessage == null) {
             return;
         }
-
+        
         // Get match participants and admin players
         Collection<CTFMatchParticipant> matchParticipants = context.getParticipants().values();
-
-        Collection<? > admins = context.getParentContext().getAdmins();
-
+        
+        Collection<?> admins = context.getParentContext().getAdmins();
+        
         // Send to match participants (they only see deaths from their match)
         for (CTFMatchParticipant participant : matchParticipants) {
             participant.sendMessage(deathMessage);
         }
-
-
+        
+        
         Set<Player> participantPlayers = matchParticipants.stream()
                 .map(CTFMatchParticipant::getPlayer)
                 .collect(Collectors.toSet());
@@ -364,6 +365,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     
     /**
      * Returns true if the south flag is dropped on the ground, and the given location's blockLocation is equal to {@link CaptureTheFlagMatch#getSouthFlagPosition()}}
+     *
      * @param location The location to check
      * @return Whether the south flag is dropped and the location is on the south flag
      */
@@ -469,6 +471,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     
     /**
      * Returns true if the north flag is dropped on the ground, and the given location's blockLocation is equal to {@link CaptureTheFlagMatch#getNorthFlagPosition()}
+     *
      * @param location The location to check
      * @return Whether the north flag is dropped and the location is on the north flag
      */
