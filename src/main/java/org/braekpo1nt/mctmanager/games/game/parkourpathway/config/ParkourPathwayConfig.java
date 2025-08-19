@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.bukkit.Location;
@@ -12,7 +13,6 @@ import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
 
 @Data
@@ -55,12 +55,31 @@ public class ParkourPathwayConfig {
      */
     private int skipCooldownDuration;
     private Component description;
-    
+
+    // Chat Toggle Fields
+    /** whether the chat toggle feature is enabled */
+    private boolean chatToggleEnabled;
+    /** the item that players interact with to toggle chat modes */
+    private ItemStack chatToggleItem;
+    /** the default chat mode when players join the game */
+    private ChatMode defaultChatMode;
+    /** the cooldown in seconds between chat mode changes */
+    private int chatToggleCooldown;
+
     public int getPuzzlesSize() {
         return puzzles.size();
     }
-    
+
     public Puzzle getPuzzle(int index) {
         return puzzles.get(index);
+    }
+
+    /**
+     * Enum representing the different chat modes available to players
+     */
+    public enum ChatMode {
+        ALL,    // Can see and send messages to all players
+        TEAM,   // Can only see and send messages to team members
+        OFF     // Cannot see or send any chat messages
     }
 }

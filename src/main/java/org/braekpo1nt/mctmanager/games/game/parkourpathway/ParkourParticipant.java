@@ -7,6 +7,7 @@ import lombok.ToString;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.ParticipantData;
 import org.braekpo1nt.mctmanager.participant.QuitDataBase;
+import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
 
 @ToString(callSuper = true)
