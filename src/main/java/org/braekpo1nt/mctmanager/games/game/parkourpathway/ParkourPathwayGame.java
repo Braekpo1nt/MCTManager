@@ -22,7 +22,6 @@ import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -187,81 +186,6 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         });
     }
     
-    /**
-     * Toggles the chat mode for a participant
-     *
-     * @param participant the participant to toggle chat mode for
-     * @return true if the mode was changed, false if on cooldown
-     */
-    public boolean toggleChatMode(ParkourParticipant participant) {
-        if (!config.isChatToggleEnabled()) {
-            return false;
-        }
-        
-        UUID playerId = participant.getUniqueId();
-        long currentTime = System.currentTimeMillis();
-        long cooldownEnd = participant.getChatToggleCooldown();
-        
-        if (currentTime < cooldownEnd) {
-            long remainingSeconds = (cooldownEnd - currentTime) / 500;
-            participant.sendMessage(Component.text("Chat toggle on cooldown for " + remainingSeconds + " seconds")
-                    .color(NamedTextColor.RED));
-            return false;
-        }
-        
-        /*
-         * Get current mode and cycle to next
-         */
-        ChatMode newMode = switch (participant.getChatMode()) {
-            case ALL -> ChatMode.TEAM;
-            case TEAM -> ChatMode.OFF;
-            case OFF -> ChatMode.ALL;
-            default -> ChatMode.ALL;
-        };
-        
-        /*
-         * Update mode and cooldown
-         */
-        participant.setChatMode(newMode);
-        participant.setChatToggleCooldown(currentTime + (config.getChatToggleCooldown() * 1000L));
-        
-        /*
-         * Update the item in their inventory
-         */
-        ItemStack chatItem = participant.getInventory().getItem(0);
-        if (chatItem != null && chatItem.getType() == config.getChatToggleItem().getType()) {
-            updateChatToggleItemLore(participant, chatItem);
-        }
-        
-        /*
-         * Send confirmation message
-         */
-        String modeText;
-        NamedTextColor modeColor = switch (newMode) {
-            case ALL -> {
-                modeText = "All Players";
-                yield NamedTextColor.GREEN;
-            }
-            case TEAM -> {
-                modeText = "Team Only";
-                yield NamedTextColor.YELLOW;
-            }
-            case OFF -> {
-                modeText = "Disabled";
-                yield NamedTextColor.RED;
-            }
-            default -> {
-                modeText = "Unknown";
-                yield NamedTextColor.GRAY;
-            }
-        };
-        
-        participant.sendMessage(Component.text("Chat mode: ").color(NamedTextColor.GRAY)
-                .append(Component.text(modeText).color(modeColor)));
-        
-        return true;
-    }
-    
     @Override
     protected @NotNull ParkourParticipant.QuitData getQuitData(ParkourParticipant participant) {
         return participant.getQuitData();
@@ -378,21 +302,6 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         return config.getSpectatorBoundary();
     }
     
-    public enum NotificationMode {
-        /**
-         * See everyone's checkpoints
-         */
-        ALL,
-        /**
-         * See only your team's checkpoints
-         */
-        TEAM,
-        /**
-         * See only your own checkpoints
-         */
-        DISABLED
-    }
-    
     @Override
     protected boolean shouldPreventInteractions(@NotNull Material type) {
         return config.getPreventInteractions().contains(type);
@@ -434,7 +343,6 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         /*
          * Check cooldown
          */
-        UUID playerId = player.getUniqueId();
         long now = System.currentTimeMillis();
         long lastToggle = participant.getChatToggleCooldown();
         
@@ -490,23 +398,6 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
             case TEAM -> viewer.sameTeam(achiever); // Only show teammate checkpoints
             default -> false; // Only show your own checkpoints
         };
-    }
-    
-    /**
-     * Helper method to check if two players are on the same team
-     */
-    private boolean areOnSameTeam(UUID player1Id, UUID player2Id) {
-        ParkourParticipant participant1 = getParticipants().get(player1Id);
-        ParkourParticipant participant2 = getParticipants().get(player2Id);
-        
-        if (participant1 == null || participant2 == null) {
-            return false;
-        }
-        
-        String team1 = participant1.getTeamId();
-        String team2 = participant2.getTeamId();
-        
-        return team1.equals(team2);
     }
     
     /**
