@@ -221,15 +221,6 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         
         // Handle flag dropping based on affiliation
         
-        // new code start
-        event.setShowDeathMessages(false);
-        Component deathMessage = event.deathMessage();
-        if (deathMessage != null) {
-            context.messageAllParticipants(deathMessage);
-            context.getParentContext().messageAllParticipants(deathMessage);
-        }
-        // new code stop
-        
         if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
             if (hasSouthFlag(participant)) {
                 dropSouthFlag(participant);
@@ -252,37 +243,18 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
             }
         }
         
-        // Send filtered death messages
-        sendFilteredDeathMessage(event, participant);
-        
-        // Cancel the original death message to prevent duplicate messages
-        event.deathMessage(null);
+        // new code start
+        event.setShowDeathMessages(false);
+        Component deathMessage = event.deathMessage();
+        if (deathMessage != null) {
+            context.messageAllParticipants(deathMessage);
+            context.getParentContext().messageAllParticipants(deathMessage);
+        }
+        // new code stop
         
         if (allParticipantsAreDead()) {
             onBothTeamsLose(Component.text("Both teams are dead."));
         }
-    }
-    
-    private void sendFilteredDeathMessage(@NotNull PlayerDeathEvent event, @NotNull CTFMatchParticipant deadParticipant) {
-        Component deathMessage = event.deathMessage();
-        if (deathMessage == null) {
-            return;
-        }
-        
-        // Get match participants and admin players
-        Collection<CTFMatchParticipant> matchParticipants = context.getParticipants().values();
-        
-        Collection<?> admins = context.getParentContext().getAdmins();
-        
-        // Send to match participants (they only see deaths from their match)
-        for (CTFMatchParticipant participant : matchParticipants) {
-            participant.sendMessage(deathMessage);
-        }
-        
-        
-        Set<Player> participantPlayers = matchParticipants.stream()
-                .map(CTFMatchParticipant::getPlayer)
-                .collect(Collectors.toSet());
     }
     
     private void dropSouthFlag(Participant northParticipant) {
