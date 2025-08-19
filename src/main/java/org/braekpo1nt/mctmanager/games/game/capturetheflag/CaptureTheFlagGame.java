@@ -65,16 +65,6 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
 
     }
 
-    public @NotNull String getTeam(@NotNull UUID uuid) {
-        CTFParticipant participant = participants.get(uuid);
-        if (participant == null) {
-            throw new IllegalArgumentException("Participant with UUID " + uuid + " not found.");
-        }
-        return participant.getTeamId();
-    }
-
-
-
     @Override
     protected @NotNull World getWorld() {
         return config.getWorld();
@@ -237,52 +227,5 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
         }
         state.onParticipantFoodLevelChange(event, participant);
     }
-
-    @EventHandler
-    public void onParticipantDeath(PlayerDeathEvent event) {
-        Player deceased = event.getEntity();
-        Player killer = deceased.getKiller();
-        String deceasedTeam = this.getTeam(deceased.getUniqueId());
-        String killerTeam = (killer != null) ? this.getTeam(killer.getUniqueId()) : null;
-
-        if (deceasedTeam == null) {
-            event.setDeathMessage(null);
-            return;
-        }
-
-        List<MatchPairing> currentRound = roundManager.getCurrentRound();
-        MatchPairing deceasedMatch = RoundManager.getMatchPairing(deceasedTeam, currentRound);
-        List<Player> recipients = new ArrayList<>();
-
-        for (Player online : Bukkit.getOnlinePlayers()) {
-            if (this.getAdmins().contains(online)) {
-                recipients.add(online);
-                continue;
-            }
-
-            String teamId = this.getTeam(online.getUniqueId());
-            if (teamId == null) continue;
-
-            MatchPairing theirMatch = RoundManager.getMatchPairing(teamId, currentRound);
-            if (deceasedMatch != null && theirMatch != null && deceasedMatch.equals(theirMatch)) {
-                recipients.add(online);
-                continue;
-            }
-
-            if (theirMatch == null) { // on deck
-                recipients.add(online);
-            }
-        }
-
-        String message = event.getDeathMessage();
-        event.setDeathMessage(null); // prevent global broadcast
-
-        if (message != null) {
-            Audience.audience(recipients).sendMessage(Component.text(message));
-        }
-    }
-
-
-
 
 }

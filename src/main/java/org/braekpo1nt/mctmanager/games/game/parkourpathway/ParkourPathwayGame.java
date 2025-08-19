@@ -173,7 +173,7 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         }
         ItemStack chatItem = config.getChatToggleItem().clone();
         updateChatToggleItemLore(participant, chatItem);
-        participant.getInventory().setItem(1, chatItem);
+        participant.getInventory().setItem(0, chatItem);
         plugin.getLogger().info("Gave chat toggle item to " + participant.getName() + " in slot 7");
     }
 
@@ -230,7 +230,7 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         long cooldownEnd = chatToggleCooldowns.getOrDefault(playerId, 0L);
 
         if (currentTime < cooldownEnd) {
-            long remainingSeconds = (cooldownEnd - currentTime) / 1000;
+            long remainingSeconds = (cooldownEnd - currentTime) / 500;
             participant.sendMessage(Component.text("Chat toggle on cooldown for " + remainingSeconds + " seconds")
                     .color(NamedTextColor.RED));
             return false;
@@ -265,7 +265,7 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         /**
          * Update the item in their inventory
          */
-        ItemStack chatItem = participant.getInventory().getItem(1);
+        ItemStack chatItem = participant.getInventory().getItem(0);
         if (chatItem != null && chatItem.getType() == config.getChatToggleItem().getType()) {
             updateChatToggleItemLore(participant, chatItem);
         }
@@ -484,7 +484,7 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         long now = System.currentTimeMillis();
         Long lastToggle = chatToggleCooldowns.get(playerId);
 
-        if (lastToggle != null && (now - lastToggle) < (config.getChatToggleCooldown() * 1000)) {
+        if (lastToggle != null && (now - lastToggle) < (config.getChatToggleCooldown() * 500)) {
             /**
              * Still on cooldown
              */
