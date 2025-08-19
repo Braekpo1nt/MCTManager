@@ -452,10 +452,6 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
         ).sendMessage(message);
     }
     
-    public void messageAllSpectators(Component message) {
-        
-    }
-    
     @Override
     public void onParticipantToggleGlide(@NotNull EntityToggleGlideEvent event, CTFParticipant participant) {
         // do nothing
