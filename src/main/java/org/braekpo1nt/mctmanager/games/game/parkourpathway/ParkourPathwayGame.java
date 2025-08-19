@@ -49,11 +49,6 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
     private int statusEffectsTaskId;
     
-    /**
-     * Chat toggle management
-     */
-    private final Map<UUID, Long> chatToggleCooldowns = new HashMap<>();
-    
     public ParkourPathwayGame(
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
@@ -118,10 +113,6 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
     protected void cleanup() {
         plugin.getServer().getScheduler().cancelTask(statusEffectsTaskId);
         openGlassBarrier();
-        /*
-         * Clear chat mode data
-         */
-        chatToggleCooldowns.clear();
     }
     
     @Override
@@ -209,7 +200,7 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         
         UUID playerId = participant.getUniqueId();
         long currentTime = System.currentTimeMillis();
-        long cooldownEnd = chatToggleCooldowns.getOrDefault(playerId, 0L);
+        long cooldownEnd = participant.getChatToggleCooldown();
         
         if (currentTime < cooldownEnd) {
             long remainingSeconds = (cooldownEnd - currentTime) / 500;
@@ -232,7 +223,7 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
          * Update mode and cooldown
          */
         participant.setChatMode(newMode);
-        chatToggleCooldowns.put(playerId, currentTime + (config.getChatToggleCooldown() * 1000L));
+        participant.setChatToggleCooldown(currentTime + (config.getChatToggleCooldown() * 1000L));
         
         /*
          * Update the item in their inventory
@@ -273,7 +264,6 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
     
     @Override
     protected @NotNull ParkourParticipant.QuitData getQuitData(ParkourParticipant participant) {
-        chatToggleCooldowns.remove(participant.getUniqueId());
         return participant.getQuitData();
     }
     
@@ -411,6 +401,10 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
     
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
+        ParkourParticipant participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
+            return;
+        }
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) {
             return;
         }
@@ -443,7 +437,7 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
          */
         UUID playerId = player.getUniqueId();
         long now = System.currentTimeMillis();
-        Long lastToggle = chatToggleCooldowns.get(playerId);
+        Long lastToggle = participant.getChatToggleCooldown();
         
         if (lastToggle != null && (now - lastToggle) < (config.getChatToggleCooldown() * 500)) {
             /*
@@ -470,7 +464,7 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         /*
          * Update cooldown
          */
-        chatToggleCooldowns.put(playerId, now);
+        participant.setChatToggleCooldown(now);
         
         /*
          * Update the item in their hand with new lore

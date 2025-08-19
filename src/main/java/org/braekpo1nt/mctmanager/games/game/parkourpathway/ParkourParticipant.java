@@ -40,6 +40,10 @@ public class ParkourParticipant extends ParticipantData {
      * The current {@link ChatMode} of the participant
      */
     private ChatMode chatMode;
+    /**
+     * The cooldown for switching chat modes
+     */
+    private long chatToggleCooldown;
     
     
     public ParkourParticipant(
@@ -52,6 +56,7 @@ public class ParkourParticipant extends ParticipantData {
         this.currentPuzzleCheckpoint = 0;
         this.unusedSkips = 0;
         this.skipCooldown = 0;
+        this.chatToggleCooldown = 0;
         this.chatMode = chatMode;
     }
     
@@ -62,6 +67,7 @@ public class ParkourParticipant extends ParticipantData {
         this.currentPuzzleCheckpoint = quitData.getCurrentPuzzleCheckpoint();
         this.unusedSkips = quitData.getUnusedSkips();
         this.skipCooldown = 0;
+        this.chatToggleCooldown = 0;
         this.chatMode = quitData.getChatMode();
     }
     
