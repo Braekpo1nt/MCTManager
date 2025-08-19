@@ -5,8 +5,6 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventItemDrop;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
@@ -14,6 +12,8 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.CaptureTheFlag
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.InitialState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -37,16 +37,17 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
     private final RoundManager roundManager;
     private final CaptureTheFlagConfig config;
     
+    
     private final Map<String, CTFTeam> quitTeams = new HashMap<>();
     
     public CaptureTheFlagGame(
             @NotNull Main plugin,
-            @NotNull GameManager gameManager, 
-            @NotNull Component title, 
-            @NotNull CaptureTheFlagConfig config, 
+            @NotNull GameManager gameManager,
+            @NotNull Component title,
+            @NotNull CaptureTheFlagConfig config,
             @NotNull String configFile,
-            @NotNull Collection<Team> newTeams, 
-            @NotNull Collection<Participant> newParticipants, 
+            @NotNull Collection<Team> newTeams,
+            @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
         super(new GameInstanceId(GameType.CAPTURE_THE_FLAG, configFile), plugin, gameManager, title, new InitialState());
         this.config = config;
@@ -58,6 +59,7 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
         start(newTeams, newParticipants, newAdmins);
         updateRoundLine();
         Main.logger().info("Starting Capture the Flag");
+        
     }
     
     @Override
@@ -172,6 +174,7 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
     /**
      * Updates the round line of the sidebar for the given player
      * to reflect the current round and number of total rounds
+     *
      * @param uuid the UUID of the participant/admin to update the round line for
      */
     public void updateRoundLine(UUID uuid) {
@@ -179,8 +182,7 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
                 .append(Component.text("Round "))
                 .append(Component.text(roundManager.getPlayedRounds() + 1))
                 .append(Component.text("/"))
-                .append(Component.text(roundManager.getMaxRounds()))
-                ;
+                .append(Component.text(roundManager.getMaxRounds()));
         sidebar.updateLine(uuid, "round", roundLine);
         adminSidebar.updateLine("round", roundLine);
     }
@@ -194,11 +196,11 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
                 .append(Component.text("Round "))
                 .append(Component.text(roundManager.getPlayedRounds() + 1))
                 .append(Component.text("/"))
-                .append(Component.text(roundManager.getMaxRounds()))
-                ;
+                .append(Component.text(roundManager.getMaxRounds()));
         sidebar.updateLine("round", roundLine);
         adminSidebar.updateLine("round", roundLine);
     }
+    
     
     @Override
     protected void initializeAdminSidebar() {
@@ -220,6 +222,10 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
             return;
         }
         state.onParticipantFoodLevelChange(event, participant);
+    }
+    
+    public void messageOnDeckParticipants(@NotNull Component message) {
+        state.messageOnDeckParticipants(message);
     }
     
 }

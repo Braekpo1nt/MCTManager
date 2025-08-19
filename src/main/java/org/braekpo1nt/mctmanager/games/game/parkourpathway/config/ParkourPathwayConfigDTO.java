@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.bukkit.Bukkit;
@@ -28,6 +29,7 @@ class ParkourPathwayConfigDTO implements Validatable {
     
     private String version;
     private String world;
+    
     /**
      * the larger glass barrier meant to close off all participants from the puzzles until it is time to race. If null, no glass barrier will be created.
      */
@@ -46,18 +48,18 @@ class ParkourPathwayConfigDTO implements Validatable {
     private @Nullable Component teamSpawnsOpenMessage;
     /**
      * The list of puzzles for this parkour game.<br>
-     * The first puzzle is the starting position. Players will be teleported to the 
-     * first puzzle's first checkpoint when they begin (unless there are team spawns, 
-     * see {@link #teamSpawns}), and new players who join mid-game are sent here as well. 
-     * Make sure the first puzzle's inBounds contains the entire area where players are 
+     * The first puzzle is the starting position. Players will be teleported to the
+     * first puzzle's first checkpoint when they begin (unless there are team spawns,
+     * see {@link #teamSpawns}), and new players who join mid-game are sent here as well.
+     * Make sure the first puzzle's inBounds contains the entire area where players are
      * allowed to be while the countdowns are going before the game officially starts.
      * <br>
-     * The last puzzle is considered the finish line 
+     * The last puzzle is considered the finish line
      * (when you reach the checkpoint of the last puzzle, y
      * ou have won the game/beat all the puzzles
      * <br>
      * Each puzzle's inBounds must contain all the checkpoints of the puzzle after it (except the
-     * last puzzle, which is the finish line). Conversely, each puzzle's checkpoints must be 
+     * last puzzle, which is the finish line). Conversely, each puzzle's checkpoints must be
      * contained within the previous puzzle's inBounds (except the first puzzle, which has no
      * previous puzzle). Without this restriction, players would be teleported to the start
      * of their current puzzle before reaching the checkpoint for the next puzzle,
@@ -70,6 +72,10 @@ class ParkourPathwayConfigDTO implements Validatable {
      * Defines the number of skips and the item used to trigger them
      */
     private @Nullable Skips skips;
+    /**
+     * Defines the chat toggle functionality
+     */
+    private @Nullable ChatToggle chatToggle;
     private Scores scores;
     private Durations durations;
     private Component description;
@@ -77,15 +83,25 @@ class ParkourPathwayConfigDTO implements Validatable {
     @Data
     @AllArgsConstructor
     static class Skips implements Validatable {
-        /** the number of skips each player gets. 0 or negative means no skips. */
+        /**
+         * the number of skips each player gets. 0 or negative means no skips.
+         */
         private int numOfSkips;
-        /** the item that players interact with to use their skips. Defaults to lapis lazuli */
+        /**
+         * the item that players interact with to use their skips. Defaults to lapis lazuli
+         */
         private @Nullable Material item;
-        /** the display name of the skip item. Defaults to "Skip Puzzle" */
+        /**
+         * the display name of the skip item. Defaults to "Skip Puzzle"
+         */
         private @Nullable Component itemName;
-        /** the lore of the skip item. Defaults to "Right click to skip the current puzzle" */
+        /**
+         * the lore of the skip item. Defaults to "Right click to skip the current puzzle"
+         */
         private @Nullable List<Component> itemLore;
-        /** the number of points to award for unused skips */
+        /**
+         * the number of points to award for unused skips
+         */
         private int unusedSkipScore;
         /**
          * The cooldown in seconds of a skip. Defaults to 1. Must be positive.
@@ -96,7 +112,7 @@ class ParkourPathwayConfigDTO implements Validatable {
          * will be given points for their remaining unused skips.
          * Values less than zero will allow skips to be used the entire
          * game. Values greater than the number of puzzles will essentially
-         * do the same. 
+         * do the same.
          */
         private int maxSkipPuzzle;
         
@@ -123,6 +139,88 @@ class ParkourPathwayConfigDTO implements Validatable {
         }
     }
     
+    @Data
+    @AllArgsConstructor
+    static class ChatToggle implements Validatable {
+        /**
+         * the item that players interact with to toggle chat modes. Defaults to GREEN_DYE
+         */
+        private @Nullable Material item;
+        /**
+         * the display name of the chat toggle item. Defaults to "Chat Toggle"
+         */
+        private @Nullable Component itemName;
+        /**
+         * the lore of the chat toggle item when in ALL mode
+         */
+        private @Nullable List<Component> allChatLore;
+        /**
+         * the lore of the chat toggle item when in TEAM mode
+         */
+        private @Nullable List<Component> teamChatLore;
+        /**
+         * the lore of the chat toggle item when in OFF mode
+         */
+        private @Nullable List<Component> offChatLore;
+        /**
+         * whether the chat toggle feature is enabled. Defaults to true
+         */
+        private boolean enabled = true;
+        /**
+         * the default chat mode when players join. Defaults to ALL
+         */
+        private @Nullable ParkourPathwayConfig.ChatMode defaultMode;
+        /**
+         * The cooldown in seconds between chat mode changes. Defaults to 2.
+         */
+        private @Nullable Integer toggleCooldown;
+        
+        public @NotNull Material getItem() {
+            return (item != null) ? item : Material.GREEN_DYE;
+        }
+        
+        public @NotNull Component getItemName() {
+            return (itemName != null) ? itemName : Component.text("Chat Toggle");
+        }
+        
+        public @NotNull List<Component> getAllChatLore() {
+            return (allChatLore != null) ? allChatLore : List.of(
+                    Component.text("Chat Mode: §aAll Players"),
+                    Component.text("Right click to change")
+            );
+        }
+        
+        public @NotNull List<Component> getTeamChatLore() {
+            return (teamChatLore != null) ? teamChatLore : List.of(
+                    Component.text("Chat Mode: §eTeam Only"),
+                    Component.text("Right click to change")
+            );
+        }
+        
+        public @NotNull List<Component> getOffChatLore() {
+            return (offChatLore != null) ? offChatLore : List.of(
+                    Component.text("Chat Mode: §cDisabled"),
+                    Component.text("Right click to change")
+            );
+        }
+        
+        public @NotNull ParkourPathwayConfig.ChatMode getDefaultMode() {
+            return (defaultMode != null) ? defaultMode : ParkourPathwayConfig.ChatMode.ALL;
+        }
+        
+        public int getToggleCooldown() {
+            return (toggleCooldown != null) ? toggleCooldown : 2;
+        }
+        
+        @Override
+        public void validate(@NotNull Validator validator) {
+            if (toggleCooldown != null) {
+                validator.validate(toggleCooldown >= 0, "toggleCooldown must be non-negative");
+            }
+        }
+    }
+    
+    
     @Override
     public void validate(@NotNull Validator validator) {
         validator.notNull(this.getVersion(), "version");
@@ -148,10 +246,14 @@ class ParkourPathwayConfigDTO implements Validatable {
             skips.validate(validator.path("skips"));
         }
         
+        if (chatToggle != null) {
+            chatToggle.validate(validator.path("chatToggle"));
+        }
+        
         validator.notNull(this.getPuzzles(), "puzzles");
         validator.validate(this.getPuzzles().size() >= 3, "puzzles must have at least 3 puzzles");
         validatePuzzles(validator);
-    
+        
         if (this.getTeamSpawns() != null) {
             validateTeamSpawns(validator);
         }
@@ -165,7 +267,7 @@ class ParkourPathwayConfigDTO implements Validatable {
             puzzle.validate(validator.path("puzzles[%d]", i));
             if (i - 1 >= 0) {
                 PuzzleDTO previousPuzzle = puzzles.get(i - 1);
-                for (int j = 0 ; j < puzzle.getCheckPoints().size(); j++) {
+                for (int j = 0; j < puzzle.getCheckPoints().size(); j++) {
                     PuzzleDTO.CheckPointDTO checkPoint = puzzle.getCheckPoints().get(j);
                     validator.validate(previousPuzzle.isInBounds(checkPoint.getDetectionArea()), "at least one entry in puzzles[%s].inBounds must contain puzzles[%s].checkPoints[%s].detectionArea", i - 1, i, j);
                 }
@@ -194,6 +296,7 @@ class ParkourPathwayConfigDTO implements Validatable {
         BoundingBox newGlassBarrier = null;
         if (this.getGlassBarrier() != null) {
             newGlassBarrier = this.getGlassBarrier();
+            
         }
         List<TeamSpawn> newTeamSpawns = null;
         if (this.getTeamSpawns() != null) {
@@ -205,7 +308,7 @@ class ParkourPathwayConfigDTO implements Validatable {
         ParkourPathwayConfig.ParkourPathwayConfigBuilder builder = ParkourPathwayConfig.builder()
                 .world(newWorld)
                 .startingLocation(newStartingLocation)
-                .spectatorBoundary(this.spectatorArea == null ? null : 
+                .spectatorBoundary(this.spectatorArea == null ? null :
                         new SpectatorBoundary(this.spectatorArea, newStartingLocation))
                 .teamSpawns(newTeamSpawns)
                 .puzzles(newPuzzles)
@@ -224,6 +327,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                 .descriptionDuration(this.durations.description)
                 .description(this.description);
         
+        // Handle skips
         if (this.skips != null && this.skips.getNumOfSkips() > 0) {
             ItemStack skipItem = new ItemStack(this.skips.getItem());
             skipItem.editMeta(meta -> {
@@ -234,7 +338,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                     .numOfSkips(this.skips.getNumOfSkips())
                     .unusedSkipScore(this.skips.getUnusedSkipScore())
                     .maxSkipPuzzle(this.skips.getMaxSkipPuzzle())
-                    .skipCooldownDuration(this.skips.getSkipCooldown() != null 
+                    .skipCooldownDuration(this.skips.getSkipCooldown() != null
                             ? this.skips.getSkipCooldown() : 1)
                     .skipItem(skipItem);
         } else {
@@ -245,10 +349,45 @@ class ParkourPathwayConfigDTO implements Validatable {
                     .skipItem(new ItemStack(Material.LAPIS_LAZULI));
         }
         
+        // Handle chat toggle
+        if (this.chatToggle != null && this.chatToggle.isEnabled()) {
+            ItemStack chatToggleItem = new ItemStack(this.chatToggle.getItem());
+            // Note: The lore will be updated dynamically based on current chat mode
+            chatToggleItem.editMeta(meta -> {
+                meta.displayName(this.chatToggle.getItemName());
+                meta.lore(this.chatToggle.getAllChatLore()); // Default to ALL mode lore
+            });
+            builder
+                    .chatToggleEnabled(true)
+                    .chatToggleItem(chatToggleItem)
+                    .defaultChatMode(this.chatToggle.getDefaultMode())
+                    .chatToggleCooldown(this.chatToggle.getToggleCooldown());
+        } else {
+            builder
+                    .chatToggleEnabled(false)
+                    .chatToggleItem(new ItemStack(Material.GREEN_DYE))
+                    .defaultChatMode(ParkourPathwayConfig.ChatMode.ALL)
+                    .chatToggleCooldown(2);
+        }
+        
         return builder.build();
     }
     
     public static ParkourPathwayConfigDTO fromConfig(ParkourPathwayConfig config) {
+        ChatToggle chatToggleConfig = null;
+        if (config.isChatToggleEnabled()) {
+            chatToggleConfig = new ChatToggle(
+                    config.getChatToggleItem().getType(),
+                    config.getChatToggleItem().getItemMeta().displayName(),
+                    null, // These would need to be stored separately if you want custom lore per mode
+                    null,
+                    null,
+                    true,
+                    config.getDefaultChatMode(),
+                    config.getChatToggleCooldown()
+            );
+        }
+        
         return ParkourPathwayConfigDTO.builder()
                 .version(Main.VALID_CONFIG_VERSIONS.getLast())
                 .world(config.getWorld().getName())
@@ -257,22 +396,23 @@ class ParkourPathwayConfigDTO implements Validatable {
                 .teamSpawns(config.getTeamSpawns() != null ? TeamSpawnDTO.fromTeamSpawns(config.getTeamSpawns()) : null)
                 .teamSpawnsOpenMessage(config.getTeamSpawnsOpenMessage())
                 .puzzles(PuzzleDTO.fromPuzzles(config.getPuzzles()))
-                .spectatorArea(config.getSpectatorBoundary() == null ? null : 
+                .spectatorArea(config.getSpectatorBoundary() == null ? null :
                         config.getSpectatorBoundary().getArea())
                 .scores(new Scores(config.getCheckpointScore(), config.getWinScore()))
                 .preventInteractions(config.getPreventInteractions())
-                .skips(new Skips(config.getNumOfSkips(), 
-                        config.getSkipItem().getType(), 
-                        config.getSkipItem().getItemMeta().displayName(), 
-                        config.getSkipItem().getItemMeta().lore(), 
-                        config.getUnusedSkipScore(), 
+                .skips(new Skips(config.getNumOfSkips(),
+                        config.getSkipItem().getType(),
+                        config.getSkipItem().getItemMeta().displayName(),
+                        config.getSkipItem().getItemMeta().lore(),
+                        config.getUnusedSkipScore(),
                         config.getSkipCooldownDuration(),
                         config.getMaxSkipPuzzle()))
-                .durations(new Durations(config.getTeamSpawnsDuration(), 
-                        config.getStartingDuration(), 
-                        config.getTimeLimitDuration(), 
-                        config.getMercyRuleDuration(), 
-                        config.getMercyRuleAlertDuration(), 
+                .chatToggle(chatToggleConfig)
+                .durations(new Durations(config.getTeamSpawnsDuration(),
+                        config.getStartingDuration(),
+                        config.getTimeLimitDuration(),
+                        config.getMercyRuleDuration(),
+                        config.getMercyRuleAlertDuration(),
                         config.getGameOverDuration(),
                         config.getDescriptionDuration()))
                 .description(config.getDescription())
@@ -284,11 +424,11 @@ class ParkourPathwayConfigDTO implements Validatable {
     @NoArgsConstructor
     static class Scores {
         /**
-         * points for reaching puzzle checkpoints. for x elements, nth score will be awarded unless n is greater than or equal to x in which case the xth score will be awarded 
+         * points for reaching puzzle checkpoints. for x elements, nth score will be awarded unless n is greater than or equal to x in which case the xth score will be awarded
          */
         private int[] checkpoint;
         /**
-         * points for winning. for x elements, nth score will be awarded unless n is greater than or equal to x in which case the xth score will be awarded 
+         * points for winning. for x elements, nth score will be awarded unless n is greater than or equal to x in which case the xth score will be awarded
          */
         private int[] win;
     }
@@ -311,5 +451,4 @@ class ParkourPathwayConfigDTO implements Validatable {
         private int gameOver;
         private int description = 0;
     }
-    
 }
