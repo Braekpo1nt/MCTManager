@@ -378,20 +378,19 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         return config.getSpectatorBoundary();
     }
     
-    private final Map<UUID, NotificationMode> checkpointNotificationsMode = new HashMap<>();
-    
     public enum NotificationMode {
-        ALL,
         /**
          * See everyone's checkpoints
          */
-        TEAM,
+        ALL,
         /**
          * See only your team's checkpoints
          */
-        DISABLED /*
+        TEAM,
+        /**
          * See only your own checkpoints
          */
+        DISABLED
     }
     
     @Override
@@ -452,15 +451,10 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         event.setCancelled(true);
         
         /*
-         * Get current setting (default is ALL)
-         */
-        NotificationMode currentMode = checkpointNotificationsMode.getOrDefault(playerId, NotificationMode.ALL);
-        
-        /*
          * Cycle to next mode: ALL -> TEAM -> DISABLED -> ALL
          */
-        NotificationMode newMode = getNextNotificationMode(currentMode);
-        checkpointNotificationsMode.put(playerId, newMode);
+        NotificationMode newMode = getNextNotificationMode(participant.getNotificationMode());
+        participant.setNotificationMode(newMode);
         
         /*
          * Update cooldown
@@ -483,28 +477,18 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
     /**
      * Method to check if a player should see a specific checkpoint notification
      */
-    public boolean shouldShowCheckpointNotification(UUID viewerId, UUID achieverId) {
-        NotificationMode viewerMode = checkpointNotificationsMode.getOrDefault(viewerId, NotificationMode.ALL);
-        
+    public boolean shouldShowCheckpointNotification(ParkourParticipant viewer, ParkourParticipant achiever) {
         /*
          * Always show your own checkpoints
          */
-        if (viewerId.equals(achieverId)) {
+        if (viewer.equals(achiever)) {
             return true;
         }
         
-        return switch (viewerMode) {
-            case ALL -> true; /*
-             * Show everyone's checkpoints
-             */
-            case TEAM ->
-            /*
-             * Only show teammate checkpoints
-             */
-                    areOnSameTeam(viewerId, achieverId);
-            default -> false; /*
-             * Only show your own
-             */
+        return switch (viewer.getNotificationMode()) {
+            case ALL -> true; // Show everyone's checkpoints
+            case TEAM -> viewer.sameTeam(achiever); // Only show teammate checkpoints
+            default -> false; // Only show your own checkpoints
         };
     }
     
@@ -528,13 +512,10 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
     /**
      * New method to send messages only to players who want to see this specific checkpoint notification
      */
-    public void messageParticipantsWithNotifications(Component message, UUID achieverId) {
-        for (UUID participantId : getParticipants().keySet()) {
-            if (shouldShowCheckpointNotification(participantId, achieverId)) {
-                Player participant = Bukkit.getPlayer(participantId);
-                if (participant != null) {
-                    participant.sendMessage(message);
-                }
+    public void messageParticipantsWithNotifications(Component message, ParkourParticipant achiever) {
+        for (ParkourParticipant viewer : participants.values()) {
+            if (shouldShowCheckpointNotification(viewer, achiever)) {
+                viewer.sendMessage(message);
             }
         }
     }

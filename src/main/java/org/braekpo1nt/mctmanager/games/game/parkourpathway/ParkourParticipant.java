@@ -44,6 +44,10 @@ public class ParkourParticipant extends ParticipantData {
      * The cooldown for switching chat modes
      */
     private long chatToggleCooldown;
+    /**
+     * The current {@link org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame.NotificationMode} of the participant
+     */
+    private ParkourPathwayGame.NotificationMode notificationMode;
     
     
     public ParkourParticipant(

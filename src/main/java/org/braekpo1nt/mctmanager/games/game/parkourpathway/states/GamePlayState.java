@@ -126,7 +126,7 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
             context.messageParticipantsWithNotifications(Component.empty()
                     .append(participant.displayName())
                     .append(Component.text(" reached checkpoint "))
-                    .append(checkpointNum), participant.getUniqueId());
+                    .append(checkpointNum), participant);
             participant.showTitle(UIUtils.defaultTitle(
                     Component.empty(),
                     Component.empty()
@@ -291,7 +291,7 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
             context.messageParticipantsWithNotifications(Component.empty()
                     .append(participant.displayName())
                     .append(Component.text(" skipped to checkpoint "))
-                    .append(checkpointNum), participant.getUniqueId());
+                    .append(checkpointNum), participant);
             participant.showTitle(UIUtils.defaultTitle(
                     Component.empty(),
                     Component.empty()
