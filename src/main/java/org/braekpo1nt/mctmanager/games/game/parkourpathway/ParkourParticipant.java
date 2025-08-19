@@ -37,22 +37,13 @@ public class ParkourParticipant extends ParticipantData {
      */
     private int skipCooldown;
     /**
-     * The current {@link ChatMode} of the participant
-     */
-    private ChatMode chatMode;
-    /**
-     * The cooldown for switching chat modes
-     */
-    private long chatToggleCooldown;
-    /**
      * The current {@link NotificationMode} of the participant
      */
     private NotificationMode notificationMode;
     
     
     public ParkourParticipant(
-            @NotNull Participant participant, 
-            @NotNull ChatMode chatMode, 
+            @NotNull Participant participant,
             int score) {
         super(participant, score);
         this.finished = false;
@@ -60,8 +51,7 @@ public class ParkourParticipant extends ParticipantData {
         this.currentPuzzleCheckpoint = 0;
         this.unusedSkips = 0;
         this.skipCooldown = 0;
-        this.chatToggleCooldown = 0;
-        this.chatMode = chatMode;
+        this.notificationMode = NotificationMode.ALL;
     }
     
     public ParkourParticipant(@NotNull Participant participant, @NotNull ParkourParticipant.QuitData quitData) {
@@ -71,8 +61,7 @@ public class ParkourParticipant extends ParticipantData {
         this.currentPuzzleCheckpoint = quitData.getCurrentPuzzleCheckpoint();
         this.unusedSkips = quitData.getUnusedSkips();
         this.skipCooldown = 0;
-        this.chatToggleCooldown = 0;
-        this.chatMode = quitData.getChatMode();
+        this.notificationMode = quitData.getNotificationMode();
     }
     
     public QuitData getQuitData() {
@@ -82,7 +71,7 @@ public class ParkourParticipant extends ParticipantData {
                 currentPuzzle,
                 currentPuzzleCheckpoint,
                 unusedSkips,
-                chatMode
+                notificationMode
         );
     }
     
@@ -93,6 +82,6 @@ public class ParkourParticipant extends ParticipantData {
         private final int currentPuzzle;
         private final int currentPuzzleCheckpoint;
         private final int unusedSkips;
-        private final ChatMode chatMode;
+        private final NotificationMode notificationMode;
     }
 }

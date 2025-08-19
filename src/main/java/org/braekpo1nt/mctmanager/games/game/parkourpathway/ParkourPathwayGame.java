@@ -5,12 +5,14 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
+import org.braekpo1nt.mctmanager.games.base.WandsGameBase;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventHungerLoss;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventItemDrop;
+import org.braekpo1nt.mctmanager.games.editor.wand.Wand;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
-import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfig;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.states.RegularDescriptionState;
@@ -26,9 +28,6 @@ import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffect;
@@ -42,7 +41,7 @@ import java.util.*;
 
 @Getter
 @Setter
-public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam, ParkourParticipant.QuitData, ParkourTeam.QuitData, ParkourPathwayState> {
+public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, ParkourTeam, ParkourParticipant.QuitData, ParkourTeam.QuitData, ParkourPathwayState> {
     
     private final ParkourPathwayConfig config;
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
@@ -62,6 +61,30 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         startStatusEffectsTask();
         addListener(new PreventHungerLoss<>(this));
         addListener(new PreventItemDrop<>(this, true));
+        addWand(Wand.<ParkourParticipant>builder()
+                .wandItem(config.getChatToggleItem())
+                .onRightClickAir(((event, participant) -> {
+                    NotificationMode newMode = NotificationMode.cycle(participant.getNotificationMode());
+                    participant.setNotificationMode(newMode);
+                    
+                    // Update the item in their hand with new lore
+                    ItemStack item = event.getItem();
+                    if (item != null) {
+                        item.editMeta(meta -> 
+                                meta.lore(
+                                        NotificationMode.getToggleLore(newMode)
+                                )
+                        );
+                    }
+                    
+                    String status = NotificationMode.getModeName(newMode);
+                    NamedTextColor color = NotificationMode.getModeColor(newMode);
+                    participant.sendMessage(Component.empty()
+                            .append(Component.text("Checkpoint notifications: "))
+                            .append(Component.text(status)).color(color));
+                    return CommandResult.success();
+                }))
+                .build());
         closeGlassBarrier();
         start(newTeams, newParticipants, newAdmins);
     }
@@ -120,9 +143,9 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
          * Initialize chat mode for new participant
          */
         if (config.isChatToggleEnabled()) {
-            return new ParkourParticipant(participant, config.getDefaultChatMode(), 0);
+            return new ParkourParticipant(participant, 0);
         } else {
-            return new ParkourParticipant(participant, ChatMode.ALL, 0);
+            return new ParkourParticipant(participant, 0);
         }
     }
     
@@ -141,49 +164,6 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
             return;
         }
         participant.getInventory().setItem(8, config.getSkipItem().asQuantity(numOfSkips));
-    }
-    
-    /**
-     * Gives the chat toggle item to the participant if enabled
-     *
-     * @param participant the participant to receive the chat toggle item
-     */
-    public void giveChatToggleItem(ParkourParticipant participant) {
-        if (!config.isChatToggleEnabled()) {
-            return;
-        }
-        ItemStack chatItem = config.getChatToggleItem().clone();
-        updateChatToggleItemLore(participant, chatItem);
-        participant.getInventory().setItem(0, chatItem);
-    }
-    
-    /**
-     * Updates the lore of the chat toggle item based on the player's current chat mode
-     *
-     * @param participant the participant whose chat item to update
-     * @param chatItem    the chat toggle item to update
-     */
-    public void updateChatToggleItemLore(ParkourParticipant participant, ItemStack chatItem) {
-        
-        List<Component> lore = switch (participant.getChatMode()) {
-            case ALL -> List.of(
-                    Component.text("Chat Mode: §aAll Players"),
-                    Component.text("Right click to change")
-            );
-            case TEAM -> List.of(
-                    Component.text("Chat Mode: §eTeam Only"),
-                    Component.text("Right click to change")
-            );
-            case OFF -> List.of(
-                    Component.text("Chat Mode: §cDisabled"),
-                    Component.text("Right click to change")
-            );
-            default -> List.of(Component.text("Right click to change"));
-        };
-        
-        chatItem.editMeta(meta -> {
-            meta.lore(lore);
-        });
     }
     
     @Override
@@ -307,81 +287,6 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         return config.getPreventInteractions().contains(type);
     }
     
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        ParkourParticipant participant = participants.get(event.getPlayer().getUniqueId());
-        if (participant == null) {
-            return;
-        }
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) {
-            return;
-        }
-        
-        Player player = event.getPlayer();
-        ItemStack item = event.getItem();
-        
-        /*
-         * Check if they're holding the chat toggle item (Green Dye)
-         */
-        if (item == null || !isNotificationToggleItem(item)) {
-            return;
-        }
-        
-        /*
-         * Check if chat toggle is enabled
-         */
-        if (!config.isChatToggleEnabled()) {
-            return;
-        }
-        /*
-         * Only Participants can use this item.
-         */
-        if (!getParticipants().containsKey(player.getUniqueId())) {
-            return;
-        }
-        
-        /*
-         * Check cooldown
-         */
-        long now = System.currentTimeMillis();
-        long lastToggle = participant.getChatToggleCooldown();
-        
-        if (now - lastToggle < config.getChatToggleCooldown() * 500) {
-            /*
-             * Still on cooldown
-             */
-            return;
-        }
-        
-        /*
-         * Prevent other interactions
-         */
-        event.setCancelled(true);
-        
-        /*
-         * Cycle to next mode: ALL -> TEAM -> DISABLED -> ALL
-         */
-        NotificationMode newMode = getNextNotificationMode(participant.getNotificationMode());
-        participant.setNotificationMode(newMode);
-        
-        /*
-         * Update cooldown
-         */
-        participant.setChatToggleCooldown(now);
-        
-        /*
-         * Update the item in their hand with new lore
-         */
-        updateNotificationToggleItem(player, newMode);
-        
-        /*
-         * Send feedback message
-         */
-        String status = getNotificationModeDisplayName(newMode);
-        NamedTextColor color = getNotificationModeColor(newMode);
-        player.sendMessage(Component.text("Checkpoint notifications: " + status).color(color));
-    }
-    
     /**
      * Method to check if a player should see a specific checkpoint notification
      */
@@ -411,114 +316,4 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
         }
     }
     
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean isNotificationToggleItem(ItemStack item) {
-        ItemStack configItem = config.getChatToggleItem();
-        
-        /*
-         * Check material
-         */
-        if (item.getType() != configItem.getType()) {
-            return false;
-        }
-        
-        /*
-         * Check display name
-         */
-        if (!item.hasItemMeta() || !configItem.hasItemMeta()) {
-            return item.hasItemMeta() == configItem.hasItemMeta();
-        }
-        
-        Component itemName = item.getItemMeta().displayName();
-        Component configName = configItem.getItemMeta().displayName();
-        
-        return Objects.equals(itemName, configName);
-    }
-    
-    private NotificationMode getNextNotificationMode(NotificationMode current) {
-        return switch (current) {
-            case ALL -> NotificationMode.TEAM;
-            case TEAM -> NotificationMode.DISABLED;
-            default -> NotificationMode.ALL;
-        };
-    }
-    
-    private void updateNotificationToggleItem(Player player, NotificationMode mode) {
-        /*
-         * Check main hand first
-         */
-        ItemStack item = player.getInventory().getItemInMainHand();
-        boolean isMainHand = true;
-        
-        if (!isNotificationToggleItem(item)) {
-            /*
-             * Check offhand
-             */
-            item = player.getInventory().getItemInOffHand();
-            isMainHand = false;
-            if (!isNotificationToggleItem(item)) {
-                return;
-            }
-        }
-        
-        List<Component> newLore = getNotificationToggleLore(mode);
-        
-        item.editMeta(meta -> {
-            meta.lore(newLore);
-        });
-        
-        /*
-         * Update the item in inventory
-         */
-        if (isMainHand) {
-            player.getInventory().setItemInMainHand(item);
-        } else {
-            player.getInventory().setItemInOffHand(item);
-        }
-    }
-    
-    private List<Component> getNotificationToggleLore(NotificationMode mode) {
-        return switch (mode) {
-            case ALL -> List.of(
-                    Component.text("Checkpoint Notifications: ").color(NamedTextColor.GRAY)
-                            .append(Component.text("All Players").color(NamedTextColor.GREEN)),
-                    Component.text("You see when anyone").color(NamedTextColor.GRAY),
-                    Component.text("reaches checkpoints").color(NamedTextColor.GRAY),
-                    Component.text("Right click to change").color(NamedTextColor.YELLOW)
-            );
-            case TEAM -> List.of(
-                    Component.text("Checkpoint Notifications: ").color(NamedTextColor.GRAY)
-                            .append(Component.text("Team Only").color(NamedTextColor.BLUE)),
-                    Component.text("You see when you or your").color(NamedTextColor.GRAY),
-                    Component.text("teammates reach checkpoints").color(NamedTextColor.GRAY),
-                    Component.text("Right click to change").color(NamedTextColor.YELLOW)
-            );
-            case DISABLED -> List.of(
-                    Component.text("Checkpoint Notifications: ").color(NamedTextColor.GRAY)
-                            .append(Component.text("Self Only").color(NamedTextColor.RED)),
-                    Component.text("You only see your own").color(NamedTextColor.GRAY),
-                    Component.text("checkpoint progress").color(NamedTextColor.GRAY),
-                    Component.text("Right click to change").color(NamedTextColor.YELLOW)
-            );
-            default -> List.of(Component.text("Right click to change").color(NamedTextColor.YELLOW));
-        };
-    }
-    
-    private String getNotificationModeDisplayName(NotificationMode mode) {
-        return switch (mode) {
-            case ALL -> "All Players";
-            case TEAM -> "Team Only";
-            case DISABLED -> "Self Only";
-            default -> "All Players";
-        };
-    }
-    
-    private NamedTextColor getNotificationModeColor(NotificationMode mode) {
-        return switch (mode) {
-            case ALL -> NamedTextColor.GREEN;
-            case TEAM -> NamedTextColor.BLUE;
-            case DISABLED -> NamedTextColor.RED;
-            default -> NamedTextColor.GREEN;
-        };
-    }
 }
