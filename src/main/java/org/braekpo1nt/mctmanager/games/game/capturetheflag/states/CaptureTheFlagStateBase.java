@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.states;
 
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
-import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFTeam;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
@@ -9,7 +8,6 @@ import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
