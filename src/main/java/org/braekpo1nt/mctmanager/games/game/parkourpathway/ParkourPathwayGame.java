@@ -437,18 +437,19 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
          */
         UUID playerId = player.getUniqueId();
         long now = System.currentTimeMillis();
-        Long lastToggle = participant.getChatToggleCooldown();
+        long lastToggle = participant.getChatToggleCooldown();
         
-        if (lastToggle != null && (now - lastToggle) < (config.getChatToggleCooldown() * 500)) {
+        if (now - lastToggle < config.getChatToggleCooldown() * 500) {
             /*
              * Still on cooldown
              */
             return;
         }
         
-        event.setCancelled(true); /*
+        /*
          * Prevent other interactions
          */
+        event.setCancelled(true);
         
         /*
          * Get current setting (default is ALL)
