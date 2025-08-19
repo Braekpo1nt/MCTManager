@@ -248,7 +248,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         Component deathMessage = event.deathMessage();
         if (deathMessage != null) {
             context.messageAllParticipants(deathMessage);
-            context.getParentContext().messageAllParticipants(deathMessage);
+            context.getParentContext().messageOnDeckParticipants(deathMessage);
         }
         // new code stop
         

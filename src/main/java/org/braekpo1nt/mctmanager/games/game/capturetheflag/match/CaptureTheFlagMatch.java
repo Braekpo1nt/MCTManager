@@ -84,12 +84,12 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
     private Material southBanner;
     
     public CaptureTheFlagMatch(
-            CaptureTheFlagGame parentContext, 
-            Runnable matchIsOver, 
-            MatchPairing matchPairing, 
+            CaptureTheFlagGame parentContext,
+            Runnable matchIsOver,
+            MatchPairing matchPairing,
             Arena arena,
-            @NotNull CTFTeam newNorthTeam, 
-            @NotNull CTFTeam newSouthTeam, 
+            @NotNull CTFTeam newNorthTeam,
+            @NotNull CTFTeam newSouthTeam,
             Collection<CTFParticipant> newParticipants) {
         this.parentContext = parentContext;
         this.matchIsOver = matchIsOver;
@@ -159,16 +159,16 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
         if (participant.getAffiliation() == Affiliation.NORTH) {
             participant.teleport(arena.northSpawn());
             participant.lookAt(
-                    arena.southSpawn().getX(), 
-                    arena.southSpawn().getY(), 
-                    arena.southSpawn().getZ(), 
+                    arena.southSpawn().getX(),
+                    arena.southSpawn().getY(),
+                    arena.southSpawn().getZ(),
                     LookAnchor.EYES);
         } else {
             participant.teleport(arena.southSpawn());
             participant.lookAt(
-                    arena.northSpawn().getX(), 
-                    arena.northSpawn().getY(), 
-                    arena.northSpawn().getZ(), 
+                    arena.northSpawn().getX(),
+                    arena.northSpawn().getY(),
+                    arena.northSpawn().getZ(),
                     LookAnchor.EYES);
         }
     }
@@ -450,6 +450,10 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
         Audience.audience(
                 participants.values()
         ).sendMessage(message);
+    }
+    
+    public void messageAllSpectators(Component message) {
+        
     }
     
     @Override

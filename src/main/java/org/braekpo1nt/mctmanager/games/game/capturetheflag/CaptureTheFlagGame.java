@@ -224,4 +224,8 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
         state.onParticipantFoodLevelChange(event, participant);
     }
     
+    public void messageOnDeckParticipants(@NotNull Component message) {
+        state.messageOnDeckParticipants(message);
+    }
+    
 }
