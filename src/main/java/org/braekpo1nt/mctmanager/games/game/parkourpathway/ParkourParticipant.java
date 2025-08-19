@@ -36,15 +36,23 @@ public class ParkourParticipant extends ParticipantData {
      * a participant can't use their skip.
      */
     private int skipCooldown;
+    /**
+     * The current {@link ChatMode} of the participant
+     */
+    private ChatMode chatMode;
     
     
-    public ParkourParticipant(@NotNull Participant participant, int score) {
+    public ParkourParticipant(
+            @NotNull Participant participant, 
+            @NotNull ChatMode chatMode, 
+            int score) {
         super(participant, score);
         this.finished = false;
         this.currentPuzzle = 0;
         this.currentPuzzleCheckpoint = 0;
         this.unusedSkips = 0;
         this.skipCooldown = 0;
+        this.chatMode = chatMode;
     }
     
     public ParkourParticipant(@NotNull Participant participant, @NotNull ParkourParticipant.QuitData quitData) {
@@ -54,6 +62,7 @@ public class ParkourParticipant extends ParticipantData {
         this.currentPuzzleCheckpoint = quitData.getCurrentPuzzleCheckpoint();
         this.unusedSkips = quitData.getUnusedSkips();
         this.skipCooldown = 0;
+        this.chatMode = quitData.getChatMode();
     }
     
     public QuitData getQuitData() {
@@ -62,7 +71,8 @@ public class ParkourParticipant extends ParticipantData {
                 finished,
                 currentPuzzle,
                 currentPuzzleCheckpoint,
-                unusedSkips
+                unusedSkips,
+                chatMode
         );
     }
     
@@ -73,5 +83,6 @@ public class ParkourParticipant extends ParticipantData {
         private final int currentPuzzle;
         private final int currentPuzzleCheckpoint;
         private final int unusedSkips;
+        private final ChatMode chatMode;
     }
 }

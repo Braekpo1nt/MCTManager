@@ -64,7 +64,7 @@ public class ParkourPathwayConfig {
     /** the default chat mode when players join the game */
     private ChatMode defaultChatMode;
     /** the cooldown in seconds between chat mode changes */
-    private int chatToggleCooldown;
+    private long chatToggleCooldown;
 
     public int getPuzzlesSize() {
         return puzzles.size();

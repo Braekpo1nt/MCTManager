@@ -173,7 +173,7 @@ class ParkourPathwayConfigDTO implements Validatable {
         /**
          * The cooldown in seconds between chat mode changes. Defaults to 2.
          */
-        private @Nullable Integer toggleCooldown;
+        private @Nullable Long toggleCooldown;
         
         public @NotNull Material getItem() {
             return (item != null) ? item : Material.GREEN_DYE;
@@ -208,7 +208,7 @@ class ParkourPathwayConfigDTO implements Validatable {
             return (defaultMode != null) ? defaultMode : ChatMode.ALL;
         }
         
-        public int getToggleCooldown() {
+        public long getToggleCooldown() {
             return (toggleCooldown != null) ? toggleCooldown : 2;
         }
         
