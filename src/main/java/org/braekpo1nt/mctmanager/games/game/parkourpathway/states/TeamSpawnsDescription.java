@@ -34,8 +34,7 @@ public class TeamSpawnsDescription extends ParkourPathwayStateBase {
     public void enter() {
         for (ParkourParticipant participant : context.getParticipants().values()) {
             teamsToSpawns.get(participant.getTeamId()).teleport(participant);
-            // Give chat toggle item to each participant
-            context.giveChatToggleItem(participant);
+            participant.getInventory().addItem(context.getWandItems());
         }
         context.messageAllParticipants(context.getConfig().getDescription());
         timer = context.getTimerManager().start(Timer.builder()
@@ -99,16 +98,14 @@ public class TeamSpawnsDescription extends ParkourPathwayStateBase {
     @Override
     public void onParticipantRejoin(ParkourParticipant participant, ParkourTeam team) {
         super.onParticipantRejoin(participant, team);
+        participant.getInventory().addItem(context.getWandItems());
         teamsToSpawns.get(participant.getTeamId()).teleport(participant);
-        // Give chat toggle item to rejoining participant
-        context.giveChatToggleItem(participant);
     }
     
     @Override
     public void onNewParticipantJoin(ParkourParticipant participant, ParkourTeam team) {
         super.onNewParticipantJoin(participant, team);
+        participant.getInventory().addItem(context.getWandItems());
         teamsToSpawns.get(participant.getTeamId()).teleport(participant);
-        // Give chat toggle item to new participant
-        context.giveChatToggleItem(participant);
     }
 }

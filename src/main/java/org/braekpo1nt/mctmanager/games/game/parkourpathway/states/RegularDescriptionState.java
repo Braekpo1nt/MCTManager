@@ -20,8 +20,7 @@ public class RegularDescriptionState extends ParkourPathwayStateBase {
     public void enter() {
         for (ParkourParticipant participant : context.getParticipants().values()) {
             participant.teleport(context.getConfig().getStartingLocation());
-            // Give chat toggle item to each participant
-            context.giveChatToggleItem(participant);
+            participant.getInventory().addItem(context.getWandItems());
         }
         context.messageAllParticipants(context.getConfig().getDescription());
         timer = context.getTimerManager().start(Timer.builder()
@@ -43,12 +42,14 @@ public class RegularDescriptionState extends ParkourPathwayStateBase {
     @Override
     public void onParticipantRejoin(ParkourParticipant participant, ParkourTeam team) {
         super.onParticipantRejoin(participant, team);
+        participant.getInventory().addItem(context.getWandItems());
         participant.teleport(context.getConfig().getStartingLocation());
     }
     
     @Override
     public void onNewParticipantJoin(ParkourParticipant participant, ParkourTeam team) {
         super.onNewParticipantJoin(participant, team);
+        participant.getInventory().addItem(context.getWandItems());
         participant.teleport(context.getConfig().getStartingLocation());
     }
 }
