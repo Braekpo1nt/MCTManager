@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.parkourpathway;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
@@ -281,7 +282,9 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
     }
     
     /**
-     * Method to check if a player should see a specific checkpoint notification
+     * Method to check if the viewer should see the checkpoint notification from the achiever
+     * @param viewer the participant who may or may not see this notification
+     * @param achiever the participant who reached a checkpoint
      */
     public boolean shouldShowCheckpointNotification(ParkourParticipant viewer, ParkourParticipant achiever) {
         /*
@@ -299,14 +302,16 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
     }
     
     /**
-     * New method to send messages only to players who want to see this specific checkpoint notification
+     * New method to send messages only to participants who want to see this achiever's
+     * checkpoint notification
+     * @param message the message to send
+     * @param achiever the participant who reached a checkpoint, and is sending this notification
      */
     public void messageParticipantsWithNotifications(Component message, ParkourParticipant achiever) {
-        for (ParkourParticipant viewer : participants.values()) {
-            if (shouldShowCheckpointNotification(viewer, achiever)) {
-                viewer.sendMessage(message);
-            }
-        }
+        Audience.audience(
+                participants.values().stream()
+                        .filter(viewer -> shouldShowCheckpointNotification(viewer, achiever))
+                        .toList()
+        ).sendMessage(message);
     }
-    
 }
