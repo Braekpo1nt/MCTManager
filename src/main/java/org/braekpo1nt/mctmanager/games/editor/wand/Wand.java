@@ -7,11 +7,13 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.event.Event;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,11 +21,19 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
 @SuppressWarnings("UnusedReturnValue")
 public class Wand<T extends Audience> {
+    
+    /**
+     * Used to retrieve the persistent data of a given wand's UUID
+     */
+    public static final NamespacedKey WAND_ID = new NamespacedKey("mctmanager", "wand_uuid");
+    
+    protected final @NotNull String uuid;
     
     @Getter
     protected final @NotNull ItemStack wandItem;
@@ -82,6 +92,8 @@ public class Wand<T extends Audience> {
             boolean shouldNotDrop
             ) {
         this.wandItem = Objects.requireNonNull(wandItem, "wandItem can't be null");
+        this.uuid = UUID.randomUUID().toString();
+        this.wandItem.editMeta(meta -> meta.getPersistentDataContainer().set(WAND_ID, PersistentDataType.STRING, uuid));
         this.onInteract = (onInteract != null) ? onInteract : (event, user) -> CommandResult.success();
         this.onRightClick = (onRightClick != null) ? onRightClick : (event, user) -> CommandResult.success();
         this.onRightClickAir = (onRightClickAir != null) ? onRightClickAir : (event, user) -> CommandResult.success();
@@ -122,9 +134,12 @@ public class Wand<T extends Audience> {
     
     @Contract("null -> false")
     public boolean isWandItem(@Nullable ItemStack item) {
-        return item != null 
-                && item.getType().equals(wandItem.getType()) 
-                && item.getItemMeta().equals(wandItem.getItemMeta());
+        return item != null
+                && item.getType().equals(wandItem.getType())
+                && Objects.equals(
+                        item.getItemMeta().getPersistentDataContainer().get(WAND_ID, PersistentDataType.STRING), 
+                        uuid
+                );
     }
     
     /**
