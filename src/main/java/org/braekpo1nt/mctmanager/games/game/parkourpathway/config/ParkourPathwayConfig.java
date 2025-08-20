@@ -11,6 +11,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
@@ -56,13 +57,12 @@ public class ParkourPathwayConfig {
     private Component description;
 
     // Chat Toggle Fields
-    /** whether the chat toggle feature is enabled */
-    private boolean chatToggleEnabled;
-    /** the item that players interact with to toggle chat modes */
-    private ItemStack chatToggleItem;
-    /** the cooldown in seconds between chat mode changes */
-    private long chatToggleCooldown;
-
+    private @NotNull Material notificationToggleMaterial;
+    private @NotNull Component notificationToggleName;
+    private @NotNull List<Component> notificationToggleLoreALL;
+    private @NotNull List<Component> notificationToggleLoreTEAM;
+    private @NotNull List<Component> notificationToggleLoreDISABLED;
+    
     public int getPuzzlesSize() {
         return puzzles.size();
     }

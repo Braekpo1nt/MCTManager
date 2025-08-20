@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 import com.google.common.base.Preconditions;
 import lombok.*;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
@@ -74,7 +75,7 @@ class ParkourPathwayConfigDTO implements Validatable {
     /**
      * Defines the chat toggle functionality
      */
-    private @Nullable ChatToggle chatToggle;
+    private @Nullable ParkourPathwayConfigDTO.Notifications notificationToggle;
     private Scores scores;
     private Durations durations;
     private Component description;
@@ -139,75 +140,69 @@ class ParkourPathwayConfigDTO implements Validatable {
     }
     
     @Data
-    @AllArgsConstructor
-    static class ChatToggle implements Validatable {
+    @Builder
+    static class Notifications implements Validatable {
         /**
-         * the item that players interact with to toggle chat modes. Defaults to GREEN_DYE
+         * the item that players interact with to toggle notification modes. Defaults to GREEN_DYE
          */
-        private @Nullable Material item;
+        private Material item;
         /**
-         * the display name of the chat toggle item. Defaults to "Chat Toggle"
+         * the display name of the notification toggle item. Defaults to "Chat Toggle"
          */
-        private @Nullable Component itemName;
+        private Component itemName;
         /**
-         * the lore of the chat toggle item when in ALL mode
+         * the lore of the notification toggle item when in 
+         * {@link org.braekpo1nt.mctmanager.games.game.parkourpathway.NotificationMode#ALL} mode
          */
-        private @Nullable List<Component> allChatLore;
+        private List<Component> allLore;
         /**
-         * the lore of the chat toggle item when in TEAM mode
+         * the lore of the notification toggle item when in 
+         * {@link org.braekpo1nt.mctmanager.games.game.parkourpathway.NotificationMode#TEAM} mode
          */
-        private @Nullable List<Component> teamChatLore;
+        private List<Component> teamOnlyLore;
         /**
-         * the lore of the chat toggle item when in OFF mode
+         * the lore of the notification toggle item when in 
+         * {@link org.braekpo1nt.mctmanager.games.game.parkourpathway.NotificationMode#DISABLED} mode
          */
-        private @Nullable List<Component> offChatLore;
-        /**
-         * whether the chat toggle feature is enabled. Defaults to true
-         */
-        private boolean enabled = true;
-        /**
-         * The cooldown in seconds between chat mode changes. Defaults to 2.
-         */
-        private @Nullable Long toggleCooldown;
-        
-        public @NotNull Material getItem() {
-            return (item != null) ? item : Material.GREEN_DYE;
-        }
-        
-        public @NotNull Component getItemName() {
-            return (itemName != null) ? itemName : Component.text("Chat Toggle");
-        }
-        
-        public @NotNull List<Component> getAllChatLore() {
-            return (allChatLore != null) ? allChatLore : List.of(
-                    Component.text("Chat Mode: §aAll Players"),
-                    Component.text("Right click to change")
-            );
-        }
-        
-        public @NotNull List<Component> getTeamChatLore() {
-            return (teamChatLore != null) ? teamChatLore : List.of(
-                    Component.text("Chat Mode: §eTeam Only"),
-                    Component.text("Right click to change")
-            );
-        }
-        
-        public @NotNull List<Component> getOffChatLore() {
-            return (offChatLore != null) ? offChatLore : List.of(
-                    Component.text("Chat Mode: §cDisabled"),
-                    Component.text("Right click to change")
-            );
-        }
-        
-        public long getToggleCooldown() {
-            return (toggleCooldown != null) ? toggleCooldown : 2;
-        }
+        private List<Component> selfOnlyLore;
         
         @Override
         public void validate(@NotNull Validator validator) {
-            if (toggleCooldown != null) {
-                validator.validate(toggleCooldown >= 0, "toggleCooldown must be non-negative");
-            }
+            validator.notNull(item, "item");
+            validator.notNull(itemName, "itemName");
+            validator.notNull(allLore, "allLore");
+            validator.notNull(teamOnlyLore, "teamOnlyLore");
+            validator.notNull(selfOnlyLore, "selfOnlyLore");
+        }
+        
+        public static List<Component> defaultALLLore() {
+            return List.of(
+                    Component.text("Checkpoint Notifications: ").color(NamedTextColor.GRAY)
+                            .append(Component.text("All Players").color(NamedTextColor.GREEN)),
+                    Component.text("You see when anyone").color(NamedTextColor.GRAY),
+                    Component.text("reaches checkpoints").color(NamedTextColor.GRAY),
+                    Component.text("Right click to change").color(NamedTextColor.YELLOW)
+            );
+        }
+        
+        public static List<Component> defaultTEAMLore() {
+            return List.of(
+                    Component.text("Checkpoint Notifications: ").color(NamedTextColor.GRAY)
+                            .append(Component.text("Team Only").color(NamedTextColor.BLUE)),
+                    Component.text("You see when you or your").color(NamedTextColor.GRAY),
+                    Component.text("teammates reach checkpoints").color(NamedTextColor.GRAY),
+                    Component.text("Right click to change").color(NamedTextColor.YELLOW)
+            );
+        }
+        
+        public static List<Component> defaultDISABLEDLore() {
+            return List.of(
+                    Component.text("Checkpoint Notifications: ").color(NamedTextColor.GRAY)
+                            .append(Component.text("Self Only").color(NamedTextColor.RED)),
+                    Component.text("You only see your own").color(NamedTextColor.GRAY),
+                    Component.text("checkpoint progress").color(NamedTextColor.GRAY),
+                    Component.text("Right click to change").color(NamedTextColor.YELLOW)
+            );
         }
     }
     
@@ -237,8 +232,8 @@ class ParkourPathwayConfigDTO implements Validatable {
             skips.validate(validator.path("skips"));
         }
         
-        if (chatToggle != null) {
-            chatToggle.validate(validator.path("chatToggle"));
+        if (notificationToggle != null) {
+            notificationToggle.validate(validator.path("notificationToggle"));
         }
         
         validator.notNull(this.getPuzzles(), "puzzles");
@@ -341,40 +336,29 @@ class ParkourPathwayConfigDTO implements Validatable {
         }
         
         // Handle chat toggle
-        if (this.chatToggle != null && this.chatToggle.isEnabled()) {
-            ItemStack chatToggleItem = new ItemStack(this.chatToggle.getItem());
-            // Note: The lore will be updated dynamically based on current chat mode
-            chatToggleItem.editMeta(meta -> {
-                meta.displayName(this.chatToggle.getItemName());
-                meta.lore(this.chatToggle.getAllChatLore()); // Default to ALL mode lore
-            });
+        if (this.notificationToggle != null) {
             builder
-                    .chatToggleEnabled(true)
-                    .chatToggleItem(chatToggleItem)
-                    .chatToggleCooldown(this.chatToggle.getToggleCooldown());
+                    .notificationToggleMaterial(this.notificationToggle.getItem())
+                    .notificationToggleName(this.notificationToggle.getItemName())
+                    .notificationToggleLoreALL(this.notificationToggle.getAllLore())
+                    .notificationToggleLoreTEAM(this.notificationToggle.getTeamOnlyLore())
+                    .notificationToggleLoreDISABLED(this.notificationToggle.getSelfOnlyLore());
         } else {
             builder
-                    .chatToggleEnabled(false)
-                    .chatToggleItem(new ItemStack(Material.GREEN_DYE))
-                    .chatToggleCooldown(2);
+                    .notificationToggleMaterial(Material.GREEN_DYE)
+                    .notificationToggleName(Component.text("Chat Mode"))
+                    .notificationToggleLoreALL(Notifications.defaultALLLore())
+                    .notificationToggleLoreTEAM(Notifications.defaultTEAMLore())
+                    .notificationToggleLoreDISABLED(Notifications.defaultDISABLEDLore());
         }
         
         return builder.build();
     }
     
     public static ParkourPathwayConfigDTO fromConfig(ParkourPathwayConfig config) {
-        ChatToggle chatToggleConfig = null;
-        if (config.isChatToggleEnabled()) {
-            chatToggleConfig = new ChatToggle(
-                    config.getChatToggleItem().getType(),
-                    config.getChatToggleItem().getItemMeta().displayName(),
-                    null, // These would need to be stored separately if you want custom lore per mode
-                    null,
-                    null,
-                    true,
-                    config.getChatToggleCooldown()
-            );
-        }
+        Notifications chatToggleConfig = Notifications.builder()
+                
+                .build();
         
         return ParkourPathwayConfigDTO.builder()
                 .version(Main.VALID_CONFIG_VERSIONS.getLast())
@@ -395,7 +379,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                         config.getUnusedSkipScore(),
                         config.getSkipCooldownDuration(),
                         config.getMaxSkipPuzzle()))
-                .chatToggle(chatToggleConfig)
+                .notificationToggle(chatToggleConfig)
                 .durations(new Durations(config.getTeamSpawnsDuration(),
                         config.getStartingDuration(),
                         config.getTimeLimitDuration(),
