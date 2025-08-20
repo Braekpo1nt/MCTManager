@@ -1,12 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway;
 
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public enum NotificationMode {
     /**
@@ -35,41 +29,6 @@ public enum NotificationMode {
             case ALL -> NamedTextColor.GREEN;
             case TEAM -> NamedTextColor.BLUE;
             case DISABLED -> NamedTextColor.RED;
-        };
-    }
-    
-    public static void setNotificationLore(@NotNull ItemStack item, NotificationMode mode) {
-        item.editMeta(meta ->
-                meta.lore(
-                        NotificationMode.getToggleLore(mode)
-                )
-        );
-    }
-    
-    public static List<Component> getToggleLore(NotificationMode mode) {
-        return switch (mode) {
-            case ALL -> List.of(
-                    Component.text("Checkpoint Notifications: ").color(NamedTextColor.GRAY)
-                            .append(Component.text("All Players").color(NamedTextColor.GREEN)),
-                    Component.text("You see when anyone").color(NamedTextColor.GRAY),
-                    Component.text("reaches checkpoints").color(NamedTextColor.GRAY),
-                    Component.text("Right click to change").color(NamedTextColor.YELLOW)
-            );
-            case TEAM -> List.of(
-                    Component.text("Checkpoint Notifications: ").color(NamedTextColor.GRAY)
-                            .append(Component.text("Team Only").color(NamedTextColor.BLUE)),
-                    Component.text("You see when you or your").color(NamedTextColor.GRAY),
-                    Component.text("teammates reach checkpoints").color(NamedTextColor.GRAY),
-                    Component.text("Right click to change").color(NamedTextColor.YELLOW)
-            );
-            case DISABLED -> List.of(
-                    Component.text("Checkpoint Notifications: ").color(NamedTextColor.GRAY)
-                            .append(Component.text("Self Only").color(NamedTextColor.RED)),
-                    Component.text("You only see your own").color(NamedTextColor.GRAY),
-                    Component.text("checkpoint progress").color(NamedTextColor.GRAY),
-                    Component.text("Right click to change").color(NamedTextColor.YELLOW)
-            );
-            default -> List.of(Component.text("Right click to change").color(NamedTextColor.YELLOW));
         };
     }
     

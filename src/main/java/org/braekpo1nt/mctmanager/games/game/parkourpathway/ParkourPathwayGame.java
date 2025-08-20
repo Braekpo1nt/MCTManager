@@ -64,7 +64,10 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
         addListener(new PreventHungerLoss<>(this));
         addListener(new PreventItemDrop<>(this, true));
         this.notificationToggle = addWand(Wand.<ParkourParticipant>builder()
-                .wandItem(config.getChatToggleItem())
+                .wandItem(Wand.createWandItem(
+                        config.getNotificationToggleMaterial(), 
+                        config.getNotificationToggleName(), 
+                        config.getNotificationToggleLoreALL()))
                 .onRightClick(((event, participant) -> {
                     NotificationMode newMode = NotificationMode.cycle(participant.getNotificationMode());
                     participant.setNotificationMode(newMode);
@@ -72,7 +75,7 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
                     // Update the item in their hand with new lore
                     ItemStack item = event.getItem();
                     if (item != null) {
-                        NotificationMode.setNotificationLore(item, newMode);
+                        setNotificationLore(item, newMode);
                     }
                     
                     String status = NotificationMode.getModeName(newMode);
@@ -86,6 +89,22 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
                 .build());
         closeGlassBarrier();
         start(newTeams, newParticipants, newAdmins);
+    }
+    
+    public void setNotificationLore(@NotNull ItemStack item, @NotNull NotificationMode mode) {
+        item.editMeta(meta ->
+                meta.lore(
+                        getToggleLore(mode)
+                )
+        );
+    }
+    
+    private List<Component> getToggleLore(@NotNull NotificationMode mode) {
+        return switch (mode) {
+            case ALL -> config.getNotificationToggleLoreALL();
+            case TEAM -> config.getNotificationToggleLoreTEAM();
+            case DISABLED -> config.getNotificationToggleLoreDISABLED();
+        };
     }
     
     private void closeGlassBarrier() {

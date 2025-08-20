@@ -46,7 +46,7 @@ public abstract class ParkourPathwayStateBase implements ParkourPathwayState {
      */
     private void giveNotificationToggleItem(ParkourParticipant participant) {
         ItemStack wandItem = context.getNotificationToggle().getWandItem().clone();
-        NotificationMode.setNotificationLore(wandItem, participant.getNotificationMode());
+        context.setNotificationLore(wandItem, participant.getNotificationMode());
         participant.getInventory().addItem(wandItem);
     }
     
