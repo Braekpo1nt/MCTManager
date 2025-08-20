@@ -64,7 +64,7 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
         addListener(new PreventItemDrop<>(this, true));
         addWand(Wand.<ParkourParticipant>builder()
                 .wandItem(config.getChatToggleItem())
-                .onRightClickAir(((event, participant) -> {
+                .onRightClick(((event, participant) -> {
                     NotificationMode newMode = NotificationMode.cycle(participant.getNotificationMode());
                     participant.setNotificationMode(newMode);
                     
@@ -82,7 +82,8 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
                     NamedTextColor color = NotificationMode.getModeColor(newMode);
                     participant.sendMessage(Component.empty()
                             .append(Component.text("Checkpoint notifications: "))
-                            .append(Component.text(status)).color(color));
+                            .append(Component.text(status))
+                            .color(color));
                     return CommandResult.success();
                 }))
                 .build());

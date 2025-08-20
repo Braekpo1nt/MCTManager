@@ -71,7 +71,7 @@ public enum NotificationMode {
         return switch (current) {
             case ALL -> TEAM;
             case TEAM -> DISABLED;
-            default -> ALL;
+            case DISABLED -> ALL;
         };
     }
 }
