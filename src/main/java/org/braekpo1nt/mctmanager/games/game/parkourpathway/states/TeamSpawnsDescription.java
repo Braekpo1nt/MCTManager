@@ -98,14 +98,12 @@ public class TeamSpawnsDescription extends ParkourPathwayStateBase {
     @Override
     public void onParticipantRejoin(ParkourParticipant participant, ParkourTeam team) {
         super.onParticipantRejoin(participant, team);
-        participant.getInventory().addItem(context.getWandItems());
         teamsToSpawns.get(participant.getTeamId()).teleport(participant);
     }
     
     @Override
     public void onNewParticipantJoin(ParkourParticipant participant, ParkourTeam team) {
         super.onNewParticipantJoin(participant, team);
-        participant.getInventory().addItem(context.getWandItems());
         teamsToSpawns.get(participant.getTeamId()).teleport(participant);
     }
 }

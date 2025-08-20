@@ -42,14 +42,12 @@ public class RegularDescriptionState extends ParkourPathwayStateBase {
     @Override
     public void onParticipantRejoin(ParkourParticipant participant, ParkourTeam team) {
         super.onParticipantRejoin(participant, team);
-        participant.getInventory().addItem(context.getWandItems());
         participant.teleport(context.getConfig().getStartingLocation());
     }
     
     @Override
     public void onNewParticipantJoin(ParkourParticipant participant, ParkourTeam team) {
         super.onNewParticipantJoin(participant, team);
-        participant.getInventory().addItem(context.getWandItems());
         participant.teleport(context.getConfig().getStartingLocation());
     }
 }
