@@ -2,6 +2,9 @@ package org.braekpo1nt.mctmanager.games.game.parkourpathway;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -33,6 +36,14 @@ public enum NotificationMode {
             case TEAM -> NamedTextColor.BLUE;
             case DISABLED -> NamedTextColor.RED;
         };
+    }
+    
+    public static void setNotificationLore(@NotNull ItemStack item, NotificationMode mode) {
+        item.editMeta(meta ->
+                meta.lore(
+                        NotificationMode.getToggleLore(mode)
+                )
+        );
     }
     
     public static List<Component> getToggleLore(NotificationMode mode) {

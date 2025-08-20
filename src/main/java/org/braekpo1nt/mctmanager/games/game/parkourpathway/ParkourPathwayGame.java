@@ -46,6 +46,7 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
     
     private final ParkourPathwayConfig config;
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
+    private final @NotNull Wand<ParkourParticipant> notificationToggle;
     private int statusEffectsTaskId;
     
     public ParkourPathwayGame(
@@ -62,7 +63,7 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
         startStatusEffectsTask();
         addListener(new PreventHungerLoss<>(this));
         addListener(new PreventItemDrop<>(this, true));
-        addWand(Wand.<ParkourParticipant>builder()
+        this.notificationToggle = addWand(Wand.<ParkourParticipant>builder()
                 .wandItem(config.getChatToggleItem())
                 .onRightClick(((event, participant) -> {
                     NotificationMode newMode = NotificationMode.cycle(participant.getNotificationMode());
@@ -71,11 +72,7 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
                     // Update the item in their hand with new lore
                     ItemStack item = event.getItem();
                     if (item != null) {
-                        item.editMeta(meta -> 
-                                meta.lore(
-                                        NotificationMode.getToggleLore(newMode)
-                                )
-                        );
+                        NotificationMode.setNotificationLore(item, newMode);
                     }
                     
                     String status = NotificationMode.getModeName(newMode);

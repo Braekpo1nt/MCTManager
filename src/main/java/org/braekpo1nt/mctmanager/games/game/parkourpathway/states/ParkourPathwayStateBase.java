@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.states;
 
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.NotificationMode;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourParticipant;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourTeam;
@@ -12,6 +13,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class ParkourPathwayStateBase implements ParkourPathwayState {
@@ -37,11 +39,22 @@ public abstract class ParkourPathwayStateBase implements ParkourPathwayState {
         
     }
     
+    /**
+     * Gives the participant the wand that toggles their notification mode,
+     * with the appropriate metadata
+     * @param participant the participant to give the item to
+     */
+    private void giveNotificationToggleItem(ParkourParticipant participant) {
+        ItemStack wandItem = context.getNotificationToggle().getWandItem().clone();
+        NotificationMode.setNotificationLore(wandItem, participant.getNotificationMode());
+        participant.getInventory().addItem(wandItem);
+    }
+    
     @Override
     public void onParticipantRejoin(ParkourParticipant participant, ParkourTeam team) {
         participant.teleport(context.getConfig().getStartingLocation());
         context.giveBoots(participant);
-        participant.getInventory().addItem(context.getWandItems());
+        giveNotificationToggleItem(participant);
         participant.addPotionEffect(context.getINVISIBILITY());
         context.updateCheckpointSidebar(participant);
     }
@@ -50,7 +63,7 @@ public abstract class ParkourPathwayStateBase implements ParkourPathwayState {
     public void onNewParticipantJoin(ParkourParticipant participant, ParkourTeam team) {
         participant.teleport(context.getConfig().getStartingLocation());
         context.giveBoots(participant);
-        participant.getInventory().addItem(context.getWandItems());
+        giveNotificationToggleItem(participant);
         participant.addPotionEffect(context.getINVISIBILITY());
         context.updateCheckpointSidebar(participant);
     }
