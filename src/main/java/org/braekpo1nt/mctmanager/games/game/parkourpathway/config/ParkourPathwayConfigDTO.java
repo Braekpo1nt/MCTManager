@@ -7,7 +7,6 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.ChatMode;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.bukkit.Bukkit;
@@ -167,10 +166,6 @@ class ParkourPathwayConfigDTO implements Validatable {
          */
         private boolean enabled = true;
         /**
-         * the default chat mode when players join. Defaults to ALL
-         */
-        private @Nullable ChatMode defaultMode;
-        /**
          * The cooldown in seconds between chat mode changes. Defaults to 2.
          */
         private @Nullable Long toggleCooldown;
@@ -202,10 +197,6 @@ class ParkourPathwayConfigDTO implements Validatable {
                     Component.text("Chat Mode: §cDisabled"),
                     Component.text("Right click to change")
             );
-        }
-        
-        public @NotNull ChatMode getDefaultMode() {
-            return (defaultMode != null) ? defaultMode : ChatMode.ALL;
         }
         
         public long getToggleCooldown() {
@@ -360,13 +351,11 @@ class ParkourPathwayConfigDTO implements Validatable {
             builder
                     .chatToggleEnabled(true)
                     .chatToggleItem(chatToggleItem)
-                    .defaultChatMode(this.chatToggle.getDefaultMode())
                     .chatToggleCooldown(this.chatToggle.getToggleCooldown());
         } else {
             builder
                     .chatToggleEnabled(false)
                     .chatToggleItem(new ItemStack(Material.GREEN_DYE))
-                    .defaultChatMode(ChatMode.ALL)
                     .chatToggleCooldown(2);
         }
         
@@ -383,7 +372,6 @@ class ParkourPathwayConfigDTO implements Validatable {
                     null,
                     null,
                     true,
-                    config.getDefaultChatMode(),
                     config.getChatToggleCooldown()
             );
         }

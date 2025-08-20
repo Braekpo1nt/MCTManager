@@ -61,8 +61,6 @@ public class ParkourPathwayConfig {
     private boolean chatToggleEnabled;
     /** the item that players interact with to toggle chat modes */
     private ItemStack chatToggleItem;
-    /** the default chat mode when players join the game */
-    private ChatMode defaultChatMode;
     /** the cooldown in seconds between chat mode changes */
     private long chatToggleCooldown;
 
