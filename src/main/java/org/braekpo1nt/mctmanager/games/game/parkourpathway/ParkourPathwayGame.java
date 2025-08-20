@@ -139,14 +139,7 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
     
     @Override
     protected @NotNull ParkourParticipant createParticipant(Participant participant) {
-        /*
-         * Initialize chat mode for new participant
-         */
-        if (config.isChatToggleEnabled()) {
-            return new ParkourParticipant(participant, 0);
-        } else {
-            return new ParkourParticipant(participant, 0);
-        }
+        return new ParkourParticipant(participant, 0);
     }
     
     @Override
