@@ -696,7 +696,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      */
     public void awardPoints(P participant, int points) {
         int multiplied = (int) (points * gameManager.getMultiplier());
-        participant.awardPoints(multiplied);
+        participant.awardPoints(points);
         T team = teams.get(participant.getTeamId());
         team.addPoints(multiplied);
         displayScore(participant);
