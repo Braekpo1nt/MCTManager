@@ -730,7 +730,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         for (P participant : awardedParticipants) {
             participant.awardPoints(multiplied);
             T team = teams.get(participant.getTeamId());
-            team.addPoints(multiplied);
+            team.addPoints(points);
             awardedTeams.add(team);
         }
         displayParticipantScores(awardedParticipants);
