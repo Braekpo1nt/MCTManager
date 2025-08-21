@@ -49,6 +49,7 @@ public class ClassPicker implements Listener {
     }
     
     public void start() {
+        Main.logf("Started class picker");
         for (Participant teamMate : teamMates.values()) {
             this.teamMates.put(teamMate.getUniqueId(), teamMate);
             ChestGui gui = createGui();
