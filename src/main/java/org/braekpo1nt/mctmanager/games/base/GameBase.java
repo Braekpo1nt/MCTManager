@@ -728,9 +728,9 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         int multiplied = (int) (points * gameManager.getMultiplier());
         Set<T> awardedTeams = new HashSet<>();
         for (P participant : awardedParticipants) {
-            participant.awardPoints(multiplied);
+            participant.awardPoints(points);
             T team = teams.get(participant.getTeamId());
-            team.addPoints(points);
+            team.addPoints(multiplied);
             awardedTeams.add(team);
         }
         displayParticipantScores(awardedParticipants);
