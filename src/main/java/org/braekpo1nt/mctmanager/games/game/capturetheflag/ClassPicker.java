@@ -19,7 +19,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -42,6 +41,9 @@ public class ClassPicker implements Listener {
             Map<String, Loadout> loadouts) {
         this.plugin = plugin;
         this.teamMates = new HashMap<>(newTeamMates.size());
+        for (T teamMate : newTeamMates) {
+            this.teamMates.put(teamMate.getUniqueId(), teamMate);
+        }
         this.guis = new HashMap<>(newTeamMates.size());
         this.loadouts = new HashMap<>(loadouts);
         this.leatherColor = leatherColor;
@@ -49,9 +51,7 @@ public class ClassPicker implements Listener {
     }
     
     public void start() {
-        Main.logf("Started class picker");
         for (Participant teamMate : teamMates.values()) {
-            this.teamMates.put(teamMate.getUniqueId(), teamMate);
             ChestGui gui = createGui();
             this.guis.put(teamMate.getUniqueId(), gui);
             gui.show(teamMate.getPlayer());
