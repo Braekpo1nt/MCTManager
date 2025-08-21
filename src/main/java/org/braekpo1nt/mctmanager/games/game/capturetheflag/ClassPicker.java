@@ -147,11 +147,13 @@ public class ClassPicker implements Listener {
     
     public void stop(boolean assignBattleClasses) {
         HandlerList.unregisterAll(this);
+        ItemStack netherStar = new ItemStack(Material.NETHER_STAR);
+        netherStar.editMeta(meta -> meta.displayName(NETHER_STAR_NAME));
         for (Participant teamMate : teamMates.values()) {
             ChestGui gui = guis.get(teamMate.getUniqueId());
             gui.setOnClose(event -> {});
             gui.getInventory().close();
-            teamMate.getInventory().remove(Material.NETHER_STAR);
+            teamMate.getInventory().removeItemAnySlot(netherStar);
         }
         if (assignBattleClasses) {
             for (Participant teamMate : teamMates.values()) {
