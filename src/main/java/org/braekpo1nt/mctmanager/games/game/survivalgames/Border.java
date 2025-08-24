@@ -46,6 +46,12 @@ public class Border {
      * Defaults to 10s
      */
     private int respawnTime;
+    /**
+     * The time (in seconds) that a participant who just respawned is invincible for
+     * (includes time spent in the air, so choose accordingly)
+     * Defaults to 10s
+     */
+    private int respawnGracePeriodTime;
     private List<BorderStage> stages;
     
     /**

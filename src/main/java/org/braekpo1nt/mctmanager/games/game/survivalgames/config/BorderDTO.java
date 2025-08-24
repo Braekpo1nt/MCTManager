@@ -40,10 +40,18 @@ class BorderDTO implements Validatable {
      */
     private int respawnStages;
     /**
-     * The amount of time it takes for a dead participant to respawn (in seconds)
+     * The amount of time it takes for a dead participant to respawn (in seconds).
+     * Can't be negative.
      * Defaults to 10s
      */
     private @Nullable Integer respawnTime;
+    /**
+     * The time (in seconds) that a participant who just respawned is invincible for
+     * (includes time spent in the air, so choose accordingly). Set it to 0
+     * to have no respawn time. Can't be negative.
+     * Defaults to 10s
+     */
+    private @Nullable Integer respawnGracePeriodTime;
     /** The stages the border should progress through */
     private List<BorderStageDTO> borderStages;
     
@@ -57,6 +65,9 @@ class BorderDTO implements Validatable {
         validator.validate(this.respawnStages <= borderStages.size(), "respawnStages must be less than or equal to the total number of borderStages (%d)", borderStages.size());
         if (this.respawnTime != null) {
             validator.validate(this.respawnTime >= 0, "respawnTime (%s) can't be negative", this.respawnTime);
+        }
+        if (this.respawnGracePeriodTime != null) {
+            validator.validate(this.respawnGracePeriodTime >= 0, "respawnGracePeriodTime (%s) can't be negative", this.respawnGracePeriodTime);
         }
     }
     
@@ -74,6 +85,7 @@ class BorderDTO implements Validatable {
                 .warningTime(warningTime)
                 .respawnStages(respawnStages)
                 .respawnTime(this.respawnTime != null ? this.respawnTime : 10)
+                .respawnGracePeriodTime(this.respawnGracePeriodTime != null ? this.respawnGracePeriodTime : 10)
                 .respawnLocations(respawnLocations != null ? LocationDTO.toLocations(respawnLocations, world) : Collections.emptyList())
                 .stages(BorderStageDTO.toBorderStages(borderStages))
                 .build();
