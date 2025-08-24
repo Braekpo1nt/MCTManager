@@ -108,6 +108,7 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
                                 .color(TimeStringUtils.getColorForTime(p
                                         .getRespawnGracePeriodCountdown())))
         ));
+        p.setRespawnGracePeriodCountdown(p.getRespawnGracePeriodCountdown() - 1);
     }
     
     @Override
