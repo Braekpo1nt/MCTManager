@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
 import org.bukkit.WorldBorder;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -52,6 +53,11 @@ public class Border {
      * Defaults to 10s
      */
     private int respawnGracePeriodTime;
+    /**
+     * The loadout to be given to a participant upon respawning.
+     * Can't be null, can be empty
+     */
+    private @NotNull ItemStack[] respawnLoadout;
     private List<BorderStage> stages;
     
     /**

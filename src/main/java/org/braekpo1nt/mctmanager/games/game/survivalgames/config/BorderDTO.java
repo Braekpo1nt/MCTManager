@@ -2,10 +2,12 @@ package org.braekpo1nt.mctmanager.games.game.survivalgames.config;
 
 import lombok.Data;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.PlayerInventoryDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.Border;
 import org.bukkit.World;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,6 +54,11 @@ class BorderDTO implements Validatable {
      * Defaults to 10s
      */
     private @Nullable Integer respawnGracePeriodTime;
+    /**
+     * The loadout to be given to a participant upon respawning.
+     * Defaults to empty.
+     */
+    private @Nullable PlayerInventoryDTO respawnLoadout;
     /** The stages the border should progress through */
     private List<BorderStageDTO> borderStages;
     
@@ -68,6 +75,9 @@ class BorderDTO implements Validatable {
         }
         if (this.respawnGracePeriodTime != null) {
             validator.validate(this.respawnGracePeriodTime >= 0, "respawnGracePeriodTime (%s) can't be negative", this.respawnGracePeriodTime);
+        }
+        if (this.respawnLoadout != null) {
+            this.respawnLoadout.validate(validator.path("respawnLoadout"));
         }
     }
     
@@ -87,6 +97,7 @@ class BorderDTO implements Validatable {
                 .respawnTime(this.respawnTime != null ? this.respawnTime : 10)
                 .respawnGracePeriodTime(this.respawnGracePeriodTime != null ? this.respawnGracePeriodTime : 10)
                 .respawnLocations(respawnLocations != null ? LocationDTO.toLocations(respawnLocations, world) : Collections.emptyList())
+                .respawnLoadout(this.respawnLoadout != null ? this.respawnLoadout.toInventoryContents() : new ItemStack[0])
                 .stages(BorderStageDTO.toBorderStages(borderStages))
                 .build();
     }
