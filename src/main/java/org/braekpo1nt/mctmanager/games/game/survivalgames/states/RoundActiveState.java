@@ -208,6 +208,7 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
         participant.setRespawnGracePeriodCountdown(config.getBorder().getRespawnGracePeriodTime());
         handleRespawnGracePeriod(participant);
         // grace period end
+        participant.getInventory().setContents(config.getBorder().getRespawnLoadout());
         Location respawn = selectRespawnLocation();
         participant.teleport(respawn);
         participant.setGameMode(GameMode.ADVENTURE);
