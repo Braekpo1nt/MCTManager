@@ -164,9 +164,14 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
     
     @Override
     public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull SurvivalGamesParticipant participant) {
-        if (!participant.isInRespawnGracePeriod()) {
-            return;
+        if (participant.isInRespawnGracePeriod()) {
+            onRespawningParticipantDamage(event, participant);
+        } else {
+            onLivingParticipantDamage(event);
         }
+    }
+    
+    private void onRespawningParticipantDamage(@NotNull EntityDamageEvent event, @NotNull SurvivalGamesParticipant participant) {
         event.setCancelled(true);
         Entity causingEntity = event.getDamageSource().getCausingEntity();
         if (causingEntity == null) {
@@ -179,6 +184,28 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
         damagerParticipant.sendMessage(Component.empty()
                 .append(participant.displayName())
                 .append(Component.text(" just respawned"))
+                .color(NamedTextColor.RED)
+        );
+    }
+    
+    private void onLivingParticipantDamage(@NotNull EntityDamageEvent event) {
+        if (config.getBorder().canAttackWhenRespawning()) {
+            return;
+        }
+        Entity causingEntity = event.getDamageSource().getCausingEntity();
+        if (causingEntity == null) {
+            return;
+        }
+        SurvivalGamesParticipant damagerParticipant = context.getParticipants().get(causingEntity.getUniqueId());
+        if (damagerParticipant == null) {
+            return;
+        }
+        if (!damagerParticipant.isInRespawnGracePeriod()) {
+            return;
+        }
+        event.setCancelled(true);
+        damagerParticipant.sendMessage(Component.empty()
+                .append(Component.text("You just respawned"))
                 .color(NamedTextColor.RED)
         );
     }

@@ -75,6 +75,15 @@ public class Border {
     private List<BorderStage> stages;
     
     /**
+     * If true, a participant in their {@link #respawnGracePeriodTime} can attack other participants.
+     * If false, a participant can't deal damage when in grace period.
+     * Defaults to true.
+     */
+    public boolean canAttackWhenRespawning() {
+        return canAttackWhenRespawning;
+    }
+    
+    /**
      * Assign the values of the given world boarder to this class's values
      * @param worldBorder the world border to initialize
      */
