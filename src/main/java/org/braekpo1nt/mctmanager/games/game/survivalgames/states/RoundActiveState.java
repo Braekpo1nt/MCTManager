@@ -257,22 +257,22 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
      * @return a random respawn location based on the current border stage
      */
     public static Location staticSelectRespawnLocation(double centerX, double centerZ, BorderStage currentBorderStage, List<Location> respawnLocations, Set<Integer> usedRespawnIndexes, Location fallbackLocation, Random random) {
-        List<Integer> validIndexes = currentBorderStage.getLocationIndexesInside(centerX, centerZ, respawnLocations);
-        if (validIndexes.isEmpty()) {
+        List<Integer> indexesInsideBorder = currentBorderStage.getLocationIndexesInside(centerX, centerZ, respawnLocations);
+        if (indexesInsideBorder.isEmpty()) {
             // failsafe, we shouldn't get to this point from a real-world gameplay perspective
             return fallbackLocation;
+        }
+        
+        List<Integer> unusedIndexesInsideBorder = new ArrayList<>(indexesInsideBorder);
+        unusedIndexesInsideBorder.removeAll(usedRespawnIndexes);
+        if (unusedIndexesInsideBorder.isEmpty()) {
+            int chosenIndex = indexesInsideBorder.get(
+                    random.nextInt(indexesInsideBorder.size()));
+            return respawnLocations.get(chosenIndex);
         } else {
-            List<Integer> unusedValidIndexes = new ArrayList<>(validIndexes);
-            unusedValidIndexes.removeAll(usedRespawnIndexes);
-            if (unusedValidIndexes.isEmpty()) {
-                int chosenIndex = validIndexes.get(
-                        random.nextInt(validIndexes.size()));
-                return respawnLocations.get(chosenIndex);
-            } else {
-                int chosenIndex = unusedValidIndexes.get(
-                        random.nextInt(unusedValidIndexes.size()));
-                return respawnLocations.get(chosenIndex);
-            }
+            int chosenIndex = unusedIndexesInsideBorder.get(
+                    random.nextInt(unusedIndexesInsideBorder.size()));
+            return respawnLocations.get(chosenIndex);
         }
     }
     
