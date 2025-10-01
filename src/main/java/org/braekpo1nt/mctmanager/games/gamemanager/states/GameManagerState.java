@@ -459,14 +459,17 @@ public abstract class GameManagerState {
                             .append(participant.displayName())
                             .append(Component.text(": "))
                             .append(Component.text(participantScores.get(participant.getUniqueId()))
-                                    .color(NamedTextColor.GOLD))
-                            .append(Component.text(" ("))
-                            .append(Component.text((int) (participantScores.get(participant.getUniqueId()) / getMultiplier()))
-                                    .color(NamedTextColor.GOLD))
-                            .append(Component.text(" x "))
-                            .append(Component.text(getMultiplier()))
-                            .append(Component.text(")"))
-                            .append(Component.newline());
+                                    .color(NamedTextColor.GOLD));
+                    if (shouldShowMultiplier) {
+                        message
+                                .append(Component.text(" ("))
+                                .append(Component.text((int) (participantScores.get(participant.getUniqueId()) / getMultiplier()))
+                                        .color(NamedTextColor.GOLD))
+                                .append(Component.text(" x "))
+                                .append(Component.text(getMultiplier()))
+                                .append(Component.text(")"))
+                                .append(Component.newline());
+                    }
                     i++;
                 }
             }
