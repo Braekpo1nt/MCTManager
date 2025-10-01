@@ -414,6 +414,7 @@ public abstract class GameManagerState {
         
         everyone.append(Component.text("\nTop 5 Participants:"))
                 .append(Component.newline());
+        boolean shouldShowMultiplier = getMultiplier() != 1.0;
         for (int i = 0; i < Math.min(sortedParticipants.size(), 5); i++) {
             OfflineParticipant participant = sortedParticipants.get(i);
             everyone
@@ -423,14 +424,17 @@ public abstract class GameManagerState {
                     .append(participant.displayName())
                     .append(Component.text(": "))
                     .append(Component.text(participantScores.get(participant.getUniqueId()))
-                            .color(NamedTextColor.GOLD))
-                    .append(Component.text(" ("))
-                    .append(Component.text((int) (participantScores.get(participant.getUniqueId()) / getMultiplier()))
-                            .color(NamedTextColor.GOLD))
-                    .append(Component.text(" x "))
-                    .append(Component.text(getMultiplier()))
-                    .append(Component.text(")"))
-                    .append(Component.newline());
+                            .color(NamedTextColor.GOLD));
+            if (shouldShowMultiplier) {
+                everyone
+                        .append(Component.text(" ("))
+                        .append(Component.text((int) (participantScores.get(participant.getUniqueId()) / getMultiplier()))
+                                .color(NamedTextColor.GOLD))
+                        .append(Component.text(" x "))
+                        .append(Component.text(getMultiplier()))
+                        .append(Component.text(")"))
+                        .append(Component.newline());
+            }
         }
         Audience.audience(
                 Audience.audience(sortedTeams),
