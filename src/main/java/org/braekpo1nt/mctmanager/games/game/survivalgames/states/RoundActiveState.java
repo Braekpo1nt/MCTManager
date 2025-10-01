@@ -316,7 +316,13 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
         addKill(killer);
         UIUtils.showKillTitle(killer, killed);
         if (!killer.getTeamId().equals(killed.getTeamId())) {
-            context.awardPoints(killer, config.getKillScore());
+            if (config.isSuccessiveDeathsGrantPoints()) {
+                context.awardPoints(killer, config.getKillScore());
+            } else {
+                if (killed.getDeaths() < 1) {
+                    context.awardPoints(killer, config.getKillScore());
+                }
+            }
         }
     }
     

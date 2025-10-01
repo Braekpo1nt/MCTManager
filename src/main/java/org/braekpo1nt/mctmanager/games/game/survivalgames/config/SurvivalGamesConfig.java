@@ -38,6 +38,11 @@ public class SurvivalGamesConfig {
     private int gameOverDuration;
     private int roundOverDuration;
     private int killScore;
+    /**
+     * If true, successive deaths grant the killer points. 
+     * If false, only a participants first death grants its killer points.
+     */
+    private boolean successiveDeathsGrantPoints;
     private int surviveTeamScore;
     private int firstPlaceScore;
     private int secondPlaceScore;

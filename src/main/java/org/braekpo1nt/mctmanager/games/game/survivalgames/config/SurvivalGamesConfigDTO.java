@@ -73,7 +73,7 @@ class SurvivalGamesConfigDTO implements Validatable {
      * If true, players will be unable to open any block inventories that aren't spawn chests or map chests. 
      * Defaults to true. 
      */
-    private boolean lockOtherInventories = true;
+    private @Nullable Boolean lockOtherInventories;
     /**
      * If true, containers will be cleared in the {@link SurvivalGamesConfigDTO#removeArea} area. 
      * All chunks found in that area will be searched for blocks with inventories, and those will be cleared.
@@ -81,12 +81,18 @@ class SurvivalGamesConfigDTO implements Validatable {
      * set to true, because players shouldn't be able to put anything in those inventories anyway. 
      * Defaults to true.
      */
-    private boolean shouldClearContainers = true;
+    private @Nullable Boolean shouldClearContainers;
     /**
      * Whether the Topbar should show the death count in the top right corner or not.
      * Defaults to false.
      */
-    private boolean showDeathCount = false;
+    private @Nullable Boolean showDeathCount;
+    /**
+     * If true, successive deaths grant the killer points. 
+     * If false, only a participants first death grants its killer points.
+     * Defaults to true.
+     */
+    private @Nullable Boolean successiveDeathsGrantPoints;
     private @Nullable List<Material> preventInteractions;
     private Scores scores;
     private Durations durations;
@@ -236,9 +242,10 @@ class SurvivalGamesConfigDTO implements Validatable {
                 .firstPlaceScore(this.scores.firstPlace)
                 .secondPlaceScore(this.scores.secondPlace)
                 .thirdPlaceScore(this.scores.thirdPlace)
-                .lockOtherInventories(this.lockOtherInventories)
-                .shouldClearContainers(this.shouldClearContainers)
-                .showDeathCount(this.showDeathCount)
+                .lockOtherInventories(this.lockOtherInventories != null ? this.lockOtherInventories : true)
+                .shouldClearContainers(this.shouldClearContainers != null ? this.shouldClearContainers : true)
+                .showDeathCount(this.showDeathCount != null ? this.showDeathCount : false)
+                .successiveDeathsGrantPoints(this.successiveDeathsGrantPoints != null ? this.successiveDeathsGrantPoints : true)
                 .initialBorderSize(this.border.getInitialBorderSize())
                 .border(border.toBorder(newWorld))
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
