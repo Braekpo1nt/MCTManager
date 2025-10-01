@@ -66,7 +66,12 @@ public class Border {
      * Defaults to -1
      */
     private int deathPointsThreshold;
-    
+    /**
+     * If true, a participant in their {@link #respawnGracePeriodTime} can attack other participants.
+     * If false, a participant can't deal damage when in grace period.
+     * Defaults to true.
+     */
+    private boolean canAttackWhenRespawning;
     private List<BorderStage> stages;
     
     /**

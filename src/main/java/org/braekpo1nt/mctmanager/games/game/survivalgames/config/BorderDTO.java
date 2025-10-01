@@ -67,6 +67,12 @@ class BorderDTO implements Validatable {
      * Defaults to -1
      */
     private @Nullable Integer deathPointsThreshold;
+    /**
+     * If true, a participant in their {@link #respawnGracePeriodTime} can attack other participants.
+     * If false, a participant can't deal damage when in grace period.
+     * Defaults to true.
+     */
+    private @Nullable Boolean canAttackWhenRespawning;
     /** The stages the border should progress through */
     private List<BorderStageDTO> borderStages;
     
@@ -107,6 +113,7 @@ class BorderDTO implements Validatable {
                 .respawnLocations(respawnLocations != null ? LocationDTO.toLocations(respawnLocations, world) : Collections.emptyList())
                 .respawnLoadout(this.respawnLoadout != null ? this.respawnLoadout.toInventoryContents() : new ItemStack[0])
                 .deathPointsThreshold(this.deathPointsThreshold != null ? this.deathPointsThreshold : -1)
+                .canAttackWhenRespawning(this.canAttackWhenRespawning != null ? this.canAttackWhenRespawning : true)
                 .stages(BorderStageDTO.toBorderStages(borderStages))
                 .build();
     }
