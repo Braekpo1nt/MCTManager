@@ -58,6 +58,15 @@ public class Border {
      * Can't be null, can be empty
      */
     private @NotNull ItemStack[] respawnLoadout;
+    /**
+     * The number of deaths that grant kill points. E.g. if 2, then the first two times
+     * a participant is killed, the killer gets points. 
+     * But from the third death on, no killers get points for killing that participant.
+     * Negative number indicates no limit (all kills grant points). 
+     * Defaults to -1
+     */
+    private int deathPointsThreshold;
+    
     private List<BorderStage> stages;
     
     /**

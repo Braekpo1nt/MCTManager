@@ -59,6 +59,14 @@ class BorderDTO implements Validatable {
      * Defaults to empty.
      */
     private @Nullable PlayerInventoryDTO respawnLoadout;
+    /**
+     * The number of deaths that grant kill points. E.g. if 2, then the first two times
+     * a participant is killed, the killer gets points. 
+     * But from the third death on, no killers get points for killing that participant.
+     * Negative number indicates no limit (all kills grant points). 
+     * Defaults to -1
+     */
+    private @Nullable Integer deathPointsThreshold;
     /** The stages the border should progress through */
     private List<BorderStageDTO> borderStages;
     
@@ -98,6 +106,7 @@ class BorderDTO implements Validatable {
                 .respawnGracePeriodTime(this.respawnGracePeriodTime != null ? this.respawnGracePeriodTime : 10)
                 .respawnLocations(respawnLocations != null ? LocationDTO.toLocations(respawnLocations, world) : Collections.emptyList())
                 .respawnLoadout(this.respawnLoadout != null ? this.respawnLoadout.toInventoryContents() : new ItemStack[0])
+                .deathPointsThreshold(this.deathPointsThreshold != null ? this.deathPointsThreshold : -1)
                 .stages(BorderStageDTO.toBorderStages(borderStages))
                 .build();
     }

@@ -317,7 +317,8 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
         UIUtils.showKillTitle(killer, killed);
         if (!killer.getTeamId().equals(killed.getTeamId())) {
             // if all deaths grant points, or this specific death for this killed participant should grant points
-            if (config.getDeathPointsThreshold() < 0 || killed.getDeaths() < config.getDeathPointsThreshold()) {
+            int deathPointsThreshold = config.getBorder().getDeathPointsThreshold();
+            if (deathPointsThreshold < 0 || killed.getDeaths() < deathPointsThreshold) {
                 context.awardPoints(killer, config.getKillScore());
             }
         }
