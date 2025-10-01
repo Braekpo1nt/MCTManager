@@ -432,9 +432,10 @@ public abstract class GameManagerState {
                                 .color(NamedTextColor.GOLD))
                         .append(Component.text(" x "))
                         .append(Component.text(getMultiplier()))
-                        .append(Component.text(")"))
-                        .append(Component.newline());
+                        .append(Component.text(")"));
             }
+            everyone
+                    .append(Component.newline());
         }
         Audience.audience(
                 Audience.audience(sortedTeams),
@@ -467,9 +468,10 @@ public abstract class GameManagerState {
                                         .color(NamedTextColor.GOLD))
                                 .append(Component.text(" x "))
                                 .append(Component.text(getMultiplier()))
-                                .append(Component.text(")"))
-                                .append(Component.newline());
+                                .append(Component.text(")"));
                     }
+                    message
+                            .append(Component.newline());
                     i++;
                 }
             }
@@ -479,20 +481,23 @@ public abstract class GameManagerState {
         for (OfflineParticipant offlineParticipant : sortedParticipants) {
             Participant participant = onlineParticipants.get(offlineParticipant.getUniqueId());
             if (participant != null) {
-                participant.sendMessage(
-                        Component.empty()
-                                .append(Component.text("Personal")
-                                        .color(NamedTextColor.GOLD))
-                                .append(Component.text(": "))
-                                .append(Component.text(participantScores.get(offlineParticipant.getUniqueId()))
-                                        .color(NamedTextColor.GOLD))
-                                .append(Component.text(" ("))
-                                .append(Component.text((int) (participantScores.get(offlineParticipant.getUniqueId()) / getMultiplier()))
-                                        .color(NamedTextColor.GOLD))
-                                .append(Component.text(" x "))
-                                .append(Component.text(getMultiplier()))
-                                .append(Component.text(")"))
-                );
+                TextComponent.Builder message = Component.text();
+                message
+                        .append(Component.text("Personal")
+                                .color(NamedTextColor.GOLD))
+                        .append(Component.text(": "))
+                        .append(Component.text(participantScores.get(offlineParticipant.getUniqueId()))
+                                .color(NamedTextColor.GOLD));
+                if (shouldShowMultiplier) {
+                    message
+                            .append(Component.text(" ("))
+                            .append(Component.text((int) (participantScores.get(offlineParticipant.getUniqueId()) / getMultiplier()))
+                                    .color(NamedTextColor.GOLD))
+                            .append(Component.text(" x "))
+                            .append(Component.text(getMultiplier()))
+                            .append(Component.text(")"));
+                }
+                participant.sendMessage(message);
             }
         }
     }
