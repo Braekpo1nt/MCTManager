@@ -6,6 +6,9 @@ import org.braekpo1nt.mctmanager.participant.ParticipantData;
 import org.braekpo1nt.mctmanager.participant.QuitDataBase;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @ToString(callSuper = true)
 @Getter
 @Setter
@@ -34,6 +37,11 @@ public class SurvivalGamesParticipant extends ParticipantData {
      * If this is greater than 0, the participant can't take damage 
      */
     private int respawnGracePeriodCountdown;
+    /**
+     * A set of indexes representing the respawn locations that this participant
+     * has previously respawned at. 
+     */
+    private @NotNull Set<Integer> usedRespawns;
     
     public SurvivalGamesParticipant(@NotNull Participant participant, int score) {
         super(participant, score);
@@ -44,6 +52,7 @@ public class SurvivalGamesParticipant extends ParticipantData {
         this.respawning = false;
         this.respawnCountdown = 0;
         this.respawnGracePeriodCountdown = 0;
+        this.usedRespawns = new HashSet<>();
     }
     
     public SurvivalGamesParticipant(@NotNull Participant participant, @NotNull SurvivalGamesParticipant.QuitData quitData) {
@@ -55,6 +64,7 @@ public class SurvivalGamesParticipant extends ParticipantData {
         this.respawning = false;
         this.respawnCountdown = 0;
         this.respawnGracePeriodCountdown = 0;
+        this.usedRespawns = new HashSet<>(quitData.getUsedRespawns());
     }
     
     /**
@@ -70,7 +80,8 @@ public class SurvivalGamesParticipant extends ParticipantData {
                 getScore(),
                 alive,
                 kills,
-                deaths
+                deaths,
+                usedRespawns
         );
     }
     
@@ -80,5 +91,6 @@ public class SurvivalGamesParticipant extends ParticipantData {
         private final boolean alive;
         private final int kills;
         private final int deaths;
+        private final Set<Integer> usedRespawns;
     }
 }

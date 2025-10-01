@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.survivalgames.states;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.BorderStage;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesParticipant;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesTeam;
@@ -28,10 +29,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 public abstract class RoundActiveState extends SurvivalGamesStateBase {
     
@@ -209,7 +207,7 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
         handleRespawnGracePeriod(participant);
         // grace period end
         participant.getInventory().setContents(config.getBorder().getRespawnLoadout());
-        Location respawn = selectRespawnLocation();
+        Location respawn = selectRespawnLocation(participant);
         participant.teleport(respawn);
         participant.setGameMode(GameMode.ADVENTURE);
         SurvivalGamesTeam team = context.getTeams().get(participant.getTeamId());
@@ -232,14 +230,49 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
     /**
      * @return a random respawn location based on the current border stage
      */
-    private Location selectRespawnLocation() {
-        List<Location> respawnLocations = context.getCurrentBorderStage().getLocationsInside(config.getBorder().getCenterX(), config.getBorder().getCenterZ(), config.getRespawnLocations());
-        if (respawnLocations.isEmpty()) {
+    private Location selectRespawnLocation(SurvivalGamesParticipant participant) {
+        BorderStage currentBorderStage = context.getCurrentBorderStage();
+        double centerX = config.getBorder().getCenterX();
+        double centerZ = config.getBorder().getCenterZ();
+        List<Integer> validIndexes = currentBorderStage.getLocationIndexesInside(centerX, centerZ, config.getRespawnLocations());
+        if (validIndexes.isEmpty()) {
+            // failsafe, we shouldn't get to this point from a real-world gameplay perspective
             return config.getPlatformSpawns().getFirst();
         } else {
-            return respawnLocations
-                    .get(context.getRandom()
-                            .nextInt(respawnLocations.size()));
+            List<Integer> unusedValidIndexes = new ArrayList<>(validIndexes);
+            unusedValidIndexes.removeAll(participant.getUsedRespawns());
+            if (unusedValidIndexes.isEmpty()) {
+                int chosenIndex = validIndexes.get(
+                        context.getRandom().nextInt(validIndexes.size()));
+                return config.getRespawnLocations().get(chosenIndex);
+            } else {
+                int chosenIndex = unusedValidIndexes.get(
+                        context.getRandom().nextInt(unusedValidIndexes.size()));
+                return config.getRespawnLocations().get(chosenIndex);
+            }
+        }
+    }
+    
+    /**
+     * @return a random respawn location based on the current border stage
+     */
+    public static Location staticSelectRespawnLocation(double centerX, double centerZ, BorderStage currentBorderStage, List<Location> respawnLocations, Set<Integer> usedRespawnIndexes, Location fallbackLocation, Random random) {
+        List<Integer> validIndexes = currentBorderStage.getLocationIndexesInside(centerX, centerZ, respawnLocations);
+        if (validIndexes.isEmpty()) {
+            // failsafe, we shouldn't get to this point from a real-world gameplay perspective
+            return fallbackLocation;
+        } else {
+            List<Integer> unusedValidIndexes = new ArrayList<>(validIndexes);
+            unusedValidIndexes.removeAll(usedRespawnIndexes);
+            if (unusedValidIndexes.isEmpty()) {
+                int chosenIndex = validIndexes.get(
+                        random.nextInt(validIndexes.size()));
+                return respawnLocations.get(chosenIndex);
+            } else {
+                int chosenIndex = unusedValidIndexes.get(
+                        random.nextInt(unusedValidIndexes.size()));
+                return respawnLocations.get(chosenIndex);
+            }
         }
     }
     
