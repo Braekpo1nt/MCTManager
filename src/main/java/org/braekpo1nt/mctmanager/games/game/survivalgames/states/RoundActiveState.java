@@ -207,7 +207,10 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
         handleRespawnGracePeriod(participant);
         // grace period end
         participant.getInventory().setContents(config.getBorder().getRespawnLoadout());
-        Location respawn = selectRespawnLocation(participant);
+        int index = selectRespawnLocation(participant.getUsedRespawns());
+        Location respawn = index == -1 ? 
+                config.getPlatformSpawns().getFirst() : 
+                config.getRespawnLocations().get(index);
         participant.teleport(respawn);
         participant.setGameMode(GameMode.ADVENTURE);
         SurvivalGamesTeam team = context.getTeams().get(participant.getTeamId());
@@ -228,18 +231,17 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
     }
     
     /**
-     * @return a random respawn location based on the current border stage
+     * @param usedRespawns a set of respawns that are already used, and should be excluded if
+     *                     possible
+     * @return a random respawn location within the current border stage that hasn't
+     * been used by the given participant. If no suitable location can be found,
+     * the first center platform spawn is returned.
      */
-    private Location selectRespawnLocation(SurvivalGamesParticipant participant) {
+    private int selectRespawnLocation(Set<Integer> usedRespawns) {
         BorderStage currentBorderStage = context.getCurrentBorderStage();
         double centerX = config.getBorder().getCenterX();
         double centerZ = config.getBorder().getCenterZ();
-        int index = selectRespawnLocationIndex(centerX, centerZ, currentBorderStage, config.getRespawnLocations(), participant.getUsedRespawns(), context.getRandom());
-        if (index == -1) {
-            // failsafe, we shouldn't get to this point from a real-world gameplay perspective
-            return config.getPlatformSpawns().getFirst();
-        }
-        return config.getRespawnLocations().get(index);
+        return selectRespawnLocationIndex(centerX, centerZ, currentBorderStage, config.getRespawnLocations(), usedRespawns, context.getRandom());
     }
     
     /**
