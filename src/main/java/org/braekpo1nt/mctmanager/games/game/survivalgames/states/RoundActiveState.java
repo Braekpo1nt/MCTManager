@@ -208,6 +208,8 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
         // grace period end
         participant.getInventory().setContents(config.getBorder().getRespawnLoadout());
         int index = selectRespawnLocation(participant.getUsedRespawns());
+        // save this as a used respawn for this participant
+        participant.getUsedRespawns().add(index);
         Location respawn = index == -1 ? 
                 config.getPlatformSpawns().getFirst() : 
                 config.getRespawnLocations().get(index);
