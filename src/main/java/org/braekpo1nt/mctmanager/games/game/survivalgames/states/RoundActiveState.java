@@ -234,29 +234,43 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
         BorderStage currentBorderStage = context.getCurrentBorderStage();
         double centerX = config.getBorder().getCenterX();
         double centerZ = config.getBorder().getCenterZ();
-        return selectRespawnLocation(centerX, centerZ, currentBorderStage, config.getRespawnLocations(), participant.getUsedRespawns(), config.getPlatformSpawns().getFirst(), context.getRandom());
+        int index = selectRespawnLocationIndex(centerX, centerZ, currentBorderStage, config.getRespawnLocations(), participant.getUsedRespawns(), context.getRandom());
+        if (index == -1) {
+            // failsafe, we shouldn't get to this point from a real-world gameplay perspective
+            return config.getPlatformSpawns().getFirst();
+        }
+        return config.getRespawnLocations().get(index);
     }
     
     /**
-     * @return a random respawn location based on the current border stage
+     * Chooses a random location from the given list that is in the given border stage and hasn't already been used
+     * @param centerX the center x coord of the border
+     * @param centerZ the center z coord of the border
+     * @param currentBorderStage the border stage to select a location within
+     * @param respawnLocations the locations to choose from. The resulting index will be in range 
+     *                         of this list, or -1 if an appropriate location could not be found
+     * @param usedRespawnIndexes a collection of indexes of respawn points in the respawnLocations 
+     *                           list that has been used, and shouldn't be chosen if an unused 
+     *                           one can be found
+     * @param random a random provider
+     * @return an index in the bounds of the given respawnLocations corresponding to the chosen
+     * respawn location, or -1 if an appropriate location could not be found
      */
-    public static Location selectRespawnLocation(double centerX, double centerZ, BorderStage currentBorderStage, List<Location> respawnLocations, Set<Integer> usedRespawnIndexes, Location fallbackLocation, Random random) {
+    public static int selectRespawnLocationIndex(double centerX, double centerZ, BorderStage currentBorderStage, List<Location> respawnLocations, Set<Integer> usedRespawnIndexes, Random random) {
         List<Integer> indexesInsideBorder = currentBorderStage.getLocationIndexesInside(centerX, centerZ, respawnLocations);
         if (indexesInsideBorder.isEmpty()) {
             // failsafe, we shouldn't get to this point from a real-world gameplay perspective
-            return fallbackLocation;
+            return -1;
         }
         
         List<Integer> unusedIndexesInsideBorder = new ArrayList<>(indexesInsideBorder);
         unusedIndexesInsideBorder.removeAll(usedRespawnIndexes);
         if (unusedIndexesInsideBorder.isEmpty()) {
-            int chosenIndex = indexesInsideBorder.get(
+            return indexesInsideBorder.get(
                     random.nextInt(indexesInsideBorder.size()));
-            return respawnLocations.get(chosenIndex);
         } else {
-            int chosenIndex = unusedIndexesInsideBorder.get(
+            return unusedIndexesInsideBorder.get(
                     random.nextInt(unusedIndexesInsideBorder.size()));
-            return respawnLocations.get(chosenIndex);
         }
     }
     

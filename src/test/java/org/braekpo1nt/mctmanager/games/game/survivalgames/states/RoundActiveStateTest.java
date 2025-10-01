@@ -35,38 +35,38 @@ class RoundActiveStateTest {
     @Test
     void onlyLastOption() {
         Set<Integer> usedRespawnIndexes = Set.of(0, 1);
-        Location actual = RoundActiveState.selectRespawnLocation(0, 0, currentBorderStage, respawnLocations, usedRespawnIndexes, new Location(world, 3, 3, 3), random);
-        Assertions.assertEquals(new Location(world, 2, 2, 2), actual);
+        int actualIndex = RoundActiveState.selectRespawnLocationIndex(0, 0, currentBorderStage, respawnLocations, usedRespawnIndexes, random);
+        Assertions.assertEquals(2, actualIndex);
     }
     
     @Test
     void onlyMiddleOption() {
         Set<Integer> usedRespawnIndexes = Set.of(0, 2);
-        Location actual = RoundActiveState.selectRespawnLocation(0, 0, currentBorderStage, respawnLocations, usedRespawnIndexes, new Location(world, 3, 3, 3), random);
-        Assertions.assertEquals(new Location(world, 1, 1, 1), actual);
+        int actualIndex = RoundActiveState.selectRespawnLocationIndex(0, 0, currentBorderStage, respawnLocations, usedRespawnIndexes, random);
+        Assertions.assertEquals(1, actualIndex);
     }
     
     @Test
     void firstAndLastOptions() {
         Set<Integer> usedRespawnIndexes = Set.of(1);
-        Location actual = RoundActiveState.selectRespawnLocation(0, 0, currentBorderStage, respawnLocations, usedRespawnIndexes, new Location(world, 3, 3, 3), random);
-        Assertions.assertNotEquals(new Location(world, 1, 1, 1), actual);
-        Assertions.assertEquals(new Location(world, 2, 2, 2), actual);
+        int actualIndex = RoundActiveState.selectRespawnLocationIndex(0, 0, currentBorderStage, respawnLocations, usedRespawnIndexes, random);
+        Assertions.assertNotEquals(1, actualIndex);
+        Assertions.assertEquals(2, actualIndex);
     }
     
     @Test
     void firstTwoOptions() {
         Set<Integer> usedRespawnIndexes = Set.of(2);
-        Location actual = RoundActiveState.selectRespawnLocation(0, 0, currentBorderStage, respawnLocations, usedRespawnIndexes, new Location(world, 3, 3, 3), random);
-        Assertions.assertNotEquals(new Location(world, 2, 2, 2), actual);
-        Assertions.assertEquals(new Location(world, 1, 1, 1), actual);
+        int actualIndex = RoundActiveState.selectRespawnLocationIndex(0, 0, currentBorderStage, respawnLocations, usedRespawnIndexes, random);
+        Assertions.assertNotEquals(2, actualIndex);
+        Assertions.assertEquals(1, actualIndex);
     }
     
     @Test
     void noOptions() {
         Set<Integer> usedRespawnIndexes = Set.of(0, 1, 2);
-        Location actual = RoundActiveState.selectRespawnLocation(0, 0, currentBorderStage, respawnLocations, usedRespawnIndexes, new Location(world, 3, 3, 3), random);
-        Assertions.assertEquals(new Location(world, 2, 2, 2), actual);
+        int actualIndex = RoundActiveState.selectRespawnLocationIndex(0, 0, currentBorderStage, respawnLocations, usedRespawnIndexes, random);
+        Assertions.assertEquals(2, actualIndex);
     }
     
     @Test
@@ -74,14 +74,14 @@ class RoundActiveStateTest {
         Set<Integer> usedRespawnIndexes = Set.of();
         // make it too far away from the respawns
         int centerCoord = currentBorderStage.getSize() + 5;
-        Location actual = RoundActiveState.selectRespawnLocation(centerCoord, centerCoord, currentBorderStage, respawnLocations, usedRespawnIndexes, new Location(world, 3, 3, 3), random);
-        Assertions.assertEquals(new Location(world, 3, 3, 3), actual);
+        int actualIndex = RoundActiveState.selectRespawnLocationIndex(centerCoord, centerCoord, currentBorderStage, respawnLocations, usedRespawnIndexes, random);
+        Assertions.assertEquals(-1, actualIndex);
     }
     
     @Test
     void outOfRange_NoOptions() {
         Set<Integer> usedRespawnIndexes = Set.of(0, 1, 2);
-        Location actual = RoundActiveState.selectRespawnLocation(25, 25, currentBorderStage, respawnLocations, usedRespawnIndexes, new Location(world, 3, 3, 3), random);
-        Assertions.assertEquals(new Location(world, 3, 3, 3), actual);
+        int actualIndex = RoundActiveState.selectRespawnLocationIndex(25, 25, currentBorderStage, respawnLocations, usedRespawnIndexes, random);
+        Assertions.assertEquals(-1, actualIndex);
     }
 }
