@@ -84,4 +84,16 @@ class RoundActiveStateTest {
         int actualIndex = RoundActiveState.selectRespawnLocationIndex(25, 25, currentBorderStage, respawnLocations, usedRespawnIndexes, random);
         Assertions.assertEquals(-1, actualIndex);
     }
+    
+    @Test
+    void oneOptionInRange() {
+        List<Location> locations = List.of(
+                new Location(world, 0, 0, 0), // used
+                new Location(world, 1, 1, 1), // only choice
+                new Location(world, 200, 200, 200) // out of range
+        );
+        Set<Integer> usedRespawnIndexes = Set.of(0);
+        int actualIndex = RoundActiveState.selectRespawnLocationIndex(0, 0, currentBorderStage, locations, usedRespawnIndexes, random);
+        Assertions.assertEquals(1, actualIndex);
+    }
 }
