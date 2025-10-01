@@ -88,11 +88,13 @@ class SurvivalGamesConfigDTO implements Validatable {
      */
     private @Nullable Boolean showDeathCount;
     /**
-     * If true, successive deaths grant the killer points. 
-     * If false, only a participants first death grants its killer points.
-     * Defaults to true.
+     * The number of deaths that grant kill points. E.g. if 2, then the first two times
+     * a participant is killed, the killer gets points. 
+     * But from the third death on, no killers get points for killing that participant.
+     * Negative number indicates no limit (all kills grant points). 
+     * Defaults to -1
      */
-    private @Nullable Boolean successiveDeathsGrantPoints;
+    private @Nullable Integer deathPointsThreshold;
     private @Nullable List<Material> preventInteractions;
     private Scores scores;
     private Durations durations;
@@ -245,7 +247,7 @@ class SurvivalGamesConfigDTO implements Validatable {
                 .lockOtherInventories(this.lockOtherInventories != null ? this.lockOtherInventories : true)
                 .shouldClearContainers(this.shouldClearContainers != null ? this.shouldClearContainers : true)
                 .showDeathCount(this.showDeathCount != null ? this.showDeathCount : false)
-                .successiveDeathsGrantPoints(this.successiveDeathsGrantPoints != null ? this.successiveDeathsGrantPoints : true)
+                .deathPointsThreshold(this.deathPointsThreshold != null ? this.deathPointsThreshold : -1)
                 .initialBorderSize(this.border.getInitialBorderSize())
                 .border(border.toBorder(newWorld))
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
