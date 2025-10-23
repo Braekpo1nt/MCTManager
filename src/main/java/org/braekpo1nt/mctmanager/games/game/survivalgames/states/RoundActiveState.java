@@ -1,7 +1,9 @@
 package org.braekpo1nt.mctmanager.games.game.survivalgames.states;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.BorderStage;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesParticipant;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesTeam;
@@ -18,6 +20,7 @@ import org.bukkit.Location;
 import org.bukkit.WorldBorder;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
@@ -26,9 +29,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public abstract class RoundActiveState extends SurvivalGamesStateBase {
     
@@ -55,27 +56,57 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
         this.respawnTaskId = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
             context.getParticipants().values()
                     .forEach(p -> {
-                        if (!p.isRespawning()) {
-                            return;
-                        }
-                        if (p.isAlive()) {
-                            return;
-                        }
-                        if (p.getRespawnCountdown() == 0) {
-                            p.showTitle(UIUtils.EMPTY_TITLE);
-                            respawnParticipant(p);
-                            return;
-                        }
-                        p.showTitle(UIUtils.defaultTitle(
-                                Component.empty()
-                                        .append(Component.text("Respawning in")),
-                                Component.empty()
-                                        .append(Component.text(p.getRespawnCountdown()))
-                                        .color(TimeStringUtils.getColorForTime(p.getRespawnCountdown()))
-                        ));
-                        p.setRespawnCountdown(p.getRespawnCountdown() - 1);
+                        handleRespawning(p);
+                        handleRespawnGracePeriod(p);
                     });
         }, 0L, 20L).getTaskId();
+    }
+    
+    public void handleRespawning(SurvivalGamesParticipant p) {
+        if (!p.isRespawning()) {
+            return;
+        }
+        if (p.isAlive()) {
+            return;
+        }
+        if (p.getRespawnCountdown() == 0) {
+            p.showTitle(UIUtils.EMPTY_TITLE);
+            respawnParticipant(p);
+            return;
+        }
+        p.showTitle(UIUtils.defaultTitle(
+                Component.empty()
+                        .append(Component.text("Respawning in")),
+                Component.empty()
+                        .append(Component.text(p.getRespawnCountdown()))
+                        .color(TimeStringUtils.getColorForTime(p.getRespawnCountdown()))
+        ));
+        p.setRespawnCountdown(p.getRespawnCountdown() - 1);
+    }
+    
+    public void handleRespawnGracePeriod(SurvivalGamesParticipant p) {
+        if (p.isRespawning()) {
+            return;
+        }
+        if (!p.isAlive()) {
+            return;
+        }
+        if (p.getRespawnGracePeriodCountdown() == 0) {
+            p.showTitle(UIUtils.EMPTY_TITLE);
+            // end the grace period
+            return;
+        }
+        p.showTitle(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("Grace Period: "))
+                        .append(Component.empty()
+                                .append(Component.text(p
+                                        .getRespawnGracePeriodCountdown()))
+                                .color(TimeStringUtils.getColorForTime(p
+                                        .getRespawnGracePeriodCountdown())))
+        ));
+        p.setRespawnGracePeriodCountdown(p.getRespawnGracePeriodCountdown() - 1);
     }
     
     @Override
@@ -133,7 +164,50 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
     
     @Override
     public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull SurvivalGamesParticipant participant) {
-        // do nothing
+        if (participant.isInRespawnGracePeriod()) {
+            onRespawningParticipantDamage(event, participant);
+        } else {
+            onLivingParticipantDamage(event);
+        }
+    }
+    
+    private void onRespawningParticipantDamage(@NotNull EntityDamageEvent event, @NotNull SurvivalGamesParticipant participant) {
+        event.setCancelled(true);
+        Entity causingEntity = event.getDamageSource().getCausingEntity();
+        if (causingEntity == null) {
+            return;
+        }
+        SurvivalGamesParticipant damagerParticipant = context.getParticipants().get(causingEntity.getUniqueId());
+        if (damagerParticipant == null) {
+            return;
+        }
+        damagerParticipant.sendMessage(Component.empty()
+                .append(participant.displayName())
+                .append(Component.text(" just respawned"))
+                .color(NamedTextColor.RED)
+        );
+    }
+    
+    private void onLivingParticipantDamage(@NotNull EntityDamageEvent event) {
+        if (config.getBorder().canAttackWhenRespawning()) {
+            return;
+        }
+        Entity causingEntity = event.getDamageSource().getCausingEntity();
+        if (causingEntity == null) {
+            return;
+        }
+        SurvivalGamesParticipant damagerParticipant = context.getParticipants().get(causingEntity.getUniqueId());
+        if (damagerParticipant == null) {
+            return;
+        }
+        if (!damagerParticipant.isInRespawnGracePeriod()) {
+            return;
+        }
+        event.setCancelled(true);
+        damagerParticipant.sendMessage(Component.empty()
+                .append(Component.text("You just respawned"))
+                .color(NamedTextColor.RED)
+        );
     }
     
     @Override
@@ -155,7 +229,17 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
     public void respawnParticipant(SurvivalGamesParticipant participant) {
         participant.setAlive(true);
         participant.setRespawning(false);
-        Location respawn = selectRespawnLocation();
+        // grace period start
+        participant.setRespawnGracePeriodCountdown(config.getBorder().getRespawnGracePeriodTime());
+        handleRespawnGracePeriod(participant);
+        // grace period end
+        participant.getInventory().setContents(config.getBorder().getRespawnLoadout());
+        int index = selectRespawnLocation(participant.getUsedRespawns());
+        // save this as a used respawn for this participant
+        participant.getUsedRespawns().add(index);
+        Location respawn = index == -1 ? 
+                config.getPlatformSpawns().getFirst() : 
+                config.getRespawnLocations().get(index);
         participant.teleport(respawn);
         participant.setGameMode(GameMode.ADVENTURE);
         SurvivalGamesTeam team = context.getTeams().get(participant.getTeamId());
@@ -176,16 +260,48 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
     }
     
     /**
-     * @return a random respawn location based on the current border stage
+     * @param usedRespawns a set of respawns that are already used, and should be excluded if
+     *                     possible
+     * @return a random respawn location within the current border stage that hasn't
+     * been used by the given participant. If no suitable location can be found,
+     * the first center platform spawn is returned.
      */
-    private Location selectRespawnLocation() {
-        List<Location> respawnLocations = context.getCurrentBorderStage().getLocationsInside(config.getBorder().getCenterX(), config.getBorder().getCenterZ(), config.getRespawnLocations());
-        if (respawnLocations.isEmpty()) {
-            return config.getPlatformSpawns().getFirst();
+    private int selectRespawnLocation(Set<Integer> usedRespawns) {
+        BorderStage currentBorderStage = context.getCurrentBorderStage();
+        double centerX = config.getBorder().getCenterX();
+        double centerZ = config.getBorder().getCenterZ();
+        return selectRespawnLocationIndex(centerX, centerZ, currentBorderStage, config.getRespawnLocations(), usedRespawns, context.getRandom());
+    }
+    
+    /**
+     * Chooses a random location from the given list that is in the given border stage and hasn't already been used
+     * @param centerX the center x coord of the border
+     * @param centerZ the center z coord of the border
+     * @param currentBorderStage the border stage to select a location within
+     * @param respawnLocations the locations to choose from. The resulting index will be in range 
+     *                         of this list, or -1 if an appropriate location could not be found
+     * @param usedRespawnIndexes a collection of indexes of respawn points in the respawnLocations 
+     *                           list that has been used, and shouldn't be chosen if an unused 
+     *                           one can be found
+     * @param random a random provider
+     * @return an index in the bounds of the given respawnLocations corresponding to the chosen
+     * respawn location, or -1 if an appropriate location could not be found
+     */
+    public static int selectRespawnLocationIndex(double centerX, double centerZ, BorderStage currentBorderStage, List<Location> respawnLocations, Set<Integer> usedRespawnIndexes, Random random) {
+        List<Integer> indexesInsideBorder = currentBorderStage.getLocationIndexesInside(centerX, centerZ, respawnLocations);
+        if (indexesInsideBorder.isEmpty()) {
+            // failsafe, we shouldn't get to this point from a real-world gameplay perspective
+            return -1;
+        }
+        
+        List<Integer> unusedIndexesInsideBorder = new ArrayList<>(indexesInsideBorder);
+        unusedIndexesInsideBorder.removeAll(usedRespawnIndexes);
+        if (unusedIndexesInsideBorder.isEmpty()) {
+            return indexesInsideBorder.get(
+                    random.nextInt(indexesInsideBorder.size()));
         } else {
-            return respawnLocations
-                    .get(context.getRandom()
-                            .nextInt(respawnLocations.size()));
+            return unusedIndexesInsideBorder.get(
+                    random.nextInt(unusedIndexesInsideBorder.size()));
         }
     }
     
@@ -227,7 +343,11 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
         addKill(killer);
         UIUtils.showKillTitle(killer, killed);
         if (!killer.getTeamId().equals(killed.getTeamId())) {
-            context.awardPoints(killer, config.getKillScore());
+            // if all deaths grant points, or this specific death for this killed participant should grant points
+            int deathPointsThreshold = config.getBorder().getDeathPointsThreshold();
+            if (deathPointsThreshold < 0 || killed.getDeaths() < deathPointsThreshold) {
+                context.awardPoints(killer, config.getKillScore());
+            }
         }
     }
     
