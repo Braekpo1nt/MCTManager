@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.game.capturetheflag;
+    package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
 import lombok.Getter;
 import lombok.Setter;

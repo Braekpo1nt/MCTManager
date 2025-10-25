@@ -63,6 +63,13 @@ public class ParkourPathwayConfig {
     private @NotNull List<Component> notificationToggleLoreTEAM;
     private @NotNull List<Component> notificationToggleLoreDISABLED;
     
+    // Chat Mode Toggle Fields
+    private @Nullable Material chatToggleMaterial;
+    private @Nullable Component chatToggleName;
+    private @Nullable List<Component> chatToggleLoreLOCAL;
+    private @Nullable List<Component> chatToggleLoreTEAM;
+    private @Nullable List<Component> chatToggleLoreOFF;
+    
     public int getPuzzlesSize() {
         return puzzles.size();
     }
