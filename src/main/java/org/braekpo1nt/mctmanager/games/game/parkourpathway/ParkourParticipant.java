@@ -38,10 +38,6 @@ public class ParkourParticipant extends ParticipantData {
      * a participant can't use their skip.
      */
     private int skipCooldown;
-    /**
-     * The current {@link NotificationMode} of the participant
-     */
-    private NotificationMode notificationMode;
 
     /**
      * The current {@link ChatMode} of the participant
@@ -58,7 +54,6 @@ public class ParkourParticipant extends ParticipantData {
         this.currentPuzzleCheckpoint = 0;
         this.unusedSkips = 0;
         this.skipCooldown = 0;
-        this.notificationMode = NotificationMode.ALL;
     }
     
     public ParkourParticipant(@NotNull Participant participant, @NotNull ParkourParticipant.QuitData quitData) {
@@ -69,7 +64,6 @@ public class ParkourParticipant extends ParticipantData {
         this.currentPuzzleCheckpoint = quitData.getCurrentPuzzleCheckpoint();
         this.unusedSkips = quitData.getUnusedSkips();
         this.skipCooldown = 0;
-        this.notificationMode = quitData.getNotificationMode();
     }
 
     public QuitData getQuitData() {
@@ -79,7 +73,6 @@ public class ParkourParticipant extends ParticipantData {
                 currentPuzzle,
                 currentPuzzleCheckpoint,
                 unusedSkips,
-                notificationMode,
                 chatMode
         );
     }
@@ -91,7 +84,6 @@ public class ParkourParticipant extends ParticipantData {
         private final int currentPuzzle;
         private final int currentPuzzleCheckpoint;
         private final int unusedSkips;
-        private final NotificationMode notificationMode;
         private final ChatMode chatMode;
     }
 }

@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.states;
 
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.NotificationMode;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourParticipant;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourTeam;
@@ -46,7 +45,7 @@ public abstract class ParkourPathwayStateBase implements ParkourPathwayState {
      */
     private void giveNotificationToggleItem(ParkourParticipant participant) {
         ItemStack wandItem = context.getNotificationToggle().getWandItem().clone();
-        context.setNotificationLore(wandItem, participant.getNotificationMode());
+        context.setNotificationLore(wandItem, participant.getChatMode());
         participant.getInventory().addItem(wandItem);
     }
     

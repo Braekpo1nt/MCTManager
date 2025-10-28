@@ -15,6 +15,7 @@ import org.braekpo1nt.mctmanager.games.editor.wand.Wand;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.chat.ChatMode;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfig;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.states.RegularDescriptionState;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.states.InitialState;
@@ -69,8 +70,8 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
                         config.getNotificationToggleName(), 
                         config.getNotificationToggleLoreALL()))
                 .onRightClick(((event, participant) -> {
-                    NotificationMode newMode = NotificationMode.cycle(participant.getNotificationMode());
-                    participant.setNotificationMode(newMode);
+                    ChatMode newMode = ChatMode.cycle(participant.getChatMode());
+                    participant.setChatMode(newMode);
                     
                     // Update the item in their hand with new lore
                     ItemStack item = event.getItem();
@@ -78,8 +79,8 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
                         setNotificationLore(item, newMode);
                     }
                     
-                    String status = NotificationMode.getModeName(newMode);
-                    NamedTextColor color = NotificationMode.getModeColor(newMode);
+                    String status = ChatMode.getModeName(newMode);
+                    NamedTextColor color = ChatMode.getModeColor(newMode);
                     participant.sendMessage(Component.empty()
                             .append(Component.text("Checkpoint notifications: "))
                             .append(Component.text(status))
@@ -91,7 +92,7 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
         start(newTeams, newParticipants, newAdmins);
     }
     
-    public void setNotificationLore(@NotNull ItemStack item, @NotNull NotificationMode mode) {
+    public void setNotificationLore(@NotNull ItemStack item, @NotNull ChatMode mode) {
         item.editMeta(meta ->
                 meta.lore(
                         getToggleLore(mode)
@@ -99,11 +100,12 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
         );
     }
     
-    private List<Component> getToggleLore(@NotNull NotificationMode mode) {
+    private List<Component> getToggleLore(@NotNull ChatMode mode) {
         return switch (mode) {
             case ALL -> config.getNotificationToggleLoreALL();
             case TEAM -> config.getNotificationToggleLoreTEAM();
             case DISABLED -> config.getNotificationToggleLoreDISABLED();
+            case LOCAL, OFF -> config.getNotificationToggleLoreALL(); // Default to ALL for chat-only modes
         };
     }
     
@@ -311,7 +313,7 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
             return true;
         }
         
-        return switch (viewer.getNotificationMode()) {
+        return switch (viewer.getChatMode()) {
             case ALL -> true; // Show everyone's checkpoints
             case TEAM -> viewer.sameTeam(achiever); // Only show teammate checkpoints
             default -> false; // Only show your own checkpoints

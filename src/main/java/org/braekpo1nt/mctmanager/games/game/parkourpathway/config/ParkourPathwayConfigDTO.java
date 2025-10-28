@@ -156,17 +156,17 @@ class ParkourPathwayConfigDTO implements Validatable {
         private Component itemName;
         /**
          * the lore of the notification toggle item when in
-         * {@link org.braekpo1nt.mctmanager.games.game.parkourpathway.NotificationMode#ALL} mode
+         * {@link org.braekpo1nt.mctmanager.games.game.parkourpathway.chat.ChatMode#ALL} mode
          */
         private List<Component> allLore;
         /**
          * the lore of the notification toggle item when in
-         * {@link org.braekpo1nt.mctmanager.games.game.parkourpathway.NotificationMode#TEAM} mode
+         * {@link org.braekpo1nt.mctmanager.games.game.parkourpathway.chat.ChatMode#TEAM} mode
          */
         private List<Component> teamOnlyLore;
         /**
          * the lore of the notification toggle item when in
-         * {@link org.braekpo1nt.mctmanager.games.game.parkourpathway.NotificationMode#DISABLED} mode
+         * {@link org.braekpo1nt.mctmanager.games.game.parkourpathway.chat.ChatMode#DISABLED} mode
          */
         private List<Component> selfOnlyLore;
         
