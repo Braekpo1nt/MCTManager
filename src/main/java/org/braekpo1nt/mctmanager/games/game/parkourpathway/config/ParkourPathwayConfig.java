@@ -56,19 +56,14 @@ public class ParkourPathwayConfig {
     private int skipCooldownDuration;
     private Component description;
 
-    // Chat Toggle Fields
-    private @NotNull Material notificationToggleMaterial;
-    private @NotNull Component notificationToggleName;
-    private @NotNull List<Component> notificationToggleLoreALL;
-    private @NotNull List<Component> notificationToggleLoreTEAM;
-    private @NotNull List<Component> notificationToggleLoreDISABLED;
-    
     // Chat Mode Toggle Fields
-    private @Nullable Material chatToggleMaterial;
-    private @Nullable Component chatToggleName;
-    private @Nullable List<Component> chatToggleLoreLOCAL;
-    private @Nullable List<Component> chatToggleLoreTEAM;
-    private @Nullable List<Component> chatToggleLoreOFF;
+    private @NotNull Material chatToggleMaterial;
+    private @NotNull Component chatToggleName;
+    private @NotNull List<Component> chatToggleLoreALL;
+    private @NotNull List<Component> chatToggleLoreTEAM;
+    private @NotNull List<Component> chatToggleLoreDISABLED;
+    private @NotNull List<Component> chatToggleLoreLOCAL;
+    private @NotNull List<Component> chatToggleLoreOFF;
     
     public int getPuzzlesSize() {
         return puzzles.size();

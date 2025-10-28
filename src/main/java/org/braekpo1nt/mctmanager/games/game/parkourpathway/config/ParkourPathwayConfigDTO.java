@@ -73,13 +73,9 @@ class ParkourPathwayConfigDTO implements Validatable {
      */
     private @Nullable Skips skips;
     /**
-     * Defines the chat toggle functionality
-     */
-    private @Nullable ParkourPathwayConfigDTO.Notifications notificationToggle;
-    /**
      * Defines the chat mode toggle functionality
      */
-    private @Nullable ParkourPathwayConfigDTO.ChatToggle chatToggle;
+    private @Nullable ParkourPathwayConfigDTO.ChatModeToggle chatModeToggle;
     private Scores scores;
     private Durations durations;
     private Component description;
@@ -145,38 +141,43 @@ class ParkourPathwayConfigDTO implements Validatable {
     
     @Data
     @Builder
-    static class Notifications implements Validatable {
+    static class ChatModeToggle implements Validatable {
         /**
-         * the item that players interact with to toggle notification modes. Defaults to GREEN_DYE
+         * the item that players interact with to toggle chat modes settings. Defaults to GREEN_DYE
          */
         private Material item;
         /**
-         * the display name of the notification toggle item. Defaults to "Chat Toggle"
+         * the display name of the chat mode toggle item. Defaults to "Chat Mode"
          */
         private Component itemName;
         /**
-         * the lore of the notification toggle item when in
+         * the lore of the chat mode toggle item when in
          * {@link org.braekpo1nt.mctmanager.games.game.parkourpathway.chat.ChatMode#ALL} mode
          */
         private List<Component> allLore;
         /**
-         * the lore of the notification toggle item when in
-         * {@link org.braekpo1nt.mctmanager.games.game.parkourpathway.chat.ChatMode#TEAM} mode
+         * the lore of the chat mode toggle item when in
+         * {@link org.braekpo1nt.mctmanager.games.game.parkourpathway.chat.ChatMode#TEAM} mode (applies to chat team modes)
          */
-        private List<Component> teamOnlyLore;
+        private List<Component> teamLore;
         /**
-         * the lore of the notification toggle item when in
+         * the lore of the chat mode toggle item when in
          * {@link org.braekpo1nt.mctmanager.games.game.parkourpathway.chat.ChatMode#DISABLED} mode
          */
-        private List<Component> selfOnlyLore;
+        private List<Component> disabledLore;
+        /**
+         * the lore of the chat mode toggle item when in LOCAL mode
+         */
+        private List<Component> localLore;
+        /**
+         * the lore of the chat mode toggle item when in OFF mode
+         */
+        private List<Component> offLore;
         
         @Override
         public void validate(@NotNull Validator validator) {
-            validator.notNull(item, "item");
-            validator.notNull(itemName, "itemName");
-            validator.notNull(allLore, "allLore");
-            validator.notNull(teamOnlyLore, "teamOnlyLore");
-            validator.notNull(selfOnlyLore, "selfOnlyLore");
+            // All fields are optional for backwards compatibility - they have defaults
+            // Only validate non-null fields if they are provided in the config
         }
         
         public static List<Component> defaultALLLore() {
@@ -189,7 +190,7 @@ class ParkourPathwayConfigDTO implements Validatable {
             );
         }
         
-        public static List<Component> defaultTEAMLore() {
+        public static List<Component> defaultNotificationTeamLore() {
             return List.of(
                     Component.text("Checkpoint Notifications: ").color(NamedTextColor.GRAY)
                             .append(Component.text("Team Only").color(NamedTextColor.BLUE)),
@@ -199,7 +200,7 @@ class ParkourPathwayConfigDTO implements Validatable {
             );
         }
         
-        public static List<Component> defaultDISABLEDLore() {
+        public static List<Component> defaultDisabledLore() {
             return List.of(
                     Component.text("Checkpoint Notifications: ").color(NamedTextColor.GRAY)
                             .append(Component.text("Self Only").color(NamedTextColor.RED)),
@@ -207,37 +208,6 @@ class ParkourPathwayConfigDTO implements Validatable {
                     Component.text("checkpoint progress").color(NamedTextColor.GRAY),
                     Component.text("Right click to change").color(NamedTextColor.YELLOW)
             );
-        }
-    }
-    
-    @Data
-    @Builder
-    static class ChatToggle implements Validatable {
-        /**
-         * the item that players interact with to toggle chat modes. Defaults to RED_DYE
-         */
-        private Material item;
-        /**
-         * the display name of the chat toggle item. Defaults to "Chat Mode"
-         */
-        private Component itemName;
-        /**
-         * the lore of the chat toggle item when in LOCAL mode
-         */
-        private List<Component> localLore;
-        /**
-         * the lore of the chat toggle item when in TEAM mode
-         */
-        private List<Component> teamLore;
-        /**
-         * the lore of the chat toggle item when in OFF mode
-         */
-        private List<Component> offLore;
-        
-        @Override
-        public void validate(@NotNull Validator validator) {
-            // All fields are optional for backwards compatibility - they have defaults
-            // Only validate non-null fields if they are provided in the config
         }
         
         public static List<Component> defaultLOCALLore() {
@@ -249,16 +219,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                     Component.text("Right click to change").color(NamedTextColor.YELLOW)
             );
         }
-        
-        public static List<Component> defaultTEAMLore() {
-            return List.of(
-                    Component.text("Chat Mode: ").color(NamedTextColor.GRAY)
-                            .append(Component.text("Team").color(NamedTextColor.BLUE)),
-                    Component.text("Only your team").color(NamedTextColor.GRAY),
-                    Component.text("can see your messages").color(NamedTextColor.GRAY),
-                    Component.text("Right click to change").color(NamedTextColor.YELLOW)
-            );
-        }
+
         
         public static List<Component> defaultOFFLore() {
             return List.of(
@@ -297,12 +258,8 @@ class ParkourPathwayConfigDTO implements Validatable {
             skips.validate(validator.path("skips"));
         }
         
-        if (notificationToggle != null) {
-            notificationToggle.validate(validator.path("notificationToggle"));
-        }
-        
-        if (chatToggle != null) {
-            chatToggle.validate(validator.path("chatToggle"));
+        if (chatModeToggle != null) {
+            chatModeToggle.validate(validator.path("chatModeToggle"));
         }
         
         validator.notNull(this.getPuzzles(), "puzzles");
@@ -404,46 +361,39 @@ class ParkourPathwayConfigDTO implements Validatable {
                     .skipItem(new ItemStack(Material.LAPIS_LAZULI));
         }
         
-        // Handle notification toggle
-        if (this.notificationToggle != null) {
-            builder
-                    .notificationToggleMaterial(this.notificationToggle.getItem())
-                    .notificationToggleName(this.notificationToggle.getItemName())
-                    .notificationToggleLoreALL(this.notificationToggle.getAllLore())
-                    .notificationToggleLoreTEAM(this.notificationToggle.getTeamOnlyLore())
-                    .notificationToggleLoreDISABLED(this.notificationToggle.getSelfOnlyLore());
-        } else {
-            builder
-                    .notificationToggleMaterial(Material.GREEN_DYE)
-                    .notificationToggleName(Component.text("Chat Mode"))
-                    .notificationToggleLoreALL(Notifications.defaultALLLore())
-                    .notificationToggleLoreTEAM(Notifications.defaultTEAMLore())
-                    .notificationToggleLoreDISABLED(Notifications.defaultDISABLEDLore());
-        }
-        
         // Handle chat mode toggle
-        if (this.chatToggle != null) {
+        if (this.chatModeToggle != null) {
             builder
-                    .chatToggleMaterial(this.chatToggle.getItem())
-                    .chatToggleName(this.chatToggle.getItemName())
-                    .chatToggleLoreLOCAL(this.chatToggle.getLocalLore())
-                    .chatToggleLoreTEAM(this.chatToggle.getTeamLore())
-                    .chatToggleLoreOFF(this.chatToggle.getOffLore());
+                    .chatToggleMaterial(this.chatModeToggle.getItem())
+                    .chatToggleName(this.chatModeToggle.getItemName())
+                    .chatToggleLoreALL(this.chatModeToggle.getAllLore())
+                    .chatToggleLoreTEAM(this.chatModeToggle.getTeamLore())
+                    .chatToggleLoreDISABLED(this.chatModeToggle.getDisabledLore())
+                    .chatToggleLoreLOCAL(this.chatModeToggle.getLocalLore())
+                    .chatToggleLoreOFF(this.chatModeToggle.getOffLore());
         } else {
             builder
-                    .chatToggleMaterial(Material.RED_DYE)
+                    .chatToggleMaterial(Material.GREEN_DYE)
                     .chatToggleName(Component.text("Chat Mode"))
-                    .chatToggleLoreLOCAL(ChatToggle.defaultLOCALLore())
-                    .chatToggleLoreTEAM(ChatToggle.defaultTEAMLore())
-                    .chatToggleLoreOFF(ChatToggle.defaultOFFLore());
+                    .chatToggleLoreALL(ChatModeToggle.defaultALLLore())
+                    .chatToggleLoreTEAM(ChatModeToggle.defaultNotificationTeamLore())
+                    .chatToggleLoreDISABLED(ChatModeToggle.defaultDisabledLore())
+                    .chatToggleLoreLOCAL(ChatModeToggle.defaultLOCALLore())
+                    .chatToggleLoreOFF(ChatModeToggle.defaultOFFLore());
         }
         
         return builder.build();
     }
     
     public static ParkourPathwayConfigDTO fromConfig(ParkourPathwayConfig config) {
-        Notifications chatToggleConfig = Notifications.builder()
-                
+        ChatModeToggle chatModeToggleConfig = ChatModeToggle.builder()
+                .item(config.getChatToggleMaterial())
+                .itemName(config.getChatToggleName())
+                .allLore(config.getChatToggleLoreALL())
+                .teamLore(config.getChatToggleLoreTEAM())
+                .disabledLore(config.getChatToggleLoreDISABLED())
+                .localLore(config.getChatToggleLoreLOCAL())
+                .offLore(config.getChatToggleLoreOFF())
                 .build();
         
         return ParkourPathwayConfigDTO.builder()
@@ -465,7 +415,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                         config.getUnusedSkipScore(),
                         config.getSkipCooldownDuration(),
                         config.getMaxSkipPuzzle()))
-                .notificationToggle(chatToggleConfig)
+                .chatModeToggle(chatModeToggleConfig)
                 .durations(new Durations(config.getTeamSpawnsDuration(),
                         config.getStartingDuration(),
                         config.getTimeLimitDuration(),
