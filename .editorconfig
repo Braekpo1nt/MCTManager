@@ -74,6 +74,10 @@ ij_java_space_before_if_parentheses = true
 ij_java_space_before_for_parentheses = true
 ij_java_space_before_while_parentheses = true
 ij_java_space_before_switch_parentheses = true
+# Annotations
+ij_java_field_annotation_wrap = off
+ij_java_method_annotation_wrap = off
+ij_java_parameter_annotation_wrap = off
 # Miscellaneous behavior
 ij_java_keep_line_breaks = true
 ij_java_keep_simple_methods_in_one_line = false
