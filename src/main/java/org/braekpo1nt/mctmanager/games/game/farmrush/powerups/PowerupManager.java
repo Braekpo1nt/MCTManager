@@ -83,9 +83,9 @@ public class PowerupManager {
             public void run() {
                 for (AnimalGrower animalGrower : animalGrowers.values()) {
                     animalGrower.displayRadius(
-                        animalGrowerSpec.getNumberOfParticles(),
-                        animalGrowerSpec.getParticle(),
-                        animalGrowerSpec.getParticleCount()
+                            animalGrowerSpec.getNumberOfParticles(),
+                            animalGrowerSpec.getParticle(),
+                            animalGrowerSpec.getParticleCount()
                     );
                 }
             }
@@ -161,7 +161,6 @@ public class PowerupManager {
     /**
      * Goes through the list to check if any of them are powerup blocks. If found,
      * a powerup block is replaced with air and the appropriate item is dropped.
-     *
      * @param blocks the blocks that are broken
      * @return the blocks from the list that were powerup blocks. Use this list to remove
      * these from the event, so they don't drop their natural item.
@@ -190,7 +189,7 @@ public class PowerupManager {
         if (cropGrower == null) {
             return false;
         }
-        location.getWorld().dropItemNaturally(location.add(new Vector(0.5, 0.5, 0.5)), 
+        location.getWorld().dropItemNaturally(location.add(new Vector(0.5, 0.5, 0.5)),
                 context.getConfig().getCropGrowerSpec().getCropGrowerItem());
         block.setType(Material.AIR);
         return true;
@@ -202,7 +201,7 @@ public class PowerupManager {
         if (animalGrower == null) {
             return false;
         }
-        location.getWorld().dropItemNaturally(location.add(new Vector(0.5, 0.5, 0.5)), 
+        location.getWorld().dropItemNaturally(location.add(new Vector(0.5, 0.5, 0.5)),
                 context.getConfig().getAnimalGrowerSpec().getAnimalGrowerItem());
         block.setType(Material.AIR);
         return true;
@@ -218,7 +217,7 @@ public class PowerupManager {
         }
         Vector vector = blockInventoryHolder.getBlock().getLocation().toVector();
         if (cropGrowers.containsKey(vector)
-        || animalGrowers.containsKey(vector)) {
+                || animalGrowers.containsKey(vector)) {
             event.setCancelled(true);
         }
     }

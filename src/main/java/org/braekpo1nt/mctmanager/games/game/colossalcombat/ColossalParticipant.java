@@ -29,7 +29,7 @@ public class ColossalParticipant extends ParticipantData implements Affiliated {
     
     public ColossalParticipant(@NotNull Participant participant, boolean alive, @NotNull QuitData quitData) {
         this(
-                participant, 
+                participant,
                 quitData.getAffiliation(),
                 alive,
                 quitData.getKills(),

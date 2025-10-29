@@ -11,10 +11,10 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * An intermediary helper abstract implementation of {@link Team} whose job
- * is to reduce boilerplate of new Team implementations. 
+ * is to reduce boilerplate of new Team implementations.
  * <p>
  * Implementations of {@link TeamInfo} should not use {@link EqualsAndHashCode}
- * so that only the {@link #teamId} is used to check for equality. 
+ * so that only the {@link #teamId} is used to check for equality.
  */
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString
@@ -85,11 +85,11 @@ public abstract class TeamInfo implements Team {
      */
     public TeamInfo(Team team) {
         this(team.getTeamId(),
-            team.getDisplayName(),
-            team.getColor(),
-            team.getColorAttributes(),
-            team.getBukkitColor(),
-            team.getFormattedDisplayName(),
-            team.getScore());
+                team.getDisplayName(),
+                team.getColor(),
+                team.getColorAttributes(),
+                team.getBukkitColor(),
+                team.getFormattedDisplayName(),
+                team.getScore());
     }
 }

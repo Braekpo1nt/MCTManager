@@ -36,9 +36,9 @@ public class AddSubCommand extends TabSubCommand {
         if (displayNameStart > 1) {
             return CommandResult.failure(Component.text("Provide a team name"))
                     .and(CommandResult.failure(Component.text("/mct team add ")
-                        .append(Component.text("<team>")
-                                .decorate(TextDecoration.BOLD))
-                        .append(Component.text(" \"<displayName>\" <color>"))));
+                            .append(Component.text("<team>")
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" \"<displayName>\" <color>"))));
         }
         String teamId = args[0];
         
@@ -83,7 +83,7 @@ public class AddSubCommand extends TabSubCommand {
             if (args[i].startsWith("\"") && startIndex == -1) {
                 startIndex = i;
             }
-    
+            
             if (args[i].endsWith("\"")) {
                 if (i == startIndex) {
                     if (args[i].length() == 1) {

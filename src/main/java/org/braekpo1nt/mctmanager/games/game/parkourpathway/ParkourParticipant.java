@@ -38,7 +38,7 @@ public class ParkourParticipant extends ParticipantData {
      * a participant can't use their skip.
      */
     private int skipCooldown;
-
+    
     /**
      * The current {@link ChatMode} of the participant
      */
@@ -65,7 +65,7 @@ public class ParkourParticipant extends ParticipantData {
         this.unusedSkips = quitData.getUnusedSkips();
         this.skipCooldown = 0;
     }
-
+    
     public QuitData getQuitData() {
         return new QuitData(
                 getScore(),
@@ -76,7 +76,7 @@ public class ParkourParticipant extends ParticipantData {
                 chatMode
         );
     }
-
+    
     @Data
     public static class QuitData implements QuitDataBase {
         private final int score;

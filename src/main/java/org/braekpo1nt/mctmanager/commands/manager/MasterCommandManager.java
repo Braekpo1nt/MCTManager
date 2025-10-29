@@ -17,7 +17,8 @@ public class MasterCommandManager extends CommandManager implements TabExecutor 
      * Instantiates a new {@link MasterCommandManager} with the given plugin and name
      * @param plugin the plugin to register this command with.
      * @param name the name of this command
-     * @throws IllegalArgumentException if the given plugin can't find a command by the given name, or if the given command doesn't have a permission
+     * @throws IllegalArgumentException if the given plugin can't find a command by the given name, or if the given
+     * command doesn't have a permission
      */
     public MasterCommandManager(@NotNull JavaPlugin plugin, @NotNull String name) {
         super(name);
@@ -30,11 +31,12 @@ public class MasterCommandManager extends CommandManager implements TabExecutor 
     }
     
     /**
-     * An overload of {@link CommandManager#onInit()} which performs the normal initialization as well as registers all the permissions with the given PluginManager.
+     * An overload of {@link CommandManager#onInit()} which performs the normal initialization as well as registers all
+     * the permissions with the given PluginManager.
      * This helps other plugins (such as LuckPerms) to see all the appropriate permissions.
      * @param pluginManager the pluginManager to register all the permissions with
-     * @see CommandManager#onInit() 
-     * @see MasterCommandManager#registerPermissions(PluginManager) 
+     * @see CommandManager#onInit()
+     * @see MasterCommandManager#registerPermissions(PluginManager)
      */
     public void onInit(PluginManager pluginManager) {
         super.onInit();
@@ -42,7 +44,8 @@ public class MasterCommandManager extends CommandManager implements TabExecutor 
     }
     
     /**
-     * Register all the downstream permissions as well as this {@link MasterCommandManager}'s permissions (if not already registered).
+     * Register all the downstream permissions as well as this {@link MasterCommandManager}'s permissions (if not
+     * already registered).
      * @param pluginManager the pluginManager to register the permissions with
      */
     public void registerPermissions(@NotNull PluginManager pluginManager) {

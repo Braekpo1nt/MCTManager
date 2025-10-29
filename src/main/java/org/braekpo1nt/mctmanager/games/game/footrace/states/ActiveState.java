@@ -63,7 +63,7 @@ public class ActiveState extends FootRaceStateBase {
     }
     
     private void startTimerRefreshTask() {
-        timerRefreshTaskId = new BukkitRunnable(){
+        timerRefreshTaskId = new BukkitRunnable() {
             @Override
             public void run() {
                 long elapsedTime = System.currentTimeMillis() - context.getRaceStartTime();
@@ -159,7 +159,7 @@ public class ActiveState extends FootRaceStateBase {
                     Component.empty(),
                     Component.empty()
                             .append(Component.text("Lap "))
-                            .append(Component.text(currentLap+1))
+                            .append(Component.text(currentLap + 1))
                             .color(NamedTextColor.YELLOW)
             ));
             long currentTime = System.currentTimeMillis();
@@ -249,8 +249,11 @@ public class ActiveState extends FootRaceStateBase {
     }
     
     /**
-     * Calculates the points to be awarded for the given placement. This is based on user-configured values. Returns a set number of values for placement less than or equal to x, and a detriment of 10 points for each successive placement greater than x
-     * @param placement the placement number (1=1st place, 2=2nd place, 300=300th place) to get the points for. Must be 1 or more.
+     * Calculates the points to be awarded for the given placement. This is based on user-configured values. Returns a
+     * set number of values for placement less than or equal to x, and a detriment of 10 points for each successive
+     * placement greater than x
+     * @param placement the placement number (1=1st place, 2=2nd place, 300=300th place) to get the points for. Must be
+     * 1 or more.
      * @return The number of points to award for the placement, no less than 0.
      */
     private int calculatePointsForPlacement(int placement) {
@@ -259,10 +262,10 @@ public class ActiveState extends FootRaceStateBase {
         }
         int[] placementPoints = config.getPlacementPoints();
         if (placement <= placementPoints.length) {
-            return placementPoints[placement-1];
+            return placementPoints[placement - 1];
         }
-        int minPlacementPoints = placementPoints[placementPoints.length-1];
-        int points = minPlacementPoints - ((placement-placementPoints.length) * config.getDetriment());
+        int minPlacementPoints = placementPoints[placementPoints.length - 1];
+        int points = minPlacementPoints - ((placement - placementPoints.length) * config.getDetriment());
         return Math.max(points, 0);
     }
     

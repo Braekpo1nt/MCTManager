@@ -5,8 +5,6 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventHungerLoss;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventItemDrop;
@@ -15,6 +13,8 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.states.ClockworkState;
 import org.braekpo1nt.mctmanager.games.game.clockwork.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.clockwork.states.InitialState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -109,7 +109,7 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
     }
     
     /**
-     * Make participants visible, and stay visible until {@link #startInvisible()} is 
+     * Make participants visible, and stay visible until {@link #startInvisible()} is
      * called
      */
     public void stopInvisible() {

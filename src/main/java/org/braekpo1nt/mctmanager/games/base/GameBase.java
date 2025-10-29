@@ -18,7 +18,12 @@ import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.participant.*;
+import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.ParticipantData;
+import org.braekpo1nt.mctmanager.participant.ParticipantID;
+import org.braekpo1nt.mctmanager.participant.QuitDataBase;
+import org.braekpo1nt.mctmanager.participant.ScoredTeamData;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -44,7 +49,14 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
 
 /**
@@ -53,7 +65,7 @@ import java.util.logging.Level;
  */
 @Getter
 @Setter
-public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase, S extends GameStateBase<P, T>>  implements MCTGame, Listener {
+public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase, S extends GameStateBase<P, T>> implements MCTGame, Listener {
     protected final @NotNull GameType type;
     protected final @NotNull GameInstanceId gameInstanceId;
     protected final @NotNull Main plugin;
@@ -89,9 +101,9 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param gameManager the GameManager
      * @param title the game's initial title, displayed in the sidebar
      * @param initialState the initialization state, should not contain any game functionality.
-     *                     The state must never be null, so this is what the state should be
-     *                     as the game is being initialized to prevent null-pointer
-     *                     exceptions. 
+     * The state must never be null, so this is what the state should be
+     * as the game is being initialized to prevent null-pointer
+     * exceptions.
      */
     public GameBase(
             @NotNull GameInstanceId gameInstanceId,
@@ -128,7 +140,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * <p>Add a new {@link GameListener} component to this game.
      * This will be registered on {@link #start(Collection, Collection, List)},
      * and will be unregistered on {@link #stop()}.</p>
-     * <p>Note: Calling after {@link #start(Collection, Collection, List)} 
+     * <p>Note: Calling after {@link #start(Collection, Collection, List)}
      * won't register the listener.</p>
      * @param listener the listener to register
      */
@@ -153,8 +165,8 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     protected abstract @NotNull World getWorld();
     
     /**
-     * <p>Call this after all fields have been initialized. 
-     * This initializes all the participants and teams, 
+     * <p>Call this after all fields have been initialized.
+     * This initializes all the participants and teams,
      * and finally assigns {@link #getStartState()} to {@link #state}
      * and calls {@link GameStateBase#enter()} on the newly assigned state.</p>
      * @param newTeams the teams going into the game
@@ -197,9 +209,9 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     /**
      * Add a new {@link UIManager} to this game
      * @param uiManager the {@link UIManager} to add
-     * @return the newly added manager, for convenience
      * @param <U> the type of UIManager you input (so that it can be returned
-     *           as the same type).
+     * as the same type).
+     * @return the newly added manager, for convenience
      */
     protected <U extends UIManager> U addUIManager(U uiManager) {
         this.uiManagers.add(uiManager);
@@ -207,7 +219,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     /**
-     * <p>This will be assigned to {@link #state} at the end of 
+     * <p>This will be assigned to {@link #state} at the end of
      * {@link #start(Collection, Collection, List)}. This state should kick off the game loop.</p>
      * @return the state to be instantiated after initialization
      */
@@ -215,7 +227,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     
     /**
      * Calls {@link GameStateBase#exit()} on the old {@link #state},
-     * assigns the given state to {@link #state}, 
+     * assigns the given state to {@link #state},
      * then calls {@link GameStateBase#enter()} on the new {@link #state}
      * @param state assign a state to this game
      */
@@ -304,6 +316,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     // cleanup end
     
     // Participant start
+    
     /**
      * <p>Add the participant to the game, to their team, and to UI managers</p>
      * @param participant the participant to add
@@ -321,7 +334,6 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * <p>Create a participant from the given {@link Participant}.</p>
      * <p>Called after setting the participant to the defaults.
      * Add additional setup logic here for every time a participant is created.</p>
-     *
      * @param participant the participant from which to derive the {@link P} type participant
      * @return the created {@link P} participant
      */
@@ -331,16 +343,14 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * <p>Create a participant from the given {@link Participant} and {@link QP} quitData.</p>
      * <p>Called after setting the participant to the defaults.
      * Add additional setup logic here for every time a participant is created, with the given quitData.</p>
-     *
      * @param participant the participant from which to derive the {@link P} type participant
-     * @param quitData    the quitData to use in creating the participant
+     * @param quitData the quitData to use in creating the participant
      * @return the created {@link P} participant
      */
     protected abstract @NotNull P createParticipant(Participant participant, QP quitData);
     
     /**
      * Create quitData from the given participant
-     *
      * @param participant the participant to get the quitData from
      * @return a new {@link QP} quitData from the given {@link P} participant's data
      */
@@ -363,7 +373,6 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     
     /**
      * Create a new team of type {@link T} from the given {@link Team}
-     *
      * @param team the team from which to derive the {@link T} type team
      * @return the created {@link T} team
      */
@@ -371,8 +380,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     
     /**
      * Create a new team of type {@link T} from the given {@link Team} and {@link QT} quitData
-     *
-     * @param team     the team from which to derive the {@link T} type team
+     * @param team the team from which to derive the {@link T} type team
      * @param quitData the quitData to use in creating the team
      * @return the created {@link T} team
      */
@@ -380,7 +388,6 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     
     /**
      * Create quitData from the given team
-     *
      * @param team the team to get the quitData from
      * @return a new {@link QT} quitData from the given {@link T} team's data
      */
@@ -399,7 +406,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     
     /**
      * <p>Reset the participant, removing all game-specific state</p>
-     * <p>This is called after default reset behavior, 
+     * <p>This is called after default reset behavior,
      * and is only needed for implementation-specific reset behavior.</p>
      * @param participant the participant to reset
      * @param team the participant's team
@@ -600,6 +607,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     // admin end
     
     // Sidebar start
+    
     /**
      * Add the appropriate default lines to the sidebar
      * and display the participant and team scores
@@ -621,7 +629,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     
     /**
      * <p>Add custom lines to the {@link #sidebar}</p>
-     * <p>Called after initial lines are added 
+     * <p>Called after initial lines are added
      * and before team and participant scores are initially displayed.</p>
      */
     protected abstract void initializeSidebar();
@@ -687,8 +695,8 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     // Award Points start
     
     /**
-     * <p>Award the given points to the given participant. The points will be multiplied by 
-     * {@link GameManager#getMultiplier()} before being awarded, and points will be reflected 
+     * <p>Award the given points to the given participant. The points will be multiplied by
+     * {@link GameManager#getMultiplier()} before being awarded, and points will be reflected
      * in the participant's team as well.</p>
      * <p>{@link #sidebar} will also be updated to reflect the score. </p>
      * @param participant the participant to be awarded personal points
@@ -704,7 +712,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     /**
-     * <p>Award the given points to the given team. The points will be multiplied by 
+     * <p>Award the given points to the given team. The points will be multiplied by
      * {@link GameManager#getMultiplier()} before being awarded.</p>
      * <p>{@link #sidebar} will also be updated to reflect the score</p>
      * @param team the team to award the points to
@@ -717,8 +725,8 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     /**
-     * <p>Award the given points to the given participants. The points will be multiplied by 
-     * {@link GameManager#getMultiplier()} before being awarded, and points will be reflected 
+     * <p>Award the given points to the given participants. The points will be multiplied by
+     * {@link GameManager#getMultiplier()} before being awarded, and points will be reflected
      * in the participants' team as well.</p>
      * <p>{@link #sidebar} will also be updated to reflect the score. </p>
      * @param awardedParticipants the participants to be awarded personal points
@@ -738,7 +746,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     /**
-     * <p>Award the given points to the given teams. The points will be multiplied by 
+     * <p>Award the given points to the given teams. The points will be multiplied by
      * {@link GameManager#getMultiplier()} before being awarded.</p>
      * <p>{@link #sidebar} will also be updated to reflect the score</p>
      * @param awardedTeams the teams to award the points to
@@ -754,12 +762,13 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     // Award Points end
     
     // EventHandlers start
+    
     /**
-     * <p>The default behavior for {@link PlayerMoveEvent}s. Checks if the triggering player is 
-     * a participant in this game, and if so passes the event (and the participant) to the 
+     * <p>The default behavior for {@link PlayerMoveEvent}s. Checks if the triggering player is
+     * a participant in this game, and if so passes the event (and the participant) to the
      * {@link GameStateBase#onParticipantMove(PlayerMoveEvent, ParticipantData)}.</p>
-     * <p>After the state handles the move event, if the event isn't cancelled and 
-     * {@link #getSpectatorBoundary()} is not null, keeps participants in spectator 
+     * <p>After the state handles the move event, if the event isn't cancelled and
+     * {@link #getSpectatorBoundary()} is not null, keeps participants in spectator
      * mode inside the specified boundary.</p>
      * @param event the event
      */
@@ -772,7 +781,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         state.onParticipantMove(event, participant);
         SpectatorBoundary boundary = getSpectatorBoundary();
         if (boundary != null &&
-                !event.isCancelled() && 
+                !event.isCancelled() &&
                 participant.getGameMode().equals(GameMode.SPECTATOR) &&
                 !participant.getPlayer().isDead() &&
                 boundary.contains(event.getFrom().toVector()) &&
@@ -804,13 +813,13 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     /**
-     * <p>Default behavior for {@link PlayerInteractEvent}. 
+     * <p>Default behavior for {@link PlayerInteractEvent}.
      * First checks to see if the triggering player is a participant in this game.
-     * Then, checks to see if interactions with any interacted blocks 
-     * should be prevented (see 
-     * {@link #shouldPreventInteractions(Material)}) and if so, 
-     * cancels the event and does not pass to the implementing game class. 
-     * Otherwise, the event and participant is passed to 
+     * Then, checks to see if interactions with any interacted blocks
+     * should be prevented (see
+     * {@link #shouldPreventInteractions(Material)}) and if so,
+     * cancels the event and does not pass to the implementing game class.
+     * Otherwise, the event and participant is passed to
      * {@link GameStateBase#onParticipantInteract(PlayerInteractEvent, P)}.</p>
      * @param event the event
      */
@@ -838,14 +847,14 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     
     /**
      * @param type the block type to check if it should be interacted with in this game
-     * @return true if interactions with the given block type should be prevented, false if they should be allowed. 
+     * @return true if interactions with the given block type should be prevented, false if they should be allowed.
      */
     protected abstract boolean shouldPreventInteractions(@NotNull Material type);
     
     /**
-     * <p>Default behavior for {@link EntityDamageEvent}. If the entity is a participant in 
-     * this game, the event and participant is passed to 
-     * {@link GameStateBase#onParticipantDamage(EntityDamageEvent, P)}. 
+     * <p>Default behavior for {@link EntityDamageEvent}. If the entity is a participant in
+     * this game, the event and participant is passed to
+     * {@link GameStateBase#onParticipantDamage(EntityDamageEvent, P)}.
      * Otherwise it is ignored.</p>
      * @param event the event
      */
@@ -862,9 +871,9 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     /**
-     * <p>Default behavior for {@link PlayerDeathEvent}. If the entity is a participant in 
-     * this game, the event and participant is passed to 
-     * {@link GameStateBase#onParticipantDeath(PlayerDeathEvent, P)}. 
+     * <p>Default behavior for {@link PlayerDeathEvent}. If the entity is a participant in
+     * this game, the event and participant is passed to
+     * {@link GameStateBase#onParticipantDeath(PlayerDeathEvent, P)}.
      * Otherwise it is ignored.</p>
      * @param event the event
      */

@@ -10,7 +10,9 @@ import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class TeamSpawnsDescription extends ParkourPathwayStateBase {
     

@@ -52,7 +52,7 @@ public class PresetStorageUtil {
      * and then saved to the given file. If any errors occur along the way they
      * are caught and reported in the result. The return result of the
      * modify method will be returned if nothing goes wrong with loading or saving.
-     * If the return value of the modify method is not successful, then the preset will 
+     * If the return value of the modify method is not successful, then the preset will
      * not be saved.
      * @param presetFile the file to load and then save the preset from and to.
      * @param modify the method to modify the preset with

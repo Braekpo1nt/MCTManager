@@ -16,17 +16,31 @@ import java.util.List;
 
 @Data
 class BorderDTO implements Validatable {
-    /** the center of the world border */
+    /**
+     * the center of the world border
+     */
     private Center center;
-    /** The size that the border should start at */
+    /**
+     * The size that the border should start at
+     */
     private double initialBorderSize;
-    /** the amount of damage a player takes when outside the border plus the border buffer. */
+    /**
+     * the amount of damage a player takes when outside the border plus the border buffer.
+     */
     private double damageAmount;
-    /** the amount of blocks a player may safely be outside the border before taking damage. */
+    /**
+     * the amount of blocks a player may safely be outside the border before taking damage.
+     */
     private double damageBuffer;
-    /** the warning distance that causes the screen to be tinted red when the player is within the specified number of blocks from the border. */
+    /**
+     * the warning distance that causes the screen to be tinted red when the player is within the specified number of
+     * blocks from the border.
+     */
     private int warningDistance;
-    /** the warning time that causes the screen to be tinted red when a contracting border will reach the player within the specified time. */
+    /**
+     * the warning time that causes the screen to be tinted red when a contracting border will reach the player within
+     * the specified time.
+     */
     private int warningTime;
     /**
      * The locations where players can respawn
@@ -34,9 +48,9 @@ class BorderDTO implements Validatable {
      */
     private @Nullable List<LocationDTO> respawnLocations;
     /**
-     * The number of stages that respawning is allowed. 
+     * The number of stages that respawning is allowed.
      * After this many stages, respawning will be disabled.
-     * Can't be more than the total number of {@link #borderStages}. 
+     * Can't be more than the total number of {@link #borderStages}.
      * If this is less than 1, no respawning will occur through the duration of the game.
      * Defaults to 0.
      */
@@ -61,9 +75,9 @@ class BorderDTO implements Validatable {
     private @Nullable PlayerInventoryDTO respawnLoadout;
     /**
      * The number of deaths that grant kill points. E.g. if 2, then the first two times
-     * a participant is killed, the killer gets points. 
+     * a participant is killed, the killer gets points.
      * But from the third death on, no killers get points for killing that participant.
-     * Negative number indicates no limit (all kills grant points). 
+     * Negative number indicates no limit (all kills grant points).
      * Defaults to -1
      */
     private @Nullable Integer deathPointsThreshold;
@@ -73,7 +87,9 @@ class BorderDTO implements Validatable {
      * Defaults to true.
      */
     private @Nullable Boolean canAttackWhenRespawning;
-    /** The stages the border should progress through */
+    /**
+     * The stages the border should progress through
+     */
     private List<BorderStageDTO> borderStages;
     
     @Override

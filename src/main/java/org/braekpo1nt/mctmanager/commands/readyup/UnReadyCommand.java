@@ -15,10 +15,10 @@ public class UnReadyCommand extends MasterCommandManager {
     
     /**
      * Instantiates a new {@link MasterCommandManager} with the given plugin and name
-     *
-     * @param plugin      the plugin to register this command with.
+     * @param plugin the plugin to register this command with.
      * @param gameManager the game manager
-     * @throws IllegalArgumentException if the given plugin can't find a command by the given name, or if the given command doesn't have a permission
+     * @throws IllegalArgumentException if the given plugin can't find a command by the given name, or if the given
+     * command doesn't have a permission
      */
     public UnReadyCommand(@NotNull JavaPlugin plugin, GameManager gameManager) {
         super(plugin, "unready");

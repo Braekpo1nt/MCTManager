@@ -5,7 +5,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.jetbrains.annotations.NotNull;
 
 public class ScoreAddCommand extends CommandManager {
-
+    
     public ScoreAddCommand(GameManager gameManager, @NotNull String name) {
         super(name);
         addSubCommand(new ScoreAddPlayerSubCommand(gameManager, false, "player"));

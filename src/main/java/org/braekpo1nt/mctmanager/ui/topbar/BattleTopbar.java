@@ -13,7 +13,11 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * An implementation of a Topbar specifically oriented toward pairs of teams fighting each other.
@@ -32,13 +36,14 @@ public class BattleTopbar implements Topbar {
         /**
          * The enemy team associated with this TeamData. This is useful for
          * updating the displays of both sides of a conflict.
-         * If this is null, there is no enemy team associated with this team. Use {@link BattleTopbar#linkTeamPair(String, String)} to link with a team.
+         * If this is null, there is no enemy team associated with this team. Use
+         * {@link BattleTopbar#linkTeamPair(String, String)} to link with a team.
          */
         private @Nullable String enemyTeam;
         private final @NotNull TextColor teamColor;
         /**
          * the UUIDs of the players who are viewing this TeamData in their
-         * BossBar display. This is useful for updating all appropriate 
+         * BossBar display. This is useful for updating all appropriate
          * displays when this TeamData is changed.
          */
         private final List<UUID> viewingMembers = new ArrayList<>();
@@ -66,7 +71,7 @@ public class BattleTopbar implements Topbar {
     }
     
     /**
-     * @param teamId the teamId of the TeamData. Must be a valid key in {@link BattleTopbar#teamDatas} 
+     * @param teamId the teamId of the TeamData. Must be a valid key in {@link BattleTopbar#teamDatas}
      * @return the {@link TeamData} associated with this team
      */
     private @Nullable TeamData getTeamData(@NotNull String teamId) {
@@ -101,7 +106,7 @@ public class BattleTopbar implements Topbar {
     
     /**
      * set two teams to be opposing each other. Must be different teams. Both teams
-     * must have been added to this Topbar before the link operation 
+     * must have been added to this Topbar before the link operation
      * using {@link BattleTopbar#addTeam(String, TextColor)}
      * @param teamIdA a valid teamId in this Topbar
      * @param teamIdB another valid teamId in this Topbar
@@ -198,8 +203,10 @@ public class BattleTopbar implements Topbar {
     }
     
     /**
-     * Updates all the given {@link TeamData#getViewingMembers()}' BossBars with the given {@link TeamData#getVersusComponent()}
-     * @param teamData the TeamData to update all the members' bossBars. Each member is expected to be a valid key in {@link BattleTopbar#playerDatas}. 
+     * Updates all the given {@link TeamData#getViewingMembers()}' BossBars with the given
+     * {@link TeamData#getVersusComponent()}
+     * @param teamData the TeamData to update all the members' bossBars. Each member is expected to be a valid key in
+     * {@link BattleTopbar#playerDatas}.
      */
     private void update(@NotNull TeamData teamData) {
         for (UUID member : teamData.getViewingMembers()) {
@@ -293,9 +300,10 @@ public class BattleTopbar implements Topbar {
     
     /**
      * Link the given player to the given team, so that they are viewing the appropriate
-     * components in their BossBar ui and so that they are updated when values relating to 
-     * this team are updated. 
-     * @param playerUUID the UUID of a player who is viewing this BattleTopbar. Must not already be linked to a teamId in this BattleTopbar.
+     * components in their BossBar ui and so that they are updated when values relating to
+     * this team are updated.
+     * @param playerUUID the UUID of a player who is viewing this BattleTopbar. Must not already be linked to a teamId
+     * in this BattleTopbar.
      * @param teamId the teamId to link this player to (must be a teamId which is already in this Topbar)
      */
     public void linkToTeam(@NotNull UUID playerUUID, @NotNull String teamId) {
@@ -308,7 +316,7 @@ public class BattleTopbar implements Topbar {
             return;
         }
         if (playerData.getTeamId() != null) {
-            UIUtils.logUIError("player with UUID \"%s\" is already linked to a team in this bar: \"%s\"", 
+            UIUtils.logUIError("player with UUID \"%s\" is already linked to a team in this bar: \"%s\"",
                     playerUUID, playerData.getTeamId());
             return;
         }
@@ -320,7 +328,7 @@ public class BattleTopbar implements Topbar {
     }
     
     /**
-     * Unlink the given player from their team. 
+     * Unlink the given player from their team.
      * @param playerUUID the UUID of the player to remove this. Must already be linked to a teamId in this Topbar.
      * @throws IllegalArgumentException if they are not already linked to a team, or if they are not in this Topbar
      */

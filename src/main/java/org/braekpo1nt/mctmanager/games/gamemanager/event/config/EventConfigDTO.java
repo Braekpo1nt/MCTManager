@@ -22,14 +22,17 @@ import java.util.Map;
 
 /**
  * @param title the title of the event, used in the sidebar and for announcing the winner
- * @param multipliers must have at least one element. The nth multiplier is used on the nth game in the event. If there are x multipliers, and we're on game z where z is greater than x, the xth multiplier is used. A multiplier will be multiplied by all points awarded during it's paired game.
- * @param crown the crown to give to participants when they win the event. Defaults to a pumpkin with the {@code custom_model_data={strings:['ctwinnercrown']}} model data
+ * @param multipliers must have at least one element. The nth multiplier is used on the nth game in the event. If there
+ * are x multipliers, and we're on game z where z is greater than x, the xth multiplier is used. A multiplier will be
+ * multiplied by all points awarded during it's paired game.
+ * @param crown the crown to give to participants when they win the event. Defaults to a pumpkin with the
+ * {@code custom_model_data={strings:['ctwinnercrown']}} model data
  * @param durations various durations during the event
  */
 record EventConfigDTO(
-        String version, 
-        Component title, 
-        double[] multipliers, 
+        String version,
+        Component title,
+        double[] multipliers,
         boolean shouldDisplayGameNumber,
         @Nullable Map<GameType, String> gameConfigs,
         @Nullable String colossalCombatConfig,
@@ -97,7 +100,7 @@ record EventConfigDTO(
                 .title(this.title)
                 .build();
     }
-
+    
     @Data
     static class Tips implements Validatable {
         /**

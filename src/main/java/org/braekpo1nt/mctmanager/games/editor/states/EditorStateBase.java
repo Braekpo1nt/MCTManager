@@ -9,7 +9,9 @@ import org.jetbrains.annotations.NotNull;
 
 public interface EditorStateBase<A extends Admin> {
     void cleanup();
+    
     void onAdminJoin(A admin);
+    
     void onAdminQuit(A admin);
     
     @NotNull CommandResult validateConfig(@NotNull String configFile) throws ConfigException;
@@ -19,5 +21,6 @@ public interface EditorStateBase<A extends Admin> {
     @NotNull CommandResult loadConfig(@NotNull String configFile) throws ConfigException;
     
     void onAdminInteract(PlayerInteractEvent event, A admin);
+    
     void onAdminDropItem(PlayerDropItemEvent event, A admin);
 }

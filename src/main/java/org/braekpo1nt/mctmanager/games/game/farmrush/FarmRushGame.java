@@ -28,7 +28,12 @@ import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
-import org.bukkit.*;
+import org.bukkit.GameMode;
+import org.bukkit.GameRule;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
@@ -45,7 +50,12 @@ import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
-import org.bukkit.event.inventory.*;
+import org.bukkit.event.inventory.BrewEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -126,14 +136,14 @@ public class FarmRushGame extends WandsGameBase<FarmRushParticipant, FarmRushTea
         ChestGui gui = new ChestGui(rows, "Sale Prices");
         gui.setOnGlobalClick(event -> event.setCancelled(true));
         
-        PaginatedPane pages = new PaginatedPane(0, 0, 9, rows-1);
+        PaginatedPane pages = new PaginatedPane(0, 0, 9, rows - 1);
         pages.populateWithGuiItems(saleGuiItems);
         gui.addPane(pages);
         
-        OutlinePane background = background(rows-1);
+        OutlinePane background = background(rows - 1);
         gui.addPane(background);
         
-        StaticPane navigation = new StaticPane(0, rows-1, 9, 1);
+        StaticPane navigation = new StaticPane(0, rows - 1, 9, 1);
         navigation.addItem(new GuiItem(withName(Material.RED_DYE, "Previous"), event -> {
             if (pages.getPage() > 0) {
                 pages.setPage(pages.getPage() - 1);
@@ -183,10 +193,10 @@ public class FarmRushGame extends WandsGameBase<FarmRushParticipant, FarmRushTea
     
     private List<GuiItem> createGuiItems() {
         List<ItemSale> itemSales = config.getMaterialScores().values().stream()
-                .sorted((a, b)-> {
+                .sorted((a, b) -> {
                     int scoreCompare = Integer.compare(b.getScore(), a.getScore());
                     if (scoreCompare != 0) {
-                        return scoreCompare; 
+                        return scoreCompare;
                     }
                     
                     int amountCompare = Integer.compare(a.getRequiredAmount(), b.getRequiredAmount());
@@ -238,7 +248,7 @@ public class FarmRushGame extends WandsGameBase<FarmRushParticipant, FarmRushTea
             delivery.setType(Material.BARREL);
             BlockData deliveryBlockData = delivery.getBlockData();
             ((Directional) deliveryBlockData).setFacing(arena.getDeliveryBlockFace());
-            delivery.setBlockData(deliveryBlockData);   
+            delivery.setBlockData(deliveryBlockData);
             
             Block starterChest = arena.getStarterChest().getBlock();
             starterChest.setType(Material.CHEST);
@@ -431,6 +441,7 @@ public class FarmRushGame extends WandsGameBase<FarmRushParticipant, FarmRushTea
         }
         powerupManager.onBlockBreak(block, event);
     }
+    
     @EventHandler
     public void blockExplodeEvent(BlockExplodeEvent event) {
         event.blockList().removeIf(block -> {
@@ -445,6 +456,7 @@ public class FarmRushGame extends WandsGameBase<FarmRushParticipant, FarmRushTea
         List<Block> powerupBlocks = powerupManager.onBlocksBreak(event.blockList());
         event.blockList().removeAll(powerupBlocks);
     }
+    
     @EventHandler
     public void entityExplodeEvent(EntityExplodeEvent event) {
         event.blockList().removeIf(block -> {
@@ -459,14 +471,17 @@ public class FarmRushGame extends WandsGameBase<FarmRushParticipant, FarmRushTea
         List<Block> powerupBlocks = powerupManager.onBlocksBreak(event.blockList());
         event.blockList().removeAll(powerupBlocks);
     }
+    
     @EventHandler
     public void blockDestroyEvent(BlockDestroyEvent event) {
         onBlockDestroy(event.getBlock(), event);
     }
+    
     @EventHandler
     public void blockBurnEvent(BlockBurnEvent event) {
         onBlockDestroy(event.getBlock(), event);
     }
+    
     public void onBlockDestroy(Block block, Cancellable event) {
         for (FarmRushTeam team : teams.values()) {
             Location delivery = team.getArena().getDelivery();
@@ -510,6 +525,7 @@ public class FarmRushGame extends WandsGameBase<FarmRushParticipant, FarmRushTea
             addScoreLore(item);
         }
     }
+    
     @EventHandler
     public void onCraft(PrepareItemCraftEvent event) {
         ItemStack[] contents = event.getInventory().getContents();
@@ -522,6 +538,7 @@ public class FarmRushGame extends WandsGameBase<FarmRushParticipant, FarmRushTea
         //1-9 for crafting table
         addScoreLore(result);
     }
+    
     @EventHandler
     public void onPrepareResult(PrepareResultEvent event) {
         addScoreLore(event.getResult());
@@ -540,12 +557,11 @@ public class FarmRushGame extends WandsGameBase<FarmRushParticipant, FarmRushTea
     /**
      * If the given item has a score associated with its Material type in the config,
      * this method adds a line to the item's lore showing how many points it's worth.<br>
-     * 
+     * <p>
      * This is an idempotent operation, meaning running it on the same item twice will
      * result in only 1 score line being added to the lore. It marks items that have been
      * modified with a persistent data container boolean using {@link #HAS_SCORE_LORE}
      * as the namespaced key.
-     * 
      * @param item the item to add the score to, if it exists
      */
     private void addScoreLore(@Nullable ItemStack item) {

@@ -11,7 +11,11 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * handles event management
@@ -29,14 +33,14 @@ public class EventData {
     // TODO: make this use GameInstanceId, not just GameType
     private final List<GameType> playedGames = new ArrayList<>();
     /**
-     * contains the ScoreKeepers for the games played during the event. Cleared on start and end of event. 
+     * contains the ScoreKeepers for the games played during the event. Cleared on start and end of event.
      * <p>
-     * If a given key doesn't exist, no score was kept for that game. 
+     * If a given key doesn't exist, no score was kept for that game.
      * <p>
      * If a given key does exist, it is pared with a list of ScoreKeepers which contain the scores
      * tracked for a given iteration of the game. Iterations are in order of play, first to last.
-     * If a given iteration is null, then no points were tracked for that iteration. 
-     * Otherwise, it contains the scores tracked for the given iteration. 
+     * If a given iteration is null, then no points were tracked for that iteration.
+     * Otherwise, it contains the scores tracked for the given iteration.
      */
     @Getter
     private final Map<GameInstanceId, List<ScoreKeeper>> scoreKeepers = new HashMap<>();
@@ -77,7 +81,8 @@ public class EventData {
     }
     
     /**
-     * The nth multiplier is used on the nth game in the event. If there are x multipliers, and we're on game z where z is greater than x, the xth multiplier is used.
+     * The nth multiplier is used on the nth game in the event. If there are x multipliers, and we're on game z where z
+     * is greater than x, the xth multiplier is used.
      * @return a multiplier for the score based on the progression in the match.
      */
     public double getPointMultiplier() {
@@ -93,15 +98,15 @@ public class EventData {
     
     /**
      * Check if half the games have been played
-     * @return true if the currentGameNumber-1 is half of the maxGames. False if it is lower or higher. 
-     * If maxGames is odd, it must be the greater half (i.e. 2 is half of 3, 1 is not). 
+     * @return true if the currentGameNumber-1 is half of the maxGames. False if it is lower or higher.
+     * If maxGames is odd, it must be the greater half (i.e. 2 is half of 3, 1 is not).
      */
     public boolean isItHalfTime() {
         if (maxGames == 1) {
             return false;
         }
         double half = maxGames / 2.0;
-        return half <= currentGameNumber-1 && currentGameNumber-1 <= Math.ceil(half);
+        return half <= currentGameNumber - 1 && currentGameNumber - 1 <= Math.ceil(half);
     }
     
     public boolean allGamesHaveBeenPlayed() {

@@ -152,7 +152,6 @@ public class FastBoard extends FastBoardBase<String> {
      * Return if the player has a prefix/suffix characters limit.
      * By default, it returns true only in 1.12 or lower.
      * This method can be overridden to fix compatibility with some versions support plugin.
-     *
      * @return max length
      */
     protected boolean hasLinesMaxLength() {

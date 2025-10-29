@@ -20,7 +20,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 public class GlowManager extends SimplePacketListenerAbstract implements UIManager {
     
@@ -166,8 +172,8 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
     }
     
     /**
-     * Send a new packet ENTITY_METADATA packet to the viewer with the given 
-     * target entity ID. 
+     * Send a new packet ENTITY_METADATA packet to the viewer with the given
+     * target entity ID.
      * @param viewer the receiver of the packet
      * @param targetEntityId the entity ID of the entity which should be glowing
      * @param entityMetadata the metadata which includes a flag indicating the glowing status
@@ -213,9 +219,9 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
     /**
      * Show the viewer the target's glowing effect
      * @param viewer the viewer (the player who should see the target glowing)
-     *               Must be a player contained in this manager
-     * @param target the target (the Participant who should glow). 
-     *               Must reference a player contained in this manager.
+     * Must be a player contained in this manager
+     * @param target the target (the Participant who should glow).
+     * Must reference a player contained in this manager.
      */
     public void showGlowing(Player viewer, Participant target) {
         showGlowing(viewer.getUniqueId(), target.getUniqueId());
@@ -224,9 +230,9 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
     /**
      * Show the viewer the target's glowing effect
      * @param viewer the viewer (the Participant who should see the target glowing)
-     *               Must reference a player contained in this manager
-     * @param target the target (the Participant who should glow). 
-     *               Must be a player contained in this manager.
+     * Must reference a player contained in this manager
+     * @param target the target (the Participant who should glow).
+     * Must be a player contained in this manager.
      */
     public void showGlowing(Participant viewer, Player target) {
         showGlowing(viewer.getUniqueId(), target.getUniqueId());
@@ -235,9 +241,9 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
     /**
      * Show the viewer the target's glowing effect
      * @param viewer the viewer (the Participant who should see the target glowing)
-     *               Must reference a player contained in this manager
-     * @param target the target (the Participant who should glow). 
-     *               Must reference a player contained in this manager.
+     * Must reference a player contained in this manager
+     * @param target the target (the Participant who should glow).
+     * Must reference a player contained in this manager.
      */
     public void showGlowing(Participant viewer, Participant target) {
         showGlowing(viewer.getUniqueId(), target.getUniqueId());
@@ -246,9 +252,9 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
     /**
      * Show the viewer the target's glowing effect
      * @param viewer the viewer (the player who should see the target glowing)
-     *               Must be a player contained in this manager
-     * @param target the target (the player who should glow). 
-     *               Must be a player contained in this manager.
+     * Must be a player contained in this manager
+     * @param target the target (the player who should glow).
+     * Must be a player contained in this manager.
      */
     public void showGlowing(Player viewer, Player target) {
         showGlowing(viewer.getUniqueId(), target.getUniqueId());
@@ -256,10 +262,10 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
     
     /**
      * Show the viewer the target's glowing effect
-     * @param viewerUUID the UUID of the viewer. 
-     *               Must be a player contained in this manager
-     * @param targetUUID the UUID of the target (the player who should glow). 
-     *               Must be a player contained in this manager.
+     * @param viewerUUID the UUID of the viewer.
+     * Must be a player contained in this manager
+     * @param targetUUID the UUID of the target (the player who should glow).
+     * Must be a player contained in this manager.
      */
     public void showGlowing(UUID viewerUUID, UUID targetUUID) {
         PlayerData viewerPlayerData = playerDatas.get(viewerUUID);
@@ -290,10 +296,10 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
     
     /**
      * Hide the target's glowing effect from the viewer
-     * @param viewer the viewer. 
-     *               Must be a player contained in this manager
-     * @param target the target (the player who should glow). 
-     *               Must be a player contained in this manager.
+     * @param viewer the viewer.
+     * Must be a player contained in this manager
+     * @param target the target (the player who should glow).
+     * Must be a player contained in this manager.
      */
     public void hideGlowing(Player viewer, Participant target) {
         hideGlowing(viewer.getUniqueId(), viewer.getName(), target.getUniqueId(), target.getName());
@@ -301,10 +307,10 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
     
     /**
      * Hide the target's glowing effect from the viewer
-     * @param viewer the viewer. 
-     *               Must be a player contained in this manager
-     * @param target the target (the player who should glow). 
-     *               Must be a player contained in this manager.
+     * @param viewer the viewer.
+     * Must be a player contained in this manager
+     * @param target the target (the player who should glow).
+     * Must be a player contained in this manager.
      */
     public void hideGlowing(Participant viewer, Participant target) {
         hideGlowing(viewer.getUniqueId(), viewer.getName(), target.getUniqueId(), target.getName());
@@ -312,10 +318,10 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
     
     /**
      * Hide the target's glowing effect from the viewer
-     * @param viewerUUID the UUID of the viewer. 
-     *               Must be a player contained in this manager
-     * @param targetUUID the UUID of the target (the player who should glow). 
-     *               Must be a player contained in this manager.
+     * @param viewerUUID the UUID of the viewer.
+     * Must be a player contained in this manager
+     * @param targetUUID the UUID of the target (the player who should glow).
+     * Must be a player contained in this manager.
      */
     public void hideGlowing(UUID viewerUUID, String viewerName, UUID targetUUID, String targetName) {
         PlayerData viewerPlayerData = playerDatas.get(viewerUUID);
@@ -419,7 +425,7 @@ public class GlowManager extends SimplePacketListenerAbstract implements UIManag
                 // if the viewer can't see the target's glow effect, then do not proceed
                 return;
             }
-            List<EntityData<?>> entityMetadata = packet.getEntityMetadata(); 
+            List<EntityData<?>> entityMetadata = packet.getEntityMetadata();
             // the unchecked cast warning is suppressed by the annotation on this method
             EntityData<Byte> baseEntityData = (EntityData<Byte>) entityMetadata.stream()
                     .filter(entityData -> entityData.getIndex() == 0 && entityData.getType() == EntityDataTypes.BYTE)

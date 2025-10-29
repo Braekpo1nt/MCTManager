@@ -1,4 +1,4 @@
-    package org.braekpo1nt.mctmanager.games.game.capturetheflag;
+package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -27,7 +27,12 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -174,7 +179,6 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
     /**
      * Updates the round line of the sidebar for the given player
      * to reflect the current round and number of total rounds
-     *
      * @param uuid the UUID of the participant/admin to update the round line for
      */
     public void updateRoundLine(UUID uuid) {

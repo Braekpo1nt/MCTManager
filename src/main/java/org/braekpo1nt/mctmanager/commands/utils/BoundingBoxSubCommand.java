@@ -7,8 +7,8 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.display.boundingbox.RectBoxRenderer;
 import org.braekpo1nt.mctmanager.display.Renderer;
+import org.braekpo1nt.mctmanager.display.boundingbox.RectBoxRenderer;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -86,7 +86,7 @@ class BoundingBoxSubCommand extends TabSubCommand {
                 .blockData(Material.GLASS.createBlockData())
                 .build();
         display.show();
-        plugin.getServer().getScheduler().runTaskLater(plugin, display::hide, 10*20L);
+        plugin.getServer().getScheduler().runTaskLater(plugin, display::hide, 10 * 20L);
         return CommandResult.success();
     }
     

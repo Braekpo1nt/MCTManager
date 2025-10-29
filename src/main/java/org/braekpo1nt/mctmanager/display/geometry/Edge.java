@@ -37,8 +37,8 @@ public class Edge {
     /**
      * @param location the location to make the edge from
      * @param length the length (in blocks) to make the edge
-     * @return an {@link Edge} from the location to the point along the vector of length {@code length} 
-     * in the direction of the pitch and yaw of the location  
+     * @return an {@link Edge} from the location to the point along the vector of length {@code length}
+     * in the direction of the pitch and yaw of the location
      */
     public static Edge from(Location location, double length) {
         Vector direction = EntityUtils.getDirection(location).multiply(length);
@@ -112,7 +112,9 @@ public class Edge {
     /**
      * @param edge the edge to get the points along
      * @param distance the distance between points (should not be longer than the length of the edge)
-     * @return a list of points that are equidistant along the edge. Ensures that both endpoints of the edge are included (one at the beginning of the list and one at the end), even if the last two points are less than the provided distance apart from each other.
+     * @return a list of points that are equidistant along the edge. Ensures that both endpoints of the edge are
+     * included (one at the beginning of the list and one at the end), even if the last two points are less than the
+     * provided distance apart from each other.
      */
     public static List<Vector> pointsAlongEdgeWithDistance(Edge edge, double distance) {
         List<Vector> points = new ArrayList<>();

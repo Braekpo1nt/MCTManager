@@ -5,14 +5,14 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
+import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.EventData;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.ScoreKeeper;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfig;
-import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
-import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.GameManagerState;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.MaintenanceState;
@@ -24,7 +24,10 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public abstract class EventState extends GameManagerState {
     
@@ -104,7 +107,7 @@ public abstract class EventState extends GameManagerState {
         List<ScoreKeeper> gameScoreKeepers = eventData.getScoreKeepers().get(id);
         if (iterationIndex < 0) {
             return CommandResult.failure(Component.empty()
-                    .append(Component.text(iterationIndex+1)
+                    .append(Component.text(iterationIndex + 1)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" is not a valid play-through")));
         }
@@ -309,6 +312,7 @@ public abstract class EventState extends GameManagerState {
     }
     
     // progression start
+    
     /**
      * @return a line for sidebars saying what the current game is
      */

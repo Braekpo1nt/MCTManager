@@ -14,7 +14,7 @@ import java.util.Map;
 
 /**
  * A component representing many teams and their members' alive/dead status.
- * Can be converted to a {@link Component} for display to a user 
+ * Can be converted to a {@link Component} for display to a user
  */
 public class ManyTeamsComponent {
     

@@ -6,8 +6,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.base.Affiliation;
 import org.braekpo1nt.mctmanager.games.base.DuoGameBase;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventItemDrop;
@@ -17,6 +15,8 @@ import org.braekpo1nt.mctmanager.games.game.colossalcombat.states.ColossalCombat
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.states.InitialState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -57,12 +57,12 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
             @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
         super(
-                new GameInstanceId(GameType.FINAL, configFile), 
-                plugin, 
-                gameManager, 
-                title, 
-                new InitialState(), 
-                new ColossalTeam(newNorth, 0, Affiliation.NORTH), 
+                new GameInstanceId(GameType.FINAL, configFile),
+                plugin,
+                gameManager,
+                title,
+                new InitialState(),
+                new ColossalTeam(newNorth, 0, Affiliation.NORTH),
                 new ColossalTeam(newSouth, 0, Affiliation.SOUTH));
         this.config = config;
         this.topbar = addUIManager(new BattleTopbar());
@@ -227,7 +227,7 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
     }
     
     public void updateRoundSidebar(@NotNull ColossalParticipant participant) {
-        sidebar.updateLines(participant.getUniqueId(), 
+        sidebar.updateLines(participant.getUniqueId(),
                 new KeyLine("northWinCount", toWinCountLine(northTeam)),
                 new KeyLine("southWinCount", toWinCountLine(southTeam)),
                 new KeyLine("round", Component.empty()

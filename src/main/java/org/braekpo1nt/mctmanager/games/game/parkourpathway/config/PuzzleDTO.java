@@ -28,13 +28,14 @@ class PuzzleDTO implements Validatable {
     /**
      * The bounding boxes which are collectively considered in-bounds (if you leave them, you're out of bounds). <br>
      * - all detectionAreas must be in at least one inBound box <br>
-     * - all detection areas of the puzzle after this must also be in at least one inBound box (otherwise players will be teleported to the respawn point before they reach the next puzzle's checkpoint). <br>
+     * - all detection areas of the puzzle after this must also be in at least one inBound box (otherwise players will
+     * be teleported to the respawn point before they reach the next puzzle's checkpoint). <br>
      */
     private final List<BoundingBox> inBounds;
     /**
-     * the list of checkpoints that players must reach to begin this puzzle. 
-     * They contain the respawn point for if they go out of bounds, 
-     * and the detectionArea which they must be inside to leave their 
+     * the list of checkpoints that players must reach to begin this puzzle.
+     * They contain the respawn point for if they go out of bounds,
+     * and the detectionArea which they must be inside to leave their
      * previous puzzle and begin this one.
      */
     private final List<CheckPointDTO> checkPoints;
@@ -73,7 +74,7 @@ class PuzzleDTO implements Validatable {
             for (int j = 0; j < i; j++) {
                 PuzzleDTO.CheckPointDTO earlierCheckpoint = this.getCheckPoints().get(j);
                 BoundingBox earlierDetectionArea = earlierCheckpoint.getDetectionArea();
-                validator.validate(!earlierDetectionArea.overlaps(detectionArea), "checkPoints[%s].detectionArea (%s) and checkPoints[%s].detectionArea (%s) can't overlap", i-1, earlierDetectionArea, i, detectionArea);
+                validator.validate(!earlierDetectionArea.overlaps(detectionArea), "checkPoints[%s].detectionArea (%s) and checkPoints[%s].detectionArea (%s) can't overlap", i - 1, earlierDetectionArea, i, detectionArea);
             }
         }
     }
@@ -147,11 +148,13 @@ class PuzzleDTO implements Validatable {
     @AllArgsConstructor
     static class CheckPointDTO implements Validatable {
         /**
-         * if a player reaches this area, they are considered to be in this puzzle (i.e. they completed the previous puzzle). This must contain the respawn location.
+         * if a player reaches this area, they are considered to be in this puzzle (i.e. they completed the previous
+         * puzzle). This must contain the respawn location.
          */
         private BoundingBox detectionArea;
         /**
-         * the location at which a player should respawn if they go out of bounds of their current puzzle. Must be inside the detectionArea.
+         * the location at which a player should respawn if they go out of bounds of their current puzzle. Must be
+         * inside the detectionArea.
          */
         private LocationDTO respawn;
         
@@ -166,7 +169,7 @@ class PuzzleDTO implements Validatable {
         static List<CheckPointDTO> from(List<CheckPoint> checkPoints) {
             return checkPoints.stream().map(CheckPointDTO::from).toList();
         }
-    
+        
         @Override
         public void validate(@NotNull Validator validator) {
             BoundingBox detectionArea = this.getDetectionArea();

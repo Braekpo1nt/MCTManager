@@ -21,16 +21,17 @@ import java.util.Collections;
 import java.util.List;
 
 record FootRaceConfigDTO(
-        String version, 
-        String world, 
-        int laps, // must be at least 1 lap. for backwards compatibility, excluding this or putting a number less than 1 results in 1 lap in-game, rather than a validation error
-        LocationDTO startingLocation, 
+        String version,
+        String world,
+        int laps,
+        // must be at least 1 lap. for backwards compatibility, excluding this or putting a number less than 1 results in 1 lap in-game, rather than a validation error
+        LocationDTO startingLocation,
         List<BoundingBox> checkpoints,
-        @Nullable BoundingBox spectatorArea, 
+        @Nullable BoundingBox spectatorArea,
         BoundingBox glassBarrier,
         @Nullable List<Material> preventInteractions,
-        Scores scores, 
-        Durations durations, 
+        Scores scores,
+        Durations durations,
         Component description) implements Validatable {
     
     @Override
@@ -80,8 +81,8 @@ record FootRaceConfigDTO(
         private int raceEndCountdown;
         private int description;
         /**
-         * The time (in seconds) that the game remains in the "Game Over" stage until 
-         * returning to hub. Defaults to 10. 
+         * The time (in seconds) that the game remains in the "Game Over" stage until
+         * returning to hub. Defaults to 10.
          */
         private int gameOver = 10;
     }

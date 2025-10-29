@@ -41,7 +41,8 @@ public class PreRoundState extends ColossalCombatStateBase {
                     participant.setArrowsInBody(0);
                     participant.setGameMode(GameMode.ADVENTURE);
                 }
-                case SPECTATOR -> {}
+                case SPECTATOR -> {
+                }
             }
         }
         context.updateRoundSidebar();

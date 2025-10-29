@@ -40,7 +40,7 @@ import java.util.logging.Level;
 
 public class BlockPlacementUtils {
     /**
-     * Make a cube of the given material in the given world starting at the given origin and with the given size. 
+     * Make a cube of the given material in the given world starting at the given origin and with the given size.
      * @param world The world to make the cube in
      * @param xOrigin The minimum x origin of the cube
      * @param yOrigin The minimum y origin of the cube
@@ -77,9 +77,11 @@ public class BlockPlacementUtils {
     }
     
     /**
-     * Create a cube in the given bounding box. Doubles will be truncated to ints and passed to {@link BlockPlacementUtils#createCube(World, int, int, int, int, int, int, Material)}
+     * Create a cube in the given bounding box. Doubles will be truncated to ints and passed to
+     * {@link BlockPlacementUtils#createCube(World, int, int, int, int, int, int, Material)}
      * @param world the world to place the cube in
-     * @param area the bounding box whose min pos will be the origin, and whose x-width, y-height, and z-width will be the size 
+     * @param area the bounding box whose min pos will be the origin, and whose x-width, y-height, and z-width will be
+     * the size
      * @param material the type of material to place in the cube
      */
     public static void createCube(World world, BoundingBox area, Material material) {
@@ -215,7 +217,6 @@ public class BlockPlacementUtils {
     }
     
     /**
-     *
      * @param world the world to search for blocks in
      * @param box the box to search for blocks in
      * @param types the types of blocks to search for
@@ -245,9 +246,11 @@ public class BlockPlacementUtils {
     );
     
     /**
-     * Gets the first solid block below the given location. If there is no floor all the way to the min height, returns the given location.
+     * Gets the first solid block below the given location. If there is no floor all the way to the min height, returns
+     * the given location.
      * @param location The location to check below
-     * @return the location below the given location that is a solid block. If there are no solid blocks, returns the given location. 
+     * @return the location below the given location that is a solid block. If there are no solid blocks, returns the
+     * given location.
      */
     public static Location getSolidBlockBelow(@NotNull Location location) {
         Location nonAirLocation = location.clone().subtract(0, 1, 0);
@@ -263,9 +266,11 @@ public class BlockPlacementUtils {
     }
     
     /**
-     * Gets the first non-solid block above the given location. If there is nothing all the way to the max height, returns the given location.
+     * Gets the first non-solid block above the given location. If there is nothing all the way to the max height,
+     * returns the given location.
      * @param location the location to check above
-     * @return the location above the given location that is not a solid block. If there is no non-solid blocks, returns the given location. 
+     * @return the location above the given location that is not a solid block. If there is no non-solid blocks, returns
+     * the given location.
      */
     public static Location getNonSolidBlockAbove(@NotNull Location location) {
         Location airLocation = location.clone().add(0, 1, 0);
@@ -282,7 +287,8 @@ public class BlockPlacementUtils {
     
     /**
      * @param location the location to check above.
-     * @return the highest solid block directly above the given location. Null if it's all air. Does not check below the given location.
+     * @return the highest solid block directly above the given location. Null if it's all air. Does not check below the
+     * given location.
      */
     public static @Nullable Location getTopBlock(@NotNull Location location) {
         int maxHeight = location.getWorld().getMaxHeight();
@@ -299,8 +305,11 @@ public class BlockPlacementUtils {
     }
     
     /**
-     * This is so that many block drops (such as flags in Capture the Flag) can seem to "land" on the ground without disturbing the environment or floating where no player can reach them. 
-     * If the location is in a body of water or some other non-air block, then it will return the lowest location of an empty block above the given location. If the location is an air block, then it will return the lowest location of an empty block below the given location. 
+     * This is so that many block drops (such as flags in Capture the Flag) can seem to "land" on the ground without
+     * disturbing the environment or floating where no player can reach them.
+     * If the location is in a body of water or some other non-air block, then it will return the lowest location of an
+     * empty block above the given location. If the location is an air block, then it will return the lowest location of
+     * an empty block below the given location.
      * @param location the location where the block drop has appeared
      * @return the location to place the block drop. Should be an empty block just above the ground.
      */
@@ -330,11 +339,13 @@ public class BlockPlacementUtils {
     }
     
     /**
-     * Places the given schematic file in the given world at all the given origins. If there are n origins, n copies of the schematic will be placed, each with their origin at the given values.<br>
+     * Places the given schematic file in the given world at all the given origins. If there are n origins, n copies of
+     * the schematic will be placed, each with their origin at the given values.<br>
      * Use this in favor of {@link #placeSchematic(World, int, int, int, File)} multiple times
-     * in a row because this optimizes the multiple placement. 
+     * in a row because this optimizes the multiple placement.
      * @param world the world to place in
-     * @param schematicOrigins the list of origins. Each schematic copy placed will use one of these as their origin, using their integer block values. 
+     * @param schematicOrigins the list of origins. Each schematic copy placed will use one of these as their origin,
+     * using their integer block values.
      * @param file the .schem schematic file to use
      */
     public static void placeSchematic(World world, @NotNull List<Vector> schematicOrigins, File file) {
@@ -418,8 +429,8 @@ public class BlockPlacementUtils {
             
             for (BoundingBox box : boxes) {
                 BlockVector3 min = BlockVector3.at(
-                        box.getMin().getBlockX(), 
-                        box.getMin().getBlockY(), 
+                        box.getMin().getBlockX(),
+                        box.getMin().getBlockY(),
                         box.getMin().getBlockZ());
                 BlockVector3 max = BlockVector3.at(
                         box.getMax().getBlockX(),

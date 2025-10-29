@@ -22,7 +22,7 @@ public class ScoreSetTeamSubCommand extends TabSubCommand {
         super(name);
         this.gameManager = gameManager;
     }
-
+    
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length != 2) {

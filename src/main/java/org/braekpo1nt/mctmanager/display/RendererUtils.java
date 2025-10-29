@@ -12,7 +12,6 @@ import java.util.List;
 public class RendererUtils {
     
     /**
-     * 
      * @param plugin the plugin (used for scheduling tasks)
      * @param viewer the player to show the display to
      * @param points the points to display
@@ -23,6 +22,7 @@ public class RendererUtils {
         long periods = duration / period;
         new BukkitRunnable() {
             long periodsLeft = periods;
+            
             @Override
             public void run() {
                 if (periodsLeft <= 0) {

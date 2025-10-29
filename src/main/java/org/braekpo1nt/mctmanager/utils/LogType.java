@@ -11,7 +11,7 @@ import java.util.Map;
 
 @Getter
 public enum LogType {
-    CANCEL_ENTITY_DAMAGE_EVENT("cancelEntityDamageEvent"), 
+    CANCEL_ENTITY_DAMAGE_EVENT("cancelEntityDamageEvent"),
     CANCEL_PLAYER_DEATH_EVENT("cancelPlayerDeathEvent"),
     EVENT_UPDATE_SCORES("eventUpdateScores");
     
@@ -33,7 +33,7 @@ public enum LogType {
     
     /**
      * @param id the ID to get the {@link LogType} associated with
-     * @return the {@link LogType} associated with the given ID, or null if no such {@link LogType} exists. 
+     * @return the {@link LogType} associated with the given ID, or null if no such {@link LogType} exists.
      */
     public static @Nullable LogType byId(@NotNull String id) {
         return BY_ID.get(id);

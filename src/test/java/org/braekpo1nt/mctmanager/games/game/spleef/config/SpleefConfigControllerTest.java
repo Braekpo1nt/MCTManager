@@ -1,7 +1,5 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
-import org.mockbukkit.mockbukkit.MockBukkit;
-import org.mockbukkit.mockbukkit.ServerMock;
 import com.google.gson.JsonObject;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MockMain;
@@ -14,13 +12,15 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockbukkit.mockbukkit.MockBukkit;
+import org.mockbukkit.mockbukkit.ServerMock;
 
 import java.io.File;
 import java.io.InputStream;
 import java.util.logging.Level;
 
 class SpleefConfigControllerTest {
-
+    
     String configFileName = "spleefConfig.json";
     String exampleConfigFileName = "exampleSpleefConfig.json";
     Main plugin;
@@ -46,7 +46,7 @@ class SpleefConfigControllerTest {
     void configDoesNotExist() {
         Assertions.assertThrows(ConfigIOException.class, () -> controller.getConfig(configFileName));
     }
-
+    
     @Test
     void malformedJson() {
         TestUtils.createFileInDirectory(configFolder, configFileName, "{,");

@@ -23,11 +23,20 @@ import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.topbar.ManyBattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
-import org.bukkit.*;
+import org.bukkit.Chunk;
+import org.bukkit.GameRule;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.WorldBorder;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
-import org.bukkit.entity.*;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.HumanEntity;
+import org.bukkit.entity.Item;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
@@ -45,7 +54,13 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Random;
 
 /**
  * The context for the state pattern
@@ -107,7 +122,7 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     }
     
     /**
-     * Convenience method for getting the current border stage 
+     * Convenience method for getting the current border stage
      * @return the current border stage
      */
     public BorderStage getCurrentBorderStage() {
@@ -193,7 +208,8 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     }
     
     /**
-     * Creates platforms for teams to spawn on made of a hollow rectangle of Barrier blocks where the bottom layer is Concrete that matches the color of the team
+     * Creates platforms for teams to spawn on made of a hollow rectangle of Barrier blocks where the bottom layer is
+     * Concrete that matches the color of the team
      * <br>
      * For n teamIds and m platforms in storageUtil.getPlatformBarriers():<br>
      * - place n platforms, but no more than m platforms
@@ -206,12 +222,12 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
             int platformIndex = MathUtils.wrapIndex(i, platformBarriers.size());
             BoundingBox barrierArea = platformBarriers.get(platformIndex);
             BoundingBox concreteArea = new BoundingBox(
-                    barrierArea.getMinX()+1,
+                    barrierArea.getMinX() + 1,
                     barrierArea.getMinY(),
-                    barrierArea.getMinZ()+1,
-                    barrierArea.getMaxX()-1,
+                    barrierArea.getMinZ() + 1,
+                    barrierArea.getMaxX() - 1,
                     barrierArea.getMinY(),
-                    barrierArea.getMaxZ()-1);
+                    barrierArea.getMaxZ() - 1);
             BlockPlacementUtils.createHollowCube(world, barrierArea, Material.BARRIER);
             BlockPlacementUtils.createCube(world, concreteArea, team.getColorAttributes().getConcrete());
             i++;
@@ -220,7 +236,8 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     
     /**
      * For n teams and m platforms in storageUtil.getPlatformBarriers():<br>
-     * - teleport teams to their designated platforms. If n is greater than m, then it will start wrapping around and teleporting different teams to the same platforms, until all teams have a platform. 
+     * - teleport teams to their designated platforms. If n is greater than m, then it will start wrapping around and
+     * teleporting different teams to the same platforms, until all teams have a platform.
      */
     private void teleportTeams() {
         List<Location> platformSpawns = config.getPlatformSpawns();
@@ -410,6 +427,7 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     }
     
     // EventHandlers
+    
     /**
      * Called when:
      * Right-clicking an armor stand

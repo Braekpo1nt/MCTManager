@@ -12,15 +12,15 @@ import org.braekpo1nt.mctmanager.games.base.WandsGameBase;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventHungerLoss;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventItemDrop;
 import org.braekpo1nt.mctmanager.games.editor.wand.Wand;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.chat.ChatMode;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfig;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.states.RegularDescriptionState;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.states.InitialState;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.states.ParkourPathwayState;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.states.RegularDescriptionState;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.states.TeamSpawnsDescription;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
@@ -39,7 +39,8 @@ import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 
 @Getter
 @Setter
@@ -66,9 +67,9 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
         addListener(new PreventItemDrop<>(this, true));
         this.notificationToggle = addWand(Wand.<ParkourParticipant>builder()
                 .wandItem(Wand.createWandItem(
-                        config.getNotificationToggleMaterial(), 
-                        config.getNotificationToggleName(), 
-                        config.getNotificationToggleLoreALL()))
+                        config.getChatToggleMaterial(),
+                        config.getChatToggleName(),
+                        config.getChatToggleLoreALL()))
                 .onRightClick(((event, participant) -> {
                     ChatMode newMode = ChatMode.cycle(participant.getChatMode());
                     participant.setChatMode(newMode);
@@ -102,10 +103,10 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
     
     private List<Component> getToggleLore(@NotNull ChatMode mode) {
         return switch (mode) {
-            case ALL -> config.getNotificationToggleLoreALL();
-            case TEAM -> config.getNotificationToggleLoreTEAM();
-            case DISABLED -> config.getNotificationToggleLoreDISABLED();
-            case LOCAL, OFF -> config.getNotificationToggleLoreALL(); // Default to ALL for chat-only modes
+            case ALL -> config.getChatToggleLoreALL();
+            case TEAM -> config.getChatToggleLoreTEAM();
+            case DISABLED -> config.getChatToggleLoreDISABLED();
+            case LOCAL, OFF -> config.getChatToggleLoreALL(); // Default to ALL for chat-only modes
         };
     }
     
@@ -302,7 +303,8 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
     
     /**
      * Method to check if the viewer should see the checkpoint notification from the achiever
-     * @param viewer the participant who may or may not see this notification
+     *
+     * @param viewer   the participant who may or may not see this notification
      * @param achiever the participant who reached a checkpoint
      */
     public boolean shouldShowCheckpointNotification(ParkourParticipant viewer, ParkourParticipant achiever) {
@@ -323,7 +325,8 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
     /**
      * New method to send messages only to participants who want to see this achiever's
      * checkpoint notification
-     * @param message the message to send
+     *
+     * @param message  the message to send
      * @param achiever the participant who reached a checkpoint, and is sending this notification
      */
     public void messageParticipantsWithNotifications(Component message, ParkourParticipant achiever) {

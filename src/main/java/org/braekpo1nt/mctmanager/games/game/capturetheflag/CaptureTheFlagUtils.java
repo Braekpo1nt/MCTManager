@@ -9,7 +9,7 @@ import java.util.List;
 public class CaptureTheFlagUtils {
     
     /**
-     * Generates all combinations of size 2 of the given teams in the form of {@link MatchPairing}s 
+     * Generates all combinations of size 2 of the given teams in the form of {@link MatchPairing}s
      * @param teamIds The teams to generate the combinations of
      * @return A list of at least two MatchPairing objects representing all combinations of size 2
      * of the given list of team names

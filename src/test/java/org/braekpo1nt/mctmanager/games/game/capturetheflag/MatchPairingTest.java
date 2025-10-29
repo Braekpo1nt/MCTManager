@@ -39,7 +39,7 @@ class MatchPairingTest {
         Assertions.assertEquals(1, singleMap.get(new MatchPairing("n", "s")));
         Assertions.assertEquals(1, singleMap.get(new MatchPairing("s", "n")));
         Assertions.assertNull(singleMap.get(other));
-    
+        
         Map<MatchPairing, Integer> aMap = new HashMap<>();
         aMap.put(northSouth, 1);
         aMap.put(southNorth, 2);

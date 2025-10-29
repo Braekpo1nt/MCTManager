@@ -30,7 +30,6 @@ public class Puzzle {
     
     /**
      * Creates a copy of this puzzle.
-     *
      * @return A new puzzle with the same in-bounds area, checkpoints, and transition status.
      */
     public Puzzle copy() {

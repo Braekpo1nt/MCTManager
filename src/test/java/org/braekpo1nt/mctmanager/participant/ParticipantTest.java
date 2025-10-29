@@ -43,9 +43,9 @@ class ParticipantTest {
     @Test
     void participantShouldEqualOfflineParticipant() {
         OfflineParticipant offlineParticipant = new OfflineParticipant(
-                mockPlayer.getUniqueId(), 
-                "rstln", 
-                Component.text("rstln"), 
+                mockPlayer.getUniqueId(),
+                "rstln",
+                Component.text("rstln"),
                 "yellow",
                 0
         );

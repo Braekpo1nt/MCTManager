@@ -17,7 +17,7 @@ public interface ItemMetaDTO extends Validatable, PersistentDataHolderDTO {
      * Sets the fields of the given ItemMeta to the fields contained in this DTO
      * @param meta the ItemMeta to assign the values to
      * @param type the type of Material this ItemMeta belongs to
-     * @return the modified ItemMeta 
+     * @return the modified ItemMeta
      */
     ItemMeta toItemMeta(ItemMeta meta, Material type);
     

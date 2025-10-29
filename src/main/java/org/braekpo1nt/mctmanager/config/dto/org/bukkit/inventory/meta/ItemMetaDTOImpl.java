@@ -110,7 +110,7 @@ public class ItemMetaDTOImpl implements ItemMetaDTO, Validatable {
     /**
      * Imbues the provided ItemMeta with the attributes of this ItemMetaDTO
      * @param meta the ItemMeta to be modified
-     * @return the provided ItemMeta, after all the attributes have been set 
+     * @return the provided ItemMeta, after all the attributes have been set
      * to this ItemMetaDTO's attributes
      */
     @Override

@@ -13,7 +13,11 @@ import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.PlayerInventory
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.utils.EntityUtils;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.World;
 import org.bukkit.loot.LootTable;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -61,24 +65,27 @@ class SurvivalGamesConfigDTO implements Validatable {
      */
     private List<Vector> mapChestCoords;
     /**
-     * the place where players will be looking when they spawn in at the start of the game. If this is null, then the Platforms.facingDirection() will be used. If Platforms.facingDirection is null, then they will face yaw=0,pitch=0.
+     * the place where players will be looking when they spawn in at the start of the game. If this is null, then the
+     * Platforms.facingDirection() will be used. If Platforms.facingDirection is null, then they will face
+     * yaw=0,pitch=0.
      */
     private Vector platformCenter;
     private List<Platform> platforms;
     /**
-     * The number of rounds. 
+     * The number of rounds.
      */
     private int rounds;
-    /** 
-     * If true, players will be unable to open any block inventories that aren't spawn chests or map chests. 
-     * Defaults to true. 
+    /**
+     * If true, players will be unable to open any block inventories that aren't spawn chests or map chests.
+     * Defaults to true.
      */
     private @Nullable Boolean lockOtherInventories;
     /**
-     * If true, containers will be cleared in the {@link SurvivalGamesConfigDTO#removeArea} area. 
+     * If true, containers will be cleared in the {@link SurvivalGamesConfigDTO#removeArea} area.
      * All chunks found in that area will be searched for blocks with inventories, and those will be cleared.
-     * If false, this phase will be skipped. Useful in combination with {@link SurvivalGamesConfigDTO#lockOtherInventories} 
-     * set to true, because players shouldn't be able to put anything in those inventories anyway. 
+     * If false, this phase will be skipped. Useful in combination with
+     * {@link SurvivalGamesConfigDTO#lockOtherInventories}
+     * set to true, because players shouldn't be able to put anything in those inventories anyway.
      * Defaults to true.
      */
     private @Nullable Boolean shouldClearContainers;
@@ -152,9 +159,9 @@ class SurvivalGamesConfigDTO implements Validatable {
             validator.validate(barrier.getWidthX() >= 2, "platforms.barrier must have an x width of at least 2");
             validator.validate(barrier.getWidthZ() >= 2, "platforms.barrier must have an z width of at least 2");
         }
-        for (int i = 0; i < this.platforms.size()-1; i++) {
+        for (int i = 0; i < this.platforms.size() - 1; i++) {
             BoundingBox boxA = this.platforms.get(i).barrier();
-            for (int j = i+1; j < this.platforms.size(); j++) {
+            for (int j = i + 1; j < this.platforms.size(); j++) {
                 BoundingBox boxB = this.platforms.get(j).barrier();
                 validator.validate(!boxA.contains(boxB), "barrier \"%s\" overlaps barrier \"%s\"", boxA, boxB);
             }
@@ -175,7 +182,7 @@ class SurvivalGamesConfigDTO implements Validatable {
     SurvivalGamesConfig toConfig() {
         World newWorld = Bukkit.getWorld(this.world);
         Preconditions.checkState(newWorld != null, "Could not find world \"%s\"", this.world);
-        HashMap<LootTable, Integer> newWeightedLootTables  = new HashMap<>(this.weightedLootTables.size());
+        HashMap<LootTable, Integer> newWeightedLootTables = new HashMap<>(this.weightedLootTables.size());
         for (SurvivalGamesConfigDTO.WeightedNamespacedKey weightedNamespacedKey : this.weightedLootTables) {
             LootTable lootTable = Bukkit.getLootTable(weightedNamespacedKey.toNamespacedKey());
             int weight = weightedNamespacedKey.weight();
@@ -211,8 +218,8 @@ class SurvivalGamesConfigDTO implements Validatable {
         
         return SurvivalGamesConfig.builder()
                 .world(newWorld)
-                .spectatorBoundary(this.spectatorArea == null ? null : 
-                        new SpectatorBoundary(this.spectatorArea, 
+                .spectatorBoundary(this.spectatorArea == null ? null :
+                        new SpectatorBoundary(this.spectatorArea,
                                 this.platforms.getFirst()
                                         .barrier()
                                         .getCenter()
@@ -257,7 +264,7 @@ class SurvivalGamesConfigDTO implements Validatable {
         private int weight;
         
         int weight() {
-            return weight; 
+            return weight;
         }
         
         @Override
@@ -269,8 +276,12 @@ class SurvivalGamesConfigDTO implements Validatable {
     }
     
     /**
-     * @param barrier the BoundingBox of the spawn platform. A hollow box of Barrier blocks will be formed, with the bottom layer of blocks made of Concrete which matches the color of the appropriate team. Players will be spawned in the center of the box, standing on the Concrete blocks.
-     * @param facingDirection if this is not null, the players will be looking this direction when they spawn in at the start of the game (this overrides platformCenter). If this is null, then the players will be looking in the direction of platformCenter. If platformCenter is also null, the players will be looking at yaw=0,pitch=0.
+     * @param barrier the BoundingBox of the spawn platform. A hollow box of Barrier blocks will be formed, with the
+     * bottom layer of blocks made of Concrete which matches the color of the appropriate team. Players will be spawned
+     * in the center of the box, standing on the Concrete blocks.
+     * @param facingDirection if this is not null, the players will be looking this direction when they spawn in at the
+     * start of the game (this overrides platformCenter). If this is null, then the players will be looking in the
+     * direction of platformCenter. If platformCenter is also null, the players will be looking at yaw=0,pitch=0.
      */
     record Platform(BoundingBox barrier, YawPitch facingDirection) {
     }
@@ -291,7 +302,8 @@ class SurvivalGamesConfigDTO implements Validatable {
          */
         private int invulnerability;
         /**
-         * the delay after the game ends, allows for some celebration time before armor and items are taken away and the teleport back to the hub starts
+         * the delay after the game ends, allows for some celebration time before armor and items are taken away and the
+         * teleport back to the hub starts
          */
         @SerializedName(value = "gameOver", alternate = {"end"})
         private int gameOver;

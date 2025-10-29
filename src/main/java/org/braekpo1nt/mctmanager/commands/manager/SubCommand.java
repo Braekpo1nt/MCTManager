@@ -13,7 +13,8 @@ public abstract class SubCommand {
     
     
     /**
-     * The name of a {@link SubCommand} is typically used to call it from the command. Analogous to {@link Command#getLabel()}.
+     * The name of a {@link SubCommand} is typically used to call it from the command. Analogous to
+     * {@link Command#getLabel()}.
      */
     protected final @NotNull String name;
     @Setter
@@ -47,7 +48,8 @@ public abstract class SubCommand {
     }
     
     /**
-     * The name of a {@link SubCommand} is typically used to call it from the command. Analogous to {@link Command#getLabel()}.
+     * The name of a {@link SubCommand} is typically used to call it from the command. Analogous to
+     * {@link Command#getLabel()}.
      * @return the name of this {@link SubCommand}.
      */
     public @NotNull String getName() {
@@ -56,9 +58,10 @@ public abstract class SubCommand {
     
     /**
      * Check if the given permissible has the permission to use this {@link SubCommand}.
-     * If the permissionNode is null, then that registers as having the permission. 
+     * If the permissionNode is null, then that registers as having the permission.
      * @param permissible the permissible to check if they have the permission
-     * @return true of the given permissible has permission to use this {@link SubCommand}, false otherwise. If this doesn't have a permission associated with it, then this will return true. 
+     * @return true of the given permissible has permission to use this {@link SubCommand}, false otherwise. If this
+     * doesn't have a permission associated with it, then this will return true.
      */
     public boolean hasPermission(@NotNull Permissible permissible) {
         if (getPermissionNode() == null) {
@@ -68,9 +71,12 @@ public abstract class SubCommand {
     }
     
     /**
-     * Used to get the usage message of this command upstream from the current context. 
-     * For example, if this sub-command is the "stop" portion of "/mct game stop [true|false]", then this will return "/mct game stop". You can then optionally add on the specific usage arguments the user incorrectly used with {@link Usage#of(String)}, e.g. "getUsage().of("[true|false]")". 
-     * This can then be wrapped in a {@link CommandResult}, converted to a {@link net.kyori.adventure.text.Component}, etc.
+     * Used to get the usage message of this command upstream from the current context.
+     * For example, if this sub-command is the "stop" portion of "/mct game stop [true|false]", then this will return
+     * "/mct game stop". You can then optionally add on the specific usage arguments the user incorrectly used with
+     * {@link Usage#of(String)}, e.g. "getUsage().of("[true|false]")".
+     * This can then be wrapped in a {@link CommandResult}, converted to a {@link net.kyori.adventure.text.Component},
+     * etc.
      * @return the usage of this sub-command from the `/` character up to and including this sub-command's name.
      */
     public @NotNull Usage getUsage() {

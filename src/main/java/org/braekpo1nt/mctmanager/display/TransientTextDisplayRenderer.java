@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Designed to take up as few resources as possible by deleting the entity if
- * the text is set to null. 
+ * the text is set to null.
  */
 public class TransientTextDisplayRenderer implements DisplaySingleton, HasTextSingleton {
     

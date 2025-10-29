@@ -8,7 +8,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Data
@@ -45,7 +44,7 @@ public class Preset {
     }
     
     /**
-     * removes the team with the given teamId from the teams list. This also leaves all the participants from that team. 
+     * removes the team with the given teamId from the teams list. This also leaves all the participants from that team.
      * @param teamId the teamId to remove
      */
     public void removeTeam(@NotNull String teamId) {
@@ -85,7 +84,7 @@ public class Preset {
     }
     
     /**
-     * @return the teamIds of the teams in this preset (in alphabetical order). Note this list is unmodifiable. 
+     * @return the teamIds of the teams in this preset (in alphabetical order). Note this list is unmodifiable.
      */
     public @NotNull List<String> getTeamIds() {
         return teams.stream().map(PresetTeam::getTeamId).sorted().toList();

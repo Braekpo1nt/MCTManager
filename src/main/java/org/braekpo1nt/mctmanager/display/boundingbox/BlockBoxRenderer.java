@@ -4,7 +4,10 @@ import lombok.Builder;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.display.BlockDisplayEntityRenderer;
-import org.braekpo1nt.mctmanager.display.delegates.*;
+import org.braekpo1nt.mctmanager.display.delegates.DisplayComposite;
+import org.braekpo1nt.mctmanager.display.delegates.DisplayDelegate;
+import org.braekpo1nt.mctmanager.display.delegates.HasBlockData;
+import org.braekpo1nt.mctmanager.display.delegates.HasBlockDataComposite;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -24,7 +27,7 @@ import java.util.Objects;
 
 /**
  * Renders a BoundingBox using a single block, scaled to the size of the BoundingBox.
- * Includes an inverted block of the same size and location so that it can be viewed from the inside. 
+ * Includes an inverted block of the same size and location so that it can be viewed from the inside.
  */
 public class BlockBoxRenderer implements BoundingBoxRenderer, DisplayComposite, HasBlockDataComposite {
     
@@ -37,7 +40,7 @@ public class BlockBoxRenderer implements BoundingBoxRenderer, DisplayComposite, 
     
     @Builder
     public BlockBoxRenderer(
-            @NotNull World world, 
+            @NotNull World world,
             @NotNull BoundingBox boundingBox,
             @Nullable Display.Brightness brightness,
             @Nullable Component customName,

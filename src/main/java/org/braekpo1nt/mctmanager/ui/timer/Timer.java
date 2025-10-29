@@ -57,7 +57,7 @@ public class Timer extends BukkitRunnable {
     private boolean started = false;
     private boolean paused = false;
     /**
-     * the consumer to execute on pause and resume. Will be passed true on pause, and false on resume. 
+     * the consumer to execute on pause and resume. Will be passed true on pause, and false on resume.
      */
     private final @Nullable Consumer<Boolean> onTogglePause;
     
@@ -130,7 +130,8 @@ public class Timer extends BukkitRunnable {
     }
     
     /**
-     * Add a new Audience to this timer's titleAudience. They will see the Title countdown, if there is one, when it happens. 
+     * Add a new Audience to this timer's titleAudience. They will see the Title countdown, if there is one, when it
+     * happens.
      * @param newTitleAudience the Audience implementation to add to this timer's titleAudience
      */
     public void addTitleAudience(@NotNull Audience newTitleAudience) {
@@ -142,8 +143,9 @@ public class Timer extends BukkitRunnable {
     }
     
     /**
-     * Remove the given audience from this timer's titleAudience. They will not see the Title countdown when it happens (if it happens). Clears the title of the given audience if this timer is displaying titles. 
-     * @param removeTitleAudience the Audience implementation to remove (could be a player, could be the console, etc.) 
+     * Remove the given audience from this timer's titleAudience. They will not see the Title countdown when it happens
+     * (if it happens). Clears the title of the given audience if this timer is displaying titles.
+     * @param removeTitleAudience the Audience implementation to remove (could be a player, could be the console, etc.)
      */
     public void removeTitleAudience(@NotNull Audience removeTitleAudience) {
         if (titleAudience == null) {
@@ -204,7 +206,8 @@ public class Timer extends BukkitRunnable {
     }
     
     /**
-     * The method to be called when the timer hits zero. Calls the specified competion method if it's not null, and always cancels this Timer. 
+     * The method to be called when the timer hits zero. Calls the specified competion method if it's not null, and
+     * always cancels this Timer.
      */
     private void onComplete() {
         clear();
@@ -229,7 +232,7 @@ public class Timer extends BukkitRunnable {
     }
     
     /**
-     * Resumes this timer. The timer will proceed iterating. If this is not paused, nothing happens. 
+     * Resumes this timer. The timer will proceed iterating. If this is not paused, nothing happens.
      * If this is paused, then {@link #onTogglePause} is called, passing false.
      */
     public void resume() {
@@ -243,17 +246,17 @@ public class Timer extends BukkitRunnable {
     }
     
     /**
-     * skip to the end, as if the timer had reached zero. Still performs any actions and cleanup, 
-     * same as if the timer reached zero. 
+     * skip to the end, as if the timer had reached zero. Still performs any actions and cleanup,
+     * same as if the timer reached zero.
      */
     public void skip() {
         this.onComplete();
     }
     
     /**
-     * set all topbar middles to empty, set all assigned sidebar lines to empty, and clear the titleAudience's title. 
-     * Note that this does not stop this timer on its own, so values might be reset on the next iteration of 
-     * {@link Timer#run}. 
+     * set all topbar middles to empty, set all assigned sidebar lines to empty, and clear the titleAudience's title.
+     * Note that this does not stop this timer on its own, so values might be reset on the next iteration of
+     * {@link Timer#run}.
      */
     private void clear() {
         for (Topbar topbar : topbars) {
@@ -270,7 +273,7 @@ public class Timer extends BukkitRunnable {
     /**
      * {@inheritDoc}
      * This will be called when this timer is over or stopped.
-     * If this is paused, sets the state to no longer be paused. If this is registered in a timerManager, 
+     * If this is paused, sets the state to no longer be paused. If this is registered in a timerManager,
      * also removes itself from that timerManager.
      * @throws IllegalStateException
      */
@@ -286,7 +289,7 @@ public class Timer extends BukkitRunnable {
     }
     
     /**
-     * start this timer. If this timer was already started, nothing happens. 
+     * start this timer. If this timer was already started, nothing happens.
      * @param plugin the plugin to register this BukkitRunnable with
      * @return this
      */
@@ -349,11 +352,11 @@ public class Timer extends BukkitRunnable {
         }
         
         /**
-         * A method to call when the pause state is toggled. 
+         * A method to call when the pause state is toggled.
          * You can rely this Timer to only call this consumer when pause is actually toggled. For example,
-         * if the pause command is run twice in a row, this will only be called once. 
-         * @param onTogglePause the consumer to execute on pause and resume. 
-         *                      Will be passed true on pause, and false on resume. 
+         * if the pause command is run twice in a row, this will only be called once.
+         * @param onTogglePause the consumer to execute on pause and resume.
+         * Will be passed true on pause, and false on resume.
          * @return this
          */
         public Builder onTogglePause(@Nullable Consumer<Boolean> onTogglePause) {
@@ -362,7 +365,7 @@ public class Timer extends BukkitRunnable {
         }
         
         /**
-         * @param name the name of this timer. Useful for debugging, not much else. 
+         * @param name the name of this timer. Useful for debugging, not much else.
          * @return this
          */
         public Builder name(@Nullable String name) {
@@ -379,13 +382,13 @@ public class Timer extends BukkitRunnable {
             this.duration = seconds;
             return this;
         }
-    
+        
         /**
          * Set the number of seconds to be left for the timer to finish.
          * For example, This allows for you to have a timer that goes from
          * 30 seconds to 10 seconds, then start another timer with different
-         * colors/attributes with 10 seconds left, if you want. 
-         * @param completionSeconds Defaults to 0. The number of seconds left for the timer to complete. 
+         * colors/attributes with 10 seconds left, if you want.
+         * @param completionSeconds Defaults to 0. The number of seconds left for the timer to complete.
          * @return this
          */
         public Builder completionSeconds(int completionSeconds) {
@@ -447,11 +450,11 @@ public class Timer extends BukkitRunnable {
             }
             return this;
         }
-    
+        
         /**
-         * @param timerColor the color the time left component should be 
-         *                   (in both the Topbars and Sidebars, but not in the Title)
-         *                   Defaults to {@link NamedTextColor#WHITE}.
+         * @param timerColor the color the time left component should be
+         * (in both the Topbars and Sidebars, but not in the Title)
+         * Defaults to {@link NamedTextColor#WHITE}.
          * @return this
          */
         public Builder timerColor(@Nullable TextColor timerColor) {
@@ -460,10 +463,11 @@ public class Timer extends BukkitRunnable {
         }
         
         /**
-         * Defaults to 10 if not specified. 
+         * Defaults to 10 if not specified.
          * If the titleAudience is not null, then the Title countdown will be displayed
          * to the audience when this timer has {@code titleThreshold} seconds left.
-         * @param titleThreshold the number of seconds meant to be left in this timer before the title begins displaying to the given audience, if that audience is not null. 
+         * @param titleThreshold the number of seconds meant to be left in this timer before the title begins displaying
+         * to the given audience, if that audience is not null.
          * @return this
          */
         public Builder titleThreshold(int titleThreshold) {

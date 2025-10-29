@@ -15,7 +15,11 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Manages the leaderboard (creating, updating, showing/hiding)
@@ -24,7 +28,7 @@ public class LeaderboardManager {
     
     /**
      * the prefix of the unique identifier of each participant's personal leaderboard
-     * this is because hologram names are global in {@link DHAPI}, so they must have unique names. 
+     * this is because hologram names are global in {@link DHAPI}, so they must have unique names.
      */
     private final String PREFIX;
     /**
@@ -44,7 +48,7 @@ public class LeaderboardManager {
     private final int topPlayers;
     
     /**
-     * @param location the location that the leaderboard should appear. Must not be null. 
+     * @param location the location that the leaderboard should appear. Must not be null.
      */
     public LeaderboardManager(@NotNull GameManager gameManager, @Nullable String title, @NotNull Location location, int topPlayers) {
         this.gameManager = gameManager;
@@ -104,10 +108,10 @@ public class LeaderboardManager {
         List<Standing> standings = new ArrayList<>(sortedOfflineParticipants.size());
         for (int i = 0; i < sortedOfflineParticipants.size(); i++) {
             OfflineParticipant participant = sortedOfflineParticipants.get(i);
-            int placement = i+1;
+            int placement = i + 1;
             standings.add(new Standing(participant.getUniqueId(), placement, participant.displayName(), participant.getScore()));
         }
-        List<String> lines = new ArrayList<>(Math.min(topPlayers, standings.size())+(title != null ? 1 : 2));
+        List<String> lines = new ArrayList<>(Math.min(topPlayers, standings.size()) + (title != null ? 1 : 2));
         if (title != null) {
             lines.add(title);
         }

@@ -1,15 +1,14 @@
 package org.braekpo1nt.mctmanager.commands;
 
-import org.mockbukkit.mockbukkit.MockBukkit;
-import org.mockbukkit.mockbukkit.ServerMock;
-import org.mockbukkit.mockbukkit.exception.UnimplementedOperationException;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MockMain;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
-import org.braekpo1nt.mctmanager.games.gamestate.MockGameStateStorageUtil;
 import org.bukkit.command.PluginCommand;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.mockbukkit.mockbukkit.MockBukkit;
+import org.mockbukkit.mockbukkit.ServerMock;
+import org.mockbukkit.mockbukkit.exception.UnimplementedOperationException;
 
 import java.util.logging.Level;
 
@@ -31,7 +30,7 @@ class MCTCommandTest {
             ex.printStackTrace();
             System.exit(1);
         }
-    
+        
         command = plugin.getCommand("mct");
     }
     
@@ -39,7 +38,7 @@ class MCTCommandTest {
     void tearDownServerAndPlugin() {
         MockBukkit.unmock();
     }
-    
+
 //    @Test
 //    @DisplayName("Running /mct with no args returns usage message")
 //    void noArgsShowsUsage() {

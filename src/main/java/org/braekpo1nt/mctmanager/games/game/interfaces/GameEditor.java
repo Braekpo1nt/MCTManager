@@ -11,9 +11,11 @@ import java.util.UUID;
 
 public interface GameEditor extends Configurable {
     GameType getType();
+    
     void stop();
     
     void onAdminJoin(Player admin);
+    
     void onAdminQuit(UUID uuid);
     
     CommandResult configIsValid(@NotNull String configFile);

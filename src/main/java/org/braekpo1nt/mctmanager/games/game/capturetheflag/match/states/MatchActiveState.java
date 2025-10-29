@@ -217,14 +217,6 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         event.setDroppedExp(0);
         
         // Handle flag dropping based on affiliation
-        // new code start
-        event.setShowDeathMessages(false);
-        Component deathMessage = event.deathMessage();
-//        event.deathMessage(null);
-        if (deathMessage != null) {
-            context.messageAllParticipants(deathMessage);
-        }
-        // new code stop
         
         if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
             if (hasSouthFlag(participant)) {

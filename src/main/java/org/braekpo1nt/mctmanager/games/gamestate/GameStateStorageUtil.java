@@ -15,7 +15,16 @@ import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 /**
@@ -47,7 +56,7 @@ public class GameStateStorageUtil {
     /**
      * Load the GameState from storage
      * @throws ConfigInvalidException if the config is invalid
-     * @throws ConfigIOException if there is a problem 
+     * @throws ConfigIOException if there is a problem
      * - creating a new game state file
      * - reading the existing game state file
      * - parsing the game state from json
@@ -84,7 +93,7 @@ public class GameStateStorageUtil {
     }
     
     /**
-     * Set up the scoreboard from the game state. 
+     * Set up the scoreboard from the game state.
      * - Add teams to the scoreboard
      * - configure team options
      * - add the players to those teams
@@ -113,9 +122,9 @@ public class GameStateStorageUtil {
     private void registerTeams(Scoreboard scoreboard) {
         Team adminTeam = scoreboard.registerNewTeam(GameManager.ADMIN_TEAM);
         adminTeam.prefix(Component.empty()
-                        .append(Component.text("["))
+                .append(Component.text("["))
                 .append(Component.text("Admin")
-                    .color(NamedTextColor.DARK_RED))
+                        .color(NamedTextColor.DARK_RED))
                 .append(Component.text("]")));
         for (MCTTeam mctTeam : gameState.getTeams().values()) {
             Team team = scoreboard.registerNewTeam(mctTeam.getName());
@@ -148,7 +157,7 @@ public class GameStateStorageUtil {
     /**
      * Checks if the game state contains the given player
      * @param playerUniqueId The UUID of the player to check for
-     * @return True if the player with the given UUID exists, false otherwise 
+     * @return True if the player with the given UUID exists, false otherwise
      */
     public boolean containsPlayer(UUID playerUniqueId) {
         return gameState.containsPlayer(playerUniqueId);
@@ -207,7 +216,8 @@ public class GameStateStorageUtil {
     /**
      * Gets the internal team name of the player with the given UUID
      * @param uuid The UUID of the player to find the team of
-     * @return The internal team name of the player with the given UUID, null if the game state doesn't contain the player's UUID
+     * @return The internal team name of the player with the given UUID, null if the game state doesn't contain the
+     * player's UUID
      */
     public @Nullable String getPlayerTeamId(@NotNull UUID uuid) {
         MCTPlayer player = gameState.getPlayer(uuid);
@@ -234,7 +244,7 @@ public class GameStateStorageUtil {
     
     /**
      * Removes the player with the given UUID from the game state, if it exists.
-     * If the player did not exist, nothing happens. 
+     * If the player did not exist, nothing happens.
      * @param playerUniqueId The UUID for the player
      * @throws ConfigIOException if there is an IO error saving the game state
      */
@@ -244,7 +254,7 @@ public class GameStateStorageUtil {
     }
     
     /**
-     * @param playerUniqueId the UUID of the player to get the score of. 
+     * @param playerUniqueId the UUID of the player to get the score of.
      * @return the given participant's score. 0 if the UUID isn't a player, or if it is an offlinePlayer.
      */
     public int getParticipantScore(UUID playerUniqueId) {

@@ -36,7 +36,7 @@ public class PracticeParticipant extends Participant {
     }
     
     /**
-     * If there is a last gui opened from PracticeManager, closes the inventory 
+     * If there is a last gui opened from PracticeManager, closes the inventory
      */
     public void closeLastGui() {
         if (lastGui == null) {

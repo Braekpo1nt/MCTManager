@@ -11,7 +11,8 @@ import java.util.List;
 @Data
 class BorderStageDTO implements Validatable {
     /**
-     * The size (in blocks) the border will be at this stage. The border will shrink from the previous stage's size to this stage's size over this stage's duration
+     * The size (in blocks) the border will be at this stage. The border will shrink from the previous stage's size to
+     * this stage's size over this stage's duration
      */
     private int size;
     /**

@@ -1,7 +1,20 @@
 package org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.typeadapters;
 
-import com.google.gson.*;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.*;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.BlastingRecipeDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.CampfireRecipeDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.FurnaceRecipeDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.RecipeDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.ShapedRecipeDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.ShapelessRecipeDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.SmithingTransformRecipeDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.SmithingTrimRecipeDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.SmokingRecipeDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.StonecuttingRecipeDTO;
 
 import java.lang.reflect.Type;
 

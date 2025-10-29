@@ -29,6 +29,7 @@ public class ClockChimeState extends RoundActiveState {
         context.setNumberOfChimes(context.getRandom().nextInt(1, 13));
         clockChimeTaskId = new BukkitRunnable() {
             int count = context.getNumberOfChimes();
+            
             @Override
             public void run() {
                 if (count <= 0) {
@@ -58,8 +59,8 @@ public class ClockChimeState extends RoundActiveState {
         }
         context.getGameManager()
                 .playSoundForAdmins(
-                        config.getClockChimeSound(), 
-                        config.getClockChimeVolume(), 
+                        config.getClockChimeSound(),
+                        config.getClockChimeVolume(),
                         config.getClockChimePitch());
     }
     

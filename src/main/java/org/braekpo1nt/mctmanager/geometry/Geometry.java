@@ -5,5 +5,6 @@ import org.jetbrains.annotations.NotNull;
 
 public interface Geometry {
     boolean overlaps(@NotNull Geometry geometry);
+    
     boolean contains(Vector vector);
 }

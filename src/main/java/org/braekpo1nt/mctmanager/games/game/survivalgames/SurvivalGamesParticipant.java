@@ -1,6 +1,9 @@
 package org.braekpo1nt.mctmanager.games.game.survivalgames;
 
-import lombok.*;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.ParticipantData;
 import org.braekpo1nt.mctmanager.participant.QuitDataBase;
@@ -32,14 +35,14 @@ public class SurvivalGamesParticipant extends ParticipantData {
     /**
      * The number of seconds left until the participant's grace period after
      * respawning has ended (not to be confused with the global grace period
-     * at the beginning of the game). 
+     * at the beginning of the game).
      * <br>
-     * If this is greater than 0, the participant can't take damage 
+     * If this is greater than 0, the participant can't take damage
      */
     private int respawnGracePeriodCountdown;
     /**
      * A set of indexes representing the respawn locations that this participant
-     * has previously respawned at. 
+     * has previously respawned at.
      */
     private @NotNull Set<Integer> usedRespawns;
     

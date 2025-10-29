@@ -14,19 +14,35 @@ import java.util.List;
 @Data
 @Builder
 public class Border {
-    /** the center X coord of the world border */
+    /**
+     * the center X coord of the world border
+     */
     private double centerX;
-    /** the center Z coord of the world border */
+    /**
+     * the center Z coord of the world border
+     */
     private double centerZ;
-    /** The size that the border should start at */
+    /**
+     * The size that the border should start at
+     */
     private double initialBorderSize;
-    /** the amount of damage a player takes when outside the border plus the border buffer. */
+    /**
+     * the amount of damage a player takes when outside the border plus the border buffer.
+     */
     private double damageAmount;
-    /** the amount of blocks a player may safely be outside the border before taking damage. */
+    /**
+     * the amount of blocks a player may safely be outside the border before taking damage.
+     */
     private double damageBuffer;
-    /** the warning distance that causes the screen to be tinted red when the player is within the specified number of blocks from the border. */
+    /**
+     * the warning distance that causes the screen to be tinted red when the player is within the specified number of
+     * blocks from the border.
+     */
     private int warningDistance;
-    /** the warning time that causes the screen to be tinted red when a contracting border will reach the player within the specified time. */
+    /**
+     * the warning time that causes the screen to be tinted red when a contracting border will reach the player within
+     * the specified time.
+     */
     private int warningTime;
     
     /**
@@ -35,9 +51,9 @@ public class Border {
      */
     private List<Location> respawnLocations;
     /**
-     * The number of stages that respawning is allowed. 
+     * The number of stages that respawning is allowed.
      * After this many stages, respawning will be disabled.
-     * Can't be more than the total number of {@link #stages}. 
+     * Can't be more than the total number of {@link #stages}.
      * If this is less than 1, no respawning will occur through the duration of the game.
      * Defaults to 0.
      */
@@ -60,9 +76,9 @@ public class Border {
     private @NotNull ItemStack[] respawnLoadout;
     /**
      * The number of deaths that grant kill points. E.g. if 2, then the first two times
-     * a participant is killed, the killer gets points. 
+     * a participant is killed, the killer gets points.
      * But from the third death on, no killers get points for killing that participant.
-     * Negative number indicates no limit (all kills grant points). 
+     * Negative number indicates no limit (all kills grant points).
      * Defaults to -1
      */
     private int deathPointsThreshold;
@@ -141,7 +157,7 @@ public class Border {
     
     /**
      * @return true if the next stage's respawn state is different from that of the given stage.
-     * If the given border stage is the very last, true if the given stage allows respawning. 
+     * If the given border stage is the very last, true if the given stage allows respawning.
      * False otherwise.
      */
     public boolean willRespawnStateChange(int index) {

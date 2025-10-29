@@ -16,8 +16,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Retrieves the saved preset file and performs the equivalent 
- * of executing the commands in order to achieve the specified GameState. 
+ * Retrieves the saved preset file and performs the equivalent
+ * of executing the commands in order to achieve the specified GameState.
  */
 public class PresetApplySubCommand extends TabSubCommand {
     
@@ -83,21 +83,21 @@ public class PresetApplySubCommand extends TabSubCommand {
         }
         
         return GameManagerUtils.applyPreset(
-                plugin, 
-                gameManager, 
-                storageUtil, 
-                presetFile, 
-                override, 
-                resetScores, 
-                whiteList, 
+                plugin,
+                gameManager,
+                storageUtil,
+                presetFile,
+                override,
+                resetScores,
+                whiteList,
                 unWhitelist,
                 kickUnWhitelisted
         );
     }
     
     private final List<String> validOptions = List.of(
-            "override", 
-            "resetScores", 
+            "override",
+            "resetScores",
             "whiteList",
             "unWhitelist",
             "kickUnWhitelisted");

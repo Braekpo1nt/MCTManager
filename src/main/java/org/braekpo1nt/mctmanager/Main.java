@@ -15,10 +15,8 @@ import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
-import io.papermc.paper.command.brigadier.argument.CustomArgumentType;
 import io.papermc.paper.command.brigadier.argument.resolvers.BlockPositionResolver;
 import io.papermc.paper.command.brigadier.argument.resolvers.FinePositionResolver;
-import io.papermc.paper.math.FinePosition;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import lombok.extern.java.Log;
 import net.kyori.adventure.text.Component;
@@ -74,7 +72,7 @@ import java.util.logging.Logger;
 
 @Log
 public class Main extends JavaPlugin {
-
+    
     public static final List<String> VALID_CONFIG_VERSIONS = List.of("0.1.0", "0.1.1", "0.1.2");
     
     /**
@@ -90,7 +88,7 @@ public class Main extends JavaPlugin {
     public final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
     private MCTCommand mctCommand;
     /**
-     * This should be the application-wide logger used to print logs to the console or standard out. 
+     * This should be the application-wide logger used to print logs to the console or standard out.
      * Initialized to Lombok log value so that tests don't trigger NullPointerExceptions
      */
     private static Logger logger = log;
@@ -98,7 +96,7 @@ public class Main extends JavaPlugin {
     
     protected GameManager initialGameManager(Scoreboard mctScoreboard, @NotNull HubConfig config) {
         return new GameManager(
-                this, 
+                this,
                 mctScoreboard,
                 new GameStateStorageUtil(this),
                 new SidebarFactory(),
@@ -140,12 +138,12 @@ public class Main extends JavaPlugin {
     /**
      * Logs the message if the given {@link LogType} should be logged (as determined by {@link #logTypeActive})
      * @param logType the {@link LogType} of the message
-     * @param message the message to log. 
-     *                Must be a valid {@link Logger#log(Level, String, Object[])} string. 
-     *                The provided args will be used as the {code Object...}
-     *                arguments of the format string.
-     * @param args the args the arguments of the {@link Logger#log(Level, String, Object[])} which 
-     *             uses the message as the pattern.
+     * @param message the message to log.
+     * Must be a valid {@link Logger#log(Level, String, Object[])} string.
+     * The provided args will be used as the {code Object...}
+     * arguments of the format string.
+     * @param args the args the arguments of the {@link Logger#log(Level, String, Object[])} which
+     * uses the message as the pattern.
      */
     public static void debugLog(@NotNull LogType logType, @NotNull String message, Object... args) {
         if (logTypeActive.get(logType)) {
@@ -257,7 +255,7 @@ public class Main extends JavaPlugin {
                                                     .blockData(Material.LIME_STAINED_GLASS.createBlockData())
                                                     .build();
                                             renderer.show();
-                                            this.getServer().getScheduler().runTaskLater(this, renderer::hide, 5*20L);
+                                            this.getServer().getScheduler().runTaskLater(this, renderer::hide, 5 * 20L);
                                             return Command.SINGLE_SUCCESS;
                                         })
                                 )
@@ -413,11 +411,11 @@ public class Main extends JavaPlugin {
         final Vector corner1 = ctx.getArgument("corner1", BlockPositionResolver.class).resolve(ctx.getSource()).toVector();
         final Vector corner2 = ctx.getArgument("corner2", BlockPositionResolver.class).resolve(ctx.getSource()).toVector();
         BoundingBox boundingBox = new BoundingBox(
-                corner1.getX(), 
-                corner1.getY(), 
-                corner1.getZ(), 
-                corner2.getX(), 
-                corner2.getY(), 
+                corner1.getX(),
+                corner1.getY(),
+                corner1.getZ(),
+                corner2.getX(),
+                corner2.getY(),
                 corner2.getZ()
         );
         if (boxRenderer == null) {

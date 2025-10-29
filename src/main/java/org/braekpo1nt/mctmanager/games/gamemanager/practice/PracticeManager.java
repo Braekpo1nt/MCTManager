@@ -3,7 +3,11 @@ package org.braekpo1nt.mctmanager.games.gamemanager.practice;
 import com.github.stefvanschie.inventoryframework.adventuresupport.ComponentHolder;
 import com.github.stefvanschie.inventoryframework.gui.GuiItem;
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
-import com.github.stefvanschie.inventoryframework.pane.*;
+import com.github.stefvanschie.inventoryframework.pane.MasonryPane;
+import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
+import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
+import com.github.stefvanschie.inventoryframework.pane.Pane;
+import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -24,7 +28,15 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
 public class PracticeManager {
     
@@ -363,7 +375,7 @@ public class PracticeManager {
     private @NotNull ChestGui createInviteRSVPMenu(PracticeParticipant participant, @NotNull Invite invite) {
         Team team = teams.get(participant.getTeamId());
         ChestGui gui = new ChestGui(3, ComponentHolder.of(Component.empty()
-                        .append(Component.text("Invite to play "))
+                .append(Component.text("Invite to play "))
                 .append(Component.text(invite.getId().getTitle()))));
         gui.setOnGlobalClick(event -> event.setCancelled(true));
         OutlinePane navigator = new OutlinePane(0, 0, 9, 1);
@@ -643,7 +655,7 @@ public class PracticeManager {
         for (Invite invite : activeInvites.values()) {
             String teamId = participant.getTeamId();
             if (invite.isInvolved(teamId)) {
-                if (getParticipantsOnTeam(teamId).isEmpty() 
+                if (getParticipantsOnTeam(teamId).isEmpty()
                         || gameManager.teamIsInGame(teamId)) {
                     if (invite.isGuest(teamId)) {
                         Team team = teams.get(teamId);

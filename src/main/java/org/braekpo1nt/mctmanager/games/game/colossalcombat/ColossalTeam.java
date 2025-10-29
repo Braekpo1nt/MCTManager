@@ -47,6 +47,7 @@ public class ColossalTeam extends ScoredTeamData<ColossalParticipant> implements
     public boolean isDead() {
         return getParticipants().stream().noneMatch(ColossalParticipant::isAlive);
     }
+    
     @Data
     public static class QuitData implements QuitDataBase {
         private final int score;

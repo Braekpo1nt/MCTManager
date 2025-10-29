@@ -13,7 +13,6 @@ import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.bukkit.Color;
 import org.bukkit.Material;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -23,7 +22,14 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Random;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 
 public class VoteManager implements Listener {
@@ -43,15 +49,15 @@ public class VoteManager implements Listener {
     /**
      * @param plugin used for creating inventories
      * @param executeMethod the method to execute when the voting is over (either because the duration
-     *                      is up or all voters have voted). It will be passed the voted for
-     *                      GameType.
+     * is up or all voters have voted). It will be passed the voted for
+     * GameType.
      * @param votingPool The games to vote between
      * @param newParticipants The participants who should vote
      */
     public VoteManager(
-            Main plugin, 
+            Main plugin,
             BiConsumer<GameType, String> executeMethod,
-            List<GameType> votingPool, 
+            List<GameType> votingPool,
             Collection<Participant> newParticipants) {
         this.NETHER_STAR = new ItemStack(Material.NETHER_STAR);
         ItemMeta netherStarMeta = this.NETHER_STAR.getItemMeta();
@@ -90,7 +96,8 @@ public class VoteManager implements Listener {
     private void vote(HumanEntity voter, GameType vote) {
         votes.put(voter.getUniqueId(), vote);
         ChestGui gui = guis.get(voter.getUniqueId());
-        gui.setOnClose(event -> {});
+        gui.setOnClose(event -> {
+        });
         gui.getInventory().close();
         voter.sendMessage(Component.empty()
                 .append(Component.text("Voted for "))
@@ -115,7 +122,7 @@ public class VoteManager implements Listener {
                     Component.text("A racing game")
             ));
             footRace.setItemMeta(meta);
-            items.add(new GuiItem(footRace, 
+            items.add(new GuiItem(footRace,
                     event -> vote(event.getWhoClicked(), GameType.FOOT_RACE)));
         }
         
@@ -294,7 +301,8 @@ public class VoteManager implements Listener {
     
     private void resetParticipant(Participant voter) {
         ChestGui gui = guis.remove(voter.getUniqueId());
-        gui.setOnClose(event -> {});
+        gui.setOnClose(event -> {
+        });
         gui.getInventory().close();
         voter.getInventory().remove(NETHER_STAR);
     }

@@ -18,7 +18,7 @@ import java.util.List;
 public class ScoreAddTeamSubCommand extends TabSubCommand {
     private final GameManager gameManager;
     private final boolean invert;
-
+    
     public ScoreAddTeamSubCommand(GameManager gameManager, boolean invert, @NotNull String name) {
         super(name);
         this.gameManager = gameManager;
@@ -59,7 +59,7 @@ public class ScoreAddTeamSubCommand extends TabSubCommand {
                 .append(Component.text(" score is now "))
                 .append(Component.text(newScore)));
     }
-
+    
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {

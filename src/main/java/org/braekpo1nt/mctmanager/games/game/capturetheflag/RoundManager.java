@@ -4,7 +4,13 @@ import org.braekpo1nt.mctmanager.Main;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class RoundManager {
@@ -15,17 +21,17 @@ public class RoundManager {
     public static final String BYE = "%BYE%";
     /**
      * The schedule handled by this round. Each element of the outer list
-     * is a round. 
+     * is a round.
      */
     private @NotNull List<List<MatchPairing>> schedule;
     /**
      * the played {@link MatchPairing}s this game. Useful for when new teams join, we can re-generate matches
      * and remove already played ones. In the future, also could be useful for tracking wins, but would
-     * need to be a map, and would need to be tracked by round. 
+     * need to be a map, and would need to be tracked by round.
      */
     private final List<MatchPairing> played;
     /**
-     * How many rounds have been played. Useful for outputting the current round to the players. 
+     * How many rounds have been played. Useful for outputting the current round to the players.
      * equivalent to currentRoundIndex, unless a new team joins mid-game then they get out of sync
      * and this is more accurate for user output
      */
@@ -40,14 +46,15 @@ public class RoundManager {
     
     /**
      * Used only for checking if a given teamId is contained in this {@link RoundManager} or not
-     * @see #containsTeamId(String) 
+     * @see #containsTeamId(String)
      */
     private final @NotNull Set<String> containedTeamIds;
     
     /**
      * @param teamId the teamId to check
      * @param round the round to check
-     * @return the opposite teamId of the given teamId in the given round (if they are present), null if the given team is on-deck
+     * @return the opposite teamId of the given teamId in the given round (if they are present), null if the given team
+     * is on-deck
      */
     public static @Nullable String getOppositeTeam(String teamId, List<MatchPairing> round) {
         MatchPairing matchPairing = getMatchPairing(teamId, round);
@@ -70,7 +77,7 @@ public class RoundManager {
         Main.logger().info(String.format("Schedule (%d):", schedule.size()));
         for (int i = 0; i < schedule.size(); i++) {
             List<MatchPairing> round = schedule.get(i);
-            Main.logger().info(String.format("Round %d:", i+1));
+            Main.logger().info(String.format("Round %d:", i + 1));
             for (MatchPairing matchPairing : round) {
                 Main.logger().info(String.format("- %s", matchPairing));
             }
@@ -97,7 +104,7 @@ public class RoundManager {
     
     /**
      * Regenerates the rounds using the given set of teams. Previously played matches will not be re-added.
-     * Handy for when a new team joins mid-game and needs to be mixed into the rounds. 
+     * Handy for when a new team joins mid-game and needs to be mixed into the rounds.
      * @param teamIds the teamIds of the teams in the round
      * @param numOfArenas the number of arenas (must be greater than 0)
      */
@@ -119,7 +126,7 @@ public class RoundManager {
     }
     
     /**
-     * @return the number of rounds that have been played. Starts at 0. 
+     * @return the number of rounds that have been played. Starts at 0.
      */
     public int getPlayedRounds() {
         return playedRounds;
@@ -143,7 +150,8 @@ public class RoundManager {
     }
     
     /**
-     * If this returns true, you can safely run {@link #nextRound()} to cycle to the next round, then {@link #getCurrentRound()} to get the list of match pairings for the round you just iterated to.
+     * If this returns true, you can safely run {@link #nextRound()} to cycle to the next round, then
+     * {@link #getCurrentRound()} to get the list of match pairings for the round you just iterated to.
      * @return true if there is at least one un-played round next, false if there are no more rounds
      */
     public boolean hasNextRound() {
@@ -151,7 +159,8 @@ public class RoundManager {
     }
     
     /**
-     * Cycle to the next round. Don't run this without first checking {@link #hasNextRound()}. After iterating the round, you can get the new list of MatchPairings from {@link #getCurrentRound()}. 
+     * Cycle to the next round. Don't run this without first checking {@link #hasNextRound()}. After iterating the
+     * round, you can get the new list of MatchPairings from {@link #getCurrentRound()}.
      */
     public void nextRound() {
         currentRoundIndex++;
@@ -162,7 +171,8 @@ public class RoundManager {
     
     /**
      * @return the list of {@link MatchPairing}s for the current round.
-     * @throws ArrayIndexOutOfBoundsException if you ran {@link #nextRound()} after {@link #hasNextRound()} returned false. 
+     * @throws ArrayIndexOutOfBoundsException if you ran {@link #nextRound()} after {@link #hasNextRound()} returned
+     * false.
      */
     public @NotNull List<MatchPairing> getCurrentRound() {
         return currentRound;
@@ -212,12 +222,14 @@ public class RoundManager {
     /**
      * This takes the raw generation of {@link MatchPairing}s and returns a schedule. Note that you should
      * include the pairs with {@link #BYE} as one of the teams, to make sure no individual team is
-     * on-deck for too many rounds in a row. 
-     * @param allMatches a list of all possible {@link MatchPairing}s to generate a schedule for. 
-     *                   Must include {@link #BYE} pairs to keep fair distribution 
-     *                   (i.e., this prevents a team being on deck for 4 rounds in a row)
-     * @param numOfArenas the maximum pairs per round, as determined by the number of arenas available. If this is less than 1, an empty list will be returned.
-     * @return a list of rounds, represented as lists of {@link MatchPairing} for the bracket. Will not include {@link MatchPairing}s which contain {@link #BYE}, as they are considered on-deck.
+     * on-deck for too many rounds in a row.
+     * @param allMatches a list of all possible {@link MatchPairing}s to generate a schedule for.
+     * Must include {@link #BYE} pairs to keep fair distribution
+     * (i.e., this prevents a team being on deck for 4 rounds in a row)
+     * @param numOfArenas the maximum pairs per round, as determined by the number of arenas available. If this is less
+     * than 1, an empty list will be returned.
+     * @return a list of rounds, represented as lists of {@link MatchPairing} for the bracket. Will not include
+     * {@link MatchPairing}s which contain {@link #BYE}, as they are considered on-deck.
      */
     public static List<List<MatchPairing>> distributeMatches(List<MatchPairing> allMatches, int numOfArenas) {
         List<List<MatchPairing>> rounds = new ArrayList<>();

@@ -18,6 +18,7 @@ public class XYRectangle implements Rectangle {
     private final double z;
     private final double xLength;
     private final double yLength;
+    
     public XYRectangle(double x1, double y1, double x2, double y2, double z) {
 //        Preconditions.checkArgument(x1 != x2, "x-values can't be identical");
 //        Preconditions.checkArgument(y1 != y2, "y-values can't be identical");
@@ -64,11 +65,11 @@ public class XYRectangle implements Rectangle {
     
     @Override
     public @NotNull Location getCenter(@NotNull World world) {
-        return new Location(world, minX+xLength/2, minY+yLength/2, z);
+        return new Location(world, minX + xLength / 2, minY + yLength / 2, z);
     }
     
     @Override
     public String toString() {
-        return String.format("XY (%s, %s, %s) (%s, %s, %s)", minX, minY, z, minX+xLength, minY+yLength, z);
+        return String.format("XY (%s, %s, %s) (%s, %s, %s)", minX, minY, z, minX + xLength, minY + yLength, z);
     }
 }

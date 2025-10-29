@@ -12,7 +12,11 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * An implementation of a Topbar specifically oriented towards many teams fighting each other.
@@ -54,7 +58,7 @@ public class ManyBattleTopbar implements Topbar {
     /**
      * A component with all the teams and their status. Used for displaying to players
      * who are not a member of a team, and thus should see a summary of all teams
-     * (such as admins and spectators). 
+     * (such as admins and spectators).
      */
     private final ManyTeamsComponent allTeams;
     
@@ -111,7 +115,7 @@ public class ManyBattleTopbar implements Topbar {
     }
     
     /**
-     * Add a new team to this Topbar. Updates appropriate BossBar displays. 
+     * Add a new team to this Topbar. Updates appropriate BossBar displays.
      * @param teamId the teamId of the team to add
      */
     public void addTeam(@NotNull String teamId, @NotNull TextColor teamColor) {
@@ -147,7 +151,7 @@ public class ManyBattleTopbar implements Topbar {
     }
     
     /**
-     * Removes all the teams from this Topbar, and unlinks all players from 
+     * Removes all the teams from this Topbar, and unlinks all players from
      * their teamIds
      * @deprecated use {@link #cleanup()}
      */
@@ -161,7 +165,8 @@ public class ManyBattleTopbar implements Topbar {
     }
     
     /**
-     * Set the number of living and dead players on a team. The members of that team will see the left part of the {@link VersusManyComponent} updated, and all other viewers will see the right part updated. 
+     * Set the number of living and dead players on a team. The members of that team will see the left part of the
+     * {@link VersusManyComponent} updated, and all other viewers will see the right part updated.
      * @param teamId the teamId to set the living/dead members for
      * @param living the number of living players on the team
      * @param dead the number of dead players on the team
@@ -190,9 +195,10 @@ public class ManyBattleTopbar implements Topbar {
     
     /**
      * Link the given player to the given team, so that they are viewing the appropriate
-     * components in their BossBar ui and so that they are updated when values relating to 
-     * this team are updated. 
-     * @param playerUUID the UUID of a player who is viewing this BattleTopbar. Must not already be linked to a teamId in this BattleTopbar.
+     * components in their BossBar ui and so that they are updated when values relating to
+     * this team are updated.
+     * @param playerUUID the UUID of a player who is viewing this BattleTopbar. Must not already be linked to a teamId
+     * in this BattleTopbar.
      * @param teamId the teamId to link this player to (must be a teamId which is already in this Topbar)
      */
     public void linkToTeam(@NotNull UUID playerUUID, @NotNull String teamId) {
@@ -216,7 +222,7 @@ public class ManyBattleTopbar implements Topbar {
     }
     
     /**
-     * Unlink the given player from their team. 
+     * Unlink the given player from their team.
      * @param playerUUID the UUID of the player to remove this. Must already be linked to a teamId in this Topbar.
      * @throws IllegalArgumentException if they are not already linked to a team, or if they are not in this Topbar
      */
@@ -408,7 +414,7 @@ public class ManyBattleTopbar implements Topbar {
      * @param playerUUID the player to set the kills and deaths for
      * @param kills the number of kills
      * @param deaths the number of deaths. Negative numbers will result in no
-     *               deaths being shown. 
+     * deaths being shown.
      */
     public void setKillsAndDeaths(@NotNull UUID playerUUID, int kills, int deaths) {
         PlayerData playerData = getPlayerData(playerUUID);

@@ -46,7 +46,7 @@ public class OptionSubCommand extends TabSubCommand {
         }
         return CommandResult.success();
     }
-
+    
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         return Arrays.asList("disableblockeffects", "enableblockeffects");

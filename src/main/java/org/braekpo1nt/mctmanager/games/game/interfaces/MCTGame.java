@@ -11,19 +11,25 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 
 /**
- * An MCT game. 
+ * An MCT game.
  */
 public interface MCTGame {
     GameType getType();
+    
     void stop();
     
     void onTeamJoin(Team team);
+    
     void onParticipantJoin(Participant participant);
+    
     void onParticipantQuit(UUID participantUUID);
+    
     void onTeamQuit(@NotNull String teamId);
     
     void onAdminJoin(Player admin);
+    
     void onAdminQuit(Player admin);
+    
     void setTitle(@NotNull Component title);
     
     boolean containsTeam(@NotNull String teamId);

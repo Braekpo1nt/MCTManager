@@ -17,8 +17,8 @@ public class FarmRushTeam extends ScoredTeamData<FarmRushParticipant> {
     private int sellPoints;
     
     public FarmRushTeam(
-            @NotNull Team team, 
-            @NotNull Arena arena, 
+            @NotNull Team team,
+            @NotNull Arena arena,
             int score,
             int sellPoints) {
         super(team, score);
@@ -34,8 +34,8 @@ public class FarmRushTeam extends ScoredTeamData<FarmRushParticipant> {
             @NotNull Team team,
             @NotNull QuitData quitData) {
         this(
-                team, 
-                quitData.getArena(), 
+                team,
+                quitData.getArena(),
                 quitData.getScore(),
                 quitData.getSellPoints()
         );

@@ -96,29 +96,29 @@ public class FootRaceEditor extends EditorBase<FootRaceAdmin, FootRaceEditorStat
         glassBarrierRenderer.show();
         checkpointRenderers.forEach(Renderer::show);
         addWand(Wand.<FootRaceAdmin>builder().wandItem(Wand.createWandItem(CHECKPOINT_BLOCK, "Checkpoint", List.of(
-                Component.text("Left Click: push box face away"),
-                Component.text("Right Click: pull box face toward"),
-                Component.text("(Crouch to adjust by 0.5 blocks)")
-        )))
+                        Component.text("Left Click: push box face away"),
+                        Component.text("Right Click: pull box face toward"),
+                        Component.text("(Crouch to adjust by 0.5 blocks)")
+                )))
                 .onLeftClick((event, admin) -> editCheckpoint(admin, 1.0))
                 .onLeftSneakClick((event, admin) -> editCheckpoint(admin, 0.5))
                 .onRightClick((event, admin) -> editCheckpoint(admin, -1.0))
                 .onRightSneakClick((event, admin) -> editCheckpoint(admin, -0.5))
                 .build());
         addWand(Wand.<FootRaceAdmin>builder().wandItem(Wand.createWandItem(CHECKPOINT_BLOCK, "Checkpoint Select", List.of(
-                Component.text("Left Click: previous checkpoint"),
-                Component.text("Right Click: next checkpoint"),
-                Component.text("(Crouch to be teleported)")
-        )))
+                        Component.text("Left Click: previous checkpoint"),
+                        Component.text("Right Click: next checkpoint"),
+                        Component.text("(Crouch to be teleported)")
+                )))
                 .onLeftClick((event, admin) -> selectCheckpoint(admin, admin.getCurrentCheckpoint() + 1, false))
                 .onLeftSneakClick((event, admin) -> selectCheckpoint(admin, admin.getCurrentCheckpoint() + 1, true))
                 .onRightClick((event, admin) -> selectCheckpoint(admin, admin.getCurrentCheckpoint() - 1, false))
                 .onRightSneakClick((event, admin) -> selectCheckpoint(admin, admin.getCurrentCheckpoint() - 1, true))
                 .build());
         addWand(Wand.<FootRaceAdmin>builder().wandItem(Wand.createWandItem(CHECKPOINT_BLOCK, "Add/Remove Checkpoint", List.of(
-                Component.text("Left Click: add checkpoint"),
-                Component.text("Right Click: remove checkpoint")
-        )))
+                        Component.text("Left Click: add checkpoint"),
+                        Component.text("Right Click: remove checkpoint")
+                )))
                 .onLeftClick(((event, admin) -> {
                     int newCheckpointIndex = admin.getCurrentCheckpoint() + 1;
                     BoundingBox newCheckpoint = createCheckpoint(admin.getPlayer().getLocation());
@@ -191,15 +191,15 @@ public class FootRaceEditor extends EditorBase<FootRaceAdmin, FootRaceEditorStat
                 })
                 .build());
         addWand(Wand.<FootRaceAdmin>builder().wandItem(Wand.createWandItem(Material.GLASS, "Toggle Type", List.of(
-                Component.text("Left Click: cycle the display type for checkpoints")
-        )))
+                        Component.text("Left Click: cycle the display type for checkpoints")
+                )))
                 .onLeftClick(((event, admin) -> cycleCheckpointType()))
                 .build());
         addWand(Wand.<FootRaceAdmin>builder().wandItem(Wand.createWandItem(Material.LIME_WOOL, "Starting Location", List.of(
-                Component.text("Left Click: set to current Location (exact)"),
-                Component.text("Right Click: set to current Location (rounded)"),
-                Component.text("(Crouch to get block position)")
-        )))
+                        Component.text("Left Click: set to current Location (exact)"),
+                        Component.text("Right Click: set to current Location (rounded)"),
+                        Component.text("(Crouch to get block position)")
+                )))
                 .onLeftClick((event, admin) -> editStartingLocation(admin, admin.getPlayer().getLocation()))
                 .onLeftSneakClick((event, admin) -> editStartingLocation(admin, admin.getPlayer().getLocation().toBlockLocation()))
                 .onRightClick((event, admin) -> editStartingLocation(admin,
@@ -215,9 +215,9 @@ public class FootRaceEditor extends EditorBase<FootRaceAdmin, FootRaceEditorStat
                                 .toBlockLocation()))
                 .build());
         addWand(Wand.<FootRaceAdmin>builder().wandItem(Wand.createWandItem(Material.BLACK_STAINED_GLASS, "Glass Barrier", List.of(
-                Component.text("Left Click: push box face away"),
-                Component.text("Right Click: pull box face toward")
-        )))
+                        Component.text("Left Click: push box face away"),
+                        Component.text("Right Click: pull box face toward")
+                )))
                 .onLeftClick((event, admin) -> editGlassBarrier(admin, 1.0))
                 .onRightClick((event, admin) -> editGlassBarrier(admin, -1.0))
                 .build());
@@ -324,8 +324,8 @@ public class FootRaceEditor extends EditorBase<FootRaceAdmin, FootRaceEditorStat
     }
     
     public CommandResult selectCheckpoint(
-            FootRaceAdmin admin, 
-            int checkpointIndex, 
+            FootRaceAdmin admin,
+            int checkpointIndex,
             boolean teleport) {
         if (checkpointIndex >= config.getCheckpoints().size()) {
             return CommandResult.failure(Component.empty()
@@ -352,7 +352,7 @@ public class FootRaceEditor extends EditorBase<FootRaceAdmin, FootRaceEditorStat
             BoundingBox nextCheckpoint = config.getCheckpoints()
                     .get(wrapIndex(admin.getCurrentCheckpoint() + 1));
             admin.getPlayer().lookAt(
-                    nextCheckpoint.getCenter().toLocation(config.getWorld()), 
+                    nextCheckpoint.getCenter().toLocation(config.getWorld()),
                     LookAnchor.EYES);
         }
         updateSidebarSelection(admin);

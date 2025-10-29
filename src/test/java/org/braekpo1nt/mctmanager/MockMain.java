@@ -29,7 +29,7 @@ public class MockMain extends Main {
     @Override
     protected GameManager initialGameManager(Scoreboard mctScoreboard, @NotNull HubConfig config) {
         return new MockGameManager(
-                this, 
+                this,
                 mctScoreboard,
                 new MockGameStateStorageUtil(this),
                 new MockSidebarFactory(),

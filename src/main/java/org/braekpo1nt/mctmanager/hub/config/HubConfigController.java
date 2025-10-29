@@ -26,7 +26,7 @@ public class HubConfigController extends ConfigController<HubConfigDTO> {
     }
     
     /**
-     * Gets the config from storage 
+     * Gets the config from storage
      * @return the config for spleef
      * @throws ConfigInvalidException if the config is invalid
      * @throws ConfigIOException if there is an IO problem getting the config
@@ -40,7 +40,7 @@ public class HubConfigController extends ConfigController<HubConfigDTO> {
     /**
      * @return the default config, guaranteed to enable the operation of the plugin without throwing exceptions,
      * but will be mostly nonsense (all locations will be the spawn of the first world in the list of worlds,
-     * for instance) 
+     * for instance)
      * @throws IllegalStateException if the server has 0 worlds
      */
     public @NotNull HubConfig getDefaultConfig() {
@@ -59,7 +59,7 @@ public class HubConfigController extends ConfigController<HubConfigDTO> {
     }
     
     /**
-     * @return a default config with the first world in the list of `Bukkit.getWorld()` and the spawn as all the locations. 
+     * @return a default config with the first world in the list of `Bukkit.getWorld()` and the spawn as all the locations.
      * @throws IllegalArgumentException if no worlds exist in the server
      */
     @NotNull protected HubConfigDTO createDefaultConfig() {
@@ -71,19 +71,19 @@ public class HubConfigController extends ConfigController<HubConfigDTO> {
         int yLimit = -64;
         HubConfigDTO.Durations durations = new HubConfigDTO.Durations(10);
         return new HubConfigDTO(
-                Main.VALID_CONFIG_VERSIONS.getLast(), 
-                defaultWorld.getName(), 
-                defaultLocation, 
-                defaultLocation, 
-                defaultLocation, 
+                Main.VALID_CONFIG_VERSIONS.getLast(),
+                defaultWorld.getName(),
+                defaultLocation,
+                defaultLocation,
+                defaultLocation,
                 HubConfigDTO.PracticeDTO.builder()
                         .restrictGameJoining(false)
                         .allowedGames(Collections.emptyList())
                         .preset(null)
                         .build(),
-                Collections.emptyList(), 
-                Collections.emptyList(), 
-                yLimit, 
+                Collections.emptyList(),
+                Collections.emptyList(),
+                yLimit,
                 durations
         );
     }

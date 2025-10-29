@@ -13,7 +13,7 @@ import java.util.Collection;
  * A convenience interface for implementing {@link DisplayDelegate} on a {@link Renderer} which
  * is composed of multiple {@link DisplayDelegate} renderers
  * @param <T> The type of the primary renderer, must extend {@link DisplayDelegate}
- *           so that it can delegate its attributes.
+ * so that it can delegate its attributes.
  */
 public interface DisplayComposite extends DisplaySingleton {
     @NotNull Collection<? extends DisplayDelegate> getDisplays();
