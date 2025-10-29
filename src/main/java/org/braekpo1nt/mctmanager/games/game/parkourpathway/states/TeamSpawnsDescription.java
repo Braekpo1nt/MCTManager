@@ -36,6 +36,7 @@ public class TeamSpawnsDescription extends ParkourPathwayStateBase {
     public void enter() {
         for (ParkourParticipant participant : context.getParticipants().values()) {
             teamsToSpawns.get(participant.getTeamId()).teleport(participant);
+            participant.getInventory().addItem(context.getWandItems());
         }
         context.messageAllParticipants(context.getConfig().getDescription());
         timer = context.getTimerManager().start(Timer.builder()

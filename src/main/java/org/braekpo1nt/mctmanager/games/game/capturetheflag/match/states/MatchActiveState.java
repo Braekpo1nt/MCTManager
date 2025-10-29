@@ -199,6 +199,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     
     /**
      * Checks if all participants are dead.
+     *
      * @return True if all participants are dead, false if at least one participant is alive
      */
     private boolean allParticipantsAreDead() {
@@ -210,18 +211,12 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         if (!participant.isAlive()) {
             return;
         }
+        
         participant.setAlive(false);
         event.getDrops().clear();
         event.setDroppedExp(0);
         
-        // new code start
-        event.setShowDeathMessages(false);
-        Component deathMessage = event.deathMessage();
-//        event.deathMessage(null);
-        if (deathMessage != null) {
-            context.messageAllParticipants(deathMessage);
-        }
-        // new code stop
+        // Handle flag dropping based on affiliation
         
         if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
             if (hasSouthFlag(participant)) {
@@ -232,8 +227,11 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
                 dropNorthFlag(participant);
             }
         }
+        
         context.updateAliveStatus(participant.getAffiliation());
         context.addDeath(participant);
+        
+        // Handle killer logic
         Player killerPlayer = participant.getKiller();
         if (killerPlayer != null) {
             CTFMatchParticipant killer = context.getParticipants().get(killerPlayer.getUniqueId());
@@ -241,6 +239,16 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
                 onParticipantGetKill(killer, participant);
             }
         }
+        
+        // new code start
+        event.setShowDeathMessages(false);
+        Component deathMessage = event.deathMessage();
+        if (deathMessage != null) {
+            context.messageAllParticipants(deathMessage);
+            context.getParentContext().messageOnDeckParticipants(deathMessage);
+        }
+        // new code stop
+        
         if (allParticipantsAreDead()) {
             onBothTeamsLose(Component.text("Both teams are dead."));
         }
@@ -325,8 +333,8 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     }
     
     /**
-     * Returns true if the south flag is dropped on the ground, and the given location's blockLocation is equal to
-     * {@link CaptureTheFlagMatch#getSouthFlagPosition()}}
+     * Returns true if the south flag is dropped on the ground, and the given location's blockLocation is equal to {@link CaptureTheFlagMatch#getSouthFlagPosition()}}
+     *
      * @param location The location to check
      * @return Whether the south flag is dropped and the location is on the south flag
      */
@@ -431,8 +439,8 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     }
     
     /**
-     * Returns true if the north flag is dropped on the ground, and the given location's blockLocation is equal to
-     * {@link CaptureTheFlagMatch#getNorthFlagPosition()}
+     * Returns true if the north flag is dropped on the ground, and the given location's blockLocation is equal to {@link CaptureTheFlagMatch#getNorthFlagPosition()}
+     *
      * @param location The location to check
      * @return Whether the north flag is dropped and the location is on the north flag
      */

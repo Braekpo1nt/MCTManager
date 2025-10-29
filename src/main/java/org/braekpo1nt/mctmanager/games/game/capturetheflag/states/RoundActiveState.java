@@ -315,4 +315,15 @@ public class RoundActiveState extends CaptureTheFlagStateBase {
             match.onParticipantFoodLevelChange(event, participant);
         }
     }
+    
+    @Override
+    public void messageOnDeckParticipants(@NotNull Component message) {
+        // TODO: make this better by adding an isOnDeck() method to CTFMatchParticipant or something
+        for (CTFParticipant participant : context.getParticipants().values()) {
+            CaptureTheFlagMatch match = getMatch(participant.getTeamId());
+            if (match == null) {
+                participant.sendMessage(message);
+            }
+        }
+    }
 }

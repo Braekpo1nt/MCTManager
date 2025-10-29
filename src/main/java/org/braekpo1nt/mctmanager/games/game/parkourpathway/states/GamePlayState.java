@@ -30,13 +30,13 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
         super(context);
         this.config = context.getConfig();
         skipCooldownTaskId = context.getPlugin().getServer().getScheduler()
-                .runTaskTimer(context.getPlugin(), () ->
+                .runTaskTimer(context.getPlugin(), () -> 
                         context.getParticipants().values().forEach(participant -> {
-                                    if (participant.getSkipCooldown() > 0) {
-                                        participant.setSkipCooldown(participant.getSkipCooldown() - 1);
-                                    }
-                                }
-                        ), 0L, 20L).getTaskId();
+                            if (participant.getSkipCooldown() > 0) {
+                                participant.setSkipCooldown(participant.getSkipCooldown() - 1);
+                            }
+                        }
+                    ), 0L, 20L).getTaskId();
     }
     
     @Override
@@ -100,8 +100,7 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
      * Check if the given location is inside the given puzzle's check points.
      * @param v the location to check if it's inside the puzzle's detection areas or not.
      * @param puzzle the puzzle to check if the player reached
-     * @return -1 if v isn't inside the given puzzle's detection areas. Otherwise, returns the index of the puzzle's
-     * CheckPoint that v is inside.
+     * @return -1 if v isn't inside the given puzzle's detection areas. Otherwise, returns the index of the puzzle's CheckPoint that v is inside.
      */
     private int participantReachedCheckPoint(Vector v, Puzzle puzzle) {
         for (int i = 0; i < puzzle.getCheckPoints().size(); i++) {
@@ -117,17 +116,17 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
         participant.setCurrentPuzzle(puzzleIndex);
         participant.setCurrentPuzzleCheckpoint(puzzleCheckPointIndex);
         context.updateCheckpointSidebar(participant);
-        if (puzzleIndex >= config.getPuzzlesSize() - 1) {
+        if (puzzleIndex >= config.getPuzzlesSize()-1) {
             onParticipantFinish(participant, true);
         } else {
             Component checkpointNum = Component.empty()
                     .append(Component.text(puzzleIndex))
                     .append(Component.text("/"))
-                    .append(Component.text(config.getPuzzlesSize() - 1));
-            context.messageAllParticipants(Component.empty()
+                    .append(Component.text(config.getPuzzlesSize()-1));
+            context.messageParticipantsWithNotifications(Component.empty()
                     .append(participant.displayName())
                     .append(Component.text(" reached checkpoint "))
-                    .append(checkpointNum));
+                    .append(checkpointNum), participant);
             participant.showTitle(UIUtils.defaultTitle(
                     Component.empty(),
                     Component.empty()
@@ -162,12 +161,9 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
     protected abstract void restartMercyRuleCountdown();
     
     /**
-     * Calculates the points for playersPuzzle based on how many players have reached or passed that playersPuzzle. If
-     * puzzleScores has x elements, the nth player to arrive at playersPuzzle gets the puzzleScores[n-1], unless n is
-     * greater than or equal to x, in which case they get puzzleScores[x-1]
+     * Calculates the points for playersPuzzle based on how many players have reached or passed that playersPuzzle. If puzzleScores has x elements, the nth player to arrive at playersPuzzle gets the puzzleScores[n-1], unless n is greater than or equal to x, in which case they get puzzleScores[x-1]
      * @param playersPuzzle the index of the puzzle to get the points for
-     * @param puzzleScores the scores to progress through. The last score is to give to everyone who didn't make the one
-     * of the other specified scores.
+     * @param puzzleScores the scores to progress through. The last score is to give to everyone who didn't make the one of the other specified scores.
      * @return the points for playersPuzzle
      */
     private int calculatePointsForPuzzle(int playersPuzzle, int[] puzzleScores) {
@@ -220,11 +216,8 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
     }
     
     /**
-     * Calculates the number of points for a win, based on how many players have currently won. If winScores has x
-     * elements, the nth player to win will get winScores[n-1] points, unless n is greater than or equal to x in which
-     * case they get winScores[x-1]
-     * @param winScores the scores to progress through. The last score is to give to everyone who didn't make one of the
-     * other specified scores.
+     * Calculates the number of points for a win, based on how many players have currently won. If winScores has x elements, the nth player to win will get winScores[n-1] points, unless n is greater than or equal to x in which case they get winScores[x-1]
+     * @param winScores the scores to progress through. The last score is to give to everyone who didn't make one of the other specified scores. 
      * @return the points for the most recent player win
      */
     private int calculatePointsForWin(int[] winScores) {
@@ -288,17 +281,17 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
         context.updateCheckpointSidebar(participant);
         Puzzle newPuzzle = config.getPuzzle(puzzleIndex);
         participant.teleport(newPuzzle.getCheckPoints().getFirst().getRespawn());
-        if (puzzleIndex >= config.getPuzzlesSize() - 1) {
+        if (puzzleIndex >= config.getPuzzlesSize()-1) {
             onParticipantFinish(participant, false);
         } else {
             Component checkpointNum = Component.empty()
                     .append(Component.text(puzzleIndex))
                     .append(Component.text("/"))
-                    .append(Component.text(config.getPuzzlesSize() - 1));
-            context.messageAllParticipants(Component.empty()
+                    .append(Component.text(config.getPuzzlesSize()-1));
+            context.messageParticipantsWithNotifications(Component.empty()
                     .append(participant.displayName())
                     .append(Component.text(" skipped to checkpoint "))
-                    .append(checkpointNum));
+                    .append(checkpointNum), participant);
             participant.showTitle(UIUtils.defaultTitle(
                     Component.empty(),
                     Component.empty()

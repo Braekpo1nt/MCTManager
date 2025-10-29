@@ -4,10 +4,12 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.chat.ChatMode;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.ParticipantData;
 import org.braekpo1nt.mctmanager.participant.QuitDataBase;
 import org.jetbrains.annotations.NotNull;
+
 
 @ToString(callSuper = true)
 @Getter
@@ -36,10 +38,18 @@ public class ParkourParticipant extends ParticipantData {
      * a participant can't use their skip.
      */
     private int skipCooldown;
+
+    /**
+     * The current {@link ChatMode} of the participant
+     */
+    private ChatMode chatMode;
     
-    public ParkourParticipant(@NotNull Participant participant, int score) {
+    public ParkourParticipant(
+            @NotNull Participant participant,
+            int score) {
         super(participant, score);
         this.finished = false;
+        this.chatMode = ChatMode.LOCAL;
         this.currentPuzzle = 0;
         this.currentPuzzleCheckpoint = 0;
         this.unusedSkips = 0;
@@ -49,22 +59,24 @@ public class ParkourParticipant extends ParticipantData {
     public ParkourParticipant(@NotNull Participant participant, @NotNull ParkourParticipant.QuitData quitData) {
         super(participant, quitData.getScore());
         this.finished = quitData.isFinished();
+        this.chatMode = quitData.getChatMode();
         this.currentPuzzle = quitData.getCurrentPuzzle();
         this.currentPuzzleCheckpoint = quitData.getCurrentPuzzleCheckpoint();
         this.unusedSkips = quitData.getUnusedSkips();
         this.skipCooldown = 0;
     }
-    
+
     public QuitData getQuitData() {
         return new QuitData(
                 getScore(),
                 finished,
                 currentPuzzle,
                 currentPuzzleCheckpoint,
-                unusedSkips
+                unusedSkips,
+                chatMode
         );
     }
-    
+
     @Data
     public static class QuitData implements QuitDataBase {
         private final int score;
@@ -72,5 +84,6 @@ public class ParkourParticipant extends ParticipantData {
         private final int currentPuzzle;
         private final int currentPuzzleCheckpoint;
         private final int unusedSkips;
+        private final ChatMode chatMode;
     }
 }

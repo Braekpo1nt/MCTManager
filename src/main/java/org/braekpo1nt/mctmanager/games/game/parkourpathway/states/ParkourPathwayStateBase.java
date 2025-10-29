@@ -12,6 +12,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class ParkourPathwayStateBase implements ParkourPathwayState {
@@ -37,10 +38,22 @@ public abstract class ParkourPathwayStateBase implements ParkourPathwayState {
         
     }
     
+    /**
+     * Gives the participant the wand that toggles their notification mode,
+     * with the appropriate metadata
+     * @param participant the participant to give the item to
+     */
+    private void giveNotificationToggleItem(ParkourParticipant participant) {
+        ItemStack wandItem = context.getNotificationToggle().getWandItem().clone();
+        context.setNotificationLore(wandItem, participant.getChatMode());
+        participant.getInventory().addItem(wandItem);
+    }
+    
     @Override
     public void onParticipantRejoin(ParkourParticipant participant, ParkourTeam team) {
         participant.teleport(context.getConfig().getStartingLocation());
         context.giveBoots(participant);
+        giveNotificationToggleItem(participant);
         participant.addPotionEffect(context.getINVISIBILITY());
         context.updateCheckpointSidebar(participant);
     }
@@ -49,6 +62,7 @@ public abstract class ParkourPathwayStateBase implements ParkourPathwayState {
     public void onNewParticipantJoin(ParkourParticipant participant, ParkourTeam team) {
         participant.teleport(context.getConfig().getStartingLocation());
         context.giveBoots(participant);
+        giveNotificationToggleItem(participant);
         participant.addPotionEffect(context.getINVISIBILITY());
         context.updateCheckpointSidebar(participant);
     }

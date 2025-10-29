@@ -7,11 +7,13 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.event.Event;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,11 +21,19 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
 @SuppressWarnings("UnusedReturnValue")
 public class Wand<T extends Audience> {
+    
+    /**
+     * Used to retrieve the persistent data of a given wand's UUID
+     */
+    public static final NamespacedKey WAND_ID = new NamespacedKey("mctmanager", "wand_uuid");
+    
+    protected final @NotNull String uuid;
     
     @Getter
     protected final @NotNull ItemStack wandItem;
@@ -71,7 +81,7 @@ public class Wand<T extends Audience> {
             @Nullable BiFunction<PlayerInteractEvent, T, CommandResult> onRightSneakClickAir,
             @Nullable BiFunction<PlayerInteractEvent, T, CommandResult> onRightSneakClickBlock,
             
-            @Nullable BiFunction<PlayerInteractEvent, T, CommandResult> onLeftClick,
+            @Nullable  BiFunction<PlayerInteractEvent, T, CommandResult> onLeftClick,
             @Nullable BiFunction<PlayerInteractEvent, T, CommandResult> onLeftClickAir,
             @Nullable BiFunction<PlayerInteractEvent, T, CommandResult> onLeftClickBlock,
             @Nullable BiFunction<PlayerInteractEvent, T, CommandResult> onLeftSneakClick,
@@ -80,8 +90,10 @@ public class Wand<T extends Audience> {
             
             @Nullable Function<T, CommandResult> onHoldTick,
             boolean shouldNotDrop
-    ) {
+            ) {
         this.wandItem = Objects.requireNonNull(wandItem, "wandItem can't be null");
+        this.uuid = UUID.randomUUID().toString();
+        this.wandItem.editMeta(meta -> meta.getPersistentDataContainer().set(WAND_ID, PersistentDataType.STRING, uuid));
         this.onInteract = (onInteract != null) ? onInteract : (event, user) -> CommandResult.success();
         this.onRightClick = (onRightClick != null) ? onRightClick : (event, user) -> CommandResult.success();
         this.onRightClickAir = (onRightClickAir != null) ? onRightClickAir : (event, user) -> CommandResult.success();
@@ -124,7 +136,10 @@ public class Wand<T extends Audience> {
     public boolean isWandItem(@Nullable ItemStack item) {
         return item != null
                 && item.getType().equals(wandItem.getType())
-                && item.getItemMeta().equals(wandItem.getItemMeta());
+                && Objects.equals(
+                        item.getItemMeta().getPersistentDataContainer().get(WAND_ID, PersistentDataType.STRING), 
+                        uuid
+                );
     }
     
     /**
@@ -196,11 +211,9 @@ public class Wand<T extends Audience> {
     /**
      * Called every X ticks by the controlling context when a given user is holding this wand.
      * X is determined by the controlling context.
-     * If the item in {@link PlayerInventory#getItemInMainHand()} is this {@link Wand}'s
-     * {@link Wand#isWandItem(ItemStack)},
+     * If the item in {@link PlayerInventory#getItemInMainHand()} is this {@link Wand}'s {@link Wand#isWandItem(ItemStack)},
      * then {@link #onHoldTick} is called. Otherwise, nothing happens.
-     * @param user the user to check if they are holding this wand, and if they are perform the {@link #onHoldTick}
-     * action
+     * @param user the user to check if they are holding this wand, and if they are perform the {@link #onHoldTick} action
      */
     public void onHoldTick(@NotNull PlayerInventory userInventory, @NotNull T user) {
         ItemStack heldItem = userInventory.getItemInMainHand();

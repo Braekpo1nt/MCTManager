@@ -11,8 +11,8 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
 
 @Data
@@ -61,12 +61,22 @@ public class ParkourPathwayConfig {
      */
     private int skipCooldownDuration;
     private Component description;
+
+    // Chat Mode Toggle Fields
+    private @NotNull Material chatToggleMaterial;
+    private @NotNull Component chatToggleName;
+    private @NotNull List<Component> chatToggleLoreALL;
+    private @NotNull List<Component> chatToggleLoreTEAM;
+    private @NotNull List<Component> chatToggleLoreDISABLED;
+    private @NotNull List<Component> chatToggleLoreLOCAL;
+    private @NotNull List<Component> chatToggleLoreOFF;
     
     public int getPuzzlesSize() {
         return puzzles.size();
     }
-    
+
     public Puzzle getPuzzle(int index) {
         return puzzles.get(index);
     }
+    
 }
