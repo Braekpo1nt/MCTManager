@@ -73,7 +73,8 @@ public class EventUndoSubCommand extends TabSubCommand {
     
     /**
      * @param n the number to generate numbers up to (must be at least 1 to get any entries)
-     * @return a list containing the numbers 1 through n inclusive as Strings, in increasing order. If n is less than 1, an empty list is produced. 
+     * @return a list containing the numbers 1 through n inclusive as Strings, in increasing order. If n is less than 1,
+     * an empty list is produced.
      */
     public static List<String> generateNumberList(int n) {
         List<String> numbers = new ArrayList<>();

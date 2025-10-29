@@ -1,7 +1,8 @@
 package org.braekpo1nt.mctmanager.config.dto;
 
 /**
- * Simple record to store the yaw and pitch of a Location. Useful for serializing the directional portion of a Location in JSON. 
+ * Simple record to store the yaw and pitch of a Location. Useful for serializing the directional portion of a Location
+ * in JSON.
  * @param yaw the yaw of a Location
  * @param pitch the pitch of a Location
  */

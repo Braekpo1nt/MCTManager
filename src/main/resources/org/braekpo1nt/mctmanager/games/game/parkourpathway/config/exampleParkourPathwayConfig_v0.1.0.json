@@ -1058,5 +1058,43 @@
       ]
     }
   ],
-  "description": ["",{"text":"-----------------------","bold":true,"color":"gray"},{"text":"\n"},{"text":"How To Play","bold":true,"color":"yellow"},{"text":" Parkour Pathway","bold":true,"color":"yellow"},{"text":"\n"},{"text":"It's parkour, but with a stricter path... way.\nGet tournament points at each checkpoint, and even more if you make it to the end!","color":"#FFFFDF"},{"text":" \n"},{"text":"-----------------------","bold":true,"color":"gray"},{"text":" "}]
+  "description": [
+    "",
+    {
+      "text": "-----------------------",
+      "bold": true,
+      "color": "gray"
+    },
+    {
+      "text": "\n"
+    },
+    {
+      "text": "How To Play",
+      "bold": true,
+      "color": "yellow"
+    },
+    {
+      "text": " Parkour Pathway",
+      "bold": true,
+      "color": "yellow"
+    },
+    {
+      "text": "\n"
+    },
+    {
+      "text": "It's parkour, but with a stricter path... way.\nGet tournament points at each checkpoint, and even more if you make it to the end!",
+      "color": "#FFFFDF"
+    },
+    {
+      "text": " \n"
+    },
+    {
+      "text": "-----------------------",
+      "bold": true,
+      "color": "gray"
+    },
+    {
+      "text": " "
+    }
+  ]
 }

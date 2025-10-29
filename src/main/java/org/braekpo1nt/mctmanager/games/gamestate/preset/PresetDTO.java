@@ -17,10 +17,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Represents a preset GameState. Allows users to set up a GameState configuration 
- * with teams and members (by IGN) for use right before an event to get it to the 
- * state they want it in one little command instead of several commands. 
- * This contains all the necessary data to set up the teams and members. 
+ * Represents a preset GameState. Allows users to set up a GameState configuration
+ * with teams and members (by IGN) for use right before an event to get it to the
+ * state they want it in one little command instead of several commands.
+ * This contains all the necessary data to set up the teams and members.
  */
 @Data
 @AllArgsConstructor
@@ -87,9 +87,9 @@ public class PresetDTO implements Validatable {
         
         Preset.PresetTeam toPresetTeam() {
             return new Preset.PresetTeam(
-                    teamId, 
-                    displayName, 
-                    color, 
+                    teamId,
+                    displayName,
+                    color,
                     members
             );
         }
@@ -100,7 +100,7 @@ public class PresetDTO implements Validatable {
         
         static PresetTeamDTO fromPresetTeam(Preset.PresetTeam presetTeam) {
             return new PresetTeamDTO(
-                    presetTeam.getTeamId(), 
+                    presetTeam.getTeamId(),
                     presetTeam.getDisplayName(),
                     presetTeam.getColor(),
                     presetTeam.getMembers()

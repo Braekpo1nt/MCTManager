@@ -31,7 +31,7 @@ public class YawPitchSubCommand extends TabSubCommand {
         if (args.length != 3) {
             return CommandResult.failure(getUsage().of("<x>", "<y>", "<z>"));
         }
-    
+        
         for (String coordinate : args) {
             if (!CommandUtils.isDouble(coordinate)) {
                 return CommandResult.failure(Component.empty()
@@ -40,7 +40,7 @@ public class YawPitchSubCommand extends TabSubCommand {
                         .append(Component.text(" is not a number")));
             }
         }
-    
+        
         double x = Double.parseDouble(args[0]);
         double y = Double.parseDouble(args[1]);
         double z = Double.parseDouble(args[2]);

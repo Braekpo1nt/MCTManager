@@ -107,7 +107,7 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     }
     
     /**
-     * Convenience method for getting the current border stage 
+     * Convenience method for getting the current border stage
      * @return the current border stage
      */
     public BorderStage getCurrentBorderStage() {
@@ -193,7 +193,8 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     }
     
     /**
-     * Creates platforms for teams to spawn on made of a hollow rectangle of Barrier blocks where the bottom layer is Concrete that matches the color of the team
+     * Creates platforms for teams to spawn on made of a hollow rectangle of Barrier blocks where the bottom layer is
+     * Concrete that matches the color of the team
      * <br>
      * For n teamIds and m platforms in storageUtil.getPlatformBarriers():<br>
      * - place n platforms, but no more than m platforms
@@ -206,12 +207,12 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
             int platformIndex = MathUtils.wrapIndex(i, platformBarriers.size());
             BoundingBox barrierArea = platformBarriers.get(platformIndex);
             BoundingBox concreteArea = new BoundingBox(
-                    barrierArea.getMinX()+1,
+                    barrierArea.getMinX() + 1,
                     barrierArea.getMinY(),
-                    barrierArea.getMinZ()+1,
-                    barrierArea.getMaxX()-1,
+                    barrierArea.getMinZ() + 1,
+                    barrierArea.getMaxX() - 1,
                     barrierArea.getMinY(),
-                    barrierArea.getMaxZ()-1);
+                    barrierArea.getMaxZ() - 1);
             BlockPlacementUtils.createHollowCube(world, barrierArea, Material.BARRIER);
             BlockPlacementUtils.createCube(world, concreteArea, team.getColorAttributes().getConcrete());
             i++;
@@ -220,7 +221,8 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     
     /**
      * For n teams and m platforms in storageUtil.getPlatformBarriers():<br>
-     * - teleport teams to their designated platforms. If n is greater than m, then it will start wrapping around and teleporting different teams to the same platforms, until all teams have a platform. 
+     * - teleport teams to their designated platforms. If n is greater than m, then it will start wrapping around and
+     * teleporting different teams to the same platforms, until all teams have a platform.
      */
     private void teleportTeams() {
         List<Location> platformSpawns = config.getPlatformSpawns();
@@ -410,6 +412,7 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     }
     
     // EventHandlers
+    
     /**
      * Called when:
      * Right-clicking an armor stand

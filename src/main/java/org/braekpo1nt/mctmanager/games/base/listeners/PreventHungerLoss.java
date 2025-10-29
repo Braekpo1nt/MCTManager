@@ -7,7 +7,7 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Prevents participants from losing hunger. 
+ * Prevents participants from losing hunger.
  * @param <P>
  */
 public class PreventHungerLoss<P extends ParticipantData> extends GameListener<P> {

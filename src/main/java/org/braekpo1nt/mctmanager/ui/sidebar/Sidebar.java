@@ -17,7 +17,8 @@ import java.util.logging.Level;
 public class Sidebar {
     
     /**
-     * Sidebar should not be instantiated outside the {@link SidebarFactory}. This prevents it from happening outside this package.
+     * Sidebar should not be instantiated outside the {@link SidebarFactory}. This prevents it from happening outside
+     * this package.
      */
     Sidebar() {
     }
@@ -27,11 +28,12 @@ public class Sidebar {
     }
     
     /**
-     * Maps keys to their index, or their line number (starts at 0). 
+     * Maps keys to their index, or their line number (starts at 0).
      */
     protected final Map<String, Integer> keyToIndex = new HashMap<>();
     /**
-     * Holds the lines for the FastBoards for each player. This is kept in parallel to the actual visual lines held in {@link Sidebar#boards} for the purposes of reordering
+     * Holds the lines for the FastBoards for each player. This is kept in parallel to the actual visual lines held in
+     * {@link Sidebar#boards} for the purposes of reordering
      */
     protected final Map<UUID, List<Component>> boardsLines = new HashMap<>();
     /**
@@ -71,18 +73,19 @@ public class Sidebar {
     }
     
     /**
-     * Adds a participant to this Sidebar. The lines will be empty. 
-     * You'll need to manually update the line contents for the new player using 
+     * Adds a participant to this Sidebar. The lines will be empty.
+     * You'll need to manually update the line contents for the new player using
      * {@link Sidebar#updateLine(UUID, String, Component)}.
-     * @param participant the {@link Participant} representing the player to add to this 
-     *                    manager and give a FastBoard
+     * @param participant the {@link Participant} representing the player to add to this
+     * manager and give a FastBoard
      */
     public synchronized void addPlayer(@NotNull Participant participant) {
         addPlayer(participant.getPlayer());
     }
     
     /**
-     * Adds a player to this Sidebar. The lines will be empty. You'll need to manually update the line contents for the new player using {@link Sidebar#updateLine(UUID, String, Component)}.
+     * Adds a player to this Sidebar. The lines will be empty. You'll need to manually update the line contents for the
+     * new player using {@link Sidebar#updateLine(UUID, String, Component)}.
      * @param player the player to add to this manager and give a FastBoard
      */
     public synchronized void addPlayer(@NotNull Player player) {
@@ -104,7 +107,7 @@ public class Sidebar {
     /**
      * Removes all players from this Sidebar
      */
-    public synchronized  void removeAllPlayers() {
+    public synchronized void removeAllPlayers() {
         Iterator<Map.Entry<UUID, List<Component>>> iterator = boardsLines.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<UUID, List<Component>> entry = iterator.next();
@@ -202,11 +205,14 @@ public class Sidebar {
     }
     
     /**
-     * Adds a line to all FastBoards at the given index. all lines that were after that index are bumped down to make room.
+     * Adds a line to all FastBoards at the given index. all lines that were after that index are bumped down to make
+     * room.
      * @param key the key for the line (must not already exist)
-     * @param index the index of the new line (starting at 0, higher numbers go down the board, can't be greater than the size of the board).
+     * @param index the index of the new line (starting at 0, higher numbers go down the board, can't be greater than
+     * the size of the board).
      * @param contents the contents of the line
-     * @throws IllegalArgumentException if the key exists, or the index is out of range ({@code index < 0 || index > size()})
+     * @throws IllegalArgumentException if the key exists, or the index is out of range
+     * ({@code index < 0 || index > size()})
      */
     public synchronized void addLine(@NotNull String key, int index, @NotNull Component contents) {
         if (keyToIndex.containsKey(key)) {
@@ -242,7 +248,7 @@ public class Sidebar {
      * Bulk add all the lines with the given keys to the end of the Sidebar
      * @param keyLines a list of {@link KeyLine} key-to-content pairs to add all at once to all the FastBoards
      */
-    public synchronized void addLines(@NotNull KeyLine @NotNull... keyLines) {
+    public synchronized void addLines(@NotNull KeyLine @NotNull ... keyLines) {
         List<String> keys = new ArrayList<>(keyLines.length);
         List<Component> lineContents = new ArrayList<>(keyLines.length);
         for (KeyLine keyLine : keyLines) {
@@ -272,11 +278,13 @@ public class Sidebar {
     }
     
     /**
-     * Adds the given lines to all FastBoards at the given index. All lines that were after that index are bumped down to make room.
-     * @param index the index of the first new line (starting at 0, higher numbers go down the board, can't be greater than the size of the board)
+     * Adds the given lines to all FastBoards at the given index. All lines that were after that index are bumped down
+     * to make room.
+     * @param index the index of the first new line (starting at 0, higher numbers go down the board, can't be greater
+     * than the size of the board)
      * @param keyLines the KeyLine pairs
      */
-    public synchronized void addLines(int index, @NotNull KeyLine @NotNull... keyLines) {
+    public synchronized void addLines(int index, @NotNull KeyLine @NotNull ... keyLines) {
         if (index < 0) {
             logUIError("index (%s) can't be negative", index);
             return;
@@ -386,8 +394,10 @@ public class Sidebar {
     /**
      * Removes the indexes in the provided list of removeIndexes from the given list of lines
      * @param lines the lines from which to remove the indexes
-     * @param removeIndexes the indexes to remove from lines. Must be sorted in reverse order (higher indexes first) or this will throw {@link IndexOutOfBoundsException}
-     * @throws IndexOutOfBoundsException if {@code removeIndexes} is not sorted in order from greatest to least (i.e. {@code removeIndexes[n] > removeIndexes[n+1]}
+     * @param removeIndexes the indexes to remove from lines. Must be sorted in reverse order (higher indexes first) or
+     * this will throw {@link IndexOutOfBoundsException}
+     * @throws IndexOutOfBoundsException if {@code removeIndexes} is not sorted in order from greatest to least (i.e.
+     * {@code removeIndexes[n] > removeIndexes[n+1]}
      */
     private void removeIndexes(List<Component> lines, List<Integer> removeIndexes) {
         List<Integer> reverseSortedIndexesToRemove = removeIndexes.stream().sorted(Comparator.reverseOrder()).toList();
@@ -401,7 +411,8 @@ public class Sidebar {
     /**
      * Adjusts the values in a given keyToIndex by reassigning them based on their order in ascending order.
      * The keys in the map remain unchanged.
-     * keyToIndex will have new values, adjusted to start from 0 and increase by 1 in ascending order according to the original values.
+     * keyToIndex will have new values, adjusted to start from 0 and increase by 1 in ascending order according to the
+     * original values.
      * @param keyToIndex a {@link java.util.Map} where keys are strings and values are integers.
      */
     private synchronized void adjustValues(Map<String, Integer> keyToIndex) {
@@ -491,7 +502,7 @@ public class Sidebar {
      * Updates the line associated with the KeyLine pair for all FastBoards
      * @param keyLines the KeyLine pairs (all keys must exist)
      */
-    public synchronized void updateLines(@NotNull KeyLine @NotNull... keyLines) {
+    public synchronized void updateLines(@NotNull KeyLine @NotNull ... keyLines) {
         updateLines(Arrays.asList(keyLines));
     }
     
@@ -561,7 +572,7 @@ public class Sidebar {
      * @param playerUUID THe player UUID to update the lines for (must have a FastBoard)
      * @param keyLines the KeyLine pairs to update (each key must exist)
      */
-    public synchronized void updateLines(@NotNull UUID playerUUID, @NotNull KeyLine @NotNull... keyLines) {
+    public synchronized void updateLines(@NotNull UUID playerUUID, @NotNull KeyLine @NotNull ... keyLines) {
         updateLines(playerUUID, Arrays.asList(keyLines));
     }
     
@@ -571,7 +582,7 @@ public class Sidebar {
      * @param args optional args for the reason format string
      */
     protected void logUIError(@NotNull String reason, Object... args) {
-        Main.logger().log(Level.SEVERE, "An error occurred in the Sidebar", 
+        Main.logger().log(Level.SEVERE, "An error occurred in the Sidebar",
                 new SidebarException(String.format(reason, args)));
     }
 }

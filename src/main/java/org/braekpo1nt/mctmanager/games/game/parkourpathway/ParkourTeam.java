@@ -17,6 +17,6 @@ public class ParkourTeam extends ScoredTeamData<ParkourParticipant> {
     @Data
     public static class QuitData implements QuitDataBase {
         private final int score;
-    
+        
     }
 }

@@ -11,13 +11,13 @@ import org.jetbrains.annotations.NotNull;
 import java.io.*;
 
 /**
- * Loads configs from files and saves configs to files 
- * @param <T> the type of ConfigDTO this is responsible for 
+ * Loads configs from files and saves configs to files
+ * @param <T> the type of ConfigDTO this is responsible for
  */
 public abstract class ConfigController<T> {
     
     /**
-     * The Gson returned from this method will be used for both 
+     * The Gson returned from this method will be used for both
      * serialization and deserialization of the config.
      * @return a Gson instance
      */

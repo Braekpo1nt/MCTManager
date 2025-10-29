@@ -41,12 +41,12 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
     
     public CaptureTheFlagGame(
             @NotNull Main plugin,
-            @NotNull GameManager gameManager, 
-            @NotNull Component title, 
-            @NotNull CaptureTheFlagConfig config, 
+            @NotNull GameManager gameManager,
+            @NotNull Component title,
+            @NotNull CaptureTheFlagConfig config,
             @NotNull String configFile,
-            @NotNull Collection<Team> newTeams, 
-            @NotNull Collection<Participant> newParticipants, 
+            @NotNull Collection<Team> newTeams,
+            @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
         super(new GameInstanceId(GameType.CAPTURE_THE_FLAG, configFile), plugin, gameManager, title, new InitialState());
         this.config = config;
@@ -179,8 +179,7 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
                 .append(Component.text("Round "))
                 .append(Component.text(roundManager.getPlayedRounds() + 1))
                 .append(Component.text("/"))
-                .append(Component.text(roundManager.getMaxRounds()))
-                ;
+                .append(Component.text(roundManager.getMaxRounds()));
         sidebar.updateLine(uuid, "round", roundLine);
         adminSidebar.updateLine("round", roundLine);
     }
@@ -194,8 +193,7 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
                 .append(Component.text("Round "))
                 .append(Component.text(roundManager.getPlayedRounds() + 1))
                 .append(Component.text("/"))
-                .append(Component.text(roundManager.getMaxRounds()))
-                ;
+                .append(Component.text(roundManager.getMaxRounds()));
         sidebar.updateLine("round", roundLine);
         adminSidebar.updateLine("round", roundLine);
     }

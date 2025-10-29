@@ -9,10 +9,12 @@ public interface PowerupSpec {
     
     @NotNull
     PowerupType getType();
+    
     /**
      * How far the effects reach
      */
     double getRadius();
+    
     void setRadius(double radius);
     
     /**

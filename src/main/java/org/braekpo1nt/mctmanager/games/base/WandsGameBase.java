@@ -31,15 +31,14 @@ public abstract class WandsGameBase<P extends ParticipantData, T extends ScoredT
     
     /**
      * Initialize data and start the game
-     *
      * @param gameInstanceId the {@link GameInstanceId} associated with this game
-     * @param plugin         the plugin
-     * @param gameManager    the GameManager
-     * @param title          the game's initial title, displayed in the sidebar
-     * @param initialState   the initialization state, should not contain any game functionality.
-     *                       The state must never be null, so this is what the state should be
-     *                       as the game is being initialized to prevent null-pointer
-     *                       exceptions.
+     * @param plugin the plugin
+     * @param gameManager the GameManager
+     * @param title the game's initial title, displayed in the sidebar
+     * @param initialState the initialization state, should not contain any game functionality.
+     * The state must never be null, so this is what the state should be
+     * as the game is being initialized to prevent null-pointer
+     * exceptions.
      */
     public WandsGameBase(
             @NotNull GameInstanceId gameInstanceId,
@@ -57,7 +56,7 @@ public abstract class WandsGameBase<P extends ParticipantData, T extends ScoredT
     }
     
     /**
-     * Kicks off a task in which every {@link Wand} in {@link #wands}'s 
+     * Kicks off a task in which every {@link Wand} in {@link #wands}'s
      * {@link Wand#onHoldTick(PlayerInventory, Audience)} method is called for every {@link P} in {@link #admins}
      */
     protected void startWandTick() {
@@ -65,7 +64,7 @@ public abstract class WandsGameBase<P extends ParticipantData, T extends ScoredT
             participants.values().forEach(
                     participant -> wands.forEach(
                             wand -> wand.onHoldTick(
-                                    participant.getPlayer().getInventory(), 
+                                    participant.getPlayer().getInventory(),
                                     participant
                             )
                     )

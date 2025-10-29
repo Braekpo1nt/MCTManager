@@ -33,8 +33,7 @@ public class UIUtils {
     public static final Title EMPTY_TITLE = defaultTitle(Component.empty(), Component.empty());
     private static final Component KILL_PREFIX = Component.empty()
             .append(Component.text(" ⚔ ")
-                    .color(NamedTextColor.GREEN))
-            ;
+                    .color(NamedTextColor.GREEN));
     private static final Title.Times KILL_TIMES = Title.Times.times(
             Duration.ZERO,
             Duration.ofSeconds(3),
@@ -56,7 +55,7 @@ public class UIUtils {
      * @return a new title with the given title and subtitle, with the {@link #DEFAULT_TIMES} times
      */
     public static Title defaultTitle(@NotNull Component title, @NotNull Component subtitle) {
-        return Title.title(title,subtitle, DEFAULT_TIMES);
+        return Title.title(title, subtitle, DEFAULT_TIMES);
     }
     
     private UIUtils() {
@@ -65,7 +64,6 @@ public class UIUtils {
     
     /**
      * Formats the input components with 40 spaces between the centers of each component.
-     *
      * @param left the left component
      * @param middle the middle component
      * @param right the right component
@@ -76,7 +74,7 @@ public class UIUtils {
         String leftStr = PlainTextComponentSerializer.plainText().serialize(left);
         String middleStr = PlainTextComponentSerializer.plainText().serialize(middle);
         String rightStr = PlainTextComponentSerializer.plainText().serialize(right);
-    
+        
         int leftLength = leftStr.length();
         int middleLength = middleStr.length();
         int rightLength = rightStr.length();
@@ -85,7 +83,6 @@ public class UIUtils {
     
     /**
      * Formats the input components with 40 spaces between the centers of each component.
-     *
      * @param left the left component
      * @param leftLength the length of the left component
      * @param middle the middle component
@@ -126,7 +123,7 @@ public class UIUtils {
      */
     public static void showKillTitle(Player killer, Player killed) {
         killer.showTitle(Title.title(
-                Component.empty(), 
+                Component.empty(),
                 Component.empty()
                         .append(KILL_PREFIX)
                         .append(killed.displayName())
@@ -203,8 +200,7 @@ public class UIUtils {
     }
     
     /**
-     * Create a MapRenderer from the given file, if it exists. 
-     * 
+     * Create a MapRenderer from the given file, if it exists.
      * @param imageFile the File containing the image
      * @return The MapRenderer with the given image, resized to 127x127
      * @throws IOException if the file does not exist, or there is a problem turning it into a
@@ -218,7 +214,8 @@ public class UIUtils {
     
     /**
      * Create a map item with the given image file resized to fit the map
-     * @param world this needs a world to be associated with it to create the {@link MapView}. This just has to be any non-null world object. 
+     * @param world this needs a world to be associated with it to create the {@link MapView}. This just has to be any
+     * non-null world object.
      * @param imageFile the file to display on the map (will be resized to 127x127)
      * @return an ItemStack of the map item
      * @throws IOException if the image file doesn't exist or can't be read/parsed.
@@ -238,7 +235,6 @@ public class UIUtils {
     }
     
     /**
-     *
      * @param entity the entity to get the data for
      * @param glowing whether the entity should be glowing
      * @return a base entity metadata byte containing the flags representing the
@@ -288,7 +284,6 @@ public class UIUtils {
     /**
      * Log a UI error. This will print the full stack trace and the given reason to
      * the console, no need to specify the specific location in your error message.
-     * 
      * @param reason the reason for the error (a {@link String#format(String, Object...)} template
      * @param args optional args for the reason format string
      */

@@ -40,9 +40,9 @@ public class PracticeState extends GameManagerState {
     public PracticeState(@NotNull GameManager context, @NotNull ContextReference contextReference) {
         super(context, contextReference);
         this.practiceManager = new PracticeManager(
-                context, 
+                context,
                 config.getPractice(),
-                teams.values(), 
+                teams.values(),
                 onlineParticipants.values().stream()
                         .filter(participant -> !isParticipantInGame(participant.getUniqueId()))
                         .toList());

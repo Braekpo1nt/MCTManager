@@ -96,7 +96,7 @@ class CaptureTheFlagUtilsTest {
         );
         List<List<MatchPairing>> roundMatchPairingLists = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings, NUMBER_OF_ARENAS);
         Assertions.assertEquals(3, roundMatchPairingLists.size());
-    
+        
         Assertions.assertEquals(1, roundMatchPairingLists.get(0).size());
         Assertions.assertEquals(roundMatchPairingLists.get(0).get(0), new MatchPairing("A", "B"));
         Assertions.assertEquals(1, roundMatchPairingLists.get(1).size());
@@ -146,11 +146,11 @@ class CaptureTheFlagUtilsTest {
         Assertions.assertEquals(2, roundLists.get(0).size());
         Assertions.assertTrue(roundLists.get(0).contains(new MatchPairing("A", "B")));
         Assertions.assertTrue(roundLists.get(0).contains(new MatchPairing("C", "D")));
-    
+        
         Assertions.assertEquals(2, roundLists.get(1).size());
         Assertions.assertTrue(roundLists.get(1).contains(new MatchPairing("A", "C")));
         Assertions.assertTrue(roundLists.get(1).contains(new MatchPairing("B", "D")));
-    
+        
         Assertions.assertEquals(2, roundLists.get(2).size());
         Assertions.assertTrue(roundLists.get(2).contains(new MatchPairing("A", "D")));
         Assertions.assertTrue(roundLists.get(2).contains(new MatchPairing("B", "C")));

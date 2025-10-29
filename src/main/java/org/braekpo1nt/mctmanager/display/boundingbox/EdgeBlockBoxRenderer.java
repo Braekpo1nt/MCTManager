@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
  * A combination of {@link BlockBoxRenderer} and {@link EdgeBoxRenderer}, which
  * is designed to provide a glowing effect to the edges of a bounding box without
  * occluding other glowing effects behind and in front of the faces of the box.
- * When this renderer is glowing, the edges appear and glow. When not, the edge disappear. 
+ * When this renderer is glowing, the edges appear and glow. When not, the edge disappear.
  * The faces are visible in both states.
  */
 public class EdgeBlockBoxRenderer implements BoundingBoxRenderer, DisplaySingleton, HasBlockDataSingleton {

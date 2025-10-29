@@ -25,7 +25,7 @@ public class ItemStackDTO implements Validatable {
     @SerializedName(value = "type", alternate = {"id"})
     private @Nullable Material type;
     /**
-     * the amount of the item in the stack 
+     * the amount of the item in the stack
      * (values of 0 or less are treated as zero, resulting in no items in the stack)
      */
     @SerializedName(value = "amount", alternate = {"count"})
@@ -41,7 +41,7 @@ public class ItemStackDTO implements Validatable {
     private @Nullable List<@Nullable EnchantmentDTO> enchantments;
     
     /**
-     * @return the ItemStack object which was represented by this DTO 
+     * @return the ItemStack object which was represented by this DTO
      */
     public @NotNull ItemStack toItemStack() {
         Preconditions.checkArgument(type != null, "type (Material) cannot be null");

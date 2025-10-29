@@ -34,18 +34,24 @@ public class ParkourPathwayConfig {
     private int gameOverDuration;
     private int[] checkpointScore;
     private int[] winScore;
-    /** the number of skips each player gets. 0 or negative means no skips. */
+    /**
+     * the number of skips each player gets. 0 or negative means no skips.
+     */
     private int numOfSkips;
-    /** the item that players interact with to use their skips */
+    /**
+     * the item that players interact with to use their skips
+     */
     private ItemStack skipItem;
-    /** the number of points to award for unused skips */
+    /**
+     * the number of points to award for unused skips
+     */
     private int unusedSkipScore;
     /**
      * The puzzle after which no skips are allowed, and players
      * will be given points for their remaining unused skips.
      * Values less than zero will allow skips to be used the entire
      * game. Values greater than the number of puzzles will essentially
-     * do the same. 
+     * do the same.
      */
     private int maxSkipPuzzle;
     private List<Material> preventInteractions;

@@ -70,7 +70,7 @@ public class BorderDelayState extends RoundActiveState {
     
     /**
      * Performs appropriate announcements at appropriate times to let players know
-     * what to expect when it comes to respawning. 
+     * what to expect when it comes to respawning.
      * Takes into account the current border stage and the next stage when it changes (if at all)
      */
     private void announceCurrentRespawnState() {

@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * An implementation of a Topbar specifically oriented toward teams ready-ing up 
+ * An implementation of a Topbar specifically oriented toward teams ready-ing up
  * (e.g. for an event)
  */
 public class ReadyUpTopbar implements Topbar {
@@ -61,7 +61,7 @@ public class ReadyUpTopbar implements Topbar {
     }
     
     /**
-     * Add a new teamId to this Topbar. 
+     * Add a new teamId to this Topbar.
      * @param teamId the teamId to add. Must not already exist in this Topbar
      * @param teamColor the color of the team
      */
@@ -83,7 +83,7 @@ public class ReadyUpTopbar implements Topbar {
     /**
      * @param teamId a valid teamId in this Topbar
      * @param readyCount the number of ready participants on this team. Negative number indicates
-     *                   the team is fully ready. 
+     * the team is fully ready.
      */
     public void setReadyCount(@NotNull String teamId, long readyCount) {
         teamsReadyUpComponent.setReadyCount(teamId, readyCount);
@@ -218,7 +218,7 @@ public class ReadyUpTopbar implements Topbar {
      * Set the player's ready status
      * @param playerUUID the player to assign. Must exist in this Topbar
      * @param ready true if the player is ready, false if the player is not ready,
-     *              null if the player should not display a ready status.
+     * null if the player should not display a ready status.
      */
     public void setReady(@NotNull UUID playerUUID, Boolean ready) {
         PlayerData playerData = getPlayerData(playerUUID);

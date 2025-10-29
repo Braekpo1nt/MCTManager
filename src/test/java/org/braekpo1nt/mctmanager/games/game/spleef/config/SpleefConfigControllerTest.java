@@ -20,7 +20,7 @@ import java.io.InputStream;
 import java.util.logging.Level;
 
 class SpleefConfigControllerTest {
-
+    
     String configFileName = "spleefConfig.json";
     String exampleConfigFileName = "exampleSpleefConfig.json";
     Main plugin;
@@ -46,7 +46,7 @@ class SpleefConfigControllerTest {
     void configDoesNotExist() {
         Assertions.assertThrows(ConfigIOException.class, () -> controller.getConfig(configFileName));
     }
-
+    
     @Test
     void malformedJson() {
         TestUtils.createFileInDirectory(configFolder, configFileName, "{,");

@@ -25,40 +25,44 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 /**
- * 
  * @param world the world the game is in
  * @param startingLocations a set of starting locations that the players will be sent to a random one of
  * @param spectatorArea the area the spectators shouldn't be able to leave
- * @param stencilBlock the stencil block which the structures should have inside them to be replaced with the layerBlock upon start. If this is null, no replacement will be made (this is useful if your layer structures are already made of the stencil).
- * @param layerBlock the block that the stencil will be replaced with upon start which the floors are to be made of. The area(s) of replacement will be the BoundingBox formed by the layers decayAreas. If this is null, dirt will be used.
+ * @param stencilBlock the stencil block which the structures should have inside them to be replaced with the layerBlock
+ * upon start. If this is null, no replacement will be made (this is useful if your layer structures are already made of
+ * the stencil).
+ * @param layerBlock the block that the stencil will be replaced with upon start which the floors are to be made of. The
+ * area(s) of replacement will be the BoundingBox formed by the layers decayAreas. If this is null, dirt will be used.
  * @param decayBlock the block type that blocks decay to before disappearing. If this is null, coarse dirt will be used.
  * @param layers the layers of spleef
- * @param decayStages the stages of decay (must have at least 1). The last stage will go on forever, regardless of the duration or minParticipants values
+ * @param decayStages the stages of decay (must have at least 1). The last stage will go on forever, regardless of the
+ * duration or minParticipants values
  * @param tool the tool players receive to break the blocks (if null, a diamond shovel will be used).
  * @param rounds the number of rounds
  * @param preventInteractions
- * @param safetyArea the area where players should be kept before the game starts, to stop them from falling off too early
+ * @param safetyArea the area where players should be kept before the game starts, to stop them from falling off too
+ * early
  * @param scores the scores for spleef
  * @param durations the durations for spleef
  * @param description the description of spleef
  */
 record SpleefConfigDTO(
-        String version, 
-        String world, 
+        String version,
+        String world,
         List<Vector> startingLocations,
-        @Nullable BoundingBox spectatorArea, 
-        @Nullable Material stencilBlock, 
-        @Nullable Material layerBlock, 
-        @Nullable Material decayBlock, 
-        List<LayerDTO> layers, 
-        List<DecayStageDTO> decayStages, 
-        @Nullable ItemStackDTO tool, 
-        int rounds, 
-        PowerupsDTO powerups, 
+        @Nullable BoundingBox spectatorArea,
+        @Nullable Material stencilBlock,
+        @Nullable Material layerBlock,
+        @Nullable Material decayBlock,
+        List<LayerDTO> layers,
+        List<DecayStageDTO> decayStages,
+        @Nullable ItemStackDTO tool,
+        int rounds,
+        PowerupsDTO powerups,
         @Nullable List<Material> preventInteractions,
         @Nullable CompositeGeometry safetyArea,
-        Scores scores, 
-        Durations durations, 
+        Scores scores,
+        Durations durations,
         Component description) implements Validatable {
     
     @Override
@@ -153,8 +157,8 @@ record SpleefConfigDTO(
                 .descriptionDuration(this.durations.description)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .safetyArea(this.safetyArea)
-                .spectatorBoundary(this.spectatorArea == null ? null : 
-                        new SpectatorBoundary(this.spectatorArea, 
+                .spectatorBoundary(this.spectatorArea == null ? null :
+                        new SpectatorBoundary(this.spectatorArea,
                                 this.startingLocations.getFirst().toLocation(newWorld)))
                 .description(this.description)
                 .build();
@@ -226,14 +230,15 @@ record SpleefConfigDTO(
     }
     
     /**
-     * @param survive the score given to every living player each time a single player dies. Players on the same team as the player who died will not receive points. w
+     * @param survive the score given to every living player each time a single player dies. Players on the same team as
+     * the player who died will not receive points. w
      */
     record Scores(int survive) {
     }
     
     record Durations(int roundStarting,
-                     int roundOver, 
-                     int description, 
+                     int roundOver,
+                     int description,
                      int gameOver) {
     }
 }

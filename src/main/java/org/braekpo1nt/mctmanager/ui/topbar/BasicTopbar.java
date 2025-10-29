@@ -13,7 +13,7 @@ import java.util.UUID;
 
 /**
  * Represents a custom BossBar display for one or more players. Can update the information
- * displayed for all players at once, or for individual players. 
+ * displayed for all players at once, or for individual players.
  */
 public class BasicTopbar implements Topbar {
     

@@ -16,10 +16,10 @@ public class EditingState extends ParkourPathwayEditorStateBase {
         super(context);
         for (ParkourAdmin admin : context.getAdmins().values()) {
             context.selectPuzzle(
-                    admin, 
-                    admin.getCurrentPuzzle(), 
-                    admin.getCurrentInBound(), 
-                    admin.getCurrentCheckPoint(), 
+                    admin,
+                    admin.getCurrentPuzzle(),
+                    admin.getCurrentInBound(),
+                    admin.getCurrentCheckPoint(),
                     true);
         }
     }
@@ -34,8 +34,8 @@ public class EditingState extends ParkourPathwayEditorStateBase {
         puzzleRenderers.addAll(context.createPuzzleRenderers(context.getConfig()));
         puzzleRenderers.forEach(Renderer::show);
         for (ParkourAdmin admin : context.getAdmins().values()) {
-            int puzzleIndex = 
-                    admin.getCurrentPuzzle() < context.getPuzzles().size() ? 
+            int puzzleIndex =
+                    admin.getCurrentPuzzle() < context.getPuzzles().size() ?
                             admin.getCurrentPuzzle() : 0;
             CommandResult selectResult = context.selectPuzzle(
                     admin,

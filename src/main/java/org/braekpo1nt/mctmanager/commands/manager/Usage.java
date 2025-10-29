@@ -25,7 +25,7 @@ public class Usage {
             this.value = value;
             this.decoration = null;
         }
-    
+        
         protected Arg(@NotNull String value, @Nullable TextDecoration decoration) {
             this.value = value;
             this.decoration = decoration;
@@ -60,7 +60,7 @@ public class Usage {
      * @return this {@link Usage}
      * @throws IllegalArgumentException if no arguments are given
      */
-    public Usage of(@NotNull String @NotNull... args) {
+    public Usage of(@NotNull String @NotNull ... args) {
         Preconditions.checkArgument(args.length >= 1, "Must provide at least one argument in the args array");
         for (String anArg : args) {
             this.args.add(new Arg(anArg));
@@ -90,8 +90,9 @@ public class Usage {
     }
     
     /**
-     * Results are of the form "Usage: /arg1 arg2 ..." 
-     * @return all this {@link Usage}'s arguments combined in a component (with their respective {@link TextDecoration}s applied), prefixed by "Usage: /"
+     * Results are of the form "Usage: /arg1 arg2 ..."
+     * @return all this {@link Usage}'s arguments combined in a component (with their respective {@link TextDecoration}s
+     * applied), prefixed by "Usage: /"
      */
     public @NotNull Component toComponent() {
         TextComponent.Builder builder = Component.text();
@@ -108,7 +109,9 @@ public class Usage {
     /**
      * Given a collection of Strings, returns a {@link Usage} in the form of {@code "<arg1|arg2|arg3>"}
      * @param args the args to combine to an argument-options string
-     * @return Returns a Usage in the form of {@code "<arg1|arg2|arg3>"} using the given arguments. If there is only one argument, just returns a usage of that argument with no {@code <>} brackets. {@code "<options>"} if the provided args collection is empty.
+     * @return Returns a Usage in the form of {@code "<arg1|arg2|arg3>"} using the given arguments. If there is only one
+     * argument, just returns a usage of that argument with no {@code <>} brackets. {@code "<options>"} if the provided
+     * args collection is empty.
      */
     public static Usage toArgOptions(@NotNull Collection<@NotNull String> args) {
         if (args.isEmpty()) {

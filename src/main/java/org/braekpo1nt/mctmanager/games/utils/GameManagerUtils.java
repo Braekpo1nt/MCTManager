@@ -58,7 +58,8 @@ public class GameManagerUtils {
     /**
      * returns a list that contains the first place, or first place ties.
      * @param teamScores a map pairing teamIds with scores
-     * @return An array with the teamId who has the highest score. If there is a tie, returns all tied teamIds. If teamScores is empty, returns empty list.
+     * @return An array with the teamId who has the highest score. If there is a tie, returns all tied teamIds. If
+     * teamScores is empty, returns empty list.
      */
     public static @NotNull String[] calculateFirstPlace(@NotNull Map<String, Integer> teamScores) {
         if (teamScores.isEmpty()) {
@@ -100,17 +101,17 @@ public class GameManagerUtils {
      */
     public static Component getTeamDisplay(GameManager gameManager) {
         TextComponent.Builder messageBuilder = Component.text().append(Component.text("Scores:\n")
-                    .decorate(TextDecoration.BOLD));
+                .decorate(TextDecoration.BOLD));
         List<OfflineParticipant> offlineParticipants = getSortedOfflineParticipants(gameManager);
         List<Team> sortedTeams = gameManager.getSortedTeams();
         
         for (Team team : sortedTeams) {
             messageBuilder.append(Component.empty()
-                            .append(team.getFormattedDisplayName())
-                            .append(Component.text(" - "))
-                            .append(Component.text(team.getScore())
-                                    .decorate(TextDecoration.BOLD)
-                                    .color(NamedTextColor.GOLD))
+                    .append(team.getFormattedDisplayName())
+                    .append(Component.text(" - "))
+                    .append(Component.text(team.getScore())
+                            .decorate(TextDecoration.BOLD)
+                            .color(NamedTextColor.GOLD))
                     .append(Component.text(":\n")));
             for (OfflineParticipant offlineParticipant : offlineParticipants) {
                 if (offlineParticipant.getTeamId().equals(team.getTeamId())) {
@@ -131,7 +132,7 @@ public class GameManagerUtils {
     
     /**
      * @param gameManager the GameManager to get the data from
-     * @return a sorted list of {@link OfflineParticipant}s. 
+     * @return a sorted list of {@link OfflineParticipant}s.
      * Sorted first by score from greatest to least, then alphabetically (A first, Z last).
      */
     public static @NotNull List<OfflineParticipant> getSortedOfflineParticipants(GameManager gameManager) {
@@ -141,7 +142,8 @@ public class GameManagerUtils {
     
     /**
      * Sorts the provided list of OfflinePlayer objects.
-     * @param offlineParticipants each entry must have a UUID of a valid participant in the GameState of the given GameManager
+     * @param offlineParticipants each entry must have a UUID of a valid participant in the GameState of the given
+     * GameManager
      * @return the given participants in a sorted list
      */
     public static List<OfflineParticipant> sortOfflinePlayers(Collection<OfflineParticipant> offlineParticipants) {
@@ -155,10 +157,11 @@ public class GameManagerUtils {
     }
     
     /**
-     * This validation and creation is used across multiple commands, so I've put it here for easy replication. 
+     * This validation and creation is used across multiple commands, so I've put it here for easy replication.
      * <br>
-     * Makes sure the inputs are able to form a valid team that doesn't already exist. 
-     * Returns a failure response if anything goes wrong that would prevent the team from being created, otherwise creates the given team. 
+     * Makes sure the inputs are able to form a valid team that doesn't already exist.
+     * Returns a failure response if anything goes wrong that would prevent the team from being created, otherwise
+     * creates the given team.
      * @param gameManager the GameManager to add the team to
      * @param teamId the teamId
      * @param teamDisplayName the team display name
@@ -213,7 +216,7 @@ public class GameManagerUtils {
      * Removes the specified team from the GameState, and leaves all participants of that team
      * @param gameManager the GameManager to modify
      * @param teamId the teamId of the team to remove. Must be a valid teamId.
-     * @return a CommandResult detailing what happened. 
+     * @return a CommandResult detailing what happened.
      */
     public static CommandResult removeTeam(@NotNull GameManager gameManager, @NotNull String teamId) {
         Team existingTeam = gameManager.getTeam(teamId);
@@ -264,7 +267,7 @@ public class GameManagerUtils {
     }
     
     /**
-     * Replaces instances of the given player's name in the given component with the player's display name. 
+     * Replaces instances of the given player's name in the given component with the player's display name.
      * @param player the player whose name should be replaced with their display name
      * @param component the component in which the name should be replaced
      * @return a new component with the replacements. Null if the component is null
@@ -275,7 +278,7 @@ public class GameManagerUtils {
     }
     
     /**
-     * Replaces instances of the given player's name in the given component with the player's display name. 
+     * Replaces instances of the given player's name in the given component with the player's display name.
      * @param participant the player whose name should be replaced with their display name
      * @param component the component in which the name should be replaced
      * @return a new component with the replacements. Null if the component is null
@@ -286,8 +289,10 @@ public class GameManagerUtils {
     }
     
     /**
-     * Applies the given color to the LeatherArmorMeta of the given item, if it exists. If the item is null or has no LeatherArmorMeta, then nothing happens. 
-     * If the {@link org.bukkit.persistence.PersistentDataContainer} of the LeatherArmorMeta contains the {@link GameManagerUtils#IGNORE_TEAM_COLOR} {@link PersistentDataType#STRING} property, then nothing will happen. 
+     * Applies the given color to the LeatherArmorMeta of the given item, if it exists. If the item is null or has no
+     * LeatherArmorMeta, then nothing happens.
+     * If the {@link org.bukkit.persistence.PersistentDataContainer} of the LeatherArmorMeta contains the
+     * {@link GameManagerUtils#IGNORE_TEAM_COLOR} {@link PersistentDataType#STRING} property, then nothing will happen.
      * @param leatherArmor the item to color the LeatherArmorMeta of
      * @param color the color to apply to the LeatherArmorMeta
      */
@@ -306,8 +311,10 @@ public class GameManagerUtils {
     }
     
     /**
-     * Removes any color from the LeatherArmorMeta of the given item, if it exists. If the item is null or has no LeatherArmorMeta, then nothing happens.
-     * If the {@link org.bukkit.persistence.PersistentDataContainer} of the LeatherArmorMeta contains the {@link GameManagerUtils#IGNORE_TEAM_COLOR} {@link PersistentDataType#STRING} property, then nothing will happen. 
+     * Removes any color from the LeatherArmorMeta of the given item, if it exists. If the item is null or has no
+     * LeatherArmorMeta, then nothing happens.
+     * If the {@link org.bukkit.persistence.PersistentDataContainer} of the LeatherArmorMeta contains the
+     * {@link GameManagerUtils#IGNORE_TEAM_COLOR} {@link PersistentDataType#STRING} property, then nothing will happen.
      * @param leatherArmor the item to color the LeatherArmorMeta of
      */
     public static void deColorLeatherArmor(@Nullable ItemStack leatherArmor) {
@@ -325,9 +332,10 @@ public class GameManagerUtils {
     }
     
     /**
-     * Removes the color from any and all leather armor items in the given list. Uses {@link GameManagerUtils#deColorLeatherArmor(ItemStack)} on each item in the list.
+     * Removes the color from any and all leather armor items in the given list. Uses
+     * {@link GameManagerUtils#deColorLeatherArmor(ItemStack)} on each item in the list.
      * @param items the list of items
-     * @see GameManagerUtils#deColorLeatherArmor(ItemStack) 
+     * @see GameManagerUtils#deColorLeatherArmor(ItemStack)
      */
     public static void deColorLeatherArmor(@Nullable List<@Nullable ItemStack> items) {
         if (items == null || items.isEmpty()) {
@@ -337,7 +345,8 @@ public class GameManagerUtils {
     }
     
     /**
-     * Removes the color from any and all leather armor items in the given player's armor slots. Uses {@link GameManagerUtils#deColorLeatherArmor(ItemStack)} on each armor item.
+     * Removes the color from any and all leather armor items in the given player's armor slots. Uses
+     * {@link GameManagerUtils#deColorLeatherArmor(ItemStack)} on each armor item.
      * @param inventory the inventory of the player wearing the armor
      * @see GameManagerUtils#deColorLeatherArmor(ItemStack)
      */
@@ -354,7 +363,7 @@ public class GameManagerUtils {
     }
     
     /**
-     * Returns the formal placement title of the given place. 
+     * Returns the formal placement title of the given place.
      * 1 gives 1st, 2 gives second, 11 gives 11th, 103 gives 103rd.
      * @param placement A number representing the placement
      * @return The placement number with the appropriate postfix (st, nd, rd, th)
@@ -366,8 +375,8 @@ public class GameManagerUtils {
     }
     
     /**
-     * Returns the number suffix title of the given standing. 
-     * 1 gives 1st, 2 gives {@code "nd"}, 11 gives {@code "th"} (11th), 
+     * Returns the number suffix title of the given standing.
+     * 1 gives 1st, 2 gives {@code "nd"}, 11 gives {@code "th"} (11th),
      * 103 gives {@code "rd"} (103rd).
      * @param standing A number representing the standing
      * @return The appropriate suffix for the standing (st, nd, rd, th)
@@ -417,9 +426,10 @@ public class GameManagerUtils {
     }
     
     /**
-     * Takes in a {@link PlayerDeathEvent} and replaces all instances of the given player's name with the given player's display name
+     * Takes in a {@link PlayerDeathEvent} and replaces all instances of the given player's name with the given player's
+     * display name
      * @param event the event
-     * @param participant the player whose name should be replaced with their display name. 
+     * @param participant the player whose name should be replaced with their display name.
      */
     public static void replaceWithDisplayName(PlayerDeathEvent event, Participant participant) {
         Component deathMessage = event.deathMessage();
@@ -430,8 +440,8 @@ public class GameManagerUtils {
     }
     
     /**
-     * @param item the item in question. If this is null, will return false. 
-     * @return true if the item is of a leather armor type, false otherwise. False if the given item is null. 
+     * @param item the item in question. If this is null, will return false.
+     * @return true if the item is of a leather armor type, false otherwise. False if the given item is null.
      */
     @Contract("null -> false")
     public static boolean isLeatherArmor(@Nullable ItemStack item) {
@@ -453,30 +463,30 @@ public class GameManagerUtils {
     }
     
     /**
-     * 
      * @param whiteList if true, all participants in the preset will be whitelisted.
-     *                  If false, no participants will be whitelisted by this process.
-     * @param override if true, all previous teams and participants will be cleared and the preset 
-     *                 teams and participants will be added (thus replacing everything with the 
-     *                 preset). If false, the previous GameSate will not be changed, and it will 
-     *                 try to add all teams from the preset but not override existing teams, 
-     *                 and participants will be joined to teams according to the preset but 
-     *                 any participants not mentioned in preset will be ignored/unchanged.
-     * @param resetScores if true, all scores will be set to 0 for all teams mentioned in the preset, 
-     *                    even if the teams already exist. 
+     * If false, no participants will be whitelisted by this process.
+     * @param override if true, all previous teams and participants will be cleared and the preset
+     * teams and participants will be added (thus replacing everything with the
+     * preset). If false, the previous GameSate will not be changed, and it will
+     * try to add all teams from the preset but not override existing teams,
+     * and participants will be joined to teams according to the preset but
+     * any participants not mentioned in preset will be ignored/unchanged.
+     * @param resetScores if true, all scores will be set to 0 for all teams mentioned in the preset,
+     * even if the teams already exist.
      * @param unWhitelist if true, all participants will be un-whitelisted before the preset
-     *                    is applied. If false, no players will be un-whitelisted by this process.
+     * is applied. If false, no players will be un-whitelisted by this process.
      * @param kickUnWhitelisted kick any players which are online but aren't whitelisted after
-     *                          the application of the given preset
-     * @return a comprehensive {@link CompositeCommandResult} including every {@link CommandResult} of the (perhaps many) operations performed here.
+     * the application of the given preset
+     * @return a comprehensive {@link CompositeCommandResult} including every {@link CommandResult} of the (perhaps
+     * many) operations performed here.
      */
     public static @NotNull CommandResult applyPreset(
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
-            @NotNull PresetStorageUtil storageUtil, 
-            @NotNull String presetFile, 
-            boolean override, 
-            boolean resetScores, 
+            @NotNull PresetStorageUtil storageUtil,
+            @NotNull String presetFile,
+            boolean override,
+            boolean resetScores,
             boolean whiteList,
             boolean unWhitelist,
             boolean kickUnWhitelisted) {
@@ -506,7 +516,7 @@ public class GameManagerUtils {
                     .append(Component.text(count))
                     .append(Component.text(" participants from the whitelist"))));
         }
-         
+        
         // check if they want to overwrite or merge the game state
         if (override) {
             // remove all existing teams and leave all existing players

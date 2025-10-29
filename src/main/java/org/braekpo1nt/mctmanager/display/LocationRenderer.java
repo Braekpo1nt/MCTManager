@@ -35,11 +35,13 @@ public class LocationRenderer implements HasBlockDataSingleton, DisplayComposite
     
     /**
      * @param location the location to display
-     * @param scale the scale factor of the square block representing the location (square will be centered on the location)
+     * @param scale the scale factor of the square block representing the location (square will be centered on the
+     * location)
      * @param directionLength the length of the line indicating the direction (yaw and pitch) of the location
      * @param directionStrokeWidth the stroke width of the line indicating the direction (yaw and pitch) of the location
      * @param blockData the BlockData used for the block representing the location
-     * @param directionBlockData the BlockData used for the line indicating the direction (yaw and pitch) of the location
+     * @param directionBlockData the BlockData used for the line indicating the direction (yaw and pitch) of the
+     * location
      */
     @Builder
     public LocationRenderer(
@@ -110,7 +112,8 @@ public class LocationRenderer implements HasBlockDataSingleton, DisplayComposite
     }
     
     /**
-     * @param scaleFactor the scale factor of the square block representing the location (square will be centered on the location)
+     * @param scaleFactor the scale factor of the square block representing the location (square will be centered on the
+     * location)
      */
     public void setScale(float scaleFactor) {
         this.positionRenderer.setTransformation(

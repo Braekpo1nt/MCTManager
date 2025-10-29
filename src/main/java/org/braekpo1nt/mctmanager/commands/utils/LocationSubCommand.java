@@ -69,7 +69,7 @@ class LocationSubCommand extends TabSubCommand {
                 .blockData(Material.PINK_WOOL.createBlockData())
                 .build();
         display.show();
-        plugin.getServer().getScheduler().runTaskLater(plugin, display::hide, 5*20L);
+        plugin.getServer().getScheduler().runTaskLater(plugin, display::hide, 5 * 20L);
         return CommandResult.success();
     }
     

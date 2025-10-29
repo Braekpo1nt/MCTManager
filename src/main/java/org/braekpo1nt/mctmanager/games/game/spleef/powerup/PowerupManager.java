@@ -94,7 +94,7 @@ public class PowerupManager implements Listener {
     }
     
     /**
-     * if the participant is in this manager, removes them from it. Otherwise, does nothing. 
+     * if the participant is in this manager, removes them from it. Otherwise, does nothing.
      * @param participant the participant to remove
      */
     public void removeParticipant(Participant participant) {
@@ -134,7 +134,8 @@ public class PowerupManager implements Listener {
     }
     
     /**
-     * This may or may not give the participant a powerup based on the provided percent chance. The powerup given is random according to the weights provided in the config.
+     * This may or may not give the participant a powerup based on the provided percent chance. The powerup given is
+     * random according to the weights provided in the config.
      * If the participant receives a powerup, their {@link PowerupManager#lastPowerupTimestamps} is reset.
      * @param participant the participant to receive a powerup
      * @param source the source from which to receive a powerup (null indicates any source)
@@ -176,7 +177,7 @@ public class PowerupManager implements Listener {
     
     /**
      * @param participant the participant
-     * @return true if the participant has the maximum number of powerups allowed in their inventory, false if not. 
+     * @return true if the participant has the maximum number of powerups allowed in their inventory, false if not.
      */
     private boolean hasMaxPowerups(Participant participant) {
         if (config.getMaxPowerups() < 0) {
@@ -224,10 +225,10 @@ public class PowerupManager implements Listener {
         }
         switch (usedPowerup.getType()) {
             case PLAYER_SWAPPER -> snowball.setMetadata(
-                    POWERUP_METADATA_KEY, 
+                    POWERUP_METADATA_KEY,
                     new FixedMetadataValue(plugin, PLAYER_SWAPPER_METADATA_VALUE));
             case BLOCK_BREAKER -> snowball.setMetadata(
-                    POWERUP_METADATA_KEY, 
+                    POWERUP_METADATA_KEY,
                     new FixedMetadataValue(plugin, BLOCK_BREAKER_METADATA_VALUE));
         }
     }
@@ -333,7 +334,7 @@ public class PowerupManager implements Listener {
     
     /**
      * Removes a shield from the target's inventory, and plays both involved players the appropriate sound
-     * @param shooter the player who was thwarted by the shield 
+     * @param shooter the player who was thwarted by the shield
      * @param target the player who had a shield and used it
      */
     private void useShield(Player shooter, Player target) {
@@ -360,10 +361,9 @@ public class PowerupManager implements Listener {
     }
     
     /**
-     *
      * @param item the item which might be a powerup of the given type
      * @param type the type of powerup to check for
-     * @return true if the given item is the given type of powerup 
+     * @return true if the given item is the given type of powerup
      */
     @SuppressWarnings("SameParameterValue")
     private boolean isPowerup(@Nullable ItemStack item, @NotNull Powerup.Type type) {
@@ -378,9 +378,8 @@ public class PowerupManager implements Listener {
     }
     
     /**
-     * 
      * @param item the item which might be a powerup
-     * @return true if the given item is one of the powerups 
+     * @return true if the given item is one of the powerups
      */
     public boolean isPowerup(@Nullable ItemStack item) {
         if (item == null) {

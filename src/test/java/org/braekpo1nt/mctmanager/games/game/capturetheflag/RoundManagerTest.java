@@ -76,12 +76,12 @@ public class RoundManagerTest {
     @Test
     void test16Teams5Arenas() {
         List<String> largeTeams = List.of(
-                "A", "B", "C", "D", "E", "F", "G", "H",  
-                         "I", "J", "K", "L", "M", "N", "O", "P");
+                "A", "B", "C", "D", "E", "F", "G", "H",
+                "I", "J", "K", "L", "M", "N", "O", "P");
         
         List<List<MatchPairing>> fiveArenasSchedule = RoundManager.distributeMatches(RoundManager.generateRoundRobin(largeTeams), 5);
         int expectedMatches = (largeTeams.size() * (largeTeams.size() - 1) / 2);
-        int actualMatches =  fiveArenasSchedule.stream().mapToInt(List::size).sum();
+        int actualMatches = fiveArenasSchedule.stream().mapToInt(List::size).sum();
         Assertions.assertEquals(expectedMatches, actualMatches);
         Assertions.assertEquals(24, fiveArenasSchedule.size());
         
@@ -95,7 +95,7 @@ public class RoundManagerTest {
         
         List<List<MatchPairing>> fiveArenasSchedule = RoundManager.distributeMatches(RoundManager.generateRoundRobin(largeTeams), 4);
         int expectedMatches = (largeTeams.size() * (largeTeams.size() - 1) / 2);
-        int actualMatches =  fiveArenasSchedule.stream().mapToInt(List::size).sum();
+        int actualMatches = fiveArenasSchedule.stream().mapToInt(List::size).sum();
         Assertions.assertEquals(expectedMatches, actualMatches);
         Assertions.assertEquals(30, fiveArenasSchedule.size());
         
@@ -115,7 +115,7 @@ public class RoundManagerTest {
         
         List<List<MatchPairing>> fourArenasScheduleExclude = RoundManager.generateSchedule(largeTeams, 4, exclude);
         int expectedMatches = (largeTeams.size() * (largeTeams.size() - 1) / 2) - exclude.size();
-        int actualMatches =  fourArenasScheduleExclude.stream().mapToInt(List::size).sum();
+        int actualMatches = fourArenasScheduleExclude.stream().mapToInt(List::size).sum();
         Assertions.assertEquals(expectedMatches, actualMatches);
         Assertions.assertEquals(29, fourArenasScheduleExclude.size());
         
@@ -125,20 +125,20 @@ public class RoundManagerTest {
     @Test
     void tenTeamsFiveArenas() {
         List<String> tenTeams = List.of(
-                "The Councel", 
-                "Aquaholics", 
-                "Red Rangers", 
-                "Purple Paladins", 
-                "Blue Bedtimers", 
-                "Lime Cacti", 
-                "Green Spartans", 
-                "Orange Oni's", 
-                "Pink Penguins", 
+                "The Councel",
+                "Aquaholics",
+                "Red Rangers",
+                "Purple Paladins",
+                "Blue Bedtimers",
+                "Lime Cacti",
+                "Green Spartans",
+                "Orange Oni's",
+                "Pink Penguins",
                 "Just the Builders");
         
         List<List<MatchPairing>> schedule = RoundManager.distributeMatches(RoundManager.generateRoundRobin(tenTeams), 5);
         int expectedMatches = 45;
-        int actualMatches =  schedule.stream().mapToInt(List::size).sum();
+        int actualMatches = schedule.stream().mapToInt(List::size).sum();
         Assertions.assertEquals(expectedMatches, actualMatches);
         Assertions.assertEquals(9, schedule.size());
         Assertions.assertEquals(5, schedule.get(0).size());

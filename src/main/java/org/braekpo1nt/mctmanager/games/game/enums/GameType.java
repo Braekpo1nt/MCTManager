@@ -10,8 +10,8 @@ public enum GameType {
     SPLEEF("Spleef", "spleef"),
     PARKOUR_PATHWAY("Parkour Pathway", "parkour-pathway"),
     CLOCKWORK("Clockwork", "clockwork"),
-    FARM_RUSH("Farm Rush", "farm-rush"), 
-    EXAMPLE("Example", "example"), 
+    FARM_RUSH("Farm Rush", "farm-rush"),
+    EXAMPLE("Example", "example"),
     FINAL("Final", "final");
     
     GameType(String title, String id) {
@@ -48,10 +48,9 @@ public enum GameType {
      * A convenience method for translating command-writable strings into the given game type.
      * This is used in multiple cases, but most importantly when a user is writing a command
      * which needs to specify a game type, the user-written string must be a valid key in this
-     * map in order to retrieve a valid GameType. 
-     * <p> 
+     * map in order to retrieve a valid GameType.
+     * <p>
      * For example, if the ID is "foot-race", this will return {@link GameType#FOOT_RACE}.
-     * 
      * @param id The string ID of the game type
      * @return The game type matching the given SubCommand ID, or null if the given
      * string is not a recognized ID or is null

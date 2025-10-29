@@ -45,7 +45,7 @@ class SurvivalGamesConfigControllerTest {
     void configDoesNotExist() {
         Assertions.assertThrows(ConfigIOException.class, () -> controller.getConfig(configFileName));
     }
-
+    
     @Test
     void malformedJson() {
         TestUtils.createFileInDirectory(configFolder, configFileName, "{,");

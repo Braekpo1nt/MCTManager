@@ -11,7 +11,7 @@ import java.util.Collection;
 /**
  * A wrapper for the FastBoard class that is Mockable. This is necessary
  * because FastBoard can't be mocked because it was not designed with testing
- * in mind. 
+ * in mind.
  */
 public class FastBoardWrapper {
     
@@ -33,10 +33,9 @@ public class FastBoardWrapper {
     
     /**
      * Update the scoreboard title.
-     *
      * @param title the new scoreboard title
      * @throws IllegalArgumentException if the title is longer than 32 chars on 1.12 or lower
-     * @throws IllegalStateException    if {@link #delete()} was call before
+     * @throws IllegalStateException if {@link #delete()} was call before
      */
     public void updateTitle(String title) {
         board.updateTitle(Component.text(title));
@@ -44,10 +43,9 @@ public class FastBoardWrapper {
     
     /**
      * Update the scoreboard title.
-     *
      * @param title the new scoreboard title
      * @throws IllegalArgumentException if the title is longer than 32 chars on 1.12 or lower
-     * @throws IllegalStateException    if {@link #delete()} was call before
+     * @throws IllegalStateException if {@link #delete()} was call before
      */
     public void updateTitle(Component title) {
         board.updateTitle(title);
@@ -55,10 +53,9 @@ public class FastBoardWrapper {
     
     /**
      * Update the lines of the scoreboard
-     *
      * @param lines the new scoreboard lines
      * @throws IllegalArgumentException if one line is longer than 30 chars on 1.12 or lower
-     * @throws IllegalStateException    if {@link #delete()} was call before
+     * @throws IllegalStateException if {@link #delete()} was call before
      */
     public void updateLines(String... lines) {
         board.updateLines(Arrays.stream(lines).map(line -> (Component) Component.text(line)).toList());
@@ -66,10 +63,9 @@ public class FastBoardWrapper {
     
     /**
      * Update the lines of the scoreboard
-     *
      * @param lines the new scoreboard lines
      * @throws IllegalArgumentException if one line is longer than 30 chars on 1.12 or lower
-     * @throws IllegalStateException    if {@link #delete()} was call before
+     * @throws IllegalStateException if {@link #delete()} was call before
      */
     public void updateLines(Collection<Component> lines) {
         board.updateLines(lines);
@@ -77,10 +73,9 @@ public class FastBoardWrapper {
     
     /**
      * Update the lines of the scoreboard
-     *
      * @param lines the new scoreboard lines
      * @throws IllegalArgumentException if one line is longer than 30 chars on 1.12 or lower
-     * @throws IllegalStateException    if {@link #delete()} was call before
+     * @throws IllegalStateException if {@link #delete()} was call before
      */
     public void updateLines(Component... lines) {
         board.updateLines(lines);
@@ -89,7 +84,6 @@ public class FastBoardWrapper {
     
     /**
      * Update a single scoreboard line.
-     *
      * @param line the line number
      * @param text the new line text
      * @throws IndexOutOfBoundsException if the line is higher than {@link #size() size() + 1}
@@ -100,7 +94,6 @@ public class FastBoardWrapper {
     
     /**
      * Update a single scoreboard line.
-     *
      * @param line the line number
      * @param text the new line text
      * @throws IndexOutOfBoundsException if the line is higher than {@link #size() size() + 1}
@@ -111,7 +104,6 @@ public class FastBoardWrapper {
     
     /**
      * Get the scoreboard size (the number of lines).
-     *
      * @return the size
      */
     public int size() {
@@ -120,7 +112,6 @@ public class FastBoardWrapper {
     
     /**
      * Remove a scoreboard line.
-     *
      * @param line the line number
      */
     public void removeLine(int line) {
@@ -130,7 +121,6 @@ public class FastBoardWrapper {
     
     /**
      * Get if the scoreboard is deleted
-     * 
      * @return true if the scoreboard is deleted
      */
     public boolean isDeleted() {
@@ -138,7 +128,7 @@ public class FastBoardWrapper {
     }
     
     /**
-     * Delete this FastBoard, and will remove the scoreboard for the associated player if they are online. 
+     * Delete this FastBoard, and will remove the scoreboard for the associated player if they are online.
      * After this, all uses of updateLines and updateTitle will throw an IllegalStateException
      * @throws IllegalStateException – if this was already call before
      */

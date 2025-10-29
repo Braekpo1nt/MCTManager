@@ -37,8 +37,8 @@ public abstract class RoundActiveState extends ClockworkStateBase {
     }
     
     /**
-     * @param newParticipantsToKill the participants to kill (each participant will be checked for alive 
-     *                              status before being killed)
+     * @param newParticipantsToKill the participants to kill (each participant will be checked for alive
+     * status before being killed)
      */
     protected void killParticipants(Collection<ClockworkParticipant> newParticipantsToKill) {
         Collection<ClockworkParticipant> participantsToKill = newParticipantsToKill.stream()

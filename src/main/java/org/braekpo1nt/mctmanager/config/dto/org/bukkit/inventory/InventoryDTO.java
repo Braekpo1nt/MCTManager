@@ -14,12 +14,15 @@ import java.util.Objects;
 public class InventoryDTO implements Validatable {
     
     /**
-     * a map of the inventory indexes to ItemStackDTOs, representing the contents of an inventory. Keys must not be negative. Keys should not be greater than or equal to the size of the inventory they are destined for.
+     * a map of the inventory indexes to ItemStackDTOs, representing the contents of an inventory. Keys must not be
+     * negative. Keys should not be greater than or equal to the size of the inventory they are destined for.
      */
     protected @Nullable Map<@Nullable Integer, @Nullable ItemStackDTO> contents;
     
     /**
-     * @return an array containing the ItemStack values of the contents at their Integer key indexes, with all other indexes being null. The list will be of size of the maximum value of the contents map keySet. Returns null if contents is null.
+     * @return an array containing the ItemStack values of the contents at their Integer key indexes, with all other
+     * indexes being null. The list will be of size of the maximum value of the contents map keySet. Returns null if
+     * contents is null.
      * @throws IndexOutOfBoundsException if the max index in the contents keyset is negative
      */
     public @NotNull ItemStack[] toInventoryContents() {

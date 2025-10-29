@@ -25,7 +25,8 @@ import static org.mockito.Mockito.when;
 
 /**
  * This is a custom implementation of {@link ServerMock}. Some main things that needed to happen were:
- * - Implement methods that the original {@link ServerMock} has not yet implemented (they throw {@link org.mockbukkit.mockbukkit.UnimplementedOperationException})
+ * - Implement methods that the original {@link ServerMock} has not yet implemented (they throw
+ * {@link org.mockbukkit.mockbukkit.exception.UnimplementedOperationException})
  * - Create an initial test world called "TestWorld" which is used in many tests
  */
 public class MyCustomServerMock extends ServerMock {

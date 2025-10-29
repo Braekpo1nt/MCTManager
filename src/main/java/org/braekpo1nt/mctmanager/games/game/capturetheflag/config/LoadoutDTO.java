@@ -19,7 +19,6 @@ import java.util.Map;
 
 /**
  * Represents a loadout for a BattleClass
- *
  */
 @Data
 class LoadoutDTO implements Validatable {
@@ -36,7 +35,8 @@ class LoadoutDTO implements Validatable {
      */
     private @Nullable List<@Nullable Component> menuLore;
     /**
-     * optional item meta for the ClassPicker menu. (for example, if a particular potion is desired). The name and lore will be overwritten by this LoadoutDTO's name and menuLore.
+     * optional item meta for the ClassPicker menu. (for example, if a particular potion is desired). The name and lore
+     * will be overwritten by this LoadoutDTO's name and menuLore.
      */
     private @Nullable ItemMetaDTO menuMeta;
     /**

@@ -29,7 +29,8 @@ class ParkourPathwayConfigDTO implements Validatable {
     private String version;
     private String world;
     /**
-     * the larger glass barrier meant to close off all participants from the puzzles until it is time to race. If null, no glass barrier will be created.
+     * the larger glass barrier meant to close off all participants from the puzzles until it is time to race. If null,
+     * no glass barrier will be created.
      */
     private @Nullable BoundingBox glassBarrier;
     /**
@@ -37,7 +38,9 @@ class ParkourPathwayConfigDTO implements Validatable {
      */
     private @Nullable Component glassBarrierOpenMessage;
     /**
-     * the list of team spawn locations. If null, the team spawn phase will be skipped. Each {@link TeamSpawnDTO#getBarrierArea()} and {@link TeamSpawnDTO#getSpawn()} must be contained in the inBounds area of the first puzzle.
+     * the list of team spawn locations. If null, the team spawn phase will be skipped. Each
+     * {@link TeamSpawnDTO#getBarrierArea()} and {@link TeamSpawnDTO#getSpawn()} must be contained in the inBounds area
+     * of the first puzzle.
      */
     private @Nullable List<TeamSpawnDTO> teamSpawns;
     /**
@@ -46,18 +49,18 @@ class ParkourPathwayConfigDTO implements Validatable {
     private @Nullable Component teamSpawnsOpenMessage;
     /**
      * The list of puzzles for this parkour game.<br>
-     * The first puzzle is the starting position. Players will be teleported to the 
-     * first puzzle's first checkpoint when they begin (unless there are team spawns, 
-     * see {@link #teamSpawns}), and new players who join mid-game are sent here as well. 
-     * Make sure the first puzzle's inBounds contains the entire area where players are 
+     * The first puzzle is the starting position. Players will be teleported to the
+     * first puzzle's first checkpoint when they begin (unless there are team spawns,
+     * see {@link #teamSpawns}), and new players who join mid-game are sent here as well.
+     * Make sure the first puzzle's inBounds contains the entire area where players are
      * allowed to be while the countdowns are going before the game officially starts.
      * <br>
-     * The last puzzle is considered the finish line 
+     * The last puzzle is considered the finish line
      * (when you reach the checkpoint of the last puzzle, y
      * ou have won the game/beat all the puzzles
      * <br>
      * Each puzzle's inBounds must contain all the checkpoints of the puzzle after it (except the
-     * last puzzle, which is the finish line). Conversely, each puzzle's checkpoints must be 
+     * last puzzle, which is the finish line). Conversely, each puzzle's checkpoints must be
      * contained within the previous puzzle's inBounds (except the first puzzle, which has no
      * previous puzzle). Without this restriction, players would be teleported to the start
      * of their current puzzle before reaching the checkpoint for the next puzzle,
@@ -77,15 +80,25 @@ class ParkourPathwayConfigDTO implements Validatable {
     @Data
     @AllArgsConstructor
     static class Skips implements Validatable {
-        /** the number of skips each player gets. 0 or negative means no skips. */
+        /**
+         * the number of skips each player gets. 0 or negative means no skips.
+         */
         private int numOfSkips;
-        /** the item that players interact with to use their skips. Defaults to lapis lazuli */
+        /**
+         * the item that players interact with to use their skips. Defaults to lapis lazuli
+         */
         private @Nullable Material item;
-        /** the display name of the skip item. Defaults to "Skip Puzzle" */
+        /**
+         * the display name of the skip item. Defaults to "Skip Puzzle"
+         */
         private @Nullable Component itemName;
-        /** the lore of the skip item. Defaults to "Right click to skip the current puzzle" */
+        /**
+         * the lore of the skip item. Defaults to "Right click to skip the current puzzle"
+         */
         private @Nullable List<Component> itemLore;
-        /** the number of points to award for unused skips */
+        /**
+         * the number of points to award for unused skips
+         */
         private int unusedSkipScore;
         /**
          * The cooldown in seconds of a skip. Defaults to 1. Must be positive.
@@ -96,7 +109,7 @@ class ParkourPathwayConfigDTO implements Validatable {
          * will be given points for their remaining unused skips.
          * Values less than zero will allow skips to be used the entire
          * game. Values greater than the number of puzzles will essentially
-         * do the same. 
+         * do the same.
          */
         private int maxSkipPuzzle;
         
@@ -151,7 +164,7 @@ class ParkourPathwayConfigDTO implements Validatable {
         validator.notNull(this.getPuzzles(), "puzzles");
         validator.validate(this.getPuzzles().size() >= 3, "puzzles must have at least 3 puzzles");
         validatePuzzles(validator);
-    
+        
         if (this.getTeamSpawns() != null) {
             validateTeamSpawns(validator);
         }
@@ -165,7 +178,7 @@ class ParkourPathwayConfigDTO implements Validatable {
             puzzle.validate(validator.path("puzzles[%d]", i));
             if (i - 1 >= 0) {
                 PuzzleDTO previousPuzzle = puzzles.get(i - 1);
-                for (int j = 0 ; j < puzzle.getCheckPoints().size(); j++) {
+                for (int j = 0; j < puzzle.getCheckPoints().size(); j++) {
                     PuzzleDTO.CheckPointDTO checkPoint = puzzle.getCheckPoints().get(j);
                     validator.validate(previousPuzzle.isInBounds(checkPoint.getDetectionArea()), "at least one entry in puzzles[%s].inBounds must contain puzzles[%s].checkPoints[%s].detectionArea", i - 1, i, j);
                 }
@@ -205,7 +218,7 @@ class ParkourPathwayConfigDTO implements Validatable {
         ParkourPathwayConfig.ParkourPathwayConfigBuilder builder = ParkourPathwayConfig.builder()
                 .world(newWorld)
                 .startingLocation(newStartingLocation)
-                .spectatorBoundary(this.spectatorArea == null ? null : 
+                .spectatorBoundary(this.spectatorArea == null ? null :
                         new SpectatorBoundary(this.spectatorArea, newStartingLocation))
                 .teamSpawns(newTeamSpawns)
                 .puzzles(newPuzzles)
@@ -234,7 +247,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                     .numOfSkips(this.skips.getNumOfSkips())
                     .unusedSkipScore(this.skips.getUnusedSkipScore())
                     .maxSkipPuzzle(this.skips.getMaxSkipPuzzle())
-                    .skipCooldownDuration(this.skips.getSkipCooldown() != null 
+                    .skipCooldownDuration(this.skips.getSkipCooldown() != null
                             ? this.skips.getSkipCooldown() : 1)
                     .skipItem(skipItem);
         } else {
@@ -257,22 +270,22 @@ class ParkourPathwayConfigDTO implements Validatable {
                 .teamSpawns(config.getTeamSpawns() != null ? TeamSpawnDTO.fromTeamSpawns(config.getTeamSpawns()) : null)
                 .teamSpawnsOpenMessage(config.getTeamSpawnsOpenMessage())
                 .puzzles(PuzzleDTO.fromPuzzles(config.getPuzzles()))
-                .spectatorArea(config.getSpectatorBoundary() == null ? null : 
+                .spectatorArea(config.getSpectatorBoundary() == null ? null :
                         config.getSpectatorBoundary().getArea())
                 .scores(new Scores(config.getCheckpointScore(), config.getWinScore()))
                 .preventInteractions(config.getPreventInteractions())
-                .skips(new Skips(config.getNumOfSkips(), 
-                        config.getSkipItem().getType(), 
-                        config.getSkipItem().getItemMeta().displayName(), 
-                        config.getSkipItem().getItemMeta().lore(), 
-                        config.getUnusedSkipScore(), 
+                .skips(new Skips(config.getNumOfSkips(),
+                        config.getSkipItem().getType(),
+                        config.getSkipItem().getItemMeta().displayName(),
+                        config.getSkipItem().getItemMeta().lore(),
+                        config.getUnusedSkipScore(),
                         config.getSkipCooldownDuration(),
                         config.getMaxSkipPuzzle()))
-                .durations(new Durations(config.getTeamSpawnsDuration(), 
-                        config.getStartingDuration(), 
-                        config.getTimeLimitDuration(), 
-                        config.getMercyRuleDuration(), 
-                        config.getMercyRuleAlertDuration(), 
+                .durations(new Durations(config.getTeamSpawnsDuration(),
+                        config.getStartingDuration(),
+                        config.getTimeLimitDuration(),
+                        config.getMercyRuleDuration(),
+                        config.getMercyRuleAlertDuration(),
                         config.getGameOverDuration(),
                         config.getDescriptionDuration()))
                 .description(config.getDescription())
@@ -284,11 +297,13 @@ class ParkourPathwayConfigDTO implements Validatable {
     @NoArgsConstructor
     static class Scores {
         /**
-         * points for reaching puzzle checkpoints. for x elements, nth score will be awarded unless n is greater than or equal to x in which case the xth score will be awarded 
+         * points for reaching puzzle checkpoints. for x elements, nth score will be awarded unless n is greater than or
+         * equal to x in which case the xth score will be awarded
          */
         private int[] checkpoint;
         /**
-         * points for winning. for x elements, nth score will be awarded unless n is greater than or equal to x in which case the xth score will be awarded 
+         * points for winning. for x elements, nth score will be awarded unless n is greater than or equal to x in which
+         * case the xth score will be awarded
          */
         private int[] win;
     }

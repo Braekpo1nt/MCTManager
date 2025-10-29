@@ -75,12 +75,12 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
      */
     public MCTTeam(MCTTeam team, int newScore) {
         super(
-                team.getTeamId(), 
-                team.getDisplayName(), 
-                team.getColor(), 
+                team.getTeamId(),
+                team.getDisplayName(),
+                team.getColor(),
                 team.getColorAttributes(),
-                team.getBukkitColor(), 
-                team.getFormattedDisplayName(), 
+                team.getBukkitColor(),
+                team.getFormattedDisplayName(),
                 newScore);
         this.members = new HashSet<>(team.members);
         this.onlineMembers = new HashMap<>(team.onlineMembers);
@@ -139,7 +139,7 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
      * Warning, this should not be used inside of games, only the GameManager.
      * TODO: prevent users from accidentally leaving players from teams outside the GameManager
      * @param uuid the UUID of the old member
-     * @return true if the given UUID was previously a member of this team 
+     * @return true if the given UUID was previously a member of this team
      * (see {@link #isMember(UUID)}), false otherwise
      */
     @SuppressWarnings("UnusedReturnValue")
@@ -190,11 +190,10 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
     
     /**
      * For when a Participant logs on/joins/is added who was previously offline
-     * 
-     * @param participant the participant who is an online member of this team. 
-     *                    Their {@link Participant#getTeamId()} 
-     *                    must match this team's {@link #getTeamId()}.
-     * @throws IllegalStateException if the given participant is not a member of this team 
+     * @param participant the participant who is an online member of this team.
+     * Their {@link Participant#getTeamId()}
+     * must match this team's {@link #getTeamId()}.
+     * @throws IllegalStateException if the given participant is not a member of this team
      * (i.e. their teamId matches this team's)
      */
     public void joinOnlineMember(@NotNull MCTParticipant participant) {
@@ -212,7 +211,6 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
     
     /**
      * For when a Participant logs off/quits/is removed who was previously online.
-     * 
      * @param uuid the UUID of the previously online member
      * @return true if the given UUID was that of a previously online member of this team, false otherwise
      */
@@ -226,7 +224,6 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
     
     /**
      * For when multiple Participants log off/quit/are removed who were previously online.
-     * 
      * @param uuids the UUIDs of the previously online members
      * @return true if any of the given UUIDs were those of previously online members of this team, false otherwise
      */
@@ -259,7 +256,7 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
     /**
      * Sends the given message to every online member of the team except for the given participant
      * @param sender the participant who sent the message, and therefore should not receive the message
-     *                    (doesn't have to be a member of the team)
+     * (doesn't have to be a member of the team)
      * @param message the message to send
      */
     public void sendMessageFrom(@NotNull Participant sender, @NotNull Component message) {

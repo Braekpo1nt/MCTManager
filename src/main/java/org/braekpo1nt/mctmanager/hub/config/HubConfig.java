@@ -50,7 +50,7 @@ public class HubConfig {
          */
         private List<GameInfo> allowedGames;
         /**
-         * If null, no preset will be used. 
+         * If null, no preset will be used.
          */
         private @Nullable PresetConfig preset;
     }
@@ -71,7 +71,7 @@ public class HubConfig {
     @NoArgsConstructor
     public static class Leaderboard {
         /**
-         * the title of the leaderboard. Null will make the leaderboard have no title. 
+         * the title of the leaderboard. Null will make the leaderboard have no title.
          */
         private @Nullable String title;
         /**

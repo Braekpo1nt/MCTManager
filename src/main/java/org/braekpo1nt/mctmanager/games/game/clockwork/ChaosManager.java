@@ -192,7 +192,8 @@ public class ChaosManager implements Listener {
         if (event.getEntity() instanceof FallingBlock fallingBlock) {
             Material material = fallingBlock.getBlockData().getMaterial();
             switch (material) {
-                case SAND, ANVIL -> Bukkit.getScheduler().runTaskLater(plugin, () -> event.getBlock().setType(Material.AIR), 5L);
+                case SAND, ANVIL ->
+                        Bukkit.getScheduler().runTaskLater(plugin, () -> event.getBlock().setType(Material.AIR), 5L);
             }
         }
     }

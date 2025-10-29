@@ -41,7 +41,6 @@ import java.util.stream.Stream;
  * It can be safely used asynchronously as everything is at packet level.
  * <p>
  * The project is on <a href="https://github.com/MrMicky-FR/FastBoard">GitHub</a>.
- *
  * @author MrMicky
  * @version 2.1.5
  */
@@ -119,7 +118,7 @@ public abstract class FastBoardBase<T> {
                     .filter(m -> m.getParameterCount() == 1 && m.getParameterTypes()[0] == packetClass)
                     .findFirst().orElseThrow(NoSuchMethodException::new);
             Optional<Class<?>> displaySlotEnum = FastReflection.nmsOptionalClass("world.scores", "DisplaySlot");
-            CHAT_COMPONENT_CLASS = FastReflection.nmsClass("network.chat", "IChatBaseComponent","Component");
+            CHAT_COMPONENT_CLASS = FastReflection.nmsClass("network.chat", "IChatBaseComponent", "Component");
             CHAT_FORMAT_ENUM = FastReflection.nmsClass(null, "EnumChatFormat", "ChatFormatting");
             DISPLAY_SLOT_TYPE = displaySlotEnum.orElse(int.class);
             RESET_FORMATTING = FastReflection.enumValueOf(CHAT_FORMAT_ENUM, "RESET", 21);
@@ -227,7 +226,6 @@ public abstract class FastBoardBase<T> {
     
     /**
      * Creates a new FastBoard.
-     *
      * @param player the owner of the scoreboard
      */
     protected FastBoardBase(Player player) {
@@ -244,7 +242,6 @@ public abstract class FastBoardBase<T> {
     
     /**
      * Get the scoreboard title.
-     *
      * @return the scoreboard title
      */
     public T getTitle() {
@@ -253,10 +250,9 @@ public abstract class FastBoardBase<T> {
     
     /**
      * Update the scoreboard title.
-     *
      * @param title the new scoreboard title
      * @throws IllegalArgumentException if the title is longer than 32 chars on 1.12 or lower
-     * @throws IllegalStateException    if {@link #delete()} was call before
+     * @throws IllegalStateException if {@link #delete()} was call before
      */
     public void updateTitle(T title) {
         if (this.title.equals(Objects.requireNonNull(title, "title"))) {
@@ -274,7 +270,6 @@ public abstract class FastBoardBase<T> {
     
     /**
      * Get the scoreboard lines.
-     *
      * @return the scoreboard lines
      */
     public List<T> getLines() {
@@ -283,7 +278,6 @@ public abstract class FastBoardBase<T> {
     
     /**
      * Get the specified scoreboard line.
-     *
      * @param line the line number
      * @return the line
      * @throws IndexOutOfBoundsException if the line is higher than {@code size}
@@ -296,7 +290,6 @@ public abstract class FastBoardBase<T> {
     
     /**
      * Get how a specific line's score is displayed. On 1.20.2 or below, the value returned isn't used.
-     *
      * @param line the line number
      * @return the text of how the line is displayed
      * @throws IndexOutOfBoundsException if the line is higher than {@code size}
@@ -309,7 +302,6 @@ public abstract class FastBoardBase<T> {
     
     /**
      * Update a single scoreboard line.
-     *
      * @param line the line number
      * @param text the new line text
      * @throws IndexOutOfBoundsException if the line is higher than {@link #size() size() + 1}
@@ -321,7 +313,6 @@ public abstract class FastBoardBase<T> {
     /**
      * Update a single scoreboard line including how its score is displayed.
      * The score will only be displayed on 1.20.3 and higher.
-     *
      * @param line the line number
      * @param text the new line text
      * @param scoreText the new line's score, if null will not change current value
@@ -365,7 +356,6 @@ public abstract class FastBoardBase<T> {
     
     /**
      * Remove a scoreboard line.
-     *
      * @param line the line number
      */
     public synchronized void removeLine(int line) {
@@ -384,10 +374,9 @@ public abstract class FastBoardBase<T> {
     
     /**
      * Update all the scoreboard lines.
-     *
      * @param lines the new lines
      * @throws IllegalArgumentException if one line is longer than 30 chars on 1.12 or lower
-     * @throws IllegalStateException    if {@link #delete()} was call before
+     * @throws IllegalStateException if {@link #delete()} was call before
      */
     public void updateLines(T... lines) {
         updateLines(Arrays.asList(lines));
@@ -395,10 +384,9 @@ public abstract class FastBoardBase<T> {
     
     /**
      * Update the lines of the scoreboard
-     *
      * @param lines the new scoreboard lines
      * @throws IllegalArgumentException if one line is longer than 30 chars on 1.12 or lower
-     * @throws IllegalStateException    if {@link #delete()} was call before
+     * @throws IllegalStateException if {@link #delete()} was call before
      */
     public synchronized void updateLines(Collection<T> lines) {
         updateLines(lines, null);
@@ -407,12 +395,11 @@ public abstract class FastBoardBase<T> {
     /**
      * Update the lines and how their score is displayed on the scoreboard.
      * The scores will only be displayed for servers on 1.20.3 and higher.
-     *
      * @param lines the new scoreboard lines
      * @param scores the set for how each line's score should be, if null will fall back to default (blank)
      * @throws IllegalArgumentException if one line is longer than 30 chars on 1.12 or lower
      * @throws IllegalArgumentException if lines and scores are not the same size
-     * @throws IllegalStateException    if {@link #delete()} was call before
+     * @throws IllegalStateException if {@link #delete()} was call before
      */
     public synchronized void updateLines(Collection<T> lines, Collection<T> scores) {
         Objects.requireNonNull(lines, "lines");
@@ -466,11 +453,10 @@ public abstract class FastBoardBase<T> {
     /**
      * Update how a specified line's score is displayed on the scoreboard. A null value will reset the displayed
      * text back to default. The scores will only be displayed for servers on 1.20.3 and higher.
-     *
      * @param line the line number
      * @param text the text to be displayed as the score. if null, no score will be displayed
      * @throws IllegalArgumentException if the line number is not in range
-     * @throws IllegalStateException    if {@link #delete()} was call before
+     * @throws IllegalStateException if {@link #delete()} was call before
      */
     public synchronized void updateScore(int line, T text) {
         checkLineNumber(line, true, false);
@@ -488,10 +474,9 @@ public abstract class FastBoardBase<T> {
     
     /**
      * Reset a line's score back to default (blank). The score will only be displayed for servers on 1.20.3 and higher.
-     *
      * @param line the line number
      * @throws IllegalArgumentException if the line number is not in range
-     * @throws IllegalStateException    if {@link #delete()} was call before
+     * @throws IllegalStateException if {@link #delete()} was call before
      */
     public synchronized void removeScore(int line) {
         updateScore(line, null);
@@ -500,10 +485,9 @@ public abstract class FastBoardBase<T> {
     /**
      * Update how all lines' scores are displayed. A value of null will reset the displayed text back to default.
      * The scores will only be displayed for servers on 1.20.3 and higher.
-     *
      * @param texts the set of texts to be displayed as the scores
      * @throws IllegalArgumentException if the size of the texts does not match the current size of the board
-     * @throws IllegalStateException    if {@link #delete()} was call before
+     * @throws IllegalStateException if {@link #delete()} was call before
      */
     public synchronized void updateScores(T... texts) {
         updateScores(Arrays.asList(texts));
@@ -512,10 +496,9 @@ public abstract class FastBoardBase<T> {
     /**
      * Update how all lines' scores are displayed.  A null value will reset the displayed
      * text back to default (blank). Only available on 1.20.3+ servers.
-     *
      * @param texts the set of texts to be displayed as the scores
      * @throws IllegalArgumentException if the size of the texts does not match the current size of the board
-     * @throws IllegalStateException    if {@link #delete()} was call before
+     * @throws IllegalStateException if {@link #delete()} was call before
      */
     public synchronized void updateScores(Collection<T> texts) {
         Objects.requireNonNull(texts, "texts");
@@ -544,7 +527,6 @@ public abstract class FastBoardBase<T> {
     
     /**
      * Get the player who has the scoreboard.
-     *
      * @return current player for this FastBoard
      */
     public Player getPlayer() {
@@ -553,7 +535,6 @@ public abstract class FastBoardBase<T> {
     
     /**
      * Get the scoreboard id.
-     *
      * @return the id
      */
     public String getId() {
@@ -562,7 +543,6 @@ public abstract class FastBoardBase<T> {
     
     /**
      * Get if the scoreboard is deleted.
-     *
      * @return true if the scoreboard is deleted
      */
     public boolean isDeleted() {
@@ -571,7 +551,6 @@ public abstract class FastBoardBase<T> {
     
     /**
      * Get if the server supports custom scoreboard scores (1.20.3+ servers only).
-     *
      * @return true if the server supports custom scores
      */
     public boolean customScoresSupported() {
@@ -580,7 +559,6 @@ public abstract class FastBoardBase<T> {
     
     /**
      * Get the scoreboard size (the number of lines).
-     *
      * @return the size
      */
     public int size() {
@@ -590,7 +568,6 @@ public abstract class FastBoardBase<T> {
     /**
      * Delete this FastBoard, and will remove the scoreboard for the associated player if he is online.
      * After this, all uses of {@link #updateLines} and {@link #updateTitle} will throw an {@link IllegalStateException}
-     *
      * @throws IllegalStateException if this was already call before
      */
     public void delete() {

@@ -31,7 +31,7 @@ public class EventConfig {
     private int tipsDisplayTime;
     private boolean shouldDisplayGameNumber;
     /**
-     * Contains which configs to use for which games. 
+     * Contains which configs to use for which games.
      * Can't be null, but can be empty. If a config doesn't exist for a given
      * game, the default will be used.
      */

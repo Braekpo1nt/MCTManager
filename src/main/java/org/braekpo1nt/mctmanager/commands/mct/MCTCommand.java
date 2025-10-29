@@ -27,7 +27,7 @@ import org.bukkit.permissions.Permissible;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The super command for all MCT related commands. 
+ * The super command for all MCT related commands.
  * Handles all sub-commands which start with /mct ...
  */
 public class MCTCommand extends MasterCommandManager {

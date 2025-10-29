@@ -28,7 +28,7 @@ public class FootRaceConfigController extends ConfigController<FootRaceConfigDTO
     }
     
     /**
-     * Gets the config from storage 
+     * Gets the config from storage
      * @param configFile the name of the config file to use
      * @return the config for spleef
      * @throws ConfigInvalidException if the config is invalid

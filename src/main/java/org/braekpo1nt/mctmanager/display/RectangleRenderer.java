@@ -23,7 +23,7 @@ import java.util.Objects;
 
 /**
  * A Renderer representing a {@link Rectangle}. Uses the {@link Rectangle#toTransformation()} method
- * to transform a {@link BlockDisplayEntityRenderer} into a flat surface aligned to the given rectangle. 
+ * to transform a {@link BlockDisplayEntityRenderer} into a flat surface aligned to the given rectangle.
  */
 public class RectangleRenderer implements DisplaySingleton, HasBlockDataSingleton {
     
@@ -36,7 +36,7 @@ public class RectangleRenderer implements DisplaySingleton, HasBlockDataSingleto
     
     @Builder
     public RectangleRenderer(
-            @NotNull World world, 
+            @NotNull World world,
             @NotNull Rectangle rectangle,
             @Nullable Display.Brightness brightness,
             @Nullable Component customName,

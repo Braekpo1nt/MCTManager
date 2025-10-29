@@ -19,15 +19,15 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 record CaptureTheFlagConfigDTO(
-        String version, 
-        String world, 
-        Vector spawnObservatory, 
-        List<ArenaDTO> arenas, 
-        Map<String, LoadoutDTO> loadouts, 
+        String version,
+        String world,
+        Vector spawnObservatory,
+        List<ArenaDTO> arenas,
+        Map<String, LoadoutDTO> loadouts,
         @Nullable BoundingBox spectatorArea,
         @Nullable List<Material> preventInteractions,
-        Scores scores, 
-        Durations durations, 
+        Scores scores,
+        Durations durations,
         Component description) implements Validatable {
     
     @Override
@@ -96,9 +96,10 @@ record CaptureTheFlagConfigDTO(
     }
     
     @Data
-    static class Durations{
+    static class Durations {
         /**
-         * the duration (in seconds) for the "matches starting" period (i.e. waiting in the lobby for the match to start)
+         * the duration (in seconds) for the "matches starting" period (i.e. waiting in the lobby for the match to
+         * start)
          */
         private int matchesStarting;
         /**
@@ -111,11 +112,11 @@ record CaptureTheFlagConfigDTO(
         private int roundTimer;
         private int description;
         /**
-         * the number of seconds between rounds. Defaults to 10. 
+         * the number of seconds between rounds. Defaults to 10.
          */
         private int roundOver = 10;
         /**
-         * The number of seconds after the game ends. Defaults to 10. 
+         * The number of seconds after the game ends. Defaults to 10.
          */
         private int gameOver = 10;
     }

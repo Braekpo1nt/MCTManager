@@ -61,9 +61,11 @@ public class SpleefConfig {
     public double getChance(@NotNull Powerup.Source source) {
         return chances.get(source);
     }
+    
     /**
      * @param source the source that the powerups should come from
-     * @return the weights for the powerups which come from the given source (all powerup weights if source is null). The key is the powerup which can come from the source, the value is the weight. 
+     * @return the weights for the powerups which come from the given source (all powerup weights if source is null).
+     * The key is the powerup which can come from the source, the value is the weight.
      */
     public @NotNull Map<Powerup.Type, @NotNull Integer> getPowerupWeights(@Nullable Powerup.Source source) {
         return sourceToPowerupWeights.get(source);

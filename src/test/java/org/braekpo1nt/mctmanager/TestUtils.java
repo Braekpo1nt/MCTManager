@@ -20,7 +20,8 @@ public class TestUtils {
      * Takes in a Component with 1 or more children, and converts it to a plaintext string without formatting.
      * Assumes it is made up of TextComponents and empty components.
      * @param component The component to get the plaintext version of
-     * @return The concatenation of the contents() of the TextComponent children that this component is made of. Null if the component is null
+     * @return The concatenation of the contents() of the TextComponent children that this component is made of. Null if
+     * the component is null
      */
     public static @Nullable String toPlainText(@Nullable Component component) {
         if (component == null) {
@@ -30,8 +31,7 @@ public class TestUtils {
         
         if (component instanceof TextComponent textComponent) {
             builder.append(textComponent.content());
-        }
-        else if (component instanceof TranslatableComponent) {
+        } else if (component instanceof TranslatableComponent) {
             for (Component arg : ((TranslatableComponent) component).args()) {
                 builder.append(toPlainText(arg));
             }
@@ -79,7 +79,7 @@ public class TestUtils {
         }
         return messageWasSent;
     }
-
+    
     public static void copyInputStreamToFile(InputStream inputStream, File destinationFile) {
         Assertions.assertNotNull(inputStream);
         try (OutputStream outputStream = new FileOutputStream(destinationFile)) {
@@ -92,7 +92,7 @@ public class TestUtils {
             Assertions.fail(String.format("Unable to copy stream to %s \n%s", destinationFile, e));
         }
     }
-
+    
     public static void createFileInDirectory(File directory, String fileName, String fileContents) {
         File newFile = new File(directory, fileName);
         try (FileWriter writer = new FileWriter(newFile)) {

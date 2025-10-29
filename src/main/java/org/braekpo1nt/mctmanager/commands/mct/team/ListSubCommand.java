@@ -51,7 +51,7 @@ public class ListSubCommand extends TabSubCommand {
                         .color(NamedTextColor.RED));
             }
         }
-
+        
         return CommandResult.success();
     }
     

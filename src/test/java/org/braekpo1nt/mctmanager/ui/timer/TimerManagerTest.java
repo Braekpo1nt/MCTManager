@@ -53,8 +53,8 @@ class TimerManagerTest {
     void test() {
         TimerManager subManager = timerManager.createManager();
         subManager.start(Timer.builder()
-                        .duration(1)
-                        .build());
+                .duration(1)
+                .build());
         Assertions.assertDoesNotThrow(timerManager::skip);
     }
     

@@ -63,8 +63,8 @@ public class FarmRushConfig {
      */
     private @NotNull Map<Material, ItemSale> materialScores;
     /**
-     * The maximum number of points a team can acquire before the game is over. 
-     * If a team reaches this number, the game will end. If this is less than 1, 
+     * The maximum number of points a team can acquire before the game is over.
+     * If a team reaches this number, the game will end. If this is less than 1,
      * then no maximum score is set and the game will end after the time runs out.
      * Defaults to -1.
      */
@@ -72,21 +72,21 @@ public class FarmRushConfig {
     /**
      * The sell cap, beyond which players are not allowed to gain points from selling items.
      * Note that if this is greater than 1 but less than {@link #maxScore}, then players
-     * will be unable to reach the max score through selling items. 
-     * If this is less than 1, then no score cap is in effect. 
+     * will be unable to reach the max score through selling items.
+     * If this is less than 1, then no score cap is in effect.
      * Defaults to -1.
      */
     private int sellCap;
     /**
-     * the percentage of the {@link #maxScore} that a team can reach before 
+     * the percentage of the {@link #maxScore} that a team can reach before
      * the other teams are alerted that they are x% of the way there.
      * If this is negative, don't warn.
      */
     private double warningThreshold;
     /**
-     * If {@link #maxScore} is 1 or more (meaning a max score is assigned) 
-     * then the team who reaches the {@link #maxScore} first will receive this bonus. 
-     * Can't be negative. Defaults to 0. 
+     * If {@link #maxScore} is 1 or more (meaning a max score is assigned)
+     * then the team who reaches the {@link #maxScore} first will receive this bonus.
+     * Can't be negative. Defaults to 0.
      */
     private int winnerBonus;
     

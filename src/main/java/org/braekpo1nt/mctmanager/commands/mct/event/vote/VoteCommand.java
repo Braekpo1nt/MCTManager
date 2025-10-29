@@ -58,7 +58,7 @@ public class VoteCommand extends CommandManager {
                 if (args.length != 1) {
                     return CommandResult.failure(getUsage().of("<game>"));
                 }
-    
+                
                 String gameString = args[0];
                 GameType gameToRemove = GameType.fromID(gameString);
                 if (gameToRemove == null) {
@@ -70,7 +70,7 @@ public class VoteCommand extends CommandManager {
                 
                 return gameManager.removeGameFromVotingPool(gameToRemove);
             }
-    
+            
             @Override
             public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
                 if (args.length == 1) {

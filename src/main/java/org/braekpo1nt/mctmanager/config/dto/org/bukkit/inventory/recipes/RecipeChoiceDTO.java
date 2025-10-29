@@ -16,7 +16,7 @@ public interface RecipeChoiceDTO {
     RecipeChoice toRecipeChoice();
     
     /**
-     * Represents multiple choices of item 
+     * Represents multiple choices of item
      */
     @Data
     @AllArgsConstructor
@@ -37,7 +37,7 @@ public interface RecipeChoiceDTO {
     
     /**
      * Represents a single choice of item or tag.
-     * If an item and a tag are provided, all 
+     * If an item and a tag are provided, all
      */
     @Data
     @AllArgsConstructor

@@ -15,8 +15,9 @@ import java.util.List;
 import java.util.Map;
 
 public class ColorMap {
-
+    
     private static final Map<String, NamedTextColor> NAMED_TEXT_COLOR_MAP = new HashMap<>();
+    
     static {
         NAMED_TEXT_COLOR_MAP.put("aqua", NamedTextColor.AQUA);
         NAMED_TEXT_COLOR_MAP.put("black", NamedTextColor.BLACK);
@@ -47,6 +48,7 @@ public class ColorMap {
     }
     
     private static final Map<String, Material> POWDER_TYPE_MAP = new HashMap<>();
+    
     static {
         POWDER_TYPE_MAP.put("aqua", Material.LIGHT_BLUE_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("black", Material.BLACK_CONCRETE_POWDER);
@@ -67,6 +69,7 @@ public class ColorMap {
     }
     
     private static final Map<String, Material> CONCRETE_TYPE_MAP = new HashMap<>();
+    
     static {
         CONCRETE_TYPE_MAP.put("aqua", Material.LIGHT_BLUE_CONCRETE);
         CONCRETE_TYPE_MAP.put("black", Material.BLACK_CONCRETE);
@@ -87,6 +90,7 @@ public class ColorMap {
     }
     
     private static final Map<String, Material> STAINED_GLASS_MAP = new HashMap<>();
+    
     static {
         STAINED_GLASS_MAP.put("aqua", Material.LIGHT_BLUE_STAINED_GLASS);
         STAINED_GLASS_MAP.put("black", Material.BLACK_STAINED_GLASS);
@@ -107,6 +111,7 @@ public class ColorMap {
     }
     
     private static final Map<String, Material> STAINED_GLASS_PANE_MAP = new HashMap<>();
+    
     static {
         STAINED_GLASS_PANE_MAP.put("aqua", Material.LIGHT_BLUE_STAINED_GLASS_PANE);
         STAINED_GLASS_PANE_MAP.put("black", Material.BLACK_STAINED_GLASS_PANE);
@@ -127,6 +132,7 @@ public class ColorMap {
     }
     
     private static final Map<String, Material> WOOL_MAP = new HashMap<>();
+    
     static {
         WOOL_MAP.put("aqua", Material.LIGHT_BLUE_WOOL);
         WOOL_MAP.put("black", Material.BLACK_WOOL);
@@ -147,6 +153,7 @@ public class ColorMap {
     }
     
     private static final Map<String, Material> BANNER_TYPE_MAP = new HashMap<>();
+    
     static {
         BANNER_TYPE_MAP.put("aqua", Material.LIGHT_BLUE_BANNER);
         BANNER_TYPE_MAP.put("black", Material.BLACK_BANNER);
@@ -197,7 +204,7 @@ public class ColorMap {
      * Returns the type of concrete powder which most closely matches the given colorString.
      * Note that some color strings are duplicates.
      * @param colorString The color string to get the concrete powder for. Should be the color strings matching
-     *                    the ChatColor values.
+     * the ChatColor values.
      * @return The concrete powder color that best matches the given color string. White if unrecognized.
      */
     public static Material getConcretePowderColor(String colorString) {
@@ -208,7 +215,7 @@ public class ColorMap {
      * Returns the type of concrete which most closely matches the given colorString.
      * Note that some color strings are duplicates.
      * @param colorString The color string to get the concrete for. Should be the color strings matching
-     *                    the ChatColor values.
+     * the ChatColor values.
      * @return The concrete color that best matches the given color string. White if unrecognized.
      */
     public static Material getConcreteColor(String colorString) {
@@ -217,16 +224,17 @@ public class ColorMap {
     
     /**
      * Gets the color of banner associated with the given color string. Note that some are duplicates.
-     * @param colorString The color string 
-     * @return The banner color type most closely matching the given color string. White if unrecognized. 
+     * @param colorString The color string
+     * @return The banner color type most closely matching the given color string. White if unrecognized.
      */
     public static Material getBannerColor(String colorString) {
         return BANNER_TYPE_MAP.getOrDefault(colorString, Material.WHITE_BANNER);
     }
     
     /**
-     * Gets the color of stained-glass associated with the given color string. 
-     * @param colorString the color string to get the stained-glass for. Should be the color string matching the ChatColor values.
+     * Gets the color of stained-glass associated with the given color string.
+     * @param colorString the color string to get the stained-glass for. Should be the color string matching the
+     * ChatColor values.
      * @return The stained-glass color that best matches the given color string. White if unrecognized.
      */
     public static Material getStainedGlassColor(String colorString) {
@@ -234,8 +242,9 @@ public class ColorMap {
     }
     
     /**
-     * Gets the color of stained-glass-pane associated with the given color string. 
-     * @param colorString the color string to get the stained-glass-pane for. Should be the color string matching the ChatColor values.
+     * Gets the color of stained-glass-pane associated with the given color string.
+     * @param colorString the color string to get the stained-glass-pane for. Should be the color string matching the
+     * ChatColor values.
      * @return The stained-glass-pane color that best matches the given color string. White if unrecognized.
      */
     public static Material getStainedGlassPaneColor(String colorString) {
@@ -243,8 +252,9 @@ public class ColorMap {
     }
     
     /**
-     * Gets the color of wool associated with the given color string. 
-     * @param colorString the color string to get the wool for. Should be the color string matching the ChatColor values.
+     * Gets the color of wool associated with the given color string.
+     * @param colorString the color string to get the wool for. Should be the color string matching the ChatColor
+     * values.
      * @return The wool color that best matches the given color string. White if unrecognized.
      */
     public static Material getWoolColor(String colorString) {
@@ -252,7 +262,8 @@ public class ColorMap {
     }
     
     /**
-     * @param colorString the color string indicating which colors the attributes should use. Should be the color string matching the ChatColor values.
+     * @param colorString the color string indicating which colors the attributes should use. Should be the color string
+     * matching the ChatColor values.
      * @return the {@link ColorAttributes} associated with the given colorString
      */
     public static ColorAttributes getColorAttributes(String colorString) {
@@ -268,8 +279,12 @@ public class ColorMap {
     
     /**
      * Colors all leather armor in the equipment slots of the participant to be the team color
-     * If the {@link org.bukkit.persistence.PersistentDataContainer} of an item's LeatherArmorMeta contains the {@link GameManagerUtils#IGNORE_TEAM_COLOR} {@link PersistentDataType#STRING} property, then that item will not be colored. 
-     * @param participant the participant whose armor slots may or may not contain leather armor, but for whom any existing leather armor slots should be colored their team color. If this participant is not a participiant in the given gameManager, then nothing happens. 
+     * If the {@link org.bukkit.persistence.PersistentDataContainer} of an item's LeatherArmorMeta contains the
+     * {@link GameManagerUtils#IGNORE_TEAM_COLOR} {@link PersistentDataType#STRING} property, then that item will not be
+     * colored.
+     * @param participant the participant whose armor slots may or may not contain leather armor, but for whom any
+     * existing leather armor slots should be colored their team color. If this participant is not a participiant in the
+     * given gameManager, then nothing happens.
      */
     public static void colorLeatherArmor(@NotNull Participant participant, @NotNull Color teamColor) {
         GameManagerUtils.colorLeatherArmor(participant.getInventory().getHelmet(), teamColor);

@@ -23,7 +23,7 @@ public class TabListCommand extends CommandManager {
                     return CommandResult.failure("This command can only be run by a player");
                 }
                 Participant participant = gameManager.getOnlineParticipant(player.getUniqueId());
-                if (participant == null 
+                if (participant == null
                         && !gameManager.isAdmin(player.getUniqueId())) {
                     return CommandResult.failure("This command can only be run by a participant or an admin");
                 }

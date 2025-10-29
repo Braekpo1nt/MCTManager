@@ -71,6 +71,7 @@ public class Participant extends OfflineParticipant implements AudienceDelegate 
     public static List<Participant> getParticipantsOnTeam(Collection<Participant> participants, String teamId) {
         return participants.stream().filter(p -> p.getTeamId().equals(teamId)).toList();
     }
+    
     /**
      * The player object that this Participant represents
      */
@@ -97,7 +98,7 @@ public class Participant extends OfflineParticipant implements AudienceDelegate 
     
     /**
      * {@inheritDoc}
-     * @return this Participant's {@link #player}. 
+     * @return this Participant's {@link #player}.
      */
     @Override
     public @NotNull Audience getAudience() {
@@ -135,7 +136,7 @@ public class Participant extends OfflineParticipant implements AudienceDelegate 
     }
     
     /**
-     * Delegate for {@link Player#setRespawnLocation(Location,boolean)}
+     * Delegate for {@link Player#setRespawnLocation(Location, boolean)}
      */
     public void setRespawnLocation(@Nullable Location location, boolean force) {
         player.setRespawnLocation(location, force);

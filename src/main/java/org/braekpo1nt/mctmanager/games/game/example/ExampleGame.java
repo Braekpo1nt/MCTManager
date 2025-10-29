@@ -39,22 +39,21 @@ public class ExampleGame extends WandsGameBase<ExampleParticipant, ExampleTeam, 
     
     /**
      * Initialize data and start the game
-     * 
-     * @param plugin          the plugin
-     * @param gameManager     the GameManager
-     * @param title           the game's initial title, displayed in the sidebar
-     * @param newTeams        the teams participating in the game
+     * @param plugin the plugin
+     * @param gameManager the GameManager
+     * @param title the game's initial title, displayed in the sidebar
+     * @param newTeams the teams participating in the game
      * @param newParticipants the participants of the game
-     * @param newAdmins       the admins
+     * @param newAdmins the admins
      */
     public ExampleGame(
-            @NotNull Main plugin, 
-            @NotNull GameManager gameManager, 
-            @NotNull Component title, 
+            @NotNull Main plugin,
+            @NotNull GameManager gameManager,
+            @NotNull Component title,
             @NotNull ExampleConfig config,
             @NotNull String configFile,
-            @NotNull Collection<Team> newTeams, 
-            @NotNull Collection<Participant> newParticipants, 
+            @NotNull Collection<Team> newTeams,
+            @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
         super(new GameInstanceId(GameType.EXAMPLE, configFile), plugin, gameManager, title, new InitialState());
         this.config = config;
@@ -65,8 +64,8 @@ public class ExampleGame extends WandsGameBase<ExampleParticipant, ExampleTeam, 
             return wand != null && wand.shouldNotDrop();
         }));
         addWand(Wand.<ExampleParticipant>builder().wandItem(Wand.createWandItem(Material.BOOK, "Point Accumulator", List.of(
-                Component.text("Click to get a point")
-        )))
+                        Component.text("Click to get a point")
+                )))
                 .onRightClick((event, participant) -> {
                     awardPoints(participant, 1);
                     return CommandResult.success();

@@ -55,9 +55,9 @@ public class ReadyUpState extends EventState {
     private int readyUpPromptTaskId;
     
     public ReadyUpState(
-            @NotNull GameManager context, 
-            @NotNull ContextReference contextReference, 
-            @NotNull EventConfig eventConfig, 
+            @NotNull GameManager context,
+            @NotNull ContextReference contextReference,
+            @NotNull EventConfig eventConfig,
             int maxGames,
             int startingGameNumber) {
         super(context, contextReference, eventConfig, startingGameNumber, maxGames);
@@ -114,7 +114,7 @@ public class ReadyUpState extends EventState {
                     }
                 }
             }
-        }.runTaskTimer(plugin, 0L, 2*20L).getTaskId();
+        }.runTaskTimer(plugin, 0L, 2 * 20L).getTaskId();
         
         PresetConfig presetConfig = eventData.getConfig().getPreset();
         if (presetConfig != null) {

@@ -43,7 +43,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
      * Create a new Puzzle at the given position
      * @param respawn the position of the respawn within the first checkpoint of the puzzle
      * @return a new Puzzle with a single checkpoint. inBounds will be 2x3x2.
-     * @see ParkourPathwayEditor#createCheckPoint(Location) 
+     * @see ParkourPathwayEditor#createCheckPoint(Location)
      */
     public static Puzzle createPuzzle(@NotNull Location respawn) {
         Location p = respawn.toBlockLocation();
@@ -76,19 +76,19 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
         this.puzzleRenderers = createPuzzleRenderers(config);
         puzzleRenderers.forEach(PuzzleRenderer::show);
         addWand(Wand.<ParkourAdmin>builder().wandItem(Wand.createWandItem(Material.TRIAL_KEY, "Puzzle Select", List.of(
-                Component.text("Left Click: previous puzzle"),
-                Component.text("Right Click: next puzzle"),
-                Component.text("(Crouch to be teleported)")
-        )))
+                        Component.text("Left Click: previous puzzle"),
+                        Component.text("Right Click: next puzzle"),
+                        Component.text("(Crouch to be teleported)")
+                )))
                 .onLeftClick((event, admin) -> selectPuzzle(admin, admin.getCurrentPuzzle() + 1, 0, 0, false))
                 .onLeftSneakClick((event, admin) -> selectPuzzle(admin, admin.getCurrentPuzzle() + 1, 0, 0, true))
                 .onRightClick((event, admin) -> selectPuzzle(admin, admin.getCurrentPuzzle() - 1, 0, 0, false))
                 .onRightSneakClick((event, admin) -> selectPuzzle(admin, admin.getCurrentPuzzle() - 1, 0, 0, true))
                 .build());
         addWand(Wand.<ParkourAdmin>builder().wandItem(Wand.createWandItem(Material.TRIAL_KEY, "Add/Remove Puzzle", List.of(
-                Component.text("Left Click: add puzzle"),
-                Component.text("Right Click: remove puzzle")
-        )))
+                        Component.text("Left Click: add puzzle"),
+                        Component.text("Right Click: remove puzzle")
+                )))
                 .onLeftClick((event, admin) -> {
                     int newPuzzleIndex = admin.getCurrentPuzzle() + 1;
                     Puzzle newPuzzle = createPuzzle(admin.getPlayer().getLocation());
@@ -139,8 +139,8 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                 .onRightSneakClick((event, admin) -> editInBounds(admin, -0.5))
                 .build());
         addWand(Wand.<ParkourAdmin>builder().wandItem(Wand.createWandItem(PuzzleRenderer.IN_BOUND_BLOCK, "Add/Remove inBound", List.of(
-                Component.text("Left Click: add inBound"),
-                Component.text("Right Click: remove inBound"))))
+                        Component.text("Left Click: add inBound"),
+                        Component.text("Right Click: remove inBound"))))
                 .onLeftClick((event, admin) -> {
                     Puzzle currentPuzzle = puzzles.get(admin.getCurrentPuzzle());
                     PuzzleRenderer puzzleRenderer = puzzleRenderers.get(admin.getCurrentPuzzle());
@@ -179,9 +179,9 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                 })
                 .build());
         addWand(Wand.<ParkourAdmin>builder().wandItem(Wand.createWandItem(PuzzleRenderer.IN_BOUND_BLOCK, "inBound select", List.of(
-                Component.text("Left Click: previous inBound"),
-                Component.text("Right Click: next inBound")
-        )))
+                        Component.text("Left Click: previous inBound"),
+                        Component.text("Right Click: next inBound")
+                )))
                 .onLeftClick((event, admin) -> {
                     Puzzle currentPuzzle = puzzles.get(admin.getCurrentPuzzle());
                     int numOfInbounds = currentPuzzle.getInBounds().size();
@@ -206,20 +206,20 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                 .build());
         
         addWand(Wand.<ParkourAdmin>builder().wandItem(Wand.createWandItem(PuzzleRenderer.DETECTION_AREA_BLOCK_HIGHLIGHTED, "detectionArea", List.of(
-                Component.text("Left Click: push box face away"),
-                Component.text("Right Click: pull box face toward"),
-                Component.text("(Crouch to adjust by 0.5 blocks)")
-        )))
+                        Component.text("Left Click: push box face away"),
+                        Component.text("Right Click: pull box face toward"),
+                        Component.text("(Crouch to adjust by 0.5 blocks)")
+                )))
                 .onLeftClick((event, admin) -> editCheckpoint(admin, 1.0))
                 .onLeftSneakClick((event, admin) -> editCheckpoint(admin, 0.5))
                 .onRightClick((event, admin) -> editCheckpoint(admin, -1.0))
                 .onRightSneakClick((event, admin) -> editCheckpoint(admin, -0.5))
                 .build());
         addWand(Wand.<ParkourAdmin>builder().wandItem(Wand.createWandItem(PuzzleRenderer.DETECTION_AREA_BLOCK, "checkPoint Select", List.of(
-                Component.text("Left Click: previous check point"),
-                Component.text("Right Click: next check point")
-        )))
-                .onLeftClick((event, admin) ->  {
+                        Component.text("Left Click: previous check point"),
+                        Component.text("Right Click: next check point")
+                )))
+                .onLeftClick((event, admin) -> {
                     Puzzle currentPuzzle = puzzles.get(admin.getCurrentPuzzle());
                     int numOfCheckPoints = currentPuzzle.getCheckPoints().size();
                     if (admin.getCurrentCheckPoint() == numOfCheckPoints - 1) {
@@ -242,9 +242,9 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                 })
                 .build());
         addWand(Wand.<ParkourAdmin>builder().wandItem(Wand.createWandItem(PuzzleRenderer.DETECTION_AREA_BLOCK, "Add/Remove checkPoint", List.of(
-                Component.text("Left Click: add check point"),
-                Component.text("Right Click: remove check point")
-        )))
+                        Component.text("Left Click: add check point"),
+                        Component.text("Right Click: remove check point")
+                )))
                 .onLeftClick((event, admin) -> {
                     Puzzle currentPuzzle = puzzles.get(admin.getCurrentPuzzle());
                     PuzzleRenderer puzzleRenderer = puzzleRenderers.get(admin.getCurrentPuzzle());
@@ -281,10 +281,10 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                 })
                 .build());
         addWand(Wand.<ParkourAdmin>builder().wandItem(Wand.createWandItem(PuzzleRenderer.RESPAWN_BLOCK_HIGHLIGHTED, "respawn", List.of(
-                Component.text("Left Click: set to current Location (exact)"),
-                Component.text("Right Click: set to current Location (rounded)"),
-                Component.text("(Crouch to get block position)")
-        )))
+                        Component.text("Left Click: set to current Location (exact)"),
+                        Component.text("Right Click: set to current Location (rounded)"),
+                        Component.text("(Crouch to get block position)")
+                )))
                 .onLeftClick((event, admin) -> editRespawn(admin, admin.getPlayer().getLocation()))
                 .onLeftSneakClick((event, admin) -> editRespawn(admin, admin.getPlayer().getLocation().toBlockLocation()))
                 .onRightClick((event, admin) -> editRespawn(admin,
@@ -300,9 +300,9 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                                 .toBlockLocation()))
                 .build());
         addWand(Wand.<ParkourAdmin>builder().wandItem(Wand.createWandItem(Material.GLASS, "Toggle Type", List.of(
-                Component.text("Left Click: cycle the display type for inBounds"),
-                Component.text("Right Click: cycle the display type for checkpoints")
-        )))
+                        Component.text("Left Click: cycle the display type for inBounds"),
+                        Component.text("Right Click: cycle the display type for checkpoints")
+                )))
                 .onLeftClick(((event, admin) -> cycleInBoundsType()))
                 .onRightClick(((event, admin) -> cycleCheckpointType()))
                 .build());
@@ -369,10 +369,10 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
      * @param teleport whether to teleport the participant to the selected puzzle's first respawn
      */
     public CommandResult selectPuzzle(
-            ParkourAdmin admin, 
-            int puzzleIndex, 
-            int inBoundsIndex, 
-            int checkPointIndex, 
+            ParkourAdmin admin,
+            int puzzleIndex,
+            int inBoundsIndex,
+            int checkPointIndex,
             boolean teleport) {
         if (puzzleIndex >= puzzles.size()) {
             return CommandResult.failure(Component.empty()
@@ -388,12 +388,12 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
         }
         
         puzzleRenderers.get(admin.getCurrentPuzzle()).setHighlight(
-                admin.getCurrentInBound(), 
-                admin.getCurrentCheckPoint(), 
+                admin.getCurrentInBound(),
+                admin.getCurrentCheckPoint(),
                 false);
         puzzleRenderers.get(puzzleIndex).setHighlight(
-                inBoundsIndex, 
-                checkPointIndex, 
+                inBoundsIndex,
+                checkPointIndex,
                 true);
         
         admin.setCurrentPuzzle(puzzleIndex);
@@ -464,8 +464,8 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
         PuzzleRenderer puzzleRenderer = puzzleRenderers.get(admin.getCurrentPuzzle());
         
         BoundingBox newInBound = EntityUtils.expandBoundingBox(
-                currentPuzzle.getInBounds().get(admin.getCurrentInBound()), 
-                direction, 
+                currentPuzzle.getInBounds().get(admin.getCurrentInBound()),
+                direction,
                 increment
         );
         currentPuzzle.setInBound(admin.getCurrentInBound(), newInBound);

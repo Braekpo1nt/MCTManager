@@ -35,7 +35,7 @@ public class AnimalGrower {
     
     public AnimalGrower(Location location, double radius, double ageMultiplier, double breedMultiplier) {
         this.world = location.getWorld();
-        this.location = location; 
+        this.location = location;
         this.radius = radius;
         this.ageMultiplier = ageMultiplier;
         this.breedMultiplier = breedMultiplier;

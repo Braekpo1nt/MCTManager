@@ -11,7 +11,8 @@ import org.jetbrains.annotations.NotNull;
 @Data
 public class SoundDTO implements Validatable {
     /**
-     * Is the resource location of the sound to play. Can be a built-in minecraft sound or a resource pack sound. See sound parameter explanation of default minecraft /playsound command
+     * Is the resource location of the sound to play. Can be a built-in minecraft sound or a resource pack sound. See
+     * sound parameter explanation of default minecraft /playsound command
      */
     private NamespacedKeyDTO namespacedKey;
     /**

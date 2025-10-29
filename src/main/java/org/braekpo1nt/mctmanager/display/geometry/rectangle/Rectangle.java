@@ -14,7 +14,7 @@ import java.util.List;
 public interface Rectangle {
     
     /**
-     * See {@link Rectangle#of(double, double, double, double, double, double)} 
+     * See {@link Rectangle#of(double, double, double, double, double, double)}
      * @param a the first corner of an axis-aligned rectangle
      * @param b the second corner of an axis-aligned rectangle
      */
@@ -23,9 +23,8 @@ public interface Rectangle {
     }
     
     /**
-     * 
-     * @param origin the origin of the rectangle, to which the edges will be added to 
-     *               form the corners
+     * @param origin the origin of the rectangle, to which the edges will be added to
+     * form the corners
      * @param edge1 the first edge, relative to the origin
      * @param edge2 the second edge, relative to the origin
      * @return a rectangle represented by the given origin and two edges
@@ -35,7 +34,8 @@ public interface Rectangle {
     }
     
     /**
-     * Returns the axis-aligned rectangle defined by the two points. To define a non-axis-aligned rectangle, see {@link Rectangle#of(double, double, double, double, double, double, double, double, double)}
+     * Returns the axis-aligned rectangle defined by the two points. To define a non-axis-aligned rectangle, see
+     * {@link Rectangle#of(double, double, double, double, double, double, double, double, double)}
      * @param x1 x-coord of the first corner of an axis-aligned rectangle
      * @param y1 y-coord of the first corner of an axis-aligned rectangle
      * @param z1 z-coord of the first corner of an axis-aligned rectangle
@@ -43,7 +43,8 @@ public interface Rectangle {
      * @param y2 y-coord of the second corner of an axis-aligned rectangle
      * @param z2 z-coord of the second corner of an axis-aligned rectangle
      * @return the Axis-Aligned Rectangle represented by the two points.
-     * @throws IllegalArgumentException if both points are identical, or if the two points are not aligned on exactly one of the cartesian planes.
+     * @throws IllegalArgumentException if both points are identical, or if the two points are not aligned on exactly
+     * one of the cartesian planes.
      */
     static Rectangle of(double x1, double y1, double z1, double x2, double y2, double z2) {
         if (x1 == x2
@@ -71,8 +72,9 @@ public interface Rectangle {
     }
     
     /**
-     * Turn the given BoundingBox into rectangles. 
-     * If the box is 2-dimensional in all 3 axis (i.e. min and max corners are equal) throws {@link IllegalArgumentException}. 
+     * Turn the given BoundingBox into rectangles.
+     * If the box is 2-dimensional in all 3 axis (i.e. min and max corners are equal) throws
+     * {@link IllegalArgumentException}.
      * Otherwise, if the box is 2-dimensional on 1 or 2 of the axes, will return the appropriate number of rectangles
      * @param box the BoundingBox to convert to rectangles
      * @return between 1 and 6 rectangles representing the faces of the given BoundingBox

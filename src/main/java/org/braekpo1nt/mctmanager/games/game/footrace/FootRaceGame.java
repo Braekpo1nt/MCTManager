@@ -52,7 +52,7 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
      */
     private List<FootRaceParticipant> standings;
     /**
-     * Keeps track of how many participants have finished the race, so we can know 
+     * Keeps track of how many participants have finished the race, so we can know
      * what place a player should be in when they finish
      * TODO: Participant would {@link #standings} be sufficient for this?
      */
@@ -190,7 +190,7 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
     }
     
     private void startStatusEffectsTask() {
-        this.statusEffectsTaskId = new BukkitRunnable(){
+        this.statusEffectsTaskId = new BukkitRunnable() {
             @Override
             public void run() {
                 for (Participant participant : participants.values()) {

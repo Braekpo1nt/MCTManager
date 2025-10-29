@@ -25,20 +25,20 @@ import java.util.Collections;
 import java.util.List;
 
 record ClockworkConfigDTO(
-        String version, 
-        String world, 
+        String version,
+        String world,
         Vector startingLocation,
-        @Nullable BoundingBox spectatorArea, 
-        Chaos chaos, 
-        List<WedgeDTO> wedges, 
-        int rounds, 
-        SoundDTO clockChime, 
-        double initialChimeInterval, 
-        double chimeIntervalDecrement, 
+        @Nullable BoundingBox spectatorArea,
+        Chaos chaos,
+        List<WedgeDTO> wedges,
+        int rounds,
+        SoundDTO clockChime,
+        double initialChimeInterval,
+        double chimeIntervalDecrement,
         Boolean longMode,
         Team.OptionStatus collisionRule,
         @Nullable List<Material> preventInteractions,
-        Scores scores, 
+        Scores scores,
         Durations durations,
         Component getToWedgeMessage,
         Component description) implements Validatable {
@@ -125,9 +125,9 @@ record ClockworkConfigDTO(
     }
     
     record Durations(
-            int breather, 
-            int getToWedge, 
-            int stayOnWedge, 
+            int breather,
+            int getToWedge,
+            int stayOnWedge,
             int description,
             int roundStarting,
             int roundOver,

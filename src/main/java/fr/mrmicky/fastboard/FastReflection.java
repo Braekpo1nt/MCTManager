@@ -34,7 +34,6 @@ import java.util.function.Predicate;
 
 /**
  * Small reflection utility class to use CraftBukkit and NMS.
- *
  * @author MrMicky
  */
 public final class FastReflection {

@@ -27,21 +27,21 @@ import java.util.Collections;
 import java.util.List;
 
 record ColossalCombatConfigDTO(
-        String version, 
-        String world, 
-        @Nullable BoundingBox spectatorArea, 
-        LocationDTO spectatorSpawn, 
-        int requiredWins, 
+        String version,
+        String world,
+        @Nullable BoundingBox spectatorArea,
+        LocationDTO spectatorSpawn,
+        int requiredWins,
         List<ItemDrop> itemDrops,
-        @Nullable PlayerInventoryDTO loadout, 
-        GateDTO northGate, 
-        GateDTO southGate, 
-        BoundingBox removeArea, 
-        BoundingBox northSupport, 
-        BoundingBox southSupport, 
+        @Nullable PlayerInventoryDTO loadout,
+        GateDTO northGate,
+        GateDTO southGate,
+        BoundingBox removeArea,
+        BoundingBox northSupport,
+        BoundingBox southSupport,
         CaptureTheFlag captureTheFlag,
         @Nullable List<Material> preventInteractions,
-        Durations durations, 
+        Durations durations,
         Component description) implements Validatable {
     
     @Override
@@ -55,11 +55,11 @@ record ColossalCombatConfigDTO(
             BoundingBox spectatorArea = this.spectatorArea;
             validator.validate(spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
         }
-    
+        
         
         validator.notNull(this.spectatorSpawn, "spectatorSpawn");
         validator.validate(this.requiredWins > 0, "requiredWins must be greater than 0");
-    
+        
         if (this.itemDrops != null) {
             validator.validateList(this.itemDrops, "itemDrops");
         }
@@ -67,15 +67,15 @@ record ColossalCombatConfigDTO(
         if (this.loadout != null) {
             this.loadout.validate(validator.path("loadout"));
         }
-    
+        
         validator.notNull(this.northGate, "northGate");
         this.northGate.validate(validator.path("northGate"));
         validator.notNull(this.southGate, "southGate");
         this.southGate.validate(validator.path("southGate"));
-    
+        
         validator.notNull(this.removeArea, "removeArea");
         validator.validate(this.removeArea.getVolume() >= 2.0, "boundingBox (%s) volume (%s) must be at least 2.0", removeArea, removeArea.getVolume());
-    
+        
         validator.notNull(this.northSupport, "northSupport");
         validator.validate(this.northSupport.getVolume() > 0, "northSupport volume (%s) must be greater than 0", northSupport.getVolume());
         validator.notNull(this.southSupport, "southSupport");
@@ -84,7 +84,7 @@ record ColossalCombatConfigDTO(
         
         validator.notNull(captureTheFlag, "captureTheFlag");
         captureTheFlag.validate(validator.path("captureTheFlag"));
-    
+        
         validator.notNull(this.durations, "durations");
         validator.validate(this.durations.roundStarting() >= 1, "durations.roundStarting must be at least 1");
         validator.validate(this.durations.roundOver() >= 0, "durations.roundOver can't be negative");
@@ -183,8 +183,8 @@ record ColossalCombatConfigDTO(
         private LocationDTO flagLocation;
         private Component flagSpawnMessage = Component.text("The flag has appeared! Capture it to win the round!")
                 .color(NamedTextColor.GREEN);
-        /** 
-         * the max number of players on each team for the capture the flag countdown to start. 
+        /**
+         * the max number of players on each team for the capture the flag countdown to start.
          * defaults to 1. Values less than one means sudden death will never be triggered.
          */
         private int maxPlayers = 1;
@@ -194,11 +194,14 @@ record ColossalCombatConfigDTO(
          */
         private int countdown = 60;
         /**
-         * the block to replace with concrete of the team's color. Defaults to null. If null, no blocks will be replaced.
+         * the block to replace with concrete of the team's color. Defaults to null. If null, no blocks will be
+         * replaced.
          */
         private @Nullable Material replaceBlock = null;
         /**
-         * The area to replace with the concrete of the team's color. At the start of the game, the {@link CaptureTheFlag#replaceBlock} material will be replaced with the concrete of the team's color, and at the end of the game it will be returned to what it was before.
+         * The area to replace with the concrete of the team's color. At the start of the game, the
+         * {@link CaptureTheFlag#replaceBlock} material will be replaced with the concrete of the team's color, and at
+         * the end of the game it will be returned to what it was before.
          */
         private BoundingBox firstPlaceReplaceArea;
         /**
@@ -251,10 +254,10 @@ record ColossalCombatConfigDTO(
     
     /**
      * @param roundStarting the duration (in seconds) to count down before the gates drop and the match starts
-     * @param antiSuffocation the duration (in ticks) to prevent players from walking over the area that would cause 
-     *                        them to suffocate in the concrete powder wall as the blocks fall. Careful, if this is not 
-     *                        long enough the players will suffocate, and if it's too long they'll get frustrated. 
-     *                        TODO: implement a more automated version of this. 
+     * @param antiSuffocation the duration (in ticks) to prevent players from walking over the area that would cause
+     * them to suffocate in the concrete powder wall as the blocks fall. Careful, if this is not
+     * long enough the players will suffocate, and if it's too long they'll get frustrated.
+     *                        TODO: implement a more automated version of this.
      */
     record Durations(int roundStarting, int roundOver, int gameOver, long antiSuffocation, int description) {
     }

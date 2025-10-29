@@ -33,21 +33,23 @@ public class TeamSpawn {
     private Material barrierMaterial = Material.GLASS;
     
     /**
-     * actually constructs the {@link TeamSpawn} in the {@link TeamSpawn#world}. Replaces {@link Material#AIR} with the assigned {@link TeamSpawn#barrierMaterial}
+     * actually constructs the {@link TeamSpawn} in the {@link TeamSpawn#world}. Replaces {@link Material#AIR} with the
+     * assigned {@link TeamSpawn#barrierMaterial}
      */
     public void close() {
         BlockPlacementUtils.createCubeReplace(world, barrierArea, Material.AIR, barrierMaterial);
     }
     
     /**
-     * removes the previously constructed {@link TeamSpawn} from the {@link TeamSpawn#world}. Replaces {@link TeamSpawn#barrierMaterial} with {@link Material#AIR}
+     * removes the previously constructed {@link TeamSpawn} from the {@link TeamSpawn#world}. Replaces
+     * {@link TeamSpawn#barrierMaterial} with {@link Material#AIR}
      */
     public void open() {
         BlockPlacementUtils.createCubeReplace(world, barrierArea, barrierMaterial, Material.AIR);
     }
     
     /**
-     * Teleports the given participant to this {@link TeamSpawn}'s {@link TeamSpawn#spawnLocation}. 
+     * Teleports the given participant to this {@link TeamSpawn}'s {@link TeamSpawn#spawnLocation}.
      * @param participant the participant
      */
     public void teleport(Participant participant) {

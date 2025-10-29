@@ -22,7 +22,7 @@ public class SpectatorBoundary {
     private final @NotNull BoundingBox area;
     
     /**
-     * The spawn location that spectators should be sent to if they stray 
+     * The spawn location that spectators should be sent to if they stray
      * too far from their designated area
      */
     private final @NotNull Location defaultSpawn;

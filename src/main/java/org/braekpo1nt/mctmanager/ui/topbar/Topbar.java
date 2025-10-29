@@ -25,18 +25,20 @@ public interface Topbar extends UIManager {
     
     /**
      * Make the given player no longer see this Topbar
-     * @param playerUUID the UUID of the player to hide this Topbar from. Must be the UUID of a valid player in this Topbar. 
+     * @param playerUUID the UUID of the player to hide this Topbar from. Must be the UUID of a valid player in this
+     * Topbar.
      */
     void hidePlayer(@NotNull UUID playerUUID);
     
     /**
      * A bulk operation version of {@link Topbar#hidePlayer(UUID)}.
-     * @param playerUUIDs a list of the UUIDs of each player to hide this Topbar from. Each UUID must be a valid player in this Topbar.
+     * @param playerUUIDs a list of the UUIDs of each player to hide this Topbar from. Each UUID must be a valid player
+     * in this Topbar.
      */
     void hidePlayers(@NotNull List<@NotNull UUID> playerUUIDs);
     
     /**
-     * Hides this Topbar from all players who are viewing it. 
+     * Hides this Topbar from all players who are viewing it.
      */
     void hideAllPlayers();
     

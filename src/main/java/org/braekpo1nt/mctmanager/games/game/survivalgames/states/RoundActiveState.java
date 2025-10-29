@@ -156,7 +156,7 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
             Component deathMessage = Component.empty()
                     .append(participant.displayName())
                     .append(Component.text(" left early. Their life is forfeit."));
-            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant.getPlayer(), 
+            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant.getPlayer(),
                     DamageSource.builder(DamageType.GENERIC).build(), drops, droppedExp, 0, 0, 0, deathMessage, true);
             this.onParticipantDeath(fakeDeathEvent, participant);
         }
@@ -237,8 +237,8 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
         int index = selectRespawnLocation(participant.getUsedRespawns());
         // save this as a used respawn for this participant
         participant.getUsedRespawns().add(index);
-        Location respawn = index == -1 ? 
-                config.getPlatformSpawns().getFirst() : 
+        Location respawn = index == -1 ?
+                config.getPlatformSpawns().getFirst() :
                 config.getRespawnLocations().get(index);
         participant.teleport(respawn);
         participant.setGameMode(GameMode.ADVENTURE);
@@ -261,7 +261,7 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
     
     /**
      * @param usedRespawns a set of respawns that are already used, and should be excluded if
-     *                     possible
+     * possible
      * @return a random respawn location within the current border stage that hasn't
      * been used by the given participant. If no suitable location can be found,
      * the first center platform spawn is returned.
@@ -278,11 +278,11 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
      * @param centerX the center x coord of the border
      * @param centerZ the center z coord of the border
      * @param currentBorderStage the border stage to select a location within
-     * @param respawnLocations the locations to choose from. The resulting index will be in range 
-     *                         of this list, or -1 if an appropriate location could not be found
-     * @param usedRespawnIndexes a collection of indexes of respawn points in the respawnLocations 
-     *                           list that has been used, and shouldn't be chosen if an unused 
-     *                           one can be found
+     * @param respawnLocations the locations to choose from. The resulting index will be in range
+     * of this list, or -1 if an appropriate location could not be found
+     * @param usedRespawnIndexes a collection of indexes of respawn points in the respawnLocations
+     * list that has been used, and shouldn't be chosen if an unused
+     * one can be found
      * @param random a random provider
      * @return an index in the bounds of the given respawnLocations corresponding to the chosen
      * respawn location, or -1 if an appropriate location could not be found
@@ -396,7 +396,7 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
     }
     
     /**
-     * Call when all of a team's members are dead. 
+     * Call when all of a team's members are dead.
      * @param deadTeam the team who just died
      */
     private void onTeamDeath(SurvivalGamesTeam deadTeam) {

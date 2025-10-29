@@ -16,12 +16,12 @@ public class ExampleConfigController extends ConfigController<ExampleConfigDTO> 
      */
     private final File configDirectory;
     
-    public ExampleConfigController(@NotNull  File pluginDataFolder, @NotNull String configDirectory) {
+    public ExampleConfigController(@NotNull File pluginDataFolder, @NotNull String configDirectory) {
         this.configDirectory = new File(pluginDataFolder, configDirectory);
     }
     
     /**
-     * Gets the config from storage 
+     * Gets the config from storage
      * @param configFile the name of the config file to use
      * @return the config for spleef
      * @throws ConfigInvalidException if the config is invalid

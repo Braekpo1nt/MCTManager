@@ -48,7 +48,6 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
     }
     
     /**
-     * 
      * @param newParticipants the newParticipants
      * @param newAdmins the newAdmins
      */

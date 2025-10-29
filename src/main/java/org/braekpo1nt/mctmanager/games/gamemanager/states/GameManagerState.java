@@ -109,13 +109,13 @@ public abstract class GameManagerState {
     protected final Map<UUID, GameInstanceId> participantGames;
     /**
      * A reference to which admin is in which game<br>
-     * If an admin's UUID is a key in this map, that admin is in 
+     * If an admin's UUID is a key in this map, that admin is in
      * a game.
      */
     protected final Map<UUID, GameInstanceId> adminGames;
     /**
      * A reference to which admin is in which editor<br>
-     * If an admin's UUID is a key in this map, that admin is in 
+     * If an admin's UUID is a key in this map, that admin is in
      * an editor.
      */
     protected final Map<UUID, GameInstanceId> adminEditors;
@@ -275,7 +275,7 @@ public abstract class GameManagerState {
     
     /**
      * Handles when a participant leaves the event.
-     * Should be called when a participant disconnects (quits/leaves) from the server 
+     * Should be called when a participant disconnects (quits/leaves) from the server
      * (see {@link GameManager#onPlayerQuit(PlayerQuitEvent)}),
      * or when they are removed from the participants list
      * @param participant The participant who left the event
@@ -334,7 +334,7 @@ public abstract class GameManagerState {
         KeyLine[] teamLines = new KeyLine[10];
         for (int i = 0; i < numOfTeamLines; i++) {
             Team team = sortedTeams.get(i);
-            teamLines[i] = new KeyLine("team"+i, Component.empty()
+            teamLines[i] = new KeyLine("team" + i, Component.empty()
                     .append(team.getFormattedDisplayName())
                     .append(Component.text(": "))
                     .append(Component.text(team.getScore())
@@ -343,7 +343,7 @@ public abstract class GameManagerState {
         }
         // fill out any empty lines
         for (int i = numOfTeamLines; i < 10; i++) {
-            teamLines[i] = new KeyLine("team"+i, Component.empty());
+            teamLines[i] = new KeyLine("team" + i, Component.empty());
         }
         sidebar.updateLines(teamLines);
     }
@@ -394,7 +394,7 @@ public abstract class GameManagerState {
             MCTTeam team = sortedTeams.get(i);
             everyone
                     .append(Component.text("  "))
-                    .append(Component.text(i+1))
+                    .append(Component.text(i + 1))
                     .append(Component.text(". "))
                     .append(team.getFormattedDisplayName())
                     .append(Component.text(": "))
@@ -419,7 +419,7 @@ public abstract class GameManagerState {
             OfflineParticipant participant = sortedParticipants.get(i);
             everyone
                     .append(Component.text("  "))
-                    .append(Component.text(i+1))
+                    .append(Component.text(i + 1))
                     .append(Component.text(". "))
                     .append(participant.displayName())
                     .append(Component.text(": "))
@@ -581,11 +581,11 @@ public abstract class GameManagerState {
         try {
             activeGames.put(gameInstanceId,
                     instantiateGame(
-                            gameType, 
-                            title, 
-                            configFile, 
-                            new HashSet<>(gameTeams), 
-                            new HashSet<>(gameParticipants), 
+                            gameType,
+                            title,
+                            configFile,
+                            new HashSet<>(gameTeams),
+                            new HashSet<>(gameParticipants),
                             gameAdmins));
         } catch (Exception e) {
             for (MCTParticipant participant : gameParticipants) {
@@ -750,13 +750,12 @@ public abstract class GameManagerState {
     
     /**
      * Called by an active game when the game is over.
-     *
-     * @param id                the instance id of the game that ended
-     * @param teamScores        the team scores
+     * @param id the instance id of the game that ended
+     * @param teamScores the team scores
      * @param participantScores the participant scores
-     * @param gameParticipants  the UUIDs of the participants which are online and were in the finished
-     *                          game. Must be UUIDs which are keys in {@link #onlineParticipants}.
-     * @param gameAdmins        the admins who were in the game
+     * @param gameParticipants the UUIDs of the participants which are online and were in the finished
+     * game. Must be UUIDs which are keys in {@link #onlineParticipants}.
+     * @param gameAdmins the admins who were in the game
      */
     public void gameIsOver(@NotNull GameInstanceId id, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants, @NotNull List<Player> gameAdmins) {
         MCTGame game = activeGames.remove(id);
@@ -781,10 +780,9 @@ public abstract class GameManagerState {
      * Add the given scores to the given teams and participants, save the game state, update
      * the UI, etc. <br>
      * If any invalid teamIds or UUIDs are used, there will be errors
-     *
-     * @param newTeamScores        map of teamId to score to add. Must be teamIds of real teams
+     * @param newTeamScores map of teamId to score to add. Must be teamIds of real teams
      * @param newParticipantScores map of UUID to score to add. Must be UUIDs of real participants
-     * @param id                   the type of the game
+     * @param id the type of the game
      */
     protected void addScores(Map<String, Integer> newTeamScores, Map<UUID, Integer> newParticipantScores, @NotNull GameInstanceId id) {
         // some values might be from offline teams who have been removed, but still saved as QuitData
@@ -828,7 +826,7 @@ public abstract class GameManagerState {
     
     /**
      * @param gameType the {@link GameType} to instantiate the {@link MCTGame} for
-     * @return a new {@link MCTGame} instance for the given type. Null if the given type is null. 
+     * @return a new {@link MCTGame} instance for the given type. Null if the given type is null.
      */
     protected MCTGame instantiateGame(
             @NotNull GameType gameType,
@@ -892,8 +890,7 @@ public abstract class GameManagerState {
     protected boolean editorExists(@NotNull GameType gameType) {
         return switch (gameType) {
             case PARKOUR_PATHWAY,
-                 FOOT_RACE
-                    -> true;
+                 FOOT_RACE -> true;
             default -> false;
         };
     }
@@ -1052,6 +1049,7 @@ public abstract class GameManagerState {
     // event stop
     
     // team start
+    
     /**
      * Add a team to the game.
      * @param teamId The teamId of the team. If a team with the given id already exists, nothing happens.
@@ -1122,9 +1120,11 @@ public abstract class GameManagerState {
     // team stop
     
     // participant start
+    
     /**
-     * Joins the given player to the team with the given teamId. If the player was on a team already (not teamId) they will be removed from that team and added to the other team. 
-     * Note, this will not join a player to a team if that player is an admin. 
+     * Joins the given player to the team with the given teamId. If the player was on a team already (not teamId) they
+     * will be removed from that team and added to the other team.
+     * Note, this will not join a player to a team if that player is an admin.
      * @param offlinePlayer The player to join to the given team
      * @param name The name of the participant to join to the given team
      * @param teamId The internal teamId of the team to join the player to.
@@ -1195,7 +1195,7 @@ public abstract class GameManagerState {
     
     /**
      * Leaves the player from the team and removes them from the game state.
-     * If a game is running, and the player is online, removes that player from the game as well. 
+     * If a game is running, and the player is online, removes that player from the game as well.
      * @param offlineParticipant The participant to remove from their team
      */
     public CommandResult leaveParticipant(@NotNull OfflineParticipant offlineParticipant) {
@@ -1393,8 +1393,10 @@ public abstract class GameManagerState {
     // participant stop
     
     // admin start
+    
     /**
-     * Adds the given player as an admin. If the player is already an admin, nothing happens. If the player is a participant, they are removed from their team and added as an admin.
+     * Adds the given player as an admin. If the player is already an admin, nothing happens. If the player is a
+     * participant, they are removed from their team and added as an admin.
      * @param newAdmin The player to add
      */
     public CommandResult addAdmin(Player newAdmin) {
@@ -1422,7 +1424,8 @@ public abstract class GameManagerState {
         if (adminTeam != null) {
             adminTeam.addPlayer(newAdmin);
         } else {
-            Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (addAdmin)", GameManager.ADMIN_TEAM));;
+            Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (addAdmin)", GameManager.ADMIN_TEAM));
+            ;
         }
         if (newAdmin.isOnline()) {
             newAdmin.sendMessage(Component.text("You were added as an admin"));

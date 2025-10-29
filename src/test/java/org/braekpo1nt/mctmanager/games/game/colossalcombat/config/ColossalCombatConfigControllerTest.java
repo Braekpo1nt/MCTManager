@@ -36,17 +36,17 @@ public class ColossalCombatConfigControllerTest {
         configFolder = new File(plugin.getDataFolder(), GameType.FINAL.getId());
         configFolder.mkdirs();
     }
-
+    
     @AfterEach
     void tearDown() {
         MockBukkit.unmock();
     }
-
+    
     @Test
     void configDoesNotExist() {
         Assertions.assertThrows(ConfigIOException.class, () -> controller.getConfig(configFileName));
     }
-
+    
     @Test
     void malformedJson() {
         TestUtils.createFileInDirectory(configFolder, configFileName, "{,");

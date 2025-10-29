@@ -24,7 +24,7 @@ import java.util.Objects;
 
 /**
  * Renders a BoundingBox using a single block, scaled to the size of the BoundingBox.
- * Includes an inverted block of the same size and location so that it can be viewed from the inside. 
+ * Includes an inverted block of the same size and location so that it can be viewed from the inside.
  */
 public class BlockBoxRenderer implements BoundingBoxRenderer, DisplayComposite, HasBlockDataComposite {
     
@@ -37,7 +37,7 @@ public class BlockBoxRenderer implements BoundingBoxRenderer, DisplayComposite, 
     
     @Builder
     public BlockBoxRenderer(
-            @NotNull World world, 
+            @NotNull World world,
             @NotNull BoundingBox boundingBox,
             @Nullable Display.Brightness brightness,
             @Nullable Component customName,

@@ -39,7 +39,7 @@ import java.util.*;
 
 @Getter
 @Setter
-public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam, ParkourParticipant.QuitData, ParkourTeam.QuitData, ParkourPathwayState>  {
+public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam, ParkourParticipant.QuitData, ParkourTeam.QuitData, ParkourPathwayState> {
     
     private final ParkourPathwayConfig config;
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
@@ -81,7 +81,7 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
     }
     
     private void startStatusEffectsTask() {
-        this.statusEffectsTaskId = new BukkitRunnable(){
+        this.statusEffectsTaskId = new BukkitRunnable() {
             @Override
             public void run() {
                 for (Participant participant : participants.values()) {
@@ -150,7 +150,7 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
                     .append(Component.text(participant.getUnusedSkips()))
                     .append(Component.text(" unused skips"))
                     .color(NamedTextColor.GREEN));
-            this.awardPoints(participant, 
+            this.awardPoints(participant,
                     participant.getUnusedSkips() * config.getUnusedSkipScore());
         }
         participant.setUnusedSkips(0);
@@ -219,7 +219,7 @@ public class ParkourPathwayGame extends GameBase<ParkourParticipant, ParkourTeam
     }
     
     public void updateCheckpointSidebar(ParkourParticipant participant) {
-        int lastCheckpoint = config.getPuzzlesSize()-1;
+        int lastCheckpoint = config.getPuzzlesSize() - 1;
         sidebar.updateLine(participant.getUniqueId(), "checkpoint",
                 Component.empty()
                         .append(Component.text(participant.getCurrentPuzzle()))

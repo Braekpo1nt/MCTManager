@@ -23,7 +23,7 @@ public class ParkourParticipant extends ParticipantData {
      */
     private int currentPuzzle;
     /**
-     * The index of the checkpoint that the participant is on for their 
+     * The index of the checkpoint that the participant is on for their
      * current puzzle (since each puzzle may have multiple checkpoints)
      */
     private int currentPuzzleCheckpoint;
@@ -32,7 +32,7 @@ public class ParkourParticipant extends ParticipantData {
      */
     private int unusedSkips;
     /**
-     * The skip cooldown in seconds. When this is greater than 0, 
+     * The skip cooldown in seconds. When this is greater than 0,
      * a participant can't use their skip.
      */
     private int skipCooldown;

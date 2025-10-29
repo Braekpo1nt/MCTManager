@@ -41,6 +41,7 @@ public class ParticipantInitializer {
         }
         participant.setArrowsInBody(0);
     }
+    
     public static void clearStatusEffects(Participant participant) {
         clearStatusEffects(participant.getPlayer());
     }
@@ -49,6 +50,7 @@ public class ParticipantInitializer {
         participant.setFireTicks(0);
         participant.setVisualFire(false);
     }
+    
     private static void extinguishFire(Participant participant) {
         extinguishFire(participant.getPlayer());
     }
@@ -58,6 +60,7 @@ public class ParticipantInitializer {
         participant.setFoodLevel(20);
         participant.setSaturation(5);
     }
+    
     public static void resetHealthAndHunger(Participant participant) {
         resetHealthAndHunger(participant.getPlayer());
     }
@@ -66,6 +69,7 @@ public class ParticipantInitializer {
         participant.getInventory().clear();
         participant.getOpenInventory().setCursor(new ItemStack(Material.AIR));
     }
+    
     public static void clearInventory(Participant participant) {
         clearInventory(participant.getPlayer());
     }

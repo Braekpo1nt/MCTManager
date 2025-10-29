@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * A utility command for testing various things, so I don't have to create a new command. 
+ * A utility command for testing various things, so I don't have to create a new command.
  */
 public class MCTDebugCommand implements TabExecutor, Listener {
     

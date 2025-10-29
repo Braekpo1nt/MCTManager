@@ -16,7 +16,9 @@ public interface HasTextSingleton extends HasText {
     @NotNull
     HasText getHasText();
     
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     default void setText(@NotNull Component text) {
         getHasText().setText(text);

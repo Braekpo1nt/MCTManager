@@ -126,7 +126,7 @@ public class ClassPicker implements Listener {
                 .append(Component.text(" (One per team)")
                         .color(NamedTextColor.GRAY))));
         gui.setOnGlobalClick(event -> event.setCancelled(true));
-        OutlinePane pane = new OutlinePane(0,0, 9, 1);
+        OutlinePane pane = new OutlinePane(0, 0, 9, 1);
         for (GuiItem guiItem : battleClassGuiItems.values()) {
             pane.addItem(guiItem);
         }
@@ -151,7 +151,8 @@ public class ClassPicker implements Listener {
         netherStar.editMeta(meta -> meta.displayName(NETHER_STAR_NAME));
         for (Participant teamMate : teamMates.values()) {
             ChestGui gui = guis.get(teamMate.getUniqueId());
-            gui.setOnClose(event -> {});
+            gui.setOnClose(event -> {
+            });
             gui.getInventory().close();
             teamMate.getInventory().removeItemAnySlot(netherStar);
         }
@@ -212,7 +213,8 @@ public class ClassPicker implements Listener {
             return;
         }
         ChestGui gui = guis.get(teamMate.getUniqueId());
-        gui.setOnClose(event -> {});
+        gui.setOnClose(event -> {
+        });
         gui.getInventory().close();
         if (pickedBattleClasses.containsKey(teamMate.getUniqueId())) {
             deselectClass(teamMate);

@@ -104,7 +104,7 @@ public abstract class EventState extends GameManagerState {
         List<ScoreKeeper> gameScoreKeepers = eventData.getScoreKeepers().get(id);
         if (iterationIndex < 0) {
             return CommandResult.failure(Component.empty()
-                    .append(Component.text(iterationIndex+1)
+                    .append(Component.text(iterationIndex + 1)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" is not a valid play-through")));
         }
@@ -309,6 +309,7 @@ public abstract class EventState extends GameManagerState {
     }
     
     // progression start
+    
     /**
      * @return a line for sidebars saying what the current game is
      */

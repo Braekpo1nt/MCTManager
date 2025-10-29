@@ -71,7 +71,7 @@ public class Wand<T extends Audience> {
             @Nullable BiFunction<PlayerInteractEvent, T, CommandResult> onRightSneakClickAir,
             @Nullable BiFunction<PlayerInteractEvent, T, CommandResult> onRightSneakClickBlock,
             
-            @Nullable  BiFunction<PlayerInteractEvent, T, CommandResult> onLeftClick,
+            @Nullable BiFunction<PlayerInteractEvent, T, CommandResult> onLeftClick,
             @Nullable BiFunction<PlayerInteractEvent, T, CommandResult> onLeftClickAir,
             @Nullable BiFunction<PlayerInteractEvent, T, CommandResult> onLeftClickBlock,
             @Nullable BiFunction<PlayerInteractEvent, T, CommandResult> onLeftSneakClick,
@@ -80,7 +80,7 @@ public class Wand<T extends Audience> {
             
             @Nullable Function<T, CommandResult> onHoldTick,
             boolean shouldNotDrop
-            ) {
+    ) {
         this.wandItem = Objects.requireNonNull(wandItem, "wandItem can't be null");
         this.onInteract = (onInteract != null) ? onInteract : (event, user) -> CommandResult.success();
         this.onRightClick = (onRightClick != null) ? onRightClick : (event, user) -> CommandResult.success();
@@ -122,8 +122,8 @@ public class Wand<T extends Audience> {
     
     @Contract("null -> false")
     public boolean isWandItem(@Nullable ItemStack item) {
-        return item != null 
-                && item.getType().equals(wandItem.getType()) 
+        return item != null
+                && item.getType().equals(wandItem.getType())
                 && item.getItemMeta().equals(wandItem.getItemMeta());
     }
     
@@ -196,9 +196,11 @@ public class Wand<T extends Audience> {
     /**
      * Called every X ticks by the controlling context when a given user is holding this wand.
      * X is determined by the controlling context.
-     * If the item in {@link PlayerInventory#getItemInMainHand()} is this {@link Wand}'s {@link Wand#isWandItem(ItemStack)},
+     * If the item in {@link PlayerInventory#getItemInMainHand()} is this {@link Wand}'s
+     * {@link Wand#isWandItem(ItemStack)},
      * then {@link #onHoldTick} is called. Otherwise, nothing happens.
-     * @param user the user to check if they are holding this wand, and if they are perform the {@link #onHoldTick} action
+     * @param user the user to check if they are holding this wand, and if they are perform the {@link #onHoldTick}
+     * action
      */
     public void onHoldTick(@NotNull PlayerInventory userInventory, @NotNull T user) {
         ItemStack heldItem = userInventory.getItemInMainHand();

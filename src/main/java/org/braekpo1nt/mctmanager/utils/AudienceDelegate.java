@@ -36,7 +36,6 @@ public interface AudienceDelegate extends Audience {
     /**
      * The return value of this method is used as the delegate for all {@link Audience}
      * methods that need to be implemented.
-     *
      * @return the delegate whose methods should be used as implementations of the audience
      */
     @NotNull Audience getAudience();

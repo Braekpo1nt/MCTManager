@@ -109,7 +109,7 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
     }
     
     /**
-     * Make participants visible, and stay visible until {@link #startInvisible()} is 
+     * Make participants visible, and stay visible until {@link #startInvisible()} is
      * called
      */
     public void stopInvisible() {

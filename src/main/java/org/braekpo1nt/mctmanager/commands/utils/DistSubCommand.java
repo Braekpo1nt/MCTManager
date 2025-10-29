@@ -36,7 +36,7 @@ class DistSubCommand extends TabSubCommand {
         if (args.length < 6 || args.length > 7) {
             return CommandResult.failure(getUsage().of("<x1>", "<y1>", "<z1>", "<x2>", "<y2>", "<z2>").of("[true|false]"));
         }
-    
+        
         for (int i = 0; i < 6; i++) {
             String coordinate = args[i];
             if (!CommandUtils.isDouble(coordinate)) {
@@ -76,7 +76,7 @@ class DistSubCommand extends TabSubCommand {
                         .hoverEvent(HoverEvent.showText(Component.text("Copy to clipboard")))
                         .clickEvent(ClickEvent.copyToClipboard(String.format("%s", distance))))
         );
-    
+        
         if (args.length < 7) {
             return CommandResult.success();
         }
@@ -89,14 +89,14 @@ class DistSubCommand extends TabSubCommand {
         if (!(sender instanceof Player player)) {
             return CommandResult.failure(Component.text("Only players can be shown a display"));
         }
-    
+        
         Renderer display = EdgeRenderer.builder()
                 .world(player.getWorld())
                 .edge(new Edge(vector1, vector2))
                 .blockData(Material.PINK_WOOL.createBlockData())
                 .build();
         display.show();
-        plugin.getServer().getScheduler().runTaskLater(plugin, display::hide, 3*20L);
+        plugin.getServer().getScheduler().runTaskLater(plugin, display::hide, 3 * 20L);
         return CommandResult.success();
     }
     

@@ -61,9 +61,9 @@ public class BorderShrinkingState extends RoundActiveState {
         if (!config.getBorder().allowRespawn(stageIndex + 1)) {
             BorderStage currentBorderStage = context.getCurrentBorderStage();
             context.messageAllParticipants(Component.empty()
-                            .append(Component.text("Respawning will be disabled in "))
-                            .append(TimeStringUtils.getTimeComponent(currentBorderStage.getDuration()))
-                            .color(NamedTextColor.RED));
+                    .append(Component.text("Respawning will be disabled in "))
+                    .append(TimeStringUtils.getTimeComponent(currentBorderStage.getDuration()))
+                    .color(NamedTextColor.RED));
         }
     }
     
@@ -73,7 +73,7 @@ public class BorderShrinkingState extends RoundActiveState {
      */
     private void sendBorderDelayAnnouncement(int delay) {
         String timeString = TimeStringUtils.getTimeString(delay);
-        context.messageAllParticipants(Component.text("Border will not shrink for "+timeString));
+        context.messageAllParticipants(Component.text("Border will not shrink for " + timeString));
     }
     
     @Override

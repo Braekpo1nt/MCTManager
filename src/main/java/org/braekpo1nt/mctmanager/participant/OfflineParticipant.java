@@ -13,10 +13,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 /**
- * Represents a participant without a {@link Player} object. 
+ * Represents a participant without a {@link Player} object.
  * <p>
  * Implementations of {@link OfflineParticipant} should not use {@link EqualsAndHashCode}
- * so that only the {@link #uniqueId} is used to check for equality. 
+ * so that only the {@link #uniqueId} is used to check for equality.
  */
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString
@@ -45,7 +45,7 @@ public class OfflineParticipant implements AudienceDelegate {
     private final int score;
     
     /**
-     * Create a new OfflineParticipant 
+     * Create a new OfflineParticipant
      * @param uniqueId the UUID of the player this participant represents
      * @param name the IGN of the player this represents
      * @param displayName the display name (usually the color of their team) of this participant

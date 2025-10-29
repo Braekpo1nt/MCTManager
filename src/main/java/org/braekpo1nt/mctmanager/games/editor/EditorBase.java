@@ -51,19 +51,18 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
     private int wandTickTaskId;
     
     /**
-     * 
      * @param type the type associated with this editor
      * @param plugin the plugin
      * @param gameManager the GameManager
      * @param initialState the initialization state, should not contain any editor functionality.
-     *                     The state must never be null, so this is what the state should be
-     *                     as the game is being initialized to prevent null-pointer
-     *                     exceptions. 
+     * The state must never be null, so this is what the state should be
+     * as the game is being initialized to prevent null-pointer
+     * exceptions.
      */
     public EditorBase(
             @NotNull GameType type,
             @NotNull String configFile,
-            @NotNull Main plugin, 
+            @NotNull Main plugin,
             @NotNull GameManager gameManager,
             @NotNull S initialState) {
         this.type = type;
@@ -82,17 +81,17 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
     protected @NotNull List<Wand<A>> defaultWands() {
         return List.of(
                 Wand.<A>builder().wandItem(Wand.createWandItem(Material.LIME_DYE, "Save config", List.of(
-                        Component.text("Left Click: Validate the config"),
-                        Component.text("Right Click: Save the config"),
-                        Component.text("- (Crouch to skip validation)")
-                )))
+                                Component.text("Left Click: Validate the config"),
+                                Component.text("Right Click: Save the config"),
+                                Component.text("- (Crouch to skip validation)")
+                        )))
                         .onLeftClickAir((event, admin) -> configIsValid(configFile))
                         .onRightClickAir((event, admin) -> saveConfig(configFile, false))
                         .onRightSneakClickAir((event, admin) -> saveConfig(configFile, true))
                         .build(),
                 Wand.<A>builder().wandItem(Wand.createWandItem(Material.RED_DYE, "Load config", List.of(
-                        Component.text("Right Click: Load the config")
-                )))
+                                Component.text("Right Click: Load the config")
+                        )))
                         .onRightClickAir((event, admin) -> loadConfig(configFile))
                         .build()
         );
@@ -104,7 +103,7 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
     }
     
     /**
-     * Kicks off a task in which every {@link Wand} in {@link #wands}'s 
+     * Kicks off a task in which every {@link Wand} in {@link #wands}'s
      * {@link Wand#onHoldTick(PlayerInventory, Audience)} method is called for every {@link A} in {@link #admins}
      */
     protected void startWandTick() {
@@ -114,8 +113,8 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
     }
     
     /**
-     * <p>Call this after all fields have been initialized. 
-     * This initializes all admins, 
+     * <p>Call this after all fields have been initialized.
+     * This initializes all admins,
      * and finally assigns {@link #getStartState()} to {@link #state}.</p>
      * @param newAdmins the admins going into the editor
      */
@@ -137,7 +136,7 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
     }
     
     /**
-     * <p>This will be assigned to {@link #state} at the end of 
+     * <p>This will be assigned to {@link #state} at the end of
      * {@link #start(Collection)}. This state should kick off the editor loop.</p>
      * @return the state to be instantiated after initialization
      */
@@ -217,7 +216,6 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
      * <p>Create an admin from the given {@link Player}.</p>
      * <p>Called after setting the admin to the defaults.
      * Add additional setup logic here for every time an admin is created.</p>
-     *
      * @param admin the player from which to derive the {@link A} type admin
      * @return the created {@link A} admin
      */
@@ -325,7 +323,7 @@ public abstract class EditorBase<A extends Admin, S extends EditorStateBase<A>> 
         if (admin == null) {
             return;
         }
-        boolean isWand = wands.stream().anyMatch(wand -> 
+        boolean isWand = wands.stream().anyMatch(wand ->
                 wand.isWandItem(event.getItemDrop().getItemStack()) && wand.shouldNotDrop()
         );
         if (isWand) {

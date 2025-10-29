@@ -12,14 +12,19 @@ import java.util.List;
 @Data
 @Builder
 public class BorderStage {
-    /** The size (in blocks) the border will be at this stage. 
+    /**
+     * The size (in blocks) the border will be at this stage.
      * The border will shrink from the previous stage's size to this stage's size over this stage's duration.
      * Note: size is the full side length of the border, not the distance from the center to the edge
      */
     private int size;
-    /** the border will stay at the previous stage's size for this many seconds */
+    /**
+     * the border will stay at the previous stage's size for this many seconds
+     */
     private int delay;
-    /** the border will take this many seconds to transition from the previous stage's size to this stage's size */
+    /**
+     * the border will take this many seconds to transition from the previous stage's size to this stage's size
+     */
     private int duration;
     
     /**

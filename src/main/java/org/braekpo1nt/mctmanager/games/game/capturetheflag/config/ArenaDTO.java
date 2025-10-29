@@ -11,13 +11,13 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 record ArenaDTO(
-        Vector northSpawn, 
-        Vector southSpawn, 
-        Vector northFlag, 
-        Vector southFlag, 
+        Vector northSpawn,
+        Vector southSpawn,
+        Vector northFlag,
+        Vector southFlag,
         Vector northBarrier,
-        Vector southBarrier, 
-        Arena.BarrierSize barrierSize, 
+        Vector southBarrier,
+        Arena.BarrierSize barrierSize,
         BoundingBox boundingBox) implements Validatable {
     
     static Arena toArena(ArenaDTO arenaDTO, World arenaWorld) {

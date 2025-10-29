@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 /**
  * A convenience argument type to easily parse arguments into any enum type.
- * Also provides suggestions for the command sender. 
+ * Also provides suggestions for the command sender.
  * Enum arguments are suggested and parsed in lowercase.
  * @param <E> The type of enum to be parsed
  */
@@ -55,7 +55,9 @@ public class EnumResolver<E extends Enum<E>> implements CustomArgumentType.Conve
         this.suggestions = Arrays.stream(suggestions).map(e -> e.toString().toLowerCase()).collect(Collectors.toSet());
     }
     
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public @NotNull E convert(@NotNull String nativeType) throws CommandSyntaxException {
         try {
@@ -65,13 +67,17 @@ public class EnumResolver<E extends Enum<E>> implements CustomArgumentType.Conve
         }
     }
     
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public @NotNull ArgumentType<String> getNativeType() {
         return StringArgumentType.word();
     }
     
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public <S> @NotNull CompletableFuture<Suggestions> listSuggestions(@NotNull CommandContext<S> context, @NotNull SuggestionsBuilder builder) {
         for (String suggestion : suggestions) {

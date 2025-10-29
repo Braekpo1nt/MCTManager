@@ -363,7 +363,7 @@ public class PracticeManager {
     private @NotNull ChestGui createInviteRSVPMenu(PracticeParticipant participant, @NotNull Invite invite) {
         Team team = teams.get(participant.getTeamId());
         ChestGui gui = new ChestGui(3, ComponentHolder.of(Component.empty()
-                        .append(Component.text("Invite to play "))
+                .append(Component.text("Invite to play "))
                 .append(Component.text(invite.getId().getTitle()))));
         gui.setOnGlobalClick(event -> event.setCancelled(true));
         OutlinePane navigator = new OutlinePane(0, 0, 9, 1);
@@ -643,7 +643,7 @@ public class PracticeManager {
         for (Invite invite : activeInvites.values()) {
             String teamId = participant.getTeamId();
             if (invite.isInvolved(teamId)) {
-                if (getParticipantsOnTeam(teamId).isEmpty() 
+                if (getParticipantsOnTeam(teamId).isEmpty()
                         || gameManager.teamIsInGame(teamId)) {
                     if (invite.isGuest(teamId)) {
                         Team team = teams.get(teamId);

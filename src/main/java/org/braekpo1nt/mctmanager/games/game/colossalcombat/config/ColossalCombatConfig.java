@@ -44,7 +44,8 @@ public class ColossalCombatConfig {
     private Component flagSpawnMessage;
     private boolean shouldStartCaptureTheFlag;
     /**
-     * if the number of living players falls below this amount on each team, then the capture the flag countdown will start.
+     * if the number of living players falls below this amount on each team, then the capture the flag countdown will
+     * start.
      */
     private int captureTheFlagMaximumPlayers;
     private int captureTheFlagDuration;
@@ -53,7 +54,9 @@ public class ColossalCombatConfig {
      */
     private @Nullable Material replaceBlock;
     /**
-     * The area to replace with the concrete of the team's color. At the start of the game, the {@link ColossalCombatConfig#replaceBlock} material will be replaced with the concrete of the team's color, and at the end of the game it will be returned to what it was before.
+     * The area to replace with the concrete of the team's color. At the start of the game, the
+     * {@link ColossalCombatConfig#replaceBlock} material will be replaced with the concrete of the team's color, and at
+     * the end of the game it will be returned to what it was before.
      */
     private BoundingBox northFlagReplaceArea;
     /**

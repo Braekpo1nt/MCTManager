@@ -22,7 +22,7 @@ public class ParkourAdmin extends Admin {
      */
     private int currentInBound;
     /**
-     * The index of the checkpoint that this admin is editing in their 
+     * The index of the checkpoint that this admin is editing in their
      * current puzzle (since there can be multiple)
      */
     private int currentCheckPoint;

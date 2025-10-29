@@ -86,7 +86,7 @@ class BoundingBoxSubCommand extends TabSubCommand {
                 .blockData(Material.GLASS.createBlockData())
                 .build();
         display.show();
-        plugin.getServer().getScheduler().runTaskLater(plugin, display::hide, 10*20L);
+        plugin.getServer().getScheduler().runTaskLater(plugin, display::hide, 10 * 20L);
         return CommandResult.success();
     }
     

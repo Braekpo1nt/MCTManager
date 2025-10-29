@@ -76,8 +76,8 @@ public class ActiveState extends GameplayState {
         int warningThreshold = calculateWarningThreshold();
         boolean teamWasNotAboveThreshold = oldScore < warningThreshold;
         boolean teamIsNowAboveThreshold = team.getScore() >= warningThreshold;
-        if (context.getConfig().shouldEnforceMaxScore() && 
-                context.getConfig().shouldWarnAtThreshold() && 
+        if (context.getConfig().shouldEnforceMaxScore() &&
+                context.getConfig().shouldWarnAtThreshold() &&
                 teamWasNotAboveThreshold && teamIsNowAboveThreshold) {
             onTeamReachWarningThreshold(team);
         }

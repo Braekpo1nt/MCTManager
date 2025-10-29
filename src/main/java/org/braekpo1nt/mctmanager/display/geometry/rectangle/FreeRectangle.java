@@ -28,7 +28,6 @@ public class FreeRectangle implements Rectangle {
      * </ul>
      * The resulting rectangle spans the area defined by the origin and the parallelogram formed by {@code edge1} and {@code edge2}.
      * The two edge vectors must not be colinear; otherwise, the rectangle would have zero area.
-     *
      * @param origin the base point of the rectangle (one of its corners)
      * @param edge1 the first edge vector extending from the origin
      * @param edge2 the second edge vector extending from the origin

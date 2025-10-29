@@ -22,7 +22,7 @@ public class NamespacedKeyDeserializer implements JsonDeserializer<NamespacedKey
                 key = namespacedKeyStr;
             } else {
                 namespace = namespacedKeyStr.substring(0, indexOfColon);
-                key = namespacedKeyStr.substring(indexOfColon+1);
+                key = namespacedKeyStr.substring(indexOfColon + 1);
                 if (!ConfigUtils.isValidNamespace(namespace)) {
                     throw new JsonParseException(String.format("namespace must be [a-z0-9._-]: %s", namespace));
                 }

@@ -57,12 +57,12 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
             @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
         super(
-                new GameInstanceId(GameType.FINAL, configFile), 
-                plugin, 
-                gameManager, 
-                title, 
-                new InitialState(), 
-                new ColossalTeam(newNorth, 0, Affiliation.NORTH), 
+                new GameInstanceId(GameType.FINAL, configFile),
+                plugin,
+                gameManager,
+                title,
+                new InitialState(),
+                new ColossalTeam(newNorth, 0, Affiliation.NORTH),
                 new ColossalTeam(newSouth, 0, Affiliation.SOUTH));
         this.config = config;
         this.topbar = addUIManager(new BattleTopbar());
@@ -227,7 +227,7 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
     }
     
     public void updateRoundSidebar(@NotNull ColossalParticipant participant) {
-        sidebar.updateLines(participant.getUniqueId(), 
+        sidebar.updateLines(participant.getUniqueId(),
                 new KeyLine("northWinCount", toWinCountLine(northTeam)),
                 new KeyLine("southWinCount", toWinCountLine(southTeam)),
                 new KeyLine("round", Component.empty()

@@ -9,6 +9,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface SpleefInterface {
     void messageAllParticipants(@NotNull Component message);
+    
     void titleAllParticipants(@NotNull Title title);
+    
     void setShouldGivePowerups(boolean shouldGivePowerups);
 }

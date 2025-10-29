@@ -26,7 +26,7 @@ import java.util.UUID;
 
 /**
  * Used to pass info from {@link GameManager} to {@link GameManagerState}
- * for convenience and safety. 
+ * for convenience and safety.
  */
 @Data
 @Builder

@@ -22,7 +22,8 @@ public class MyPlayerMock extends PlayerMock {
     }
     
     @Override
-    public void lookAt(double x, double y, double z, @NotNull LookAnchor playerAnchor) {}
+    public void lookAt(double x, double y, double z, @NotNull LookAnchor playerAnchor) {
+    }
     
     @Override
     public String toString() {
@@ -30,7 +31,7 @@ public class MyPlayerMock extends PlayerMock {
     }
     
     /**
-     * Asserts that the plaintext version of the next message sent to the player is equal to the 
+     * Asserts that the plaintext version of the next message sent to the player is equal to the
      * expected message regardless of formatting.
      * @param expected The expected plaintext message
      */
@@ -46,7 +47,10 @@ public class MyPlayerMock extends PlayerMock {
     
     /**
      * Checks if the given message was sent to the player, ignoring formatting
-     * This searches through all messages sent to the player by making calls to {@link PlayerMock#nextComponentMessage()} until it finds the expected message, or there are no more messages. This will re-send the messages to the player with use of the {@link PlayerMock#sendMessage(String)} method, in the appropriate order. 
+     * This searches through all messages sent to the player by making calls to
+     * {@link PlayerMock#nextComponentMessage()} until it finds the expected message, or there are no more messages.
+     * This will re-send the messages to the player with use of the {@link PlayerMock#sendMessage(String)} method, in
+     * the appropriate order.
      * @param expected The message to search for
      * @return True if the expected message was ever sent to the player, false if not
      */

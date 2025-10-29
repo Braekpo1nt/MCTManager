@@ -57,7 +57,8 @@ public class CommandUtils {
     
     /**
      * @param value the string to be parsed
-     * @return the boolean value the string represents if the string can be successfully parsed to a boolean, null if the string couldn't be parsed to a boolean
+     * @return the boolean value the string represents if the string can be successfully parsed to a boolean, null if
+     * the string couldn't be parsed to a boolean
      */
     public static @Nullable Boolean toBoolean(@NotNull String value) {
         String lowerCase = value.toLowerCase();

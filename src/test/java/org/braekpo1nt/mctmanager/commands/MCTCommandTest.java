@@ -31,7 +31,7 @@ class MCTCommandTest {
             ex.printStackTrace();
             System.exit(1);
         }
-    
+        
         command = plugin.getCommand("mct");
     }
     
@@ -39,7 +39,7 @@ class MCTCommandTest {
     void tearDownServerAndPlugin() {
         MockBukkit.unmock();
     }
-    
+
 //    @Test
 //    @DisplayName("Running /mct with no args returns usage message")
 //    void noArgsShowsUsage() {

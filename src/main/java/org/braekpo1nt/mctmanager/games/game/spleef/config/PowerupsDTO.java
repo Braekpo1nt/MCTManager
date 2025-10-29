@@ -19,15 +19,19 @@ import java.util.stream.Collectors;
 class PowerupsDTO implements Validatable {
     
     /**
-     * the minimum time (in milliseconds) between getting powerups. Players should not get two powerups one after another immediately. 0 means no restriction. Defaults to 0
+     * the minimum time (in milliseconds) between getting powerups. Players should not get two powerups one after
+     * another immediately. 0 means no restriction. Defaults to 0
      */
     private long minTimeBetween;
     /**
-     * limit the number of powerups a player can have. If they are at max, they won't collect any more until they use some of them. 0 means players can't hold any powerups at all. Negative values indicate unlimited powerup collection. Defaults to 0
+     * limit the number of powerups a player can have. If they are at max, they won't collect any more until they use
+     * some of them. 0 means players can't hold any powerups at all. Negative values indicate unlimited powerup
+     * collection. Defaults to 0
      */
     private int maxPowerups;
     /**
-     * the initial loadout of powerups in the participant's inventories at the start of every round. Null means empty. The key is the type powerup, the value is how many of that powerup the players are given.
+     * the initial loadout of powerups in the participant's inventories at the start of every round. Null means empty.
+     * The key is the type powerup, the value is how many of that powerup the players are given.
      */
     private @Nullable Map<Powerup.Type, @Nullable Integer> initialLoadout;
     private PowerupDetails powerups;
@@ -44,16 +48,19 @@ class PowerupsDTO implements Validatable {
     }
     
     /**
-     * Configuration of each source, namely the chance of it giving a powerup upon activation, the types that can come from it, and their weights.
+     * Configuration of each source, namely the chance of it giving a powerup upon activation, the types that can come
+     * from it, and their weights.
      */
     @Data
     static class SourceDTO implements Validatable {
         /**
-         * the percent chance of this source giving a powerup every time it is used. 0 or fewer means no powerups will be given from this source. Defaults to -1.
+         * the percent chance of this source giving a powerup every time it is used. 0 or fewer means no powerups will
+         * be given from this source. Defaults to -1.
          */
         private double chance = -1;
         /**
-         * the types which can come from this source paired with their weights from this source. If null, all types can come from this source. If empty, no types can come from this source. Must not contain null keys or values.
+         * the types which can come from this source paired with their weights from this source. If null, all types can
+         * come from this source. If empty, no types can come from this source. Must not contain null keys or values.
          */
         private @Nullable Map<Powerup.@Nullable Type, @Nullable Integer> types;
         
@@ -84,9 +91,10 @@ class PowerupsDTO implements Validatable {
     }
     
     /**
-     * Each key is mapped to a type-to-weight map, where the keys are the types which can come from the respective source key, and the values are the weights of those types. The weights are used to randomly choose a powerup from the given source.
+     * Each key is mapped to a type-to-weight map, where the keys are the types which can come from the respective
+     * source key, and the values are the weights of those types. The weights are used to randomly choose a powerup from
+     * the given source.
      * If the
-     *
      * @return a map from every {@link Powerup.Source} to the {@link Powerup.Type}+weight pairs which come from the source.
      */
     @NotNull Map<Powerup.Source, Map<Powerup.Type, @NotNull Integer>> getSourcePowerups() {

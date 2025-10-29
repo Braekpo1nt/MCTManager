@@ -12,23 +12,25 @@ public class ReadyUpManager {
     
     @Data
     public static class TeamStatus {
-    
+        
         private final Map<UUID, @NotNull Boolean> statuses = new HashMap<>();
+        
         /**
          * @return true if every participant is ready in this team
          */
         public boolean isReady() {
             return statuses.values().stream().allMatch(ready -> ready);
         }
-    
+        
         /**
          * @return the number of ready statuses
          */
         public long readyCount() {
             return statuses.values().stream().filter(ready -> ready).count();
         }
-    
+        
     }
+    
     private @NotNull TeamStatus getTeamStatus(@NotNull String teamId) {
         TeamStatus teamStatus = teamStatuses.get(teamId);
         Preconditions.checkArgument(teamStatus != null, "teamId \"%s\" is not contained in this ReadyUpManager", teamId);
@@ -49,7 +51,7 @@ public class ReadyUpManager {
     /**
      * @param participantUUID the UUID of a valid participant to check the status of.
      * @param teamId must be a teamId in this manager
-     * @return true if the participant is ready, false otherwise. 
+     * @return true if the participant is ready, false otherwise.
      * Returns false for UUIDs which are not stored in this manager.
      */
     public boolean participantIsReady(@NotNull UUID participantUUID, @NotNull String teamId) {
@@ -119,7 +121,7 @@ public class ReadyUpManager {
     
     /**
      * Marks the participant with the given UUID as not ready. Add them if
-     * they weren't already being tracked. 
+     * they weren't already being tracked.
      * @param participantUUID a valid participant UUID. Can be offline
      * @param teamId a teamId in this manager
      * @return the ready status of the given participantUUID before this unReady assignment
@@ -130,7 +132,7 @@ public class ReadyUpManager {
     
     /**
      * assign the given status to the given participant's UUID. Add them if
-     * they weren't already being tracked. 
+     * they weren't already being tracked.
      * @param participantUUID a valid participant UUID. Can be offline
      * @param teamId a teamId in this manager
      * @param ready the ready status

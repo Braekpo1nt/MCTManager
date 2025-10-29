@@ -28,11 +28,11 @@ public class StartSubCommand extends TabSubCommand {
     
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-    
+        
         if (args.length != 2) {
             return CommandResult.failure(getUsage().of("<game>").of("<configFile>"));
         }
-    
+        
         String gameID = args[0];
         GameType gameType = GameType.fromID(gameID);
         if (gameType == null) {
