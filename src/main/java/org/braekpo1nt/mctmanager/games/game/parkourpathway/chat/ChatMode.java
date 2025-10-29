@@ -23,7 +23,7 @@ public enum ChatMode {
      * See only your own checkpoints
      */
     DISABLED;
-
+    
     public static String getModeName(ChatMode mode) {
         return switch (mode) {
             case LOCAL -> "Local";
@@ -33,7 +33,7 @@ public enum ChatMode {
             case DISABLED -> "Self Only";
         };
     }
-
+    
     public static NamedTextColor getModeColor(ChatMode mode) {
         return switch (mode) {
             case LOCAL -> NamedTextColor.GREEN;
@@ -43,9 +43,10 @@ public enum ChatMode {
             case DISABLED -> NamedTextColor.RED;
         };
     }
-
+    
     /**
-     * Cycle to next mode: LOCAL -> TEAM -> OFF -> LOCAL (for chat modes) or ALL -> DISABLED -> ALL (for notification modes)
+     * Cycle to next mode: LOCAL -> TEAM -> OFF -> LOCAL (for chat modes) or ALL -> DISABLED -> ALL (for notification
+     * modes)
      * @param current the mode to cycle from
      * @return the mode to cycle to
      */

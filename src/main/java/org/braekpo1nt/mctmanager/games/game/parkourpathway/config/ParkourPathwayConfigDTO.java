@@ -1,7 +1,11 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 
 import com.google.common.base.Preconditions;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
@@ -31,7 +35,8 @@ class ParkourPathwayConfigDTO implements Validatable {
     private String world;
     
     /**
-     * the larger glass barrier meant to close off all participants from the puzzles until it is time to race. If null, no glass barrier will be created.
+     * the larger glass barrier meant to close off all participants from the puzzles until it is time to race. If null,
+     * no glass barrier will be created.
      */
     private @Nullable BoundingBox glassBarrier;
     /**
@@ -39,7 +44,9 @@ class ParkourPathwayConfigDTO implements Validatable {
      */
     private @Nullable Component glassBarrierOpenMessage;
     /**
-     * the list of team spawn locations. If null, the team spawn phase will be skipped. Each {@link TeamSpawnDTO#getBarrierArea()} and {@link TeamSpawnDTO#getSpawn()} must be contained in the inBounds area of the first puzzle.
+     * the list of team spawn locations. If null, the team spawn phase will be skipped. Each
+     * {@link TeamSpawnDTO#getBarrierArea()} and {@link TeamSpawnDTO#getSpawn()} must be contained in the inBounds area
+     * of the first puzzle.
      */
     private @Nullable List<TeamSpawnDTO> teamSpawns;
     /**
@@ -157,7 +164,8 @@ class ParkourPathwayConfigDTO implements Validatable {
         private List<Component> allLore;
         /**
          * the lore of the chat mode toggle item when in
-         * {@link org.braekpo1nt.mctmanager.games.game.parkourpathway.chat.ChatMode#TEAM} mode (applies to chat team modes)
+         * {@link org.braekpo1nt.mctmanager.games.game.parkourpathway.chat.ChatMode#TEAM} mode (applies to chat team
+         * modes)
          */
         private List<Component> teamLore;
         /**
@@ -219,7 +227,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                     Component.text("Right click to change").color(NamedTextColor.YELLOW)
             );
         }
-
+        
         
         public static List<Component> defaultOFFLore() {
             return List.of(
@@ -432,11 +440,13 @@ class ParkourPathwayConfigDTO implements Validatable {
     @NoArgsConstructor
     static class Scores {
         /**
-         * points for reaching puzzle checkpoints. for x elements, nth score will be awarded unless n is greater than or equal to x in which case the xth score will be awarded
+         * points for reaching puzzle checkpoints. for x elements, nth score will be awarded unless n is greater than or
+         * equal to x in which case the xth score will be awarded
          */
         private int[] checkpoint;
         /**
-         * points for winning. for x elements, nth score will be awarded unless n is greater than or equal to x in which case the xth score will be awarded
+         * points for winning. for x elements, nth score will be awarded unless n is greater than or equal to x in which
+         * case the xth score will be awarded
          */
         private int[] win;
     }
