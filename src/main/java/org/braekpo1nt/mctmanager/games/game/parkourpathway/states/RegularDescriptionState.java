@@ -20,6 +20,7 @@ public class RegularDescriptionState extends ParkourPathwayStateBase {
     public void enter() {
         for (ParkourParticipant participant : context.getParticipants().values()) {
             participant.teleport(context.getConfig().getStartingLocation());
+            participant.getInventory().addItem(context.getWandItems());
         }
         context.messageAllParticipants(context.getConfig().getDescription());
         timer = context.getTimerManager().start(Timer.builder()

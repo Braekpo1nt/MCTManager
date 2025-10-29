@@ -5,7 +5,6 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourParticipant;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourTeam;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
-import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +34,7 @@ public class TeamSpawnsDescription extends ParkourPathwayStateBase {
     public void enter() {
         for (ParkourParticipant participant : context.getParticipants().values()) {
             teamsToSpawns.get(participant.getTeamId()).teleport(participant);
+            participant.getInventory().addItem(context.getWandItems());
         }
         context.messageAllParticipants(context.getConfig().getDescription());
         timer = context.getTimerManager().start(Timer.builder()
