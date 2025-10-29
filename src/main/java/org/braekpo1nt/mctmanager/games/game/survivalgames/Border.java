@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
 import org.bukkit.WorldBorder;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -46,7 +47,41 @@ public class Border {
      * Defaults to 10s
      */
     private int respawnTime;
+    /**
+     * The time (in seconds) that a participant who just respawned is invincible for
+     * (includes time spent in the air, so choose accordingly)
+     * Defaults to 10s
+     */
+    private int respawnGracePeriodTime;
+    /**
+     * The loadout to be given to a participant upon respawning.
+     * Can't be null, can be empty
+     */
+    private @NotNull ItemStack[] respawnLoadout;
+    /**
+     * The number of deaths that grant kill points. E.g. if 2, then the first two times
+     * a participant is killed, the killer gets points. 
+     * But from the third death on, no killers get points for killing that participant.
+     * Negative number indicates no limit (all kills grant points). 
+     * Defaults to -1
+     */
+    private int deathPointsThreshold;
+    /**
+     * If true, a participant in their {@link #respawnGracePeriodTime} can attack other participants.
+     * If false, a participant can't deal damage when in grace period.
+     * Defaults to true.
+     */
+    private boolean canAttackWhenRespawning;
     private List<BorderStage> stages;
+    
+    /**
+     * If true, a participant in their {@link #respawnGracePeriodTime} can attack other participants.
+     * If false, a participant can't deal damage when in grace period.
+     * Defaults to true.
+     */
+    public boolean canAttackWhenRespawning() {
+        return canAttackWhenRespawning;
+    }
     
     /**
      * Assign the values of the given world boarder to this class's values

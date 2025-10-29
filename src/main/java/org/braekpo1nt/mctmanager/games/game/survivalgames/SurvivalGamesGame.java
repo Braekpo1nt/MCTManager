@@ -108,7 +108,7 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     
     /**
      * Convenience method for getting the current border stage 
-     * @return teh current border stage
+     * @return the current border stage
      */
     public BorderStage getCurrentBorderStage() {
         return config.getBorderStages().get(borderStageIndex);

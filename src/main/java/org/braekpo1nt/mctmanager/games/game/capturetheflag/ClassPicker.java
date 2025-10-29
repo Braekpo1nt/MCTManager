@@ -19,7 +19,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -42,6 +41,9 @@ public class ClassPicker implements Listener {
             Map<String, Loadout> loadouts) {
         this.plugin = plugin;
         this.teamMates = new HashMap<>(newTeamMates.size());
+        for (T teamMate : newTeamMates) {
+            this.teamMates.put(teamMate.getUniqueId(), teamMate);
+        }
         this.guis = new HashMap<>(newTeamMates.size());
         this.loadouts = new HashMap<>(loadouts);
         this.leatherColor = leatherColor;
@@ -50,7 +52,6 @@ public class ClassPicker implements Listener {
     
     public void start() {
         for (Participant teamMate : teamMates.values()) {
-            this.teamMates.put(teamMate.getUniqueId(), teamMate);
             ChestGui gui = createGui();
             this.guis.put(teamMate.getUniqueId(), gui);
             gui.show(teamMate.getPlayer());
@@ -146,11 +147,13 @@ public class ClassPicker implements Listener {
     
     public void stop(boolean assignBattleClasses) {
         HandlerList.unregisterAll(this);
+        ItemStack netherStar = new ItemStack(Material.NETHER_STAR);
+        netherStar.editMeta(meta -> meta.displayName(NETHER_STAR_NAME));
         for (Participant teamMate : teamMates.values()) {
             ChestGui gui = guis.get(teamMate.getUniqueId());
             gui.setOnClose(event -> {});
             gui.getInventory().close();
-            teamMate.getInventory().remove(Material.NETHER_STAR);
+            teamMate.getInventory().removeItemAnySlot(netherStar);
         }
         if (assignBattleClasses) {
             for (Participant teamMate : teamMates.values()) {

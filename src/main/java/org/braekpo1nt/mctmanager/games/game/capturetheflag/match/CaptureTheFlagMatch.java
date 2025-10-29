@@ -142,6 +142,7 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
         updateAliveStatus(Affiliation.NORTH);
         updateAliveStatus(Affiliation.SOUTH);
         state = new ClassSelectionState(this);
+        state.enter();
         Main.logger().info(String.format("Starting capture the flag match %s", matchPairing));
     }
     

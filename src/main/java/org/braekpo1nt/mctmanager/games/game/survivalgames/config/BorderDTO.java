@@ -2,10 +2,12 @@ package org.braekpo1nt.mctmanager.games.game.survivalgames.config;
 
 import lombok.Data;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.PlayerInventoryDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.Border;
 import org.bukkit.World;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,10 +42,37 @@ class BorderDTO implements Validatable {
      */
     private int respawnStages;
     /**
-     * The amount of time it takes for a dead participant to respawn (in seconds)
+     * The amount of time it takes for a dead participant to respawn (in seconds).
+     * Can't be negative.
      * Defaults to 10s
      */
     private @Nullable Integer respawnTime;
+    /**
+     * The time (in seconds) that a participant who just respawned is invincible for
+     * (includes time spent in the air, so choose accordingly). Set it to 0
+     * to have no respawn time. Can't be negative.
+     * Defaults to 10s
+     */
+    private @Nullable Integer respawnGracePeriodTime;
+    /**
+     * The loadout to be given to a participant upon respawning.
+     * Defaults to empty.
+     */
+    private @Nullable PlayerInventoryDTO respawnLoadout;
+    /**
+     * The number of deaths that grant kill points. E.g. if 2, then the first two times
+     * a participant is killed, the killer gets points. 
+     * But from the third death on, no killers get points for killing that participant.
+     * Negative number indicates no limit (all kills grant points). 
+     * Defaults to -1
+     */
+    private @Nullable Integer deathPointsThreshold;
+    /**
+     * If true, a participant in their {@link #respawnGracePeriodTime} can attack other participants.
+     * If false, a participant can't deal damage when in grace period.
+     * Defaults to true.
+     */
+    private @Nullable Boolean canAttackWhenRespawning;
     /** The stages the border should progress through */
     private List<BorderStageDTO> borderStages;
     
@@ -57,6 +86,12 @@ class BorderDTO implements Validatable {
         validator.validate(this.respawnStages <= borderStages.size(), "respawnStages must be less than or equal to the total number of borderStages (%d)", borderStages.size());
         if (this.respawnTime != null) {
             validator.validate(this.respawnTime >= 0, "respawnTime (%s) can't be negative", this.respawnTime);
+        }
+        if (this.respawnGracePeriodTime != null) {
+            validator.validate(this.respawnGracePeriodTime >= 0, "respawnGracePeriodTime (%s) can't be negative", this.respawnGracePeriodTime);
+        }
+        if (this.respawnLoadout != null) {
+            this.respawnLoadout.validate(validator.path("respawnLoadout"));
         }
     }
     
@@ -74,7 +109,11 @@ class BorderDTO implements Validatable {
                 .warningTime(warningTime)
                 .respawnStages(respawnStages)
                 .respawnTime(this.respawnTime != null ? this.respawnTime : 10)
+                .respawnGracePeriodTime(this.respawnGracePeriodTime != null ? this.respawnGracePeriodTime : 10)
                 .respawnLocations(respawnLocations != null ? LocationDTO.toLocations(respawnLocations, world) : Collections.emptyList())
+                .respawnLoadout(this.respawnLoadout != null ? this.respawnLoadout.toInventoryContents() : new ItemStack[0])
+                .deathPointsThreshold(this.deathPointsThreshold != null ? this.deathPointsThreshold : -1)
+                .canAttackWhenRespawning(this.canAttackWhenRespawning != null ? this.canAttackWhenRespawning : true)
                 .stages(BorderStageDTO.toBorderStages(borderStages))
                 .build();
     }
