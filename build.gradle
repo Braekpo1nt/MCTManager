@@ -47,7 +47,8 @@ configurations {
 
 dependencies {
     implementation("org.junit.jupiter:junit-jupiter:5.13.3")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher") // needed to resolve discrepancy between this and MockBukkit
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    // needed to resolve discrepancy between this and MockBukkit
     testImplementation 'org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.64.0'
 
     testImplementation 'org.mockito:mockito-core:5.2.0'
@@ -64,7 +65,7 @@ dependencies {
     implementation 'com.sk89q.worldedit:worldedit-bukkit:7.4.0-SNAPSHOT'
     implementation 'com.github.stefvanschie.inventoryframework:IF:0.11.3'
     shade 'com.github.stefvanschie.inventoryframework:IF:0.11.2'
-    
+
     // lombok
     compileOnly 'org.projectlombok:lombok:1.18.36'
     annotationProcessor 'org.projectlombok:lombok:1.18.36'
@@ -96,9 +97,12 @@ tasks.jar {
 }
 
 tasks.shadowJar {
-    configurations = [project.configurations.shade] // only dependencies labeled with the "shade" configuration will be included in the fat jar (alongside my own code)
-    archiveClassifier = "" // doesn't add "-all" to the jar file name
-    relocate 'com.github.stefvanschie.inventoryframework', 'org.braekpo1nt.inventoryframework' // from the inventoryFramework docs
+    // only dependencies labeled with the "shade" configuration will be included in the fat jar (alongside my own code)
+    configurations = [project.configurations.shade]
+    // doesn't add "-all" to the jar file name
+    archiveClassifier = ""
+    // from the inventoryFramework docs
+    relocate 'com.github.stefvanschie.inventoryframework', 'org.braekpo1nt.inventoryframework'
 }
 
 processResources {

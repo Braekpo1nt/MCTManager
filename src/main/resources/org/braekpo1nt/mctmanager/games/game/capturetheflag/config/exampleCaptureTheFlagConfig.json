@@ -187,11 +187,12 @@
         "maxZ": -999
       }
     },
-    {"northSpawn": {
-      "x": 126,
-      "y": -16,
-      "z": -943
-    },
+    {
+      "northSpawn": {
+        "x": 126,
+        "y": -16,
+        "z": -943
+      },
       "southSpawn": {
         "x": 86,
         "y": -16,
@@ -237,19 +238,25 @@
       "menuItem": "WOODEN_SWORD",
       "name": "Paladin",
       "menuLore": [
-        {"text":"- Wood Sword"},
-        {"text":"- Full Leather Armor"},
-        {"text":"- Health Potion"}
+        {
+          "text": "- Wood Sword"
+        },
+        {
+          "text": "- Full Leather Armor"
+        },
+        {
+          "text": "- Health Potion"
+        }
       ],
       "inventory": {
         "contents": {
           "36": {
             "type": "LEATHER_BOOTS"
           },
-          "37":{
+          "37": {
             "type": "LEATHER_LEGGINGS"
           },
-          "39":{
+          "39": {
             "type": "LEATHER_HELMET"
           },
           "38": {
@@ -258,7 +265,7 @@
           "0": {
             "type": "WOODEN_SWORD"
           },
-          "1":{
+          "1": {
             "type": "SPLASH_POTION",
             "amount": 1,
             "itemMeta": {
@@ -308,8 +315,12 @@
       "menuItem": "IRON_SWORD",
       "name": "Assassin",
       "menuLore": [
-        {"text":"- Iron Sword"},
-        {"text":"- Leather Leggings"}
+        {
+          "text": "- Iron Sword"
+        },
+        {
+          "text": "- Leather Leggings"
+        }
       ],
       "inventory": {
         "contents": {
@@ -333,11 +344,21 @@
       "menuItem": "CROSSBOW",
       "name": "Arbalist",
       "menuLore": [
-        {"text":"- Crossbow"},
-        {"text":"- Slowness Arrow"},
-        {"text":"- 8 Arrows"},
-        {"text":"- Wooden Sword"},
-        {"text":"- Leggings"}
+        {
+          "text": "- Crossbow"
+        },
+        {
+          "text": "- Slowness Arrow"
+        },
+        {
+          "text": "- 8 Arrows"
+        },
+        {
+          "text": "- Wooden Sword"
+        },
+        {
+          "text": "- Leggings"
+        }
       ],
       "inventory": {
         "contents": {
@@ -351,14 +372,14 @@
             "type": "COOKED_BEEF",
             "amount": 2
           },
-          "1":{
+          "1": {
             "type": "CROSSBOW"
           },
-          "2":{
+          "2": {
             "type": "ARROW",
             "amount": 8
           },
-          "3":{
+          "3": {
             "type": "TIPPED_ARROW",
             "itemMeta": {
               "basePotionType": "SLOWNESS"
@@ -367,13 +388,19 @@
         }
       }
     },
-    "POTIONEER":{
+    "POTIONEER": {
       "name": "Potioneer",
       "menuItem": "SPLASH_POTION",
       "menuLore": [
-        {"text":"- Some Leather Armor"},
-        {"text":"- Wooden Sword"},
-        {"text":"- 2 Healing Potions"}
+        {
+          "text": "- Some Leather Armor"
+        },
+        {
+          "text": "- Wooden Sword"
+        },
+        {
+          "text": "- 2 Healing Potions"
+        }
       ],
       "menuMeta": {
         "basePotionType": "HEALING"
@@ -393,14 +420,14 @@
           "0": {
             "type": "WOODEN_SWORD"
           },
-          "1":{
+          "1": {
             "type": "SPLASH_POTION",
             "amount": 2,
             "itemMeta": {
               "basePotionType": "HEALING"
             }
           },
-          "2":{
+          "2": {
             "type": "SPLASH_POTION",
             "amount": 1,
             "itemMeta": {
@@ -410,12 +437,16 @@
         }
       }
     },
-    "BERSERKER":{
+    "BERSERKER": {
       "name": "Berserker",
       "menuItem": "STONE_AXE",
       "menuLore": [
-        {"text":"- Leather Boots"},
-        {"text":"- Stone Axe"}
+        {
+          "text": "- Leather Boots"
+        },
+        {
+          "text": "- Stone Axe"
+        }
       ],
       "inventory": {
         "contents": {
@@ -492,5 +523,24 @@
     "roundTimer": 180,
     "description": 15
   },
-  "description": ["",{"text":"How To Play","bold":true,"color":"yellow"},{"text":" Capture The Flag","bold":true,"color":"yellow"},{"text":"\n"},{"text":"Two teams will be placed in a court, first one to collect the banner on the opposite side and deliver it to their own banner wins!\nAfter all teams have played each other, the game ends (So get them points!)\nIn Capture the Flag there are multiple classes. Only one of each class may be selected on a team.\nA breif description can by found by hovering over the class' item.","color":"#FFFFDF"}]
+  "description": [
+    "",
+    {
+      "text": "How To Play",
+      "bold": true,
+      "color": "yellow"
+    },
+    {
+      "text": " Capture The Flag",
+      "bold": true,
+      "color": "yellow"
+    },
+    {
+      "text": "\n"
+    },
+    {
+      "text": "Two teams will be placed in a court, first one to collect the banner on the opposite side and deliver it to their own banner wins!\nAfter all teams have played each other, the game ends (So get them points!)\nIn Capture the Flag there are multiple classes. Only one of each class may be selected on a team.\nA breif description can by found by hovering over the class' item.",
+      "color": "#FFFFDF"
+    }
+  ]
 }
