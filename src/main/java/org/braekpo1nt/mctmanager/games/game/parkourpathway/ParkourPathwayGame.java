@@ -6,17 +6,17 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
+import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventHungerLoss;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventItemDrop;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
-import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfig;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.states.RegularDescriptionState;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.states.InitialState;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.states.ParkourPathwayState;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.states.RegularDescriptionState;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.states.TeamSpawnsDescription;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
@@ -35,7 +35,8 @@ import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 
 @Getter
 @Setter

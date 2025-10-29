@@ -1,13 +1,29 @@
 package org.braekpo1nt.mctmanager;
 
-import org.mockbukkit.mockbukkit.command.ConsoleCommandSenderMock;
-import com.google.gson.*;
-import net.kyori.adventure.text.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.KeybindComponent;
+import net.kyori.adventure.text.NBTComponent;
+import net.kyori.adventure.text.ScoreComponent;
+import net.kyori.adventure.text.SelectorComponent;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.TranslatableComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
+import org.mockbukkit.mockbukkit.command.ConsoleCommandSenderMock;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;

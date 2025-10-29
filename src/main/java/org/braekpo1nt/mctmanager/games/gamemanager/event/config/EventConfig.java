@@ -3,16 +3,15 @@ package org.braekpo1nt.mctmanager.games.gamemanager.event.config;
 import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.games.gamemanager.event.Tip;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.gamemanager.event.Tip;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetConfig;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
-
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder

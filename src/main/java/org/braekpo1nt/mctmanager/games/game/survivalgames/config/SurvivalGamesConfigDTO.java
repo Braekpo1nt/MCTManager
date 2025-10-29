@@ -13,7 +13,11 @@ import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.PlayerInventory
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.utils.EntityUtils;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.World;
 import org.bukkit.loot.LootTable;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;

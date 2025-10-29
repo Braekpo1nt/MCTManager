@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.ui.topbar;
 
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.UIManager;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;

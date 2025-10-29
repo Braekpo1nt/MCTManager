@@ -5,13 +5,14 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourParticipant;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourTeam;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
-import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class TeamSpawnsDescription extends ParkourPathwayStateBase {
     

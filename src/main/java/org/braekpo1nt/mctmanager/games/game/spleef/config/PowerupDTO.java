@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
 import lombok.Data;
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.dto.net.kyori.adventure.sound.SoundDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.ItemStackDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
@@ -13,7 +12,9 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 @Data
 class PowerupDTO implements Validatable {

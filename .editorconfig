@@ -34,8 +34,7 @@ ij_java_blank_lines_around_method = 1
 # imports
 ij_java_class_count_to_use_import_on_demand = 99
 ij_java_names_count_to_use_import_on_demand = 99
-ij_java_imports_layout = import static all other imports; blank_line; java; javax; org; com; blank_line; *
-#ij_java_imports_layout = *,|,javax.**,java.**,|,$*
+ij_java_imports_layout = *,|,javax.**,java.**,|,$*
 ij_java_layout_static_imports_separately = true
 # Comments and Javadoc
 ij_java_doc_enable_formatting = true

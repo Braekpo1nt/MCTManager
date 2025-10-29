@@ -1,6 +1,10 @@
 package org.braekpo1nt.mctmanager.games.game.spleef;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.bukkit.block.Block;
 

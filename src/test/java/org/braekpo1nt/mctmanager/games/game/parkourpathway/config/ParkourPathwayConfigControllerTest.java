@@ -1,7 +1,5 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 
-import org.mockbukkit.mockbukkit.MockBukkit;
-import org.mockbukkit.mockbukkit.ServerMock;
 import com.google.gson.JsonObject;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MockMain;
@@ -14,6 +12,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockbukkit.mockbukkit.MockBukkit;
+import org.mockbukkit.mockbukkit.ServerMock;
 
 import java.io.File;
 import java.io.InputStream;

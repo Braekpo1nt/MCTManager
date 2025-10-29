@@ -6,8 +6,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.base.Affiliation;
 import org.braekpo1nt.mctmanager.games.base.DuoGameBase;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventItemDrop;
@@ -17,6 +15,8 @@ import org.braekpo1nt.mctmanager.games.game.colossalcombat.states.ColossalCombat
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.states.InitialState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;

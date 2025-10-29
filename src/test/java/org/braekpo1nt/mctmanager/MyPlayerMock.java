@@ -1,11 +1,11 @@
 package org.braekpo1nt.mctmanager;
 
-import org.mockbukkit.mockbukkit.ServerMock;
-import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import io.papermc.paper.entity.LookAnchor;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assertions;
+import org.mockbukkit.mockbukkit.ServerMock;
+import org.mockbukkit.mockbukkit.entity.PlayerMock;
 
 import java.util.ArrayList;
 import java.util.List;

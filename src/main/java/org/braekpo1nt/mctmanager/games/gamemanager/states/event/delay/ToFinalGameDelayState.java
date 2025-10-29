@@ -2,8 +2,8 @@ package org.braekpo1nt.mctmanager.games.gamemanager.states.event.delay;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
-import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.EventData;
+import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.event.PlayingFinalGameState;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.jetbrains.annotations.NotNull;

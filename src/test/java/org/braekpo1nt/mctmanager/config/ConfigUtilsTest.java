@@ -1,8 +1,8 @@
 package org.braekpo1nt.mctmanager.config;
 
 import com.google.gson.JsonParseException;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.RecipeDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.RecipeChoiceDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.RecipeDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.ShapelessRecipeDTO;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;

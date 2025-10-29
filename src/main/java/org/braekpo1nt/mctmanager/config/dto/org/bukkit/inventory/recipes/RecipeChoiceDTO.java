@@ -10,7 +10,11 @@ import org.bukkit.Tag;
 import org.bukkit.inventory.RecipeChoice;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public interface RecipeChoiceDTO {
     RecipeChoice toRecipeChoice();

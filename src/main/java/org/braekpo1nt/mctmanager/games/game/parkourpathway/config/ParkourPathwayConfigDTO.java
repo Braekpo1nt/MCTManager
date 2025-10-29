@@ -1,7 +1,11 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 
 import com.google.common.base.Preconditions;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;

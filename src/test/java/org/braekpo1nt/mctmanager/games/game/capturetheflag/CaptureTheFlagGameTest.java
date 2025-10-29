@@ -1,24 +1,22 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
-import org.mockbukkit.mockbukkit.MockBukkit;
-import org.mockbukkit.mockbukkit.ServerMock;
-import org.mockbukkit.mockbukkit.exception.UnimplementedOperationException;
-import org.braekpo1nt.mctmanager.*;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.MockMain;
+import org.braekpo1nt.mctmanager.MyCustomServerMock;
+import org.braekpo1nt.mctmanager.MyPlayerMock;
+import org.braekpo1nt.mctmanager.TestUtils;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfigController;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states.ClassSelectionState;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.PreRoundState;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.RoundActiveState;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.RoundOverState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.mockbukkit.mockbukkit.MockBukkit;
+import org.mockbukkit.mockbukkit.ServerMock;
+import org.mockbukkit.mockbukkit.exception.UnimplementedOperationException;
 
 import java.io.File;
 import java.io.InputStream;

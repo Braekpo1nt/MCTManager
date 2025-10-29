@@ -2,7 +2,12 @@ package org.braekpo1nt.mctmanager.display;
 
 import lombok.Builder;
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.display.delegates.*;
+import org.braekpo1nt.mctmanager.display.delegates.DisplayComposite;
+import org.braekpo1nt.mctmanager.display.delegates.DisplayDelegate;
+import org.braekpo1nt.mctmanager.display.delegates.HasBlockData;
+import org.braekpo1nt.mctmanager.display.delegates.HasBlockDataSingleton;
+import org.braekpo1nt.mctmanager.display.delegates.HasText;
+import org.braekpo1nt.mctmanager.display.delegates.HasTextSingleton;
 import org.braekpo1nt.mctmanager.display.geometry.Edge;
 import org.bukkit.Color;
 import org.bukkit.Location;
