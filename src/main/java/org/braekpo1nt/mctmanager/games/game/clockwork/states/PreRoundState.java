@@ -20,6 +20,7 @@ public class PreRoundState extends ClockworkStateBase {
     
     @Override
     public void enter() {
+        context.getChaosManager().cleanupArena();
         for (ClockworkParticipant participant : context.getParticipants().values()) {
             participant.teleport(context.getConfig().getStartingLocation());
             ParticipantInitializer.clearInventory(participant);

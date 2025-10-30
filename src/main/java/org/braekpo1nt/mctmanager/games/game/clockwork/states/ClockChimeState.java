@@ -4,6 +4,7 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkParticipant;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkTeam;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
+import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.Location;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -24,6 +25,9 @@ public class ClockChimeState extends RoundActiveState {
     
     @Override
     public void enter() {
+        for (ClockworkParticipant participant : context.getParticipants().values()) {
+            ParticipantInitializer.clearInventory(participant);
+        }
         context.getSidebar().updateLine("timer", "Chiming...");
         context.getAdminSidebar().updateLine("timer", "Chiming...");
         context.setNumberOfChimes(context.getRandom().nextInt(1, 13));
