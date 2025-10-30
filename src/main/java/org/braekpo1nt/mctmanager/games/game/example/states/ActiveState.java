@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.example.states;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
@@ -13,7 +14,9 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -165,5 +168,22 @@ public class ActiveState extends ExampleStateBase {
             return;
         }
         event.setCancelled(true);
+    }
+    
+    @Override
+    public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull ExampleParticipant participant) {
+        Main.logf("%s PlayerDeathEvent", participant.getName());
+        event.setCancelled(true);
+    }
+    
+    @Override
+    public void onParticipantRespawn(PlayerRespawnEvent event, ExampleParticipant participant) {
+        Main.logf("%s PlayerRespawnEvent", participant.getName());
+        event.setRespawnLocation(context.getConfig().getStartingLocation());
+    }
+    
+    @Override
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, ExampleParticipant participant) {
+        Main.logf("%s PlayerPostRespawnEvent", participant.getName());
     }
 }
