@@ -77,15 +77,16 @@ public class NotReadyCommand implements TabExecutor {
         sender.sendMessage(Component.text("Admin team has been notified that you are not ready", NamedTextColor.YELLOW));
         
         // Prepare message for admins
-        String playerName = participant.getName();
-        Component subtitle = Component.text(playerName + " is not ready!", NamedTextColor.YELLOW);
+        Component subtitle = Component.empty()
+                .append(participant.displayName())
+                .append(Component.text(" is not ready!"));
         Component chatMessage = Component.empty()
                 .append(Component.text("[NOT READY]: ", NamedTextColor.RED))
-                .append(Component.text(playerName, NamedTextColor.YELLOW)
-                        .clickEvent(ClickEvent.runCommand("/tp " + playerName)))
+                .append(participant.displayName()
+                        .clickEvent(ClickEvent.runCommand("/tp " + participant.getName())))
                 .append(Component.text(" is not ready, ", NamedTextColor.WHITE))
                 .append(Component.text("click here to teleport", NamedTextColor.AQUA)
-                        .clickEvent(ClickEvent.runCommand("/tp " + playerName)));
+                        .clickEvent(ClickEvent.runCommand("/tp " + participant.getName())));
         
         for (Player admin : gameManager.getOnlineAdmins()) {
             // Play notification sound on voice channel

@@ -1,12 +1,13 @@
 package org.braekpo1nt.mctmanager.commands.bugreport;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
@@ -23,6 +24,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class BugReportCommand implements TabExecutor {
     
@@ -62,28 +64,26 @@ public class BugReportCommand implements TabExecutor {
         String bugMessage = String.join(" ", args);
         
         try {
-            logBugReport(player.getUniqueId(), participant.getName(), bugMessage);
+            logBugReport(participant, bugMessage);
             sender.sendMessage(Component.text("Bug report submitted. Thank you!", NamedTextColor.GREEN));
             
             // Notify admins
             Component adminNotification = Component.empty()
                     .append(Component.text("[BUG REPORT] ", NamedTextColor.RED))
-                    .append(Component.text(participant.getName(), NamedTextColor.YELLOW))
+                    .append(participant.displayName())
                     .append(Component.text(": ", NamedTextColor.WHITE))
                     .append(Component.text(bugMessage, NamedTextColor.GRAY));
             
-            for (Player admin : gameManager.getOnlineAdmins()) {
-                admin.sendMessage(adminNotification);
-            }
+            Audience.audience(gameManager.getOnlineAdmins()).sendMessage(adminNotification);
         } catch (IOException e) {
-            Main.logger().severe("Failed to write bug report: " + e.getMessage());
+            Main.logger().log(Level.SEVERE, "Failed to write bug report", e);
             sender.sendMessage(Component.text("Failed to submit bug report. Please try again.", NamedTextColor.RED));
         }
         
         return true;
     }
     
-    private void logBugReport(UUID playerUuid, String playerName, String bugMessage) throws IOException {
+    private void logBugReport(@NotNull Participant participant, String bugMessage) throws IOException {
         File dataFolder = plugin.getDataFolder();
         if (!dataFolder.exists()) {
             dataFolder.mkdirs();
@@ -98,47 +98,37 @@ public class BugReportCommand implements TabExecutor {
                 writer.append("IGN,UUID,Timestamp,Current Game,Player World,Player X,Player Y,Player Z,Bug message\n");
             }
             
-            Player player = plugin.getServer().getPlayer(playerUuid);
-            if (player != null) {
-                String currentGame = getCurrentGameName(playerUuid);
-                String world = player.getWorld().getName();
-                double x = player.getX();
-                double y = player.getY();
-                double z = player.getZ();
-                String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMAT);
-                
-                // Escape CSV values
-                String escapedName = escapeCsv(playerName);
-                String escapedGame = escapeCsv(currentGame);
-                String escapedMessage = escapeCsv(bugMessage);
-                
-                writer.append(escapedName).append(",")
-                        .append(playerUuid.toString()).append(",")
-                        .append(timestamp).append(",")
-                        .append(escapedGame).append(",")
-                        .append(world).append(",")
-                        .append(String.valueOf(x)).append(",")
-                        .append(String.valueOf(y)).append(",")
-                        .append(String.valueOf(z)).append(",")
-                        .append(escapedMessage).append("\n");
-            }
+            String currentGame = getCurrentGameName(participant);
+            @NotNull Location location = participant.getLocation();
+            String world = location.getWorld().getName();
+            double x = location.getX();
+            double y = location.getY();
+            double z = location.getZ();
+            String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMAT);
+            
+            // Escape CSV values
+            String escapedName = escapeCsv(participant.getName());
+            String escapedGame = escapeCsv(currentGame);
+            String escapedMessage = escapeCsv(bugMessage);
+            
+            writer.append(escapedName).append(",")
+                    .append(participant.getUniqueId().toString()).append(",")
+                    .append(timestamp).append(",")
+                    .append(escapedGame).append(",")
+                    .append(world).append(",")
+                    .append(String.valueOf(x)).append(",")
+                    .append(String.valueOf(y)).append(",")
+                    .append(String.valueOf(z)).append(",")
+                    .append(escapedMessage).append("\n");
         }
     }
     
-    private String getCurrentGameName(UUID playerUuid) {
-        // Try to find the game this player is in by checking all active games
-        Participant participant = gameManager.getOnlineParticipant(playerUuid);
-        if (participant != null) {
-            String teamId = participant.getTeamId();
-            // Check all active games to see if this team is in any of them
-            for (GameInstanceId gameId : gameManager.getActiveGameIds()) {
-                MCTGame game = gameManager.getActiveGame(gameId);
-                if (game != null && game.containsTeam(teamId)) {
-                    return game.getType().getTitle();
-                }
-            }
+    private String getCurrentGameName(Participant participant) {
+        GameInstanceId gameInstanceId = gameManager.getTeamActiveGame(participant.getTeamId());
+        if (gameInstanceId == null) {
+            return "";
         }
-        return ""; // Return empty string if not in a game
+        return gameInstanceId.getTitle();
     }
     
     private String escapeCsv(String value) {
