@@ -6,11 +6,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.FallingBlock;
+import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -205,6 +207,43 @@ public class ChaosManager implements Listener {
     private void removeArrowsAndFallingBlocks() {
         for (Entity entity : getEntitiesInCylinder(config.getWorld(), config.getChaos().cylinder().centerX(), config.getChaos().cylinder().centerZ(), config.getChaos().cylinder().radius(), Arrow.class, FallingBlock.class)) {
             entity.remove();
+        }
+    }
+    
+    /**
+     * Cleans up the arena by removing sand blocks, anvil blocks, and item entities
+     * from the area defined by the chaos cylinder configuration.
+     */
+    public void cleanupArena() {
+        double centerX = config.getChaos().cylinder().centerX();
+        double centerZ = config.getChaos().cylinder().centerZ();
+        double radius = config.getChaos().cylinder().radius();
+        World world = config.getWorld();
+        
+        // Remove sand and anvil blocks
+        int minY = (int) Math.floor(config.getChaos().cylinder().spawnY().min());
+        int maxY = (int) Math.ceil(config.getChaos().cylinder().spawnY().max());
+        
+        double radiusSquared = radius * radius;
+        for (int x = (int) (centerX - radius); x <= (int) (centerX + radius); x++) {
+            for (int z = (int) (centerZ - radius); z <= (int) (centerZ + radius); z++) {
+                double distanceSquared = (x - centerX) * (x - centerX) + (z - centerZ) * (z - centerZ);
+                if (distanceSquared <= radiusSquared) {
+                    for (int y = minY; y <= maxY; y++) {
+                        Block block = world.getBlockAt(x, y, z);
+                        if (block.getType() == Material.SAND || block.getType() == Material.ANVIL) {
+                            block.setType(Material.AIR);
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Remove item entities
+        for (Item item : getEntitiesInCylinder(world, centerX, centerZ, radius, Item.class).stream()
+                .map(entity -> (Item) entity)
+                .toList()) {
+            item.remove();
         }
     }
     
