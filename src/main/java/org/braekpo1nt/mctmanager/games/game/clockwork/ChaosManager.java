@@ -240,10 +240,8 @@ public class ChaosManager implements Listener {
         }
         
         // Remove item entities
-        for (Item item : getEntitiesInCylinder(world, centerX, centerZ, radius, Item.class).stream()
-                .map(entity -> (Item) entity)
-                .toList()) {
-            item.remove();
+        for (Entity entity : getEntitiesInCylinder(world, centerX, centerZ, radius, Item.class)) {
+            entity.remove();
         }
     }
     
