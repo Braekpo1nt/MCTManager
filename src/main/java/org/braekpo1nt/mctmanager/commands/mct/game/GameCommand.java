@@ -11,5 +11,6 @@ public class GameCommand extends CommandManager {
         addSubCommand(new StartSubCommand(plugin, gameManager, "start"));
         addSubCommand(new StopSubCommand(gameManager, "stop"));
         addSubCommand(new JoinSubCommand(gameManager, "join"));
+        addSubCommand(new StatusSubCommand(plugin, gameManager, "status"));
     }
 }
