@@ -63,6 +63,8 @@ public class WaitingInHubState extends EventState {
         Component prefix;
         if (eventData.allGamesHaveBeenPlayed()) {
             prefix = Component.text("Final round: ");
+        } else if (getVotingPool().size() == 1) {
+            prefix = Component.text("Last game in: ");
         } else {
             prefix = Component.text("Vote starts in: ");
         }
