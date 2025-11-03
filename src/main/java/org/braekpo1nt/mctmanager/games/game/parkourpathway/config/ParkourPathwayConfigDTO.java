@@ -416,6 +416,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                 .glassBarrier(config.getGlassBarrier())
                 .glassBarrierOpenMessage(config.getGlassBarrierOpenMessage())
                 .teamSpawns(config.getTeamSpawns() != null ? TeamSpawnDTO.fromTeamSpawns(config.getTeamSpawns()) : null)
+                .reachedCheckpointSound(config.getReachedCheckpointSound() != null ? SoundDTO.fromSound(config.getReachedCheckpointSound()) : null)
                 .teamSpawnsOpenMessage(config.getTeamSpawnsOpenMessage())
                 .puzzles(PuzzleDTO.fromPuzzles(config.getPuzzles()))
                 .spectatorArea(config.getSpectatorBoundary() == null ? null :
