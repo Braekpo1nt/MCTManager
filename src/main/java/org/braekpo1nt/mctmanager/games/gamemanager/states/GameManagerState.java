@@ -1584,5 +1584,9 @@ public abstract class GameManagerState {
     public double getMultiplier() {
         return 1.0;
     }
+    
+    public List<GameType> getVotingPool() {
+        return Collections.emptyList();
+    }
     // event handlers stop
 }

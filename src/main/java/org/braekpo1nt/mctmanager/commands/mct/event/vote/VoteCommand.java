@@ -47,7 +47,10 @@ public class VoteCommand extends CommandManager {
             @Override
             public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
                 if (args.length == 1) {
-                    return VoteManager.votableGames().stream().map(GameType::getId).toList();
+                    List<GameType> votingPool = gameManager.getVotingPool();
+                    return VoteManager.votableGames().stream()
+                            .filter(gameType -> !votingPool.contains(gameType))
+                            .map(GameType::getId).toList();
                 }
                 return null;
             }
@@ -74,7 +77,7 @@ public class VoteCommand extends CommandManager {
             @Override
             public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
                 if (args.length == 1) {
-                    return VoteManager.votableGames().stream().map(GameType::getId).toList();
+                    return gameManager.getVotingPool().stream().map(GameType::getId).toList();
                 }
                 return null;
             }
