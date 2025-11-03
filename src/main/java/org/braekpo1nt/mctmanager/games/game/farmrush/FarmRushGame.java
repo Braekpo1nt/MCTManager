@@ -111,7 +111,7 @@ public class FarmRushGame extends WandsGameBase<FarmRushParticipant, FarmRushTea
                 .wandItem(Wand.createWandItem(Material.BOOK, "Info", List.of(
                         Component.text("Item sale prices")
                 )))
-                .onRightClickAir((event, participant) -> {
+                .onRightClick((event, participant) -> {
                     state.showMaterialGui(participant);
                     return CommandResult.success();
                 })
