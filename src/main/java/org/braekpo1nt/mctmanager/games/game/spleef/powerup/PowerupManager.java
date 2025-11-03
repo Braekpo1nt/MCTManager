@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.spleef.powerup;
 
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
+import org.braekpo1nt.mctmanager.games.game.spleef.state.RoundActiveState;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.Bukkit;
@@ -37,6 +38,7 @@ public class PowerupManager implements Listener {
     private static final String BLOCK_BREAKER_METADATA_VALUE = "block_breaker";
     private final Main plugin;
     private final SpleefConfig config;
+    private final RoundActiveState context;
     private Map<UUID, Participant> participants = new HashMap<>();
     /**
      * for each participant UUID, the system time of the moment they last received a powerup
@@ -46,9 +48,10 @@ public class PowerupManager implements Listener {
     private int powerupTimerTaskId;
     private boolean shouldGivePowerups = false;
     
-    public PowerupManager(Main plugin, SpleefConfig config) {
+    public PowerupManager(Main plugin, SpleefConfig config, RoundActiveState context) {
         this.plugin = plugin;
         this.config = config;
+        this.context = context;
     }
     
     public <T extends Participant> void start(Collection<T> newParticipants) {
@@ -321,6 +324,7 @@ public class PowerupManager implements Listener {
         if (config.getBlockBreaker().getUserSound() != null) {
             shooter.playSound(config.getBlockBreaker().getUserSound());
         }
+        context.onBlockBroken(hitBlock);
     }
     
     
