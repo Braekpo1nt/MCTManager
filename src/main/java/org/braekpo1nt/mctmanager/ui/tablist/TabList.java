@@ -75,7 +75,7 @@ public class TabList implements UIManager {
         private final @NotNull List<ParticipantData> participants;
         private int score;
         
-        public Component toTabListLine(int index) {
+        public Component toTabListLine(int index, int maxNames) {
             int paddingLength = Math.max(TEAM_LINE_CHARACTERS
                     - (4 + name.length() + Integer.toString(score).length()), 0);
             return Component.empty()
@@ -93,12 +93,21 @@ public class TabList implements UIManager {
                     
                     .append(Component.empty()
                             .append(Component.text("     "))
-                            .append(getParticipantNamesLine())
+                            .append(getParticipantNamesLine(maxNames))
                     )
                     ;
         }
         
-        private Component getParticipantNamesLine() {
+        private Component getParticipantNamesLine(int maxNames) {
+            if (participants.size() > maxNames) {
+                long count = participants.stream().filter(p -> !p.isGrey()).count();
+                return Component.empty()
+                        .append(Component.text(count))
+                        .append(Component.text("/"))
+                        .append(Component.text(participants.size()))
+                        .append(Component.text(" online"))
+                        .color(color);
+            }
             // alphabetical order
             List<ParticipantData> sortedParticipants = participants.stream().sorted(Comparator.comparing(ParticipantData::getName)).toList();
             List<Integer> nameLengths = sortedParticipants.stream().map(participant -> participant.getName().length()).toList();
@@ -156,9 +165,11 @@ public class TabList implements UIManager {
     private final Map<UUID, PlayerData> playerDatas = new HashMap<>();
     
     private final Main plugin;
+    private final int maxNames;
     
     public TabList(@NotNull Main plugin) {
         this.plugin = plugin;
+        this.maxNames = plugin.getConfig().getInt("ui.tab_list.max_names", 5);
     }
     
     /**
@@ -215,7 +226,7 @@ public class TabList implements UIManager {
         for (int i = 0; i < sortedTeamDatas.size(); i++) {
             TeamData team = sortedTeamDatas.get(i);
             builder
-                    .append(team.toTabListLine(i + 1))
+                    .append(team.toTabListLine(i + 1, this.maxNames))
                     .append(Component.newline())
                     .append(Component.newline())
             ;

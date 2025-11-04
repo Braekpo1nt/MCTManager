@@ -98,10 +98,10 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
     
     /**
      * Check if the given location is inside the given puzzle's check points.
-     *
-     * @param v      the location to check if it's inside the puzzle's detection areas or not.
+     * @param v the location to check if it's inside the puzzle's detection areas or not.
      * @param puzzle the puzzle to check if the player reached
-     * @return -1 if v isn't inside the given puzzle's detection areas. Otherwise, returns the index of the puzzle's CheckPoint that v is inside.
+     * @return -1 if v isn't inside the given puzzle's detection areas. Otherwise, returns the index of the puzzle's
+     * CheckPoint that v is inside.
      */
     private int participantReachedCheckPoint(Vector v, Puzzle puzzle) {
         for (int i = 0; i < puzzle.getCheckPoints().size(); i++) {
@@ -135,6 +135,9 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
                             .append(checkpointNum)
                             .color(NamedTextColor.YELLOW)
             ));
+            if (config.getReachedCheckpointSound() != null) {
+                participant.playSound(config.getReachedCheckpointSound());
+            }
             context.awardPoints(participant, calculatePointsForPuzzle(puzzleIndex, config.getCheckpointScore()));
             
             if (config.getMaxSkipPuzzle() > 0) {
@@ -162,10 +165,12 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
     protected abstract void restartMercyRuleCountdown();
     
     /**
-     * Calculates the points for playersPuzzle based on how many players have reached or passed that playersPuzzle. If puzzleScores has x elements, the nth player to arrive at playersPuzzle gets the puzzleScores[n-1], unless n is greater than or equal to x, in which case they get puzzleScores[x-1]
-     *
+     * Calculates the points for playersPuzzle based on how many players have reached or passed that playersPuzzle. If
+     * puzzleScores has x elements, the nth player to arrive at playersPuzzle gets the puzzleScores[n-1], unless n is
+     * greater than or equal to x, in which case they get puzzleScores[x-1]
      * @param playersPuzzle the index of the puzzle to get the points for
-     * @param puzzleScores  the scores to progress through. The last score is to give to everyone who didn't make the one of the other specified scores.
+     * @param puzzleScores the scores to progress through. The last score is to give to everyone who didn't make the one
+     * of the other specified scores.
      * @return the points for playersPuzzle
      */
     private int calculatePointsForPuzzle(int playersPuzzle, int[] puzzleScores) {
@@ -218,9 +223,11 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
     }
     
     /**
-     * Calculates the number of points for a win, based on how many players have currently won. If winScores has x elements, the nth player to win will get winScores[n-1] points, unless n is greater than or equal to x in which case they get winScores[x-1]
-     *
-     * @param winScores the scores to progress through. The last score is to give to everyone who didn't make one of the other specified scores.
+     * Calculates the number of points for a win, based on how many players have currently won. If winScores has x
+     * elements, the nth player to win will get winScores[n-1] points, unless n is greater than or equal to x in which
+     * case they get winScores[x-1]
+     * @param winScores the scores to progress through. The last score is to give to everyone who didn't make one of the
+     * other specified scores.
      * @return the points for the most recent player win
      */
     private int calculatePointsForWin(int[] winScores) {

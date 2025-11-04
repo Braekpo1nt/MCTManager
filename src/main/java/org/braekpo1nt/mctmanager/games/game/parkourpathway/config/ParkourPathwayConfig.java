@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 
 import lombok.Builder;
 import lombok.Data;
+import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
@@ -47,6 +48,10 @@ public class ParkourPathwayConfig {
      * the number of points to award for unused skips
      */
     private int unusedSkipScore;
+    /**
+     * The sound that plays
+     */
+    private Sound reachedCheckpointSound;
     /**
      * The puzzle after which no skips are allowed, and players
      * will be given points for their remaining unused skips.

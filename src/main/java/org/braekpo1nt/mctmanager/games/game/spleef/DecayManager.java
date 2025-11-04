@@ -17,6 +17,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -197,12 +198,7 @@ public class DecayManager implements Listener {
         }
     }
     
-    @EventHandler
-    public void onBreakBlock(BlockBreakEvent event) {
-        if (currentStage == null) {
-            return;
-        }
-        Block block = event.getBlock();
+    public void onBlockBroken(@NotNull Block block) {
         Material blockType = block.getType();
         if (!blockType.equals(config.getDecayBlock()) && !blockType.equals(config.getLayerBlock())) {
             return;
@@ -223,6 +219,14 @@ public class DecayManager implements Listener {
         if (blockType.equals(config.getDecayBlock())) {
             layerBlockIsIn.getDecayingBlocks().remove(block);
         }
+    }
+    
+    @EventHandler
+    public void onBreakBlock(BlockBreakEvent event) {
+        if (currentStage == null) {
+            return;
+        }
+        onBlockBroken(event.getBlock());
     }
     
     /**

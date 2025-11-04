@@ -17,6 +17,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.GameManagerState;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.MaintenanceState;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.PracticeState;
+import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -24,6 +25,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -219,6 +221,16 @@ public abstract class EventState extends GameManagerState {
         sidebar.updateLine("currentGame", getCurrentGameLine());
         return CommandResult.success(Component.text("Max games has been set to ")
                 .append(Component.text(newMaxGames)));
+    }
+    
+    /**
+     * @return all the games in the voting pool (available to vote for in the event)
+     */
+    @Override
+    public List<GameType> getVotingPool() {
+        List<GameType> votingPool = new ArrayList<>(VoteManager.votableGames());
+        votingPool.removeAll(eventData.getPlayedGames());
+        return votingPool;
     }
     
     @Override

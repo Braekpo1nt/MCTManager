@@ -10,6 +10,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
+import org.braekpo1nt.mctmanager.config.dto.net.kyori.adventure.sound.SoundDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
@@ -73,6 +74,7 @@ class ParkourPathwayConfigDTO implements Validatable {
      * because they would go out of bounds before they reach the checkpoints.
      */
     private List<PuzzleDTO> puzzles;
+    private @Nullable SoundDTO reachedCheckpointSound;
     private @Nullable BoundingBox spectatorArea;
     private @Nullable List<Material> preventInteractions;
     /**
@@ -250,6 +252,9 @@ class ParkourPathwayConfigDTO implements Validatable {
             BoundingBox spectatorArea = this.spectatorArea;
             validator.validate(spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
         }
+        if (reachedCheckpointSound != null) {
+            reachedCheckpointSound.validate(validator.path("reachedCheckpointSound"));
+        }
         validator.notNull(this.getScores(), "scores");
         validator.notNull(this.getScores().getCheckpoint(), "scores.checkpoint");
         validator.validate(this.getScores().getCheckpoint().length >= 2, "scores.checkpoint must have at least two elements");
@@ -330,6 +335,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                 .startingLocation(newStartingLocation)
                 .spectatorBoundary(this.spectatorArea == null ? null :
                         new SpectatorBoundary(this.spectatorArea, newStartingLocation))
+                .reachedCheckpointSound(this.reachedCheckpointSound != null ? this.reachedCheckpointSound.toSound() : null)
                 .teamSpawns(newTeamSpawns)
                 .puzzles(newPuzzles)
                 .glassBarrier(newGlassBarrier)
@@ -410,6 +416,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                 .glassBarrier(config.getGlassBarrier())
                 .glassBarrierOpenMessage(config.getGlassBarrierOpenMessage())
                 .teamSpawns(config.getTeamSpawns() != null ? TeamSpawnDTO.fromTeamSpawns(config.getTeamSpawns()) : null)
+                .reachedCheckpointSound(config.getReachedCheckpointSound() != null ? SoundDTO.fromSound(config.getReachedCheckpointSound()) : null)
                 .teamSpawnsOpenMessage(config.getTeamSpawnsOpenMessage())
                 .puzzles(PuzzleDTO.fromPuzzles(config.getPuzzles()))
                 .spectatorArea(config.getSpectatorBoundary() == null ? null :
