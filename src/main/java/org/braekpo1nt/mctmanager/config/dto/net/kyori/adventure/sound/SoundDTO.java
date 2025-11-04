@@ -20,10 +20,12 @@ public class SoundDTO implements Validatable {
     /**
      * see volume parameter explanation of default minecraft /playsound command (defaults to 1)
      */
+    @Builder.Default
     private float volume = 1;
     /**
      * see pitch parameter explanation of default minecraft /playsound command (defaults to 1)
      */
+    @Builder.Default
     private float pitch = 1;
     
     @Override
