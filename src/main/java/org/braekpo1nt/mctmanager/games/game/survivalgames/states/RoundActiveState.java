@@ -96,8 +96,7 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
         if (!p.isAlive()) {
             return;
         }
-        if (p.getRespawnGracePeriodCountdown() == 0) {
-            p.showTitle(UIUtils.EMPTY_TITLE);
+        if (p.getRespawnGracePeriodCountdown() <= 0) {
             // end the grace period
             return;
         }

@@ -1077,6 +1077,10 @@ public class GameManager implements Listener {
         return activeGames.get(id);
     }
     
+    public @NotNull List<GameType> getVotingPool() {
+        return state.getVotingPool();
+    }
+    
     /**
      * Sets the visibility of the main TabList to the given value for the given player.
      * This is used to allow players to see the player list as default.

@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.game.spleef.SpleefTeam;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.PowerupManager;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
+import org.bukkit.block.Block;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.event.Event;
@@ -33,7 +34,7 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
     public RoundActiveState(@NotNull SpleefGame context) {
         super(context);
         this.decayManager = new DecayManager(context.getPlugin(), context.getConfig(), this);
-        this.powerupManager = new PowerupManager(context.getPlugin(), context.getConfig());
+        this.powerupManager = new PowerupManager(context.getPlugin(), context.getConfig(), this);
     }
     
     @Override
@@ -73,6 +74,10 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
      */
     private void giveTool(SpleefParticipant participant) {
         participant.getInventory().addItem(context.getConfig().getTool());
+    }
+    
+    public void onBlockBroken(@NotNull Block block) {
+        decayManager.onBlockBroken(block);
     }
     
     @Override

@@ -26,8 +26,7 @@ public class VotingState extends EventState {
     
     public VotingState(@NotNull GameManager context, @NotNull ContextReference contextReference, @NotNull EventData eventData) {
         super(context, contextReference, eventData);
-        List<GameType> votingPool = new ArrayList<>(VoteManager.votableGames());
-        votingPool.removeAll(eventData.getPlayedGames());
+        List<GameType> votingPool = getVotingPool();
         this.voteManager = new VoteManager(plugin, this::onVoteExecuted, votingPool, new HashSet<>(onlineParticipants.values()));
         this.timer = Timer.builder()
                 .duration(eventData.getConfig().getVotingDuration())

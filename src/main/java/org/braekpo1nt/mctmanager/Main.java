@@ -165,6 +165,8 @@ public class Main extends JavaPlugin {
         Scoreboard mctScoreboard = this.getServer().getScoreboardManager().getNewScoreboard();
         ParticipantInitializer.setPlugin(this); //TODO: remove this in favor of death and respawn combination 
         
+        saveDefaultConfig();
+        
         PacketEvents.getAPI().init();
         
         HubConfig config;
