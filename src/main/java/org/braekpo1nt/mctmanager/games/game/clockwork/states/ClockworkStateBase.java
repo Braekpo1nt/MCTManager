@@ -13,6 +13,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class ClockworkStateBase implements ClockworkState {
     
@@ -100,7 +101,7 @@ public abstract class ClockworkStateBase implements ClockworkState {
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull ClockworkParticipant participant) {
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull ClockworkParticipant participant) {
         
     }
     

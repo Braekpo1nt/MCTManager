@@ -50,7 +50,7 @@ public class GameOverState extends ColossalCombatStateBase {
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull ColossalParticipant participant) {
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull ColossalParticipant participant) {
         if (participant.getAffiliation() == Affiliation.SPECTATOR) {
             return;
         }

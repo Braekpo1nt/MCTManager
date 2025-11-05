@@ -19,6 +19,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class SpleefStateBase implements SpleefState {
     
@@ -134,7 +135,7 @@ public abstract class SpleefStateBase implements SpleefState {
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull SpleefParticipant participant) {
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull SpleefParticipant participant) {
         participant.setGameMode(GameMode.SPECTATOR);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);

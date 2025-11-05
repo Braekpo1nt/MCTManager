@@ -14,6 +14,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class SurvivalGamesStateBase implements SurvivalGamesState {
     
@@ -119,7 +120,7 @@ public abstract class SurvivalGamesStateBase implements SurvivalGamesState {
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull SurvivalGamesParticipant participant) {
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull SurvivalGamesParticipant participant) {
         participant.setGameMode(GameMode.SPECTATOR);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);

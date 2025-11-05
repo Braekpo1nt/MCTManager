@@ -13,8 +13,6 @@ import org.braekpo1nt.mctmanager.games.game.spleef.powerup.PowerupManager;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
 import org.bukkit.block.Block;
-import org.bukkit.damage.DamageSource;
-import org.bukkit.damage.DamageType;
 import org.bukkit.event.Event;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -22,10 +20,9 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
 
 public class RoundActiveState extends SpleefStateBase implements SpleefInterface {
@@ -129,7 +126,7 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull SpleefParticipant participant) {
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull SpleefParticipant participant) {
         super.onParticipantPostRespawn(event, participant);
         onParticipantDeath(participant);
         if (lessThanTwoParticipantsAreAlive() || exactlyOneTeamIsAlive()) {

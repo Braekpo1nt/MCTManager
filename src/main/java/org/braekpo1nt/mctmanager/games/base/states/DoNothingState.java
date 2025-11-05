@@ -11,6 +11,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A convenience interface to reduce boilerplate in InitialStates
@@ -94,7 +95,7 @@ public interface DoNothingState<P extends ParticipantData, T extends ScoredTeamD
     }
     
     @Override
-    default void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull P participant) {
+    default void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull P participant) {
         
     }
     

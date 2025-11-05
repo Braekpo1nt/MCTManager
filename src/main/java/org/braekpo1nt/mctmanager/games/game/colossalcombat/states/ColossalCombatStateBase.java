@@ -14,6 +14,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class ColossalCombatStateBase implements ColossalCombatState {
     protected final @NotNull ColossalCombatGame context;
@@ -127,7 +128,7 @@ public abstract class ColossalCombatStateBase implements ColossalCombatState {
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull ColossalParticipant participant) {
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull ColossalParticipant participant) {
         
     }
     

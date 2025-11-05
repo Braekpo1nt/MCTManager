@@ -298,7 +298,7 @@ public class RoundActiveState extends CaptureTheFlagStateBase {
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull CTFParticipant participant) {
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull CTFParticipant participant) {
         CaptureTheFlagMatch match = getMatch(participant.getTeamId());
         if (match == null) {
             return;

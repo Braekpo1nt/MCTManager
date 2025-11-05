@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.bukkit.GameMode;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Common functionality for when players should be on their platforms,
@@ -43,7 +44,7 @@ public abstract class OnPlatformsState extends SurvivalGamesStateBase {
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull SurvivalGamesParticipant participant) {
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull SurvivalGamesParticipant participant) {
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);

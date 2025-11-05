@@ -379,7 +379,7 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull CTFParticipant participant) {
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull CTFParticipant participant) {
         CTFMatchParticipant matchParticipant = getParticipant(participant);
         if (matchParticipant == null) {
             return;

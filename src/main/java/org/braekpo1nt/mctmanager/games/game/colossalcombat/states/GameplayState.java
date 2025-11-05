@@ -15,6 +15,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class GameplayState extends ColossalCombatStateBase {
     
@@ -96,7 +97,7 @@ public abstract class GameplayState extends ColossalCombatStateBase {
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull ColossalParticipant participant) {
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull ColossalParticipant participant) {
         if (participant.getAffiliation() == Affiliation.SPECTATOR) {
             return;
         }

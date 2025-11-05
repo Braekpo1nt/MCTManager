@@ -191,7 +191,7 @@ public class ActiveState extends ExampleStateBase {
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull ExampleParticipant participant) {
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull ExampleParticipant participant) {
         Main.logf("%s PlayerPostRespawnEvent", participant.getName());
         participant.setAlive(false);
         participant.setGameMode(GameMode.SPECTATOR);

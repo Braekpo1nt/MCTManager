@@ -26,6 +26,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -239,7 +240,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull CTFMatchParticipant participant) {
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull CTFMatchParticipant participant) {
         participant.setAlive(false);
         if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
             if (hasSouthFlag(participant)) {
