@@ -22,4 +22,9 @@ public class InitialState implements FarmRushState, DoNothingState<FarmRushParti
     public void onParticipantOpenInventory(InventoryOpenEvent event, FarmRushParticipant participant) {
         
     }
+    
+    @Override
+    public void showMaterialGui(FarmRushParticipant participant) {
+        
+    }
 }

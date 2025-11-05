@@ -67,4 +67,11 @@ public interface Team {
         return teams.stream().map(Team::getTeamId).collect(Collectors.toSet());
     }
     
+    static String toString(Collection<? extends Team> teams) {
+        return teams.stream()
+                .map(Team::getTeamId)
+                .toList()
+                .toString();
+    }
+    
 }

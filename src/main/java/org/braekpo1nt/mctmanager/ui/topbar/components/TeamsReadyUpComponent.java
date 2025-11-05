@@ -26,6 +26,7 @@ public class TeamsReadyUpComponent {
          */
         private long readyCount;
         private final TextColor color;
+        
         @SuppressWarnings("UnnecessaryUnicodeEscape")
         public Component toComponent() {
             if (readyCount < 0) {
@@ -38,8 +39,9 @@ public class TeamsReadyUpComponent {
                     .append(Component.text(readyCount)
                             .color(color));
         }
-    
+        
     }
+    
     /**
      * Maps each teamId to their component
      */

@@ -17,7 +17,6 @@ import org.bukkit.util.BoundingBox;
 public record Arena(Location northSpawn, Location southSpawn, Location northFlag, Location southFlag,
                     Location northBarrier, Location southBarrier, BarrierSize barrierSize, BoundingBox boundingBox) {
     /**
-     * 
      * @param xSize Must be 1 or more. The size in the x direction.
      * @param ySize Must be 1 or more. The size in the y direction.
      * @param zSize Must be 1 or more. The size in the z direction.

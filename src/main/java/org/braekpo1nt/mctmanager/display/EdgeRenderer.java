@@ -42,14 +42,14 @@ public class EdgeRenderer implements DisplaySingleton, HasBlockDataSingleton {
      * @param edge the edge to display
      * @param strokeWidth the stroke width (thickness) in blocks of the line
      * @param centered whether the line should have its local bottom (XZ) face centered on {@link Edge#getA()}.
-     *                 It's computationally faster not to, but less pretty. Defaults to true; 
+     * It's computationally faster not to, but less pretty. Defaults to true;
      * @param blockData the block data to use for the line
      */
     @Builder
     public EdgeRenderer(
-            @NotNull World world, 
-            @NotNull Edge edge, 
-            @Nullable Float strokeWidth, 
+            @NotNull World world,
+            @NotNull Edge edge,
+            @Nullable Float strokeWidth,
             @Nullable Boolean centered,
             @Nullable Display.Brightness brightness,
             @Nullable Component customName,
@@ -76,7 +76,7 @@ public class EdgeRenderer implements DisplaySingleton, HasBlockDataSingleton {
                 .glowColor(glowColor)
                 .interpolationDuration(interpolationDuration)
                 .teleportDuration(teleportDuration)
-                .build(); 
+                .build();
     }
     
     @Override
@@ -98,8 +98,8 @@ public class EdgeRenderer implements DisplaySingleton, HasBlockDataSingleton {
         
         Vector3f defaultDirection = new Vector3f(0, 1, 0);
         Vector3f targetDirection = new Vector3f(
-                (float) unitDirection.getX(), 
-                (float) unitDirection.getY(), 
+                (float) unitDirection.getX(),
+                (float) unitDirection.getY(),
                 (float) unitDirection.getZ()
         );
         Quaternionf rotation = new Quaternionf().rotateTo(defaultDirection, targetDirection);

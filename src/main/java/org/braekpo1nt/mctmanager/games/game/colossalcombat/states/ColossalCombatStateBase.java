@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalParticipant;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalTeam;
 import org.bukkit.GameMode;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -14,7 +15,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class ColossalCombatStateBase implements ColossalCombatState {
+public abstract class ColossalCombatStateBase implements ColossalCombatState {
     protected final @NotNull ColossalCombatGame context;
     
     public ColossalCombatStateBase(@NotNull ColossalCombatGame context) {
@@ -128,5 +129,10 @@ public class ColossalCombatStateBase implements ColossalCombatState {
     @Override
     public void onParticipantPostRespawn(PlayerPostRespawnEvent event, ColossalParticipant participant) {
         
+    }
+    
+    @Override
+    public void onParticipantToggleGlide(@NotNull EntityToggleGlideEvent event, ColossalParticipant participant) {
+        // do nothing
     }
 }

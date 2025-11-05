@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.clockwork.states;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkParticipant;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkTeam;
@@ -12,6 +13,7 @@ import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,22 +21,29 @@ import java.util.List;
 
 public class StayOnWedgeState extends RoundActiveState {
     private final @NotNull Wedge currentWedge;
+    private @Nullable Timer timer;
     
     public StayOnWedgeState(@NotNull ClockworkGame context) {
         super(context);
         this.currentWedge = config.getWedges().get(context.getNumberOfChimes() - 1);
+    }
+    
+    @Override
+    public void enter() {
         killParticipantsNotOnWedge();
         List<ClockworkTeam> stillLivingTeams = getLivingTeams();
         if (stillLivingTeams.isEmpty()) {
+            Main.logf("stillLivingTeams is empty, all teams lose");
             onAllTeamsLoseRound();
             return;
         }
-        context.getTimerManager().start(Timer.builder()
+        timer = context.getTimerManager().start(Timer.builder()
                 .duration(config.getStayOnWedgeDuration())
                 .withSidebar(context.getSidebar(), "timer")
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .sidebarPrefix(Component.text("Stay on wedge: "))
                 .onCompletion(() -> {
+                    Main.logf("StayOnWedgeState timer onCompletion");
                     List<ClockworkTeam> livingTeams = getLivingTeams();
                     if (config.isLongMode()) { // if we should be in long mode
                         if (livingTeams.isEmpty()) { // 0 teams are alive
@@ -59,6 +68,13 @@ public class StayOnWedgeState extends RoundActiveState {
                 })
                 .name("stayOnWedgeDelay")
                 .build());
+    }
+    
+    @Override
+    public void exit() {
+        if (timer != null) {
+            timer.cancel();
+        }
     }
     
     private void killParticipantsNotOnWedge() {

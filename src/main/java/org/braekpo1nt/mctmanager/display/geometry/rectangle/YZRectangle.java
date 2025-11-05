@@ -67,11 +67,11 @@ public class YZRectangle implements Rectangle {
     
     @Override
     public @NotNull Location getCenter(@NotNull World world) {
-        return new Location(world, x, minY+yLength/2, minZ+zLength/2);
+        return new Location(world, x, minY + yLength / 2, minZ + zLength / 2);
     }
     
     @Override
     public String toString() {
-        return String.format("YZ (%s, %s, %s) (%s, %s, %s)", x, minY, minZ, x, minY+yLength, minZ+zLength);
+        return String.format("YZ (%s, %s, %s) (%s, %s, %s)", x, minY, minZ, x, minY + yLength, minZ + zLength);
     }
 }

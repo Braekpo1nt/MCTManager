@@ -31,7 +31,6 @@ public class CropGrower {
     private final double growthChance;
     
     /**
-     * 
      * @param location the location of the crop grower
      * @param radius the radius of effect
      * @param growthChance the chance per cycle of a crop growing to the next level

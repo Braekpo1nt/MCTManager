@@ -13,16 +13,16 @@ import java.util.List;
 
 public class MockGameManager extends GameManager {
     public MockGameManager(
-            Main plugin, 
-            Scoreboard mctScoreboard, 
-            @NotNull GameStateStorageUtil gameStateStorageUtil, 
-            @NotNull SidebarFactory sidebarFactory, 
+            Main plugin,
+            Scoreboard mctScoreboard,
+            @NotNull GameStateStorageUtil gameStateStorageUtil,
+            @NotNull SidebarFactory sidebarFactory,
             @NotNull HubConfig config) {
         super(
-                plugin, 
-                mctScoreboard, 
+                plugin,
+                mctScoreboard,
                 gameStateStorageUtil,
-                sidebarFactory, 
+                sidebarFactory,
                 config);
     }
     

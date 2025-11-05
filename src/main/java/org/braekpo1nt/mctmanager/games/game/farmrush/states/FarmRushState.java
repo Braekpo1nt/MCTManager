@@ -15,4 +15,6 @@ public interface FarmRushState extends GameStateBase<FarmRushParticipant, FarmRu
     void onParticipantPlaceBlock(BlockPlaceEvent event, FarmRushParticipant participant);
     
     void onParticipantOpenInventory(InventoryOpenEvent event, FarmRushParticipant participant);
+    
+    void showMaterialGui(FarmRushParticipant participant);
 }

@@ -25,9 +25,9 @@ public class CTFParticipant extends ParticipantData {
     
     public CTFParticipant(@NotNull Participant participant, QuitData quitData) {
         this(
-                participant, 
-                quitData.getKills(), 
-                quitData.getDeaths(), 
+                participant,
+                quitData.getKills(),
+                quitData.getDeaths(),
                 quitData.getScore());
     }
     

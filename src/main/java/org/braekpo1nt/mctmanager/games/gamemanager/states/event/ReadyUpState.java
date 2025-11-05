@@ -10,12 +10,12 @@ import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.gamemanager.event.ReadyUpManager;
-import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfig;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
+import org.braekpo1nt.mctmanager.games.gamemanager.event.ReadyUpManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetConfig;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
@@ -55,9 +55,9 @@ public class ReadyUpState extends EventState {
     private int readyUpPromptTaskId;
     
     public ReadyUpState(
-            @NotNull GameManager context, 
-            @NotNull ContextReference contextReference, 
-            @NotNull EventConfig eventConfig, 
+            @NotNull GameManager context,
+            @NotNull ContextReference contextReference,
+            @NotNull EventConfig eventConfig,
             int maxGames,
             int startingGameNumber) {
         super(context, contextReference, eventConfig, startingGameNumber, maxGames);
@@ -114,7 +114,7 @@ public class ReadyUpState extends EventState {
                     }
                 }
             }
-        }.runTaskTimer(plugin, 0L, 2*20L).getTaskId();
+        }.runTaskTimer(plugin, 0L, 2 * 20L).getTaskId();
         
         PresetConfig presetConfig = eventData.getConfig().getPreset();
         if (presetConfig != null) {

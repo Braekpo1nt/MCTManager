@@ -7,6 +7,7 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -20,11 +21,13 @@ import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import lombok.extern.java.Log;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.EnumResolver;
+import org.braekpo1nt.mctmanager.commands.bugreport.BugReportCommand;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.FailureCommandResult;
 import org.braekpo1nt.mctmanager.commands.mct.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.mctdebug.MCTDebugCommand;
+import org.braekpo1nt.mctmanager.commands.notready.NotReadyCommand;
 import org.braekpo1nt.mctmanager.commands.readyup.ReadyUpCommand;
 import org.braekpo1nt.mctmanager.commands.readyup.UnReadyCommand;
 import org.braekpo1nt.mctmanager.commands.teammsg.TeamMsgCommand;
@@ -50,6 +53,8 @@ import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -60,6 +65,7 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +74,7 @@ import java.util.logging.Logger;
 
 @Log
 public class Main extends JavaPlugin {
-
+    
     public static final List<String> VALID_CONFIG_VERSIONS = List.of("0.1.0", "0.1.1", "0.1.2");
     
     /**
@@ -84,7 +90,7 @@ public class Main extends JavaPlugin {
     public final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
     private MCTCommand mctCommand;
     /**
-     * This should be the application-wide logger used to print logs to the console or standard out. 
+     * This should be the application-wide logger used to print logs to the console or standard out.
      * Initialized to Lombok log value so that tests don't trigger NullPointerExceptions
      */
     private static Logger logger = log;
@@ -92,7 +98,7 @@ public class Main extends JavaPlugin {
     
     protected GameManager initialGameManager(Scoreboard mctScoreboard, @NotNull HubConfig config) {
         return new GameManager(
-                this, 
+                this,
                 mctScoreboard,
                 new GameStateStorageUtil(this),
                 new SidebarFactory(),
@@ -134,12 +140,12 @@ public class Main extends JavaPlugin {
     /**
      * Logs the message if the given {@link LogType} should be logged (as determined by {@link #logTypeActive})
      * @param logType the {@link LogType} of the message
-     * @param message the message to log. 
-     *                Must be a valid {@link Logger#log(Level, String, Object[])} string. 
-     *                The provided args will be used as the {code Object...}
-     *                arguments of the format string.
-     * @param args the args the arguments of the {@link Logger#log(Level, String, Object[])} which 
-     *             uses the message as the pattern.
+     * @param message the message to log.
+     * Must be a valid {@link Logger#log(Level, String, Object[])} string.
+     * The provided args will be used as the {code Object...}
+     * arguments of the format string.
+     * @param args the args the arguments of the {@link Logger#log(Level, String, Object[])} which
+     * uses the message as the pattern.
      */
     public static void debugLog(@NotNull LogType logType, @NotNull String message, Object... args) {
         if (logTypeActive.get(logType)) {
@@ -158,6 +164,8 @@ public class Main extends JavaPlugin {
         Main.logger = this.getLogger();
         Scoreboard mctScoreboard = this.getServer().getScoreboardManager().getNewScoreboard();
         ParticipantInitializer.setPlugin(this); //TODO: remove this in favor of death and respawn combination 
+        
+        saveDefaultConfig();
         
         PacketEvents.getAPI().init();
         
@@ -189,6 +197,8 @@ public class Main extends JavaPlugin {
         new UnReadyCommand(this, gameManager);
         new TopCommand(this, gameManager);
         new TeamMsgCommand(this, gameManager);
+        new BugReportCommand(this, gameManager);
+        new NotReadyCommand(this, gameManager);
         
         registerCommands();
         
@@ -197,6 +207,46 @@ public class Main extends JavaPlugin {
     
     protected void registerCommands() {
         LiteralCommandNode<CommandSourceStack> ctDebugCommand = Commands.literal("ctdebug")
+                .requires(sender -> sender.getSender().isOp())
+                .then(Commands.literal("custommodel")
+                        .executes(ctx -> {
+                            if (!(ctx.getSource().getExecutor() instanceof Player player)) {
+                                ctx.getSource().getSender().sendMessage("Must be a player to run this command");
+                                return Command.SINGLE_SUCCESS;
+                            }
+                            givePlayerCustomModelItem(player, new ItemStack(Material.SNOWBALL), "playerswapball");
+                            return Command.SINGLE_SUCCESS;
+                        })
+                        .then(Commands.argument("item", ArgumentTypes.itemStack())
+                                .then(Commands.argument("modelstring", StringArgumentType.word())
+                                        .executes(ctx -> {
+                                            if (!(ctx.getSource().getExecutor() instanceof Player player)) {
+                                                ctx.getSource().getSender().sendMessage("Must be a player to run this command");
+                                                return Command.SINGLE_SUCCESS;
+                                            }
+                                            ItemStack itemStack = ctx.getArgument("item", ItemStack.class);
+                                            String modelstring = ctx.getArgument("modelstring", String.class);
+                                            givePlayerCustomModelItem(player, itemStack, modelstring);
+                                            return Command.SINGLE_SUCCESS;
+                                        }))))
+                .then(Commands.literal("elytra")
+                        .then(Commands.argument("location", ArgumentTypes.blockPosition())
+                                .executes(ctx -> {
+                                    Location location = ctx.getArgument("location", BlockPositionResolver.class)
+                                            .resolve(ctx.getSource())
+                                            .toLocation(ctx.getSource().getLocation().getWorld());
+                                    if (!(ctx.getSource().getExecutor() instanceof Player player)) {
+                                        ctx.getSource().getSender().sendMessage("Must be a player to run this command");
+                                        return Command.SINGLE_SUCCESS;
+                                    }
+                                    player.teleport(location);
+                                    player.getInventory().setChestplate(new ItemStack(Material.ELYTRA));
+                                    this.getServer().getScheduler().runTaskLater(this, () -> {
+                                        player.setGliding(true);
+                                        player.sendMessage("You are flying");
+                                    }, 10L);
+                                    return Command.SINGLE_SUCCESS;
+                                })))
                 .then(Commands.literal("freeRect")
                         .then(Commands.argument("edge1", ArgumentTypes.finePosition())
                                 .then(Commands.argument("edge2", ArgumentTypes.finePosition())
@@ -211,7 +261,7 @@ public class Main extends JavaPlugin {
                                                     .blockData(Material.LIME_STAINED_GLASS.createBlockData())
                                                     .build();
                                             renderer.show();
-                                            this.getServer().getScheduler().runTaskLater(this, renderer::hide, 5*20L);
+                                            this.getServer().getScheduler().runTaskLater(this, renderer::hide, 5 * 20L);
                                             return Command.SINGLE_SUCCESS;
                                         })
                                 )
@@ -309,6 +359,17 @@ public class Main extends JavaPlugin {
         });
     }
     
+    private static void givePlayerCustomModelItem(Player player, ItemStack itemStack, String customModelString) {
+        itemStack.editMeta(meta -> {
+            CustomModelDataComponent customModelDataComponent = meta.getCustomModelDataComponent();
+            List<String> newStrings = new ArrayList<>(customModelDataComponent.getStrings());
+            newStrings.add(customModelString);
+            customModelDataComponent.setStrings(newStrings);
+            meta.setCustomModelDataComponent(customModelDataComponent);
+        });
+        player.getInventory().addItem(itemStack);
+    }
+    
     private @Nullable BoundingBoxRendererImpl boxRenderer;
     private @Nullable RectangleRenderer rectangleRenderer;
     private @Nullable EdgeRenderer edgeRenderer;
@@ -356,11 +417,11 @@ public class Main extends JavaPlugin {
         final Vector corner1 = ctx.getArgument("corner1", BlockPositionResolver.class).resolve(ctx.getSource()).toVector();
         final Vector corner2 = ctx.getArgument("corner2", BlockPositionResolver.class).resolve(ctx.getSource()).toVector();
         BoundingBox boundingBox = new BoundingBox(
-                corner1.getX(), 
-                corner1.getY(), 
-                corner1.getZ(), 
-                corner2.getX(), 
-                corner2.getY(), 
+                corner1.getX(),
+                corner1.getY(),
+                corner1.getZ(),
+                corner2.getX(),
+                corner2.getY(),
                 corner2.getZ()
         );
         if (boxRenderer == null) {

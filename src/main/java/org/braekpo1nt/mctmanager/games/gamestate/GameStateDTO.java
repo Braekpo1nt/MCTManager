@@ -8,7 +8,13 @@ import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -42,14 +48,14 @@ class GameStateDTO implements Validatable {
     
     @NotNull GameState toGameState() {
         return GameState.builder()
-                .players(this.players != null 
-                        ? MCTPlayerDTO.toMCTPlayers(this.players) 
+                .players(this.players != null
+                        ? MCTPlayerDTO.toMCTPlayers(this.players)
                         : new HashMap<>())
-                .teams(this.teams != null 
-                        ? MCTTeamDTO.toTeams(this.teams) 
+                .teams(this.teams != null
+                        ? MCTTeamDTO.toTeams(this.teams)
                         : new HashMap<>())
-                .admins(this.admins != null 
-                        ? this.admins 
+                .admins(this.admins != null
+                        ? this.admins
                         : new ArrayList<>())
                 .build();
     }

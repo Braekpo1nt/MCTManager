@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.games.game.example.ExampleTeam;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.Material;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -19,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The default method implementations for all states (except {@link InitialState}).
  */
-public class ExampleStateBase implements ExampleState {
+public abstract class ExampleStateBase implements ExampleState {
     
     protected final ExampleGame context;
     
@@ -107,6 +108,11 @@ public class ExampleStateBase implements ExampleState {
     
     @Override
     public void onParticipantPostRespawn(PlayerPostRespawnEvent event, ExampleParticipant participant) {
+        
+    }
+    
+    @Override
+    public void onParticipantToggleGlide(@NotNull EntityToggleGlideEvent event, ExampleParticipant participant) {
         
     }
 }

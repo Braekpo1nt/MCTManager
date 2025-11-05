@@ -21,15 +21,18 @@ public class DecayStageDTO implements Validatable {
      */
     List<LayerInfoDTO> layerInfos;
     /**
-     * the duration (in seconds) for which this stage should last. The stage may not last the entire duration if the minPlayers is breached.
+     * the duration (in seconds) for which this stage should last. The stage may not last the entire duration if the
+     * minPlayers is breached.
      */
     int duration;
     /**
-     * the minimum number of participants for this stage. Negative value means there is no minimum number of players and the stage will not proceed until some other requirement is met.
+     * the minimum number of participants for this stage. Negative value means there is no minimum number of players and
+     * the stage will not proceed until some other requirement is met.
      */
     int minParticipants;
     /**
-     * the minimum percentage of participants for this stage. Values between 0 and 1. Negative value means there is no minimum percent of players and the stage will not proceed until some other requirement is met. (defaults to -1)
+     * the minimum percentage of participants for this stage. Values between 0 and 1. Negative value means there is no
+     * minimum percent of players and the stage will not proceed until some other requirement is met. (defaults to -1)
      */
     double minParticipantsPercent = -1;
     /**
@@ -48,7 +51,8 @@ public class DecayStageDTO implements Validatable {
     @Data
     static class LayerInfoDTO implements Validatable {
         /**
-         * The index of the layer to decay (0-based, must be at least 0 and no more than 1 less than the number of layers in the game)
+         * The index of the layer to decay (0-based, must be at least 0 and no more than 1 less than the number of
+         * layers in the game)
          */
         private int index;
         /**
@@ -57,16 +61,17 @@ public class DecayStageDTO implements Validatable {
         @SerializedName(value = "solidBlockRate", alternate = {"blocksPerSecond"})
         private int solidBlockRate = 0;
         /**
-         * the rate at which the decaying blocks should disappear in Blocks Per Second. Defaults to -1. If this value is less than 0, it will be assigned to the value of {@link LayerInfoDTO#solidBlockRate}.
+         * the rate at which the decaying blocks should disappear in Blocks Per Second. Defaults to -1. If this value is
+         * less than 0, it will be assigned to the value of {@link LayerInfoDTO#solidBlockRate}.
          */
         private int decayingBlockRate = -1;
-    
+        
         @Override
         public void validate(@NotNull Validator validator) {
             validator.validate(0 <= solidBlockRate, "solidBlockRate must be can't be negative");
             validator.validate(0 <= index, "index can't be negative");
         }
-    
+        
         DecayStage.LayerInfo toLayerInfo() {
             return new DecayStage.LayerInfo(index, solidBlockRate, decayingBlockRate < 0 ? solidBlockRate : decayingBlockRate);
         }
@@ -92,9 +97,8 @@ public class DecayStageDTO implements Validatable {
     }
     
     /**
-     * 
      * @param validator the validator
-     * @param numberOfLayers the number of layers 
+     * @param numberOfLayers the number of layers
      */
     public void validateIndexes(Validator validator, int numberOfLayers) {
         for (int i = 0; i < this.layerInfos.size(); i++) {

@@ -20,6 +20,9 @@
     "FOOT_RACE": "special.json",
     "CAPTURE_THE_FLAG": "bluemap.json"
   },
+  "crown": {
+    "type": "CARVED_PUMPKIN"
+  },
   "colossalCombatConfig": "default.json",
   "tips": {
     "displayTime": 100,

@@ -6,8 +6,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventHungerLoss;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventItemDrop;
@@ -16,12 +14,13 @@ import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
 import org.braekpo1nt.mctmanager.games.game.footrace.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.footrace.states.FootRaceState;
 import org.braekpo1nt.mctmanager.games.game.footrace.states.InitialState;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -53,15 +52,13 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
      */
     private List<FootRaceParticipant> standings;
     /**
-     * Keeps track of how many participants have finished the race, so we can know 
+     * Keeps track of how many participants have finished the race, so we can know
      * what place a player should be in when they finish
      * TODO: Participant would {@link #standings} be sufficient for this?
      */
     private int numOfFinishedParticipants = 0;
     private long raceStartTime;
-    private int timerRefreshTaskId;
     private int statusEffectsTaskId;
-    private int standingsDisplayTaskId;
     
     public FootRaceGame(
             @NotNull Main plugin,
@@ -193,7 +190,7 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
     }
     
     private void startStatusEffectsTask() {
-        this.statusEffectsTaskId = new BukkitRunnable(){
+        this.statusEffectsTaskId = new BukkitRunnable() {
             @Override
             public void run() {
                 for (Participant participant : participants.values()) {
@@ -237,9 +234,7 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
     
     @Override
     protected void cleanup() {
-        plugin.getServer().getScheduler().cancelTask(timerRefreshTaskId);
         plugin.getServer().getScheduler().cancelTask(statusEffectsTaskId);
-        plugin.getServer().getScheduler().cancelTask(standingsDisplayTaskId);
         closeGlassBarrier();
         standings.clear();
     }

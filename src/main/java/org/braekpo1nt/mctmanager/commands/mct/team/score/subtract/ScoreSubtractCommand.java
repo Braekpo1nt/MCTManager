@@ -7,7 +7,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.jetbrains.annotations.NotNull;
 
 public class ScoreSubtractCommand extends CommandManager {
-
+    
     public ScoreSubtractCommand(GameManager gameManager, @NotNull String name) {
         super(name);
         addSubCommand(new ScoreAddPlayerSubCommand(gameManager, true, "player"));

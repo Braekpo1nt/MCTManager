@@ -34,18 +34,18 @@ class FarmRushConfigDTO implements Validatable {
     private String world;
     private LocationDTO adminLocation;
     /**
-     * the file location of the arena, relative to the MCTManager plugin's data folder 
+     * the file location of the arena, relative to the MCTManager plugin's data folder
      * ({@code <server>/plugins/MCTManager/farm-rush}). Example: {@code "farmRushArena.schem"}.
      */
     private String arenaFile;
     /**
-     * The items in the starter chest. Can contain no more than 27 entries. 
+     * The items in the starter chest. Can contain no more than 27 entries.
      */
     private @Nullable ChestInventoryDTO starterChestContents;
     /**
      * Whether to clear the arenas at the end of the game. If set to false,
      * then arenas will still be present at the end of the game.
-     * Items will not be removed, mobs will not be killed. 
+     * Items will not be removed, mobs will not be killed.
      * This does not prevent those arenas from being overwritten when a new
      * game starts. See {@link #buildArenas} for that feature.
      * Defaults to true.
@@ -53,28 +53,28 @@ class FarmRushConfigDTO implements Validatable {
     private @Nullable Boolean clearArenas;
     /**
      * Whether to use WorldEdit to build the arenas (from the schematic file)
-     * at the start of the game. 
+     * at the start of the game.
      * Defaults to true.
      * If set to false, this will assume that arenas
      * are build to the required specification to match what would have been
      * placed there on their own.
      * Note that, if false, the starter chest, delivery box, and glass barrier
-     * will still be placed. 
-     * Note that, if false, if there are 3 physical arenas in the pre-built 
-     * world, and 4 teams join, the 4th team will be spawned in the void 
-     * and fall to their deaths. 
+     * will still be placed.
+     * Note that, if false, if there are 3 physical arenas in the pre-built
+     * world, and 4 teams join, the 4th team will be spawned in the void
+     * and fall to their deaths.
      */
     private @Nullable Boolean buildArenas;
     /**
-     * The details of the arena. When generating arenas for the game, the first one placed down will have its 
-     * origin at {@link ArenaDTO#getSchematicOrigin()}, and successive ones will be placed on a grid 
-     * according to the defined size. Please ensure that the {@link ArenaDTO#getBounds()} attribute is 
-     * the correct dimensions of the {@link #arenaFile} schematic file's dimensions. 
+     * The details of the arena. When generating arenas for the game, the first one placed down will have its
+     * origin at {@link ArenaDTO#getSchematicOrigin()}, and successive ones will be placed on a grid
+     * according to the defined size. Please ensure that the {@link ArenaDTO#getBounds()} attribute is
+     * the correct dimensions of the {@link #arenaFile} schematic file's dimensions.
      */
     private ArenaDTO arena;
     private @Nullable List<Material> preventInteractions;
     /**
-     * each participant's starting inventory. 
+     * each participant's starting inventory.
      */
     private @Nullable PlayerInventoryDTO loadout;
     private Scores scores;
@@ -141,8 +141,8 @@ class FarmRushConfigDTO implements Validatable {
     @Data
     static class Scores implements Validatable {
         /**
-         * The maximum number of points a team can acquire before the game is over. 
-         * If a team reaches this number, the game will end. If this is less than 1, 
+         * The maximum number of points a team can acquire before the game is over.
+         * If a team reaches this number, the game will end. If this is less than 1,
          * then no maximum score is set and the game will end after the time runs out.
          * Defaults to -1.
          */
@@ -150,8 +150,8 @@ class FarmRushConfigDTO implements Validatable {
         /**
          * The sell cap, beyond which players are not allowed to gain points from selling items.
          * Note that if this is greater than 1 but less than {@link #maxScore}, then players
-         * will be unable to reach the max score through selling items. 
-         * If this is less than 1, then no score cap is in effect. 
+         * will be unable to reach the max score through selling items.
+         * If this is less than 1, then no score cap is in effect.
          * Defaults to -1.
          */
         private @Nullable Integer sellCap;
@@ -162,12 +162,16 @@ class FarmRushConfigDTO implements Validatable {
          */
         private double warningThreshold = -1;
         /**
-         * If {@link #maxScore} is 1 or more (meaning a max score is assigned) 
-         * then the team who reaches the {@link #maxScore} first will receive this bonus. 
-         * Can't be negative. Defaults to 0. 
+         * If {@link #maxScore} is 1 or more (meaning a max score is assigned)
+         * then the team who reaches the {@link #maxScore} first will receive this bonus.
+         * Can't be negative. Defaults to 0.
          */
         private int winnerBonus = 0;
-        private Map<Material, ItemSale> materialScores;
+        private Map<Material, ItemSaleDTO> materialScores;
+        
+        public Map<Material, ItemSale> getMaterialScores() {
+            return ItemSaleDTO.toItemSales(materialScores);
+        }
         
         @Override
         public void validate(@NotNull Validator validator) {
@@ -243,7 +247,7 @@ class FarmRushConfigDTO implements Validatable {
                 .gameDuration(this.durations.gameDuration)
                 .gameOverDuration(this.durations.gameOver)
                 .gracePeriodDuration(this.durations.gracePeriod)
-                .materialScores(this.scores.materialScores)
+                .materialScores(this.scores.getMaterialScores())
                 .maxScore(this.scores.maxScore != null ? this.scores.maxScore : -1)
                 .sellCap(this.scores.sellCap != null ? this.scores.sellCap : -1)
                 .warningThreshold(this.scores.warningThreshold)
@@ -259,12 +263,11 @@ class FarmRushConfigDTO implements Validatable {
     /**
      * If the given item has a score associated with its Material type in the config,
      * this method adds a line to the item's lore showing how many points it's worth.<br>
-     *
+     * <p>
      * This is an idempotent operation, meaning running it on the same item twice will
      * result in only 1 score line being added to the lore. It marks items that have been
      * modified with a persistent data container boolean using {@link FarmRushGame#HAS_SCORE_LORE}
      * as the namespaced key.
-     *
      * @param item the item to add the score to, if it exists
      */
     private static void addScoreLore(@Nullable ItemStack item, @NotNull Map<Material, ItemSale> materialScores) {

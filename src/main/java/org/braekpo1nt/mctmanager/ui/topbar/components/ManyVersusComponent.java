@@ -11,7 +11,11 @@ import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represents many instances of pairs of teams battling.
@@ -28,6 +32,7 @@ public class ManyVersusComponent {
         private final String teamId;
         private int aliveCount;
         private final TextColor color;
+        
         public Component toComponent() {
             if (aliveCount > 0) {
                 return Component.empty()
@@ -42,11 +47,13 @@ public class ManyVersusComponent {
         
         
     }
+    
     @Data
     private static class TeamPair implements Comparable<TeamPair> {
         
         private final Team left;
         private final Team right;
+        
         public @Nullable Team getTeam(String teamId) {
             if (left.getTeamId().equals(teamId)) {
                 return left;
@@ -76,6 +83,7 @@ public class ManyVersusComponent {
         }
         
     }
+    
     /**
      * Maps teamIds to its {@link TeamPair}
      */

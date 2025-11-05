@@ -3,10 +3,15 @@ package org.braekpo1nt.mctmanager.games.game.spleef.state;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.game.spleef.*;
+import org.braekpo1nt.mctmanager.games.game.spleef.DecayManager;
+import org.braekpo1nt.mctmanager.games.game.spleef.SpleefGame;
+import org.braekpo1nt.mctmanager.games.game.spleef.SpleefInterface;
+import org.braekpo1nt.mctmanager.games.game.spleef.SpleefParticipant;
+import org.braekpo1nt.mctmanager.games.game.spleef.SpleefTeam;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.PowerupManager;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
+import org.bukkit.block.Block;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.event.Event;
@@ -29,7 +34,11 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
     public RoundActiveState(@NotNull SpleefGame context) {
         super(context);
         this.decayManager = new DecayManager(context.getPlugin(), context.getConfig(), this);
-        this.powerupManager = new PowerupManager(context.getPlugin(), context.getConfig());
+        this.powerupManager = new PowerupManager(context.getPlugin(), context.getConfig(), this);
+    }
+    
+    @Override
+    public void enter() {
         for (SpleefParticipant participant : context.getParticipants().values()) {
             giveTool(participant);
             participant.setAlive(true);
@@ -39,6 +48,11 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
         decayManager.setAlivePercent(1.0);
         decayManager.start();
         powerupManager.start(context.getParticipants().values());
+    }
+    
+    @Override
+    public void exit() {
+        // do nothing
     }
     
     @Override
@@ -60,6 +74,10 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
      */
     private void giveTool(SpleefParticipant participant) {
         participant.getInventory().addItem(context.getConfig().getTool());
+    }
+    
+    public void onBlockBroken(@NotNull Block block) {
+        decayManager.onBlockBroken(block);
     }
     
     @Override
@@ -88,7 +106,7 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
                     .append(Component.text(" left early. Their life is forfeit."));
             context.messageAllParticipants(deathMessage);
             PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant.getPlayer(),
-                    DamageSource.builder(DamageType.GENERIC).build(), Collections.emptyList(), 0, deathMessage);
+                    DamageSource.builder(DamageType.GENERIC).build(), Collections.emptyList(), 0, 0, 0, 0, deathMessage, true);
             onParticipantDeath(fakeDeathEvent, participant);
         }
     }

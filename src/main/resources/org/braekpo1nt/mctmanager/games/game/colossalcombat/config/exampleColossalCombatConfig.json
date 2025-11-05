@@ -179,7 +179,10 @@
       "y": 2,
       "z": 0
     },
-    "flagSpawnMessage": {"text":"Sudden death! Capture the flag to win the round!","color":"green"},
+    "flagSpawnMessage": {
+      "text": "Sudden death! Capture the flag to win the round!",
+      "color": "green"
+    },
     "maxPlayers": 1,
     "countdown": 45,
     "replaceBlock": "TERRACOTTA",
@@ -272,5 +275,58 @@
     "antiSuffocation": 30,
     "description": 20
   },
-  "description": ["",{"text":"-----------------------","bold":true,"color":"gray"},{"text":"\n"},{"text":"How To Play","bold":true,"color":"yellow"},{"text":" Colossal Combat","bold":true,"italic":true,"color":"yellow"},{"text":"\n"},{"text":"For each tournament the battle ground of this colosseum changes with each tournament, making each one special.\nWith this final game being the deciding victor between the top two teams, there is one simple goal: Win 3 rounds of pvp with ","color":"#FFFFDF"},{"text":"NO RESPAWNS","bold":true,"color":"#FFFFDF"},{"text":" against the opposing team.\n\n","color":"#FFFFDF"},{"text":"Punching is also removed for spectators during the duration of this game.","italic":true,"color":"#FFFFDF"},{"text":" \n"},{"text":"-----------------------","bold":true,"color":"gray"},{"text":" "}]
+  "description": [
+    "",
+    {
+      "text": "-----------------------",
+      "bold": true,
+      "color": "gray"
+    },
+    {
+      "text": "\n"
+    },
+    {
+      "text": "How To Play",
+      "bold": true,
+      "color": "yellow"
+    },
+    {
+      "text": " Colossal Combat",
+      "bold": true,
+      "italic": true,
+      "color": "yellow"
+    },
+    {
+      "text": "\n"
+    },
+    {
+      "text": "For each tournament the battle ground of this colosseum changes with each tournament, making each one special.\nWith this final game being the deciding victor between the top two teams, there is one simple goal: Win 3 rounds of pvp with ",
+      "color": "#FFFFDF"
+    },
+    {
+      "text": "NO RESPAWNS",
+      "bold": true,
+      "color": "#FFFFDF"
+    },
+    {
+      "text": " against the opposing team.\n\n",
+      "color": "#FFFFDF"
+    },
+    {
+      "text": "Punching is also removed for spectators during the duration of this game.",
+      "italic": true,
+      "color": "#FFFFDF"
+    },
+    {
+      "text": " \n"
+    },
+    {
+      "text": "-----------------------",
+      "bold": true,
+      "color": "gray"
+    },
+    {
+      "text": " "
+    }
+  ]
 }

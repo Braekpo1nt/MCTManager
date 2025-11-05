@@ -39,7 +39,8 @@ public class Loadout {
     }
     
     /**
-     * @return The name of this loadout. Used as the item display name for its menu item, and in chat messages to the participants.
+     * @return The name of this loadout. Used as the item display name for its menu item, and in chat messages to the
+     * participants.
      */
     public Component getName() {
         return name;

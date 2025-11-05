@@ -5,12 +5,14 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourParticipant;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourTeam;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
-import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class TeamSpawnsDescription extends ParkourPathwayStateBase {
     
@@ -22,16 +24,22 @@ public class TeamSpawnsDescription extends ParkourPathwayStateBase {
      * A map of teamIds to their {@link TeamSpawn}s
      */
     private @NotNull Map<String, TeamSpawn> teamsToSpawns;
+    private @Nullable Timer timer;
     
     public TeamSpawnsDescription(@NotNull ParkourPathwayGame context, @NotNull List<TeamSpawn> teamSpawns) {
         super(context);
         this.teamSpawns = teamSpawns;
         this.teamsToSpawns = createTeamSpawns();
+    }
+    
+    @Override
+    public void enter() {
         for (ParkourParticipant participant : context.getParticipants().values()) {
             teamsToSpawns.get(participant.getTeamId()).teleport(participant);
+            participant.getInventory().addItem(context.getWandItems());
         }
         context.messageAllParticipants(context.getConfig().getDescription());
-        context.getTimerManager().start(Timer.builder()
+        timer = context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getDescriptionDuration())
                 .withSidebar(context.getSidebar(), "timer")
                 .withSidebar(context.getAdminSidebar(), "timer")
@@ -44,6 +52,11 @@ public class TeamSpawnsDescription extends ParkourPathwayStateBase {
                     teamsToSpawns.clear();
                 })
                 .build());
+    }
+    
+    @Override
+    public void exit() {
+        Timer.cancel(timer);
     }
     
     @Override

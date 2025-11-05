@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchTeam;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -15,7 +16,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class CaptureTheFlagMatchStateBase implements CaptureTheFlagMatchState{
+public abstract class CaptureTheFlagMatchStateBase implements CaptureTheFlagMatchState {
     
     protected final @NotNull CaptureTheFlagMatch context;
     
@@ -105,5 +106,10 @@ public class CaptureTheFlagMatchStateBase implements CaptureTheFlagMatchState{
     @Override
     public void onParticipantPostRespawn(PlayerPostRespawnEvent event, CTFMatchParticipant participant) {
         
+    }
+    
+    @Override
+    public void onParticipantToggleGlide(@NotNull EntityToggleGlideEvent event, CTFMatchParticipant participant) {
+        // do nothing
     }
 }

@@ -22,7 +22,11 @@ import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -31,6 +35,13 @@ import java.util.stream.Collectors;
 @Getter
 @ToString(callSuper = true)
 public class Participant extends OfflineParticipant implements AudienceDelegate {
+    
+    public static String toString(Collection<? extends Participant> participants) {
+        return participants.stream()
+                .map(Participant::getName)
+                .toList()
+                .toString();
+    }
     
     /**
      * @param participants the participants list to get the list of players from
@@ -64,6 +75,7 @@ public class Participant extends OfflineParticipant implements AudienceDelegate 
     public static List<Participant> getParticipantsOnTeam(Collection<Participant> participants, String teamId) {
         return participants.stream().filter(p -> p.getTeamId().equals(teamId)).toList();
     }
+    
     /**
      * The player object that this Participant represents
      */
@@ -90,7 +102,7 @@ public class Participant extends OfflineParticipant implements AudienceDelegate 
     
     /**
      * {@inheritDoc}
-     * @return this Participant's {@link #player}. 
+     * @return this Participant's {@link #player}.
      */
     @Override
     public @NotNull Audience getAudience() {
@@ -108,6 +120,7 @@ public class Participant extends OfflineParticipant implements AudienceDelegate 
     /**
      * Delegate for {@link Player#getName()}
      */
+    @Override
     public @NotNull String getName() {
         return player.getName();
     }
@@ -127,7 +140,7 @@ public class Participant extends OfflineParticipant implements AudienceDelegate 
     }
     
     /**
-     * Delegate for {@link Player#setRespawnLocation(Location,boolean)}
+     * Delegate for {@link Player#setRespawnLocation(Location, boolean)}
      */
     public void setRespawnLocation(@Nullable Location location, boolean force) {
         player.setRespawnLocation(location, force);
@@ -165,6 +178,7 @@ public class Participant extends OfflineParticipant implements AudienceDelegate 
     /**
      * Delegate for {@link Player#displayName()}
      */
+    @Override
     public @NotNull Component displayName() {
         return player.displayName();
     }

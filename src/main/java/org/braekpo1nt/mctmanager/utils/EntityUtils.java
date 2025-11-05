@@ -14,10 +14,13 @@ import org.jetbrains.annotations.NotNull;
 public final class EntityUtils {
     
     /**
-     * Method to calculate the direction (yaw and pitch) for a player to look at the target position from the source position
-     * @param source The source position from which to look (specifically the player's Location as a vector, assumes eye height of 1.62 meters)
+     * Method to calculate the direction (yaw and pitch) for a player to look at the target position from the source
+     * position
+     * @param source The source position from which to look (specifically the player's Location as a vector, assumes eye
+     * height of 1.62 meters)
      * @param target The target position to look at
-     * @return the yaw and pitch (in degrees) that an entity standing at source would need to have in order to look directly at target
+     * @return the yaw and pitch (in degrees) that an entity standing at source would need to have in order to look
+     * directly at target
      */
     public static YawPitch getPlayerLookAtYawPitch(Vector source, Vector target) {
         // x-axis distance from source to target
@@ -29,7 +32,7 @@ public final class EntityUtils {
         // yaw (horizontal rotation angle) in degrees
         float yaw = (float) -Math.toDegrees(Math.atan2(deltaX, deltaZ));
         // horizontal distance from source to target
-        double d = Math.sqrt(deltaX*deltaX + deltaZ*deltaZ);
+        double d = Math.sqrt(deltaX * deltaX + deltaZ * deltaZ);
         // pitch (vertical rotation angle) in degrees
         float pitch = (float) -Math.toDegrees(Math.atan2(deltaY, d));
         return new YawPitch(yaw, pitch);
@@ -47,7 +50,8 @@ public final class EntityUtils {
      * Converts the player's yaw and pitch to one of the 4 cardinal directions or up or down.
      * @param yaw the yaw in degrees of a player's looking direction
      * @param pitch the pitch in degrees of a player's looking direction
-     * @return one of [{@link BlockFace#UP}, {@link BlockFace#DOWN}, {@link BlockFace#NORTH}, {@link BlockFace#SOUTH}, {@link BlockFace#EAST}, {@link BlockFace#WEST}] which the yaw and pitch are most aligned to
+     * @return one of [{@link BlockFace#UP}, {@link BlockFace#DOWN}, {@link BlockFace#NORTH}, {@link BlockFace#SOUTH},
+     * {@link BlockFace#EAST}, {@link BlockFace#WEST}] which the yaw and pitch are most aligned to
      */
     public static BlockFace getPlayerDirection(float yaw, float pitch) {
         double yawRadians = Math.toRadians((yaw + 360) % 360);
@@ -69,7 +73,7 @@ public final class EntityUtils {
                 return BlockFace.EAST;
             }
         } else {
-            if (z > 0){
+            if (z > 0) {
                 return BlockFace.NORTH;
             } else {
                 return BlockFace.SOUTH;
@@ -142,4 +146,17 @@ public final class EntityUtils {
         // do not instantiate
     }
     
+    /**
+     * @param location the location to check if it is on the ground
+     * @param tolerance the tolerance (in blocks) of detection. How far down a solid block must be to assume they are on
+     * the ground.
+     * @return true if the nearest solid block below the given location is within the given tolerance
+     */
+    public static boolean isOnGround(@NotNull Location location, double tolerance) {
+        Location solidBlockBelow = BlockPlacementUtils.getSolidBlockBelow(location);
+        if (solidBlockBelow.equals(location)) {
+            return false;
+        }
+        return !(solidBlockBelow.distance(location) > tolerance);
+    }
 }

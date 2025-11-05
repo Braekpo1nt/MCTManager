@@ -20,13 +20,18 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 public class ClassPicker implements Listener {
     
     private final Component NETHER_STAR_NAME = Component.text("Pick a class");
     
     private final Map<UUID, String> pickedBattleClasses = new HashMap<>();
+    private final Main plugin;
     private final Map<UUID, Participant> teamMates;
     private final Map<UUID, ChestGui> guis;
     private final Map<String, Loadout> loadouts;
@@ -38,13 +43,19 @@ public class ClassPicker implements Listener {
             Collection<T> newTeamMates,
             @NotNull Color leatherColor,
             Map<String, Loadout> loadouts) {
+        this.plugin = plugin;
         this.teamMates = new HashMap<>(newTeamMates.size());
+        for (T teamMate : newTeamMates) {
+            this.teamMates.put(teamMate.getUniqueId(), teamMate);
+        }
         this.guis = new HashMap<>(newTeamMates.size());
         this.loadouts = new HashMap<>(loadouts);
         this.leatherColor = leatherColor;
         this.battleClassGuiItems = createGuiItems();
-        for (Participant teamMate : newTeamMates) {
-            this.teamMates.put(teamMate.getUniqueId(), teamMate);
+    }
+    
+    public void start() {
+        for (Participant teamMate : teamMates.values()) {
             ChestGui gui = createGui();
             this.guis.put(teamMate.getUniqueId(), gui);
             gui.show(teamMate.getPlayer());
@@ -119,7 +130,7 @@ public class ClassPicker implements Listener {
                 .append(Component.text(" (One per team)")
                         .color(NamedTextColor.GRAY))));
         gui.setOnGlobalClick(event -> event.setCancelled(true));
-        OutlinePane pane = new OutlinePane(0,0, 9, 1);
+        OutlinePane pane = new OutlinePane(0, 0, 9, 1);
         for (GuiItem guiItem : battleClassGuiItems.values()) {
             pane.addItem(guiItem);
         }
@@ -140,11 +151,14 @@ public class ClassPicker implements Listener {
     
     public void stop(boolean assignBattleClasses) {
         HandlerList.unregisterAll(this);
+        ItemStack netherStar = new ItemStack(Material.NETHER_STAR);
+        netherStar.editMeta(meta -> meta.displayName(NETHER_STAR_NAME));
         for (Participant teamMate : teamMates.values()) {
             ChestGui gui = guis.get(teamMate.getUniqueId());
-            gui.setOnClose(event -> {});
+            gui.setOnClose(event -> {
+            });
             gui.getInventory().close();
-            teamMate.getInventory().remove(Material.NETHER_STAR);
+            teamMate.getInventory().removeItemAnySlot(netherStar);
         }
         if (assignBattleClasses) {
             for (Participant teamMate : teamMates.values()) {
@@ -203,7 +217,8 @@ public class ClassPicker implements Listener {
             return;
         }
         ChestGui gui = guis.get(teamMate.getUniqueId());
-        gui.setOnClose(event -> {});
+        gui.setOnClose(event -> {
+        });
         gui.getInventory().close();
         if (pickedBattleClasses.containsKey(teamMate.getUniqueId())) {
             deselectClass(teamMate);

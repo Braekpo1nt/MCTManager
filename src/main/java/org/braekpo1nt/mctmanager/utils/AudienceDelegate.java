@@ -16,7 +16,10 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.title.Title;
 import net.kyori.adventure.title.TitlePart;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnknownNullability;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -36,7 +39,6 @@ public interface AudienceDelegate extends Audience {
     /**
      * The return value of this method is used as the delegate for all {@link Audience}
      * methods that need to be implemented.
-     *
      * @return the delegate whose methods should be used as implementations of the audience
      */
     @NotNull Audience getAudience();

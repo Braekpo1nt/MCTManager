@@ -58,7 +58,7 @@ public class CheckpointRenderer implements DisplayComposite, HasTextSingleton {
         this.directionRenderer = EdgeRenderer.builder()
                 .world(world)
                 .edge(new Edge(
-                        checkpoint.getCenter(), 
+                        checkpoint.getCenter(),
                         checkpoint.getCenter()
                                 .add(direction.clone()
                                         .normalize()

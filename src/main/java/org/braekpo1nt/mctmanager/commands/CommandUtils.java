@@ -6,7 +6,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class CommandUtils {
     
@@ -57,7 +62,8 @@ public class CommandUtils {
     
     /**
      * @param value the string to be parsed
-     * @return the boolean value the string represents if the string can be successfully parsed to a boolean, null if the string couldn't be parsed to a boolean
+     * @return the boolean value the string represents if the string can be successfully parsed to a boolean, null if
+     * the string couldn't be parsed to a boolean
      */
     public static @Nullable Boolean toBoolean(@NotNull String value) {
         String lowerCase = value.toLowerCase();

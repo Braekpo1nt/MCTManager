@@ -21,7 +21,7 @@ public interface UIManager {
     /**
      * <p>This method should reset this {@link UIManager} such that it will not
      * be used again.</p>
-     * <p>Remove all viewers/players/admins, clear all contents, 
+     * <p>Remove all viewers/players/admins, clear all contents,
      * remove all listeners, stop all tasks, etc.</p>
      */
     void cleanup();

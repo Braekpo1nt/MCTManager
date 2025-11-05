@@ -2,8 +2,8 @@ package org.braekpo1nt.mctmanager.games.gamemanager.states.event;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.EventData;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
@@ -14,7 +14,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class VotingState extends EventState {
     
@@ -23,8 +26,7 @@ public class VotingState extends EventState {
     
     public VotingState(@NotNull GameManager context, @NotNull ContextReference contextReference, @NotNull EventData eventData) {
         super(context, contextReference, eventData);
-        List<GameType> votingPool = new ArrayList<>(VoteManager.votableGames());
-        votingPool.removeAll(eventData.getPlayedGames());
+        List<GameType> votingPool = getVotingPool();
         this.voteManager = new VoteManager(plugin, this::onVoteExecuted, votingPool, new HashSet<>(onlineParticipants.values()));
         this.timer = Timer.builder()
                 .duration(eventData.getConfig().getVotingDuration())

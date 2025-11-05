@@ -6,7 +6,7 @@ import org.bukkit.util.Vector;
 import java.util.List;
 
 /**
- * Made up of multiple {@link Geometry}s. Not necessarily cohesive. 
+ * Made up of multiple {@link Geometry}s. Not necessarily cohesive.
  */
 @Data
 public class CompositeGeometry {

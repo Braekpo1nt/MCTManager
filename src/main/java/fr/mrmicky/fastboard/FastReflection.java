@@ -34,7 +34,6 @@ import java.util.function.Predicate;
 
 /**
  * Small reflection utility class to use CraftBukkit and NMS.
- *
  * @author MrMicky
  */
 public final class FastReflection {
@@ -77,6 +76,10 @@ public final class FastReflection {
     
     public static Optional<Class<?>> nmsOptionalClass(String post1_17package, String className) {
         return optionalClass(nmsClassName(post1_17package, className));
+    }
+    
+    public static Optional<Class<?>> nmsOptionalClass(String post1_17package, String spigotClass, String mojangClass) {
+        return optionalClass(nmsClassName(post1_17package, MOJANG_MAPPINGS ? mojangClass : spigotClass));
     }
     
     public static String obcClassName(String className) {

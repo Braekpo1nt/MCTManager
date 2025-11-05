@@ -108,7 +108,7 @@ class AnimalGrowerSpecDTO implements Validatable {
             try {
                 newRecipeMap = UIUtils.createMapItem(world, new File(recipeImage));
                 newRecipeMap.editMeta(meta -> {
-                   meta.displayName(Component.text("Animal Grower Recipe")); 
+                    meta.displayName(Component.text("Animal Grower Recipe"));
                 });
             } catch (IOException ignored) {
             }

@@ -13,20 +13,34 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface DisplayDelegate extends Renderer {
     void setGlowColor(@NotNull Color glowColor);
+    
     void setBrightness(@Nullable Display.Brightness brightness);
+    
     void setInterpolationDuration(int interpolationDuration);
+    
     void setTeleportDuration(int teleportDuration);
+    
     void setGlowing(boolean glowing);
+    
     void setBillboard(@NotNull Display.Billboard billboard);
+    
     void customName(@Nullable Component customName);
+    
     void setCustomNameVisible(boolean customNameVisible);
     
     @NotNull Color getGlowColor();
+    
     @Nullable Display.Brightness getBrightness();
+    
     int getInterpolationDuration();
+    
     int getTeleportDuration();
+    
     boolean isGlowing();
+    
     @NotNull Display.Billboard getBillboard();
+    
     @Nullable Component customName();
+    
     boolean isCustomNameVisible();
 }

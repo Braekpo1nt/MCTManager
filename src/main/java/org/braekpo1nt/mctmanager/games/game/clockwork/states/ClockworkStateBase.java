@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkParticipant;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkTeam;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -13,7 +14,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class ClockworkStateBase implements ClockworkState{
+public abstract class ClockworkStateBase implements ClockworkState {
     
     protected final @NotNull ClockworkGame context;
     
@@ -101,5 +102,10 @@ public class ClockworkStateBase implements ClockworkState{
     @Override
     public void onParticipantPostRespawn(PlayerPostRespawnEvent event, ClockworkParticipant participant) {
         
+    }
+    
+    @Override
+    public void onParticipantToggleGlide(@NotNull EntityToggleGlideEvent event, ClockworkParticipant participant) {
+        // do nothing
     }
 }

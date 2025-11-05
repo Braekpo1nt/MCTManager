@@ -1,10 +1,12 @@
 package org.braekpo1nt.mctmanager.games.game.survivalgames;
 
-import lombok.*;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.braekpo1nt.mctmanager.participant.QuitDataBase;
 import org.braekpo1nt.mctmanager.participant.ScoredTeamData;
 import org.braekpo1nt.mctmanager.participant.Team;
-import org.braekpo1nt.mctmanager.participant.TeamData;
 
 @ToString(callSuper = true)
 @Getter
@@ -20,6 +22,13 @@ public class SurvivalGamesTeam extends ScoredTeamData<SurvivalGamesParticipant> 
      */
     public boolean isAlive() {
         return getParticipants().stream().anyMatch(SurvivalGamesParticipant::isAlive);
+    }
+    
+    /**
+     * @return true if at least one participant of this team is respawning, false otherwise
+     */
+    public boolean isRespawning() {
+        return getParticipants().stream().anyMatch(SurvivalGamesParticipant::isRespawning);
     }
     
     public int getAlive() {

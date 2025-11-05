@@ -16,7 +16,7 @@ public class MockFastBoardWrapper extends FastBoardWrapper {
     @Override
     public void updateLine(int line, String text) {
         if (this.lines == null) {
-            this.lines = new String[line+1];
+            this.lines = new String[line + 1];
         }
         if (line >= this.lines.length) {
             String[] newLines = new String[line + 1];

@@ -40,7 +40,7 @@ public class TimerManager {
     }
     
     /**
-     * @return a new TimerManager instance which is already 
+     * @return a new TimerManager instance which is already
      * registered with this TimerManager as its parent
      */
     public TimerManager createManager() {
@@ -102,7 +102,7 @@ public class TimerManager {
     
     /**
      * Cancel all sub TimerManagers and Timers handled by this TimerManager.
-     * This also removes itself from its parent, if it has one. 
+     * This also removes itself from its parent, if it has one.
      */
     public void cancel() {
         List<TimerManager> managersCopy = new ArrayList<>(managers);

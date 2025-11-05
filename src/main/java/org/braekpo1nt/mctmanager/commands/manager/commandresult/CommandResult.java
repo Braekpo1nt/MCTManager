@@ -15,7 +15,7 @@ public interface CommandResult {
     /**
      * @return the message to send to the command sender(s), or empty if
      * the message is null
-     * @see #getMessage() 
+     * @see #getMessage()
      */
     default @NotNull Component getMessageOrEmpty() {
         Component message = getMessage();
@@ -69,7 +69,7 @@ public interface CommandResult {
      * An overload of {@link CommandResult#failure(Component)} where the message is a {@link Usage} object.
      * @param usage the {@link Usage} object describing the proper usage of the failed command
      * @return a new {@link UsageCommandResult}
-     * @see CommandResult#failure(Component) 
+     * @see CommandResult#failure(Component)
      */
     static CommandResult failure(@NotNull Usage usage) {
         return new UsageCommandResult(usage);

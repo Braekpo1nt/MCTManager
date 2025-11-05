@@ -8,7 +8,6 @@ import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta.ItemMetaDT
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +24,7 @@ public class ItemStackDTO implements Validatable {
     @SerializedName(value = "type", alternate = {"id"})
     private @Nullable Material type;
     /**
-     * the amount of the item in the stack 
+     * the amount of the item in the stack
      * (values of 0 or less are treated as zero, resulting in no items in the stack)
      */
     @SerializedName(value = "amount", alternate = {"count"})
@@ -33,6 +32,7 @@ public class ItemStackDTO implements Validatable {
     /**
      * The ItemMeta of the item, can be null
      */
+    @SerializedName(value = "itemMeta", alternate = {"meta"})
     private @Nullable ItemMetaDTO itemMeta;
     /**
      * The enchantments on the item. Each NamespacedKey represents an enchantment
@@ -40,7 +40,7 @@ public class ItemStackDTO implements Validatable {
     private @Nullable List<@Nullable EnchantmentDTO> enchantments;
     
     /**
-     * @return the ItemStack object which was represented by this DTO 
+     * @return the ItemStack object which was represented by this DTO
      */
     public @NotNull ItemStack toItemStack() {
         Preconditions.checkArgument(type != null, "type (Material) cannot be null");

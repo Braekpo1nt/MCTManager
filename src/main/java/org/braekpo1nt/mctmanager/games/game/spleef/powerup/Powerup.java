@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.powerup;
 
+import lombok.Builder;
 import lombok.Data;
 import lombok.Setter;
 import net.kyori.adventure.sound.Sound;
@@ -10,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 @Data
+@Builder
 public class Powerup {
     public enum Type {
         PLAYER_SWAPPER,

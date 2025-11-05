@@ -18,7 +18,7 @@ public class EventConfigController extends ConfigController<EventConfigDTO> {
     }
     
     /**
-     * Gets the config from storage 
+     * Gets the config from storage
      * @return the config for spleef
      * @throws ConfigInvalidException if the config is invalid
      * @throws ConfigIOException if there is an IO problem getting the config

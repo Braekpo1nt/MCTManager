@@ -4,14 +4,15 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.EventData;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.Tip;
-import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.event.delay.StartingGameDelayState;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.event.delay.ToFinalGameDelayState;
+import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
@@ -19,7 +20,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class WaitingInHubState extends EventState {
@@ -57,6 +63,8 @@ public class WaitingInHubState extends EventState {
         Component prefix;
         if (eventData.allGamesHaveBeenPlayed()) {
             prefix = Component.text("Final round: ");
+        } else if (getVotingPool().size() == 1) {
+            prefix = Component.text("Last game in: ");
         } else {
             prefix = Component.text("Vote starts in: ");
         }
@@ -66,8 +74,15 @@ public class WaitingInHubState extends EventState {
                 .sidebarPrefix(prefix)
                 .onCompletion(() -> {
                     disableTips();
+                    List<GameType> votingPool = getVotingPool();
                     if (eventData.allGamesHaveBeenPlayed()) {
                         context.setState(new ToFinalGameDelayState(context, contextReference, eventData));
+                    } else if (votingPool.size() == 1) {
+                        GameType gameType = votingPool.getFirst(); // get the only game type left
+                        String chosenConfigFile = eventData.getConfig().getGameConfigs().getOrDefault(gameType, "default.json");
+                        context.setState(new StartingGameDelayState(
+                                context, contextReference, eventData,
+                                gameType, chosenConfigFile));
                     } else {
                         context.setState(new VotingState(context, contextReference, eventData));
                     }

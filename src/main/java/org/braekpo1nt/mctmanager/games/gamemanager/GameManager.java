@@ -41,20 +41,32 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.*;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scoreboard.Scoreboard;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
- * Responsible for overall game management. 
+ * Responsible for overall game management.
  * Creating new game instances, starting/stopping games, and handling game events.
  */
 public class GameManager implements Listener {
@@ -77,13 +89,13 @@ public class GameManager implements Listener {
      */
     private final Scoreboard mctScoreboard;
     /**
-     * This should be used to register all timers in games and events, 
+     * This should be used to register all timers in games and events,
      * so that they can be easily paused, resumed, skipped, etc. in bulk.
      */
     @Getter
     private final TimerManager timerManager;
     /**
-     * Contains the list of all teams. Updated when teams are added/removed or when participants are 
+     * Contains the list of all teams. Updated when teams are added/removed or when participants are
      * joined/left or quit/join
      */
     private final Map<String, MCTTeam> teams = new HashMap<>();
@@ -108,7 +120,7 @@ public class GameManager implements Listener {
     protected final Map<UUID, GameInstanceId> adminGames = new HashMap<>();
     /**
      * A reference to which admin is in which editor<br>
-     * If an admin's UUID is a key in this map, that admin is in 
+     * If an admin's UUID is a key in this map, that admin is in
      * an editor.
      */
     protected final Map<UUID, GameInstanceId> adminEditors = new HashMap<>();
@@ -118,8 +130,8 @@ public class GameManager implements Listener {
     @Getter
     private @NotNull HubConfig config;
     
-    public GameManager(Main plugin, 
-                       Scoreboard mctScoreboard, 
+    public GameManager(Main plugin,
+                       Scoreboard mctScoreboard,
                        @NotNull GameStateStorageUtil gameStateStorageUtil,
                        @NotNull SidebarFactory sidebarFactory,
                        @NotNull HubConfig config) {
@@ -344,10 +356,17 @@ public class GameManager implements Listener {
             return;
         }
         MCTParticipant participant = onlineParticipants.get(event.getEntity().getUniqueId());
-        if (participant == null) {
+        if (participant != null) {
+            state.onParticipantDamage(event, participant);
             return;
         }
-        state.onParticipantDamage(event, participant);
+        if (!(event.getEntity() instanceof Player admin)) {
+            return;
+        }
+        if (!onlineAdmins.contains(admin)) {
+            return;
+        }
+        state.onAdminDamage(event, admin);
     }
     
     @EventHandler
@@ -465,11 +484,11 @@ public class GameManager implements Listener {
             List<UUID> members = gameStateStorageUtil.getParticipantUUIDsOnTeam(teamId);
             int score = gameStateStorageUtil.getTeamScore(teamId);
             MCTTeam team = new MCTTeam(
-                    teamId, 
-                    teamDisplayName, 
-                    teamColor, 
-                    colorAttributes, 
-                    members, 
+                    teamId,
+                    teamDisplayName,
+                    teamColor,
+                    colorAttributes,
+                    members,
                     score);
             teams.put(teamId, team);
         }
@@ -541,8 +560,7 @@ public class GameManager implements Listener {
     
     /**
      * Starts the given game with all teams and all admins
-     *
-     * @param gameType   The game to start
+     * @param gameType The game to start
      * @param configFile the config file to use for the game
      * @return a CommandResult indicating the success or failure of starting the game,
      * including a reason why the game didn't start if so.
@@ -689,7 +707,8 @@ public class GameManager implements Listener {
     }
     
     /**
-     * @param skipValidation if true, validation will be skipped and the config will be saved even if invalid, if false the config will only save if it is valid
+     * @param skipValidation if true, validation will be skipped and the config will be saved even if invalid, if false
+     * the config will only save if it is valid
      */
     public CommandResult saveEditor(@NotNull String configFile, boolean skipValidation) {
         return state.saveEditor(configFile, skipValidation);
@@ -725,7 +744,7 @@ public class GameManager implements Listener {
     
     /**
      * A list of all the teams in the game
-     * @return A list containing the internal names of all the teams in the game. 
+     * @return A list containing the internal names of all the teams in the game.
      * Empty list if there are no teams
      */
     public Set<String> getTeamIds() {
@@ -733,8 +752,9 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Joins the given player to the team with the given teamId. If the player was on a team already (not teamId) they will be removed from that team and added to the other team. 
-     * Note, this will not join a player to a team if that player is an admin. 
+     * Joins the given player to the team with the given teamId. If the player was on a team already (not teamId) they
+     * will be removed from that team and added to the other team.
+     * Note, this will not join a player to a team if that player is an admin.
      * @param offlinePlayer The player to join to the given team
      * @param name The name of the participant to join to the given team
      * @param teamId The internal teamId of the team to join the player to.
@@ -757,7 +777,7 @@ public class GameManager implements Listener {
     
     /**
      * Leaves the player from the team and removes them from the game state.
-     * If a game is running, and the player is online, removes that player from the game as well. 
+     * If a game is running, and the player is online, removes that player from the game as well.
      * @param offlineParticipant The participant to remove from their team
      */
     public CommandResult leaveParticipant(@NotNull OfflineParticipant offlineParticipant) {
@@ -773,7 +793,7 @@ public class GameManager implements Listener {
     
     /**
      * @return a copy of the list of online participants. Modifying this will not change
-     *      * the online participants. Unmodifiable.
+     * * the online participants. Unmodifiable.
      */
     public @NotNull Collection<Participant> getOnlineParticipants() {
         return Collections.unmodifiableCollection(onlineParticipants.values());
@@ -789,8 +809,8 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Gets all the names of the participants in the game state, regardless of 
-     * whether they're offline or online. 
+     * Gets all the names of the participants in the game state, regardless of
+     * whether they're offline or online.
      * @return a list of the names of all participants in the game state
      */
     public List<@NotNull String> getAllParticipantNames() {
@@ -806,7 +826,7 @@ public class GameManager implements Listener {
     }
     
     /**
-     * @return A list {@link OfflinePlayer}s representing all participants in the {@link GameStateStorageUtil}. Unmodifiable. 
+     * @return A list {@link OfflinePlayer}s representing all participants in the {@link GameStateStorageUtil}. Unmodifiable.
      * These players could be offline or online, have logged in at least once or not
      */
     public Collection<OfflineParticipant> getOfflineParticipants() {
@@ -816,7 +836,7 @@ public class GameManager implements Listener {
     /**
      * @param teamId the teamId to get the members of
      * @return A list {@link OfflinePlayer}s representing all participants in the {@link GameStateStorageUtil}
-     * who are on the given team. 
+     * who are on the given team.
      * These players could be offline or online, have logged in at least once or not
      */
     public @NotNull Collection<OfflineParticipant> getOfflineParticipants(@NotNull String teamId) {
@@ -935,7 +955,8 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Adds the given player as an admin. If the player is already an admin, nothing happens. If the player is a participant, they are removed from their team and added as an admin.
+     * Adds the given player as an admin. If the player is already an admin, nothing happens. If the player is a
+     * participant, they are removed from their team and added as an admin.
      * @param newAdmin The player to add
      */
     public CommandResult addAdmin(Player newAdmin) {
@@ -1056,9 +1077,13 @@ public class GameManager implements Listener {
         return activeGames.get(id);
     }
     
+    public @NotNull List<GameType> getVotingPool() {
+        return state.getVotingPool();
+    }
+    
     /**
-     * Sets the visibility of the main TabList to the given value for the given player. 
-     * This is used to allow players to see the player list as default. 
+     * Sets the visibility of the main TabList to the given value for the given player.
+     * This is used to allow players to see the player list as default.
      * @param uuid the UUID of the player who is currently viewing the TabList to set the visibility of
      * @param visible true if the player should see the TabList content, false otherwise.
      */

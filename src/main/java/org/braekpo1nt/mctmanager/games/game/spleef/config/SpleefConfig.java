@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
 import lombok.Builder;
 import lombok.Data;
-import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.game.spleef.DecayStage;
@@ -34,16 +33,17 @@ public class SpleefConfig {
     private @NotNull Material layerBlock;
     private @NotNull Material decayBlock;
     private ItemStack tool;
-    private Map<Powerup.Source, @NotNull Double> chances;
+    private Powerup playerSwapper;
+    private Powerup blockBreaker;
+    private Powerup shield;
     private Map<Powerup.Type, @NotNull Integer> initialLoadout;
     private long minTimeBetween;
     private int maxPowerups;
+    private Map<Powerup.Source, @NotNull Double> chances;
     /**
      * Maps a source to the weights of the types that can come from that source
      */
     private Map<Powerup.Source, Map<Powerup.Type, @NotNull Integer>> sourceToPowerupWeights;
-    private Map<Powerup.Type, @Nullable Sound> userSounds;
-    private Map<Powerup.Type, @Nullable Sound> affectedSounds;
     private int roundStartingDuration;
     private int roundOverDuration;
     private int gameOverDuration;
@@ -61,20 +61,26 @@ public class SpleefConfig {
     public double getChance(@NotNull Powerup.Source source) {
         return chances.get(source);
     }
+    
     /**
      * @param source the source that the powerups should come from
-     * @return the weights for the powerups which come from the given source (all powerup weights if source is null). The key is the powerup which can come from the source, the value is the weight. 
+     * @return the weights for the powerups which come from the given source (all powerup weights if source is null).
+     * The key is the powerup which can come from the source, the value is the weight.
      */
     public @NotNull Map<Powerup.Type, @NotNull Integer> getPowerupWeights(@Nullable Powerup.Source source) {
         return sourceToPowerupWeights.get(source);
     }
     
-    public @Nullable Sound getUserSound(Powerup.Type type) {
-        return userSounds.get(type);
-    }
-    
-    public @Nullable Sound getAffectedSound(Powerup.Type type) {
-        return affectedSounds.get(type);
+    /**
+     * @param type the type of the powerup to get
+     * @return the powerup of the given type
+     */
+    public @NotNull Powerup getPowerup(@NotNull Powerup.Type type) {
+        return switch (type) {
+            case PLAYER_SWAPPER -> this.playerSwapper;
+            case BLOCK_BREAKER -> this.blockBreaker;
+            case SHIELD -> this.shield;
+        };
     }
     
 }

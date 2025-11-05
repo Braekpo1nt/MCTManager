@@ -6,7 +6,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchParticipant;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchTeam;
@@ -35,12 +34,14 @@ import java.util.Objects;
 public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     
     private final Arena arena;
-    private final GameManager gameManager;
     
     public MatchActiveState(CaptureTheFlagMatch context) {
         super(context);
         this.arena = context.getArena();
-        this.gameManager = context.getGameManager();
+    }
+    
+    @Override
+    public void enter() {
         for (CTFMatchParticipant participant : context.getParticipants().values()) {
             participant.closeInventory();
             participant.setAlive(true);
@@ -52,6 +53,11 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         } else if (context.getSouthTeam().size() == 0) {
             onTeamForfeit(context.getSouthTeam());
         }
+    }
+    
+    @Override
+    public void exit() {
+        // do nothing
     }
     
     private void onTeamForfeit(@NotNull Team forfeit) {
@@ -72,11 +78,11 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
                 .append(reason));
         Audience.audience(context.getParticipants().values()).showTitle(
                 Title.title(
-                    Component.empty()
-                            .append(Component.text("Match Over!"))
-                            .color(NamedTextColor.RED),
-                    reason, 
-                    UIUtils.DEFAULT_TIMES
+                        Component.empty()
+                                .append(Component.text("Match Over!"))
+                                .color(NamedTextColor.RED),
+                        reason,
+                        UIUtils.DEFAULT_TIMES
                 )
         );
         context.setState(new MatchOverState(context));
@@ -168,7 +174,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
                     .append(participant.displayName())
                     .append(Component.text(" left early. Their life is forfeit."));
             PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant.getPlayer(),
-                    DamageSource.builder(DamageType.GENERIC).build(), Collections.emptyList(), 0, deathMessage);
+                    DamageSource.builder(DamageType.GENERIC).build(), Collections.emptyList(), 0, 0, 0, 0, deathMessage, true);
             this.onParticipantDeath(fakeDeathEvent, participant);
         }
         super.onParticipantQuit(participant, team);
@@ -193,6 +199,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     
     /**
      * Checks if all participants are dead.
+     *
      * @return True if all participants are dead, false if at least one participant is alive
      */
     private boolean allParticipantsAreDead() {
@@ -204,20 +211,27 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         if (!participant.isAlive()) {
             return;
         }
+        
         participant.setAlive(false);
         event.getDrops().clear();
         event.setDroppedExp(0);
+        
+        // Handle flag dropping based on affiliation
+        
         if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
             if (hasSouthFlag(participant)) {
                 dropSouthFlag(participant);
             }
         } else {
-            if (hasNorthFlag(participant)){
+            if (hasNorthFlag(participant)) {
                 dropNorthFlag(participant);
             }
         }
+        
         context.updateAliveStatus(participant.getAffiliation());
         context.addDeath(participant);
+        
+        // Handle killer logic
         Player killerPlayer = participant.getKiller();
         if (killerPlayer != null) {
             CTFMatchParticipant killer = context.getParticipants().get(killerPlayer.getUniqueId());
@@ -225,6 +239,16 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
                 onParticipantGetKill(killer, participant);
             }
         }
+        
+        // new code start
+        event.setShowDeathMessages(false);
+        Component deathMessage = event.deathMessage();
+        if (deathMessage != null) {
+            context.messageAllParticipants(deathMessage);
+            context.getParentContext().messageOnDeckParticipants(deathMessage);
+        }
+        // new code stop
+        
         if (allParticipantsAreDead()) {
             onBothTeamsLose(Component.text("Both teams are dead."));
         }
@@ -310,6 +334,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     
     /**
      * Returns true if the south flag is dropped on the ground, and the given location's blockLocation is equal to {@link CaptureTheFlagMatch#getSouthFlagPosition()}}
+     *
      * @param location The location to check
      * @return Whether the south flag is dropped and the location is on the south flag
      */
@@ -415,6 +440,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     
     /**
      * Returns true if the north flag is dropped on the ground, and the given location's blockLocation is equal to {@link CaptureTheFlagMatch#getNorthFlagPosition()}
+     *
      * @param location The location to check
      * @return Whether the north flag is dropped and the location is on the north flag
      */

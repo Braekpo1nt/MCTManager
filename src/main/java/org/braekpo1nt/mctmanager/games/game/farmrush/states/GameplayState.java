@@ -4,11 +4,11 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushParticipant;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushTeam;
 import org.braekpo1nt.mctmanager.games.game.farmrush.ItemSale;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.utils.EntityUtils;
 import org.bukkit.GameMode;
@@ -26,7 +26,13 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Contains logic common across all gameplay states, namely
@@ -90,7 +96,7 @@ public abstract class GameplayState extends FarmRushStateBase {
     
     /**
      * Sell the given items, award the appropriate points
-     * @param itemsToSell the items to sell. Should not be null, should not contain null items. 
+     * @param itemsToSell the items to sell. Should not be null, should not contain null items.
      * @param team the team who is being awarded the points and selling the items.
      * @return how many of each material type were sold
      */
@@ -104,7 +110,7 @@ public abstract class GameplayState extends FarmRushStateBase {
             Material material = itemStack.getType();
             if (context.getConfig().getMaterialScores().containsKey(material)) {
                 int oldAmount = materialTotals.getOrDefault(material, 0);
-                materialTotals.put(material, oldAmount+itemStack.getAmount());
+                materialTotals.put(material, oldAmount + itemStack.getAmount());
             }
         }
         

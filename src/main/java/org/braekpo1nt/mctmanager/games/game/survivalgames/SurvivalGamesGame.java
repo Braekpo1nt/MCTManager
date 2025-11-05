@@ -8,14 +8,14 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfig;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.states.InitialState;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.states.SurvivalGamesState;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.glow.GlowManager;
@@ -23,11 +23,20 @@ import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.topbar.ManyBattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
-import org.bukkit.*;
+import org.bukkit.Chunk;
+import org.bukkit.GameRule;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.WorldBorder;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
-import org.bukkit.entity.*;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.HumanEntity;
+import org.bukkit.entity.Item;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
@@ -45,7 +54,13 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Random;
 
 /**
  * The context for the state pattern
@@ -58,6 +73,18 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     private final GlowManager glowManager;
     private final SurvivalGamesConfig config;
     private final WorldBorder worldBorder;
+    private final Random random;
+    
+    /**
+     * the index of the border stage
+     */
+    private int borderStageIndex;
+    /**
+     * A list of task ids representing when participants should be set to gliding mode,
+     * but need to be cancelled if anything stops the game early
+     */
+    private final List<Integer> glideTaskIds;
+    private int currentRound;
     
     public SurvivalGamesGame(
             @NotNull Main plugin,
@@ -72,15 +99,14 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
         this.topbar = addUIManager(new ManyBattleTopbar());
         this.glowManager = addUIManager(new GlowManager(plugin));
         this.config = config;
+        this.glideTaskIds = new ArrayList<>();
+        this.random = new Random();
+        this.currentRound = 1;
+        this.borderStageIndex = 0;
         worldBorder = config.getWorld().getWorldBorder();
         glowManager.registerListeners();
         fillAllChests();
         setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
-        start(newTeams, newParticipants, newAdmins);
-        initializeGlowManager();
-        for (SurvivalGamesTeam team : teams.values()) {
-            updateAliveCount(team);
-        }
         if (newTeams.size() < 2) {
             messageAllParticipants(Component.empty()
                     .append(Component.text(GameType.SURVIVAL_GAMES.getTitle()))
@@ -91,9 +117,16 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
                             .append(Component.text(" to stop the game."))
                             .color(NamedTextColor.RED)));
         }
-        initializeWorldBorder();
-        createPlatformsAndTeleportTeams();
+        start(newTeams, newParticipants, newAdmins);
         Main.logger().info("Started Survival Games");
+    }
+    
+    /**
+     * Convenience method for getting the current border stage
+     * @return the current border stage
+     */
+    public BorderStage getCurrentBorderStage() {
+        return config.getBorderStages().get(borderStageIndex);
     }
     
     @Override
@@ -104,24 +137,6 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     @Override
     protected @NotNull World getWorld() {
         return config.getWorld();
-    }
-    
-    /**
-     * Set up all the appropriate glowing effects for the start of the game
-     */
-    private void initializeGlowManager() {
-        for (Participant participant : participants.values()) {
-            for (Participant target : participants.values()) {
-                if (!participant.equals(target)) {
-                    if (participant.getTeamId().equals(target.getTeamId())) {
-                        glowManager.showGlowing(participant, target);
-                    }
-                }
-            }
-            for (Player admin : admins) {
-                glowManager.showGlowing(admin, participant);
-            }
-        }
     }
     
     @Override
@@ -154,7 +169,7 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     /**
      * Fill all chests in the survivalgames world, map chests and spawn chests
      */
-    private void fillAllChests() {
+    public void fillAllChests() {
         fillSpawnChests();
         fillMapChests();
     }
@@ -193,7 +208,8 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     }
     
     /**
-     * Creates platforms for teams to spawn on made of a hollow rectangle of Barrier blocks where the bottom layer is Concrete that matches the color of the team
+     * Creates platforms for teams to spawn on made of a hollow rectangle of Barrier blocks where the bottom layer is
+     * Concrete that matches the color of the team
      * <br>
      * For n teamIds and m platforms in storageUtil.getPlatformBarriers():<br>
      * - place n platforms, but no more than m platforms
@@ -206,12 +222,12 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
             int platformIndex = MathUtils.wrapIndex(i, platformBarriers.size());
             BoundingBox barrierArea = platformBarriers.get(platformIndex);
             BoundingBox concreteArea = new BoundingBox(
-                    barrierArea.getMinX()+1,
+                    barrierArea.getMinX() + 1,
                     barrierArea.getMinY(),
-                    barrierArea.getMinZ()+1,
-                    barrierArea.getMaxX()-1,
+                    barrierArea.getMinZ() + 1,
+                    barrierArea.getMaxX() - 1,
                     barrierArea.getMinY(),
-                    barrierArea.getMaxZ()-1);
+                    barrierArea.getMaxZ() - 1);
             BlockPlacementUtils.createHollowCube(world, barrierArea, Material.BARRIER);
             BlockPlacementUtils.createCube(world, concreteArea, team.getColorAttributes().getConcrete());
             i++;
@@ -220,7 +236,8 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     
     /**
      * For n teams and m platforms in storageUtil.getPlatformBarriers():<br>
-     * - teleport teams to their designated platforms. If n is greater than m, then it will start wrapping around and teleporting different teams to the same platforms, until all teams have a platform. 
+     * - teleport teams to their designated platforms. If n is greater than m, then it will start wrapping around and
+     * teleporting different teams to the same platforms, until all teams have a platform.
      */
     private void teleportTeams() {
         List<Location> platformSpawns = config.getPlatformSpawns();
@@ -240,15 +257,37 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     }
     
     @Override
-    protected void initializeSidebar() {
-        topbar.setMiddle(Component.empty());
+    protected void initializeAdminSidebar() {
+        adminSidebar.addLines(
+                new KeyLine("round", Component.empty()),
+                new KeyLine("timer", Component.empty()),
+                new KeyLine("respawn", Component.empty())
+        );
     }
     
     @Override
-    protected void initializeAdminSidebar() {
-        adminSidebar.addLines(
-                new KeyLine("timer", "")
+    protected void initializeSidebar() {
+        topbar.setMiddle(Component.empty());
+        sidebar.addLines(
+                new KeyLine("round", Component.empty()),
+                new KeyLine("respawn", Component.empty())
         );
+    }
+    
+    /**
+     * Update the sidebars to reflect the current round
+     */
+    public void updateRoundLine() {
+        if (config.getRounds() <= 1) {
+            return;
+        }
+        Component roundLine = Component.empty()
+                .append(Component.text("Round "))
+                .append(Component.text(currentRound))
+                .append(Component.text("/"))
+                .append(Component.text(config.getRounds()));
+        sidebar.updateLine("round", roundLine);
+        adminSidebar.updateLine("round", roundLine);
     }
     
     @Override
@@ -258,15 +297,6 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
         scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
         scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
         scoreboardTeam.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
-    }
-    
-    private void initializeWorldBorder() {
-        worldBorder.setCenter(config.getWorldBorderCenterX(), config.getWorldBorderCenterZ());
-        worldBorder.setSize(config.getInitialBorderSize());
-        worldBorder.setDamageAmount(config.getWorldBorderDamageAmount());
-        worldBorder.setDamageBuffer(config.getWorldBorderDamageBuffer());
-        worldBorder.setWarningDistance(config.getWorldBorderWarningDistance());
-        worldBorder.setWarningTime(config.getWorldBorderWarningTime());
     }
     
     /**
@@ -333,7 +363,7 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
         // do nothing
     }
     
-    private void clearFloorItems() {
+    public void clearFloorItems() {
         for (Item item : config.getWorld().getEntitiesByClass(Item.class)) {
             if (config.getRemoveArea().contains(item.getLocation().toVector())) {
                 item.remove();
@@ -341,7 +371,7 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
         }
     }
     
-    private void clearAllChests() {
+    public void clearAllChests() {
         List<Vector> allChestCoords = new ArrayList<>(config.getSpawnChestCoords());
         allChestCoords.addAll(config.getMapChestCoords());
         for (Vector coords : allChestCoords) {
@@ -352,7 +382,7 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
         }
     }
     
-    private void clearContainers() {
+    public void clearContainers() {
         if (!config.shouldClearContainers()) {
             return;
         }
@@ -397,6 +427,7 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     }
     
     // EventHandlers
+    
     /**
      * Called when:
      * Right-clicking an armor stand

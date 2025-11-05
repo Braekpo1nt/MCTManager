@@ -3,8 +3,11 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag.states;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.*;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFTeam;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.MatchPairing;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.RoundManager;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.TeamData;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
@@ -13,28 +16,30 @@ import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public class PreRoundState extends CaptureTheFlagStateBase {
     
-    private final GameManager gameManager;
     private final BattleTopbar topbar;
     private final RoundManager roundManager;
+    private @Nullable Timer timer;
     
     public PreRoundState(CaptureTheFlagGame context) {
         super(context);
-        Main.logger().info("starting PreRoundState");
-        this.gameManager = context.getGameManager();
         this.topbar = context.getTopbar();
         this.roundManager = context.getRoundManager();
-        
+    }
+    
+    @Override
+    public void enter() {
         context.updateRoundLine();
         for (Participant participant : context.getParticipants().values()) {
             announceMatchToParticipant(participant);
         }
         setUpTopbarForRound();
-        context.getTimerManager().start(Timer.builder()
+        timer = context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getMatchesStartingDuration())
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .withTopbar(topbar)
@@ -43,6 +48,11 @@ public class PreRoundState extends CaptureTheFlagStateBase {
                     context.setState(new RoundActiveState(context));
                 })
                 .build());
+    }
+    
+    @Override
+    public void exit() {
+        Timer.cancel(timer);
     }
     
     @Override

@@ -4,17 +4,19 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.games.base.WandsGameBase;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventHungerLoss;
-import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventItemDrop;
+import org.braekpo1nt.mctmanager.games.editor.wand.Wand;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.example.config.ExampleConfig;
 import org.braekpo1nt.mctmanager.games.game.example.states.DescriptionSate;
 import org.braekpo1nt.mctmanager.games.game.example.states.ExampleState;
 import org.braekpo1nt.mctmanager.games.game.example.states.InitialState;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.topbar.BasicTopbar;
@@ -30,35 +32,46 @@ import java.util.List;
 
 @Getter
 @Setter
-public class ExampleGame extends GameBase<ExampleParticipant, ExampleTeam, ExampleParticipant.QuitData, ExampleTeam.QuitData, ExampleState> {
+public class ExampleGame extends WandsGameBase<ExampleParticipant, ExampleTeam, ExampleParticipant.QuitData, ExampleTeam.QuitData, ExampleState> {
     
     private final ExampleConfig config;
     private final BasicTopbar topbar;
     
     /**
      * Initialize data and start the game
-     * 
-     * @param plugin          the plugin
-     * @param gameManager     the GameManager
-     * @param title           the game's initial title, displayed in the sidebar
-     * @param newTeams        the teams participating in the game
+     * @param plugin the plugin
+     * @param gameManager the GameManager
+     * @param title the game's initial title, displayed in the sidebar
+     * @param newTeams the teams participating in the game
      * @param newParticipants the participants of the game
-     * @param newAdmins       the admins
+     * @param newAdmins the admins
      */
     public ExampleGame(
-            @NotNull Main plugin, 
-            @NotNull GameManager gameManager, 
-            @NotNull Component title, 
+            @NotNull Main plugin,
+            @NotNull GameManager gameManager,
+            @NotNull Component title,
             @NotNull ExampleConfig config,
             @NotNull String configFile,
-            @NotNull Collection<Team> newTeams, 
-            @NotNull Collection<Participant> newParticipants, 
+            @NotNull Collection<Team> newTeams,
+            @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
         super(new GameInstanceId(GameType.EXAMPLE, configFile), plugin, gameManager, title, new InitialState());
         this.config = config;
         this.topbar = addUIManager(new BasicTopbar());
         addListener(new PreventHungerLoss<>(this));
-        addListener(new PreventItemDrop<>(this, true));
+        addListener(new PreventItemDrop<>(this, true, itemStack -> {
+            Wand<ExampleParticipant> wand = getWand(itemStack);
+            return wand != null && wand.shouldNotDrop();
+        }));
+        addWand(Wand.<ExampleParticipant>builder().wandItem(Wand.createWandItem(Material.BOOK, "Point Accumulator", List.of(
+                        Component.text("Click to get a point")
+                )))
+                .onRightClick((event, participant) -> {
+                    awardPoints(participant, 1);
+                    return CommandResult.success();
+                })
+                .shouldNotDrop(true)
+                .build());
         start(newTeams, newParticipants, newAdmins);
         Main.logger().info("Started Example Game");
     }

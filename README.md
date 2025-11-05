@@ -55,7 +55,7 @@ A gradle wrapper essentially just makes it so that everyone who is developing on
 You can build the plugin yourself with:
 
 ```
-./gradlew build
+./gradlew shadowJar
 ```
 
 and add the jar from the `<root>/build/libs` directory to your minecraft Paper server's `plugins/` directory. 

@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushTeam;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
@@ -21,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 
-public class FarmRushStateBase implements FarmRushState {
+public abstract class FarmRushStateBase implements FarmRushState {
     
     protected final @NotNull FarmRushGame context;
     
@@ -128,5 +129,15 @@ public class FarmRushStateBase implements FarmRushState {
     @Override
     public void onParticipantPostRespawn(PlayerPostRespawnEvent event, FarmRushParticipant participant) {
         
+    }
+    
+    @Override
+    public void onParticipantToggleGlide(@NotNull EntityToggleGlideEvent event, FarmRushParticipant participant) {
+        // do nothing
+    }
+    
+    @Override
+    public void showMaterialGui(FarmRushParticipant participant) {
+        context.showMaterialGui(participant);
     }
 }

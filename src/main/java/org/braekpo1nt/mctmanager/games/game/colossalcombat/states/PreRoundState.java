@@ -10,10 +10,18 @@ import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.GameMode;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class PreRoundState extends ColossalCombatStateBase {
+    
+    private @Nullable Timer timer;
+    
     public PreRoundState(@NotNull ColossalCombatGame context) {
         super(context);
+    }
+    
+    @Override
+    public void enter() {
         context.closeGates();
         for (ColossalParticipant participant : context.getParticipants().values()) {
             switch (participant.getAffiliation()) {
@@ -33,13 +41,14 @@ public class PreRoundState extends ColossalCombatStateBase {
                     participant.setArrowsInBody(0);
                     participant.setGameMode(GameMode.ADVENTURE);
                 }
-                case SPECTATOR -> {}
+                case SPECTATOR -> {
+                }
             }
         }
         context.updateRoundSidebar();
         context.updateAliveStatus(Affiliation.NORTH);
         context.updateAliveStatus(Affiliation.SOUTH);
-        context.getTimerManager().start(Timer.builder()
+        timer = context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getRoundStartingDuration())
                 .withTopbar(context.getTopbar())
                 .withSidebar(context.getAdminSidebar(), "timer")
@@ -48,6 +57,11 @@ public class PreRoundState extends ColossalCombatStateBase {
                 .titleAudience(Audience.audience(context.getParticipants().values()))
                 .onCompletion(() -> context.setState(new GatesOpeningState(context)))
                 .build());
+    }
+    
+    @Override
+    public void exit() {
+        Timer.cancel(timer);
     }
     
     @Override

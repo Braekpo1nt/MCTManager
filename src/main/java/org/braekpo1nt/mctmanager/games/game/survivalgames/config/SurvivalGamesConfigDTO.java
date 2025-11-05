@@ -9,10 +9,15 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.config.dto.YawPitch;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.NamespacedKeyDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.PlayerInventoryDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.utils.EntityUtils;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.World;
 import org.bukkit.loot.LootTable;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -39,6 +44,10 @@ class SurvivalGamesConfigDTO implements Validatable {
      */
     private BorderDTO border;
     /**
+     * The items a player starts out with at the beginning of the round (this can be empty or left out)
+     */
+    private @Nullable PlayerInventoryDTO starterLoadout;
+    /**
      * The loot table for the spawn chests
      */
     private NamespacedKeyDTO spawnLootTable;
@@ -56,28 +65,35 @@ class SurvivalGamesConfigDTO implements Validatable {
      */
     private List<Vector> mapChestCoords;
     /**
-     * the place where players will be looking when they spawn in at the start of the game. If this is null, then the Platforms.facingDirection() will be used. If Platforms.facingDirection is null, then they will face yaw=0,pitch=0.
+     * the place where players will be looking when they spawn in at the start of the game. If this is null, then the
+     * Platforms.facingDirection() will be used. If Platforms.facingDirection is null, then they will face
+     * yaw=0,pitch=0.
      */
     private Vector platformCenter;
     private List<Platform> platforms;
-    /** 
-     * If true, players will be unable to open any block inventories that aren't spawn chests or map chests. 
-     * Defaults to true. 
-     */
-    private boolean lockOtherInventories = true;
     /**
-     * If true, containers will be cleared in the {@link SurvivalGamesConfigDTO#removeArea} area. 
-     * All chunks found in that area will be searched for blocks with inventories, and those will be cleared.
-     * If false, this phase will be skipped. Useful in combination with {@link SurvivalGamesConfigDTO#lockOtherInventories} 
-     * set to true, because players shouldn't be able to put anything in those inventories anyway. 
+     * The number of rounds.
+     */
+    private int rounds;
+    /**
+     * If true, players will be unable to open any block inventories that aren't spawn chests or map chests.
      * Defaults to true.
      */
-    private boolean shouldClearContainers = true;
+    private @Nullable Boolean lockOtherInventories;
+    /**
+     * If true, containers will be cleared in the {@link SurvivalGamesConfigDTO#removeArea} area.
+     * All chunks found in that area will be searched for blocks with inventories, and those will be cleared.
+     * If false, this phase will be skipped. Useful in combination with
+     * {@link SurvivalGamesConfigDTO#lockOtherInventories}
+     * set to true, because players shouldn't be able to put anything in those inventories anyway.
+     * Defaults to true.
+     */
+    private @Nullable Boolean shouldClearContainers;
     /**
      * Whether the Topbar should show the death count in the top right corner or not.
      * Defaults to false.
      */
-    private boolean showDeathCount = false;
+    private @Nullable Boolean showDeathCount;
     private @Nullable List<Material> preventInteractions;
     private Scores scores;
     private Durations durations;
@@ -93,6 +109,9 @@ class SurvivalGamesConfigDTO implements Validatable {
                 "Could not find world \"%s\"", this.world);
         if (spectatorArea != null) {
             validator.validate(spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
+        }
+        if (starterLoadout != null) {
+            starterLoadout.validate(validator.path("starterLoadout"));
         }
         validator.notNull(this.removeArea,
                 "removeArea");
@@ -130,6 +149,7 @@ class SurvivalGamesConfigDTO implements Validatable {
             validator.validate(this.removeArea.contains(pos),
                     "mapChestCoord (%s) is not inside removeArea (%s)", pos, this.removeArea);
         }
+        validator.validate(this.rounds >= 1, "rounds must be greater than 0");
         validator.notNull(this.platforms, "platforms");
         validator.validate(!this.platforms.isEmpty(), "platforms must have at least one element");
         for (SurvivalGamesConfigDTO.Platform platform : this.platforms) {
@@ -139,9 +159,9 @@ class SurvivalGamesConfigDTO implements Validatable {
             validator.validate(barrier.getWidthX() >= 2, "platforms.barrier must have an x width of at least 2");
             validator.validate(barrier.getWidthZ() >= 2, "platforms.barrier must have an z width of at least 2");
         }
-        for (int i = 0; i < this.platforms.size()-1; i++) {
+        for (int i = 0; i < this.platforms.size() - 1; i++) {
             BoundingBox boxA = this.platforms.get(i).barrier();
-            for (int j = i+1; j < this.platforms.size(); j++) {
+            for (int j = i + 1; j < this.platforms.size(); j++) {
                 BoundingBox boxB = this.platforms.get(j).barrier();
                 validator.validate(!boxA.contains(boxB), "barrier \"%s\" overlaps barrier \"%s\"", boxA, boxB);
             }
@@ -150,19 +170,19 @@ class SurvivalGamesConfigDTO implements Validatable {
                 "scores");
         validator.notNull(this.durations,
                 "durations");
-        validator.validate(this.durations.start() >= 0,
-                "durations.start (%s) can't be negative", this.durations.start());
-        validator.validate(this.durations.invulnerability() >= 0,
-                "durations.invulnerability (%s) can't be negative", this.durations.invulnerability());
-        validator.validate(this.durations.end() >= 0,
-                "durations.end (%s) can't be negative", this.durations.end());
+        validator.validate(this.durations.roundStarting >= 0,
+                "durations.start (%s) can't be negative", this.durations.roundStarting);
+        validator.validate(this.durations.invulnerability >= 0,
+                "durations.invulnerability (%s) can't be negative", this.durations.invulnerability);
+        validator.validate(this.durations.gameOver >= 0,
+                "durations.end (%s) can't be negative", this.durations.gameOver);
         validator.notNull(this.description, "description");
     }
     
     SurvivalGamesConfig toConfig() {
         World newWorld = Bukkit.getWorld(this.world);
         Preconditions.checkState(newWorld != null, "Could not find world \"%s\"", this.world);
-        HashMap<LootTable, Integer> newWeightedLootTables  = new HashMap<>(this.weightedLootTables.size());
+        HashMap<LootTable, Integer> newWeightedLootTables = new HashMap<>(this.weightedLootTables.size());
         for (SurvivalGamesConfigDTO.WeightedNamespacedKey weightedNamespacedKey : this.weightedLootTables) {
             LootTable lootTable = Bukkit.getLootTable(weightedNamespacedKey.toNamespacedKey());
             int weight = weightedNamespacedKey.weight();
@@ -196,19 +216,10 @@ class SurvivalGamesConfigDTO implements Validatable {
             newAdminSpawn.setPitch(direction.pitch());
         }
         
-        List<BorderDTO.BorderStage> borderStages = this.border.borderStages();
-        int[] sizes = new int[borderStages.size()];
-        int[] delays = new int[borderStages.size()];
-        int[] durations = new int[borderStages.size()];
-        for (int i = 0; i < borderStages.size(); i++) {
-            sizes[i] = borderStages.get(i).size();
-            delays[i] = borderStages.get(i).delay();
-            durations[i] = borderStages.get(i).duration();
-        }
         return SurvivalGamesConfig.builder()
                 .world(newWorld)
-                .spectatorBoundary(this.spectatorArea == null ? null : 
-                        new SpectatorBoundary(this.spectatorArea, 
+                .spectatorBoundary(this.spectatorArea == null ? null :
+                        new SpectatorBoundary(this.spectatorArea,
                                 this.platforms.getFirst()
                                         .barrier()
                                         .getCenter()
@@ -221,27 +232,22 @@ class SurvivalGamesConfigDTO implements Validatable {
                 .platformBarriers(newPlatformBarriers)
                 .platformSpawns(newPlatformSpawns)
                 .adminSpawn(newAdminSpawn)
-                .startDuration(this.durations.start)
-                .endDuration(this.durations.end)
+                .rounds(this.rounds)
+                .roundStartingDuration(this.durations.roundStarting)
+                .gameOverDuration(this.durations.gameOver)
+                .roundOverDuration(this.durations.roundOver)
                 .gracePeriodDuration(this.durations.invulnerability)
                 .killScore(this.scores.kill)
+                .starterLoadout(this.starterLoadout != null ? this.starterLoadout.toInventoryContents() : null)
                 .surviveTeamScore(this.scores.surviveTeam)
                 .firstPlaceScore(this.scores.firstPlace)
                 .secondPlaceScore(this.scores.secondPlace)
                 .thirdPlaceScore(this.scores.thirdPlace)
-                .lockOtherInventories(this.lockOtherInventories)
-                .shouldClearContainers(this.shouldClearContainers)
-                .showDeathCount(this.showDeathCount)
-                .initialBorderSize(this.border.initialBorderSize())
-                .worldBorderCenterX(this.border.center().x())
-                .worldBorderCenterZ(this.border.center().z())
-                .worldBorderDamageAmount(this.border.damageAmount())
-                .worldBorderDamageBuffer(this.border.damageBuffer())
-                .worldBorderWarningDistance(this.border.warningDistance())
-                .worldBorderWarningTime(this.border.warningTime())
-                .sizes(sizes)
-                .delays(delays)
-                .durations(durations)
+                .lockOtherInventories(this.lockOtherInventories != null ? this.lockOtherInventories : true)
+                .shouldClearContainers(this.shouldClearContainers != null ? this.shouldClearContainers : true)
+                .showDeathCount(this.showDeathCount != null ? this.showDeathCount : false)
+                .initialBorderSize(this.border.getInitialBorderSize())
+                .border(border.toBorder(newWorld))
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .descriptionDuration(this.durations.description)
                 .description(this.description)
@@ -258,7 +264,7 @@ class SurvivalGamesConfigDTO implements Validatable {
         private int weight;
         
         int weight() {
-            return weight; 
+            return weight;
         }
         
         @Override
@@ -270,8 +276,12 @@ class SurvivalGamesConfigDTO implements Validatable {
     }
     
     /**
-     * @param barrier the BoundingBox of the spawn platform. A hollow box of Barrier blocks will be formed, with the bottom layer of blocks made of Concrete which matches the color of the appropriate team. Players will be spawned in the center of the box, standing on the Concrete blocks.
-     * @param facingDirection if this is not null, the players will be looking this direction when they spawn in at the start of the game (this overrides platformCenter). If this is null, then the players will be looking in the direction of platformCenter. If platformCenter is also null, the players will be looking at yaw=0,pitch=0.
+     * @param barrier the BoundingBox of the spawn platform. A hollow box of Barrier blocks will be formed, with the
+     * bottom layer of blocks made of Concrete which matches the color of the appropriate team. Players will be spawned
+     * in the center of the box, standing on the Concrete blocks.
+     * @param facingDirection if this is not null, the players will be looking this direction when they spawn in at the
+     * start of the game (this overrides platformCenter). If this is null, then the players will be looking in the
+     * direction of platformCenter. If platformCenter is also null, the players will be looking at yaw=0,pitch=0.
      */
     record Platform(BoundingBox barrier, YawPitch facingDirection) {
     }
@@ -279,12 +289,27 @@ class SurvivalGamesConfigDTO implements Validatable {
     record Scores(int kill, int surviveTeam, int firstPlace, int secondPlace, int thirdPlace) {
     }
     
-    /**
-     * 
-     * @param start the delay before the game starts, the time spent on the platforms before they disappear
-     * @param invulnerability the duration of the invulnerability once the platforms disappear
-     * @param end the delay after the game ends, allows for some celebration time before armor and items are taken away and the teleport back to the hub starts
-     */
-    record Durations(int start, int invulnerability, int end, int description) {
+    @Data
+    static class Durations {
+        /**
+         * the delay before the game starts, the time spent on the platforms before they disappear
+         */
+        @SerializedName(value = "roundStarting", alternate = {"start"})
+        private int roundStarting;
+        private int roundOver;
+        /**
+         * the duration of the invulnerability once the platforms disappear
+         */
+        private int invulnerability;
+        /**
+         * the delay after the game ends, allows for some celebration time before armor and items are taken away and the
+         * teleport back to the hub starts
+         */
+        @SerializedName(value = "gameOver", alternate = {"end"})
+        private int gameOver;
+        /**
+         * How long the description should show
+         */
+        private int description;
     }
 }

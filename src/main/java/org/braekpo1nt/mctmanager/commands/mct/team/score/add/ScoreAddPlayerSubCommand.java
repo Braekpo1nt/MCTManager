@@ -20,14 +20,14 @@ import java.util.List;
 public class ScoreAddPlayerSubCommand extends TabSubCommand {
     private final GameManager gameManager;
     private final boolean invert;
-
+    
     public ScoreAddPlayerSubCommand(GameManager gameManager, boolean invert, @NotNull String name) {
         super(name);
         this.gameManager = gameManager;
         this.invert = invert;
     }
-
-
+    
+    
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length != 2) {

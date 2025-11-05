@@ -10,11 +10,17 @@ import org.bukkit.permissions.Permissible;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A bukkit command responsible for managing a set of sub commands.
- * Add classes which implement {@link SubCommand} to the {@link CommandManager#subCommands} map to add executable sub commands. 
+ * Add classes which implement {@link SubCommand} to the {@link CommandManager#subCommands} map to add executable sub
+ * commands.
  * Implement {@link TabSubCommand} in your sub command to provide tab completion
  */
 public abstract class CommandManager extends TabSubCommand {
@@ -70,7 +76,8 @@ public abstract class CommandManager extends TabSubCommand {
     /**
      * Returns the {@link SubCommand}s as a usage arg
      * This is used as the options of the usage message for if the sender doesn't provide any options.
-     * @return this {@link CommandManager}'s sub-commands as an options-list style argument (in the form {@code "<arg1|arg2|arg3>"}). {@code "<options>"} if there are no subCommands. 
+     * @return this {@link CommandManager}'s sub-commands as an options-list style argument (in the form
+     * {@code "<arg1|arg2|arg3>"}). {@code "<options>"} if there are no subCommands.
      */
     protected @NotNull Usage getSubCommandUsageArg(Permissible permissible) {
         return Usage.toArgOptions(subCommands.keySet().stream().filter(subCommandName -> subCommands.get(subCommandName).hasPermission(permissible)).sorted().toList());
@@ -98,7 +105,7 @@ public abstract class CommandManager extends TabSubCommand {
      * @param sender the sender
      * @param command the command
      * @param label the label
-     * @return the {@link CommandResult} detailing the action. Defaults to failure with a usage message. 
+     * @return the {@link CommandResult} detailing the action. Defaults to failure with a usage message.
      */
     protected @NotNull CommandResult noArgumentAction(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label) {
         return CommandResult.failure(getUsage().of(getSubCommandUsageArg(sender)));

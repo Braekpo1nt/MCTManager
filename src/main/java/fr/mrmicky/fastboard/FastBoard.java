@@ -122,8 +122,8 @@ public class FastBoard extends FastBoardBase<String> {
         
         if (prefix.length() > maxLength || suffix.length() > maxLength) {
             // Something went wrong, just cut to prevent client crash/kick
-            prefix = prefix.substring(0, maxLength);
-            suffix = suffix.substring(0, maxLength);
+            prefix = prefix.substring(0, Math.min(maxLength, prefix.length()));
+            suffix = suffix.substring(0, Math.min(maxLength, suffix.length()));
         }
         
         sendTeamPacket(score, TeamMode.UPDATE, prefix, suffix);
@@ -152,7 +152,6 @@ public class FastBoard extends FastBoardBase<String> {
      * Return if the player has a prefix/suffix characters limit.
      * By default, it returns true only in 1.12 or lower.
      * This method can be overridden to fix compatibility with some versions support plugin.
-     *
      * @return max length
      */
     protected boolean hasLinesMaxLength() {

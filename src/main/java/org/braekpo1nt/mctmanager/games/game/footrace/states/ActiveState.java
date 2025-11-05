@@ -3,7 +3,6 @@ package org.braekpo1nt.mctmanager.games.game.footrace.states;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceParticipant;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceTeam;
@@ -28,31 +27,43 @@ import java.util.UUID;
 public class ActiveState extends FootRaceStateBase {
     
     private final FootRaceConfig config;
-    private final GameManager gameManager;
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
     private final TimerManager timerManager;
     private @Nullable Timer endRaceTimer;
+    private int timerRefreshTaskId;
+    private int standingsDisplayTaskId;
     
     public ActiveState(@NotNull FootRaceGame context) {
         super(context);
-        this.gameManager = context.getGameManager();
         this.config = context.getConfig();
         this.sidebar = context.getSidebar();
         this.adminSidebar = context.getAdminSidebar();
         this.timerManager = context.getTimerManager();
-        startRace();
     }
     
-    private void startRace() {
+    @Override
+    public void enter() {
         context.openGlassBarrier();
         context.setRaceStartTime(System.currentTimeMillis());
         startTimerRefreshTask();
         startStandingsUpdateTask();
     }
     
+    @Override
+    public void exit() {
+        context.getPlugin().getServer().getScheduler().cancelTask(timerRefreshTaskId);
+        context.getPlugin().getServer().getScheduler().cancelTask(standingsDisplayTaskId);
+    }
+    
+    @Override
+    public void cleanup() {
+        context.getPlugin().getServer().getScheduler().cancelTask(timerRefreshTaskId);
+        context.getPlugin().getServer().getScheduler().cancelTask(standingsDisplayTaskId);
+    }
+    
     private void startTimerRefreshTask() {
-        context.setTimerRefreshTaskId(new BukkitRunnable(){
+        timerRefreshTaskId = new BukkitRunnable() {
             @Override
             public void run() {
                 long elapsedTime = System.currentTimeMillis() - context.getRaceStartTime();
@@ -74,7 +85,7 @@ public class ActiveState extends FootRaceStateBase {
                     );
                 }
             }
-        }.runTaskTimer(context.getPlugin(), 0, 1).getTaskId());
+        }.runTaskTimer(context.getPlugin(), 0, 1).getTaskId();
     }
     
     @Override
@@ -100,13 +111,13 @@ public class ActiveState extends FootRaceStateBase {
     }
     
     private void startStandingsUpdateTask() {
-        context.setStandingsDisplayTaskId(new BukkitRunnable() {
+        standingsDisplayTaskId = new BukkitRunnable() {
             @Override
             public void run() {
                 context.updateStandings();
                 context.displayStandings();
             }
-        }.runTaskTimer(context.getPlugin(), 0L, 1L).getTaskId());
+        }.runTaskTimer(context.getPlugin(), 0L, 1L).getTaskId();
     }
     
     @Override
@@ -148,7 +159,7 @@ public class ActiveState extends FootRaceStateBase {
                     Component.empty(),
                     Component.empty()
                             .append(Component.text("Lap "))
-                            .append(Component.text(currentLap+1))
+                            .append(Component.text(currentLap + 1))
                             .color(NamedTextColor.YELLOW)
             ));
             long currentTime = System.currentTimeMillis();
@@ -238,8 +249,11 @@ public class ActiveState extends FootRaceStateBase {
     }
     
     /**
-     * Calculates the points to be awarded for the given placement. This is based on user-configured values. Returns a set number of values for placement less than or equal to x, and a detriment of 10 points for each successive placement greater than x
-     * @param placement the placement number (1=1st place, 2=2nd place, 300=300th place) to get the points for. Must be 1 or more.
+     * Calculates the points to be awarded for the given placement. This is based on user-configured values. Returns a
+     * set number of values for placement less than or equal to x, and a detriment of 10 points for each successive
+     * placement greater than x
+     * @param placement the placement number (1=1st place, 2=2nd place, 300=300th place) to get the points for. Must be
+     * 1 or more.
      * @return The number of points to award for the placement, no less than 0.
      */
     private int calculatePointsForPlacement(int placement) {
@@ -248,10 +262,10 @@ public class ActiveState extends FootRaceStateBase {
         }
         int[] placementPoints = config.getPlacementPoints();
         if (placement <= placementPoints.length) {
-            return placementPoints[placement-1];
+            return placementPoints[placement - 1];
         }
-        int minPlacementPoints = placementPoints[placementPoints.length-1];
-        int points = minPlacementPoints - ((placement-placementPoints.length) * config.getDetriment());
+        int minPlacementPoints = placementPoints[placementPoints.length - 1];
+        int points = minPlacementPoints - ((placement - placementPoints.length) * config.getDetriment());
         return Math.max(points, 0);
     }
     

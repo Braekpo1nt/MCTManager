@@ -4,9 +4,12 @@ import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.Border;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.BorderStage;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootTable;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -28,9 +31,12 @@ public class SurvivalGamesConfig {
     private List<BoundingBox> platformBarriers;
     private List<Location> platformSpawns;
     private Location adminSpawn;
-    private int startDuration;
+    private @Nullable ItemStack[] starterLoadout;
+    private int rounds;
+    private int roundStartingDuration;
     private int gracePeriodDuration;
-    private int endDuration;
+    private int gameOverDuration;
+    private int roundOverDuration;
     private int killScore;
     private int surviveTeamScore;
     private int firstPlaceScore;
@@ -40,15 +46,7 @@ public class SurvivalGamesConfig {
     private boolean shouldClearContainers;
     private boolean showDeathCount;
     private double initialBorderSize;
-    private double worldBorderCenterX;
-    private double worldBorderCenterZ;
-    private double worldBorderDamageAmount;
-    private double worldBorderDamageBuffer;
-    private int worldBorderWarningDistance;
-    private int worldBorderWarningTime;
-    private int[] sizes;
-    private int[] delays;
-    private int[] durations;
+    private Border border;
     private List<Material> preventInteractions;
     private int descriptionDuration;
     private Component description;
@@ -66,5 +64,13 @@ public class SurvivalGamesConfig {
     
     public boolean showDeathCount() {
         return showDeathCount;
+    }
+    
+    public List<Location> getRespawnLocations() {
+        return border.getRespawnLocations();
+    }
+    
+    public List<BorderStage> getBorderStages() {
+        return border.getStages();
     }
 }

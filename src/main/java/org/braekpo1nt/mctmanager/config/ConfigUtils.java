@@ -11,10 +11,12 @@ import org.braekpo1nt.mctmanager.config.dto.org.bukkit.NamespacedKeyDTODeseriali
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.NamespacedKeyDeserializer;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta.ItemMetaDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta.ItemMetaDTODeserializer;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.*;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.RecipeChoiceDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.RecipeDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.SmithingRecipeDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.typeadapters.CookingBookCategoryDeserializer;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.typeadapters.RecipeDTODeserializer;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.typeadapters.RecipeChoiceDTODeserializer;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.typeadapters.RecipeDTODeserializer;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.typeadapters.SmithingRecipeDTODeserializer;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDeserializer;
 import org.braekpo1nt.mctmanager.geometry.Geometry;

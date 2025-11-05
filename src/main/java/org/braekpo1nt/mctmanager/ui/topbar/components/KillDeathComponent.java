@@ -11,7 +11,7 @@ public class KillDeathComponent {
     private int kills;
     /**
      * the number of deaths to display. Negative numbers will result in no
-     * deaths being shown. 
+     * deaths being shown.
      */
     private int deaths;
     private final @NotNull Component killsPrefix;
@@ -35,7 +35,7 @@ public class KillDeathComponent {
     
     /**
      * @param deaths the number of deaths to display. Negative numbers will result
-     *               in the deaths not displaying at all. 
+     * in the deaths not displaying at all.
      */
     public void setDeaths(int deaths) {
         this.deaths = deaths;

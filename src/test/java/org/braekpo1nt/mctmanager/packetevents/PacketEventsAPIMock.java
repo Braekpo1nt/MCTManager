@@ -11,7 +11,7 @@ import org.bukkit.plugin.Plugin;
 
 /**
  * Mock the {@link PacketEventsAPI} for testing purposes. This should fake any actual
- * functionality and do essentially nothing. 
+ * functionality and do essentially nothing.
  */
 public class PacketEventsAPIMock extends PacketEventsAPI<Plugin> {
     private final MockMain plugin;

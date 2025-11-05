@@ -40,9 +40,9 @@ public class EnchantmentDTO implements Validatable {
     }
     
     /**
-     * 
      * @param enchantmentDTOs a list of EnchantmentDTOs
-     * @return a non-null map of the equivalent enchantments to their respective levels. Any null entries in enchantmentDTOs is ignored. 
+     * @return a non-null map of the equivalent enchantments to their respective levels. Any null entries in
+     * enchantmentDTOs is ignored.
      */
     public static @NotNull Map<@NotNull Enchantment, @NotNull Integer> toEnchantments(@NotNull List<@Nullable EnchantmentDTO> enchantmentDTOs) {
         Map<Enchantment, Integer> enchantments = new HashMap<>(enchantmentDTOs.size());

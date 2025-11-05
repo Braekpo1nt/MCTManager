@@ -1,10 +1,10 @@
 package org.braekpo1nt.mctmanager.config.dto.org.braekpo1nt.mctmanager.geometry;
 
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonParseException;
-import com.google.gson.JsonDeserializer;
 import org.braekpo1nt.mctmanager.geometry.BoundingCylinder;
 import org.braekpo1nt.mctmanager.geometry.BoundingRectangle;
 import org.braekpo1nt.mctmanager.geometry.Geometry;

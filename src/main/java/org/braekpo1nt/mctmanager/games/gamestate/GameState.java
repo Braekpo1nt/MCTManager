@@ -7,10 +7,14 @@ import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
- * Represents the state of the game for saving and loading from disk. 
+ * Represents the state of the game for saving and loading from disk.
  */
 @Data
 @Builder
@@ -67,7 +71,7 @@ public class GameState {
     /**
      * Checks if the game state contains the given player
      * @param playerUniqueId The UUID of the player to check for
-     * @return True if the player with the given UUID exists, false otherwise 
+     * @return True if the player with the given UUID exists, false otherwise
      */
     public boolean containsPlayer(UUID playerUniqueId) {
         return players.containsKey(playerUniqueId);
@@ -84,7 +88,7 @@ public class GameState {
     
     /**
      * Removes the player with the given UUID from the game state, if it exists.
-     * If the player did not exist, nothing happens. 
+     * If the player did not exist, nothing happens.
      * @param playerUniqueId The UUID for the player
      */
     public void removePlayer(UUID playerUniqueId) {

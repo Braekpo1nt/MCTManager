@@ -19,7 +19,11 @@ import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Data
@@ -167,7 +171,7 @@ class HubConfigDTO implements Validatable {
     @NoArgsConstructor
     static class LeaderboardDTO implements Validatable {
         /**
-         * the title of the leaderboard. Null will make the leaderboard have no title. 
+         * the title of the leaderboard. Null will make the leaderboard have no title.
          */
         private @Nullable String title;
         /**
@@ -188,7 +192,7 @@ class HubConfigDTO implements Validatable {
         HubConfig.Leaderboard toLeaderboard(@NotNull World world) {
             return new HubConfig.Leaderboard(
                     title,
-                    location.toLocation(world), 
+                    location.toLocation(world),
                     topPlayers
             );
         }

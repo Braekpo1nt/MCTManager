@@ -9,19 +9,31 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 public class GatesOpeningState extends GameplayState {
+    
+    private int taskId;
+    
     public GatesOpeningState(@NotNull ColossalCombatGame context) {
         super(context);
+    }
+    
+    @Override
+    public void enter() {
         context.openGates();
         spawnItemDrops();
-        context.getPlugin().getServer().getScheduler().runTaskLater(context.getPlugin(), 
+        taskId = context.getPlugin().getServer().getScheduler().runTaskLater(context.getPlugin(),
                 () -> {
                     if (context.getConfig().shouldStartCaptureTheFlag() && suddenDeathThresholdReached()) {
                         context.setState(new SuddenDeathCountdownState(context));
                     } else {
                         context.setState(new FightingState(context));
                     }
-                }, 
-                config.getAntiSuffocationDuration());
+                },
+                config.getAntiSuffocationDuration()).getTaskId();
+    }
+    
+    @Override
+    public void exit() {
+        context.getPlugin().getServer().getScheduler().cancelTask(taskId);
     }
     
     private void spawnItemDrops() {

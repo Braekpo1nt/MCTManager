@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -19,7 +20,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class SpleefStateBase implements SpleefState {
+public abstract class SpleefStateBase implements SpleefState {
     
     protected final @NotNull SpleefGame context;
     
@@ -143,5 +144,10 @@ public class SpleefStateBase implements SpleefState {
     @Override
     public void onParticipantBreakBlock(BlockBreakEvent event, SpleefParticipant participant) {
         event.setCancelled(true);
+    }
+    
+    @Override
+    public void onParticipantToggleGlide(@NotNull EntityToggleGlideEvent event, SpleefParticipant participant) {
+        // do nothing
     }
 }

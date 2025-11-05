@@ -1,8 +1,8 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.powerup;
 
-import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
+import org.braekpo1nt.mctmanager.games.game.spleef.state.RoundActiveState;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.Bukkit;
@@ -24,7 +24,12 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
 
 public class PowerupManager implements Listener {
     
@@ -33,6 +38,7 @@ public class PowerupManager implements Listener {
     private static final String BLOCK_BREAKER_METADATA_VALUE = "block_breaker";
     private final Main plugin;
     private final SpleefConfig config;
+    private final RoundActiveState context;
     private Map<UUID, Participant> participants = new HashMap<>();
     /**
      * for each participant UUID, the system time of the moment they last received a powerup
@@ -42,66 +48,16 @@ public class PowerupManager implements Listener {
     private int powerupTimerTaskId;
     private boolean shouldGivePowerups = false;
     
-    /**
-     * a list of all powerups
-     */
-    private static final List<Powerup> powerups;
-    /**
-     * a map of {@link Powerup.Type} to their respective {@link Powerup} (for convenience)
-     */
-    private static final Map<Powerup.Type, Powerup> typeToPowerup;
-    static {
-        ItemStack playerSwapperItem = new ItemStack(Material.SNOWBALL);
-        playerSwapperItem.editMeta(meta -> {
-            meta.displayName(Component.text("Player Swapper"));
-            meta.lore(List.of(
-                    Component.text("Throw this at another player"),
-                    Component.text("to swap positions with them.")
-            ));
-            meta.setCustomModelData(2);
-        });
-        Powerup playerSwapper = new Powerup(playerSwapperItem, Powerup.Type.PLAYER_SWAPPER);
-        
-        ItemStack blockBreakerItem = new ItemStack(Material.SNOWBALL);
-        blockBreakerItem.editMeta(meta -> {
-            meta.displayName(Component.text("Block Breaker"));
-            meta.lore(List.of(
-                    Component.text("Throw this at a block"),
-                    Component.text("to break it.")
-            ));
-            meta.setCustomModelData(1);
-        });
-        Powerup blockBreaker = new Powerup(blockBreakerItem, Powerup.Type.BLOCK_BREAKER);
-    
-        ItemStack shieldItem = new ItemStack(Material.LAPIS_LAZULI);
-        shieldItem.editMeta(meta -> {
-            meta.displayName(Component.text("Swap Shield"));
-            meta.lore(List.of(
-                    Component.text("- Activates automatically"),
-                    Component.text("- Single use")
-            ));
-            meta.setCustomModelData(3);
-        });
-        Powerup shield = new Powerup(shieldItem, Powerup.Type.SHIELD);
-        
-        powerups = List.of(playerSwapper, blockBreaker, shield);
-        typeToPowerup = Map.of(
-                Powerup.Type.PLAYER_SWAPPER, playerSwapper,
-                Powerup.Type.BLOCK_BREAKER, blockBreaker,
-                Powerup.Type.SHIELD, shield
-        );
-    }
-    
-    public PowerupManager(Main plugin, SpleefConfig config) {
+    public PowerupManager(Main plugin, SpleefConfig config, RoundActiveState context) {
         this.plugin = plugin;
         this.config = config;
+        this.context = context;
     }
     
     public <T extends Participant> void start(Collection<T> newParticipants) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         participants = new HashMap<>(newParticipants.size());
         lastPowerupTimestamps = new HashMap<>(newParticipants.size());
-        setUpPowerups();
         for (Participant participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -113,7 +69,7 @@ public class PowerupManager implements Listener {
         for (Map.Entry<Powerup.Type, Integer> entry : config.getInitialLoadout().entrySet()) {
             Powerup.Type type = entry.getKey();
             int amount = entry.getValue();
-            ItemStack powerup = typeToPowerup.get(type).getItem().asQuantity(amount);
+            ItemStack powerup = config.getPowerup(type).getItem().asQuantity(amount);
             participant.getInventory().addItem(powerup);
         }
         lastPowerupTimestamps.put(participant.getUniqueId(), System.currentTimeMillis());
@@ -146,7 +102,7 @@ public class PowerupManager implements Listener {
     }
     
     /**
-     * if the participant is in this manager, removes them from it. Otherwise, does nothing. 
+     * if the participant is in this manager, removes them from it. Otherwise, does nothing.
      * @param participant the participant to remove
      */
     public void removeParticipant(Participant participant) {
@@ -162,16 +118,6 @@ public class PowerupManager implements Listener {
      */
     public void setShouldGivePowerups(boolean shouldGivePowerups) {
         this.shouldGivePowerups = shouldGivePowerups;
-    }
-    
-    /**
-     * sets up the powerups using the default values and values from the config
-     */
-    private void setUpPowerups() {
-        for (Powerup powerup : powerups) {
-            powerup.setUserSound(config.getUserSound(powerup.getType()));
-            powerup.setAffectedSound(config.getAffectedSound(powerup.getType()));
-        }
     }
     
     private void cancelAllTasks() {
@@ -196,7 +142,8 @@ public class PowerupManager implements Listener {
     }
     
     /**
-     * This may or may not give the participant a powerup based on the provided percent chance. The powerup given is random according to the weights provided in the config.
+     * This may or may not give the participant a powerup based on the provided percent chance. The powerup given is
+     * random according to the weights provided in the config.
      * If the participant receives a powerup, their {@link PowerupManager#lastPowerupTimestamps} is reset.
      * @param participant the participant to receive a powerup
      * @param source the source from which to receive a powerup (null indicates any source)
@@ -216,7 +163,7 @@ public class PowerupManager implements Listener {
      */
     private @NotNull ItemStack getRandomPowerup(@Nullable Powerup.Source source) {
         Powerup.Type selectedType = MathUtils.getWeightedRandomValue(config.getPowerupWeights(source));
-        Powerup selectedPowerup = typeToPowerup.get(selectedType);
+        Powerup selectedPowerup = config.getPowerup(selectedType);
         return selectedPowerup.getItem();
     }
     
@@ -238,7 +185,7 @@ public class PowerupManager implements Listener {
     
     /**
      * @param participant the participant
-     * @return true if the participant has the maximum number of powerups allowed in their inventory, false if not. 
+     * @return true if the participant has the maximum number of powerups allowed in their inventory, false if not.
      */
     private boolean hasMaxPowerups(Participant participant) {
         if (config.getMaxPowerups() < 0) {
@@ -286,10 +233,10 @@ public class PowerupManager implements Listener {
         }
         switch (usedPowerup.getType()) {
             case PLAYER_SWAPPER -> snowball.setMetadata(
-                    POWERUP_METADATA_KEY, 
+                    POWERUP_METADATA_KEY,
                     new FixedMetadataValue(plugin, PLAYER_SWAPPER_METADATA_VALUE));
             case BLOCK_BREAKER -> snowball.setMetadata(
-                    POWERUP_METADATA_KEY, 
+                    POWERUP_METADATA_KEY,
                     new FixedMetadataValue(plugin, BLOCK_BREAKER_METADATA_VALUE));
         }
     }
@@ -299,10 +246,14 @@ public class PowerupManager implements Listener {
         if (itemMeta == null) {
             return null;
         }
-        for (Powerup powerup : powerups) {
-            if (powerup.getItem().getItemMeta().equals(itemMeta)) {
-                return powerup;
-            }
+        if (config.getPlayerSwapper().getItem().getItemMeta().equals(itemMeta)) {
+            return config.getPlayerSwapper();
+        }
+        if (config.getBlockBreaker().getItem().getItemMeta().equals(itemMeta)) {
+            return config.getBlockBreaker();
+        }
+        if (config.getShield().getItem().getItemMeta().equals(itemMeta)) {
+            return config.getShield();
         }
         return null;
     }
@@ -367,13 +318,13 @@ public class PowerupManager implements Listener {
             return;
         }
         hitBlock.setType(Material.AIR);
-        Powerup blockBreaker = typeToPowerup.get(Powerup.Type.BLOCK_BREAKER);
-        if (blockBreaker.getAffectedSound() != null) {
-            config.getWorld().playSound(blockBreaker.getAffectedSound(), hitBlock.getX(), hitBlock.getY(), hitBlock.getZ());
+        if (config.getBlockBreaker().getAffectedSound() != null) {
+            config.getWorld().playSound(config.getBlockBreaker().getAffectedSound(), hitBlock.getX(), hitBlock.getY(), hitBlock.getZ());
         }
-        if (blockBreaker.getUserSound() != null) {
-            shooter.playSound(blockBreaker.getUserSound());
+        if (config.getBlockBreaker().getUserSound() != null) {
+            shooter.playSound(config.getBlockBreaker().getUserSound());
         }
+        context.onBlockBroken(hitBlock);
     }
     
     
@@ -392,17 +343,16 @@ public class PowerupManager implements Listener {
     
     /**
      * Removes a shield from the target's inventory, and plays both involved players the appropriate sound
-     * @param shooter the player who was thwarted by the shield 
+     * @param shooter the player who was thwarted by the shield
      * @param target the player who had a shield and used it
      */
     private void useShield(Player shooter, Player target) {
-        target.getInventory().removeItemAnySlot(typeToPowerup.get(Powerup.Type.SHIELD).getItem());
-        Powerup shield = typeToPowerup.get(Powerup.Type.SHIELD);
-        if (shield.getUserSound() != null) {
-            target.playSound(shield.getUserSound());
+        target.getInventory().removeItemAnySlot(config.getShield().getItem());
+        if (config.getShield().getUserSound() != null) {
+            target.playSound(config.getShield().getUserSound());
         }
-        if (shield.getAffectedSound() != null) {
-            shooter.playSound(shield.getAffectedSound());
+        if (config.getShield().getAffectedSound() != null) {
+            shooter.playSound(config.getShield().getAffectedSound());
         }
     }
     
@@ -411,36 +361,34 @@ public class PowerupManager implements Listener {
         Location targetLoc = target.getLocation();
         shooter.teleport(targetLoc);
         target.teleport(shooterLoc);
-        Powerup playerSwapper = typeToPowerup.get(Powerup.Type.PLAYER_SWAPPER);
-        if (playerSwapper.getUserSound() != null) {
-            target.playSound(playerSwapper.getUserSound());
+        if (config.getPlayerSwapper().getUserSound() != null) {
+            target.playSound(config.getPlayerSwapper().getUserSound());
         }
-        if (playerSwapper.getAffectedSound() != null) {
-            shooter.playSound(playerSwapper.getAffectedSound());
+        if (config.getPlayerSwapper().getAffectedSound() != null) {
+            shooter.playSound(config.getPlayerSwapper().getAffectedSound());
         }
     }
     
     /**
-     *
      * @param item the item which might be a powerup of the given type
      * @param type the type of powerup to check for
-     * @return true if the given item is the given type of powerup 
+     * @return true if the given item is the given type of powerup
      */
+    @SuppressWarnings("SameParameterValue")
     private boolean isPowerup(@Nullable ItemStack item, @NotNull Powerup.Type type) {
         if (item == null) {
             return false;
         }
-        Powerup shield = itemToPowerup(item);
-        if (shield == null) {
+        Powerup powerup = itemToPowerup(item);
+        if (powerup == null) {
             return false;
         }
-        return shield.getType().equals(type);
+        return powerup.getType().equals(type);
     }
     
     /**
-     * 
      * @param item the item which might be a powerup
-     * @return true if the given item is one of the powerups 
+     * @return true if the given item is one of the powerups
      */
     public boolean isPowerup(@Nullable ItemStack item) {
         if (item == null) {

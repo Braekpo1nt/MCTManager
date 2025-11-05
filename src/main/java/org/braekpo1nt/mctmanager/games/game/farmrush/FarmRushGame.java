@@ -2,15 +2,20 @@ package org.braekpo1nt.mctmanager.games.game.farmrush;
 
 import com.destroystokyo.paper.event.block.BlockDestroyEvent;
 import com.destroystokyo.paper.event.inventory.PrepareResultEvent;
+import com.github.stefvanschie.inventoryframework.gui.GuiItem;
+import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
+import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
+import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
+import com.github.stefvanschie.inventoryframework.pane.Pane;
+import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
-import org.braekpo1nt.mctmanager.games.base.GameBase;
+import org.braekpo1nt.mctmanager.games.base.WandsGameBase;
+import org.braekpo1nt.mctmanager.games.editor.wand.Wand;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfig;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupManager;
@@ -23,7 +28,12 @@ import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
-import org.bukkit.*;
+import org.bukkit.GameMode;
+import org.bukkit.GameRule;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
@@ -40,12 +50,16 @@ import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
-import org.bukkit.event.inventory.*;
+import org.bukkit.event.inventory.BrewEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
-import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -53,11 +67,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 @Getter
 @Setter
-public class FarmRushGame extends GameBase<FarmRushParticipant, FarmRushTeam, FarmRushParticipant.QuitData, FarmRushTeam.QuitData, FarmRushState> {
+public class FarmRushGame extends WandsGameBase<FarmRushParticipant, FarmRushTeam, FarmRushParticipant.QuitData, FarmRushTeam.QuitData, FarmRushState> {
     
     @SuppressWarnings("SpellCheckingInspection")
     public static final NamespacedKey HAS_SCORE_LORE = NamespacedKey.minecraft("hasscorelore");
@@ -72,10 +89,8 @@ public class FarmRushGame extends GameBase<FarmRushParticipant, FarmRushTeam, Fa
     );
     
     private final PowerupManager powerupManager = new PowerupManager(this);
-    private @Nullable final ItemStack materialBook;
     private final FarmRushConfig config;
     private final @NotNull List<Arena> arenas;
-    
     
     public FarmRushGame(
             @NotNull Main plugin,
@@ -88,10 +103,19 @@ public class FarmRushGame extends GameBase<FarmRushParticipant, FarmRushTeam, Fa
             @NotNull List<Player> newAdmins) {
         super(new GameInstanceId(GameType.FARM_RUSH, configFile), plugin, gameManager, title, new InitialState());
         this.config = config;
-        this.materialBook = createMaterialBook();
         this.arenas = new ArrayList<>(newTeams.size());
+        this.saleGuiItems = createGuiItems();
         addRecipes();
         setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
+        addWand(Wand.<FarmRushParticipant>builder()
+                .wandItem(Wand.createWandItem(Material.BOOK, "Info", List.of(
+                        Component.text("Item sale prices")
+                )))
+                .onRightClick((event, participant) -> {
+                    state.showMaterialGui(participant);
+                    return CommandResult.success();
+                })
+                .build());
         start(newTeams, newParticipants, newAdmins);
         placeArenas(arenas);
         Main.logger().info("Starting Farm Rush game");
@@ -107,86 +131,105 @@ public class FarmRushGame extends GameBase<FarmRushParticipant, FarmRushTeam, Fa
         return new DescriptionState(this);
     }
     
-    private @Nullable ItemStack createMaterialBook() {
-        if (config.isDoNotGiveBookDebug()) {
-            return null;
-        }
-        ItemStack materialBook = new ItemStack(Material.WRITTEN_BOOK);
-        BookMeta.BookMetaBuilder builder = ((BookMeta) materialBook.getItemMeta()).toBuilder();
-        BookMeta bookMeta = builder
-                .title(Component.text("Item Values"))
-                .author(Component.text("Farm Rush"))
-                .pages(createPages(config.getMaterialScores(), gameManager.getMultiplier()))
-                .build();
-        materialBook.setItemMeta(bookMeta);
-        return materialBook;
+    public void showMaterialGui(FarmRushParticipant participant) {
+        int rows = 6;
+        ChestGui gui = new ChestGui(rows, "Sale Prices");
+        gui.setOnGlobalClick(event -> event.setCancelled(true));
+        
+        PaginatedPane pages = new PaginatedPane(0, 0, 9, rows - 1);
+        pages.populateWithGuiItems(saleGuiItems);
+        gui.addPane(pages);
+        
+        OutlinePane background = background(rows - 1);
+        gui.addPane(background);
+        
+        StaticPane navigation = new StaticPane(0, rows - 1, 9, 1);
+        navigation.addItem(new GuiItem(withName(Material.RED_DYE, "Previous"), event -> {
+            if (pages.getPage() > 0) {
+                pages.setPage(pages.getPage() - 1);
+                gui.update();
+            }
+        }), 0, 0);
+        navigation.addItem(new GuiItem(withName(Material.LIME_DYE, "Next"), event -> {
+            if (pages.getPage() < pages.getPages() - 1) {
+                pages.setPage(pages.getPage() + 1);
+                gui.update();
+            }
+        }), 8, 0);
+        navigation.addItem(new GuiItem(withName(Material.BARRIER, "Close"), event ->
+                event.getWhoClicked().closeInventory()), 4, 0);
+        gui.addPane(navigation);
+        
+        gui.show(participant.getPlayer());
     }
     
-    public static List<Component> createPages(Map<Material, ItemSale> materialScores, double multiplier) {
-        List<TextComponent> lines = createLines(materialScores, multiplier);
-        if (lines.isEmpty()) {
-            return Collections.emptyList();
-        }
-        List<Component> pages = new ArrayList<>(lines.size()/15);
-        for (int i = 0; i < lines.size(); i += 10) {
-            TextComponent.Builder builder = Component.text();
-            int end = Math.min(lines.size(), i + 10);
-            
-            for (int j = i; j < end; j++) {
-                TextComponent line = lines.get(j);
-                double length = PlainTextComponentSerializer.plainText().serialize(line).length();
-                int numberOfExtraLines = (int) Math.ceil(length / 21.0) - 1;
-                j += numberOfExtraLines;
-                builder.append(line);
-                if (j < end - 1) {
-                    builder.append(Component.newline());
-                }
-            }
-            if (i+10 < lines.size()) {
-                builder
-                        .append(Component.newline())
-                        .append(Component.text("..."));
-            }
-            pages.add(builder.build());
-        }
-        
-        return pages;
+    /**
+     * Convenience method for creating items for the gui
+     * @param material the material type of the item
+     * @param name the custom name of the item
+     * @return the item with the appropriate details
+     */
+    private static ItemStack withName(Material material, String name) {
+        ItemStack itemStack = new ItemStack(material);
+        itemStack.editMeta(meta -> {
+            meta.customName(Component.text(name));
+        });
+        return itemStack;
     }
     
-    public static @NotNull List<TextComponent> createLines(Map<Material, ItemSale> materialScores, double multiplier) {
-        List<TextComponent> lines = new ArrayList<>();
-        List<Map.Entry<Material, ItemSale>> entryList = materialScores.entrySet().stream().sorted((entry1, entry2) -> {
-            int score1 = entry1.getValue().getScore();
-            int score2 = entry2.getValue().getScore();
-            if (score1 != score2) {
-                return Integer.compare(score2, score1);
-            }
-            int requiredAmount1 = entry1.getValue().getRequiredAmount();
-            int requiredAmount2 = entry2.getValue().getRequiredAmount();
-            if (requiredAmount1 != requiredAmount2) {
-                return Integer.compare(requiredAmount1, requiredAmount2);
-            }
-            return entry1.getKey().compareTo(entry2.getKey());
-        }).toList();
-        
-        for (Map.Entry<Material, ItemSale> entry : entryList) {
-            Material material = entry.getKey();
-            ItemSale itemSale = entry.getValue();
-            Component itemName = Component.translatable(material.translationKey());
-            TextComponent.Builder line = Component.text();
-            if (itemSale.getRequiredAmount() > 1) {
-                line
-                        .append(Component.text(itemSale.getRequiredAmount()))
-                        .append(Component.space());
-            }
-            line
-                    .append(itemName)
-                    .append(Component.text(": "))
-                    .append(Component.text((int) (itemSale.getScore() * multiplier))
-                            .color(NamedTextColor.GOLD));
-            lines.add(line.build());
+    /**
+     * @param y the y position of the pane
+     * @return a background pane with black stained-glass panes and low priority
+     */
+    private static @NotNull OutlinePane background(int y) {
+        OutlinePane background = new OutlinePane(0, y, 9, 1);
+        background.addItem(new GuiItem(new ItemStack(Material.BLACK_STAINED_GLASS_PANE)));
+        background.setRepeat(true);
+        background.setPriority(Pane.Priority.LOWEST);
+        return background;
+    }
+    
+    private final @NotNull List<GuiItem> saleGuiItems;
+    
+    private List<GuiItem> createGuiItems() {
+        List<ItemSale> itemSales = config.getMaterialScores().values().stream()
+                .sorted((a, b) -> {
+                    int scoreCompare = Integer.compare(b.getScore(), a.getScore());
+                    if (scoreCompare != 0) {
+                        return scoreCompare;
+                    }
+                    
+                    int amountCompare = Integer.compare(a.getRequiredAmount(), b.getRequiredAmount());
+                    if (amountCompare != 0) {
+                        return scoreCompare;
+                    }
+                    
+                    return a.getMaterial().compareTo(b.getMaterial());
+                })
+                .toList();
+        List<GuiItem> items = new ArrayList<>(itemSales.size());
+        for (ItemSale itemSale : itemSales) {
+            ItemStack itemStack = createGuiItem(itemSale);
+            items.add(new GuiItem(itemStack));
         }
-        return lines;
+        return items;
+    }
+    
+    private @NotNull ItemStack createGuiItem(ItemSale itemSale) {
+        ItemStack itemStack = new ItemStack(itemSale.getMaterial(), itemSale.getRequiredAmount());
+        itemStack.editMeta(meta -> {
+            Component scoreLore = itemSale.toScoreLore(gameManager.getMultiplier());
+            List<Component> originalLore = meta.lore();
+            if (originalLore == null) {
+                meta.lore(Collections.singletonList(scoreLore));
+            } else {
+                List<Component> newLore = new ArrayList<>(originalLore);
+                newLore.add(scoreLore);
+                meta.lore(newLore);
+            }
+            meta.getPersistentDataContainer().set(FarmRushGame.HAS_SCORE_LORE, PersistentDataType.BOOLEAN, true);
+        });
+        return itemStack;
     }
     
     /**
@@ -205,7 +248,7 @@ public class FarmRushGame extends GameBase<FarmRushParticipant, FarmRushTeam, Fa
             delivery.setType(Material.BARREL);
             BlockData deliveryBlockData = delivery.getBlockData();
             ((Directional) deliveryBlockData).setFacing(arena.getDeliveryBlockFace());
-            delivery.setBlockData(deliveryBlockData);   
+            delivery.setBlockData(deliveryBlockData);
             
             Block starterChest = arena.getStarterChest().getBlock();
             starterChest.setType(Material.CHEST);
@@ -215,9 +258,7 @@ public class FarmRushGame extends GameBase<FarmRushParticipant, FarmRushTeam, Fa
             Chest starterChestState = (Chest) starterChest.getState();
             Inventory starterChestInventory = starterChestState.getBlockInventory();
             starterChestInventory.setContents(config.getStarterChestContents());
-            if (materialBook != null) {
-                starterChestInventory.addItem(materialBook);
-            }
+            starterChestInventory.addItem(getWandItems());
             ItemStack cropGrowerRecipeMap = config.getCropGrowerSpec().getRecipeMap();
             if (cropGrowerRecipeMap != null) {
                 starterChestInventory.addItem(cropGrowerRecipeMap);
@@ -326,9 +367,7 @@ public class FarmRushGame extends GameBase<FarmRushParticipant, FarmRushTeam, Fa
     @Override
     protected void initializeParticipant(FarmRushParticipant participant, FarmRushTeam team) {
         participant.getInventory().setContents(config.getLoadout());
-        if (materialBook != null) {
-            participant.getInventory().addItem(materialBook);
-        }
+        participant.getInventory().addItem(getWandItems());
         participant.teleport(team.getArena().getSpawn());
     }
     
@@ -402,6 +441,7 @@ public class FarmRushGame extends GameBase<FarmRushParticipant, FarmRushTeam, Fa
         }
         powerupManager.onBlockBreak(block, event);
     }
+    
     @EventHandler
     public void blockExplodeEvent(BlockExplodeEvent event) {
         event.blockList().removeIf(block -> {
@@ -416,6 +456,7 @@ public class FarmRushGame extends GameBase<FarmRushParticipant, FarmRushTeam, Fa
         List<Block> powerupBlocks = powerupManager.onBlocksBreak(event.blockList());
         event.blockList().removeAll(powerupBlocks);
     }
+    
     @EventHandler
     public void entityExplodeEvent(EntityExplodeEvent event) {
         event.blockList().removeIf(block -> {
@@ -430,14 +471,17 @@ public class FarmRushGame extends GameBase<FarmRushParticipant, FarmRushTeam, Fa
         List<Block> powerupBlocks = powerupManager.onBlocksBreak(event.blockList());
         event.blockList().removeAll(powerupBlocks);
     }
+    
     @EventHandler
     public void blockDestroyEvent(BlockDestroyEvent event) {
         onBlockDestroy(event.getBlock(), event);
     }
+    
     @EventHandler
     public void blockBurnEvent(BlockBurnEvent event) {
         onBlockDestroy(event.getBlock(), event);
     }
+    
     public void onBlockDestroy(Block block, Cancellable event) {
         for (FarmRushTeam team : teams.values()) {
             Location delivery = team.getArena().getDelivery();
@@ -481,6 +525,7 @@ public class FarmRushGame extends GameBase<FarmRushParticipant, FarmRushTeam, Fa
             addScoreLore(item);
         }
     }
+    
     @EventHandler
     public void onCraft(PrepareItemCraftEvent event) {
         ItemStack[] contents = event.getInventory().getContents();
@@ -493,6 +538,7 @@ public class FarmRushGame extends GameBase<FarmRushParticipant, FarmRushTeam, Fa
         //1-9 for crafting table
         addScoreLore(result);
     }
+    
     @EventHandler
     public void onPrepareResult(PrepareResultEvent event) {
         addScoreLore(event.getResult());
@@ -511,12 +557,11 @@ public class FarmRushGame extends GameBase<FarmRushParticipant, FarmRushTeam, Fa
     /**
      * If the given item has a score associated with its Material type in the config,
      * this method adds a line to the item's lore showing how many points it's worth.<br>
-     * 
+     * <p>
      * This is an idempotent operation, meaning running it on the same item twice will
      * result in only 1 score line being added to the lore. It marks items that have been
      * modified with a persistent data container boolean using {@link #HAS_SCORE_LORE}
      * as the namespaced key.
-     * 
      * @param item the item to add the score to, if it exists
      */
     private void addScoreLore(@Nullable ItemStack item) {
@@ -556,10 +601,7 @@ public class FarmRushGame extends GameBase<FarmRushParticipant, FarmRushTeam, Fa
         if (itemSale == null) {
             return null;
         }
-        return Component.empty()
-                .append(Component.text("Price: "))
-                .append(Component.text((int) (itemSale.getScore() * gameManager.getMultiplier())))
-                .color(NamedTextColor.GOLD);
+        return itemSale.toScoreLore(gameManager.getMultiplier());
     }
     
     @EventHandler

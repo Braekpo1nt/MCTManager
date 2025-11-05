@@ -5,8 +5,6 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventHungerLoss;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventItemDrop;
@@ -15,6 +13,8 @@ import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
 import org.braekpo1nt.mctmanager.games.game.spleef.state.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.spleef.state.InitialState;
 import org.braekpo1nt.mctmanager.games.game.spleef.state.SpleefState;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -155,6 +155,11 @@ public class SpleefGame extends GameBase<SpleefParticipant, SpleefTeam, SpleefPa
     }
     
     @Override
+    protected void resetAdmin(Player admin) {
+        
+    }
+    
+    @Override
     protected void initializeAdminSidebar() {
         adminSidebar.addLines(
                 new KeyLine("round", Component.empty()
@@ -163,11 +168,6 @@ public class SpleefGame extends GameBase<SpleefParticipant, SpleefTeam, SpleefPa
                 new KeyLine("timer", ""),
                 new KeyLine("alive", Component.empty())
         );
-    }
-    
-    @Override
-    protected void resetAdmin(Player admin) {
-        
     }
     
     @Override

@@ -44,7 +44,7 @@ public record MatchPairing(@NotNull String northTeam, @NotNull String southTeam)
     }
     
     /**
-     * Gets the opposite team of the given team, if the MatchPairing contains the given team. 
+     * Gets the opposite team of the given team, if the MatchPairing contains the given team.
      * If you give the team name of the northTeam, you get the southTeam, and vice versa.
      * @param teamId The team name to get the opposite team of.
      * @return The team name of the opposite team. Null if this MatchPairing does not contain the given teamId.

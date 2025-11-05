@@ -25,9 +25,9 @@ public abstract class EntityRenderer<T extends Entity> implements Renderer {
     private boolean showing;
     
     public EntityRenderer(
-            @NotNull Location location, 
-            @Nullable Component customName, 
-            boolean customNameVisible, 
+            @NotNull Location location,
+            @Nullable Component customName,
+            boolean customNameVisible,
             boolean glowing) {
         this.location = Objects.requireNonNull(location, "location can't be null");
         this.customName = customName;

@@ -1,6 +1,10 @@
 package org.braekpo1nt.mctmanager.games.game.spleef;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.bukkit.block.Block;
 
@@ -15,15 +19,18 @@ public class DecayStage {
      */
     private List<LayerInfo> layerInfos;
     /**
-     * the duration (in seconds) for which this stage should last. The stage may not last the entire duration if the minPlayers is breached.
+     * the duration (in seconds) for which this stage should last. The stage may not last the entire duration if the
+     * minPlayers is breached.
      */
     private int duration;
     /**
-     * the minimum number of participants for this stage. Negative value means there is no minimum number of players and the stage will not proceed until some other requirement is met.
+     * the minimum number of participants for this stage. Negative value means there is no minimum number of players and
+     * the stage will not proceed until some other requirement is met.
      */
     private int minParticipants;
     /**
-     * the minimum percentage of participants for this stage. Values between 0 and 1. Negative value means there is no minimum percent of players and the stage will not proceed until some other requirement is met. (defaults to -1)
+     * the minimum percentage of participants for this stage. Values between 0 and 1. Negative value means there is no
+     * minimum percent of players and the stage will not proceed until some other requirement is met. (defaults to -1)
      */
     private double minParticipantsPercent;
     /**
@@ -53,7 +60,8 @@ public class DecayStage {
     @RequiredArgsConstructor
     public static class LayerInfo {
         /**
-         * The index of the layer to decay (0-based, must be at least 0 and no more than 1 less than the number of layers in the game)
+         * The index of the layer to decay (0-based, must be at least 0 and no more than 1 less than the number of
+         * layers in the game)
          */
         private final int index;
         /**
@@ -77,7 +85,7 @@ public class DecayStage {
     }
     
     /**
-     * @return true if powerups should be given during this phase, false if not. 
+     * @return true if powerups should be given during this phase, false if not.
      */
     public boolean shouldGivePowerups() {
         return powerups;

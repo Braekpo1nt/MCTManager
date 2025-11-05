@@ -7,12 +7,16 @@ import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.*;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFTeam;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.MatchPairing;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states.CaptureTheFlagMatchState;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states.ClassSelectionState;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.CaptureTheFlagState;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -25,6 +29,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Item;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -35,7 +40,11 @@ import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -83,12 +92,12 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
     private Material southBanner;
     
     public CaptureTheFlagMatch(
-            CaptureTheFlagGame parentContext, 
-            Runnable matchIsOver, 
-            MatchPairing matchPairing, 
+            CaptureTheFlagGame parentContext,
+            Runnable matchIsOver,
+            MatchPairing matchPairing,
             Arena arena,
-            @NotNull CTFTeam newNorthTeam, 
-            @NotNull CTFTeam newSouthTeam, 
+            @NotNull CTFTeam newNorthTeam,
+            @NotNull CTFTeam newSouthTeam,
             Collection<CTFParticipant> newParticipants) {
         this.parentContext = parentContext;
         this.matchIsOver = matchIsOver;
@@ -104,6 +113,22 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
         placeFlags();
         closeGlassBarriers();
         start(newParticipants);
+    }
+    
+    @Override
+    public void enter() {
+        // do nothing
+    }
+    
+    @Override
+    public void exit() {
+        // do nothing
+    }
+    
+    public void setState(@NotNull CaptureTheFlagMatchState state) {
+        this.state.exit();
+        this.state = state;
+        this.state.enter();
     }
     
     public void nextState() {
@@ -125,6 +150,7 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
         updateAliveStatus(Affiliation.NORTH);
         updateAliveStatus(Affiliation.SOUTH);
         state = new ClassSelectionState(this);
+        state.enter();
         Main.logger().info(String.format("Starting capture the flag match %s", matchPairing));
     }
     
@@ -142,16 +168,16 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
         if (participant.getAffiliation() == Affiliation.NORTH) {
             participant.teleport(arena.northSpawn());
             participant.lookAt(
-                    arena.southSpawn().getX(), 
-                    arena.southSpawn().getY(), 
-                    arena.southSpawn().getZ(), 
+                    arena.southSpawn().getX(),
+                    arena.southSpawn().getY(),
+                    arena.southSpawn().getZ(),
                     LookAnchor.EYES);
         } else {
             participant.teleport(arena.southSpawn());
             participant.lookAt(
-                    arena.northSpawn().getX(), 
-                    arena.northSpawn().getY(), 
-                    arena.northSpawn().getZ(), 
+                    arena.northSpawn().getX(),
+                    arena.northSpawn().getY(),
+                    arena.northSpawn().getZ(),
                     LookAnchor.EYES);
         }
     }
@@ -433,6 +459,11 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
         Audience.audience(
                 participants.values()
         ).sendMessage(message);
+    }
+    
+    @Override
+    public void onParticipantToggleGlide(@NotNull EntityToggleGlideEvent event, CTFParticipant participant) {
+        // do nothing
     }
     
 }

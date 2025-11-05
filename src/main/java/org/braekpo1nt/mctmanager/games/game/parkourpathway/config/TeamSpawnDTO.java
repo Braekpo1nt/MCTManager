@@ -16,7 +16,8 @@ import java.util.List;
 @AllArgsConstructor
 class TeamSpawnDTO implements Validatable {
     /**
-     * the area which will be used to place a glass barrier. Air blocks will be replaced with stained-glass of the appropriate team color. 
+     * the area which will be used to place a glass barrier. Air blocks will be replaced with stained-glass of the
+     * appropriate team color.
      */
     private BoundingBox barrierArea;
     /**

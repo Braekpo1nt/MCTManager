@@ -8,10 +8,19 @@ import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.GameMode;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class PreRoundState extends ClockworkStateBase {
+    
+    private @Nullable Timer timer;
+    
     public PreRoundState(@NotNull ClockworkGame context) {
         super(context);
+    }
+    
+    @Override
+    public void enter() {
+        context.getChaosManager().cleanupArena();
         for (ClockworkParticipant participant : context.getParticipants().values()) {
             participant.teleport(context.getConfig().getStartingLocation());
             ParticipantInitializer.clearInventory(participant);
@@ -20,15 +29,17 @@ public class PreRoundState extends ClockworkStateBase {
             participant.setArrowsInBody(0);
             participant.setGameMode(GameMode.ADVENTURE);
         }
+        context.setChimeInterval(context.getConfig().getInitialChimeInterval());
         Component roundLine = Component.empty()
                 .append(Component.text("Round "))
                 .append(Component.text(context.getCurrentRound()))
                 .append(Component.text("/"))
                 .append(Component.text(context.getConfig().getRounds()));
+        context.setChimeInterval(context.getConfig().getInitialChimeInterval());
         context.getSidebar().updateLine("round", roundLine);
         context.getAdminSidebar().updateLine("round", roundLine);
         context.titleAllParticipants(UIUtils.roundXTitle(context.getCurrentRound()));
-        context.getTimerManager().start(Timer.builder()
+        timer = context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getRoundStartingDuration())
                 .withSidebar(context.getSidebar(), "timer")
                 .withSidebar(context.getAdminSidebar(), "timer")
@@ -39,5 +50,12 @@ public class PreRoundState extends ClockworkStateBase {
                     context.setState(new BreatherState(context));
                 })
                 .build());
+    }
+    
+    @Override
+    public void exit() {
+        if (timer != null) {
+            timer.cancel();
+        }
     }
 }

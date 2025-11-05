@@ -13,7 +13,6 @@ public class IOUtils {
     }
     
     /**
-     * 
      * @param imageFile the file to convert to a {@link BufferedImage}
      * @return A {@link BufferedImage} containing the file in the image
      * @throws IOException if the file does not exist or can't be read

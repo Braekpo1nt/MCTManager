@@ -12,9 +12,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * @param structure       the NamespacedKey of the structure to place for this layer
+ * @param structure the NamespacedKey of the structure to place for this layer
  * @param structureOrigin the origin to place the structure at
- * @param decayArea       the area in which to decay blocks for this layer. If this is null, the size of the structure and structureOrigin will be used as the area.
+ * @param decayArea the area in which to decay blocks for this layer. If this is null, the size of the structure and
+ * structureOrigin will be used as the area.
  */
 record LayerDTO(@Nullable NamespacedKeyDTO structure, Vector structureOrigin,
                 @Nullable BoundingBox decayArea) implements Validatable {

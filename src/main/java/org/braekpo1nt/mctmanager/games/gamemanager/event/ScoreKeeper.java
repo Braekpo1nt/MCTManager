@@ -41,7 +41,7 @@ public class ScoreKeeper {
     
     /**
      * Gets the score for a given participant. Defaults to 0 if no points have been added
-     * for the participant. 
+     * for the participant.
      * @param participantUUID the participant to get the score for
      * @return the participant's score
      */

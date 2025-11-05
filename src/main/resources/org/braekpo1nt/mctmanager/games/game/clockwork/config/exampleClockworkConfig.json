@@ -252,5 +252,47 @@
     "stayOnWedge": 5,
     "description": 10
   },
-  "description": ["",{"text":"-----------------------","bold":true,"color":"gray"},{"text":"\n"},{"text":"How To Play","bold":true,"color":"yellow"},{"text":" Clockwork","bold":true,"color":"yellow"},{"text":"\n"},{"text":"A bell will ring X amount of times ranging from 1-12.\nRun to the corresponding granite platform and watch the others die.\nThings will speed up and get more difficult as time goes on, so be careful","color":"#FFFFDF"},{"text":"! ","color":"#DBDEE1"},{"text":"\n"},{"text":"-----------------------","bold":true,"color":"gray"},{"text":" "}]
+  "description": [
+    "",
+    {
+      "text": "-----------------------",
+      "bold": true,
+      "color": "gray"
+    },
+    {
+      "text": "\n"
+    },
+    {
+      "text": "How To Play",
+      "bold": true,
+      "color": "yellow"
+    },
+    {
+      "text": " Clockwork",
+      "bold": true,
+      "color": "yellow"
+    },
+    {
+      "text": "\n"
+    },
+    {
+      "text": "A bell will ring X amount of times ranging from 1-12.\nRun to the corresponding granite platform and watch the others die.\nThings will speed up and get more difficult as time goes on, so be careful",
+      "color": "#FFFFDF"
+    },
+    {
+      "text": "! ",
+      "color": "#DBDEE1"
+    },
+    {
+      "text": "\n"
+    },
+    {
+      "text": "-----------------------",
+      "bold": true,
+      "color": "gray"
+    },
+    {
+      "text": " "
+    }
+  ]
 }

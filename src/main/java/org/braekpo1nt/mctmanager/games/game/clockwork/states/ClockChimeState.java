@@ -4,6 +4,7 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkParticipant;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkTeam;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
+import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.Location;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -15,16 +16,24 @@ import org.jetbrains.annotations.NotNull;
 public class ClockChimeState extends RoundActiveState {
     
     private final @NotNull ClockworkConfig config;
-    private final int clockChimeTaskId;
+    private int clockChimeTaskId;
     
     public ClockChimeState(@NotNull ClockworkGame context) {
         super(context);
         this.config = context.getConfig();
+    }
+    
+    @Override
+    public void enter() {
+        for (ClockworkParticipant participant : context.getParticipants().values()) {
+            ParticipantInitializer.clearInventory(participant);
+        }
         context.getSidebar().updateLine("timer", "Chiming...");
         context.getAdminSidebar().updateLine("timer", "Chiming...");
         context.setNumberOfChimes(context.getRandom().nextInt(1, 13));
         clockChimeTaskId = new BukkitRunnable() {
             int count = context.getNumberOfChimes();
+            
             @Override
             public void run() {
                 if (count <= 0) {
@@ -39,6 +48,11 @@ public class ClockChimeState extends RoundActiveState {
     }
     
     @Override
+    public void exit() {
+        context.getPlugin().getServer().getScheduler().cancelTask(clockChimeTaskId);
+    }
+    
+    @Override
     public void cleanup() {
         context.getPlugin().getServer().getScheduler().cancelTask(clockChimeTaskId);
     }
@@ -49,8 +63,8 @@ public class ClockChimeState extends RoundActiveState {
         }
         context.getGameManager()
                 .playSoundForAdmins(
-                        config.getClockChimeSound(), 
-                        config.getClockChimeVolume(), 
+                        config.getClockChimeSound(),
+                        config.getClockChimeVolume(),
                         config.getClockChimePitch());
     }
     

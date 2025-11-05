@@ -5,8 +5,8 @@ description: The plugin that manages MCT
 author: Braekpo1nt
 api-version: 1.19
 
-depend: [packetevents]
-softdepend: [LuckPerms, DecentHolograms, Multiverse-Core]
+depend: [ packetevents ]
+softdepend: [ LuckPerms, DecentHolograms, Multiverse-Core ]
 
 commands:
   mct:
@@ -38,4 +38,12 @@ commands:
   t:
     description: Send a message to your teammates
     permission: mctmanager.t
+    permission-message: "You do not have permission to use this command"
+  bugreport:
+    description: Report a bug to the admins
+    permission: mctmanager.bugreport
+    permission-message: "You do not have permission to use this command"
+  notready:
+    description: Signal to admins that you are not ready
+    permission: mctmanager.notready
     permission-message: "You do not have permission to use this command"

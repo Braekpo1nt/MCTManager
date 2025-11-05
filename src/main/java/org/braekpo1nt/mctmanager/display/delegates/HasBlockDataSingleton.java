@@ -16,13 +16,17 @@ public interface HasBlockDataSingleton extends HasBlockData {
     @NotNull
     HasBlockData getHasBlockData();
     
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     default void setBlockData(@NotNull BlockData blockData) {
         getHasBlockData().setBlockData(blockData);
     }
     
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     default @NotNull BlockData getBlockData() {
         return getHasBlockData().getBlockData();

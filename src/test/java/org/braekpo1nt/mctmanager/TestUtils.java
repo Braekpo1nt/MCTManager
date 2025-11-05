@@ -1,13 +1,29 @@
 package org.braekpo1nt.mctmanager;
 
-import be.seeseemelk.mockbukkit.command.ConsoleCommandSenderMock;
-import com.google.gson.*;
-import net.kyori.adventure.text.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.KeybindComponent;
+import net.kyori.adventure.text.NBTComponent;
+import net.kyori.adventure.text.ScoreComponent;
+import net.kyori.adventure.text.SelectorComponent;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.TranslatableComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
+import org.mockbukkit.mockbukkit.command.ConsoleCommandSenderMock;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +36,8 @@ public class TestUtils {
      * Takes in a Component with 1 or more children, and converts it to a plaintext string without formatting.
      * Assumes it is made up of TextComponents and empty components.
      * @param component The component to get the plaintext version of
-     * @return The concatenation of the contents() of the TextComponent children that this component is made of. Null if the component is null
+     * @return The concatenation of the contents() of the TextComponent children that this component is made of. Null if
+     * the component is null
      */
     public static @Nullable String toPlainText(@Nullable Component component) {
         if (component == null) {
@@ -30,8 +47,7 @@ public class TestUtils {
         
         if (component instanceof TextComponent textComponent) {
             builder.append(textComponent.content());
-        }
-        else if (component instanceof TranslatableComponent) {
+        } else if (component instanceof TranslatableComponent) {
             for (Component arg : ((TranslatableComponent) component).args()) {
                 builder.append(toPlainText(arg));
             }
@@ -79,7 +95,7 @@ public class TestUtils {
         }
         return messageWasSent;
     }
-
+    
     public static void copyInputStreamToFile(InputStream inputStream, File destinationFile) {
         Assertions.assertNotNull(inputStream);
         try (OutputStream outputStream = new FileOutputStream(destinationFile)) {
@@ -92,7 +108,7 @@ public class TestUtils {
             Assertions.fail(String.format("Unable to copy stream to %s \n%s", destinationFile, e));
         }
     }
-
+    
     public static void createFileInDirectory(File directory, String fileName, String fileContents) {
         File newFile = new File(directory, fileName);
         try (FileWriter writer = new FileWriter(newFile)) {

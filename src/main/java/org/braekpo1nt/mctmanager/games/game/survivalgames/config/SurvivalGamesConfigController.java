@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.games.game.survivalgames.config;
 
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.ConfigController;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
@@ -22,7 +21,7 @@ public class SurvivalGamesConfigController extends ConfigController<SurvivalGame
     }
     
     /**
-     * Gets the config from storage 
+     * Gets the config from storage
      * @param configFile the name of the config file to use
      * @return the config for spleef
      * @throws ConfigInvalidException if the config is invalid

@@ -9,6 +9,8 @@
     "maxY": 255,
     "maxZ": 150
   },
+  "rounds": 1,
+  "showDeathCount": false,
   "removeArea": {
     "minX": -175,
     "minY": -64,

@@ -29,7 +29,6 @@ public class CheckPoint {
     
     /**
      * Creates a copy of this checkpoint.
-     *
      * @return A new checkpoint with the same detection area and respawn location.
      */
     public CheckPoint copy() {

@@ -1,11 +1,10 @@
 package org.braekpo1nt.mctmanager;
 
-import be.seeseemelk.mockbukkit.ServerMock;
-import be.seeseemelk.mockbukkit.WorldMock;
-import be.seeseemelk.mockbukkit.inventory.InventoryMock;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import org.bukkit.*;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.World;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.loot.LootTable;
@@ -14,6 +13,9 @@ import org.bukkit.structure.StructureManager;
 import org.bukkit.util.BlockVector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mockbukkit.mockbukkit.ServerMock;
+import org.mockbukkit.mockbukkit.inventory.InventoryMock;
+import org.mockbukkit.mockbukkit.world.WorldMock;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +27,8 @@ import static org.mockito.Mockito.when;
 
 /**
  * This is a custom implementation of {@link ServerMock}. Some main things that needed to happen were:
- * - Implement methods that the original {@link ServerMock} has not yet implemented (they throw {@link be.seeseemelk.mockbukkit.UnimplementedOperationException})
+ * - Implement methods that the original {@link ServerMock} has not yet implemented (they throw
+ * {@link org.mockbukkit.mockbukkit.exception.UnimplementedOperationException})
  * - Create an initial test world called "TestWorld" which is used in many tests
  */
 public class MyCustomServerMock extends ServerMock {

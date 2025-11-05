@@ -17,6 +17,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -136,10 +137,12 @@ public class DecayManager implements Listener {
     }
     
     /**
-     * Changes n blocks in the given list to the decaying material, where n is the given count. Each randomly chosen block is removed from the solidBlocks list and added to the decayingBlocks list.
+     * Changes n blocks in the given list to the decaying material, where n is the given count. Each randomly chosen
+     * block is removed from the solidBlocks list and added to the decayingBlocks list.
      * @param solidBlocks the list to decay a random subset of
      * @param decayingBlocks the list to add the decaying block to
-     * @param count how many blocks to decay from the given list. If count is less than solidBlocks.size(), then all the blocks that are left will be decayed. 
+     * @param count how many blocks to decay from the given list. If count is less than solidBlocks.size(), then all the
+     * blocks that are left will be decayed.
      */
     private void randomlyDecaySolidBlocks(List<Block> solidBlocks, List<Block> decayingBlocks, int count) {
         for (int i = 0; i < Math.min(count, solidBlocks.size()); i++) {
@@ -152,9 +155,11 @@ public class DecayManager implements Listener {
     }
     
     /**
-     * Changes n blocks in the given list to air, where n is the given count. Each randomly chosen block is removed from the decayingBlocks list.
+     * Changes n blocks in the given list to air, where n is the given count. Each randomly chosen block is removed from
+     * the decayingBlocks list.
      * @param decayingBlocks the list to remove a random subset of
-     * @param count how many blocks to decay from the given list. If count is less than decayingBlocks.size(), then all the blocks that are left will be removed. 
+     * @param count how many blocks to decay from the given list. If count is less than decayingBlocks.size(), then all
+     * the blocks that are left will be removed.
      */
     private void randomlyRemoveDecayingBlocks(List<Block> decayingBlocks, int count) {
         for (int i = 0; i < Math.min(count, decayingBlocks.size()); i++) {
@@ -193,12 +198,7 @@ public class DecayManager implements Listener {
         }
     }
     
-    @EventHandler
-    public void onBreakBlock(BlockBreakEvent event) {
-        if (currentStage == null) {
-            return;
-        }
-        Block block = event.getBlock();
+    public void onBlockBroken(@NotNull Block block) {
         Material blockType = block.getType();
         if (!blockType.equals(config.getDecayBlock()) && !blockType.equals(config.getLayerBlock())) {
             return;
@@ -221,11 +221,20 @@ public class DecayManager implements Listener {
         }
     }
     
+    @EventHandler
+    public void onBreakBlock(BlockBreakEvent event) {
+        if (currentStage == null) {
+            return;
+        }
+        onBlockBroken(event.getBlock());
+    }
+    
     /**
      * Checks if the given block location is in one of the current stage's decay layers. If it is,
-     * then we return that layer. If not, we return null. 
+     * then we return that layer. If not, we return null.
      * @param blockVector the location of the block to check
-     * @return the LayerInfo object from the {@link DecayManager#currentStage} which the block is in. Null if the block is not in any of the layers. 
+     * @return the LayerInfo object from the {@link DecayManager#currentStage} which the block is in. Null if the block
+     * is not in any of the layers.
      */
     private @Nullable DecayStage.LayerInfo getLayerBlockIsIn(Vector blockVector) {
         for (DecayStage.LayerInfo layerInfo : currentStage.getLayerInfos()) {

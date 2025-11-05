@@ -36,8 +36,8 @@ public class EdgeBoxRenderer implements BoundingBoxRenderer, HasBlockDataComposi
     
     @Builder
     public EdgeBoxRenderer(
-            @NotNull World world, 
-            @NotNull BoundingBox boundingBox, 
+            @NotNull World world,
+            @NotNull BoundingBox boundingBox,
             @Nullable Float strokeWidth,
             @Nullable Display.Brightness brightness,
             @Nullable Component customName,

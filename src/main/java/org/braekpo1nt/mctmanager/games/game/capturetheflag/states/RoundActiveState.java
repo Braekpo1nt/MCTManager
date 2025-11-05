@@ -7,7 +7,9 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFTeam;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.*;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.MatchPairing;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.RoundManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -18,7 +20,6 @@ import org.bukkit.GameMode;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -37,14 +38,18 @@ public class RoundActiveState extends CaptureTheFlagStateBase {
     
     private final RoundManager roundManger;
     private final Map<MatchPairing, CaptureTheFlagMatch> matches;
-    private final Timer classSelectionTimer;
+    private @Nullable Timer classSelectionTimer;
     private int numOfEndedMatches = 0;
-    private Timer roundTimer;
+    private @Nullable Timer roundTimer;
     
     public RoundActiveState(CaptureTheFlagGame context) {
         super(context);
-        Main.logger().info("starting RoundActiveState");
         this.roundManger = context.getRoundManager();
+        this.matches = new HashMap<>(roundManger.getCurrentRound().size());
+    }
+    
+    @Override
+    public void enter() {
         
         List<MatchPairing> currentRound = roundManger.getCurrentRound();
         Map<MatchPairing, List<CTFParticipant>> matchParticipants = currentRound.stream()
@@ -62,7 +67,6 @@ public class RoundActiveState extends CaptureTheFlagStateBase {
             }
         }
         
-        this.matches = new HashMap<>(currentRound.size());
         for (int i = 0; i < currentRound.size(); i++) {
             MatchPairing matchPairing = currentRound.get(i);
             List<CTFParticipant> newParticipants = matchParticipants.get(matchPairing);
@@ -73,8 +77,8 @@ public class RoundActiveState extends CaptureTheFlagStateBase {
                     this::matchIsOver,
                     matchPairing,
                     context.getConfig().getArenas().get(i),
-                    northTeam, 
-                    southTeam, 
+                    northTeam,
+                    southTeam,
                     newParticipants);
             matches.put(matchPairing, match);
         }
@@ -93,6 +97,12 @@ public class RoundActiveState extends CaptureTheFlagStateBase {
                     }
                 })
                 .build());
+    }
+    
+    @Override
+    public void exit() {
+        Timer.cancel(classSelectionTimer);
+        Timer.cancel(roundTimer);
     }
     
     private void startRoundTimer() {
@@ -142,12 +152,8 @@ public class RoundActiveState extends CaptureTheFlagStateBase {
     
     @Override
     public void cleanup() {
-        if (classSelectionTimer != null) {
-            classSelectionTimer.cancel();
-        }
-        if (roundTimer != null) {
-            roundTimer.cancel();
-        }
+        Timer.cancel(classSelectionTimer);
+        Timer.cancel(roundTimer);
         for (CaptureTheFlagMatch match : matches.values()) {
             match.cleanup();
         }
@@ -307,6 +313,17 @@ public class RoundActiveState extends CaptureTheFlagStateBase {
             event.setCancelled(true);
         } else {
             match.onParticipantFoodLevelChange(event, participant);
+        }
+    }
+    
+    @Override
+    public void messageOnDeckParticipants(@NotNull Component message) {
+        // TODO: make this better by adding an isOnDeck() method to CTFMatchParticipant or something
+        for (CTFParticipant participant : context.getParticipants().values()) {
+            CaptureTheFlagMatch match = getMatch(participant.getTeamId());
+            if (match == null) {
+                participant.sendMessage(message);
+            }
         }
     }
 }

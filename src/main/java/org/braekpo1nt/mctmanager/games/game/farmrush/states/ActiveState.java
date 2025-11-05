@@ -4,7 +4,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushParticipant;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushTeam;
@@ -15,10 +14,11 @@ import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.GameMode;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ActiveState extends GameplayState {
     
-    private final Timer gameTimer;
+    private @Nullable Timer gameTimer;
     private final Component slashTopMessage;
     
     public ActiveState(@NotNull FarmRushGame context) {
@@ -28,6 +28,10 @@ public class ActiveState extends GameplayState {
                 .append(Component.text("/top")
                         .decorate(TextDecoration.UNDERLINED)
                         .clickEvent(ClickEvent.suggestCommand("/top")));
+    }
+    
+    @Override
+    public void enter() {
         gameTimer = context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getGameDuration())
                 .withSidebar(context.getSidebar(), "timer")
@@ -56,6 +60,11 @@ public class ActiveState extends GameplayState {
     }
     
     @Override
+    public void exit() {
+        Timer.cancel(gameTimer);
+    }
+    
+    @Override
     public void onParticipantCloseInventory(InventoryCloseEvent event, FarmRushParticipant participant) {
         FarmRushTeam team = context.getTeams().get(participant.getTeamId());
         int oldScore = team.getScore();
@@ -67,8 +76,8 @@ public class ActiveState extends GameplayState {
         int warningThreshold = calculateWarningThreshold();
         boolean teamWasNotAboveThreshold = oldScore < warningThreshold;
         boolean teamIsNowAboveThreshold = team.getScore() >= warningThreshold;
-        if (context.getConfig().shouldEnforceMaxScore() && 
-                context.getConfig().shouldWarnAtThreshold() && 
+        if (context.getConfig().shouldEnforceMaxScore() &&
+                context.getConfig().shouldWarnAtThreshold() &&
                 teamWasNotAboveThreshold && teamIsNowAboveThreshold) {
             onTeamReachWarningThreshold(team);
         }
@@ -79,7 +88,7 @@ public class ActiveState extends GameplayState {
     }
     
     private void onTeamReachMaxScore(FarmRushTeam winingTeam) {
-        gameTimer.cancel();
+        Timer.cancel(gameTimer);
         context.awardPoints(winingTeam, context.getConfig().getWinnerBonus());
         context.messageAllParticipants(Component.empty()
                 .append(winingTeam.getFormattedDisplayName())
