@@ -39,6 +39,7 @@ public class PreRoundState extends CaptureTheFlagStateBase {
             announceMatchToParticipant(participant);
         }
         setUpTopbarForRound();
+        context.getTabList().setParticipantGreys(context.getParticipants().values(), false);
         timer = context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getMatchesStartingDuration())
                 .withSidebar(context.getAdminSidebar(), "timer")

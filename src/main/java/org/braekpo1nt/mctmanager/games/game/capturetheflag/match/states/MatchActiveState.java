@@ -138,6 +138,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     public void onParticipantRejoin(CTFMatchParticipant participant, CTFMatchTeam team) {
         super.onParticipantRejoin(participant, team);
         participant.setAlive(false);
+        context.getParentContext().getTabList().setParticipantGrey(participant, true);
         participant.teleport(context.getConfig().getSpawnObservatory());
         Location lookLocation;
         if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
@@ -152,6 +153,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     public void onNewParticipantJoin(CTFMatchParticipant participant, CTFMatchTeam team) {
         super.onNewParticipantJoin(participant, team);
         participant.setAlive(false);
+        context.getParentContext().getTabList().setParticipantGrey(participant, true);
         participant.teleport(context.getConfig().getSpawnObservatory());
         Location lookLocation;
         if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
@@ -242,6 +244,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     @Override
     public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull CTFMatchParticipant participant) {
         participant.setAlive(false);
+        context.getParentContext().getTabList().setParticipantGrey(participant, true);
         if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
             if (hasSouthFlag(participant)) {
                 dropSouthFlag(participant);

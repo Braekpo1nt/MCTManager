@@ -83,6 +83,7 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
     public void onParticipantRejoin(SpleefParticipant participant, SpleefTeam team) {
         super.onParticipantRejoin(participant, team);
         participant.setAlive(false);
+        context.getTabList().setParticipantGrey(participant, true);
         participant.setGameMode(GameMode.SPECTATOR);
         updateAliveCount(getAliveCount());
     }
@@ -155,11 +156,12 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
         decayManager.setAlivePercent(aliveCount / (double) context.getParticipants().size());
     }
     
-    private void onParticipantDeath(SpleefParticipant killed) {
-        killed.setAlive(false);
-        powerupManager.removeParticipant(killed);
+    private void onParticipantDeath(SpleefParticipant participant) {
+        participant.setAlive(false);
+        context.getTabList().setParticipantGrey(participant, true);
+        powerupManager.removeParticipant(participant);
         List<SpleefParticipant> awardedParticipants = context.getParticipants().values().stream()
-                .filter(participant -> participant.isAlive() && !participant.sameTeam(killed))
+                .filter(p -> p.isAlive() && !p.sameTeam(participant))
                 .toList();
         context.awardParticipantPoints(awardedParticipants, context.getConfig().getSurviveScore());
         

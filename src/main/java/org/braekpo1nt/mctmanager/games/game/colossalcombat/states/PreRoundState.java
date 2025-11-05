@@ -23,6 +23,7 @@ public class PreRoundState extends ColossalCombatStateBase {
     @Override
     public void enter() {
         context.closeGates();
+        context.getTabList().setParticipantGreys(context.getParticipants().values(), false);
         for (ColossalParticipant participant : context.getParticipants().values()) {
             switch (participant.getAffiliation()) {
                 case NORTH -> {

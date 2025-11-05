@@ -131,6 +131,7 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
     @Override
     public void onParticipantRejoin(SurvivalGamesParticipant participant, SurvivalGamesTeam team) {
         participant.setAlive(false); // participants are dead when joining
+        context.getTabList().setParticipantGrey(participant, true);
         super.onParticipantRejoin(participant, team);
         participant.setGameMode(GameMode.SPECTATOR);
         updateRespawnLine();
@@ -143,6 +144,7 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
     @Override
     public void onNewParticipantJoin(SurvivalGamesParticipant participant, SurvivalGamesTeam team) {
         participant.setAlive(false); // participants are dead when joining
+        context.getTabList().setParticipantGrey(participant, true);
         super.onNewParticipantJoin(participant, team);
         participant.setGameMode(GameMode.SPECTATOR);
         updateRespawnLine();
@@ -232,6 +234,7 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
     
     private void onParticipantDeath(SurvivalGamesParticipant participant) {
         participant.setAlive(false);
+        context.getTabList().setParticipantGrey(participant, true);
         String teamId = participant.getTeamId();
         addDeath(participant);
         SurvivalGamesTeam team = context.getTeams().get(teamId);
@@ -258,6 +261,7 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
      */
     public void respawnParticipant(SurvivalGamesParticipant participant) {
         participant.setAlive(true);
+        context.getTabList().setParticipantGrey(participant, false);
         participant.setRespawning(false);
         // grace period start
         participant.setRespawnGracePeriodCountdown(config.getBorder().getRespawnGracePeriodTime());
