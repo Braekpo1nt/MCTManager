@@ -36,7 +36,14 @@ public abstract class GameplayState extends ColossalCombatStateBase {
         }
         event.getDrops().clear();
         event.setDroppedExp(0);
-        onParticipantDeath(participant);
+        Player killer = participant.getKiller();
+        if (killer != null) {
+            ColossalParticipant killerParticipant = context.getParticipants().get(killer.getUniqueId());
+            if (killerParticipant != null) {
+                UIUtils.showKillTitle(killerParticipant, participant);
+                context.addKill(killerParticipant);
+            }
+        }
     }
     
     /**
@@ -46,24 +53,6 @@ public abstract class GameplayState extends ColossalCombatStateBase {
     protected boolean suddenDeathThresholdReached() {
         return context.getNorthTeam().getAlive() <= config.getCaptureTheFlagMaximumPlayers()
                 && context.getSouthTeam().getAlive() <= config.getCaptureTheFlagMaximumPlayers();
-    }
-    
-    /**
-     * Only called when a non-{@link Affiliation#SPECTATOR} dies
-     * @param participant a non-spectator who died
-     */
-    protected void onParticipantDeath(@NotNull ColossalParticipant participant) {
-        participant.setAlive(false);
-        context.updateAliveStatus(participant.getAffiliation());
-        context.addDeath(participant);
-        Player killer = participant.getKiller();
-        if (killer != null) {
-            ColossalParticipant killerParticipant = context.getParticipants().get(killer.getUniqueId());
-            if (killerParticipant != null) {
-                UIUtils.showKillTitle(killerParticipant, participant);
-                context.addKill(killerParticipant);
-            }
-        }
     }
     
     /**
@@ -98,7 +87,7 @@ public abstract class GameplayState extends ColossalCombatStateBase {
     }
     
     @Override
-    public void onParticipantRespawn(PlayerRespawnEvent event, ColossalParticipant participant) {
+    public void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull ColossalParticipant participant) {
         super.onParticipantRespawn(event, participant);
         if (participant.getAffiliation() == Affiliation.SPECTATOR) {
             return;
@@ -107,14 +96,25 @@ public abstract class GameplayState extends ColossalCombatStateBase {
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, ColossalParticipant participant) {
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull ColossalParticipant participant) {
         if (participant.getAffiliation() == Affiliation.SPECTATOR) {
             return;
         }
+        onParticipantDeath(participant);
         participant.setGameMode(GameMode.SPECTATOR);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.clearInventory(participant);
+    }
+    
+    /**
+     * Only called when a non-{@link Affiliation#SPECTATOR} dies
+     * @param participant a non-spectator who died
+     */
+    protected void onParticipantDeath(@NotNull ColossalParticipant participant) {
+        participant.setAlive(false);
+        context.updateAliveStatus(participant.getAffiliation());
+        context.addDeath(participant);
     }
     
     @Override

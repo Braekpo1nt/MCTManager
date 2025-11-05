@@ -95,12 +95,12 @@ public abstract class ClockworkStateBase implements ClockworkState {
     }
     
     @Override
-    public void onParticipantRespawn(PlayerRespawnEvent event, ClockworkParticipant participant) {
+    public void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull ClockworkParticipant participant) {
         event.setRespawnLocation(context.getConfig().getStartingLocation());
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, ClockworkParticipant participant) {
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull ClockworkParticipant participant) {
         
     }
     

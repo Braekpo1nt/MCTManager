@@ -50,7 +50,7 @@ public class RoundOverState extends ColossalCombatStateBase {
     }
     
     @Override
-    public void onParticipantRespawn(PlayerRespawnEvent event, ColossalParticipant participant) {
+    public void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull ColossalParticipant participant) {
         super.onParticipantRespawn(event, participant);
         if (participant.getAffiliation() == Affiliation.SPECTATOR) {
             return;
@@ -59,7 +59,7 @@ public class RoundOverState extends ColossalCombatStateBase {
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, ColossalParticipant participant) {
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull ColossalParticipant participant) {
         if (participant.getAffiliation() == Affiliation.SPECTATOR) {
             return;
         }

@@ -89,12 +89,12 @@ public interface DoNothingState<P extends ParticipantData, T extends ScoredTeamD
     }
     
     @Override
-    default void onParticipantRespawn(PlayerRespawnEvent event, P participant) {
+    default void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull P participant) {
         
     }
     
     @Override
-    default void onParticipantPostRespawn(PlayerPostRespawnEvent event, P participant) {
+    default void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull P participant) {
         
     }
     

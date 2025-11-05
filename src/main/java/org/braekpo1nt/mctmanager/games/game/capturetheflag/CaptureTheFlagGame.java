@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;

@@ -102,12 +102,12 @@ public abstract class ExampleStateBase implements ExampleState {
     }
     
     @Override
-    public void onParticipantRespawn(PlayerRespawnEvent event, ExampleParticipant participant) {
+    public void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull ExampleParticipant participant) {
         
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, ExampleParticipant participant) {
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull ExampleParticipant participant) {
         
     }
     

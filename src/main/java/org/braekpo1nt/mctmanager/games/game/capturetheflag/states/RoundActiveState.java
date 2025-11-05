@@ -289,7 +289,7 @@ public class RoundActiveState extends CaptureTheFlagStateBase {
     }
     
     @Override
-    public void onParticipantRespawn(PlayerRespawnEvent event, CTFParticipant participant) {
+    public void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull CTFParticipant participant) {
         CaptureTheFlagMatch match = getMatch(participant.getTeamId());
         if (match == null) {
             return;
@@ -298,7 +298,7 @@ public class RoundActiveState extends CaptureTheFlagStateBase {
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, CTFParticipant participant) {
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull CTFParticipant participant) {
         CaptureTheFlagMatch match = getMatch(participant.getTeamId());
         if (match == null) {
             return;
@@ -318,12 +318,12 @@ public class RoundActiveState extends CaptureTheFlagStateBase {
     
     @Override
     public void messageOnDeckParticipants(@NotNull Component message) {
-        // TODO: make this better by adding an isOnDeck() method to CTFMatchParticipant or something
-        for (CTFParticipant participant : context.getParticipants().values()) {
-            CaptureTheFlagMatch match = getMatch(participant.getTeamId());
-            if (match == null) {
-                participant.sendMessage(message);
-            }
-        }
+        getOnDeckParticipants().sendMessage(message);
+    }
+    
+    @Override
+    public @NotNull Audience getOnDeckParticipants() {
+        return Audience.audience(context.getParticipants().values().stream()
+                .filter(participant -> getMatch(participant.getTeamId()) == null).toList());
     }
 }

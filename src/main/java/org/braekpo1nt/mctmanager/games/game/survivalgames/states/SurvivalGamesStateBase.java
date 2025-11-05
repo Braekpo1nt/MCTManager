@@ -114,12 +114,12 @@ public abstract class SurvivalGamesStateBase implements SurvivalGamesState {
     }
     
     @Override
-    public void onParticipantRespawn(PlayerRespawnEvent event, SurvivalGamesParticipant participant) {
+    public void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull SurvivalGamesParticipant participant) {
         event.setRespawnLocation(participant.getLocation());
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, SurvivalGamesParticipant participant) {
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull SurvivalGamesParticipant participant) {
         participant.setGameMode(GameMode.SPECTATOR);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);

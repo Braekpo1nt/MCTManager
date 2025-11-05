@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.state;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
@@ -21,6 +22,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -104,10 +106,7 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
             Component deathMessage = Component.empty()
                     .append(participant.displayName())
                     .append(Component.text(" left early. Their life is forfeit."));
-            context.messageAllParticipants(deathMessage);
-            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant.getPlayer(),
-                    DamageSource.builder(DamageType.GENERIC).build(), Collections.emptyList(), 0, 0, 0, 0, deathMessage, true);
-            onParticipantDeath(fakeDeathEvent, participant);
+            context.simulateDeath(participant, deathMessage);
         }
     }
     
@@ -127,6 +126,11 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
             return;
         }
         event.getDrops().clear();
+    }
+    
+    @Override
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull SpleefParticipant participant) {
+        super.onParticipantPostRespawn(event, participant);
         onParticipantDeath(participant);
         if (lessThanTwoParticipantsAreAlive() || exactlyOneTeamIsAlive()) {
             stop();
@@ -158,8 +162,7 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
         killed.setAlive(false);
         powerupManager.removeParticipant(killed);
         List<SpleefParticipant> awardedParticipants = context.getParticipants().values().stream()
-                .filter(SpleefParticipant::isAlive)
-                .filter(participant -> !participant.getTeamId().equals(killed.getTeamId()))
+                .filter(participant -> participant.isAlive() && !participant.sameTeam(killed))
                 .toList();
         context.awardParticipantPoints(awardedParticipants, context.getConfig().getSurviveScore());
         

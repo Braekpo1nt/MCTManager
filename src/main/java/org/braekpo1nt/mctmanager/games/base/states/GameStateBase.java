@@ -15,6 +15,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface GameStateBase<P extends ParticipantData, T extends ScoredTeamData<P>> {
     
@@ -122,9 +123,13 @@ public interface GameStateBase<P extends ParticipantData, T extends ScoredTeamDa
     void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull P participant);
     
     
-    void onParticipantRespawn(PlayerRespawnEvent event, P participant);
+    void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull P participant);
     
-    void onParticipantPostRespawn(PlayerPostRespawnEvent event, P participant);
+    /**
+     * @param event the event (or null if this is a manual respawn)
+     * @param participant the participant who is respawning
+     */
+    void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull P participant);
     
     void onParticipantToggleGlide(@NotNull EntityToggleGlideEvent event, P participant);
     

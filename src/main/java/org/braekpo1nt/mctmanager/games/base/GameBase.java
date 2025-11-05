@@ -46,6 +46,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -902,6 +903,60 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             return;
         }
         state.onParticipantPostRespawn(event, participant);
+    }
+    
+    /**
+     * Clears the participant's health, inventory, and status effects
+     * @param participant the participant who should "die"
+     * @param deathMessage the message to be sent to all players and admins announcing the death
+     */
+    public void simulateDeath(@NotNull P participant, @NotNull Component deathMessage) {
+        simulateDeath(participant, deathMessage, Audience.audience(
+                Audience.audience(participants.values()),
+                Audience.audience(admins)
+        ));
+    }
+    
+    /**
+     * Clears the participant's health, inventory, and status effects.
+     * @param participant the participant who should "die"
+     * @param deathMessage the message to be sent to all players and admins announcing the death
+     * @param audience the audience who should see the death message
+     */
+    public void simulateDeath(@NotNull P participant, @NotNull Component deathMessage, @NotNull Audience audience) {
+        audience.sendMessage(deathMessage);
+        ParticipantInitializer.clearInventory(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
+        state.onParticipantPostRespawn(null, participant);
+    }
+    
+    /**
+     * Overload for {@link #simulateDeath(ParticipantData, Component, Audience)} with item drops at the location
+     * @param participant the participant who should "die"
+     * @param drops the items that should drop when the participant dies
+     * @param deathMessage the message to be sent to all players and admins announcing the death
+     * @param audience the audience who should see the death message
+     */
+    public void simulateDeath(
+            @NotNull P participant,
+            @NotNull List<@NotNull ItemStack> drops,
+            @NotNull Component deathMessage,
+            @NotNull Audience audience) {
+        drops.forEach(drop ->
+                participant.getWorld().dropItemNaturally(participant.getLocation(), drop)
+        );
+        simulateDeath(participant, deathMessage, audience);
+    }
+    
+    public void simulateDeath(
+            @NotNull P participant,
+            @NotNull List<@NotNull ItemStack> drops,
+            @NotNull Component deathMessage) {
+        simulateDeath(participant, drops, deathMessage, Audience.audience(
+                Audience.audience(participants.values()),
+                Audience.audience(admins)
+        ));
     }
     
     @EventHandler

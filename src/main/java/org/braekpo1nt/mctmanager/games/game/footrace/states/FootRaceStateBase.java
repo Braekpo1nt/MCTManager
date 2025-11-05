@@ -106,12 +106,12 @@ public abstract class FootRaceStateBase implements FootRaceState {
     }
     
     @Override
-    public void onParticipantRespawn(PlayerRespawnEvent event, FootRaceParticipant participant) {
-        
+    public void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull FootRaceParticipant participant) {
+        event.setRespawnLocation(context.getConfig().getStartingLocation());
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, FootRaceParticipant participant) {
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull FootRaceParticipant participant) {
         
     }
     

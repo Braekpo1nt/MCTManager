@@ -103,7 +103,7 @@ public abstract class ParkourPathwayStateBase implements ParkourPathwayState {
     }
     
     @Override
-    public void onParticipantRespawn(PlayerRespawnEvent event, ParkourParticipant participant) {
+    public void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull ParkourParticipant participant) {
         Location respawn = context.getConfig()
                 .getPuzzle(participant.getCurrentPuzzle())
                 .getCheckPoints().get(participant.getCurrentPuzzleCheckpoint())
@@ -112,7 +112,7 @@ public abstract class ParkourPathwayStateBase implements ParkourPathwayState {
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, ParkourParticipant participant) {
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull ParkourParticipant participant) {
         
     }
     

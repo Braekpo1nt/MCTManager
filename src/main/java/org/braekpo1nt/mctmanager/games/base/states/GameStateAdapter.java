@@ -74,12 +74,12 @@ public abstract class GameStateAdapter<P extends ParticipantData, T extends Scor
     }
     
     @Override
-    public void onParticipantRespawn(PlayerRespawnEvent event, P participant) {
+    public void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull P participant) {
         
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, P participant) {
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull P participant) {
         
     }
     

@@ -184,14 +184,14 @@ public class ActiveState extends ExampleStateBase {
     }
     
     @Override
-    public void onParticipantRespawn(PlayerRespawnEvent event, ExampleParticipant participant) {
+    public void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull ExampleParticipant participant) {
         Main.logf("%s PlayerRespawnEvent", participant.getName());
 //        event.setRespawnLocation(context.getConfig().getStartingLocation());
         event.setRespawnLocation(participant.getLocation());
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, ExampleParticipant participant) {
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull ExampleParticipant participant) {
         Main.logf("%s PlayerPostRespawnEvent", participant.getName());
         participant.setAlive(false);
         participant.setGameMode(GameMode.SPECTATOR);

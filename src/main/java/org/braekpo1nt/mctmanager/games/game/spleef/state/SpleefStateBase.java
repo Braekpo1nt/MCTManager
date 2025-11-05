@@ -129,12 +129,12 @@ public abstract class SpleefStateBase implements SpleefState {
     }
     
     @Override
-    public void onParticipantRespawn(PlayerRespawnEvent event, SpleefParticipant participant) {
+    public void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull SpleefParticipant participant) {
         event.setRespawnLocation(context.getRandomStartingPosition());
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, SpleefParticipant participant) {
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull SpleefParticipant participant) {
         participant.setGameMode(GameMode.SPECTATOR);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);

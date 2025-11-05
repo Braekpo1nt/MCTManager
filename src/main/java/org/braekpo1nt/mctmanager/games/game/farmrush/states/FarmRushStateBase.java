@@ -121,13 +121,13 @@ public abstract class FarmRushStateBase implements FarmRushState {
     }
     
     @Override
-    public void onParticipantRespawn(PlayerRespawnEvent event, FarmRushParticipant participant) {
+    public void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull FarmRushParticipant participant) {
         FarmRushTeam team = context.getTeams().get(participant.getTeamId());
         event.setRespawnLocation(team.getArena().getSpawn());
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, FarmRushParticipant participant) {
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull FarmRushParticipant participant) {
         
     }
     

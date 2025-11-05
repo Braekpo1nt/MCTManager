@@ -43,7 +43,7 @@ public abstract class OnPlatformsState extends SurvivalGamesStateBase {
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, SurvivalGamesParticipant participant) {
+    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, @NotNull SurvivalGamesParticipant participant) {
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
