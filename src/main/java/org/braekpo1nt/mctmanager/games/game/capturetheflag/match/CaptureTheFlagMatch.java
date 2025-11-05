@@ -19,6 +19,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.CaptureTheFlag
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.ParticipantData;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
@@ -356,8 +357,20 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
         state.onParticipantDeath(event, matchParticipant);
     }
     
+    /**
+     * An in-between method specific to capture the flag's match states model, which
+     * calls the
+     * {@link org.braekpo1nt.mctmanager.games.base.GameBase#simulateDeath(ParticipantData, Component, Audience)}
+     * @param participant the participant who should "die"
+     * @param deathMessage the death message
+     * @param audience who should see the death message
+     */
+    public void simulateDeath(CTFMatchParticipant participant, Component deathMessage, Audience audience) {
+        parentContext.simulateDeath(parentContext.getParticipants().get(participant.getUniqueId()), deathMessage, audience);
+    }
+    
     @Override
-    public void onParticipantRespawn(PlayerRespawnEvent event, CTFParticipant participant) {
+    public void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull CTFParticipant participant) {
         CTFMatchParticipant matchParticipant = getParticipant(participant);
         if (matchParticipant == null) {
             return;
@@ -366,7 +379,7 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, CTFParticipant participant) {
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull CTFParticipant participant) {
         CTFMatchParticipant matchParticipant = getParticipant(participant);
         if (matchParticipant == null) {
             return;

@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.survivalgames.states;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
@@ -8,7 +9,6 @@ import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesParticipant;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesTeam;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfig;
-import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -18,8 +18,6 @@ import org.braekpo1nt.mctmanager.utils.EntityUtils;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.WorldBorder;
-import org.bukkit.damage.DamageSource;
-import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -28,6 +26,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -96,7 +95,7 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
         if (!p.isAlive()) {
             return;
         }
-        if (p.getRespawnGracePeriodCountdown() <= 0) {
+        if (p.getRespawnGracePeriodCountdown() < 0) {
             // end the grace period
             return;
         }
@@ -111,6 +110,9 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
                                         .getRespawnGracePeriodCountdown())))
         ));
         p.setRespawnGracePeriodCountdown(p.getRespawnGracePeriodCountdown() - 1);
+        if (p.getRespawnGracePeriodCountdown() < 0) {
+            p.showTitle(UIUtils.EMPTY_TITLE);
+        }
     }
     
     @Override
@@ -156,13 +158,10 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
             List<ItemStack> drops = Arrays.stream(participant.getInventory().getContents())
                     .filter(Objects::nonNull)
                     .toList();
-            int droppedExp = GameManagerUtils.calculateExpPoints(participant.getLevel());
             Component deathMessage = Component.empty()
                     .append(participant.displayName())
                     .append(Component.text(" left early. Their life is forfeit."));
-            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant.getPlayer(),
-                    DamageSource.builder(DamageType.GENERIC).build(), drops, droppedExp, 0, 0, 0, deathMessage, true);
-            this.onParticipantDeath(fakeDeathEvent, participant);
+            context.simulateDeath(participant, drops, deathMessage);
         }
     }
     
@@ -215,15 +214,42 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
     }
     
     @Override
-    public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull SurvivalGamesParticipant killed) {
+    public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull SurvivalGamesParticipant participant) {
         event.setDroppedExp(0);
-        if (killed.getKiller() != null) {
-            SurvivalGamesParticipant killer = context.getParticipants().get(killed.getKiller().getUniqueId());
+        if (participant.getKiller() != null) {
+            SurvivalGamesParticipant killer = context.getParticipants().get(participant.getKiller().getUniqueId());
             if (killer != null) {
-                onParticipantGetKill(killer, killed);
+                onParticipantGetKill(killer, participant);
             }
         }
-        onParticipantDeath(killed);
+    }
+    
+    @Override
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull SurvivalGamesParticipant participant) {
+        super.onParticipantPostRespawn(event, participant);
+        onParticipantDeath(participant);
+    }
+    
+    private void onParticipantDeath(SurvivalGamesParticipant participant) {
+        participant.setAlive(false);
+        String teamId = participant.getTeamId();
+        addDeath(participant);
+        SurvivalGamesTeam team = context.getTeams().get(teamId);
+        context.updateAliveCount(team);
+        for (SurvivalGamesParticipant viewer : team.getParticipants()) {
+            if (!viewer.equals(participant)) {
+                context.getGlowManager().hideGlowing(viewer, participant);
+            }
+        }
+        for (Player viewer : context.getAdmins()) {
+            context.getGlowManager().hideGlowing(viewer, participant);
+        }
+        if (allowRespawn()) {
+            initiateParticipantRespawnCountdown(participant);
+        }
+        if (!team.isAlive()) {
+            onTeamDeath(context.getTeams().get(teamId));
+        }
     }
     
     /**
@@ -236,6 +262,7 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
         // grace period start
         participant.setRespawnGracePeriodCountdown(config.getBorder().getRespawnGracePeriodTime());
         handleRespawnGracePeriod(participant);
+        participant.showTitle(UIUtils.EMPTY_TITLE);
         // grace period end
         participant.getInventory().setContents(config.getBorder().getRespawnLoadout());
         int index = selectRespawnLocation(participant.getUsedRespawns());
@@ -374,28 +401,6 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
         participant.setDeaths(newDeathCount);
         if (config.showDeathCount()) {
             topbar.setDeaths(participant.getUniqueId(), newDeathCount);
-        }
-    }
-    
-    private void onParticipantDeath(SurvivalGamesParticipant participant) {
-        participant.setAlive(false);
-        String teamId = participant.getTeamId();
-        addDeath(participant);
-        SurvivalGamesTeam team = context.getTeams().get(teamId);
-        context.updateAliveCount(team);
-        for (SurvivalGamesParticipant viewer : team.getParticipants()) {
-            if (!viewer.equals(participant)) {
-                context.getGlowManager().hideGlowing(viewer, participant);
-            }
-        }
-        for (Player viewer : context.getAdmins()) {
-            context.getGlowManager().hideGlowing(viewer, participant);
-        }
-        if (allowRespawn()) {
-            initiateParticipantRespawnCountdown(participant);
-        }
-        if (!team.isAlive()) {
-            onTeamDeath(context.getTeams().get(teamId));
         }
     }
     

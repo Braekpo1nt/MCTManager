@@ -94,7 +94,7 @@ public class ExampleGame extends WandsGameBase<ExampleParticipant, ExampleTeam, 
     @Override
     protected @NotNull ExampleParticipant createParticipant(Participant participant, ExampleParticipant.QuitData quitData) {
         // use the quitData to create a new participant, including setup that happens regardless of state
-        return new ExampleParticipant(participant, quitData.getScore());
+        return new ExampleParticipant(participant, quitData);
     }
     
     @Override

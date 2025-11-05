@@ -14,6 +14,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class ColossalCombatStateBase implements ColossalCombatState {
     protected final @NotNull ColossalCombatGame context;
@@ -118,7 +119,7 @@ public abstract class ColossalCombatStateBase implements ColossalCombatState {
     }
     
     @Override
-    public void onParticipantRespawn(PlayerRespawnEvent event, ColossalParticipant participant) {
+    public void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull ColossalParticipant participant) {
         switch (participant.getAffiliation()) {
             case NORTH -> event.setRespawnLocation(context.getConfig().getNorthGate().getSpawn());
             case SOUTH -> event.setRespawnLocation(context.getConfig().getSouthGate().getSpawn());
@@ -127,7 +128,7 @@ public abstract class ColossalCombatStateBase implements ColossalCombatState {
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, ColossalParticipant participant) {
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull ColossalParticipant participant) {
         
     }
     

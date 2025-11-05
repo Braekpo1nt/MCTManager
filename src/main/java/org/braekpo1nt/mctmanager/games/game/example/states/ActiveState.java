@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.example.states;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
@@ -9,11 +10,14 @@ import org.braekpo1nt.mctmanager.games.game.example.ExampleGame;
 import org.braekpo1nt.mctmanager.games.game.example.ExampleParticipant;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -25,11 +29,20 @@ public class ActiveState extends ExampleStateBase {
     private @Nullable Timer flyTimer;
     private @Nullable Timer playingTimer;
     private int flyTaskId;
-    private @Nullable BoundingBox noFlyZone;
+    private final @NotNull BoundingBox noFlyZone;
     private final @NotNull BoundingBoxRenderer noFlyZoneRenderer;
     
     public ActiveState(ExampleGame context) {
         super(context);
+        Vector s = context.getConfig().getStartingLocation().toVector();
+        this.noFlyZone = new BoundingBox(
+                s.getX() - 5,
+                s.getY(),
+                s.getZ() - 5,
+                s.getX() + 5,
+                s.getY() + 70,
+                s.getZ() + 5
+        );
         this.noFlyZoneRenderer = BlockBoxRenderer.builder()
                 .world(context.getConfig().getWorld())
                 .boundingBox(noFlyZone)
@@ -43,15 +56,6 @@ public class ActiveState extends ExampleStateBase {
         for (ExampleParticipant participant : context.getParticipants().values()) {
             participant.getInventory().addItem(wandItems);
         }
-        Vector s = context.getConfig().getStartingLocation().toVector();
-        this.noFlyZone = new BoundingBox(
-                s.getX() - 5,
-                s.getY(),
-                s.getZ() - 5,
-                s.getX() + 5,
-                s.getY() + 70,
-                s.getZ() + 5
-        );
         Audience.audience(
                 Audience.audience(context.getParticipants().values()),
                 Audience.audience(context.getAdmins())
@@ -104,6 +108,9 @@ public class ActiveState extends ExampleStateBase {
     
     @Override
     public void onParticipantMove(@NotNull PlayerMoveEvent event, @NotNull ExampleParticipant participant) {
+        if (!participant.isAlive()) {
+            return;
+        }
         if (participant.isGliding()) {
             handleGliding(event, participant);
             return;
@@ -165,5 +172,29 @@ public class ActiveState extends ExampleStateBase {
             return;
         }
         event.setCancelled(true);
+    }
+    
+    @Override
+    public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull ExampleParticipant participant) {
+        Main.logf("%s PlayerDeathEvent", participant.getName());
+        if (participant.getPlayer().isSneaking()) {
+            participant.sendMessage(Component.text("You weren't killed because you were sneaking"));
+            event.setCancelled(true);
+        }
+    }
+    
+    @Override
+    public void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull ExampleParticipant participant) {
+        Main.logf("%s PlayerRespawnEvent", participant.getName());
+//        event.setRespawnLocation(context.getConfig().getStartingLocation());
+        event.setRespawnLocation(participant.getLocation());
+    }
+    
+    @Override
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull ExampleParticipant participant) {
+        Main.logf("%s PlayerPostRespawnEvent", participant.getName());
+        participant.setAlive(false);
+        participant.setGameMode(GameMode.SPECTATOR);
+        context.getTabList().setParticipantGrey(participant.getParticipantID(), true);
     }
 }

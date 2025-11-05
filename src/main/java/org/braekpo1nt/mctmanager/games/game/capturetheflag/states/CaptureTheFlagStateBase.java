@@ -13,6 +13,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class CaptureTheFlagStateBase implements CaptureTheFlagState {
     
@@ -65,12 +66,12 @@ public abstract class CaptureTheFlagStateBase implements CaptureTheFlagState {
     }
     
     @Override
-    public void onParticipantRespawn(PlayerRespawnEvent event, CTFParticipant participant) {
+    public void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull CTFParticipant participant) {
         event.setRespawnLocation(context.getConfig().getSpawnObservatory());
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, CTFParticipant participant) {
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull CTFParticipant participant) {
         // do nothing
     }
     

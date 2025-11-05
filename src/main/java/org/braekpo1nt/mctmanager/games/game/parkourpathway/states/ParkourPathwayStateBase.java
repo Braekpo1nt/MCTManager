@@ -14,6 +14,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class ParkourPathwayStateBase implements ParkourPathwayState {
     
@@ -103,7 +104,7 @@ public abstract class ParkourPathwayStateBase implements ParkourPathwayState {
     }
     
     @Override
-    public void onParticipantRespawn(PlayerRespawnEvent event, ParkourParticipant participant) {
+    public void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull ParkourParticipant participant) {
         Location respawn = context.getConfig()
                 .getPuzzle(participant.getCurrentPuzzle())
                 .getCheckPoints().get(participant.getCurrentPuzzleCheckpoint())
@@ -112,7 +113,7 @@ public abstract class ParkourPathwayStateBase implements ParkourPathwayState {
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, ParkourParticipant participant) {
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull ParkourParticipant participant) {
         
     }
     

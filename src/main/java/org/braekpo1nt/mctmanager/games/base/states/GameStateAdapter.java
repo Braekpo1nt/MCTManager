@@ -11,6 +11,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class GameStateAdapter<P extends ParticipantData, T extends ScoredTeamData<P>> implements GameStateBase<P, T> {
     @Override
@@ -74,12 +75,12 @@ public abstract class GameStateAdapter<P extends ParticipantData, T extends Scor
     }
     
     @Override
-    public void onParticipantRespawn(PlayerRespawnEvent event, P participant) {
+    public void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull P participant) {
         
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, P participant) {
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull P participant) {
         
     }
     
