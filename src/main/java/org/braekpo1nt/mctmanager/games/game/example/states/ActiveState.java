@@ -194,6 +194,7 @@ public class ActiveState extends ExampleStateBase {
     public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull ExampleParticipant participant) {
         Main.logf("%s PlayerPostRespawnEvent", participant.getName());
         participant.setAlive(false);
+        context.getTabList().setParticipantGrey(participant, true);
         participant.setGameMode(GameMode.SPECTATOR);
         context.getTabList().setParticipantGrey(participant.getParticipantID(), true);
     }

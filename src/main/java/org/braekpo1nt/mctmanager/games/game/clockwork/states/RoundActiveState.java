@@ -69,6 +69,7 @@ public abstract class RoundActiveState extends ClockworkStateBase {
             context.awardParticipantPoints(awardedParticipants, config.getPlayerEliminationScore());
             // award living participants end
         }
+        context.getTabList().setParticipantGreys(participantsToKill, true);
         // who are now dead, which weren't at the start of this method
         List<ClockworkTeam> newlyKilledTeams = context.getTeams().values().stream()
                 .filter(t -> !existingDeadTeams.contains(t))
@@ -100,6 +101,7 @@ public abstract class RoundActiveState extends ClockworkStateBase {
     public void onNewParticipantJoin(ClockworkParticipant participant, ClockworkTeam team) {
         super.onNewParticipantJoin(participant, team);
         participant.setAlive(false);
+        context.getTabList().setParticipantGrey(participant, true);
         participant.setGameMode(GameMode.SPECTATOR);
         participant.teleport(context.getConfig().getStartingLocation());
     }
@@ -108,6 +110,7 @@ public abstract class RoundActiveState extends ClockworkStateBase {
     public void onParticipantRejoin(ClockworkParticipant participant, ClockworkTeam team) {
         super.onParticipantRejoin(participant, team);
         participant.setAlive(false);
+        context.getTabList().setParticipantGrey(participant, true);
         participant.setGameMode(GameMode.SPECTATOR);
         participant.teleport(context.getConfig().getStartingLocation());
     }

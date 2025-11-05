@@ -114,6 +114,7 @@ public abstract class GameplayState extends ColossalCombatStateBase {
      */
     protected void onParticipantDeath(@NotNull ColossalParticipant participant) {
         participant.setAlive(false);
+        context.getTabList().setParticipantGrey(participant, true);
         context.updateAliveStatus(participant.getAffiliation());
         context.addDeath(participant);
     }
@@ -132,6 +133,7 @@ public abstract class GameplayState extends ColossalCombatStateBase {
             return;
         }
         participant.setAlive(false);
+        context.getTabList().setParticipantGrey(participant, true);
         participant.setGameMode(GameMode.SPECTATOR);
         context.updateAliveStatus(participant.getAffiliation());
     }
@@ -143,6 +145,7 @@ public abstract class GameplayState extends ColossalCombatStateBase {
             return;
         }
         participant.setAlive(false);
+        context.getTabList().setParticipantGrey(participant, true);
         participant.setGameMode(GameMode.SPECTATOR);
         context.updateAliveStatus(participant.getAffiliation());
     }

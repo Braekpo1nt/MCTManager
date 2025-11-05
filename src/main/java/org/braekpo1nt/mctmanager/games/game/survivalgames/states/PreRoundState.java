@@ -24,6 +24,7 @@ public abstract class PreRoundState extends OnPlatformsState {
             context.updateAliveCount(team);
         }
         context.setBorderStageIndex(0);
+        context.getTabList().setParticipantGreys(context.getParticipants().values(), false);
         context.getAdminSidebar().updateLine("respawn", Component.empty());
         context.getSidebar().updateLine("respawn", Component.empty());
         initializeGlowManager();
