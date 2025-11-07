@@ -66,9 +66,9 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
         addListener(new PreventItemDrop<>(this, true));
         this.notificationToggle = addWand(Wand.<ParkourParticipant>builder()
                 .wandItem(Wand.createWandItem(
-                        config.getNotificationToggleMaterial(), 
-                        config.getNotificationToggleName(), 
-                        config.getNotificationToggleLoreALL()))
+                        config.getChatToggleMaterial(),
+                        config.getChatToggleName(),
+                        config.getChatToggleLoreALL()))
                 .onRightClick(((event, participant) -> {
                     ChatMode newMode = ChatMode.cycle(participant.getChatMode());
                     participant.setChatMode(newMode);
@@ -102,10 +102,10 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
     
     private List<Component> getToggleLore(@NotNull ChatMode mode) {
         return switch (mode) {
-            case ALL -> config.getNotificationToggleLoreALL();
-            case TEAM -> config.getNotificationToggleLoreTEAM();
-            case DISABLED -> config.getNotificationToggleLoreDISABLED();
-            case LOCAL, OFF -> config.getNotificationToggleLoreALL(); // Default to ALL for chat-only modes
+            case ALL -> config.getChatToggleLoreALL();
+            case TEAM -> config.getChatToggleLoreTEAM();
+            case DISABLED -> config.getChatToggleLoreDISABLED();
+            case LOCAL, OFF -> config.getChatToggleLoreALL(); // Default to ALL for chat-only modes
         };
     }
     
@@ -314,7 +314,7 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
         }
         
         return switch (viewer.getChatMode()) {
-            case ALL -> true; // Show everyone's checkpoints
+            case ALL, LOCAL -> true; // Show everyone's checkpoints
             case TEAM -> viewer.sameTeam(achiever); // Only show teammate checkpoints
             default -> false; // Only show your own checkpoints
         };
