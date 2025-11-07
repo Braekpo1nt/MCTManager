@@ -52,6 +52,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -710,6 +711,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         team.addPoints(multiplied);
         displayScore(participant);
         displayScore(team);
+        gameManager.logInstantScore(participant, points, new Date(), gameInstanceId, "test");
     }
     
     /**

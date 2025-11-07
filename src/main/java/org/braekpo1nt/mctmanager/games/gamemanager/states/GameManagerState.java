@@ -171,6 +171,8 @@ public abstract class GameManagerState {
     
     public abstract CommandResult switchMode(@NotNull String mode);
     
+    public abstract @NotNull String getMode();
+    
     public void cleanup() {
         this.leaderboardManagers.forEach(LeaderboardManager::tearDown);
         this.tabList.cleanup();

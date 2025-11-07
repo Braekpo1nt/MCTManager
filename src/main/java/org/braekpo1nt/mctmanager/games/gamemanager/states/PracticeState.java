@@ -131,6 +131,11 @@ public class PracticeState extends GameManagerState {
     }
     
     @Override
+    public @NotNull String getMode() {
+        return "practice";
+    }
+    
+    @Override
     public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
         if (gameType == GameType.FARM_RUSH) {
             if (teamIds.size() > 1) {

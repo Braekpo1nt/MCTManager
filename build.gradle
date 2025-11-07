@@ -66,6 +66,15 @@ dependencies {
     implementation 'com.github.stefvanschie.inventoryframework:IF:0.11.3'
     shade 'com.github.stefvanschie.inventoryframework:IF:0.11.2'
 
+    // database
+    // https://mvnrepository.com/artifact/com.j256.ormlite/ormlite-jdbc
+    implementation 'com.j256.ormlite:ormlite-jdbc:6.1'
+    // need to shade the ORM into the jar
+    shade 'com.j256.ormlite:ormlite-jdbc:6.1'
+    // https://mvnrepository.com/artifact/org.flywaydb/flyway-core
+    implementation 'org.flywaydb:flyway-core:11.16.0'
+    shade 'org.flywaydb:flyway-core:11.16.0'
+
     // lombok
     compileOnly 'org.projectlombok:lombok:1.18.36'
     annotationProcessor 'org.projectlombok:lombok:1.18.36'
@@ -103,6 +112,8 @@ tasks.shadowJar {
     archiveClassifier = ""
     // from the inventoryFramework docs
     relocate 'com.github.stefvanschie.inventoryframework', 'org.braekpo1nt.inventoryframework'
+    relocate 'com.j256.ormlite:ormlite-jdbc', 'org.braekpo1nt.ormlite-jdbc'
+    relocate 'org.flywaydb:flyway-core', 'org.braekpo1nt.flyway-core'
 }
 
 processResources {

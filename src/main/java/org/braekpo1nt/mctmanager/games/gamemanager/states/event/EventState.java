@@ -77,6 +77,11 @@ public abstract class EventState extends GameManagerState {
     }
     
     @Override
+    public @NotNull String getMode() {
+        return "event";
+    }
+    
+    @Override
     public Sidebar createSidebar() {
         return context.getSidebarFactory().createSidebar(eventData.getConfig().getTitle());
     }

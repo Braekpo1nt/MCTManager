@@ -33,6 +33,7 @@ import org.braekpo1nt.mctmanager.commands.readyup.UnReadyCommand;
 import org.braekpo1nt.mctmanager.commands.teammsg.TeamMsgCommand;
 import org.braekpo1nt.mctmanager.commands.utils.UtilsCommand;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
+import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.display.EdgeRenderer;
 import org.braekpo1nt.mctmanager.display.RectangleRenderer;
 import org.braekpo1nt.mctmanager.display.boundingbox.BoundingBoxRendererImpl;
@@ -62,9 +63,12 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.FlywayException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -95,14 +99,16 @@ public class Main extends JavaPlugin {
      */
     private static Logger logger = log;
     private static final Map<LogType, @NotNull Boolean> logTypeActive = new HashMap<>();
+    private Database database;
     
-    protected GameManager initialGameManager(Scoreboard mctScoreboard, @NotNull HubConfig config) {
+    protected GameManager initialGameManager(Scoreboard mctScoreboard, @NotNull HubConfig config, Database database) {
         return new GameManager(
                 this,
                 mctScoreboard,
                 new GameStateStorageUtil(this),
                 new SidebarFactory(),
-                config);
+                config,
+                database);
     }
     
     /**
@@ -169,6 +175,15 @@ public class Main extends JavaPlugin {
         
         PacketEvents.getAPI().init();
         
+        try {
+            this.database = setupDatabase();
+        } catch (SQLException e) {
+            getLogger().log(Level.SEVERE, "An error occurred connecting to or setting up the database. Is your config.yml set up properly? Disabling the plugin.", e);
+            saveGameStateOnDisable = false;
+            this.getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        
         HubConfig config;
         try {
             config = new HubConfigController(getDataFolder()).getConfig();
@@ -176,7 +191,7 @@ public class Main extends JavaPlugin {
             Main.logger().log(Level.SEVERE, String.format("Could not load hub config, using default config. See console for details. %s", e.getMessage()), e);
             config = new HubConfigController(getDataFolder()).getDefaultConfig();
         }
-        gameManager = initialGameManager(mctScoreboard, config);
+        gameManager = initialGameManager(mctScoreboard, config, database);
         CommandResult result = gameManager.loadGameState();
         if (result instanceof FailureCommandResult) {
             getServer().getConsoleSender().sendMessage(result.getMessageOrEmpty());
@@ -203,6 +218,35 @@ public class Main extends JavaPlugin {
         registerCommands();
         
         alwaysGiveNightVision();
+    }
+    
+    protected Database setupDatabase() throws SQLException {
+        String host = getConfig().getString("database.host");
+        String port = getConfig().getString("database.port");
+        String user = getConfig().getString("database.user");
+        String password = getConfig().getString("database.password");
+        String databaseName = getConfig().getString("database.database_name");
+        String jdbcUrl = String.format("jdbc:mysql://%s:%s/%s", host, port, databaseName);
+        // include getClass().getClassLoader() for the love of all that's good and holy, 
+        // or flyway won't find your migrations
+        try {
+            Flyway flyway = Flyway.configure(getClass().getClassLoader())
+                    .dataSource(jdbcUrl, user, password)
+                    .locations("classpath:db/migration") // migration folder
+                    .load();
+            flyway.migrate();
+        } catch (FlywayException e) {
+            throw new SQLException("An error occurred applying the flyway migration", e);
+        }
+        getLogger().info("Flyway migrations applied successfully");
+        
+        return new Database(
+                host,
+                port,
+                user,
+                password,
+                databaseName
+        );
     }
     
     protected void registerCommands() {

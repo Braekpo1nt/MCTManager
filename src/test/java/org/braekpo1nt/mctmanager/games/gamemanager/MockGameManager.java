@@ -23,7 +23,7 @@ public class MockGameManager extends GameManager {
                 mctScoreboard,
                 gameStateStorageUtil,
                 sidebarFactory,
-                config);
+                config, database);
     }
     
     @Override
