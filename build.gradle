@@ -74,6 +74,12 @@ dependencies {
     // https://mvnrepository.com/artifact/org.flywaydb/flyway-core
     implementation 'org.flywaydb:flyway-core:11.16.0'
     shade 'org.flywaydb:flyway-core:11.16.0'
+    // https://mvnrepository.com/artifact/org.flywaydb/flyway-mysql
+    implementation 'org.flywaydb:flyway-mysql:11.16.0'
+    shade 'org.flywaydb:flyway-mysql:11.16.0'
+    // https://mvnrepository.com/artifact/org.mariadb.jdbc/mariadb-java-client
+    implementation 'org.mariadb.jdbc:mariadb-java-client:3.5.6'
+    shade 'org.mariadb.jdbc:mariadb-java-client:3.5.6'
 
     // lombok
     compileOnly 'org.projectlombok:lombok:1.18.36'
@@ -110,10 +116,16 @@ tasks.shadowJar {
     configurations = [project.configurations.shade]
     // doesn't add "-all" to the jar file name
     archiveClassifier = ""
+    mergeServiceFiles {
+        // resolve duplicate files from flyway-core and flyway-mysql
+        setPath("META-INF/services/org.flywaydb.core.extensibility.Plugin")
+    }
     // from the inventoryFramework docs
     relocate 'com.github.stefvanschie.inventoryframework', 'org.braekpo1nt.inventoryframework'
     relocate 'com.j256.ormlite:ormlite-jdbc', 'org.braekpo1nt.ormlite-jdbc'
     relocate 'org.flywaydb:flyway-core', 'org.braekpo1nt.flyway-core'
+    relocate 'org.flywaydb:flyway-mysql', 'org.braekpo1nt.flyway-mysql'
+    relocate 'org.mariadb.jdbc:mariadb-java-client', 'org.braekpo1nt.mariadb-java-client'
 }
 
 processResources {
