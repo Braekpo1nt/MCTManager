@@ -26,7 +26,7 @@ public enum ChatMode {
     
     public static String getModeName(ChatMode mode) {
         return switch (mode) {
-            case LOCAL -> "Local";
+            case LOCAL -> "All";
             case TEAM -> "Team";
             case OFF -> "Off";
             case ALL -> "All Players";
