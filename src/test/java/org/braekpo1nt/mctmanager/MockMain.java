@@ -36,7 +36,8 @@ public class MockMain extends Main {
                 mctScoreboard,
                 new MockGameStateStorageUtil(this),
                 new MockSidebarFactory(),
-                config);
+                config,
+                database);
     }
     
     @Override

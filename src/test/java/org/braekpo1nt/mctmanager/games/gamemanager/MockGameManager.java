@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.gamemanager;
 
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.hub.config.HubConfig;
 import org.braekpo1nt.mctmanager.hub.leaderboard.LeaderboardManager;
@@ -17,13 +18,15 @@ public class MockGameManager extends GameManager {
             Scoreboard mctScoreboard,
             @NotNull GameStateStorageUtil gameStateStorageUtil,
             @NotNull SidebarFactory sidebarFactory,
-            @NotNull HubConfig config) {
+            @NotNull HubConfig config,
+            @NotNull Database database) {
         super(
                 plugin,
                 mctScoreboard,
                 gameStateStorageUtil,
                 sidebarFactory,
-                config, database);
+                config, 
+                database);
     }
     
     @Override
