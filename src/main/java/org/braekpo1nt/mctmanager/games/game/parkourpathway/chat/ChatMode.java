@@ -4,10 +4,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 
 public enum ChatMode {
     /**
-     * Only see messages from players on your team
-     */
-    LOCAL,
-    /**
      * See messages from all players
      */
     TEAM,
@@ -26,7 +22,6 @@ public enum ChatMode {
     
     public static String getModeName(ChatMode mode) {
         return switch (mode) {
-            case LOCAL -> "All";
             case TEAM -> "Team";
             case OFF -> "Off";
             case ALL -> "All Players";
@@ -36,7 +31,6 @@ public enum ChatMode {
     
     public static NamedTextColor getModeColor(ChatMode mode) {
         return switch (mode) {
-            case LOCAL -> NamedTextColor.GREEN;
             case TEAM -> NamedTextColor.BLUE;
             case OFF -> NamedTextColor.RED;
             case ALL -> NamedTextColor.GREEN;
@@ -45,17 +39,16 @@ public enum ChatMode {
     }
     
     /**
-     * Cycle to next mode: LOCAL -> TEAM -> OFF -> LOCAL (for chat modes) or ALL -> DISABLED -> ALL (for notification
+     * Cycle to next mode: ALL -> TEAM -> OFF -> ALL (for chat modes) or ALL -> DISABLED -> ALL (for notification
      * modes)
      * @param current the mode to cycle from
      * @return the mode to cycle to
      */
     public static ChatMode cycle(ChatMode current) {
         return switch (current) {
-            case LOCAL -> TEAM;
+            case ALL -> TEAM;
             case TEAM -> OFF;
-            case OFF -> LOCAL;
-            case ALL -> DISABLED;
+            case OFF -> ALL;
             case DISABLED -> ALL;
         };
     }

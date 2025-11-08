@@ -107,8 +107,8 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
         return switch (mode) {
             case ALL -> config.getChatToggleLoreALL();
             case TEAM -> config.getChatToggleLoreTEAM();
+            case OFF -> config.getChatToggleLoreALL(); // Default to ALL for chat modes
             case DISABLED -> config.getChatToggleLoreDISABLED();
-            case LOCAL, OFF -> config.getChatToggleLoreALL(); // Default to ALL for chat-only modes
         };
     }
 
@@ -318,9 +318,9 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
         }
 
         return switch (viewer.getChatMode()) {
-            case ALL, LOCAL -> true; // Show everyone's checkpoints
+            case ALL -> true; // Show everyone's checkpoints
             case TEAM -> viewer.sameTeam(achiever); // Only show teammate checkpoints
-            default -> false; // Only show your own checkpoints
+            default -> false; // Only show your own checkpoints (OFF and DISABLED modes)
         };
     }
 

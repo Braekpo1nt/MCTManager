@@ -49,7 +49,7 @@ public class ParkourParticipant extends ParticipantData {
             int score) {
         super(participant, score);
         this.finished = false;
-        this.chatMode = ChatMode.LOCAL;
+        this.chatMode = ChatMode.ALL;
         this.currentPuzzle = 0;
         this.currentPuzzleCheckpoint = 0;
         this.unusedSkips = 0;
