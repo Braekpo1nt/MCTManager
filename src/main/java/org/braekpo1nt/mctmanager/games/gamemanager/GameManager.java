@@ -146,7 +146,7 @@ public class GameManager implements Listener {
         this.mctScoreboard = mctScoreboard;
         this.gameStateStorageUtil = gameStateStorageUtil;
         this.timerManager = new TimerManager(plugin);
-        this.scoreService = new ScoreService(database.getAllScoreDao());
+        this.scoreService = new ScoreService(plugin, database.getAllScoreDao());
         this.sidebarFactory = sidebarFactory;
         this.config = config;
         this.tabList = new TabList(plugin);
@@ -867,7 +867,7 @@ public class GameManager implements Listener {
      * @param description the description of the action that resulted in the score (e.g. Braekpo1nt was killed by rstln)
      */
     public void logInstantScore(Participant participant, int points, Date date, GameInstanceId gameInstanceId, String description) {
-        scoreService.create(InstantPersonalScore.builder()
+        scoreService.logAllScore(InstantPersonalScore.builder()
                 .uuid(participant.getUniqueId().toString())
                 .teamId(participant.getTeamId())
                 .gameType(gameInstanceId.getGameType())
