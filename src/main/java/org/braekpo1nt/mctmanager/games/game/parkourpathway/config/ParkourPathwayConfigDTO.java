@@ -171,11 +171,6 @@ class ParkourPathwayConfigDTO implements Validatable {
          */
         private List<Component> teamLore;
         /**
-         * the lore of the chat mode toggle item when in
-         * {@link org.braekpo1nt.mctmanager.games.game.parkourpathway.chat.ChatMode#DISABLED} mode
-         */
-        private List<Component> disabledLore;
-        /**
          * the lore of the chat mode toggle item when in LOCAL mode
          */
         private List<Component> localLore;
@@ -206,16 +201,6 @@ class ParkourPathwayConfigDTO implements Validatable {
                             .append(Component.text("Team Only").color(NamedTextColor.BLUE)),
                     Component.text("You see when you or your").color(NamedTextColor.GRAY),
                     Component.text("teammates reach checkpoints").color(NamedTextColor.GRAY),
-                    Component.text("Right click to change").color(NamedTextColor.YELLOW)
-            );
-        }
-        
-        public static List<Component> defaultDisabledLore() {
-            return List.of(
-                    Component.text("Checkpoint Notifications: ").color(NamedTextColor.GRAY)
-                            .append(Component.text("Self Only").color(NamedTextColor.RED)),
-                    Component.text("You only see your own").color(NamedTextColor.GRAY),
-                    Component.text("checkpoint progress").color(NamedTextColor.GRAY),
                     Component.text("Right click to change").color(NamedTextColor.YELLOW)
             );
         }
@@ -382,7 +367,6 @@ class ParkourPathwayConfigDTO implements Validatable {
                     .chatToggleName(this.chatModeToggle.getItemName())
                     .chatToggleLoreALL(this.chatModeToggle.getAllLore())
                     .chatToggleLoreTEAM(this.chatModeToggle.getTeamLore())
-                    .chatToggleLoreDISABLED(this.chatModeToggle.getDisabledLore())
                     .chatToggleLoreLOCAL(this.chatModeToggle.getLocalLore())
                     .chatToggleLoreOFF(this.chatModeToggle.getOffLore());
         } else {
@@ -391,7 +375,6 @@ class ParkourPathwayConfigDTO implements Validatable {
                     .chatToggleName(Component.text("Chat Mode"))
                     .chatToggleLoreALL(ChatModeToggle.defaultALLLore())
                     .chatToggleLoreTEAM(ChatModeToggle.defaultNotificationTeamLore())
-                    .chatToggleLoreDISABLED(ChatModeToggle.defaultDisabledLore())
                     .chatToggleLoreLOCAL(ChatModeToggle.defaultLOCALLore())
                     .chatToggleLoreOFF(ChatModeToggle.defaultOFFLore());
         }
@@ -405,7 +388,6 @@ class ParkourPathwayConfigDTO implements Validatable {
                 .itemName(config.getChatToggleName())
                 .allLore(config.getChatToggleLoreALL())
                 .teamLore(config.getChatToggleLoreTEAM())
-                .disabledLore(config.getChatToggleLoreDISABLED())
                 .localLore(config.getChatToggleLoreLOCAL())
                 .offLore(config.getChatToggleLoreOFF())
                 .build();

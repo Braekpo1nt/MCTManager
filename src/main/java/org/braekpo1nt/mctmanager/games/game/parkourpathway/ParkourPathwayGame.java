@@ -108,7 +108,6 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
             case ALL -> config.getChatToggleLoreALL();
             case TEAM -> config.getChatToggleLoreTEAM();
             case OFF -> config.getChatToggleLoreALL(); // Default to ALL for chat modes
-            case DISABLED -> config.getChatToggleLoreDISABLED();
         };
     }
     

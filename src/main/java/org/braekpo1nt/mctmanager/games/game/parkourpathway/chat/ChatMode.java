@@ -8,24 +8,19 @@ public enum ChatMode {
      */
     TEAM,
     /**
-     * Don't see any player messages
+     * See only your own checkpoints
      */
     OFF,
     /**
      * See everyone's checkpoints
      */
-    ALL,
-    /**
-     * See only your own checkpoints
-     */
-    DISABLED;
+    ALL;
     
     public static String getModeName(ChatMode mode) {
         return switch (mode) {
             case TEAM -> "Team";
-            case OFF -> "Off";
+            case OFF -> "Self Only";
             case ALL -> "All Players";
-            case DISABLED -> "Self Only";
         };
     }
     
@@ -34,12 +29,11 @@ public enum ChatMode {
             case TEAM -> NamedTextColor.BLUE;
             case OFF -> NamedTextColor.RED;
             case ALL -> NamedTextColor.GREEN;
-            case DISABLED -> NamedTextColor.RED;
         };
     }
     
     /**
-     * Cycle to next mode: ALL -> TEAM -> OFF -> ALL (for chat modes) or ALL -> DISABLED -> ALL (for notification
+     * Cycle to next mode: ALL -> TEAM -> OFF -> ALL
      * modes)
      * @param current the mode to cycle from
      * @return the mode to cycle to
@@ -49,7 +43,6 @@ public enum ChatMode {
             case ALL -> TEAM;
             case TEAM -> OFF;
             case OFF -> ALL;
-            case DISABLED -> ALL;
         };
     }
 }
