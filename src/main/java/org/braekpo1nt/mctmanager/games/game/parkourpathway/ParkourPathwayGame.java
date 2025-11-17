@@ -13,6 +13,8 @@ import org.braekpo1nt.mctmanager.games.base.listeners.PreventHungerLoss;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventItemDrop;
 import org.braekpo1nt.mctmanager.games.editor.wand.Wand;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourParticipant;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourTeam;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.chat.ChatMode;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfig;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.states.InitialState;
@@ -105,8 +107,7 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
         return switch (mode) {
             case ALL -> config.getChatToggleLoreALL();
             case TEAM -> config.getChatToggleLoreTEAM();
-            case DISABLED -> config.getChatToggleLoreDISABLED();
-            case LOCAL, OFF -> config.getChatToggleLoreALL(); // Default to ALL for chat-only modes
+            case OFF -> config.getChatToggleLoreALL(); // Default to ALL for chat modes
         };
     }
     
@@ -170,7 +171,6 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
     
     /**
      * Gives the appropriate number of skips to the given participant
-     *
      * @param participant the participant to receive skips
      */
     public void giveSkipItem(ParkourParticipant participant, int numOfSkips) {
@@ -303,8 +303,7 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
     
     /**
      * Method to check if the viewer should see the checkpoint notification from the achiever
-     *
-     * @param viewer   the participant who may or may not see this notification
+     * @param viewer the participant who may or may not see this notification
      * @param achiever the participant who reached a checkpoint
      */
     public boolean shouldShowCheckpointNotification(ParkourParticipant viewer, ParkourParticipant achiever) {
@@ -318,15 +317,14 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
         return switch (viewer.getChatMode()) {
             case ALL -> true; // Show everyone's checkpoints
             case TEAM -> viewer.sameTeam(achiever); // Only show teammate checkpoints
-            default -> false; // Only show your own checkpoints
+            default -> false; // Only show your own checkpoints (OFF and DISABLED modes)
         };
     }
     
     /**
      * New method to send messages only to participants who want to see this achiever's
      * checkpoint notification
-     *
-     * @param message  the message to send
+     * @param message the message to send
      * @param achiever the participant who reached a checkpoint, and is sending this notification
      */
     public void messageParticipantsWithNotifications(Component message, ParkourParticipant achiever) {

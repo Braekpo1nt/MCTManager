@@ -73,7 +73,6 @@ public class ParkourPathwayConfig {
     private @NotNull Component chatToggleName;
     private @NotNull List<Component> chatToggleLoreALL;
     private @NotNull List<Component> chatToggleLoreTEAM;
-    private @NotNull List<Component> chatToggleLoreDISABLED;
     private @NotNull List<Component> chatToggleLoreLOCAL;
     private @NotNull List<Component> chatToggleLoreOFF;
     
