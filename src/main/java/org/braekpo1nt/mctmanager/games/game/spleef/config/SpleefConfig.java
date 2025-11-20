@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.spleef.config;
 import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.config.Config;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.game.spleef.DecayStage;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.Powerup;
@@ -21,7 +22,7 @@ import java.util.Map;
 
 @Data
 @Builder
-public class SpleefConfig {
+public class SpleefConfig implements Config {
     private World world;
     private List<Location> startingLocations;
     private List<Structure> structures;

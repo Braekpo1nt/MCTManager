@@ -17,6 +17,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.states.event.ReadyUpState;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetConfig;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -26,6 +27,8 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.sql.SQLException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -208,7 +211,27 @@ public class PracticeState extends GameManagerState {
     
     
     @Override
-    protected void addScores(Map<String, Integer> newTeamScores, Map<UUID, Integer> newParticipantScores, @NotNull GameInstanceId id) {
+    protected void persistDatabaseScores(Map<String, Integer> newTeamScores, Map<UUID, Integer> newParticipantScores, int gameSessionId, GameInstanceId id, Date endDate, double multiplier) throws SQLException {
+        super.persistDatabaseScores(newTeamScores, newParticipantScores, gameSessionId, id, endDate, multiplier);
+        context.getScoreService().addParticipantCurrencies(newParticipantScores);
+    }
+    
+    /**
+     * Display the scores only, don't save them to the GameState
+     * @param newTeamScores map of teamId to score to add. Must be teamIds of real teams
+     * @param newParticipantScores map of UUID to score to add. Must be UUIDs of real participants
+     * @param gameSessionId the id of the {@link org.braekpo1nt.mctmanager.database.entities.GameSession} associated
+     * with this game
+     * @param id the {@link GameInstanceId}
+     * @param endDate the date the game ended
+     */
+    @Override
+    protected void addScores(
+            Map<String, Integer> newTeamScores,
+            Map<UUID, Integer> newParticipantScores,
+            int gameSessionId,
+            @NotNull GameInstanceId id,
+            @NotNull Date endDate) {
         Map<String, Integer> teamScores = newTeamScores.entrySet().stream()
                 .filter(e -> teams.containsKey(e.getKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -236,13 +259,13 @@ public class PracticeState extends GameManagerState {
     }
     
     @Override
-    protected void onParticipantJoinGame(@NotNull GameInstanceId id, MCTParticipant participant) {
+    protected void onParticipantJoinGame(@NotNull GameInstanceId id, Participant participant) {
         super.onParticipantJoinGame(id, participant);
         practiceManager.removeParticipant(participant.getUniqueId());
     }
     
     @Override
-    protected void onParticipantReturnToHub(@NotNull MCTParticipant participant) {
+    protected void onParticipantReturnToHub(@NotNull Participant participant) {
         super.onParticipantReturnToHub(participant);
         practiceManager.addParticipant(participant);
     }

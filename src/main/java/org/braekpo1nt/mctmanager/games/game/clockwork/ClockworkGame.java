@@ -64,12 +64,13 @@ public class ClockworkGame extends GameBase<ClockworkParticipant, ClockworkTeam,
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
             @NotNull Component title,
+            int gameSessionId,
             @NotNull ClockworkConfig config,
             @NotNull String configFile,
             @NotNull Collection<Team> newTeams,
             @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
-        super(new GameInstanceId(GameType.CLOCKWORK, configFile), plugin, gameManager, title, new InitialState());
+        super(gameSessionId, new GameInstanceId(GameType.CLOCKWORK, configFile), plugin, gameManager, title, new InitialState());
         this.config = config;
         this.currentRound = 1;
         this.chaosManager = new ChaosManager(plugin, config);

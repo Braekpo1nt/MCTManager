@@ -50,12 +50,13 @@ public class CaptureTheFlagGame extends GameBase<CTFParticipant, CTFTeam, CTFPar
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
             @NotNull Component title,
+            int gameSessionId,
             @NotNull CaptureTheFlagConfig config,
             @NotNull String configFile,
             @NotNull Collection<Team> newTeams,
             @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
-        super(new GameInstanceId(GameType.CAPTURE_THE_FLAG, configFile), plugin, gameManager, title, new InitialState());
+        super(gameSessionId, new GameInstanceId(GameType.CAPTURE_THE_FLAG, configFile), plugin, gameManager, title, new InitialState());
         this.config = config;
         this.topbar = addUIManager(new BattleTopbar());
         Set<String> teamIds = Participant.getTeamIds(newParticipants);

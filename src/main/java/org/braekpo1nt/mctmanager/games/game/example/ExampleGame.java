@@ -50,12 +50,13 @@ public class ExampleGame extends WandsGameBase<ExampleParticipant, ExampleTeam, 
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
             @NotNull Component title,
+            int gameSessionId,
             @NotNull ExampleConfig config,
             @NotNull String configFile,
             @NotNull Collection<Team> newTeams,
             @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
-        super(new GameInstanceId(GameType.EXAMPLE, configFile), plugin, gameManager, title, new InitialState());
+        super(gameSessionId, new GameInstanceId(GameType.EXAMPLE, configFile), plugin, gameManager, title, new InitialState());
         this.config = config;
         this.topbar = addUIManager(new BasicTopbar());
         addListener(new PreventHungerLoss<>(this));

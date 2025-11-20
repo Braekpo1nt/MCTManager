@@ -5,6 +5,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourParticipant;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourTeam;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.chat.ChatMode;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfig;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.CheckPoint;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
@@ -219,6 +220,7 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
         }
         context.awardPointsForUnusedSkips(participant);
         participant.setGameMode(GameMode.SPECTATOR);
+        participant.setChatMode(ChatMode.ALL);
         participant.setFinished(true);
     }
     

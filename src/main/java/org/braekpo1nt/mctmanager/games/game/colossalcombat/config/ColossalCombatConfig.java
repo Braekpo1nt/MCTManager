@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.colossalcombat.config;
 import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.config.Config;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.game.colossalcombat.Gate;
 import org.bukkit.Location;
@@ -18,7 +19,7 @@ import java.util.List;
 
 @Data
 @Builder
-public class ColossalCombatConfig {
+public class ColossalCombatConfig implements Config {
     private World world;
     private Location spectatorSpawn;
     private @Nullable SpectatorBoundary spectatorBoundary;

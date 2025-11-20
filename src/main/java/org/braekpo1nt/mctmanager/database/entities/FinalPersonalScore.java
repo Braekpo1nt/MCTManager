@@ -11,13 +11,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Date;
 
 /**
- * An instantaneous personal score, earned by a participant.
- * For example, for a kill in a survival games, or reaching a checkpoint in parkour pathway.
+ * Represents a player's personal score at the end of a game
  */
-@DatabaseTable(tableName = "instant_personal_scores")
+@DatabaseTable(tableName = "final_personal_scores")
 @NoArgsConstructor
 @Data
-public class InstantPersonalScore {
+public class FinalPersonalScore {
     @DatabaseField(generatedId = true)
     private int id;
     @DatabaseField(canBeNull = false)
@@ -40,11 +39,9 @@ public class InstantPersonalScore {
     private double multiplier;
     @DatabaseField(defaultValue = "0")
     private int points;
-    @DatabaseField(canBeNull = false)
-    private @NotNull String description;
     
     @Builder
-    public InstantPersonalScore(
+    public FinalPersonalScore(
             @NotNull String uuid,
             @NotNull String ign,
             @NotNull String teamId,
@@ -54,8 +51,7 @@ public class InstantPersonalScore {
             @NotNull Date date,
             @NotNull String mode,
             double multiplier,
-            int points,
-            @NotNull String description
+            int points
     ) {
         this.uuid = uuid;
         this.ign = ign;
@@ -67,6 +63,5 @@ public class InstantPersonalScore {
         this.mode = mode;
         this.multiplier = multiplier;
         this.points = points;
-        this.description = description;
     }
 }

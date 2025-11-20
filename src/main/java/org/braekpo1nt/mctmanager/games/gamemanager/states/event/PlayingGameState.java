@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.EventData;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,6 +46,12 @@ public class PlayingGameState extends EventState {
                             .color(NamedTextColor.DARK_RED)));
             context.setState(new WaitingInHubState(context, contextReference, eventData));
         }
+    }
+    
+    @Override
+    protected void onGameInstantiationFailure(@NotNull GameInstanceId gameInstanceId, Collection<Participant> newParticipants, List<Player> newAdmins, Exception e) {
+        super.onGameInstantiationFailure(gameInstanceId, newParticipants, newAdmins, e);
+        context.setState(new WaitingInHubState(context, contextReference, eventData));
     }
     
     @Override
@@ -84,8 +91,8 @@ public class PlayingGameState extends EventState {
     }
     
     @Override
-    public void gameIsOver(@NotNull GameInstanceId id, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants, @NotNull List<Player> gameAdmins) {
-        super.gameIsOver(id, teamScores, participantScores, gameParticipants, gameAdmins);
+    public void gameIsOver(int gameSessionId, @NotNull GameInstanceId id, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants, @NotNull List<Player> gameAdmins) {
+        super.gameIsOver(gameSessionId, id, teamScores, participantScores, gameParticipants, gameAdmins);
         postGame();
     }
     

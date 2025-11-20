@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag.config;
 import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.config.Config;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Loadout;
@@ -16,7 +17,7 @@ import java.util.Map;
 
 @Data
 @Builder
-public class CaptureTheFlagConfig {
+public class CaptureTheFlagConfig implements Config {
     
     private World world;
     private Location spawnObservatory;

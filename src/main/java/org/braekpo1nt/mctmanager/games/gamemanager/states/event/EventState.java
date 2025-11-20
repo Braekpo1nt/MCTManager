@@ -20,13 +20,16 @@ import org.braekpo1nt.mctmanager.games.gamemanager.states.PracticeState;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -285,9 +288,20 @@ public abstract class EventState extends GameManagerState {
     }
     
     @Override
-    public void addScores(Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull GameInstanceId id) {
-        super.addScores(teamScores, participantScores, id);
-        eventData.trackScores(teamScores, participantScores, id);
+    protected void persistDatabaseScores(Map<String, Integer> newTeamScores, Map<UUID, Integer> newParticipantScores, int gameSessionId, GameInstanceId id, Date endDate, double multiplier) throws SQLException {
+        super.persistDatabaseScores(newTeamScores, newParticipantScores, gameSessionId, id, endDate, multiplier);
+        context.getScoreService().addParticipantCurrencies(newParticipantScores);
+    }
+    
+    @Override
+    public void addScores(
+            Map<String, Integer> newTeamScores,
+            Map<UUID, Integer> newParticipantScores,
+            int gameSessionId,
+            @NotNull GameInstanceId id,
+            @NotNull Date endDate) {
+        super.addScores(newTeamScores, newParticipantScores, gameSessionId, id, endDate);
+        eventData.trackScores(newTeamScores, newParticipantScores, id);
     }
     // game stop
     

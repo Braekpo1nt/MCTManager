@@ -96,12 +96,13 @@ public class FarmRushGame extends WandsGameBase<FarmRushParticipant, FarmRushTea
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
             @NotNull Component title,
+            int gameSessionId,
             @NotNull FarmRushConfig config,
             @NotNull String configFile,
             @NotNull Collection<Team> newTeams,
             @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
-        super(new GameInstanceId(GameType.FARM_RUSH, configFile), plugin, gameManager, title, new InitialState());
+        super(gameSessionId, new GameInstanceId(GameType.FARM_RUSH, configFile), plugin, gameManager, title, new InitialState());
         this.config = config;
         this.arenas = new ArrayList<>(newTeams.size());
         this.saleGuiItems = createGuiItems();

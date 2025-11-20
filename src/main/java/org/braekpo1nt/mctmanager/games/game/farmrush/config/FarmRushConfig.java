@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.farmrush.config;
 import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.config.Config;
 import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
 import org.braekpo1nt.mctmanager.games.game.farmrush.ItemSale;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.AnimalGrowerSpec;
@@ -22,7 +23,7 @@ import java.util.Map;
 
 @Data
 @Builder
-public class FarmRushConfig {
+public class FarmRushConfig implements Config {
     private World world;
     private Location adminLocation;
     private Component description;

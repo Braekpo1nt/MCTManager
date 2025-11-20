@@ -2,7 +2,7 @@ ui:
   tab_list:
     max_names: 5
 database:
-  mode: "prod"
+  mode: "test"
   host: "localhost"
   port: "3306"
   user: "root"

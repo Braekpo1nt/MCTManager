@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.commands.mct.game;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
@@ -12,6 +13,8 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.util.*;
 
 /**
@@ -43,6 +46,14 @@ public class StartSubCommand extends TabSubCommand {
         String configFile;
         if (args.length >= 2) {
             configFile = args[1];
+            File file = new File(new File(plugin.getDataFolder(), gameType.getId()), configFile);
+            if (!file.exists()) {
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text("Could not find config file "))
+                        .append(Component.text(file.getAbsolutePath())
+                                .decorate(TextDecoration.BOLD))
+                );
+            }
         } else {
             configFile = "default.json";
         }

@@ -20,6 +20,7 @@ import io.papermc.paper.command.brigadier.argument.resolvers.FinePositionResolve
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import lombok.extern.java.Log;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.EnumResolver;
 import org.braekpo1nt.mctmanager.commands.bugreport.BugReportCommand;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
@@ -65,6 +66,7 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.FlywayException;
+import org.flywaydb.core.api.output.ValidateResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -221,20 +223,50 @@ public class Main extends JavaPlugin {
     }
     
     protected Database setupDatabase() throws SQLException {
-        String host = getConfig().getString("database.host");
-        String port = getConfig().getString("database.port");
-        String user = getConfig().getString("database.user");
-        String password = getConfig().getString("database.password");
-        String databaseName = getConfig().getString("database.database_name");
+        String host = getConfig().getString("database.host", "localhost");
+        String port = getConfig().getString("database.port", "3306");
+        String user = getConfig().getString("database.user", "root");
+        String password = getConfig().getString("database.password", "");
+        String databaseName = getConfig().getString("database.database_name", "challenger_trials");
         String jdbcUrl = String.format("jdbc:mysql://%s:%s/%s", host, port, databaseName);
-        // include getClass().getClassLoader() for the love of all that's good and holy, 
-        // or flyway won't find your migrations
+        String mode = getConfig().getString("database.mode", "prod");
         try {
-            Flyway flyway = Flyway.configure(getClass().getClassLoader())
-                    .dataSource(jdbcUrl, user, password)
-                    .locations("classpath:db/migration") // migration folder
-                    .load();
-            flyway.migrate();
+            switch (mode) {
+                case "test" -> {
+                    getLogger().info("Initiating flyway migration for test environments");
+                    // include getClass().getClassLoader() for the love of all that's good and holy, 
+                    // or flyway won't find your migrations
+                    Flyway flyway = Flyway.configure(getClass().getClassLoader())
+                            .dataSource(jdbcUrl, user, password)
+                            .locations("classpath:db/migration") // migration folder
+                            .validateOnMigrate(false) // don't block if scripts change
+                            .cleanDisabled(false) // allow wiping DB
+                            .load();
+                    ValidateResult validateResult = flyway.validateWithResult();
+                    if (!validateResult.validationSuccessful) {
+                        getLogger().warning("Flyway validation failed in test environment. Cleaning the database.");
+                        flyway.clean();
+                    }
+                    flyway.migrate();
+                }
+                case "prod" -> {
+                    getLogger().info("Initiating flyway migration for production (prod) environments");
+                    // include getClass().getClassLoader() for the love of all that's good and holy, 
+                    // or flyway won't find your migrations
+                    Flyway flyway = Flyway.configure(getClass().getClassLoader())
+                            .dataSource(jdbcUrl, user, password)
+                            .locations("classpath:db/migration") // migration folder
+                            .validateOnMigrate(true)
+                            .cleanDisabled(true)
+                            .load();
+                    flyway.migrate();
+                }
+                default -> {
+                    getLogger().severe("database.mode not set in config.yml. Should be one of \"test\" or \"prod\". Unclear how to proceed");
+                    throw new SQLException("Mis-configured database.mode in config.yml. Should be one of \"test\" or \"prod\".");
+                }
+            }
+            
         } catch (FlywayException e) {
             throw new SQLException("An error occurred applying the flyway migration", e);
         }
@@ -397,9 +429,37 @@ public class Main extends JavaPlugin {
                                 })))
                 .build();
         
+        LiteralCommandNode<CommandSourceStack> databaseCommand = Commands.literal("database")
+                .then(Commands.literal("clear")
+                        .executes(ctx -> {
+                            if (!getConfig().getString("database.mode", "prod").equals("test")) {
+                                ctx.getSource().getSender().sendMessage(Component.empty()
+                                        .append(Component.text("You can't clear the database unless you are in "))
+                                        .append(Component.text("\"test\""))
+                                        .append(Component.text(" mode. Check your config.yml file's database.mode value"))
+                                        .color(NamedTextColor.RED)
+                                );
+                                return Command.SINGLE_SUCCESS;
+                            }
+                            try {
+                                gameManager.getScoreService().clearDatabase();
+                                ctx.getSource().getSender().sendMessage(Component.empty()
+                                        .append(Component.text("Clearing the database")));
+                                getLogger().info("Clearing the database");
+                            } catch (SQLException e) {
+                                getLogger().log(Level.SEVERE, "Error clearing database", e);
+                                ctx.getSource().getSender().sendMessage(Component.empty()
+                                        .append(Component.text("Error clearing database. See console for details"))
+                                        .color(NamedTextColor.RED));
+                            }
+                            return Command.SINGLE_SUCCESS;
+                        }))
+                .build();
+        
         // Brigadier commands
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> {
             commands.registrar().register(ctDebugCommand);
+            commands.registrar().register(databaseCommand);
         });
     }
     

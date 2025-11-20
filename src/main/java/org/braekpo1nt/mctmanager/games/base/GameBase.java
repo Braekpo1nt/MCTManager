@@ -52,7 +52,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -69,6 +68,7 @@ import java.util.logging.Level;
 @Setter
 public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase, S extends GameStateBase<P, T>> implements MCTGame, Listener {
     protected final @NotNull GameType type;
+    protected final int gameSessionId;
     protected final @NotNull GameInstanceId gameInstanceId;
     protected final @NotNull Main plugin;
     protected final @NotNull GameManager gameManager;
@@ -108,11 +108,13 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * exceptions.
      */
     public GameBase(
+            int gameSessionId,
             @NotNull GameInstanceId gameInstanceId,
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
             @NotNull Component title,
             @NotNull S initialState) {
+        this.gameSessionId = gameSessionId;
         this.type = gameInstanceId.getGameType();
         this.gameInstanceId = gameInstanceId;
         this.plugin = plugin;
@@ -272,7 +274,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
         storedGameRules.clear();
         cleanup();
-        gameManager.gameIsOver(getGameInstanceId(), teamScores, participantScores, participants.values().stream().map(Participant::getUniqueId).toList(), admins);
+        gameManager.gameIsOver(gameSessionId, getGameInstanceId(), teamScores, participantScores, participants.values().stream().map(Participant::getUniqueId).toList(), admins);
         participants.clear();
         admins.clear();
         Main.logger().info("Stopping " + type.getTitle());
@@ -711,7 +713,13 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         team.addPoints(multiplied);
         displayScore(participant);
         displayScore(team);
-        gameManager.logInstantScore(participant, points, new Date(), gameInstanceId, "test");
+        gameManager.logInstantScore(
+                participant,
+                points,
+                gameSessionId,
+                gameInstanceId,
+                "test"
+        );
     }
     
     /**
@@ -725,6 +733,13 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         int multiplied = (int) (points * gameManager.getMultiplier());
         team.awardPoints(multiplied);
         displayScore(team);
+        gameManager.logInstantScore(
+                team.getTeamId(),
+                points,
+                gameSessionId,
+                gameInstanceId,
+                "description"
+        );
     }
     
     /**
@@ -744,6 +759,14 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             team.addPoints(multiplied);
             awardedTeams.add(team);
         }
+        gameManager.logInstantScores(
+                awardedParticipants,
+                awardedTeams,
+                points,
+                gameSessionId,
+                gameInstanceId,
+                "test multiple"
+        );
         displayParticipantScores(awardedParticipants);
         displayTeamScores(awardedTeams);
     }
@@ -761,6 +784,13 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             team.awardPoints(multiplied);
         }
         displayTeamScores(awardedTeams);
+        gameManager.logInstantScores(
+                awardedTeams,
+                points,
+                gameSessionId,
+                gameInstanceId,
+                "description multiple"
+        );
     }
     // Award Points end
     

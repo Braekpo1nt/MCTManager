@@ -24,6 +24,7 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
     protected final @NotNull T southTeam;
     
     public DuoGameBase(
+            int gameSessionId,
             @NotNull GameInstanceId gameInstanceId,
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
@@ -31,7 +32,7 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
             @NotNull S initialState,
             @NotNull T northTeam,
             @NotNull T southTeam) {
-        super(gameInstanceId, plugin, gameManager, title, initialState);
+        super(gameSessionId, gameInstanceId, plugin, gameManager, title, initialState);
         if (northTeam.getAffiliation() != Affiliation.NORTH) {
             throw new IllegalArgumentException("northTeam.getAffiliation() must be NORTH");
         }

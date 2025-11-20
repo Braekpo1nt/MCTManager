@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.footrace.config;
 import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.config.Config;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -14,7 +15,7 @@ import java.util.List;
 
 @Data
 @Builder
-public class FootRaceConfig {
+public class FootRaceConfig implements Config {
     private World world;
     private Location startingLocation;
     /**

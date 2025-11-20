@@ -11,8 +11,12 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
+import org.braekpo1nt.mctmanager.config.Config;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
+import org.braekpo1nt.mctmanager.database.entities.FinalPersonalScore;
+import org.braekpo1nt.mctmanager.database.entities.FinalTeamScore;
+import org.braekpo1nt.mctmanager.database.entities.GameSession;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfigController;
@@ -85,10 +89,12 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -323,7 +329,7 @@ public abstract class GameManagerState {
     // leave/join end
     
     // ui start
-    public void updateScoreVisuals(Collection<MCTTeam> mctTeams, Collection<MCTParticipant> mctParticipants) {
+    public void updateScoreVisuals(Collection<? extends Team> mctTeams, Collection<? extends Participant> mctParticipants) {
         if (!mctTeams.isEmpty()) {
             updateSidebarTeamScores();
         }
@@ -365,10 +371,10 @@ public abstract class GameManagerState {
     
     /**
      * Updates the sidebars of the given participants, unless they are in a game
-     * @param mctParticipants the participants to update the sidebars of
+     * @param updateParticipants the participants to update the sidebars of
      */
-    public void updateSidebarPersonalScores(Collection<MCTParticipant> mctParticipants) {
-        for (MCTParticipant participant : mctParticipants) {
+    public void updateSidebarPersonalScores(Collection<? extends Participant> updateParticipants) {
+        for (Participant participant : updateParticipants) {
             if (!isParticipantInGame(participant)) {
                 sidebar.updateLine(participant.getUniqueId(), "personalScore",
                         Component.empty()
@@ -585,38 +591,11 @@ public abstract class GameManagerState {
             }
         }
         
-        Component title = createNewTitle(gameType.getTitle());
-        for (MCTParticipant participant : gameParticipants) {
-            onParticipantJoinGame(gameInstanceId, participant);
-        }
-        for (Player admin : gameAdmins) {
-            onAdminJoinGame(gameInstanceId, admin);
-        }
-        
-        try {
-            activeGames.put(gameInstanceId,
-                    instantiateGame(
-                            gameType,
-                            title,
-                            configFile,
-                            new HashSet<>(gameTeams),
-                            new HashSet<>(gameParticipants),
-                            gameAdmins));
-        } catch (Exception e) {
-            for (MCTParticipant participant : gameParticipants) {
-                onParticipantReturnToHub(participant);
-            }
-            for (Player admin : gameAdmins) {
-                onAdminReturnToHub(admin);
-            }
-            Main.logger().log(Level.SEVERE, String.format("Error starting game %s", gameType), e);
-            return CommandResult.failure(Component.text("Can't start ")
-                    .append(Component.text(gameType.name())
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(". Error starting game. See console for details:\n"))
-                    .append(Component.text(e.getMessage()))
-                    .color(NamedTextColor.RED));
-        }
+        instantiateGame(
+                gameInstanceId,
+                new HashSet<>(gameTeams),
+                new HashSet<>(gameParticipants),
+                gameAdmins);
         return CommandResult.success();
     }
     
@@ -667,7 +646,7 @@ public abstract class GameManagerState {
         return CommandResult.success();
     }
     
-    protected void onParticipantJoinGame(@NotNull GameInstanceId id, MCTParticipant participant) {
+    protected void onParticipantJoinGame(@NotNull GameInstanceId id, Participant participant) {
         participantGames.put(participant.getUniqueId(), id);
         tabList.hidePlayer(participant);
         sidebar.removePlayer(participant);
@@ -685,7 +664,7 @@ public abstract class GameManagerState {
         sidebar.removePlayer(admin);
     }
     
-    protected void onParticipantReturnToHub(@NotNull MCTParticipant participant) {
+    protected void onParticipantReturnToHub(@NotNull Participant participant) {
         participantGames.remove(participant.getUniqueId());
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearInventory(participant);
@@ -765,14 +744,15 @@ public abstract class GameManagerState {
     
     /**
      * Called by an active game when the game is over.
-     * @param id the instance id of the game that ended
+     * @param gameSessionId the id of the {@link GameSession} entity associated with the finished game
+     * @param id the instance id of the finished game
      * @param teamScores the team scores
      * @param participantScores the participant scores
      * @param gameParticipants the UUIDs of the participants which are online and were in the finished
      * game. Must be UUIDs which are keys in {@link #onlineParticipants}.
      * @param gameAdmins the admins who were in the game
      */
-    public void gameIsOver(@NotNull GameInstanceId id, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants, @NotNull List<Player> gameAdmins) {
+    public void gameIsOver(int gameSessionId, @NotNull GameInstanceId id, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants, @NotNull List<Player> gameAdmins) {
         MCTGame game = activeGames.remove(id);
         if (game == null) {
             return;
@@ -788,7 +768,26 @@ public abstract class GameManagerState {
             admin.teleport(config.getSpawn());
             admin.sendMessage(Component.text("Returning to hub"));
         }
-        addScores(teamScores, participantScores, id);
+        Date endDate = new Date();
+        double multiplier = getMultiplier();
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                context.getScoreService().setGameSessionEndDate(gameSessionId, endDate); // TODO: move this to persistScores?
+                persistDatabaseScores(
+                        teamScores,
+                        participantScores,
+                        gameSessionId,
+                        id,
+                        endDate,
+                        multiplier
+                );
+            } catch (SQLException e) {
+                Main.logger().log(Level.SEVERE, "An error occurred saving end-game data to the database", e);
+                context.messageAdmins(Component.empty()
+                        .append(Component.text("An error occurred saving end-game data to te database. See console for details.")));
+            }
+        });
+        addScores(teamScores, participantScores, gameSessionId, id, endDate);
     }
     
     /**
@@ -797,9 +796,16 @@ public abstract class GameManagerState {
      * If any invalid teamIds or UUIDs are used, there will be errors
      * @param newTeamScores map of teamId to score to add. Must be teamIds of real teams
      * @param newParticipantScores map of UUID to score to add. Must be UUIDs of real participants
-     * @param id the type of the game
+     * @param gameSessionId the id of the {@link GameSession} associated with this game
+     * @param id the {@link GameInstanceId}
+     * @param endDate the date the game ended
      */
-    protected void addScores(Map<String, Integer> newTeamScores, Map<UUID, Integer> newParticipantScores, @NotNull GameInstanceId id) {
+    protected void addScores(
+            Map<String, Integer> newTeamScores,
+            Map<UUID, Integer> newParticipantScores,
+            int gameSessionId,
+            @NotNull GameInstanceId id,
+            @NotNull Date endDate) {
         // some values might be from offline teams who have been removed, but still saved as QuitData
         Map<String, Integer> teamScores = newTeamScores.entrySet().stream()
                 .filter(e -> teams.containsKey(e.getKey()))
@@ -825,77 +831,249 @@ public abstract class GameManagerState {
                         participant.getScore() + newScore));
             }
         }
-        try {
-            gameStateStorageUtil.updateScores(teams.values(), allParticipants.values());
-            if (plugin.isEnabled()) {
-                plugin.getServer().getScheduler().runTaskAsynchronously(plugin, gameStateStorageUtil::saveGameState);
-            } else {
+        gameStateStorageUtil.updateScores(teams.values(), allParticipants.values());
+        if (plugin.isEnabled()) {
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+                try {
+                    gameStateStorageUtil.saveGameState();
+                } catch (ConfigIOException e) {
+                    context.reportGameStateException("updating scores", e);
+                }
+            });
+        } else {
+            try {
                 gameStateStorageUtil.saveGameState();
+            } catch (ConfigIOException e) {
+                context.reportGameStateException("updating scores", e);
             }
-        } catch (ConfigIOException e) {
-            context.reportGameStateException("updating scores", e);
         }
         updateScoreVisuals(teams.values(), onlineParticipants.values());
         displayStats(teamScores, participantScores, id);
     }
     
     /**
-     * @param gameType the {@link GameType} to instantiate the {@link MCTGame} for
-     * @return a new {@link MCTGame} instance for the given type. Null if the given type is null.
+     * Persist the scores to the GameState and the database
+     * @param newTeamScores the team scores to persist
+     * @param newParticipantScores the participant scores to persist
+     * @param gameSessionId the id of the {@link GameSession}
+     * @param id the {@link GameInstanceId}
+     * @param endDate the time the game ended
+     * @param multiplier the multiplier the game used
+     * @throws ConfigIOException if there's an issue persisting scores to the GameState
+     * @throws SQLException if there's an issue persisting scores to the database
      */
-    protected MCTGame instantiateGame(
-            @NotNull GameType gameType,
-            Component title,
-            String configFile,
+    protected void persistDatabaseScores(
+            Map<String, Integer> newTeamScores,
+            Map<UUID, Integer> newParticipantScores,
+            int gameSessionId,
+            GameInstanceId id,
+            Date endDate,
+            double multiplier
+    ) throws SQLException {
+        List<FinalPersonalScore> finalPersonalScores = newParticipantScores.entrySet().stream()
+                .map(entry -> {
+                    OfflineParticipant participant = allParticipants.get(entry.getKey());
+                    return FinalPersonalScore.builder()
+                            .uuid(entry.getKey().toString())
+                            .ign(participant.getName())
+                            .teamId(participant.getTeamId())
+                            .gameSessionId(gameSessionId)
+                            .gameType(id.getGameType())
+                            .configFile(id.getConfigFile())
+                            .date(endDate)
+                            .mode(getMode())
+                            .multiplier(multiplier)
+                            .points(entry.getValue())
+                            .build();
+                })
+                .toList();
+        List<FinalTeamScore> finalTeamScores = newTeamScores.entrySet().stream()
+                .map(entry -> FinalTeamScore.builder()
+                        .teamId(entry.getKey())
+                        .gameSessionId(gameSessionId)
+                        .gameType(id.getGameType())
+                        .configFile(id.getConfigFile())
+                        .date(endDate)
+                        .mode(getMode())
+                        .multiplier(multiplier)
+                        .points((int) (entry.getValue() / multiplier))
+                        .build())
+                .toList();
+        context.getScoreService().logFinalPersonalScores(finalPersonalScores);
+        context.getScoreService().logFinalTeamScores(finalTeamScores);
+        Main.logger().info("Logged final scores to the database");
+    }
+    
+    /**
+     * @param gameInstanceId the {@link GameInstanceId} with the {@link GameType} to instantiate the {@link MCTGame} for
+     * and the config file to use
+     * @param newTeams the teams to send to the game
+     * @param newParticipants the participants to send to the game
+     * @param newAdmins the admins to send to the game
+     */
+    protected void instantiateGame(
+            @NotNull GameInstanceId gameInstanceId,
             Collection<Team> newTeams,
             Collection<Participant> newParticipants,
             List<Player> newAdmins) throws ConfigIOException, ConfigInvalidException {
-        return switch (gameType) {
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                asyncInstantiateGame(gameInstanceId, newTeams, newParticipants, newAdmins);
+            } catch (Exception e) {
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    onGameInstantiationFailure(gameInstanceId, newParticipants, newAdmins, e);
+                });
+            }
+        });
+    }
+    
+    /**
+     * Called if there is an exception thrown while trying to instantiate a game.
+     * This is used because games are started asynchronously (so that reading config files
+     * and communicating with the database does not lag the server) and thus an error may occur
+     * asynchronously, and certain states need to react to this failure in different ways.
+     * @param gameInstanceId the {@link GameInstanceId} of the game which failed
+     * @param newParticipants the participants who were supposed to be sent to this game
+     * @param newAdmins the admins who were supposed to be sent to this game
+     * @param e the exception which occurred to cause the failure
+     */
+    protected void onGameInstantiationFailure(@NotNull GameInstanceId gameInstanceId, Collection<Participant> newParticipants, List<Player> newAdmins, Exception e) {
+        Main.logger().log(Level.SEVERE, String.format("Error starting game %s", gameInstanceId), e);
+        Audience.audience(
+                Audience.audience(newParticipants),
+                Audience.audience(context.getOnlineAdmins())
+        ).sendMessage(Component.text("Can't start ")
+                .append(Component.text(gameInstanceId.getGameType().name())
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text(" with config file "))
+                .append(Component.text(gameInstanceId.getConfigFile())
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text(". Error starting game. See console for details:\n"))
+                .append(Component.text(e.getMessage()))
+                .color(NamedTextColor.RED));
+        Audience.audience(newParticipants).sendMessage(Component.empty()
+                .append(Component.text("Contact the admins for support."))
+                .color(NamedTextColor.RED));
+    }
+    
+    /**
+     * Meant to be called from an asynchronous thread<br>
+     * Loads the config file. If that succeeds, creates an entry for the game in the database.
+     * If that succeeds, start the game on the main thread.
+     * @param gameInstanceId the gameInstanceId
+     * @param newTeams the teams to send to the game
+     * @param newParticipants the participants to send to the game
+     * @param newAdmins the admins to send to the game
+     * @throws SQLException if there is an error persisting the {@link GameSession}
+     */
+    private void asyncInstantiateGame(
+            @NotNull GameInstanceId gameInstanceId,
+            Collection<Team> newTeams,
+            Collection<Participant> newParticipants,
+            List<Player> newAdmins) throws SQLException {
+        GameType gameType = gameInstanceId.getGameType();
+        String configFile = gameInstanceId.getConfigFile();
+        Component title = createNewTitle(gameType.getTitle());
+        Config config;
+        switch (gameType) {
             case SPLEEF -> {
-                SpleefConfig config = new SpleefConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-                yield new SpleefGame(plugin, context, title, config, configFile, newTeams, newParticipants, newAdmins);
+                config = new SpleefConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
             }
             case CLOCKWORK -> {
-                ClockworkConfig config = new ClockworkConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-                yield new ClockworkGame(plugin, context, title, config, configFile, newTeams, newParticipants, newAdmins);
+                config = new ClockworkConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
             }
             case SURVIVAL_GAMES -> {
-                SurvivalGamesConfig config = new SurvivalGamesConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-                yield new SurvivalGamesGame(plugin, context, title, config, configFile, newTeams, newParticipants, newAdmins);
+                config = new SurvivalGamesConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
             }
             case FARM_RUSH -> {
-                FarmRushConfig config = new FarmRushConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-                yield new FarmRushGame(plugin, context, title, config, configFile, newTeams, newParticipants, newAdmins);
+                config = new FarmRushConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
             }
             case FOOT_RACE -> {
-                FootRaceConfig config = new FootRaceConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-                yield new FootRaceGame(plugin, context, title, config, configFile, newTeams, newParticipants, newAdmins);
+                config = new FootRaceConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
             }
             case PARKOUR_PATHWAY -> {
-                ParkourPathwayConfig config = new ParkourPathwayConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-                yield new ParkourPathwayGame(plugin, context, title, config, configFile, newTeams, newParticipants, newAdmins);
+                config = new ParkourPathwayConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
             }
             case CAPTURE_THE_FLAG -> {
-                CaptureTheFlagConfig config = new CaptureTheFlagConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-                yield new CaptureTheFlagGame(plugin, context, title, config, configFile, newTeams, newParticipants, newAdmins);
+                config = new CaptureTheFlagConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
             }
             case EXAMPLE -> {
-                ExampleConfig config = new ExampleConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-                yield new ExampleGame(plugin, context, title, config, configFile, newTeams, newParticipants, newAdmins);
+                config = new ExampleConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
             }
             case FINAL -> {
-                ColossalCombatConfig config = new ColossalCombatConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-                List<Team> sortedTeams = newTeams.stream()
-                        .sorted((t1, t2) -> {
-                            int scoreComparison = t2.getScore() - t1.getScore();
-                            if (scoreComparison != 0) {
-                                return scoreComparison;
-                            }
-                            return t1.getDisplayName().compareToIgnoreCase(t2.getDisplayName());
-                        }).toList();
-                yield new ColossalCombatGame(plugin, context, title, config, configFile, sortedTeams.getFirst(), sortedTeams.get(1), sortedTeams, newParticipants, newAdmins);
+                config = new ColossalCombatConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
             }
-        };
+            default -> {
+                throw new IllegalArgumentException(String.format("Unsupported GameType %s", gameType));
+            }
+        }
+        
+        GameSession gameSession = context.getScoreService().createGameSession(GameSession.builder()
+                .gameType(gameType)
+                .configFile(configFile)
+                .startTime(new Date())
+                .mode(getMode())
+                .build());
+        if (gameSession == null) {
+            throw new SQLException("An error occurred creating a GameSession object in the database");
+        }
+        
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            for (Participant participant : newParticipants) {
+                onParticipantJoinGame(gameInstanceId, participant);
+            }
+            for (Player admin : newAdmins) {
+                onAdminJoinGame(gameInstanceId, admin);
+            }
+            try {
+                MCTGame game = switch (gameType) {
+                    case SPLEEF -> {
+                        yield new SpleefGame(plugin, context, title, gameSession.getId(), (SpleefConfig) config, configFile, newTeams, newParticipants, newAdmins);
+                    }
+                    case CLOCKWORK -> {
+                        yield new ClockworkGame(plugin, context, title, gameSession.getId(), (ClockworkConfig) config, configFile, newTeams, newParticipants, newAdmins);
+                    }
+                    case SURVIVAL_GAMES -> {
+                        yield new SurvivalGamesGame(plugin, context, title, gameSession.getId(), (SurvivalGamesConfig) config, configFile, newTeams, newParticipants, newAdmins);
+                    }
+                    case FARM_RUSH -> {
+                        yield new FarmRushGame(plugin, context, title, gameSession.getId(), (FarmRushConfig) config, configFile, newTeams, newParticipants, newAdmins);
+                    }
+                    case FOOT_RACE -> {
+                        yield new FootRaceGame(plugin, context, title, gameSession.getId(), (FootRaceConfig) config, configFile, newTeams, newParticipants, newAdmins);
+                    }
+                    case PARKOUR_PATHWAY -> {
+                        yield new ParkourPathwayGame(plugin, context, title, gameSession.getId(), (ParkourPathwayConfig) config, configFile, newTeams, newParticipants, newAdmins);
+                    }
+                    case CAPTURE_THE_FLAG -> {
+                        yield new CaptureTheFlagGame(plugin, context, title, gameSession.getId(), (CaptureTheFlagConfig) config, configFile, newTeams, newParticipants, newAdmins);
+                    }
+                    case EXAMPLE -> {
+                        yield new ExampleGame(plugin, context, title, gameSession.getId(), (ExampleConfig) config, configFile, newTeams, newParticipants, newAdmins);
+                    }
+                    case FINAL -> {
+                        List<Team> sortedTeams = newTeams.stream()
+                                .sorted((t1, t2) -> {
+                                    int scoreComparison = t2.getScore() - t1.getScore();
+                                    if (scoreComparison != 0) {
+                                        return scoreComparison;
+                                    }
+                                    return t1.getDisplayName().compareToIgnoreCase(t2.getDisplayName());
+                                }).toList();
+                        yield new ColossalCombatGame(plugin, context, title, gameSession.getId(), (ColossalCombatConfig) config, configFile, sortedTeams.getFirst(), sortedTeams.get(1), sortedTeams, newParticipants, newAdmins);
+                    }
+                };
+                activeGames.put(gameInstanceId, game);
+            } catch (Exception e) {
+                for (Participant participant : newParticipants) {
+                    onParticipantReturnToHub(participant);
+                }
+                for (Player admin : newAdmins) {
+                    onAdminReturnToHub(admin);
+                }
+                onGameInstantiationFailure(gameInstanceId, newParticipants, newAdmins, e);
+            }
+        });
     }
     
     /**
