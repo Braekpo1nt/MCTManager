@@ -29,6 +29,9 @@ import org.braekpo1nt.mctmanager.games.game.example.config.ExampleConfigControll
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfig;
 import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfigController;
+import org.braekpo1nt.mctmanager.games.game.finalgame.FinalGame;
+import org.braekpo1nt.mctmanager.games.game.finalgame.config.FinalConfig;
+import org.braekpo1nt.mctmanager.games.game.finalgame.config.FinalConfigController;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfigController;
@@ -574,10 +577,10 @@ public abstract class GameManagerState {
                     return CommandResult.failure(Component.text("Capture the Flag needs at least 2 teams online to play.").color(NamedTextColor.RED));
                 }
             }
-            case FINAL -> {
+            case FINAL, COLOSSAL_COMBAT -> {
                 if (gameTeams.size() < 2) {
                     return CommandResult.failure(Component.empty()
-                            .append(Component.text(GameType.FINAL.getTitle()))
+                            .append(Component.text(gameType.getTitle()))
                             .append(Component.text(" needs at least 2 teams online to play")));
                 }
             }
@@ -892,6 +895,18 @@ public abstract class GameManagerState {
                             return t1.getDisplayName().compareToIgnoreCase(t2.getDisplayName());
                         }).toList();
                 yield new ColossalCombatGame(plugin, context, title, config, configFile, sortedTeams.getFirst(), sortedTeams.get(1), sortedTeams, newParticipants, newAdmins);
+            }
+            case COLOSSAL_COMBAT -> {
+                FinalConfig config = new FinalConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
+                List<Team> sortedTeams = newTeams.stream()
+                        .sorted((t1, t2) -> {
+                            int scoreComparison = t2.getScore() - t1.getScore();
+                            if (scoreComparison != 0) {
+                                return scoreComparison;
+                            }
+                            return t1.getDisplayName().compareToIgnoreCase(t2.getDisplayName());
+                        }).toList();
+                yield new FinalGame(plugin, context, title, config, configFile, sortedTeams.getFirst(), sortedTeams.get(1), sortedTeams, newParticipants, newAdmins);
             }
         };
     }

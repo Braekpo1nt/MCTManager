@@ -12,7 +12,8 @@ public enum GameType {
     CLOCKWORK("Clockwork", "clockwork"),
     FARM_RUSH("Farm Rush", "farm-rush"),
     EXAMPLE("Example", "example"),
-    FINAL("Final", "final");
+    FINAL("Final", "final"),
+    COLOSSAL_COMBAT("Colossal Combat", "colossal-combat");
     
     GameType(String title, String id) {
         this.title = title;

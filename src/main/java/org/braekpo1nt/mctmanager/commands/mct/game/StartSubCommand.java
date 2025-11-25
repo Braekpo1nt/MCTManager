@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,6 +39,15 @@ public class StartSubCommand extends TabSubCommand {
         if (gameType == null) {
             return CommandResult.failure(Component.text(gameID)
                     .append(Component.text(" is not a valid game")));
+        }
+        
+        // TODO: remove this
+        if (gameType.equals(GameType.COLOSSAL_COMBAT)) {
+            if (sender instanceof Player player) {
+                if (!List.of("StgShotgun", "Braekpo1nt", "_Crossx").contains(player.getName())) {
+                    return CommandResult.failure(Component.text("You don't have permission to start this game."));
+                }
+            }
         }
         
         String configFile;
