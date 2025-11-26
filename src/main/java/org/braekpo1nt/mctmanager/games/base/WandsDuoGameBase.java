@@ -1,20 +1,29 @@
 package org.braekpo1nt.mctmanager.games.base;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.base.states.GameStateBase;
 import org.braekpo1nt.mctmanager.games.editor.wand.Wand;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.ParticipantData;
 import org.braekpo1nt.mctmanager.participant.QuitDataBase;
 import org.braekpo1nt.mctmanager.participant.ScoredTeamData;
+import org.braekpo1nt.mctmanager.participant.Team;
+import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
-public abstract class WandsDuoGameBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase, S extends GameStateBase<P, T>> extends DuoGameBase<P, T, QP, QT, S> {
+public abstract class WandsDuoGameBase<P extends ParticipantData, T extends ScoredTeamData<P> & Affiliated, QP extends QuitDataBase, QT extends QuitDataBase, S extends GameStateBase<P, T>> extends DuoGameBase<P, T, QP, QT, S> {
     
     protected final @NotNull Collection<Wand<P>> wands;
     private int wandTickTaskId;
@@ -42,5 +51,86 @@ public abstract class WandsDuoGameBase<P extends ParticipantData, T extends Scor
     ) {
         super(gameInstanceId, plugin, gameManager, title, initialState, northTeam, southTeam);
         this.wands = new ArrayList<>();
+    }
+    
+    protected @NotNull Wand<P> addWand(@NotNull Wand<P> wand) {
+        wands.add(wand);
+        return wand;
+    }
+    
+    /**
+     * Kicks off a task in which every {@link Wand} in {@link #wands}'s
+     * {@link Wand#onHoldTick(PlayerInventory, Audience)} method is called for every {@link P} in {@link #admins}
+     */
+    protected void startWandTick() {
+        this.wandTickTaskId = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            participants.values().forEach(
+                    participant -> wands.forEach(
+                            wand -> wand.onHoldTick(
+                                    participant.getPlayer().getInventory(),
+                                    participant
+                            )
+                    )
+            );
+        }, 0L, 10L).getTaskId();
+    }
+    
+    @Override
+    protected void start(@NotNull Collection<Team> newTeams, @NotNull Collection<Participant> newParticipants, @NotNull List<Player> newAdmins) {
+        super.start(newTeams, newParticipants, newAdmins);
+        startWandTick();
+    }
+    
+    @Override
+    public void stop() {
+        plugin.getServer().getScheduler().cancelTask(wandTickTaskId);
+        super.stop();
+    }
+    
+    /**
+     * Use this to give a participant all the wands you registered with
+     * {@link #addWand(Wand)}.
+     * @return an array of the items associated with the {@link #wands}
+     */
+    public ItemStack[] getWandItems() {
+        return wands.stream()
+                .map(Wand::getWandItem)
+                .toArray(ItemStack[]::new);
+    }
+    
+    /**
+     * @param itemStack the itemStack to check if it is a wand
+     * @return true if the given itemStack is a wand item
+     */
+    public boolean isWand(@Nullable ItemStack itemStack) {
+        if (itemStack == null) {
+            return false;
+        }
+        return wands.stream()
+                .anyMatch(wand -> wand.isWandItem(itemStack));
+    }
+    
+    /**
+     * Remove the wand items from the given participant's inventory
+     * @param participant the participant
+     */
+    public void removeWandItems(P participant) {
+        participant.getInventory().removeItem(getWandItems());
+    }
+    
+    public @Nullable Wand<P> getWand(@Nullable ItemStack itemStack) {
+        if (itemStack == null) {
+            return null;
+        }
+        return wands.stream()
+                .filter(wand -> wand.isWandItem(itemStack))
+                .findFirst()
+                .orElse(null);
+    }
+    
+    @Override
+    protected void onParticipantInteract(@NotNull PlayerInteractEvent event, P participant) {
+        wands.forEach(wand -> wand.onPlayerInteract(event, participant));
+        super.onParticipantInteract(event, participant);
     }
 }
