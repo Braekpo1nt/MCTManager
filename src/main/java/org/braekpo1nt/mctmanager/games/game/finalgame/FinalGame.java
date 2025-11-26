@@ -4,12 +4,15 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.base.Affiliation;
 import org.braekpo1nt.mctmanager.games.base.DuoGameBase;
+import org.braekpo1nt.mctmanager.games.base.WandsDuoGameBase;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventHungerLossSpecific;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventItemDrop;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventPickupArrow;
+import org.braekpo1nt.mctmanager.games.editor.wand.Wand;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.finalgame.config.FinalConfig;
 import org.braekpo1nt.mctmanager.games.game.finalgame.states.DescriptionState;
@@ -33,7 +36,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class FinalGame extends DuoGameBase<FinalParticipant, FinalTeam, FinalParticipant.QuitData, FinalTeam.QuitData, FinalState> {
+public class FinalGame extends WandsDuoGameBase<FinalParticipant, FinalTeam, FinalParticipant.QuitData, FinalTeam.QuitData, FinalState> {
     
     private final @NotNull FinalConfig config;
     private final @NotNull BattleTopbar topbar;
@@ -70,7 +73,18 @@ public class FinalGame extends DuoGameBase<FinalParticipant, FinalTeam, FinalPar
         topbar.addTeam(this.northTeam.getTeamId(), this.northTeam.getColor());
         topbar.addTeam(this.southTeam.getTeamId(), this.southTeam.getColor());
         topbar.linkTeamPair(this.northTeam.getTeamId(), this.northTeam.getTeamId());
-        
+        addWand(Wand.<FinalParticipant>builder()
+                .wandItem(Wand.createWandItem(
+                        Material.NETHER_STAR,
+                        "Kit Picker",
+                        List.of(Component.text("Click to select a kit"))
+                ))
+                .onRightClick((event, participant) -> {
+                    state.onOpenKitPicker(participant);
+                    return CommandResult.success();
+                })
+                .shouldNotDrop(true)
+                .build());
         start(newTeams, newParticipants, newAdmins);
         updateAliveStatus(Affiliation.NORTH);
         updateAliveStatus(Affiliation.SOUTH);
