@@ -70,6 +70,7 @@ public class FinalGame extends DuoGameBase<FinalParticipant, FinalTeam, FinalPar
         topbar.addTeam(this.northTeam.getTeamId(), this.northTeam.getColor());
         topbar.addTeam(this.southTeam.getTeamId(), this.southTeam.getColor());
         topbar.linkTeamPair(this.northTeam.getTeamId(), this.northTeam.getTeamId());
+        
         start(newTeams, newParticipants, newAdmins);
         updateAliveStatus(Affiliation.NORTH);
         updateAliveStatus(Affiliation.SOUTH);

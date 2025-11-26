@@ -22,6 +22,11 @@ public abstract class FinalStateBase implements FinalState {
     }
     
     @Override
+    public void onOpenKitPicker(@NotNull FinalParticipant participant) {
+        // do nothing
+    }
+    
+    @Override
     public void cleanup() {
         exit();
     }

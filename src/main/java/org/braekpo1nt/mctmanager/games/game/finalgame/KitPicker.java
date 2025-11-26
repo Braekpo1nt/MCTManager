@@ -66,9 +66,23 @@ public class KitPicker {
             gui.update();
         }
         
+        /**
+         * Show the given gui, save the gui to show later
+         * @param gui the gui to show and save
+         */
         public void showGui(ChestGui gui) {
             this.gui = gui;
             gui.show(participant.getPlayer());
+        }
+        
+        /**
+         * Show the saved gui to the participant
+         */
+        public void showGui() {
+            if (this.gui == null) {
+                return;
+            }
+            this.gui.show(participant.getPlayer());
         }
     }
     
@@ -211,14 +225,18 @@ public class KitPicker {
         return gui;
     }
     
-    public void start() {
+    public void showGuis() {
         for (ParticipantData participantData : participants.values()) {
             participantData.showGui(createGui());
         }
     }
     
-    public void stop(boolean assignClasses) {
-        
+    public void showGui(Participant participant) {
+        ParticipantData participantData = participants.get(participant.getUniqueId());
+        if (participantData == null) {
+            return;
+        }
+        participantData.showGui();
     }
     
     /**
