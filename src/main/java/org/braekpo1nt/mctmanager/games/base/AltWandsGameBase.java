@@ -27,7 +27,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public abstract class AltWandsGameBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase, S extends GameStateBase<P, T>> extends GameBase<P, T, QP, QT, S> {
+public abstract class AltWandsGameBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase> extends AltGameBase<P, T, QP, QT> {
     
     
     protected final @NotNull Collection<Wand<P>> wands;
@@ -39,18 +39,13 @@ public abstract class AltWandsGameBase<P extends ParticipantData, T extends Scor
      * @param plugin the plugin
      * @param gameManager the GameManager
      * @param title the game's initial title, displayed in the sidebar
-     * @param initialState the initialization state, should not contain any game functionality.
-     * The state must never be null, so this is what the state should be
-     * as the game is being initialized to prevent null-pointer
-     * exceptions.
      */
     public AltWandsGameBase(
             @NotNull GameInstanceId gameInstanceId,
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
-            @NotNull Component title,
-            @NotNull S initialState) {
-        super(gameInstanceId, plugin, gameManager, title, initialState);
+            @NotNull Component title) {
+        super(gameInstanceId, plugin, gameManager, title);
         this.wands = new ArrayList<>();
     }
     
