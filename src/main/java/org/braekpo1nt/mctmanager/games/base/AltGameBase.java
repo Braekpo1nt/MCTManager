@@ -229,8 +229,7 @@ public abstract class AltGameBase<P extends ParticipantData, T extends ScoredTea
      * then calls {@link GameStateBase#enter()} on the new {@link #state}
      * @param state assign a state to this game
      */
-    // TODO: remove final
-    public final void setState(@NotNull GameStateBase<P, T> state) {
+    public void setState(@NotNull GameStateBase<P, T> state) {
         this.state.exit();
         this.state = state;
         this.state.enter();

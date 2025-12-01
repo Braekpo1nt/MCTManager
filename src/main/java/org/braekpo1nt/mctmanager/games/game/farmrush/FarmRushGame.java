@@ -14,7 +14,9 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
+import org.braekpo1nt.mctmanager.games.base.AltWandsGameBase;
 import org.braekpo1nt.mctmanager.games.base.WandsGameBase;
+import org.braekpo1nt.mctmanager.games.base.states.GameStateBase;
 import org.braekpo1nt.mctmanager.games.editor.wand.Wand;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfig;
@@ -74,7 +76,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class FarmRushGame extends WandsGameBase<FarmRushParticipant, FarmRushTeam, FarmRushParticipant.QuitData, FarmRushTeam.QuitData, FarmRushState> {
+public class FarmRushGame extends AltWandsGameBase<FarmRushParticipant, FarmRushTeam, FarmRushParticipant.QuitData, FarmRushTeam.QuitData> {
     
     @SuppressWarnings("SpellCheckingInspection")
     public static final NamespacedKey HAS_SCORE_LORE = NamespacedKey.minecraft("hasscorelore");
@@ -101,7 +103,7 @@ public class FarmRushGame extends WandsGameBase<FarmRushParticipant, FarmRushTea
             @NotNull Collection<Team> newTeams,
             @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
-        super(new GameInstanceId(GameType.FARM_RUSH, configFile), plugin, gameManager, title, new InitialState());
+        super(new GameInstanceId(GameType.FARM_RUSH, configFile), plugin, gameManager, title);
         this.config = config;
         this.arenas = new ArrayList<>(newTeams.size());
         this.saleGuiItems = createGuiItems();
@@ -112,7 +114,7 @@ public class FarmRushGame extends WandsGameBase<FarmRushParticipant, FarmRushTea
                         Component.text("Item sale prices")
                 )))
                 .onRightClick((event, participant) -> {
-                    state.showMaterialGui(participant);
+                    ((FarmRushState) this.state).showMaterialGui(participant);
                     return CommandResult.success();
                 })
                 .build());
@@ -504,7 +506,7 @@ public class FarmRushGame extends WandsGameBase<FarmRushParticipant, FarmRushTea
         if (participant == null) {
             return;
         }
-        state.onParticipantOpenInventory(event, participant);
+        ((FarmRushState) this.state).onParticipantOpenInventory(event, participant);
     }
     
     @EventHandler
@@ -610,7 +612,7 @@ public class FarmRushGame extends WandsGameBase<FarmRushParticipant, FarmRushTea
         if (participant == null) {
             return;
         }
-        state.onParticipantCloseInventory(event, participant);
+        ((FarmRushState) this.state).onParticipantCloseInventory(event, participant);
     }
     
     @EventHandler
@@ -619,7 +621,7 @@ public class FarmRushGame extends WandsGameBase<FarmRushParticipant, FarmRushTea
         if (participant == null) {
             return;
         }
-        state.onParticipantPlaceBlock(event, participant);
+        ((FarmRushState) this.state).onParticipantPlaceBlock(event, participant);
     }
     
     /**
