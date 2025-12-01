@@ -38,7 +38,7 @@ import java.util.UUID;
  * Contains logic common across all gameplay states, namely
  * {@link ActiveState} and {@link GracePeriodState}
  */
-public abstract class GameplayState extends FarmRushStateBase {
+public abstract class GameplayState extends FarmRushState {
     
     protected final GameManager gameManager;
     

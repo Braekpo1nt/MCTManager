@@ -10,7 +10,7 @@ import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GameOverState extends FarmRushStateBase {
+public class GameOverState extends FarmRushState {
     
     private @Nullable Timer timer;
     

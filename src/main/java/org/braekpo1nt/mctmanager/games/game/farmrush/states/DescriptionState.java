@@ -12,7 +12,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DescriptionState extends FarmRushStateBase {
+public class DescriptionState extends FarmRushState {
     
     private @Nullable Timer timer;
     
