@@ -1,0 +1,27 @@
+{
+  "version": "0.1.1",
+  "world": "FT",
+  "spectatorArea": {
+    "minX": -1019,
+    "minY": 1,
+    "minZ": -26,
+    "maxX": -980,
+    "maxY": 17,
+    "maxZ": 27
+  },
+  "spectatorSpawn": {
+    "x": -1000,
+    "y": 15,
+    "z": 0,
+    "yaw": -90,
+    "pitch": 6
+  },
+  "durations": {
+    "description": 10,
+    "roundStarting": 10,
+    "classSelection": 20,
+    "roundOver": 10,
+    "gameOver": 10
+  },
+  "description": "test description"
+}

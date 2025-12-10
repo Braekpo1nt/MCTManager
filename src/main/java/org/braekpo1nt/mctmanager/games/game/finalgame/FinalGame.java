@@ -7,7 +7,6 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.base.Affiliation;
-import org.braekpo1nt.mctmanager.games.base.DuoGameBase;
 import org.braekpo1nt.mctmanager.games.base.WandsDuoGameBase;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventHungerLossSpecific;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventItemDrop;

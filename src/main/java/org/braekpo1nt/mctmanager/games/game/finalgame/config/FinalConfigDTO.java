@@ -1,14 +1,13 @@
 package org.braekpo1nt.mctmanager.games.game.finalgame.config;
 
 import lombok.Data;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
 
 @Data
 public class FinalConfigDTO implements Validatable {
