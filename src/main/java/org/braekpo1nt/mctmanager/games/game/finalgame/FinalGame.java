@@ -27,6 +27,7 @@ import org.bukkit.GameRule;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,6 +41,7 @@ public class FinalGame extends WandsDuoGameBase<FinalParticipant, FinalTeam, Fin
     private final @NotNull FinalConfig config;
     private final @NotNull BattleTopbar topbar;
     private int currentRound;
+    private final ItemStack netherStar;
     
     public FinalGame(
             @NotNull Main plugin,
@@ -71,8 +73,8 @@ public class FinalGame extends WandsDuoGameBase<FinalParticipant, FinalTeam, Fin
         addListener(new PreventHungerLossSpecific<>(this, participant -> participant.getAffiliation().equals(Affiliation.SPECTATOR)));
         topbar.addTeam(this.northTeam.getTeamId(), this.northTeam.getColor());
         topbar.addTeam(this.southTeam.getTeamId(), this.southTeam.getColor());
-        topbar.linkTeamPair(this.northTeam.getTeamId(), this.northTeam.getTeamId());
-        addWand(Wand.<FinalParticipant>builder()
+        topbar.linkTeamPair(this.northTeam.getTeamId(), this.southTeam.getTeamId());
+        this.netherStar = addWand(Wand.<FinalParticipant>builder()
                 .wandItem(Wand.createWandItem(
                         Material.NETHER_STAR,
                         "Kit Picker",
@@ -83,7 +85,7 @@ public class FinalGame extends WandsDuoGameBase<FinalParticipant, FinalTeam, Fin
                     return CommandResult.success();
                 })
                 .shouldNotDrop(true)
-                .build());
+                .build()).getWandItem();
         start(newTeams, newParticipants, newAdmins);
         updateAliveStatus(Affiliation.NORTH);
         updateAliveStatus(Affiliation.SOUTH);

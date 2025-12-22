@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.finalgame;
 
+import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
@@ -9,25 +10,35 @@ import org.bukkit.inventory.ItemStack;
 import java.util.List;
 
 @Data
+@Builder
 public class FinalGameKit {
     private Component name;
+    private Material menuItemMaterial;
+    private Component menuItemName;
+    private List<Component> menuItemLore;
     /**
-     * The item representing the kit for gui menus,
-     * with custom name and lore
-     * Always as a stack of 1, don't change this item's stack count
-     */
-    private ItemStack menuItem;
-    /**
-     * How many participants may have this kit at once
+     * How many participants may have this kit at once.
+     * Note that the first kit will be used for overflow if not enough kits
+     * are provided for the number of players. E.g. there are three players and two
+     * kits, and both kits only have 1 copie allowed, the 3rd player will get the first kit
+     * when kit selection is over.
      */
     private int copies;
     /**
      * List of spawn locations for this kit (will be looped if more
-     * pick it than there are spawns, but otherwise cycled)
+     * pick it than there are spawns, but otherwise cycled) for
+     * the north side
      */
-    private List<Location> spawns;
+    private List<Location> northSpawns;
     /**
-     * If false, participants using this kit can't melee attack
+     * List of spawn locations for this kit (will be looped if more
+     * pick it than there are spawns, but otherwise cycled) for
+     * the south side
+     */
+    private List<Location> southSpawns;
+    /**
+     * If false, participants using this kit can't melee attack.
+     * Defaults to true.
      */
     private boolean melee;
     /**
@@ -36,17 +47,19 @@ public class FinalGameKit {
     private ItemStack[] loadout;
     /**
      * The refills that will be given to the participants using this kit
-     * every {@link #refillSeconds} seconds
+     * every {@link #refillSeconds} seconds. If empty, no refills will be given.
      */
     private List<Refill> refills;
     /**
-     * How many seconds between refills
+     * How many seconds between refills. Less than 1 means no refills will be given.
+     * Defaults to 20s.
      */
     private int refillSeconds;
     /**
-     * Whether banners should appear on the heads of participants using this kit
+     * Whether a banner should appear on the head of a participant using this kit.
+     * defaults to false.
      */
-    private boolean hasBanners;
+    private boolean hasBanner;
     
     /**
      * @param amount the amount of the item to be in the stack
@@ -55,18 +68,33 @@ public class FinalGameKit {
      * a {@link Material#GRAY_STAINED_GLASS_PANE} if the amount is less than 1
      */
     public ItemStack getMenuItem(int amount) {
+        ItemStack menuItem;
         if (amount >= 1) {
-            return menuItem.asQuantity(amount);
+            menuItem = new ItemStack(menuItemMaterial, amount);
+        } else {
+            menuItem = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
         }
-        return menuItem.asQuantity(amount).withType(Material.GRAY_STAINED_GLASS_PANE);
+        menuItem.editMeta(meta -> {
+            meta.displayName(Component.empty()
+                    .append(menuItemName)
+                    .append(Component.empty()
+                            .append(Component.text(" ("))
+                            .append(Component.text(amount))
+                            .append(Component.text(")"))
+                    )
+            );
+            meta.lore(menuItemLore);
+        });
+        return menuItem;
     }
     
     @Data
+    @Builder
     public static class Refill {
         /**
-         * The item to be given
+         * The material type of the item to be given
          */
-        private ItemStack item;
+        private Material material;
         /**
          * How many of the item to give on refill
          */

@@ -43,12 +43,20 @@ public abstract class FinalStateBase implements FinalState {
     
     @Override
     public void onParticipantRejoin(FinalParticipant participant, FinalTeam team) {
-        
+        switch (participant.getAffiliation()) {
+            case NORTH -> participant.teleport(context.getConfig().getNorthMap().getSpawn());
+            case SOUTH -> participant.teleport(context.getConfig().getSouthMap().getSpawn());
+            case SPECTATOR -> participant.teleport(context.getConfig().getSpectatorSpawn());
+        }
     }
     
     @Override
     public void onNewParticipantJoin(FinalParticipant participant, FinalTeam team) {
-        
+        switch (participant.getAffiliation()) {
+            case NORTH -> participant.teleport(context.getConfig().getNorthMap().getSpawn());
+            case SOUTH -> participant.teleport(context.getConfig().getSouthMap().getSpawn());
+            case SPECTATOR -> participant.teleport(context.getConfig().getSpectatorSpawn());
+        }
     }
     
     @Override

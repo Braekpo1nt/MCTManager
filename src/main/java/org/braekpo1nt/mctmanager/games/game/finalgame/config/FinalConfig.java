@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.finalgame.config;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
@@ -16,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 @Data
+@Builder
 public class FinalConfig {
     private World world;
     /**
@@ -26,8 +28,9 @@ public class FinalConfig {
     private Lava lava;
     /**
      * Which block to replace with the team colors
+     * defaults to WHITE_CONCRETE
      */
-    private Material replacementType;
+    private @NotNull Material replacementType;
     private MapHalf northMap;
     private MapHalf southMap;
     private List<FinalGameKit> kits;

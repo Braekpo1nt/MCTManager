@@ -72,7 +72,7 @@ public class KitPicker {
          */
         public void showGui(ChestGui gui) {
             this.gui = gui;
-            gui.show(participant.getPlayer());
+            this.gui.show(participant.getPlayer());
         }
         
         /**
@@ -83,6 +83,16 @@ public class KitPicker {
                 return;
             }
             this.gui.show(participant.getPlayer());
+        }
+        
+        /**
+         * Hide (or close) the gui from the participant viewing it
+         */
+        public void hideGui() {
+            if (this.gui == null) {
+                return;
+            }
+            this.gui.getInventory().close();
         }
     }
     
@@ -109,7 +119,7 @@ public class KitPicker {
             this.id = id;
             this.kit = kit;
             this.chosen = 0;
-            this.menuItem = new GuiItem(kit.getMenuItem().asQuantity(getAvailableCopies()));
+            this.menuItem = new GuiItem(kit.getMenuItem(getAvailableCopies()));
         }
         
         /**
@@ -124,7 +134,7 @@ public class KitPicker {
          * @return How many copies are available to be chosen
          */
         public int getAvailableCopies() {
-            return Math.min(0, kit.getCopies() - chosen);
+            return Math.max(0, kit.getCopies() - chosen);
         }
         
         /**
@@ -132,8 +142,7 @@ public class KitPicker {
          */
         public void choose() {
             this.chosen++;
-            int available = getAvailableCopies();
-            menuItem.setItem(kit.getMenuItem().asQuantity(available));
+            menuItem.setItem(kit.getMenuItem(getAvailableCopies()));
         }
         
         /**
@@ -141,8 +150,7 @@ public class KitPicker {
          */
         public void unChoose() {
             this.chosen--;
-            int available = getAvailableCopies();
-            menuItem.setItem(kit.getMenuItem(available));
+            menuItem.setItem(kit.getMenuItem(getAvailableCopies()));
         }
     }
     
@@ -150,20 +158,17 @@ public class KitPicker {
      * The kits to pick from, mapped to their ID
      */
     private final Map<Integer, KitData> kits;
-    private final Map<Integer, GuiItem> kitGuiItems;
     private final Map<UUID, ParticipantData> participants;
     
     public KitPicker(List<FinalGameKit> kits, Collection<? extends Participant> participants) {
         this.participants = participants.stream()
                 .collect(Collectors.toMap(Participant::getUniqueId, ParticipantData::new));
         this.kits = new HashMap<>(kits.size());
-        this.kitGuiItems = new HashMap<>(kits.size());
         for (int i = 0; i < kits.size(); i++) {
             FinalGameKit kit = kits.get(i);
             KitData kitData = new KitData(i, kit);
             this.kits.put(i, kitData);
             GuiItem menuItem = kitData.getMenuItem();
-            this.kitGuiItems.put(i, menuItem);
             menuItem.setAction(event -> onKitMenuItemClick(event, kitData));
         }
     }
@@ -184,7 +189,7 @@ public class KitPicker {
         }
         if (!kitData.canBeChosen()) {
             participantData.getParticipant().sendMessage(Component.empty()
-                    .append(Component.text()));
+                    .append(Component.text("Kit already chosen")));
             return;
         }
         if (participantData.hasKit()) {
@@ -206,8 +211,8 @@ public class KitPicker {
         );
         gui.setOnGlobalClick(event -> event.setCancelled(true));
         OutlinePane pane = new OutlinePane(0, 0, 9, entireHeight);
-        for (GuiItem guiItem : kitGuiItems.values()) {
-            pane.addItem(guiItem);
+        for (KitData kitData : kits.values()) {
+            pane.addItem(kitData.getMenuItem());
         }
         gui.addPane(pane);
         gui.update();
@@ -231,6 +236,32 @@ public class KitPicker {
         }
     }
     
+    public void stop() {
+        // assign kits to participants who didn't pick a kit
+        // TODO: make this more efficient by checking if ANY kits are unassigned
+        for (ParticipantData participantData : this.participants.values()) {
+            if (!participantData.hasKit()) {
+                assignKitToUnassigned(participantData);
+            }
+            participantData.hideGui();
+        }
+        this.participants.clear();
+        this.kits.clear();
+    }
+    
+    /**
+     * @param participantData a participant without a kit assigned
+     */
+    private void assignKitToUnassigned(ParticipantData participantData) {
+        for (KitData kitData : kits.values()) {
+            if (kitData.canBeChosen()) {
+                chooseKit(participantData, kitData);
+                return;
+            }
+        }
+        chooseKit(participantData, kits.get(0));
+    }
+    
     public void showGui(Participant participant) {
         ParticipantData participantData = participants.get(participant.getUniqueId());
         if (participantData == null) {
@@ -248,7 +279,7 @@ public class KitPicker {
         participantData.setKitId(kitData.getId());
         kitData.choose();
         participantData.getParticipant().sendMessage(Component.empty()
-                .append(Component.text("Selected "))
+                .append(Component.text("Your kit is "))
                 .append(kitData.getKit().getName()
                         .decorate(TextDecoration.BOLD))
                 .color(NamedTextColor.GREEN));

@@ -16,6 +16,116 @@
     "yaw": -90,
     "pitch": 6
   },
+  "kits": [
+    {
+      "name": "Knight",
+      "menuItemMaterial": "STONE_SWORD",
+      "menuItemName": "Knight",
+      "menuItemLore": [
+        "Description"
+      ],
+      "copies": 1,
+      "northSpawns": [
+        {
+          "x": -999,
+          "y": 2,
+          "z": -11.5,
+          "yaw": 0,
+          "pitch": 45
+        },
+        {
+          "x": -1007.5,
+          "y": 2,
+          "z": -12,
+          "yaw": -45,
+          "pitch": 0
+        }
+      ],
+      "southSpawns": [
+        {
+          "x": -1005.5,
+          "y": 2,
+          "z": 15,
+          "yaw": -180,
+          "pitch": 45
+        },
+        {
+          "x": -992,
+          "y": 2,
+          "z": 14.5,
+          "yaw": 135,
+          "pitch": 0
+        }
+      ],
+      "melee": true,
+      "loadout": {
+        "contents": {
+          "37": {
+            "type": "LEATHER_LEGGINGS"
+          },
+          "0": {
+            "type": "BOW"
+          },
+          "1": {
+            "type": "WOODEN_SWORD"
+          },
+          "2": {
+            "type": "ARROW",
+            "amount": 16
+          },
+          "3": {
+            "type": "COOKED_BEEF",
+            "amount": 2
+          }
+        }
+      },
+      "refills": [
+        {
+          "material": "ARROW",
+          "amount": 4,
+          "max": 16
+        }
+      ],
+      "refillSeconds": 15,
+      "hasBanner": false
+    }
+  ],
+  "northMap": {
+    "spawn": {
+      "x": -1000,
+      "y": 2,
+      "z": -22,
+      "yaw": 0,
+      "pitch": 0
+    },
+    "replacementArea": {
+      "minX": -1005,
+      "minY": 2,
+      "minZ": -25,
+      "maxX": -994,
+      "maxY": 12,
+      "maxZ": -19
+    }
+  },
+  "southMap": {
+    "spawn": {
+      "x": -1000,
+      "y": 2,
+      "z": 22,
+      "yaw": 180,
+      "pitch": 0
+    },
+    "replacementArea": {
+      "minX": -1005,
+      "minY": 2,
+      "minZ": 20,
+      "maxX": -994,
+      "maxY": 8,
+      "maxZ": 26
+    }
+  },
+  "requiredWins": 3,
+  "replacementType": "CONCRETE",
   "durations": {
     "description": 10,
     "roundStarting": 10,
