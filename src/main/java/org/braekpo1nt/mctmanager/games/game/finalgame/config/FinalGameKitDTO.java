@@ -65,7 +65,7 @@ public class FinalGameKitDTO implements Validatable {
                 .northSpawns(LocationDTO.toLocations(northSpawns, world))
                 .southSpawns(LocationDTO.toLocations(southSpawns, world))
                 .melee(melee != null ? melee : true)
-                .loadout(loadout.toInventoryContents())
+                .loadout(loadout.toItemStacks())
                 .refills(RefillDTO.toRefills(refills))
                 .refillSeconds(refillSeconds != null ? refillSeconds : 20)
                 .hasBanner(hasBanner != null ? hasBanner : false)

@@ -25,7 +25,7 @@ public class InventoryDTO implements Validatable {
      * contents is null.
      * @throws IndexOutOfBoundsException if the max index in the contents keyset is negative
      */
-    public @NotNull ItemStack[] toInventoryContents() {
+    public @Nullable ItemStack[] toInventoryContents() {
         if (contents == null) {
             return null;
         }
@@ -38,6 +38,16 @@ public class InventoryDTO implements Validatable {
             }
         }
         return result;
+    }
+    
+    public @Nullable ItemStack[] toItemStacks() {
+        if (contents == null) {
+            return null;
+        }
+        return contents.values().stream()
+                .filter(Objects::nonNull)
+                .map(ItemStackDTO::toItemStack)
+                .toArray(ItemStack[]::new);
     }
     
     @Override

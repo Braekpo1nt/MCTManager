@@ -43,7 +43,7 @@ public class KitSelectionState extends FinalStateBase {
                     }
                     northKitPicker.stop();
                     southKitPicker.stop();
-                    context.setState(new GameOverState(context));
+                    context.setState(new RoundActiveState(context));
                 })
                 .build());
     }

@@ -10,6 +10,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -184,7 +185,8 @@ public class KitPicker {
             return;
         }
         if (participantData.hasKit(kitData.getId())) {
-            // do nothing, they've already picked this kit
+            unChooseKit(participantData, true);
+            participants.values().forEach(ParticipantData::updateGui);
             return;
         }
         if (!kitData.canBeChosen()) {
@@ -192,6 +194,7 @@ public class KitPicker {
                     .append(Component.text("Kit already chosen")));
             return;
         }
+        // if they have any kit
         if (participantData.hasKit()) {
             // deselect kit
             unChooseKit(participantData, true);
@@ -278,6 +281,7 @@ public class KitPicker {
     private void chooseKit(ParticipantData participantData, KitData kitData) {
         participantData.setKitId(kitData.getId());
         kitData.choose();
+        participantData.getParticipant().getInventory().addItem(kitData.getKit().getLoadout());
         participantData.getParticipant().sendMessage(Component.empty()
                 .append(Component.text("Your kit is "))
                 .append(kitData.getKit().getName()
@@ -293,6 +297,7 @@ public class KitPicker {
         KitData kitData = kits.get(participantData.getKitId());
         kitData.unChoose();
         participantData.setKitId(-1);
+        participantData.getParticipant().getInventory().removeItem(kitData.getKit().getLoadout());
         if (message) {
             participantData.getParticipant().sendMessage(Component.empty()
                     .append(Component.text("Deselected "))
