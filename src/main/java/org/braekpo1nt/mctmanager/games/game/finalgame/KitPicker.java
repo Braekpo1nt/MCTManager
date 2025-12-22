@@ -194,7 +194,7 @@ public class KitPicker {
         }
         if (participantData.hasKit()) {
             // deselect kit
-            unChooseKit(participantData, false);
+            unChooseKit(participantData, true);
         }
         // choose the new kit
         chooseKit(participantData, kitData);

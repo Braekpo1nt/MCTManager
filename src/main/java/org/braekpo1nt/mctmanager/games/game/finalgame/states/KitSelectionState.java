@@ -94,4 +94,19 @@ public class KitSelectionState extends FinalStateBase {
             }
         }
     }
+    
+    @Override
+    public void onParticipantQuit(FinalParticipant participant, FinalTeam team) {
+        super.onParticipantQuit(participant, team);
+        switch (participant.getAffiliation()) {
+            case NORTH -> {
+                participant.getInventory().addItem(context.getNetherStar());
+                northKitPicker.removeParticipant(participant.getUniqueId());
+            }
+            case SOUTH -> {
+                participant.getInventory().addItem(context.getNetherStar());
+                southKitPicker.removeParticipant(participant.getUniqueId());
+            }
+        }
+    }
 }
