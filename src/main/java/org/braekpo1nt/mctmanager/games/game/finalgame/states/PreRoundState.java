@@ -20,6 +20,7 @@ public class PreRoundState extends FinalStateBase {
     
     @Override
     public void enter() {
+        // TODO: clean the items on the ground
         context.getTabList().setParticipantGreys(context.getParticipants().values(), false);
         for (FinalParticipant participant : context.getParticipants().values()) {
             switch (participant.getAffiliation()) {

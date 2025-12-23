@@ -23,8 +23,6 @@ public class RoundActiveState extends FinalStateBase {
     
     @Override
     public void exit() {
-        // clean the items on the ground
-        // 
     }
     
     @Override
