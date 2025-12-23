@@ -40,16 +40,6 @@ public class InventoryDTO implements Validatable {
         return result;
     }
     
-    public @Nullable ItemStack[] toItemStacks() {
-        if (contents == null) {
-            return null;
-        }
-        return contents.values().stream()
-                .filter(Objects::nonNull)
-                .map(ItemStackDTO::toItemStack)
-                .toArray(ItemStack[]::new);
-    }
-    
     @Override
     public void validate(@NotNull Validator validator) {
         validator.notNull(contents, "contents");

@@ -88,12 +88,16 @@ public class KitPicker {
         
         /**
          * Hide (or close) the gui from the participant viewing it
+         * Removes the onCloseEvent from the gui
          */
-        public void hideGui() {
+        public void deleteGuiAndHide() {
             if (this.gui == null) {
                 return;
             }
+            this.gui.setOnClose(event -> {
+            });
             this.gui.getInventory().close();
+            this.gui = null;
         }
     }
     
@@ -160,11 +164,13 @@ public class KitPicker {
      */
     private final Map<Integer, KitData> kits;
     private final Map<UUID, ParticipantData> participants;
+    private final ItemStack netherStar;
     
-    public KitPicker(List<FinalGameKit> kits, Collection<? extends Participant> participants) {
+    public KitPicker(List<FinalGameKit> kits, Collection<? extends Participant> participants, ItemStack netherStar) {
         this.participants = participants.stream()
                 .collect(Collectors.toMap(Participant::getUniqueId, ParticipantData::new));
         this.kits = new HashMap<>(kits.size());
+        this.netherStar = netherStar;
         for (int i = 0; i < kits.size(); i++) {
             FinalGameKit kit = kits.get(i);
             KitData kitData = new KitData(i, kit);
@@ -229,6 +235,7 @@ public class KitPicker {
                         .append(Component.text("Please choose a kit. Use nether star to pick."))
                         .color(NamedTextColor.DARK_RED));
             }
+            participantData.getParticipant().getInventory().addItem(netherStar);
         });
         return gui;
     }
@@ -246,7 +253,7 @@ public class KitPicker {
             if (!participantData.hasKit()) {
                 assignKitToUnassigned(participantData);
             }
-            participantData.hideGui();
+            participantData.deleteGuiAndHide();
         }
         this.participants.clear();
         this.kits.clear();
@@ -270,6 +277,7 @@ public class KitPicker {
         if (participantData == null) {
             return;
         }
+        participantData.getParticipant().getInventory().removeItemAnySlot(netherStar);
         participantData.showGui();
     }
     
@@ -281,7 +289,7 @@ public class KitPicker {
     private void chooseKit(ParticipantData participantData, KitData kitData) {
         participantData.setKitId(kitData.getId());
         kitData.choose();
-        participantData.getParticipant().getInventory().addItem(kitData.getKit().getLoadout());
+        participantData.getParticipant().getInventory().setContents(kitData.getKit().getLoadout());
         participantData.getParticipant().sendMessage(Component.empty()
                 .append(Component.text("Your kit is "))
                 .append(kitData.getKit().getName()
@@ -297,7 +305,7 @@ public class KitPicker {
         KitData kitData = kits.get(participantData.getKitId());
         kitData.unChoose();
         participantData.setKitId(-1);
-        participantData.getParticipant().getInventory().removeItem(kitData.getKit().getLoadout());
+        participantData.getParticipant().getInventory().clear();
         if (message) {
             participantData.getParticipant().sendMessage(Component.empty()
                     .append(Component.text("Deselected "))

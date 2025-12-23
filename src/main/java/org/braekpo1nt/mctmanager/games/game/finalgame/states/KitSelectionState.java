@@ -18,20 +18,14 @@ public class KitSelectionState extends FinalStateBase {
     
     public KitSelectionState(@NotNull FinalGame context) {
         super(context);
-        this.northKitPicker = new KitPicker(context.getConfig().getKits(), context.getNorthTeam().getParticipants());
-        this.southKitPicker = new KitPicker(context.getConfig().getKits(), context.getSouthTeam().getParticipants());
+        this.northKitPicker = new KitPicker(context.getConfig().getKits(), context.getNorthTeam().getParticipants(), context.getNetherStar());
+        this.southKitPicker = new KitPicker(context.getConfig().getKits(), context.getSouthTeam().getParticipants(), context.getNetherStar());
     }
     
     @Override
     public void enter() {
         northKitPicker.showGuis();
         southKitPicker.showGuis();
-        // give out the nether stars
-        for (FinalParticipant participant : context.getParticipants().values()) {
-            if (participant.getAffiliation() != Affiliation.SPECTATOR) {
-                participant.getInventory().addItem(context.getWandItems());
-            }
-        }
         this.timer = context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getDescriptionDuration())
                 .withTopbar(context.getTopbar())
