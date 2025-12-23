@@ -9,8 +9,11 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.utils.ColorMap;
+import org.bukkit.Color;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -165,12 +168,18 @@ public class KitPicker {
     private final Map<Integer, KitData> kits;
     private final Map<UUID, ParticipantData> participants;
     private final ItemStack netherStar;
+    private final Color leatherColor;
     
-    public KitPicker(List<FinalGameKit> kits, Collection<? extends Participant> participants, ItemStack netherStar) {
+    public KitPicker(
+            List<FinalGameKit> kits,
+            Collection<? extends Participant> participants,
+            ItemStack netherStar,
+            @NotNull Color leatherColor) {
         this.participants = participants.stream()
                 .collect(Collectors.toMap(Participant::getUniqueId, ParticipantData::new));
         this.kits = new HashMap<>(kits.size());
         this.netherStar = netherStar;
+        this.leatherColor = leatherColor;
         for (int i = 0; i < kits.size(); i++) {
             FinalGameKit kit = kits.get(i);
             KitData kitData = new KitData(i, kit);
@@ -290,6 +299,7 @@ public class KitPicker {
         participantData.setKitId(kitData.getId());
         kitData.choose();
         participantData.getParticipant().getInventory().setContents(kitData.getKit().getLoadout());
+        ColorMap.colorLeatherArmor(participantData.getParticipant(), leatherColor);
         participantData.getParticipant().sendMessage(Component.empty()
                 .append(Component.text("Your kit is "))
                 .append(kitData.getKit().getName()

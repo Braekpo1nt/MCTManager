@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.finalgame.states;
 
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.games.base.Affiliation;
 import org.braekpo1nt.mctmanager.games.game.finalgame.FinalGame;
 import org.braekpo1nt.mctmanager.games.game.finalgame.FinalParticipant;
 import org.braekpo1nt.mctmanager.games.game.finalgame.FinalTeam;
@@ -18,8 +17,18 @@ public class KitSelectionState extends FinalStateBase {
     
     public KitSelectionState(@NotNull FinalGame context) {
         super(context);
-        this.northKitPicker = new KitPicker(context.getConfig().getKits(), context.getNorthTeam().getParticipants(), context.getNetherStar());
-        this.southKitPicker = new KitPicker(context.getConfig().getKits(), context.getSouthTeam().getParticipants(), context.getNetherStar());
+        this.northKitPicker = new KitPicker(
+                context.getConfig().getKits(),
+                context.getNorthTeam().getParticipants(),
+                context.getNetherStar(),
+                context.getNorthTeam().getBukkitColor()
+        );
+        this.southKitPicker = new KitPicker(
+                context.getConfig().getKits(),
+                context.getSouthTeam().getParticipants(),
+                context.getNetherStar(),
+                context.getSouthTeam().getBukkitColor()
+        );
     }
     
     @Override
