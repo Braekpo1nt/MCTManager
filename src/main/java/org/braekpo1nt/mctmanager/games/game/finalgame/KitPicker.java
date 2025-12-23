@@ -246,11 +246,11 @@ public class KitPicker {
         }
     }
     
-    public void stop() {
+    public void stop(boolean assignClasses) {
         // assign kits to participants who didn't pick a kit
         // TODO: make this more efficient by checking if ANY kits are unassigned
         for (ParticipantData participantData : this.participants.values()) {
-            if (!participantData.hasKit()) {
+            if (assignClasses && !participantData.hasKit()) {
                 assignKitToUnassigned(participantData);
             }
             participantData.deleteGuiAndHide();

@@ -35,8 +35,8 @@ public class KitSelectionState extends FinalStateBase {
                     for (FinalParticipant participant : context.getParticipants().values()) {
                         participant.getInventory().remove(context.getNetherStar());
                     }
-                    northKitPicker.stop();
-                    southKitPicker.stop();
+                    northKitPicker.stop(true);
+                    southKitPicker.stop(true);
                     context.setState(new RoundActiveState(context));
                 })
                 .build());
@@ -45,6 +45,8 @@ public class KitSelectionState extends FinalStateBase {
     @Override
     public void exit() {
         Timer.cancel(timer);
+        northKitPicker.stop(false);
+        southKitPicker.stop(false);
     }
     
     @Override
