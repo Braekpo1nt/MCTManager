@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.finalgame.states;
 
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
+import org.braekpo1nt.mctmanager.games.base.Affiliation;
 import org.braekpo1nt.mctmanager.games.game.finalgame.FinalGame;
 import org.braekpo1nt.mctmanager.games.game.finalgame.FinalParticipant;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -15,7 +16,16 @@ public class RoundActiveState extends FinalStateBase {
     
     @Override
     public void enter() {
-        // spawn in players
+        for (FinalParticipant participant : context.getParticipants().values()) {
+            switch (participant.getAffiliation()) {
+                case NORTH -> {
+                    
+                }
+                case SOUTH -> {
+                    
+                }
+            }
+        }
         // kick off ammo refill timer (each kit has different delays, but they're all in 
         //   increments of seconds, so it can be one timer with a single tracker for each kit type)
         // kick off lava rise timer
