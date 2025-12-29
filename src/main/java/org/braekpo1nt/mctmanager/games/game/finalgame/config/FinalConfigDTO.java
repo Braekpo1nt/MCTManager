@@ -18,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class FinalConfigDTO implements Validatable {
@@ -26,7 +27,10 @@ public class FinalConfigDTO implements Validatable {
     private String world;
     private @Nullable BoundingBox spectatorArea;
     private LocationDTO spectatorSpawn;
-    private List<FinalGameKitDTO> kits;
+    /**
+     * Maps the unique kit name to the kit details
+     */
+    private Map<String, FinalGameKitDTO> kits;
     private MapHalfDto northMap;
     private MapHalfDto southMap;
     private int requiredWins;
@@ -50,7 +54,7 @@ public class FinalConfigDTO implements Validatable {
         validator.notNull(this.spectatorSpawn, "spectatorSpawn");
         
         validator.notNull(kits, "kits");
-        validator.validateList(kits, "kits");
+        validator.validateMap(kits, "kits");
         
         validator.notNull(northMap, "northMap");
         validator.notNull(southMap, "southMap");

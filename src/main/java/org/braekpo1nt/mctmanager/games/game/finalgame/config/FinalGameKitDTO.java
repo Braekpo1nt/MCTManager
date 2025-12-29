@@ -13,12 +13,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Data
 public class FinalGameKitDTO implements Validatable {
+    /**
+     * The display name of the kit
+     */
     private Component name;
     private Material menuItemMaterial;
-    private Component menuItemName;
     private List<Component> menuItemLore;
     private @Nullable Integer copies;
     private List<LocationDTO> northSpawns;
@@ -34,7 +38,6 @@ public class FinalGameKitDTO implements Validatable {
     public void validate(@NotNull Validator validator) {
         validator.notNull(name, "name");
         validator.notNull(menuItemMaterial, "menuItemMaterial");
-        validator.notNull(menuItemName, "menuItemName");
         validator.notNull(menuItemLore, "menuItemLore");
         validator.validate(!menuItemLore.contains(null), "menuItemLore can't contain null entries");
         validator.notNull(menuItemLore, "menuItemLore");
@@ -44,6 +47,7 @@ public class FinalGameKitDTO implements Validatable {
         validator.validate(!southSpawns.contains(null), "southSpawns can't contain null entries");
         if (copies != null) {
             validator.validate(copies >= 1, "copies must be greater than or equal to 1");
+            // this is a provision for if Stg. Shotgun wants this. The actual feature allows for fewer spawns as copies, because it loops through them.
             validator.validate(copies == northSpawns.size(), "northSpawns must have the same number of entries as there are copies for this kit (%s)", copies);
             validator.validate(copies == southSpawns.size(), "southSpawns must have the same number of entries as there are copies for this kit (%s)", copies);
         }
@@ -53,15 +57,22 @@ public class FinalGameKitDTO implements Validatable {
         validator.validateList(refills, "refills");
     }
     
-    public static List<FinalGameKit> toFinalGameKits(@NotNull List<FinalGameKitDTO> dtos, @NotNull World world) {
-        return dtos.stream().map(dto -> dto.toFinalGameKit(world)).toList();
+    public static Map<String, FinalGameKit> toFinalGameKits(@NotNull Map<String, FinalGameKitDTO> dtos, @NotNull World world) {
+        return dtos.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().toFinalGameKit(world)
+                ));
     }
     
+    /**
+     * @param world the world that all locations are in
+     * @return the translated kit
+     */
     public FinalGameKit toFinalGameKit(@NotNull World world) {
         return FinalGameKit.builder()
-                .name(name)
+                .displayName(name)
                 .menuItemMaterial(menuItemMaterial)
-                .menuItemName(menuItemName)
                 .menuItemLore(menuItemLore)
                 .copies(copies != null ? copies : 1)
                 .northSpawns(LocationDTO.toLocations(northSpawns, world))

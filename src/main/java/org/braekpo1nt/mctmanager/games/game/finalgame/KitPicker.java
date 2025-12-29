@@ -302,7 +302,7 @@ public class KitPicker {
         ColorMap.colorLeatherArmor(participantData.getParticipant(), leatherColor);
         participantData.getParticipant().sendMessage(Component.empty()
                 .append(Component.text("Your kit is "))
-                .append(kitData.getKit().getName()
+                .append(kitData.getKit().getDisplayName()
                         .decorate(TextDecoration.BOLD))
                 .color(NamedTextColor.GREEN));
     }
@@ -319,7 +319,7 @@ public class KitPicker {
         if (message) {
             participantData.getParticipant().sendMessage(Component.empty()
                     .append(Component.text("Deselected "))
-                    .append(kitData.getKit().getName()
+                    .append(kitData.getKit().getDisplayName()
                             .decorate(TextDecoration.BOLD))
                     .color(NamedTextColor.GREEN));
         }

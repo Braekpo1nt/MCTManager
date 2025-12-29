@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -33,7 +34,10 @@ public class FinalConfig {
     private @NotNull Material replacementType;
     private MapHalf northMap;
     private MapHalf southMap;
-    private List<FinalGameKit> kits;
+    /**
+     * Unique Names to kits
+     */
+    private Map<String, FinalGameKit> kits;
     private Location spectatorSpawn;
     /**
      * How many round wins before a game win

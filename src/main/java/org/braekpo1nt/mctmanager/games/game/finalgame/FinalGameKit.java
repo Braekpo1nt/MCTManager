@@ -12,9 +12,8 @@ import java.util.List;
 @Data
 @Builder
 public class FinalGameKit {
-    private Component name;
+    private Component displayName;
     private Material menuItemMaterial;
-    private Component menuItemName;
     private List<Component> menuItemLore;
     /**
      * How many participants may have this kit at once.
@@ -76,7 +75,7 @@ public class FinalGameKit {
         }
         menuItem.editMeta(meta -> {
             meta.displayName(Component.empty()
-                    .append(menuItemName)
+                    .append(displayName)
                     .append(Component.empty()
                             .append(Component.text(" ("))
                             .append(Component.text(amount))
