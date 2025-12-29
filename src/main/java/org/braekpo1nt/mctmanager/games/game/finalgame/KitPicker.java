@@ -18,8 +18,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -33,9 +33,9 @@ public class KitPicker {
         private final Participant participant;
         /**
          * The ID of the kit chosen by this participant
-         * -1 indicates no kit chosen
+         * null indicates no kit chosen
          */
-        private int kitId;
+        private @Nullable String kitId;
         /**
          * The kit picker gui that this participant has open.
          * Null if they are not looking at the kit picker gui.
@@ -44,14 +44,14 @@ public class KitPicker {
         
         public ParticipantData(Participant participant) {
             this.participant = participant;
-            this.kitId = -1;
+            this.kitId = null;
         }
         
         /**
          * @return true if this participant has a kit selected
          */
         public boolean hasKit() {
-            return kitId > -1;
+            return kitId == null;
         }
         
         /**
@@ -59,8 +59,8 @@ public class KitPicker {
          * @return true if the given kitId matches this participant's {@link #kitId},
          * false otherwise
          */
-        public boolean hasKit(int kitId) {
-            return this.kitId == kitId;
+        public boolean hasKit(String kitId) {
+            return Objects.equals(this.kitId, kitId);
         }
         
         public void updateGui() {
@@ -109,7 +109,7 @@ public class KitPicker {
         /**
          * The internal identifier of this kit
          */
-        private final int id;
+        private final String id;
         /**
          * The kit represented by this data
          */
@@ -123,7 +123,7 @@ public class KitPicker {
          */
         private GuiItem menuItem;
         
-        public KitData(int id, FinalGameKit kit) {
+        public KitData(String id, FinalGameKit kit) {
             this.id = id;
             this.kit = kit;
             this.chosen = 0;
@@ -163,15 +163,15 @@ public class KitPicker {
     }
     
     /**
-     * The kits to pick from, mapped to their ID
+     * The kits to pick from, mapped to their unique name
      */
-    private final Map<Integer, KitData> kits;
+    private final Map<String, KitData> kits;
     private final Map<UUID, ParticipantData> participants;
     private final ItemStack netherStar;
     private final Color leatherColor;
     
     public KitPicker(
-            List<FinalGameKit> kits,
+            Map<String, FinalGameKit> kits,
             Collection<? extends Participant> participants,
             ItemStack netherStar,
             @NotNull Color leatherColor) {
@@ -180,10 +180,11 @@ public class KitPicker {
         this.kits = new HashMap<>(kits.size());
         this.netherStar = netherStar;
         this.leatherColor = leatherColor;
-        for (int i = 0; i < kits.size(); i++) {
-            FinalGameKit kit = kits.get(i);
-            KitData kitData = new KitData(i, kit);
-            this.kits.put(i, kitData);
+        for (Map.Entry<String, FinalGameKit> entry : kits.entrySet()) {
+            FinalGameKit kit = entry.getValue();
+            String kitID = entry.getKey();
+            KitData kitData = new KitData(kitID, kit);
+            this.kits.put(kitID, kitData);
             GuiItem menuItem = kitData.getMenuItem();
             menuItem.setAction(event -> onKitMenuItemClick(event, kitData));
         }
@@ -314,7 +315,7 @@ public class KitPicker {
     private void unChooseKit(ParticipantData participantData, boolean message) {
         KitData kitData = kits.get(participantData.getKitId());
         kitData.unChoose();
-        participantData.setKitId(-1);
+        participantData.setKitId(null);
         participantData.getParticipant().getInventory().clear();
         if (message) {
             participantData.getParticipant().sendMessage(Component.empty()
