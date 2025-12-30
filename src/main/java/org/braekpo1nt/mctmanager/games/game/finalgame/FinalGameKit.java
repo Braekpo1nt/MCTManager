@@ -6,8 +6,13 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Data
 @Builder
@@ -87,6 +92,28 @@ public class FinalGameKit {
         return menuItem;
     }
     
+    public void refill(@NotNull FinalParticipant participant) {
+        if (refills.isEmpty()) {
+            return;
+        }
+        Map<Material, Integer> itemCount = refills.stream()
+                .collect(Collectors.toMap(Refill::getMaterial, item -> 0));
+        for (@Nullable ItemStack itemStack : participant.getInventory().getContents()) {
+            if (itemStack != null) {
+                // only need to keep track of items with refills
+                itemCount.computeIfPresent(itemStack.getType(), (material, count) -> count + itemStack.getAmount());
+            }
+        }
+        for (Refill refill : refills) {
+            // how many of this item are in the participant's inventory
+            int count = itemCount.get(refill.getMaterial());
+            int amountToRefill = count - refill.getMax();
+            if (amountToRefill > 0) {
+                participant.getInventory().addItem(refill.asItemStack(amountToRefill));
+            }
+        }
+    }
+    
     @Data
     @Builder
     public static class Refill {
@@ -102,6 +129,15 @@ public class FinalGameKit {
          * how many of the given item participants are permitted to have at once
          */
         private int max;
+        
+        /**
+         * @param amountToRefill the amount of items that can be filled in the participant's inventory
+         * @return {@code x} items of this refill type, where {@code x} is amountToRefill, or {@link #amount}, whichever
+         * is smaller.
+         */
+        public @NotNull ItemStack asItemStack(int amountToRefill) {
+            return new ItemStack(material, Math.min(amountToRefill, amount));
+        }
     }
     
 }
