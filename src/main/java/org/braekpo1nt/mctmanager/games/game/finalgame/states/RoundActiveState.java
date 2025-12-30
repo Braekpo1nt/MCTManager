@@ -11,8 +11,10 @@ import org.braekpo1nt.mctmanager.games.game.finalgame.FinalParticipant;
 import org.braekpo1nt.mctmanager.games.game.finalgame.config.FinalConfig;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -161,9 +163,21 @@ public class RoundActiveState extends FinalStateBase {
     }
     
     @Override
+    public void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull FinalParticipant participant) {
+        switch (participant.getAffiliation()) {
+            case NORTH, SOUTH -> event.setRespawnLocation(participant.getLocation());
+            case SPECTATOR -> event.setRespawnLocation(context.getConfig().getSpectatorSpawn());
+        }
+    }
+    
+    @Override
     public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull FinalParticipant participant) {
         super.onParticipantPostRespawn(event, participant);
-        // first, check win condition (are all players dead?) if so, end the round
+        // mark this participant as dead and set to spectator
+        participant.setAlive(false);
+        participant.setGameMode(GameMode.SPECTATOR);
+        
+        // Check win condition (are all players dead?) if so, end the round and return
         
         // increment the number of dead players for the lava rise
         // trigger lava rise if threshold reached
