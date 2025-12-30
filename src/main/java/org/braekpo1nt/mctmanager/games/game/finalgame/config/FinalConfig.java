@@ -53,7 +53,7 @@ public class FinalConfig {
     /**
      * Multiplied by the damage an arrow deals to result in a new damage value.
      * E.g. to make arrows deal 50% damage, set to 0.5.
-     * Defaults to 1.0.
+     * Can't be negative. Defaults to 1.0.
      */
     private double arrowDamageModifier;
     

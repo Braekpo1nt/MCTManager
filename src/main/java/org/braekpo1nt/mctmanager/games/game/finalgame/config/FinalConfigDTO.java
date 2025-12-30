@@ -63,6 +63,10 @@ public class FinalConfigDTO implements Validatable {
         southMap.validate(validator.path("southMap"));
         
         validator.notNull(this.description, "description");
+        
+        if (arrowDamageModifier != null) {
+            validator.validate(arrowDamageModifier >= 0.0, "arrowDamageModifier can't be negative");
+        }
     }
     
     public FinalConfig toConfig() {
