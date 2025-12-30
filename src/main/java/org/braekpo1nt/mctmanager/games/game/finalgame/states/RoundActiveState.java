@@ -10,14 +10,17 @@ import org.braekpo1nt.mctmanager.games.game.finalgame.FinalGameKit;
 import org.braekpo1nt.mctmanager.games.game.finalgame.FinalParticipant;
 import org.braekpo1nt.mctmanager.games.game.finalgame.config.FinalConfig;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,6 +34,10 @@ public class RoundActiveState extends FinalStateBase {
     private int refillTaskId;
     private @Nullable Timer lavaTimer;
     private int lavaDeaths;
+    /**
+     * The current y level that the lava is at
+     */
+    private int lavaYLevel;
     
     public RoundActiveState(@NotNull FinalGame context) {
         super(context);
@@ -77,8 +84,34 @@ public class RoundActiveState extends FinalStateBase {
     }
     
     private void raiseTheLavaLevel() {
-        // TODO: raise the lava level
+        if (lavaIsAtMaxY()) {
+            return;
+        }
+        BoundingBox lavaArea = config.getLava().getLavaArea();
+        int bottomYLevel = lavaYLevel + 1;
+        lavaYLevel = Math.min((int) lavaArea.getMaxY(), lavaYLevel + config.getLava().getBlocksPerRise());
+        BlockPlacementUtils.createCubeReplace(
+                config.getWorld(),
+                new BoundingBox(
+                        lavaArea.getMinX(),
+                        bottomYLevel,
+                        lavaArea.getMinZ(),
+                        lavaArea.getMaxX(),
+                        lavaYLevel,
+                        lavaArea.getMaxZ()
+                ),
+                Material.AIR,
+                Material.LAVA
+        );
+        if (lavaIsAtMaxY()) {
+            Timer.cancel(lavaTimer);
+            return;
+        }
         resetLavaTimer();
+    }
+    
+    private boolean lavaIsAtMaxY() {
+        return lavaYLevel >= config.getLava().getLavaArea().getMaxY();
     }
     
     private void kickOffRefillTimer() {
