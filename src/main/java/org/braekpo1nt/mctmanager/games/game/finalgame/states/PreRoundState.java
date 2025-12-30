@@ -9,7 +9,9 @@ import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.entity.Item;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,7 +25,7 @@ public class PreRoundState extends FinalStateBase {
     
     @Override
     public void enter() {
-        // TODO: clean the items on the ground
+        clearFloorItems();
         resetLava();
         context.getTabList().setParticipantGreys(context.getParticipants().values(), false);
         for (FinalParticipant participant : context.getParticipants().values()) {
@@ -57,6 +59,16 @@ public class PreRoundState extends FinalStateBase {
                     context.setState(new KitSelectionState(context));
                 })
                 .build());
+    }
+    
+    public void clearFloorItems() {
+        for (Item item : context.getConfig().getWorld().getEntitiesByClass(Item.class)) {
+            Vector position = item.getLocation().toVector();
+            if (context.getConfig().getSouthMap().getReplacementArea().contains(position)
+                    || context.getConfig().getNorthMap().getReplacementArea().contains(position)) {
+                item.remove();
+            }
+        }
     }
     
     private void resetLava() {
