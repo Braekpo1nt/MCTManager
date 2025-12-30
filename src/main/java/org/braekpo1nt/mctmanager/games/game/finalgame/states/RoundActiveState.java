@@ -62,7 +62,7 @@ public class RoundActiveState extends FinalStateBase {
             @Override
             public void run() {
                 for (Map.Entry<String, Integer> entry : refillCountdowns.entrySet()) {
-                    runForKit(entry);
+                    entry.setValue(runForKit(entry.getKey(), entry.getValue()));
                 }
             }
             
