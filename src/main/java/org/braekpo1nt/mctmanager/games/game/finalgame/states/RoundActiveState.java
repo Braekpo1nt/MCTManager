@@ -213,8 +213,8 @@ public class RoundActiveState extends FinalStateBase {
         if (config.getKits().get(causingParticipant.getKitId()).isMelee()) {
             return;
         }
-        // if a participant is not allowed to melee, prevent it
-        event.setCancelled(true);
+        // if a participant is not allowed to melee, prevent damage but not knockback
+        event.setDamage(0);
     }
     
     @Override
