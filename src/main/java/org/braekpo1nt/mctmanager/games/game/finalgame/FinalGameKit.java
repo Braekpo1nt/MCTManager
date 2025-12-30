@@ -6,10 +6,10 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -92,25 +92,27 @@ public class FinalGameKit {
         return menuItem;
     }
     
+    /**
+     * Refill the participants inventory with the items in this refill,
+     * up to the max amount of each item.
+     * @param participant the participant to give refills to
+     */
     public void refill(@NotNull FinalParticipant participant) {
         if (refills.isEmpty()) {
             return;
         }
-        Map<Material, Integer> itemCount = refills.stream()
+        Map<Material, Integer> itemCounts = refills.stream()
                 .collect(Collectors.toMap(Refill::getMaterial, item -> 0));
         for (@Nullable ItemStack itemStack : participant.getInventory().getContents()) {
             if (itemStack != null) {
                 // only need to keep track of items with refills
-                itemCount.computeIfPresent(itemStack.getType(), (material, count) -> count + itemStack.getAmount());
+                itemCounts.computeIfPresent(itemStack.getType(), (material, count) -> count + itemStack.getAmount());
             }
         }
         for (Refill refill : refills) {
             // how many of this item are in the participant's inventory
-            int count = itemCount.get(refill.getMaterial());
-            int amountToRefill = count - refill.getMax();
-            if (amountToRefill > 0) {
-                participant.getInventory().addItem(refill.asItemStack(amountToRefill));
-            }
+            int numberInInventory = itemCounts.get(refill.getMaterial());
+            refill.refill(numberInInventory, participant.getInventory());
         }
     }
     
@@ -131,12 +133,15 @@ public class FinalGameKit {
         private int max;
         
         /**
-         * @param amountToRefill the amount of items that can be filled in the participant's inventory
-         * @return {@code x} items of this refill type, where {@code x} is amountToRefill, or {@link #amount}, whichever
-         * is smaller.
+         * @param numberInInventory the number of items of {@link #material} in the given inventory
+         * @param inventory the inventory to refill
          */
-        public @NotNull ItemStack asItemStack(int amountToRefill) {
-            return new ItemStack(material, Math.min(amountToRefill, amount));
+        public void refill(int numberInInventory, @NotNull PlayerInventory inventory) {
+            int availableSpace = numberInInventory - max;
+            int amountToRefill = Math.min(availableSpace, amount);
+            if (amountToRefill > 0) {
+                inventory.addItem(new ItemStack(material, amountToRefill));
+            }
         }
     }
     
