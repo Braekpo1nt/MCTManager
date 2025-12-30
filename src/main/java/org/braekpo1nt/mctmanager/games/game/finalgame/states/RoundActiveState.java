@@ -197,7 +197,11 @@ public class RoundActiveState extends FinalStateBase {
         participant.setAlive(false);
         participant.setGameMode(GameMode.SPECTATOR);
         
-        // Check win condition (are all players dead?) if so, end the round and return
+        // Check win condition (are all members of the dead participant's team dead?) if so, end the round and return
+        if (context.getTeams().get(participant.getTeamId()).isAlive()) {
+            context.setState(new RoundOverState(context));
+            return;
+        }
         
         // increment the number of dead players for the lava rise
         // trigger lava rise if threshold reached
