@@ -6,7 +6,10 @@ import org.braekpo1nt.mctmanager.games.game.finalgame.FinalGame;
 import org.braekpo1nt.mctmanager.games.game.finalgame.FinalParticipant;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,6 +24,7 @@ public class PreRoundState extends FinalStateBase {
     @Override
     public void enter() {
         // TODO: clean the items on the ground
+        resetLava();
         context.getTabList().setParticipantGreys(context.getParticipants().values(), false);
         for (FinalParticipant participant : context.getParticipants().values()) {
             switch (participant.getAffiliation()) {
@@ -53,6 +57,38 @@ public class PreRoundState extends FinalStateBase {
                     context.setState(new KitSelectionState(context));
                 })
                 .build());
+    }
+    
+    private void resetLava() {
+        BoundingBox lavaArea = context.getConfig().getLava().getLavaArea();
+        BlockPlacementUtils.createCubeReplace(
+                context.getConfig().getWorld(),
+                // all but the bottom layer
+                new BoundingBox(
+                        lavaArea.getMinX(),
+                        lavaArea.getMinY() + 1,
+                        lavaArea.getMinZ(),
+                        lavaArea.getMaxX(),
+                        lavaArea.getMaxY(),
+                        lavaArea.getMaxZ()
+                ),
+                Material.LAVA,
+                Material.AIR
+        );
+        BlockPlacementUtils.createCubeReplace(
+                context.getConfig().getWorld(),
+                // the bottom layer
+                new BoundingBox(
+                        lavaArea.getMinX(),
+                        lavaArea.getMinY(),
+                        lavaArea.getMinZ(),
+                        lavaArea.getMaxX(),
+                        lavaArea.getMinY(), // bottom layer
+                        lavaArea.getMaxZ()
+                ),
+                Material.AIR,
+                Material.LAVA
+        );
     }
     
     @Override
