@@ -4,10 +4,12 @@ import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.finalgame.FinalGame;
 import org.braekpo1nt.mctmanager.games.game.finalgame.FinalGameKit;
 import org.braekpo1nt.mctmanager.games.game.finalgame.FinalParticipant;
 import org.braekpo1nt.mctmanager.games.game.finalgame.config.FinalConfig;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.Location;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -23,6 +25,7 @@ public class RoundActiveState extends FinalStateBase {
     
     private final @NotNull FinalConfig config;
     private int refillTaskId;
+    private @Nullable Timer lavaTimer;
     
     public RoundActiveState(@NotNull FinalGame context) {
         super(context);
@@ -50,6 +53,29 @@ public class RoundActiveState extends FinalStateBase {
         spawnParticipantsInArena();
         // kick off ammo refill timer (each kit has different delays, but they're all in 
         //   increments of seconds, so it can be one timer with a single tracker for each kit type)
+        kickOffRefillTimer();
+        // kick off lava rise timer
+        resetLavaTimer();
+    }
+    
+    private void resetLavaTimer() {
+        Timer.cancel(this.lavaTimer);
+        this.lavaTimer = context.getTimerManager().start(Timer.builder()
+                .duration(config.getLava().getRiseSeconds())
+                .withTopbar(context.getTopbar())
+                .withSidebar(context.getAdminSidebar(), "timer")
+                .sidebarPrefix(Component.text("Lava Rises: "))
+                .topbarPrefix(Component.text("Lava Rises: "))
+                .onCompletion(this::raiseTheLavaLevel)
+                .build());
+    }
+    
+    private void raiseTheLavaLevel() {
+        // TODO: raise the lava level
+        resetLavaTimer();
+    }
+    
+    private void kickOffRefillTimer() {
         refillTaskId = new BukkitRunnable() {
             final Map<String, Integer> refillCountdowns = config.getKits().entrySet().stream()
                     // no refills given if refillSeconds is less than 1
@@ -82,7 +108,6 @@ public class RoundActiveState extends FinalStateBase {
                 return countdown + 1;
             }
         }.runTaskTimer(context.getPlugin(), 0L, 20L).getTaskId();
-        // kick off lava rise timer
     }
     
     /**
@@ -127,6 +152,7 @@ public class RoundActiveState extends FinalStateBase {
     @Override
     public void exit() {
         context.getPlugin().getServer().getScheduler().cancelTask(refillTaskId);
+        Timer.cancel(lavaTimer);
     }
     
     @Override
@@ -140,6 +166,7 @@ public class RoundActiveState extends FinalStateBase {
         // first, check win condition (are all players dead?) if so, end the round
         
         // increment the number of dead players for the lava rise
-        // trigger lava rise if threshold reached, and reset count
+        // trigger lava rise if threshold reached
+        raiseTheLavaLevel();
     }
 }
