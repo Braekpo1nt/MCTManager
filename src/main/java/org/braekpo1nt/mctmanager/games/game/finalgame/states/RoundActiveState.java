@@ -30,10 +30,12 @@ public class RoundActiveState extends FinalStateBase {
     private final @NotNull FinalConfig config;
     private int refillTaskId;
     private @Nullable Timer lavaTimer;
+    private int lavaDeaths;
     
     public RoundActiveState(@NotNull FinalGame context) {
         super(context);
         this.config = context.getConfig();
+        this.lavaDeaths = 0;
     }
     
     @Getter
@@ -202,9 +204,11 @@ public class RoundActiveState extends FinalStateBase {
             context.setState(new RoundOverState(context));
             return;
         }
-        
-        // increment the number of dead players for the lava rise
-        // trigger lava rise if threshold reached
-        raiseTheLavaLevel();
+        this.lavaDeaths++;
+        if (lavaDeaths >= config.getLava().getRiseDeaths()) {
+            // reset the counter
+            lavaDeaths = 0;
+            raiseTheLavaLevel();
+        }
     }
 }
