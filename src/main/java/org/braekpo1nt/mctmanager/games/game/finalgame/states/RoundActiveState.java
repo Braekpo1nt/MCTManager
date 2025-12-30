@@ -52,6 +52,8 @@ public class RoundActiveState extends FinalStateBase {
         //   increments of seconds, so it can be one timer with a single tracker for each kit type)
         refillTaskId = new BukkitRunnable() {
             final Map<String, Integer> refillCountdowns = config.getKits().entrySet().stream()
+                    // no refills given if refillSeconds is less than 1
+                    .filter(entry -> entry.getValue().getRefillSeconds() > 0)
                     .collect(Collectors.toMap(
                             Map.Entry::getKey,
                             entry -> entry.getValue().getRefillSeconds()));
@@ -64,12 +66,17 @@ public class RoundActiveState extends FinalStateBase {
                 }
             }
             
+            /**
+             * The countdown for each kit
+             * @param entry the entry containing the kit ID and the number of seconds left on the cooldown for the kits refill
+             */
             private void runForKit(Map.Entry<String, Integer> entry) {
                 String kitId = entry.getKey();
                 int countdown = entry.getValue();
                 if (countdown <= 0) {
                     FinalGameKit kit = config.getKits().get(kitId);
-                    giveRefills(kit);
+                    giveRefills(kitId, kit);
+                    // reset the counter for this kit
                     entry.setValue(kit.getRefillSeconds());
                     return;
                 }
@@ -79,6 +86,11 @@ public class RoundActiveState extends FinalStateBase {
         // kick off lava rise timer
     }
     
+    /**
+     * Give refills for the given kit to all participants with the kit
+     * @param kitId the id of the kit
+     * @param kit the kit to give the refills of
+     */
     private void giveRefills(String kitId, FinalGameKit kit) {
         for (FinalParticipant participant : context.getParticipants().values()) {
             if (participant.hasKit(kitId)) {
