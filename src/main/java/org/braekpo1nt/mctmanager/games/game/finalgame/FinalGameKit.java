@@ -116,6 +116,14 @@ public class FinalGameKit {
         }
     }
     
+    /**
+     * @return true if {@link #refillSeconds} is greater than or equal to 1,
+     * false otherwise
+     */
+    public boolean hasRefills() {
+        return refillSeconds >= 1;
+    }
+    
     @Data
     @Builder
     public static class Refill {

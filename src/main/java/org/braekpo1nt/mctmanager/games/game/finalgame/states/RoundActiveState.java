@@ -53,7 +53,7 @@ public class RoundActiveState extends FinalStateBase {
         refillTaskId = new BukkitRunnable() {
             final Map<String, Integer> refillCountdowns = config.getKits().entrySet().stream()
                     // no refills given if refillSeconds is less than 1
-                    .filter(entry -> entry.getValue().getRefillSeconds() > 0)
+                    .filter(entry -> entry.getValue().hasRefills())
                     .collect(Collectors.toMap(
                             Map.Entry::getKey,
                             entry -> entry.getValue().getRefillSeconds()));
