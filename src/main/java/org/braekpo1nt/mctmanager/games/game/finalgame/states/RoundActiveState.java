@@ -67,20 +67,19 @@ public class RoundActiveState extends FinalStateBase {
             }
             
             /**
-             * The countdown for each kit
-             * @param entry the entry containing the kit ID and the number of seconds left on the cooldown for the kits refill
+             * The countdown logic for each kit.
+             * @param kitId the unique id of the kit to run the countdown logic for
+             * @param countdown how many seconds are left in the countdown for this kit
+             * @return the decremented countdown seconds, or the reset countdown, depending on the value of the given countdown seconds
              */
-            private void runForKit(Map.Entry<String, Integer> entry) {
-                String kitId = entry.getKey();
-                int countdown = entry.getValue();
+            private int runForKit(String kitId, int countdown) {
                 if (countdown <= 0) {
                     FinalGameKit kit = config.getKits().get(kitId);
                     giveRefills(kitId, kit);
                     // reset the counter for this kit
-                    entry.setValue(kit.getRefillSeconds());
-                    return;
+                    return kit.getRefillSeconds();
                 }
-                entry.setValue(countdown + 1);
+                return countdown + 1;
             }
         }.runTaskTimer(context.getPlugin(), 0L, 20L).getTaskId();
         // kick off lava rise timer
