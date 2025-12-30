@@ -142,7 +142,7 @@ public class FinalGame extends WandsDuoGameBase<FinalParticipant, FinalTeam, Fin
     @Override
     protected @NotNull FinalParticipant createParticipant(Participant participant) {
         Affiliation affiliation = getAffiliation(participant.getTeamId());
-        return new FinalParticipant(participant, affiliation, true, 0, 0, 0);
+        return new FinalParticipant(participant, affiliation, null, true, 0, 0, 0);
     }
     
     @Override
