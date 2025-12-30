@@ -39,6 +39,7 @@ public class FinalConfigDTO implements Validatable {
     
     private Durations durations;
     private Component description;
+    private Double arrowDamageModifier;
     
     @Override
     public void validate(@NotNull Validator validator) {
@@ -85,6 +86,7 @@ public class FinalConfigDTO implements Validatable {
                 .roundOverDuration(this.durations.roundOver)
                 .gameOverDuration(this.durations.gameOver)
                 .description(this.description)
+                .arrowDamageModifier(this.arrowDamageModifier != null ? this.arrowDamageModifier : 1.0)
                 .build();
     }
     

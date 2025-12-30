@@ -50,6 +50,12 @@ public class FinalConfig {
     private int roundOverDuration;
     private int gameOverDuration;
     private Component description;
+    /**
+     * Multiplied by the damage an arrow deals to result in a new damage value.
+     * E.g. to make arrows deal 50% damage, set to 0.5.
+     * Defaults to 1.0.
+     */
+    private double arrowDamageModifier;
     
     /**
      * Represents the details about each half of the map (north or south)

@@ -15,6 +15,7 @@ import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -197,24 +198,25 @@ public class RoundActiveState extends FinalStateBase {
     @Override
     public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull FinalParticipant participant) {
         Entity causingEntity = event.getDamageSource().getCausingEntity();
-        if (causingEntity == null) {
-            return;
+        switch (causingEntity) {
+            case Player player -> {
+                FinalParticipant causingParticipant = context.getParticipants().get(player.getUniqueId());
+                if (causingParticipant == null) {
+                    return;
+                }
+                if (causingParticipant.getKitId() == null) {
+                    return;
+                }
+                if (config.getKits().get(causingParticipant.getKitId()).isMelee()) {
+                    return;
+                }
+                // if a participant is not allowed to melee, prevent damage but not knockback
+                event.setDamage(0);
+            }
+            case Arrow ignored -> event.setDamage(event.getDamage() * config.getArrowDamageModifier());
+            case null, default -> {
+            }
         }
-        if (!(causingEntity instanceof Player player)) {
-            return;
-        }
-        FinalParticipant causingParticipant = context.getParticipants().get(player.getUniqueId());
-        if (causingParticipant == null) {
-            return;
-        }
-        if (causingParticipant.getKitId() == null) {
-            return;
-        }
-        if (config.getKits().get(causingParticipant.getKitId()).isMelee()) {
-            return;
-        }
-        // if a participant is not allowed to melee, prevent damage but not knockback
-        event.setDamage(0);
     }
     
     @Override
