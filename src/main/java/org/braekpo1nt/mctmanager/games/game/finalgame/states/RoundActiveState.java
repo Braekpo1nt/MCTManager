@@ -8,6 +8,11 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 public class RoundActiveState extends FinalStateBase {
     
     public RoundActiveState(@NotNull FinalGame context) {
@@ -16,10 +21,13 @@ public class RoundActiveState extends FinalStateBase {
     
     @Override
     public void enter() {
+        // holds an iterator for each keySet
+        Map<String, Integer> kitSpawnIter = context.getConfig().getKits().keySet().stream()
+                .collect(Collectors.toMap(key -> key, key -> 0));
         for (FinalParticipant participant : context.getParticipants().values()) {
             switch (participant.getAffiliation()) {
                 case NORTH -> {
-                    
+                    kitSpawnIter.get(participant.getKitId());
                 }
                 case SOUTH -> {
                     

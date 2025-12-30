@@ -12,18 +12,18 @@ import org.jetbrains.annotations.Nullable;
 public class KitSelectionState extends FinalStateBase {
     
     private @Nullable Timer timer;
-    private final KitPicker northKitPicker;
-    private final KitPicker southKitPicker;
+    private final KitPicker<FinalParticipant> northKitPicker;
+    private final KitPicker<FinalParticipant> southKitPicker;
     
     public KitSelectionState(@NotNull FinalGame context) {
         super(context);
-        this.northKitPicker = new KitPicker(
+        this.northKitPicker = new KitPicker<>(
                 context.getConfig().getKits(),
                 context.getNorthTeam().getParticipants(),
                 context.getNetherStar(),
                 context.getNorthTeam().getBukkitColor()
         );
-        this.southKitPicker = new KitPicker(
+        this.southKitPicker = new KitPicker<>(
                 context.getConfig().getKits(),
                 context.getSouthTeam().getParticipants(),
                 context.getNetherStar(),

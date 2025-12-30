@@ -8,6 +8,7 @@ import lombok.Data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.games.base.states.Kitted;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.Color;
@@ -23,14 +24,14 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public class KitPicker {
+public class KitPicker<K extends Participant & Kitted> {
     
     @Data
-    private static class ParticipantData {
+    private class ParticipantData {
         /**
          * The participant represented by this data
          */
-        private final Participant participant;
+        private final K participant;
         /**
          * The ID of the kit chosen by this participant
          * null indicates no kit chosen
@@ -42,7 +43,7 @@ public class KitPicker {
          */
         private @Nullable ChestGui gui;
         
-        public ParticipantData(Participant participant) {
+        public ParticipantData(K participant) {
             this.participant = participant;
             this.kitId = null;
         }
@@ -172,7 +173,7 @@ public class KitPicker {
     
     public KitPicker(
             Map<String, FinalGameKit> kits,
-            Collection<? extends Participant> participants,
+            Collection<K> participants,
             ItemStack netherStar,
             @NotNull Color leatherColor) {
         this.participants = participants.stream()
@@ -338,7 +339,7 @@ public class KitPicker {
         return assignedKits;
     }
     
-    public void addParticipant(Participant participant) {
+    public void addParticipant(K participant) {
         participants.put(participant.getUniqueId(), new ParticipantData(participant));
     }
     

@@ -26,12 +26,14 @@ public class PreRoundState extends FinalStateBase {
             switch (participant.getAffiliation()) {
                 case NORTH -> {
                     participant.teleport(context.getConfig().getNorthMap().getSpawn());
+                    participant.setKitId(null);
                     ParticipantInitializer.clearStatusEffects(participant);
                     ParticipantInitializer.resetHealthAndHunger(participant);
                     participant.setGameMode(GameMode.ADVENTURE);
                 }
                 case SOUTH -> {
                     participant.teleport(context.getConfig().getSouthMap().getSpawn());
+                    participant.setKitId(null);
                     ParticipantInitializer.clearStatusEffects(participant);
                     ParticipantInitializer.resetHealthAndHunger(participant);
                     participant.setGameMode(GameMode.ADVENTURE);

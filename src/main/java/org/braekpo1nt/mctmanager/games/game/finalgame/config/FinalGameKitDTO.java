@@ -41,9 +41,9 @@ public class FinalGameKitDTO implements Validatable {
         validator.notNull(menuItemLore, "menuItemLore");
         validator.validate(!menuItemLore.contains(null), "menuItemLore can't contain null entries");
         validator.notNull(menuItemLore, "menuItemLore");
-        validator.notNull(northSpawns, "northSpawns");
+        validator.notEmpty(northSpawns, "northSpawns");
         validator.validate(!northSpawns.contains(null), "northSpawns can't contain null entries");
-        validator.notNull(southSpawns, "southSpawns");
+        validator.notEmpty(southSpawns, "southSpawns");
         validator.validate(!southSpawns.contains(null), "southSpawns can't contain null entries");
         if (copies != null) {
             validator.validate(copies >= 1, "copies must be greater than or equal to 1");
