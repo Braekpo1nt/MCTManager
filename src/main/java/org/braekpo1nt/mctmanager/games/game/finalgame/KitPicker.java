@@ -52,7 +52,7 @@ public class KitPicker<K extends Participant & Kitted> {
          * @return true if this participant has a kit selected
          */
         public boolean hasKit() {
-            return kitId == null;
+            return kitId != null;
         }
         
         /**
