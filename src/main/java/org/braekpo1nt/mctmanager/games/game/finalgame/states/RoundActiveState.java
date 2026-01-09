@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.finalgame.FinalGame;
 import org.braekpo1nt.mctmanager.games.game.finalgame.FinalGameKit;
 import org.braekpo1nt.mctmanager.games.game.finalgame.FinalParticipant;
@@ -181,6 +182,7 @@ public class RoundActiveState extends FinalStateBase {
                     spawnIndex.incrementNorth(northSpawns.size());
                 }
                 case SOUTH -> {
+                    Main.logf("kitId=%s", kitId);
                     List<Location> southSpawns = config.getKits().get(kitId).getSouthSpawns();
                     participant.teleport(southSpawns.get(spawnIndex.getSouth()));
                     spawnIndex.incrementSouth(southSpawns.size());

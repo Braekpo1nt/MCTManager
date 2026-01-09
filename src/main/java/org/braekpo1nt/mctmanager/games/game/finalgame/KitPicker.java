@@ -265,6 +265,7 @@ public class KitPicker<K extends Participant & Kitted> {
                 assignKitToUnassigned(participantData);
             }
             participantData.deleteGuiAndHide();
+            participantData.getParticipant().setKitId(participantData.getKitId());
         }
         this.participants.clear();
         this.kits.clear();
