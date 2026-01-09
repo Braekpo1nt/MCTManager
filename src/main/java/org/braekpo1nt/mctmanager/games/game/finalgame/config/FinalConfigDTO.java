@@ -27,12 +27,13 @@ public class FinalConfigDTO implements Validatable {
     private String world;
     private @Nullable BoundingBox spectatorArea;
     private LocationDTO spectatorSpawn;
+    private LavaDTO lava;
     /**
      * Maps the unique kit name to the kit details
      */
     private Map<String, FinalGameKitDTO> kits;
-    private MapHalfDto northMap;
-    private MapHalfDto southMap;
+    private MapHalfDTO northMap;
+    private MapHalfDTO southMap;
     private int requiredWins;
     private List<Material> preventInteractions;
     private @Nullable Material replacementType;
@@ -46,6 +47,8 @@ public class FinalConfigDTO implements Validatable {
         validator.notNull(this.version, "version");
         validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.version), "invalid config version (%s)", this.version);
         validator.notNull(this.world, "world");
+        validator.notNull(this.lava, "lava");
+        this.lava.validate(validator.path("lava"));
         validator.notNull(Bukkit.getWorld(this.world), "Could not find world \"%s\"", this.world);
         if (spectatorArea != null) {
             BoundingBox spectatorArea = this.spectatorArea;
@@ -77,6 +80,7 @@ public class FinalConfigDTO implements Validatable {
                 .world(newWorld)
                 .spectatorBoundary(this.spectatorArea == null ? null :
                         new SpectatorBoundary(this.spectatorArea, this.spectatorSpawn.toLocation(newWorld)))
+                .lava(this.lava.toLava())
                 .replacementType(this.replacementType != null ? this.replacementType : Material.WHITE_CONCRETE)
                 .northMap(this.northMap.toMapHalf(Affiliation.NORTH, newWorld))
                 .southMap(this.southMap.toMapHalf(Affiliation.SOUTH, newWorld))
@@ -95,7 +99,53 @@ public class FinalConfigDTO implements Validatable {
     }
     
     @Data
-    static class MapHalfDto implements Validatable {
+    static class LavaDTO implements Validatable {
+        /**
+         * This is the maximum volume the lava should take up. Air blocks
+         * are replaced by lava within this area according. The first lava layer
+         * is the bottom-most block layer of this lava area. No lava
+         * will be spawned above the max Z of the given area.
+         */
+        private BoundingBox lavaArea;
+        /**
+         * How many blocks the lava should rise on each rise action.
+         * Defaults to 1.
+         */
+        private int blocksPerRise;
+        /**
+         * How many seconds between rises of the lava. Negative number
+         * means the lava won't rise due to a timer.
+         * Defaults to 30s
+         */
+        private @Nullable Integer riseSeconds;
+        /**
+         * How many players have to die (on either team) for the lava to rise
+         * an extra level. This will be repeated (e.g. if it's set to 2, then
+         * when two players die the lava will rise; and when two more players
+         * die after that, the lava will rise again).
+         * Negative number means the lava won't rise due to player deaths.
+         * Defaults to 2.
+         */
+        private @Nullable Integer riseDeaths;
+        
+        @Override
+        public void validate(@NotNull Validator validator) {
+            validator.notNull(lavaArea, "lavaArea");
+            validator.validate(blocksPerRise > 0, "blocksPerRise must be greater than 0");
+        }
+        
+        public FinalConfig.Lava toLava() {
+            return FinalConfig.Lava.builder()
+                    .lavaArea(lavaArea)
+                    .blocksPerRise(blocksPerRise)
+                    .riseSeconds(riseSeconds != null ? riseSeconds : 30)
+                    .riseDeaths(riseDeaths != null ? riseDeaths : 2)
+                    .build();
+        }
+    }
+    
+    @Data
+    static class MapHalfDTO implements Validatable {
         private LocationDTO spawn;
         private BoundingBox replacementArea;
         

@@ -69,6 +69,7 @@ public class FinalConfig {
     }
     
     @Data
+    @Builder
     public static class Lava {
         /**
          * This is the maximum volume the lava should take up. Air blocks
