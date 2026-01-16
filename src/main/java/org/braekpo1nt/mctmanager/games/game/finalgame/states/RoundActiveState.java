@@ -199,26 +199,26 @@ public class RoundActiveState extends FinalStateBase {
     
     @Override
     public void onParticipantDamage(@NotNull EntityDamageEvent event, @NotNull FinalParticipant participant) {
-        Entity causingEntity = event.getDamageSource().getCausingEntity();
-        switch (causingEntity) {
-            case Player player -> {
-                FinalParticipant causingParticipant = context.getParticipants().get(player.getUniqueId());
-                if (causingParticipant == null) {
-                    return;
-                }
-                if (causingParticipant.getKitId() == null) {
-                    return;
-                }
-                if (config.getKits().get(causingParticipant.getKitId()).isMelee()) {
-                    return;
-                }
-                // if a participant is not allowed to melee, prevent damage but not knockback
-                event.setDamage(0);
-            }
-            case Arrow ignored -> event.setDamage(event.getDamage() * config.getArrowDamageModifier());
-            case null, default -> {
-            }
+        Entity directEntity = event.getDamageSource().getDirectEntity();
+        if (directEntity instanceof Arrow) {
+            event.setDamage(event.getDamage() * config.getArrowDamageModifier());
+            return;
         }
+        if (!(directEntity instanceof Player player)) {
+            return;
+        }
+        FinalParticipant causingParticipant = context.getParticipants().get(player.getUniqueId());
+        if (causingParticipant == null) {
+            return;
+        }
+        if (causingParticipant.getKitId() == null) {
+            return;
+        }
+        if (config.getKits().get(causingParticipant.getKitId()).isMelee()) {
+            return;
+        }
+        // if a participant is not allowed to melee, prevent damage but not knockback
+        event.setDamage(0);
     }
     
     @Override
