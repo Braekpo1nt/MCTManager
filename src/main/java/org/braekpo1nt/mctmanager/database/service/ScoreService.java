@@ -133,6 +133,7 @@ public class ScoreService {
         gameSessionDao.deleteBuilder().delete();
         finalPersonalScoreDao.deleteBuilder().delete();
         finalTeamScoreDao.deleteBuilder().delete();
+        participantCurrencyDao.deleteBuilder().delete();
         return true;
     }
     
