@@ -21,13 +21,15 @@ public class KitSelectionState extends FinalStateBase {
                 context.getConfig().getKits(),
                 context.getNorthTeam().getParticipants(),
                 context.getNetherStar(),
-                context.getNorthTeam().getBukkitColor()
+                context.getNorthTeam().getBukkitColor(),
+                context.getNorthTeam().getColorAttributes().getBanner()
         );
         this.southKitPicker = new KitPicker<>(
                 context.getConfig().getKits(),
                 context.getSouthTeam().getParticipants(),
                 context.getNetherStar(),
-                context.getSouthTeam().getBukkitColor()
+                context.getSouthTeam().getBukkitColor(),
+                context.getSouthTeam().getColorAttributes().getBanner()
         );
     }
     

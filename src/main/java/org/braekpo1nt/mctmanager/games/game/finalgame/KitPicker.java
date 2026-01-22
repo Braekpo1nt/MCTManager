@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.games.base.states.Kitted;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.Color;
+import org.bukkit.Material;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -170,17 +171,20 @@ public class KitPicker<K extends Participant & Kitted> {
     private final Map<UUID, ParticipantData> participants;
     private final ItemStack netherStar;
     private final Color leatherColor;
+    private final ItemStack banner;
     
     public KitPicker(
             Map<String, FinalGameKit> kits,
             Collection<K> participants,
             ItemStack netherStar,
-            @NotNull Color leatherColor) {
+            @NotNull Color leatherColor,
+            Material bannerType) {
         this.participants = participants.stream()
                 .collect(Collectors.toMap(Participant::getUniqueId, ParticipantData::new));
         this.kits = new HashMap<>(kits.size());
         this.netherStar = netherStar;
         this.leatherColor = leatherColor;
+        this.banner = new ItemStack(bannerType);
         for (Map.Entry<String, FinalGameKit> entry : kits.entrySet()) {
             FinalGameKit kit = entry.getValue();
             String kitID = entry.getKey();
@@ -302,6 +306,9 @@ public class KitPicker<K extends Participant & Kitted> {
         participantData.setKitId(kitData.getId());
         kitData.choose();
         participantData.getParticipant().getInventory().setContents(kitData.getKit().getLoadout());
+        if (kitData.getKit().isHasBanner()) {
+            participantData.getParticipant().getInventory().setHelmet(banner);
+        }
         ColorMap.colorLeatherArmor(participantData.getParticipant(), leatherColor);
         participantData.getParticipant().sendMessage(Component.empty()
                 .append(Component.text("Your kit is "))

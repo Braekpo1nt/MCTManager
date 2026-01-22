@@ -23,11 +23,15 @@ import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
+import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.GameRule;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.entity.Arrow;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -136,7 +140,8 @@ public class FinalGame extends WandsDuoGameBase<FinalParticipant, FinalTeam, Fin
     
     @Override
     protected void cleanup() {
-        
+        clearFloorItems();
+        removeConcrete();
     }
     
     @Override
@@ -169,6 +174,61 @@ public class FinalGame extends WandsDuoGameBase<FinalParticipant, FinalTeam, Fin
                 participant.teleport(config.getSouthMap().getSpawn());
             }
             case SPECTATOR -> participant.teleport(config.getSpectatorSpawn());
+        }
+    }
+    
+    /**
+     * Replace the {@link FinalConfig#getReplaceBlock()} with each team's concrete
+     * color in their replacement area
+     */
+    public void placeConcrete() {
+        if (config.shouldReplaceWithConcrete()) {
+            BlockPlacementUtils.createCubeReplace(
+                    config.getWorld(),
+                    config.getNorthMap().getReplacementArea(),
+                    config.getReplaceBlock(),
+                    northTeam.getColorAttributes().getConcrete());
+            BlockPlacementUtils.createCubeReplace(
+                    config.getWorld(),
+                    config.getSouthMap().getReplacementArea(),
+                    config.getReplaceBlock(),
+                    southTeam.getColorAttributes().getConcrete());
+        }
+    }
+    
+    /**
+     * Return each team's concrete color in their replacement area
+     * to the {@link FinalConfig#getReplaceBlock()}
+     */
+    public void removeConcrete() {
+        if (config.shouldReplaceWithConcrete()) {
+            BlockPlacementUtils.createCubeReplace(
+                    config.getWorld(),
+                    config.getNorthMap().getReplacementArea(),
+                    northTeam.getColorAttributes().getConcrete(),
+                    config.getReplaceBlock());
+            BlockPlacementUtils.createCubeReplace(
+                    config.getWorld(),
+                    config.getSouthMap().getReplacementArea(),
+                    southTeam.getColorAttributes().getConcrete(),
+                    config.getReplaceBlock());
+        }
+    }
+    
+    /**
+     * Remove items/arrows on the ground
+     */
+    public void clearFloorItems() {
+        BoundingBox removeArea = config.getRemoveArea();
+        for (Arrow arrow : config.getWorld().getEntitiesByClass(Arrow.class)) {
+            if (removeArea.contains(arrow.getLocation().toVector())) {
+                arrow.remove();
+            }
+        }
+        for (Item item : config.getWorld().getEntitiesByClass(Item.class)) {
+            if (removeArea.contains(item.getLocation().toVector())) {
+                item.remove();
+            }
         }
     }
     

@@ -25,7 +25,7 @@ public class PreRoundState extends FinalStateBase {
     
     @Override
     public void enter() {
-        clearFloorItems();
+        context.clearFloorItems();
         resetLava();
         context.getTabList().setParticipantGreys(context.getParticipants().values(), false);
         for (FinalParticipant participant : context.getParticipants().values()) {
@@ -59,16 +59,6 @@ public class PreRoundState extends FinalStateBase {
                     context.setState(new KitSelectionState(context));
                 })
                 .build());
-    }
-    
-    public void clearFloorItems() {
-        for (Item item : context.getConfig().getWorld().getEntitiesByClass(Item.class)) {
-            Vector position = item.getLocation().toVector();
-            if (context.getConfig().getSouthMap().getReplacementArea().contains(position)
-                    || context.getConfig().getNorthMap().getReplacementArea().contains(position)) {
-                item.remove();
-            }
-        }
     }
     
     private void resetLava() {

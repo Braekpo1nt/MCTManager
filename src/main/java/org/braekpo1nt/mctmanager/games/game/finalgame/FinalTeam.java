@@ -58,6 +58,11 @@ public class FinalTeam extends ScoredTeamData<FinalParticipant> implements Affil
                 .anyMatch(FinalParticipant::isAlive);
     }
     
+    public boolean isDead() {
+        return getParticipants().stream()
+                .noneMatch(FinalParticipant::isAlive);
+    }
+    
     @Data
     public static class QuitData implements QuitDataBase {
         private final @NotNull Affiliation affiliation;

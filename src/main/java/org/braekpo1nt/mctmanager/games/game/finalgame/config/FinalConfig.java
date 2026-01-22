@@ -57,6 +57,21 @@ public class FinalConfig {
      */
     private double arrowDamageModifier;
     
+    private BoundingBox removeArea;
+    /**
+     * whether the concrete should be replaced with team colors in the {@link MapHalf#replacementArea} for each side
+     */
+    private boolean shouldReplaceConcrete;
+    /**
+     * The block to replace with the team's concrete color
+     * Defaults to {@link Material#WHITE_CONCRETE}
+     */
+    private @NotNull Material replaceBlock;
+    
+    public boolean shouldReplaceWithConcrete() {
+        return shouldReplaceConcrete;
+    }
+    
     /**
      * Represents the details about each half of the map (north or south)
      */

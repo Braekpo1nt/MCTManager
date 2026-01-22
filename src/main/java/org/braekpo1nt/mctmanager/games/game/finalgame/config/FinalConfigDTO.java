@@ -37,6 +37,12 @@ public class FinalConfigDTO implements Validatable {
     private int requiredWins;
     private List<Material> preventInteractions;
     private @Nullable Material replacementType;
+    /**
+     * The area to remove floor items between matches
+     */
+    private BoundingBox removeArea;
+    private @Nullable Boolean shouldReplaceConcrete;
+    private @Nullable Material replaceBlock;
     
     private Durations durations;
     private Component description;
@@ -56,6 +62,8 @@ public class FinalConfigDTO implements Validatable {
         }
         
         validator.notNull(this.spectatorSpawn, "spectatorSpawn");
+        
+        validator.notNull(this.removeArea, "removeArea");
         
         validator.notNull(kits, "kits");
         validator.validateMap(kits, "kits");
@@ -87,6 +95,9 @@ public class FinalConfigDTO implements Validatable {
                 .kits(FinalGameKitDTO.toFinalGameKits(this.kits, newWorld))
                 .spectatorSpawn(this.spectatorSpawn.toLocation(newWorld))
                 .requiredWins(this.requiredWins)
+                .removeArea(this.removeArea)
+                .shouldReplaceConcrete(this.shouldReplaceConcrete != null ? this.shouldReplaceConcrete : true)
+                .replaceBlock(this.replaceBlock != null ? this.replaceBlock : Material.WHITE_CONCRETE)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .descriptionDuration(this.durations.description)
                 .roundStartingDuration(this.durations.roundStarting)

@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.finalgame;
 import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -103,6 +104,10 @@ public class FinalGameKit {
         }
         Map<Material, Integer> itemCounts = refills.stream()
                 .collect(Collectors.toMap(Refill::getMaterial, item -> 0));
+        ItemStack cursor = participant.getOpenInventory().getCursor();
+        if (itemCounts.containsKey(cursor.getType())) {
+            itemCounts.put(cursor.getType(), cursor.getAmount());
+        }
         for (@Nullable ItemStack itemStack : participant.getInventory().getContents()) {
             if (itemStack != null) {
                 // only need to keep track of items with refills
@@ -145,7 +150,7 @@ public class FinalGameKit {
          * @param inventory the inventory to refill
          */
         public void refill(int numberInInventory, @NotNull PlayerInventory inventory) {
-            int availableSpace = numberInInventory - max;
+            int availableSpace = max - numberInInventory;
             int amountToRefill = Math.min(availableSpace, amount);
             if (amountToRefill > 0) {
                 inventory.addItem(new ItemStack(material, amountToRefill));

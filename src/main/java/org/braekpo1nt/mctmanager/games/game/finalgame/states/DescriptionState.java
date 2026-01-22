@@ -18,6 +18,7 @@ public class DescriptionState extends FinalStateBase {
     
     @Override
     public void enter() {
+        context.placeConcrete();
         context.messageAllParticipants(context.getConfig().getDescription());
         this.timer = context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getDescriptionDuration())
