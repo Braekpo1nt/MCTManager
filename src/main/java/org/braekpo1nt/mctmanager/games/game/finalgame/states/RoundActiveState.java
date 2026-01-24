@@ -22,6 +22,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -141,8 +142,9 @@ public class RoundActiveState extends FinalStateBase {
     
     /**
      * Give refills for the given kit to all participants with the kit
+     *
      * @param kitId the id of the kit
-     * @param kit the kit to give the refills of
+     * @param kit   the kit to give the refills of
      */
     private void giveRefills(String kitId, FinalGameKit kit) {
         for (FinalParticipant participant : context.getParticipants().values()) {
@@ -186,6 +188,21 @@ public class RoundActiveState extends FinalStateBase {
             return;
         }
         if (config.getKits().get(causingParticipant.getKitId()).isMelee()) {
+            final Vector position = participant.getLocation().toVector();
+            switch (participant.getAffiliation()) {
+                case NORTH -> {
+                    if (!config.getNorthMap().getReplacementArea().contains(position)) {
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
+                case SOUTH -> {
+                    if (!config.getSouthMap().getReplacementArea().contains(position)) {
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
+            }
             return;
         }
         // if a participant is not allowed to melee, prevent damage but not knockback
@@ -226,6 +243,7 @@ public class RoundActiveState extends FinalStateBase {
     
     /**
      * Some common functionality for when a participant dies, or quits
+     *
      * @param participant the participant who died
      */
     private void onParticipantDeath(FinalParticipant participant) {
