@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.gamemanager.event.config;
 
+import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
@@ -35,8 +36,9 @@ record EventConfigDTO(
         double[] multipliers,
         boolean shouldDisplayGameNumber,
         @Nullable Map<GameType, String> gameConfigs,
-        @Nullable String colossalCombatConfig,
+        @SerializedName(value = "finaleConfig", alternate = {"finaleConfig"}) @Nullable String finaleConfig,
         Tips tips,
+        @Nullable GameType finaleGame,
         PresetDTO.PresetConfigDTO preset,
         @Nullable ItemStackDTO crown,
         Durations durations) implements Validatable {
@@ -94,7 +96,8 @@ record EventConfigDTO(
                 .tipsDisplayTime(this.tips.getDisplayTime())
                 .shouldDisplayGameNumber(this.shouldDisplayGameNumber)
                 .gameConfigs(this.gameConfigs != null ? this.gameConfigs : Collections.emptyMap())
-                .colossalCombatConfig(this.colossalCombatConfig != null ? this.colossalCombatConfig : "default.json")
+                .finaleGame(this.finaleGame != null ? this.finaleGame : GameType.FINAL)
+                .finaleConfig(this.finaleConfig != null ? this.finaleConfig : "default.json")
                 .preset(this.preset != null ? this.preset.toPreset() : null)
                 .crown(newCrown)
                 .title(this.title)
