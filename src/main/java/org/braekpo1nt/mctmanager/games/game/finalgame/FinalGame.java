@@ -8,7 +8,7 @@ import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.base.Affiliation;
 import org.braekpo1nt.mctmanager.games.base.WandsDuoGameBase;
-import org.braekpo1nt.mctmanager.games.base.listeners.PreventHungerLossSpecific;
+import org.braekpo1nt.mctmanager.games.base.listeners.PreventHungerLoss;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventItemDrop;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventPickupArrow;
 import org.braekpo1nt.mctmanager.games.editor.wand.Wand;
@@ -74,7 +74,7 @@ public class FinalGame extends WandsDuoGameBase<FinalParticipant, FinalTeam, Fin
         setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
         addListener(new PreventItemDrop<>(this, true));
         addListener(new PreventPickupArrow<>(this));
-        addListener(new PreventHungerLossSpecific<>(this, participant -> participant.getAffiliation().equals(Affiliation.SPECTATOR)));
+        addListener(new PreventHungerLoss<>(this));
         topbar.addTeam(this.northTeam.getTeamId(), this.northTeam.getColor());
         topbar.addTeam(this.southTeam.getTeamId(), this.southTeam.getColor());
         topbar.linkTeamPair(this.northTeam.getTeamId(), this.southTeam.getTeamId());
