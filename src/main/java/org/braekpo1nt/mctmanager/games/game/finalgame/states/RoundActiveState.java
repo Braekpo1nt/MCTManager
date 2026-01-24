@@ -188,18 +188,20 @@ public class RoundActiveState extends FinalStateBase {
             return;
         }
         if (config.getKits().get(causingParticipant.getKitId()).isMelee()) {
-            final Vector position = participant.getLocation().toVector();
-            switch (participant.getAffiliation()) {
-                case NORTH -> {
-                    if (!config.getNorthMap().getReplacementArea().contains(position)) {
-                        event.setCancelled(true);
-                        return;
+            if (config.isSideOnlyMelee()) {
+                final Vector position = participant.getLocation().toVector();
+                switch (participant.getAffiliation()) {
+                    case NORTH -> {
+                        if (!config.getNorthMap().getReplacementArea().contains(position)) {
+                            event.setCancelled(true);
+                            return;
+                        }
                     }
-                }
-                case SOUTH -> {
-                    if (!config.getSouthMap().getReplacementArea().contains(position)) {
-                        event.setCancelled(true);
-                        return;
+                    case SOUTH -> {
+                        if (!config.getSouthMap().getReplacementArea().contains(position)) {
+                            event.setCancelled(true);
+                            return;
+                        }
                     }
                 }
             }
