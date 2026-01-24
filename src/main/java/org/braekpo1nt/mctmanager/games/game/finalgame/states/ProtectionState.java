@@ -1,18 +1,28 @@
 package org.braekpo1nt.mctmanager.games.game.finalgame.states;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.base.Affiliation;
 import org.braekpo1nt.mctmanager.games.game.finalgame.FinalGame;
+import org.braekpo1nt.mctmanager.games.game.finalgame.FinalGameKit;
 import org.braekpo1nt.mctmanager.games.game.finalgame.FinalParticipant;
+import org.braekpo1nt.mctmanager.games.game.finalgame.FinalTeam;
 import org.braekpo1nt.mctmanager.games.game.finalgame.config.FinalConfig;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -135,5 +145,71 @@ public class ProtectionState extends FinalStateBase {
         for (Location location : spawnLocations.values()) {
             BlockPlacementUtils.createBarrierCube(location, Material.BARRIER, Material.AIR);
         }
+    }
+    
+    @Override
+    public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull FinalParticipant participant) {
+        if (participant.getAffiliation() == Affiliation.SPECTATOR) {
+            return;
+        }
+        event.getDrops().clear();
+        event.setDroppedExp(0);
+    }
+    
+    @Override
+    public void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull FinalParticipant participant) {
+        switch (participant.getAffiliation()) {
+            case NORTH, SOUTH -> event.setRespawnLocation(participant.getLocation());
+            case SPECTATOR -> event.setRespawnLocation(context.getConfig().getSpectatorSpawn());
+        }
+    }
+    
+    @Override
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull FinalParticipant participant) {
+        super.onParticipantPostRespawn(event, participant);
+        giveKitItems(participant);
+    }
+    
+    private void giveKitItems(@NotNull FinalParticipant participant) {
+        FinalTeam team = context.getTeams().get(participant.getTeamId());
+        FinalGameKit kit = config.getKits().get(participant.getKitId());
+        if (kit.isHasBanner()) {
+            participant.getInventory().setHelmet(new ItemStack(team.getColorAttributes().getBanner()));
+        }
+        ColorMap.colorLeatherArmor(participant, team.getBukkitColor());
+    }
+    
+    @Override
+    public void onParticipantRejoin(FinalParticipant participant, FinalTeam team) {
+        super.onParticipantRejoin(participant, team);
+        if (participant.getAffiliation() == Affiliation.SPECTATOR) {
+            return;
+        }
+        participant.setAlive(false);
+        context.getTabList().setParticipantGrey(participant, true);
+        participant.setGameMode(GameMode.SPECTATOR);
+        context.updateAliveStatus(participant.getAffiliation());
+    }
+    
+    @Override
+    public void onNewParticipantJoin(FinalParticipant participant, FinalTeam team) {
+        super.onNewParticipantJoin(participant, team);
+        if (participant.getAffiliation() == Affiliation.SPECTATOR) {
+            return;
+        }
+        participant.setAlive(false);
+        context.getTabList().setParticipantGrey(participant, true);
+        participant.setGameMode(GameMode.SPECTATOR);
+        context.updateAliveStatus(participant.getAffiliation());
+    }
+    
+    @Override
+    public void onParticipantQuit(FinalParticipant participant, FinalTeam team) {
+        if (participant.isAlive() && participant.getAffiliation() != Affiliation.SPECTATOR) {
+            context.messageAllParticipants(Component.empty()
+                    .append(participant.displayName())
+                    .append(Component.text(" left early. Their life is forfeit.")));
+        }
+        super.onParticipantQuit(participant, team);
     }
 }
