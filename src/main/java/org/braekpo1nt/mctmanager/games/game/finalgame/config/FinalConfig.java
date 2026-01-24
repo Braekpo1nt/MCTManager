@@ -56,6 +56,11 @@ public class FinalConfig {
      * Can't be negative. Defaults to 1.0.
      */
     private double arrowDamageModifier;
+    /**
+     * if true, melee kits can only punch when they are in their respective sides
+     * Defaults to false
+     */
+    private boolean sideOnlyMelee;
     
     private BoundingBox removeArea;
     /**

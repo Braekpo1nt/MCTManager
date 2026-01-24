@@ -37,6 +37,7 @@ public class FinalConfigDTO implements Validatable {
     private int requiredWins;
     private List<Material> preventInteractions;
     private @Nullable Material replacementType;
+    private @Nullable Boolean sideOnlyMelee;
     /**
      * The area to remove floor items between matches
      */
@@ -92,6 +93,7 @@ public class FinalConfigDTO implements Validatable {
                         new SpectatorBoundary(this.spectatorArea, this.spectatorSpawn.toLocation(newWorld)))
                 .lava(this.lava.toLava())
                 .replacementType(this.replacementType != null ? this.replacementType : Material.WHITE_CONCRETE)
+                .sideOnlyMelee(this.sideOnlyMelee != null ? this.sideOnlyMelee : false)
                 .northMap(this.northMap.toMapHalf(Affiliation.NORTH, newWorld))
                 .southMap(this.southMap.toMapHalf(Affiliation.SOUTH, newWorld))
                 .kits(FinalGameKitDTO.toFinalGameKits(this.kits, newWorld))
