@@ -89,7 +89,7 @@ public class ActiveState extends GameplayState {
     
     private void onTeamReachMaxScore(FarmRushTeam winingTeam) {
         Timer.cancel(gameTimer);
-        context.awardPoints(winingTeam, context.getConfig().getWinnerBonus());
+        context.awardPoints(winingTeam, context.getConfig().getWinnerBonus(), "Won");
         context.messageAllParticipants(Component.empty()
                 .append(winingTeam.getFormattedDisplayName())
                 .append(Component.text(" reached "))

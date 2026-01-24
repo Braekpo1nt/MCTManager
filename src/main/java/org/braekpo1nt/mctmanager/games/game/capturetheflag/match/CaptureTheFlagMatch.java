@@ -449,9 +449,9 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
         topbar.setDeaths(participant.getUniqueId(), newDeathCount);
     }
     
-    public void awardPoints(CTFMatchParticipant participant, int points) {
+    public void awardPoints(CTFMatchParticipant participant, int points, String description) {
         CTFParticipant ctfParticipant = parentContext.getParticipants().get(participant.getUniqueId());
-        parentContext.awardPoints(ctfParticipant, points);
+        parentContext.awardPoints(ctfParticipant, points, description);
         participant.setScore(ctfParticipant.getScore());
         int newScore = parentContext.getTeams().get(participant.getTeamId()).getScore();
         if (participant.getAffiliation() == Affiliation.NORTH) {
@@ -461,9 +461,9 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
         }
     }
     
-    public void awardPoints(CTFMatchTeam team, int points) {
+    public void awardPoints(CTFMatchTeam team, int points, String description) {
         CTFTeam ctfTeam = parentContext.getTeams().get(team.getTeamId());
-        parentContext.awardPoints(ctfTeam, points);
+        parentContext.awardPoints(ctfTeam, points, description);
         team.setScore(ctfTeam.getScore());
     }
     

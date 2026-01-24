@@ -170,7 +170,7 @@ public class ActiveState extends FootRaceStateBase {
                     .append(Component.text(currentLap))
                     .append(Component.text(" in "))
                     .append(TimeStringUtils.getTimeComponentMillis(elapsedTime)));
-            context.awardPoints(participant, config.getCompleteLapScore());
+            context.awardPoints(participant, config.getCompleteLapScore(), String.format("Finished lap %s", currentLap));
             return;
         }
         if (currentLap == context.getConfig().getLaps()) {
@@ -190,7 +190,7 @@ public class ActiveState extends FootRaceStateBase {
         participant.setPlacement(placement);
         showRaceCompleteFastBoard(participant);
         int points = calculatePointsForPlacement(placement);
-        context.awardPoints(participant, points);
+        context.awardPoints(participant, points, String.format("Finished race in %s place", placement));
         Component timeComponent = TimeStringUtils.getTimeComponentMillis(elapsedTime);
         Component endCountDown = TimeStringUtils.getTimeComponent(config.getRaceEndCountdownDuration());
         Component placementComponent = GameManagerUtils.getPlacementTitle(placement);

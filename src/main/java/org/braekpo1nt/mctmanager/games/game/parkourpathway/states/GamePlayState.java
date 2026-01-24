@@ -139,7 +139,7 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
             if (config.getReachedCheckpointSound() != null) {
                 participant.playSound(config.getReachedCheckpointSound());
             }
-            context.awardPoints(participant, calculatePointsForPuzzle(puzzleIndex, config.getCheckpointScore()));
+            context.awardPoints(participant, calculatePointsForPuzzle(puzzleIndex, config.getCheckpointScore()), String.format("Reached checkpoint %s", puzzleIndex));
             
             if (config.getMaxSkipPuzzle() > 0) {
                 if (puzzleIndex == config.getMaxSkipPuzzle()) {
@@ -216,7 +216,7 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
                 .color(NamedTextColor.GREEN)
         );
         if (awardPoints) {
-            context.awardPoints(participant, calculatePointsForWin(config.getWinScore()));
+            context.awardPoints(participant, calculatePointsForWin(config.getWinScore()), "Finished all puzzles");
         }
         context.awardPointsForUnusedSkips(participant);
         participant.setGameMode(GameMode.SPECTATOR);

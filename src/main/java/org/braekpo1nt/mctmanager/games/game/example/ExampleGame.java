@@ -68,7 +68,7 @@ public class ExampleGame extends WandsGameBase<ExampleParticipant, ExampleTeam, 
                         Component.text("Click to get a point")
                 )))
                 .onRightClick((event, participant) -> {
-                    awardPoints(participant, 1);
+                    awardPoints(participant, 1, "Clicked Point Accumulator");
                     return CommandResult.success();
                 })
                 .shouldNotDrop(true)
