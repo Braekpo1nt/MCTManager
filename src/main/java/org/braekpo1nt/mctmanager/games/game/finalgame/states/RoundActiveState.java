@@ -142,9 +142,8 @@ public class RoundActiveState extends FinalStateBase {
     
     /**
      * Give refills for the given kit to all participants with the kit
-     *
      * @param kitId the id of the kit
-     * @param kit   the kit to give the refills of
+     * @param kit the kit to give the refills of
      */
     private void giveRefills(String kitId, FinalGameKit kit) {
         for (FinalParticipant participant : context.getParticipants().values()) {
@@ -189,8 +188,8 @@ public class RoundActiveState extends FinalStateBase {
         }
         if (config.getKits().get(causingParticipant.getKitId()).isMelee()) {
             if (config.isSideOnlyMelee()) {
-                final Vector position = participant.getLocation().toVector();
-                switch (participant.getAffiliation()) {
+                final Vector position = causingParticipant.getLocation().toVector();
+                switch (causingParticipant.getAffiliation()) {
                     case NORTH -> {
                         if (!config.getNorthMap().getReplacementArea().contains(position)) {
                             event.setCancelled(true);
@@ -245,7 +244,6 @@ public class RoundActiveState extends FinalStateBase {
     
     /**
      * Some common functionality for when a participant dies, or quits
-     *
      * @param participant the participant who died
      */
     private void onParticipantDeath(FinalParticipant participant) {
