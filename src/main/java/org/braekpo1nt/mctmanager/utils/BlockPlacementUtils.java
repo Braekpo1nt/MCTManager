@@ -142,6 +142,37 @@ public class BlockPlacementUtils {
         }
     }
     
+    public static void createBarrierCube(Location bottomCenter, Material replace, Material with) {
+        int baseX = bottomCenter.getBlockX();
+        int baseY = bottomCenter.getBlockY();
+        int baseZ = bottomCenter.getBlockZ();
+        createHollowCubeReplace(bottomCenter.getWorld(), new BoundingBox(baseX - 1, baseY - 1, baseZ - 1, baseX + 1, baseY + 2, baseZ + 1), replace, with);
+    }
+    
+    public static void createHollowCubeReplace(World world, BoundingBox area, Material replace, Material with) {
+        int minX = area.getMin().getBlockX();
+        int minY = area.getMin().getBlockY();
+        int minZ = area.getMin().getBlockZ();
+        int maxX = area.getMax().getBlockX();
+        int maxY = area.getMax().getBlockY();
+        int maxZ = area.getMax().getBlockZ();
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    if (
+                            x == minX || x == maxX
+                                    || y == minY || y == maxY
+                                    || z == minZ || z == maxZ) {
+                        Block block = world.getBlockAt(x, y, z);
+                        if (block.getType().equals(replace)) {
+                            block.setType(with);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     public static void createCubeReplace(World world, int xOrigin, int yOrigin, int zOrigin, int xSize, int ySize, int zSize, Material replace, Material with) {
         int xEnd = xOrigin + xSize - 1;
         int yEnd = yOrigin + ySize - 1;
