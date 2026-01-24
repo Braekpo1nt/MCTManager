@@ -67,6 +67,7 @@ public class FinalConfig {
      * Defaults to {@link Material#WHITE_CONCRETE}
      */
     private @NotNull Material replaceBlock;
+    private int protectionDuration;
     
     public boolean shouldReplaceWithConcrete() {
         return shouldReplaceConcrete;

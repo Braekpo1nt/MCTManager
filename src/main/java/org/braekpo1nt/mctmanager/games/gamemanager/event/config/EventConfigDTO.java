@@ -36,7 +36,7 @@ record EventConfigDTO(
         double[] multipliers,
         boolean shouldDisplayGameNumber,
         @Nullable Map<GameType, String> gameConfigs,
-        @SerializedName(value = "finaleConfig", alternate = {"finaleConfig"}) @Nullable String finaleConfig,
+        @SerializedName(value = "finaleConfig", alternate = {"colossalCombatConfig"}) @Nullable String finaleConfig,
         Tips tips,
         @Nullable GameType finaleGame,
         PresetDTO.PresetConfigDTO preset,

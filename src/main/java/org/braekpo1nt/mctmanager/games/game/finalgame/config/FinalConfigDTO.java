@@ -74,6 +74,8 @@ public class FinalConfigDTO implements Validatable {
         southMap.validate(validator.path("southMap"));
         
         validator.notNull(this.description, "description");
+        validator.notNull(this.durations, "durations");
+        this.durations.validate(validator.path("durations"));
         
         if (arrowDamageModifier != null) {
             validator.validate(arrowDamageModifier >= 0.0, "arrowDamageModifier can't be negative");
@@ -104,6 +106,7 @@ public class FinalConfigDTO implements Validatable {
                 .classSelectionDuration(this.durations.classSelection)
                 .roundOverDuration(this.durations.roundOver)
                 .gameOverDuration(this.durations.gameOver)
+                .protectionDuration(this.durations.protectionDuration)
                 .description(this.description)
                 .arrowDamageModifier(this.arrowDamageModifier != null ? this.arrowDamageModifier : 1.0)
                 .build();
@@ -176,11 +179,18 @@ public class FinalConfigDTO implements Validatable {
     }
     
     @Data
-    static class Durations {
+    static class Durations implements Validatable {
+        private Integer protectionDuration;
         private int description;
         private int roundStarting;
         private int classSelection;
         private int roundOver;
         private int gameOver;
+        
+        @Override
+        public void validate(@NotNull Validator validator) {
+            validator.notNull(this.protectionDuration, "protectionDuration");
+            validator.validate(this.protectionDuration >= 0, "protectionDuration must be at least 0");
+        }
     }
 }

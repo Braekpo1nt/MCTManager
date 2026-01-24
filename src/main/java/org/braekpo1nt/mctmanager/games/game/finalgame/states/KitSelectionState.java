@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.finalgame.states;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.finalgame.FinalGame;
 import org.braekpo1nt.mctmanager.games.game.finalgame.FinalParticipant;
@@ -42,13 +43,17 @@ public class KitSelectionState extends FinalStateBase {
                 .withTopbar(context.getTopbar())
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .sidebarPrefix(Component.text("Kit selection: "))
+                .titleAudience(Audience.audience(
+                        Audience.audience(context.getParticipants().values()),
+                        Audience.audience(context.getAdmins())
+                ))
                 .onCompletion(() -> {
                     for (FinalParticipant participant : context.getParticipants().values()) {
                         participant.getInventory().remove(context.getNetherStar());
                     }
                     northKitPicker.stop(true);
                     southKitPicker.stop(true);
-                    context.setState(new RoundActiveState(context));
+                    context.setState(new ProtectionState(context));
                 })
                 .build());
     }

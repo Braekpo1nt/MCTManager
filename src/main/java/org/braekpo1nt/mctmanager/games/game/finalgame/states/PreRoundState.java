@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.finalgame.states;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.base.Affiliation;
 import org.braekpo1nt.mctmanager.games.game.finalgame.FinalGame;
@@ -9,9 +10,7 @@ import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
-import org.bukkit.entity.Item;
 import org.bukkit.util.BoundingBox;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

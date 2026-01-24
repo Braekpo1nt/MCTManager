@@ -1,12 +1,8 @@
 package org.braekpo1nt.mctmanager.games.game.finalgame.states;
 
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.base.Affiliation;
 import org.braekpo1nt.mctmanager.games.game.finalgame.FinalGame;
 import org.braekpo1nt.mctmanager.games.game.finalgame.FinalGameKit;
@@ -16,10 +12,7 @@ import org.braekpo1nt.mctmanager.games.game.finalgame.config.FinalConfig;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
-import org.braekpo1nt.mctmanager.utils.LogType;
-import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.GameMode;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
@@ -32,7 +25,6 @@ import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -54,25 +46,8 @@ public class RoundActiveState extends FinalStateBase {
         this.lavaYLevel = ((int) config.getLava().getLavaArea().getMinY());
     }
     
-    @Getter
-    @NoArgsConstructor
-    @Setter
-    private static class SpawnIndex {
-        private int north;
-        private int south;
-        
-        public void incrementNorth(int size) {
-            north = MathUtils.wrapIndex(north + 1, size);
-        }
-        
-        public void incrementSouth(int size) {
-            south = MathUtils.wrapIndex(south + 1, size);
-        }
-    }
-    
     @Override
     public void enter() {
-        spawnParticipantsInArena();
         // kick off ammo refill timer (each kit has different delays, but they're all in 
         //   increments of seconds, so it can be one timer with a single tracker for each kit type)
         kickOffRefillTimer();
@@ -173,33 +148,6 @@ public class RoundActiveState extends FinalStateBase {
         for (FinalParticipant participant : context.getParticipants().values()) {
             if (participant.isAlive() && participant.hasKit(kitId)) {
                 kit.refill(participant);
-            }
-        }
-    }
-    
-    /**
-     * Spawn the participants in their arena, according to their affiliation and kit,
-     * using the kit's spawn points.
-     */
-    private void spawnParticipantsInArena() {
-        // holds an iterator for each keySet
-        Map<String, SpawnIndex> kitSpawnIter = config.getKits().keySet().stream()
-                .collect(Collectors.toMap(key -> key, key -> new SpawnIndex()));
-        for (FinalParticipant participant : context.getParticipants().values()) {
-            String kitId = participant.getKitId();
-            SpawnIndex spawnIndex = kitSpawnIter.get(kitId);
-            switch (participant.getAffiliation()) {
-                case NORTH -> {
-                    List<Location> northSpawns = config.getKits().get(kitId).getNorthSpawns();
-                    participant.teleport(northSpawns.get(spawnIndex.getNorth()));
-                    spawnIndex.incrementNorth(northSpawns.size());
-                }
-                case SOUTH -> {
-                    Main.logf("kitId=%s", kitId);
-                    List<Location> southSpawns = config.getKits().get(kitId).getSouthSpawns();
-                    participant.teleport(southSpawns.get(spawnIndex.getSouth()));
-                    spawnIndex.incrementSouth(southSpawns.size());
-                }
             }
         }
     }
