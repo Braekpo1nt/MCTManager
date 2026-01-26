@@ -381,7 +381,7 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
             // if all deaths grant points, or this specific death for this killed participant should grant points
             int deathPointsThreshold = config.getBorder().getDeathPointsThreshold();
             if (deathPointsThreshold < 0 || killed.getDeaths() < deathPointsThreshold) {
-                context.awardPoints(killer, config.getKillScore());
+                context.awardPoints(killer, config.getKillScore(), String.format("Killed \"%s\"", killed.getName()));
             }
         }
     }
@@ -432,7 +432,7 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
                 .append(Component.text(" has been eliminated.")));
         List<SurvivalGamesTeam> livingTeams = getLivingTeams();
         for (SurvivalGamesTeam livingTeam : livingTeams) {
-            context.awardPoints(livingTeam, config.getSurviveTeamScore());
+            context.awardPoints(livingTeam, config.getSurviveTeamScore(), String.format("Team \"%s\" was eliminated", deadTeam.getTeamId()));
         }
         if (!getRespawningTeams().isEmpty()) {
             // there is still battle to be had
@@ -443,13 +443,13 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
                 plugin.getServer().sendMessage(Component.empty()
                         .append(deadTeam.getFormattedDisplayName())
                         .append(Component.text(" got third place!")));
-                context.awardPoints(deadTeam, config.getThirdPlaceScore());
+                context.awardPoints(deadTeam, config.getThirdPlaceScore(), "Got third place");
             }
             case 1 -> {
                 plugin.getServer().sendMessage(Component.empty()
                         .append(deadTeam.getFormattedDisplayName())
                         .append(Component.text(" got second place!")));
-                context.awardPoints(deadTeam, config.getSecondPlaceScore());
+                context.awardPoints(deadTeam, config.getSecondPlaceScore(), "Got second place");
                 onTeamWin(livingTeams.getFirst());
             }
             case 0 -> {
@@ -481,7 +481,7 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
         plugin.getServer().sendMessage(Component.text("Team ")
                 .append(winningTeam.getFormattedDisplayName())
                 .append(Component.text(" wins!")));
-        context.awardPoints(winningTeam, config.getFirstPlaceScore());
+        context.awardPoints(winningTeam, config.getFirstPlaceScore(), "Got first place");
         if (context.getCurrentRound() < context.getConfig().getRounds()) {
             context.setState(new RoundOverState(context));
         } else {

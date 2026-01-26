@@ -50,12 +50,13 @@ public class SpleefGame extends GameBase<SpleefParticipant, SpleefTeam, SpleefPa
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
             @NotNull Component title,
+            int gameSessionId,
             @NotNull SpleefConfig config,
             @NotNull String configFile,
             @NotNull Collection<Team> newTeams,
             @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
-        super(new GameInstanceId(GameType.SPLEEF, configFile), plugin, gameManager, title, new InitialState());
+        super(gameSessionId, new GameInstanceId(GameType.SPLEEF, configFile), plugin, gameManager, title, new InitialState());
         this.config = config;
         this.currentRound = 1;
         placeLayers(true);

@@ -163,7 +163,7 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
         List<SpleefParticipant> awardedParticipants = context.getParticipants().values().stream()
                 .filter(p -> p.isAlive() && !p.sameTeam(participant))
                 .toList();
-        context.awardParticipantPoints(awardedParticipants, context.getConfig().getSurviveScore());
+        context.awardParticipantPoints(awardedParticipants, context.getConfig().getSurviveScore(), String.format("Participant \"%s\" was eliminated", participant.getName()));
         
         updateAliveCount(getAliveCount());
     }

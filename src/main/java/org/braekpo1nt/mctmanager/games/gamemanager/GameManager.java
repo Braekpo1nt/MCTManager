@@ -13,6 +13,11 @@ import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
+import org.braekpo1nt.mctmanager.database.Database;
+import org.braekpo1nt.mctmanager.database.entities.InstantPersonalScore;
+import org.braekpo1nt.mctmanager.database.entities.InstantTeamScore;
+import org.braekpo1nt.mctmanager.database.entities.ParticipantCurrency;
+import org.braekpo1nt.mctmanager.database.service.ScoreService;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
@@ -56,6 +61,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,6 +81,8 @@ public class GameManager implements Listener {
     public static final String ADMIN_TEAM = "_Admins";
     public static final NamedTextColor ADMIN_COLOR = NamedTextColor.DARK_RED;
     private final Main plugin;
+    @Getter
+    private final ScoreService scoreService;
     // TODO: remove these getter and setter and make this a map like activeGames
     @Getter
     @Setter
@@ -124,7 +132,7 @@ public class GameManager implements Listener {
      * an editor.
      */
     protected final Map<UUID, GameInstanceId> adminEditors = new HashMap<>();
-    private final TabList tabList;
+    private final TabList tabList; // TODO: make tabList a thing of each state, so you can have no scores and not list all names during practice mode
     private final @NotNull List<LeaderboardManager> leaderboardManagers;
     private final Sidebar sidebar; // TODO: make sidebar a thing of each state, not central
     @Getter
@@ -134,12 +142,17 @@ public class GameManager implements Listener {
                        Scoreboard mctScoreboard,
                        @NotNull GameStateStorageUtil gameStateStorageUtil,
                        @NotNull SidebarFactory sidebarFactory,
-                       @NotNull HubConfig config) {
+                       @NotNull HubConfig config,
+                       @NotNull Database database) {
         this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.mctScoreboard = mctScoreboard;
         this.gameStateStorageUtil = gameStateStorageUtil;
         this.timerManager = new TimerManager(plugin);
+        this.scoreService = new ScoreService(
+                plugin.getConfig().getString("database.mode", "prod"),
+                database
+        );
         this.sidebarFactory = sidebarFactory;
         this.config = config;
         this.tabList = new TabList(plugin);
@@ -180,6 +193,10 @@ public class GameManager implements Listener {
     
     public CommandResult switchMode(@NotNull String mode) {
         return state.switchMode(mode);
+    }
+    
+    public @NotNull String getMode() {
+        return state.getMode();
     }
     
     public List<LeaderboardManager> createLeaderboardManagers() {
@@ -348,6 +365,12 @@ public class GameManager implements Listener {
             MCTParticipant participant = new MCTParticipant(offlineParticipant, player);
             state.onParticipantJoin(event, participant);
         }
+        scoreService.createParticipantCurrencyIfNotExists(ParticipantCurrency.builder()
+                .uuid(player.getUniqueId().toString())
+                .ign(player.getName())
+                .current(0)
+                .lifetime(0)
+                .build());
     }
     
     @EventHandler
@@ -663,8 +686,8 @@ public class GameManager implements Listener {
     /**
      * Called by an active game when the game is over.
      */
-    public void gameIsOver(@NotNull GameInstanceId id, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants, @NotNull List<Player> gameAdmins) {
-        state.gameIsOver(id, teamScores, participantScores, gameParticipants, gameAdmins);
+    public void gameIsOver(int gameSessionId, @NotNull GameInstanceId id, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants, @NotNull List<Player> gameAdmins) {
+        state.gameIsOver(gameSessionId, id, teamScores, participantScores, gameParticipants, gameAdmins);
     }
     
     /**
@@ -845,6 +868,144 @@ public class GameManager implements Listener {
             return Collections.emptyList();
         }
         return team.getMemberUUIDs().stream().map(allParticipants::get).collect(Collectors.toSet());
+    }
+    
+    /**
+     * Log a given score to the database
+     * @param participant the participant who earned the score
+     * @param points the points earned by the player
+     * @param gameInstanceId the game that the score was earned during
+     * @param description the description of the action that resulted in the score (e.g. Braekpo1nt was killed by rstln)
+     */
+    public void logInstantScore(
+            Participant participant,
+            int points,
+            int gameSessionId,
+            GameInstanceId gameInstanceId,
+            String description
+    ) {
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            Date date = new Date();
+            scoreService.logInstantScore(InstantPersonalScore.builder()
+                    .uuid(participant.getUniqueId().toString())
+                    .ign(participant.getName())
+                    .teamId(participant.getTeamId())
+                    .gameSessionId(gameSessionId)
+                    .gameType(gameInstanceId.getGameType())
+                    .configFile(gameInstanceId.getConfigFile())
+                    .date(date)
+                    .mode(getMode())
+                    .multiplier(getMultiplier())
+                    .points(points)
+                    .description(description)
+                    .build());
+            scoreService.logInstantScore(InstantTeamScore.builder()
+                    .teamId(participant.getTeamId())
+                    .gameSessionId(gameSessionId)
+                    .gameType(gameInstanceId.getGameType())
+                    .configFile(gameInstanceId.getConfigFile())
+                    .date(date)
+                    .mode(getMode())
+                    .multiplier(getMultiplier())
+                    .points(points)
+                    .description(description)
+                    .build());
+        });
+    }
+    
+    
+    public void logInstantScore(
+            String teamId,
+            int points,
+            int gameSessionId,
+            GameInstanceId gameInstanceId,
+            String description
+    ) {
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            scoreService.logInstantScore(InstantTeamScore.builder()
+                    .teamId(teamId)
+                    .gameSessionId(gameSessionId)
+                    .gameType(gameInstanceId.getGameType())
+                    .configFile(gameInstanceId.getConfigFile())
+                    .date(new Date())
+                    .mode(getMode())
+                    .multiplier(getMultiplier())
+                    .points(points)
+                    .description(description)
+                    .build());
+        });
+    }
+    
+    public void logInstantScores(
+            Collection<? extends Participant> awardedParticipants,
+            Collection<? extends Team> awardedTeams,
+            int points,
+            int gameSessionId,
+            GameInstanceId gameInstanceId,
+            String description) {
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            Date date = new Date();
+            Map<String, Integer> teamScores = awardedTeams.stream()
+                    .collect(Collectors.toMap(Team::getTeamId, t -> 0));
+            List<InstantPersonalScore> instantPersonalScores = new ArrayList<>(awardedParticipants.size());
+            for (Participant participant : awardedParticipants) {
+                teamScores.put(participant.getTeamId(), teamScores.get(participant.getTeamId()) + points);
+                instantPersonalScores.add(InstantPersonalScore.builder()
+                        .uuid(participant.getUniqueId().toString())
+                        .ign(participant.getName())
+                        .teamId(participant.getTeamId())
+                        .gameSessionId(gameSessionId)
+                        .gameType(gameInstanceId.getGameType())
+                        .configFile(gameInstanceId.getConfigFile())
+                        .date(date)
+                        .mode(getMode())
+                        .multiplier(getMultiplier())
+                        .points(points)
+                        .description(description)
+                        .build());
+            }
+            List<InstantTeamScore> instantTeamScores = teamScores.entrySet().stream()
+                    .map(entry -> InstantTeamScore.builder()
+                            .teamId(entry.getKey())
+                            .gameSessionId(gameSessionId)
+                            .gameType(gameInstanceId.getGameType())
+                            .configFile(gameInstanceId.getConfigFile())
+                            .date(date)
+                            .mode(getMode())
+                            .multiplier(getMultiplier())
+                            .points(entry.getValue())
+                            .description(description)
+                            .build())
+                    .toList();
+            scoreService.logInstantPersonalScores(instantPersonalScores);
+            scoreService.logInstantTeamScores(instantTeamScores);
+        });
+    }
+    
+    public void logInstantScores(
+            Collection<? extends Team> awardedTeams,
+            int points,
+            int gameSessionId,
+            GameInstanceId gameInstanceId,
+            String description
+    ) {
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            Date date = new Date();
+            List<InstantTeamScore> instantTeamScores = awardedTeams.stream()
+                    .map(team -> InstantTeamScore.builder()
+                            .teamId(team.getTeamId())
+                            .gameSessionId(gameSessionId)
+                            .gameType(gameInstanceId.getGameType())
+                            .configFile(gameInstanceId.getConfigFile())
+                            .date(date)
+                            .mode(getMode())
+                            .multiplier(getMultiplier())
+                            .points(points)
+                            .description(description)
+                            .build())
+                    .toList();
+            scoreService.logInstantTeamScores(instantTeamScores);
+        });
     }
     
     /**

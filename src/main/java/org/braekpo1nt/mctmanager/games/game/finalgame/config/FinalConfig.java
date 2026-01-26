@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.config.Config;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.base.Affiliation;
 import org.braekpo1nt.mctmanager.games.game.finalgame.FinalGameKit;
@@ -19,7 +20,7 @@ import java.util.Map;
 
 @Data
 @Builder
-public class FinalConfig {
+public class FinalConfig implements Config {
     private World world;
     /**
      * Items and arrows on the ground in this area will be removed between rounds

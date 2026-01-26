@@ -45,12 +45,13 @@ public abstract class WandsGameBase<P extends ParticipantData, T extends ScoredT
      * exceptions.
      */
     public WandsGameBase(
+            int gameSessionId,
             @NotNull GameInstanceId gameInstanceId,
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
             @NotNull Component title,
             @NotNull S initialState) {
-        super(gameInstanceId, plugin, gameManager, title, initialState);
+        super(gameSessionId, gameInstanceId, plugin, gameManager, title, initialState);
         this.wands = new ArrayList<>();
     }
     

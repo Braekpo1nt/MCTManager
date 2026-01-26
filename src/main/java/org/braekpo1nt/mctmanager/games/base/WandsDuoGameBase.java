@@ -41,6 +41,7 @@ public abstract class WandsDuoGameBase<P extends ParticipantData, T extends Scor
      * @param southTeam the south team
      */
     public WandsDuoGameBase(
+            int gameSessionId,
             @NotNull GameInstanceId gameInstanceId,
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
@@ -49,7 +50,7 @@ public abstract class WandsDuoGameBase<P extends ParticipantData, T extends Scor
             @NotNull T northTeam,
             @NotNull T southTeam
     ) {
-        super(gameInstanceId, plugin, gameManager, title, initialState, northTeam, southTeam);
+        super(gameSessionId, gameInstanceId, plugin, gameManager, title, initialState, northTeam, southTeam);
         this.wands = new ArrayList<>();
     }
     

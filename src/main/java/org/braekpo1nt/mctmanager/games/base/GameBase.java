@@ -68,6 +68,7 @@ import java.util.logging.Level;
 @Setter
 public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamData<P>, QP extends QuitDataBase, QT extends QuitDataBase, S extends GameStateBase<P, T>> implements MCTGame, Listener {
     protected final @NotNull GameType type;
+    protected final int gameSessionId;
     protected final @NotNull GameInstanceId gameInstanceId;
     protected final @NotNull Main plugin;
     protected final @NotNull GameManager gameManager;
@@ -107,11 +108,13 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * exceptions.
      */
     public GameBase(
+            int gameSessionId,
             @NotNull GameInstanceId gameInstanceId,
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
             @NotNull Component title,
             @NotNull S initialState) {
+        this.gameSessionId = gameSessionId;
         this.type = gameInstanceId.getGameType();
         this.gameInstanceId = gameInstanceId;
         this.plugin = plugin;
@@ -271,7 +274,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
         storedGameRules.clear();
         cleanup();
-        gameManager.gameIsOver(getGameInstanceId(), teamScores, participantScores, participants.values().stream().map(Participant::getUniqueId).toList(), admins);
+        gameManager.gameIsOver(gameSessionId, getGameInstanceId(), teamScores, participantScores, participants.values().stream().map(Participant::getUniqueId).toList(), admins);
         participants.clear();
         admins.clear();
         Main.logger().info("Stopping " + type.getTitle());
@@ -703,13 +706,20 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param participant the participant to be awarded personal points
      * @param points the points to be awarded (un-multiplied, base points)
      */
-    public void awardPoints(P participant, int points) {
+    public void awardPoints(P participant, int points, String description) {
         int multiplied = (int) (points * gameManager.getMultiplier());
         participant.awardPoints(points);
         T team = teams.get(participant.getTeamId());
         team.addPoints(multiplied);
         displayScore(participant);
         displayScore(team);
+        gameManager.logInstantScore(
+                participant,
+                points,
+                gameSessionId,
+                gameInstanceId,
+                description
+        );
     }
     
     /**
@@ -719,10 +729,17 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param team the team to award the points to
      * @param points the points to be awarded (un-multiplied, base points)
      */
-    public void awardPoints(T team, int points) {
+    public void awardPoints(T team, int points, String description) {
         int multiplied = (int) (points * gameManager.getMultiplier());
         team.awardPoints(multiplied);
         displayScore(team);
+        gameManager.logInstantScore(
+                team.getTeamId(),
+                points,
+                gameSessionId,
+                gameInstanceId,
+                description
+        );
     }
     
     /**
@@ -733,7 +750,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param awardedParticipants the participants to be awarded personal points
      * @param points the points to be awarded (un-multiplied, base points)
      */
-    public void awardParticipantPoints(Collection<P> awardedParticipants, int points) {
+    public void awardParticipantPoints(Collection<P> awardedParticipants, int points, String description) {
         int multiplied = (int) (points * gameManager.getMultiplier());
         Set<T> awardedTeams = new HashSet<>();
         for (P participant : awardedParticipants) {
@@ -742,6 +759,14 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             team.addPoints(multiplied);
             awardedTeams.add(team);
         }
+        gameManager.logInstantScores(
+                awardedParticipants,
+                awardedTeams,
+                points,
+                gameSessionId,
+                gameInstanceId,
+                description
+        );
         displayParticipantScores(awardedParticipants);
         displayTeamScores(awardedTeams);
     }
@@ -753,12 +778,19 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param awardedTeams the teams to award the points to
      * @param points the points to be awarded (un-multiplied, base points)
      */
-    public void awardTeamPoints(Collection<T> awardedTeams, int points) {
+    public void awardTeamPoints(Collection<T> awardedTeams, int points, String description) {
         int multiplied = (int) (points * gameManager.getMultiplier());
         for (T team : awardedTeams) {
             team.awardPoints(multiplied);
         }
         displayTeamScores(awardedTeams);
+        gameManager.logInstantScores(
+                awardedTeams,
+                points,
+                gameSessionId,
+                gameInstanceId,
+                description
+        );
     }
     // Award Points end
     

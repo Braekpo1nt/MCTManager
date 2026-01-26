@@ -66,7 +66,7 @@ public abstract class RoundActiveState extends ClockworkStateBase {
             List<ClockworkParticipant> awardedParticipants = survivingParticipants.stream()
                     .filter(p -> !p.getTeamId().equals(killedTeamId))
                     .toList();
-            context.awardParticipantPoints(awardedParticipants, config.getPlayerEliminationScore());
+            context.awardParticipantPoints(awardedParticipants, config.getPlayerEliminationScore(), String.format("Participant \"%s\" was eliminated", toKill.getName()));
             // award living participants end
         }
         context.getTabList().setParticipantGreys(participantsToKill, true);
@@ -93,7 +93,7 @@ public abstract class RoundActiveState extends ClockworkStateBase {
                     .append(newlyKilledTeam.getFormattedDisplayName())
                     .append(Component.text(" has been eliminated"))
                     .color(NamedTextColor.GREEN));
-            context.awardTeamPoints(survivingTeams, config.getTeamEliminationScore());
+            context.awardTeamPoints(survivingTeams, config.getTeamEliminationScore(), String.format("team \"%s\" was eliminated", newlyKilledTeam.getTeamId()));
         }
     }
     

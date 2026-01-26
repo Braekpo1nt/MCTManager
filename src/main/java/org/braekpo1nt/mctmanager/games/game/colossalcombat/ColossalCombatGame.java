@@ -49,6 +49,7 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
             @NotNull Component title,
+            int gameSessionId,
             @NotNull ColossalCombatConfig config,
             @NotNull String configFile,
             @NotNull Team newNorth,
@@ -57,6 +58,7 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
             @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
         super(
+                gameSessionId,
                 new GameInstanceId(GameType.FINAL, configFile),
                 plugin,
                 gameManager,

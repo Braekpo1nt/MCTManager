@@ -82,6 +82,11 @@ public class MaintenanceState extends GameManagerState {
     }
     
     @Override
+    public @NotNull String getMode() {
+        return "maintenance";
+    }
+    
+    @Override
     public CommandResult startEvent(int maxGames, int currentGameNumber) {
         try {
             EventConfig eventConfig = new EventConfigController(plugin.getDataFolder()).getConfig();

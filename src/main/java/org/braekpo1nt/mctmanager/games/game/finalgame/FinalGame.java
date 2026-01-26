@@ -51,6 +51,7 @@ public class FinalGame extends WandsDuoGameBase<FinalParticipant, FinalTeam, Fin
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
             @NotNull Component title,
+            int gameSessionId,
             @NotNull FinalConfig config,
             @NotNull String configFile,
             @NotNull Team newNorth,
@@ -60,6 +61,7 @@ public class FinalGame extends WandsDuoGameBase<FinalParticipant, FinalTeam, Fin
             @NotNull List<Player> newAdmins
     ) {
         super(
+                gameSessionId,
                 new GameInstanceId(GameType.COLOSSAL_COMBAT, configFile),
                 plugin,
                 gameManager,
