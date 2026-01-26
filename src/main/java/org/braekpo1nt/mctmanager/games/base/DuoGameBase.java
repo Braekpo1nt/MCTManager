@@ -23,6 +23,18 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
     protected final @NotNull T northTeam;
     protected final @NotNull T southTeam;
     
+    /**
+     * @param gameInstanceId the {@link GameInstanceId} associated with this game
+     * @param plugin the plugin
+     * @param gameManager the GameManager
+     * @param title the game's initial title, displayed in the sidebar
+     * @param initialState the initialization state, should not contain any game functionality.
+     * The state must never be null, so this is what the state should be
+     * as the game is being initialized to prevent null-pointer
+     * exceptions.
+     * @param northTeam the north team
+     * @param southTeam the south team
+     */
     public DuoGameBase(
             @NotNull GameInstanceId gameInstanceId,
             @NotNull Main plugin,

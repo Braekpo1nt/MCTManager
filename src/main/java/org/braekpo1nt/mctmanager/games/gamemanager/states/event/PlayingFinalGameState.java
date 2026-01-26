@@ -13,7 +13,7 @@ public class PlayingFinalGameState extends PlayingGameState {
     
     
     public PlayingFinalGameState(@NotNull GameManager context, @NotNull ContextReference contextReference, @NotNull EventData eventData) {
-        super(context, contextReference, eventData, GameType.FINAL, eventData.getConfig().getColossalCombatConfig());
+        super(context, contextReference, eventData, eventData.getConfig().getFinaleGame(), eventData.getConfig().getFinaleConfig());
     }
     
     @Override
