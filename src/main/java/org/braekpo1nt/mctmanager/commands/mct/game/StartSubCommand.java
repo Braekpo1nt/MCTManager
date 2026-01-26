@@ -41,15 +41,6 @@ public class StartSubCommand extends TabSubCommand {
                     .append(Component.text(" is not a valid game")));
         }
         
-        // TODO: remove this
-        if (gameType.equals(GameType.COLOSSAL_COMBAT)) {
-            if (sender instanceof Player player) {
-                if (!List.of("StgShotgun", "Braekpo1nt", "_Crossx").contains(player.getName())) {
-                    return CommandResult.failure(Component.text("You don't have permission to start this game."));
-                }
-            }
-        }
-        
         String configFile;
         if (args.length >= 2) {
             configFile = args[1];
