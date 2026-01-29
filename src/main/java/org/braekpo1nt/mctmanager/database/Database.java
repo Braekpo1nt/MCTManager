@@ -39,7 +39,8 @@ public class Database {
     }
     
     private Database(@NotNull ConnectionSource connectionSource) throws SQLException {
-        // flyway creates the tables, no need for TableUtils
+        // flyway creates the tables, no need for TableUtils:
+//        TableUtils.createTableIfNotExists(connectionSource, ParticipantStats.class);
         
         // Create the DAOs
         this.instantPersonalScoreDao = DaoManager.createDao(connectionSource, InstantPersonalScore.class);
