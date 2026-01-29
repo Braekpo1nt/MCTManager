@@ -5,8 +5,8 @@ CREATE TABLE IF NOT EXISTS `participant_data` (
         `percentRank` DOUBLE PRECISION NOT NULL , 
         `averageScore` DOUBLE PRECISION NOT NULL , 
         `totalEvents` INTEGER NOT NULL , 
-        `current_tokens` INTEGER NOT NULL , 
-        `lifetime_tokens` INTEGER NOT NULL , 
+        `currentTokens` INTEGER NOT NULL , 
+        `lifetimeTokens` INTEGER NOT NULL , 
         PRIMARY KEY (`uuid`) 
 ) ENGINE=InnoDB;
 
@@ -17,8 +17,8 @@ INSERT INTO `participant_data` (
     percentRank,
     averageScore,
     totalEvents,
-    current_tokens,
-    lifetime_tokens
+    currentTokens,
+    lifetimeTokens
 )
 SELECT
     uuid,
@@ -26,6 +26,6 @@ SELECT
     0.0 AS percentRank,
     0.0 AS averageScore,
     0    AS totalEvents,
-    `current`  AS current_tokens,
-    `lifetime` AS lifetime_tokens
+    `current`  AS currentTokens,
+    `lifetime` AS lifetimeTokens
 FROM participant_currency;

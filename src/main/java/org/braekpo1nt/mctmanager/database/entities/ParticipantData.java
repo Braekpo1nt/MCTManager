@@ -10,18 +10,40 @@ import org.jetbrains.annotations.NotNull;
 @NoArgsConstructor
 @Data
 public class ParticipantData {
+    /**
+     * Primary key, player unique id
+     */
     @DatabaseField(id = true)
     private @NotNull String uuid;
+    /**
+     * The Minecraft IGN
+     */
     @DatabaseField(canBeNull = false)
     private @NotNull String ign;
+    /**
+     *
+     */
     @DatabaseField(canBeNull = false)
     private double percentRank;
+    /**
+     * The average final personal score across all played events
+     */
     @DatabaseField(canBeNull = false)
     private double averageScore;
+    /**
+     * The total number of events the participant has played in
+     */
     @DatabaseField(canBeNull = false)
     private int totalEvents;
+    /**
+     * The current number of challenger tokens
+     */
     @DatabaseField(canBeNull = false)
-    private int current_tokens;
+    private int currentTokens;
+    /**
+     * The number of challenger tokens earned by the player in their lifetime
+     * (regardless of how many were spent by the player)
+     */
     @DatabaseField(canBeNull = false)
-    private int lifetime_tokens;
+    private int lifetimeTokens;
 }
