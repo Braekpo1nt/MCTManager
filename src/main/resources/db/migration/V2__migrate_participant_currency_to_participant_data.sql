@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS `participant_data` (
         `currentTokens` INTEGER NOT NULL , 
         `lifetimeTokens` INTEGER NOT NULL , 
         PRIMARY KEY (`uuid`) 
-) ENGINE=InnoDB;
+) ${engine};
 
 -- 2. Migrate existing data
 INSERT INTO `participant_data` (

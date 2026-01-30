@@ -247,6 +247,10 @@ public class Main extends JavaPlugin {
                             .locations("classpath:db/migration") // migration folder
                             .validateOnMigrate(false) // don't block if scripts change
                             .cleanDisabled(false) // allow wiping DB
+                            .placeholders(Map.of(
+                                    "engine", "ENGINE=InnoDB",
+                                    "autoincrement", "AUTO_INCREMENT"
+                            ))
                             .load();
                     ValidateResult validateResult = flyway.validateWithResult();
                     if (!validateResult.validationSuccessful) {
@@ -264,6 +268,10 @@ public class Main extends JavaPlugin {
                             .locations("classpath:db/migration") // migration folder
                             .validateOnMigrate(true)
                             .cleanDisabled(true)
+                            .placeholders(Map.of(
+                                    "engine", "ENGINE=InnoDB",
+                                    "autoincrement", "AUTO_INCREMENT"
+                            ))
                             .load();
                     flyway.migrate();
                 }
