@@ -8,15 +8,18 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.database.Database;
+import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.InstantPersonalScore;
 import org.braekpo1nt.mctmanager.database.entities.InstantTeamScore;
-import org.braekpo1nt.mctmanager.database.entities.ParticipantCurrency;
+import org.braekpo1nt.mctmanager.database.entities.ParticipantData;
+import org.braekpo1nt.mctmanager.database.service.EventService;
 import org.braekpo1nt.mctmanager.database.service.ScoreService;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
@@ -57,6 +60,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -83,6 +87,8 @@ public class GameManager implements Listener {
     private final Main plugin;
     @Getter
     private final ScoreService scoreService;
+    @Getter
+    private final EventService eventService;
     // TODO: remove these getter and setter and make this a map like activeGames
     @Getter
     @Setter
@@ -149,8 +155,13 @@ public class GameManager implements Listener {
         this.mctScoreboard = mctScoreboard;
         this.gameStateStorageUtil = gameStateStorageUtil;
         this.timerManager = new TimerManager(plugin);
+        String databaseMode = plugin.getConfig().getString("database.mode", "prod");
         this.scoreService = new ScoreService(
-                plugin.getConfig().getString("database.mode", "prod"),
+                databaseMode,
+                database
+        );
+        this.eventService = new EventService(
+                databaseMode,
                 database
         );
         this.sidebarFactory = sidebarFactory;
@@ -285,7 +296,7 @@ public class GameManager implements Listener {
         ItemStack newItem = event.getNewItem();
         if (GameManagerUtils.isLeatherArmor(newItem)) {
             GameManagerUtils.colorLeatherArmor(newItem, teams.get(participant.getTeamId()).getBukkitColor());
-            EquipmentSlot equipmentSlot = GameManagerUtils.toEquipmentSlot(event.getSlotType());
+            EquipmentSlot equipmentSlot = GameManagerUtils.toEquipmentSlot(event.getSlotType()); // TODO: replace with non-deprecated alternative
             if (equipmentSlot == null) {
                 return;
             }
@@ -365,11 +376,14 @@ public class GameManager implements Listener {
             MCTParticipant participant = new MCTParticipant(offlineParticipant, player);
             state.onParticipantJoin(event, participant);
         }
-        scoreService.createParticipantCurrencyIfNotExists(ParticipantCurrency.builder()
+        scoreService.createParticipantDataIfNotExists(ParticipantData.builder()
                 .uuid(player.getUniqueId().toString())
                 .ign(player.getName())
-                .current(0)
-                .lifetime(0)
+                .percentRank(0.0)
+                .averageScore(0.0)
+                .totalEvents(0)
+                .currentTokens(0)
+                .lifetimeTokens(0)
                 .build());
     }
     
@@ -571,6 +585,40 @@ public class GameManager implements Listener {
     
     public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
         return state.startGame(teamIds, gameAdmins, gameType, configFile);
+    }
+    
+    public CommandResult createEvent(String eventId, Date eventDate, String plainTextName, Component componentName) {
+        Date now = new Date();
+        try {
+            boolean uniqueKey = eventService.addEventInfo(EventInfo.builder()
+                    .eventId(eventId)
+                    .plainTextName(plainTextName)
+                    .componentName(GsonComponentSerializer.gson().serialize(componentName))
+                    .createdDate(now)
+                    .modifiedDate(now)
+                    .eventDate(eventDate)
+                    .startTime(null)
+                    .endTime(null)
+                    .build());
+            if (!uniqueKey) {
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text("An event already exists with the given id: "))
+                        .append(Component.text(eventId)
+                                .decorate(TextDecoration.BOLD))
+                );
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return CommandResult.success(Component.empty()
+                .append(Component.text("Created event \""))
+                .append(Component.text(eventId))
+                .append(Component.text("\" with plain-text name \""))
+                .append(Component.text(plainTextName))
+                .append(Component.text("\" and Component name \""))
+                .append(componentName)
+                .append(Component.text("\""))
+        );
     }
     
     public CommandResult startEvent(int maxGames, int currentGameNumber) {

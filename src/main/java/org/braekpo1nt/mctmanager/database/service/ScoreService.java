@@ -9,7 +9,7 @@ import org.braekpo1nt.mctmanager.database.entities.FinalTeamScore;
 import org.braekpo1nt.mctmanager.database.entities.GameSession;
 import org.braekpo1nt.mctmanager.database.entities.InstantPersonalScore;
 import org.braekpo1nt.mctmanager.database.entities.InstantTeamScore;
-import org.braekpo1nt.mctmanager.database.entities.ParticipantCurrency;
+import org.braekpo1nt.mctmanager.database.entities.ParticipantData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,7 +30,7 @@ public class ScoreService {
     private final @NotNull Dao<GameSession, Integer> gameSessionDao;
     private final @NotNull Dao<FinalPersonalScore, Integer> finalPersonalScoreDao;
     private final @NotNull Dao<FinalTeamScore, Integer> finalTeamScoreDao;
-    private final @NotNull Dao<ParticipantCurrency, String> participantCurrencyDao;
+    private final @NotNull Dao<ParticipantData, String> participantDataDao;
     
     public ScoreService(@NotNull String mode, @NotNull Database database) {
         this.mode = mode;
@@ -39,7 +39,7 @@ public class ScoreService {
         this.gameSessionDao = database.getGameSessionDao();
         this.finalPersonalScoreDao = database.getFinalPersonalScoreDao();
         this.finalTeamScoreDao = database.getFinalTeamScoreDao();
-        this.participantCurrencyDao = database.getParticipantCurrencyDao();
+        this.participantDataDao = database.getParticipantDataDao();
     }
     
     
@@ -133,69 +133,69 @@ public class ScoreService {
         gameSessionDao.deleteBuilder().delete();
         finalPersonalScoreDao.deleteBuilder().delete();
         finalTeamScoreDao.deleteBuilder().delete();
-        participantCurrencyDao.deleteBuilder().delete();
+        participantDataDao.deleteBuilder().delete();
         return true;
     }
     
-    public @Nullable ParticipantCurrency createParticipantCurrencyIfNotExists(@NotNull ParticipantCurrency participantCurrency) {
+    public @Nullable ParticipantData createParticipantDataIfNotExists(@NotNull ParticipantData participantData) {
         try {
-            participantCurrencyDao.createIfNotExists(participantCurrency);
-            return participantCurrency;
+            participantDataDao.createIfNotExists(participantData);
+            return participantData;
         } catch (SQLException e) {
-            Main.logger().log(Level.SEVERE, String.format("Error creating ParticipantCurrency %s", participantCurrency), e);
+            Main.logger().log(Level.SEVERE, String.format("Error creating ParticipantData %s", participantData), e);
             return null;
         }
     }
     
     /**
-     * @param uuid the uuid of the {@link ParticipantCurrency} object to add the given amount to
-     * @param amount the amount to add to the {@link ParticipantCurrency#getCurrent()} and
-     * {@link ParticipantCurrency#getLifetime()} values
-     * @return The {@link ParticipantCurrency} object associated with the given uuid with the updated
-     * {@link ParticipantCurrency#getCurrent()} and {@link ParticipantCurrency#getLifetime()} values
+     * @param uuid the uuid of the {@link ParticipantData} object to add the given amount to
+     * @param amount the amount of tokens to add to the {@link ParticipantData#getCurrentTokens()} and
+     * {@link ParticipantData#getLifetimeTokens()} values
+     * @return The {@link ParticipantData} object associated with the given uuid with the updated
+     * {@link ParticipantData#getCurrentTokens()} and {@link ParticipantData#getLifetimeTokens()} values
      * after the given amount has been added to them
      * @throws SQLException if there is an issue communicating with the database, or if the given uuid doesn't exist in
      * the database
      */
-    public @NotNull ParticipantCurrency addParticipantCurrency(@NotNull UUID uuid, int amount) throws SQLException {
-        return TransactionManager.callInTransaction(participantCurrencyDao.getConnectionSource(), () -> {
-            ParticipantCurrency currency = participantCurrencyDao.queryForId(uuid.toString());
-            if (currency == null) {
+    public @NotNull ParticipantData addParticipantTokens(@NotNull UUID uuid, int amount) throws SQLException {
+        return TransactionManager.callInTransaction(participantDataDao.getConnectionSource(), () -> {
+            ParticipantData data = participantDataDao.queryForId(uuid.toString());
+            if (data == null) {
                 throw new SQLException(String.format("No entry found in ParticipantCurrency table for UUID %s", uuid));
             }
-            currency.setCurrent(currency.getCurrent() + amount);
-            currency.setLifetime(currency.getLifetime() + amount);
-            participantCurrencyDao.update(currency);
-            return currency;
+            data.setCurrentTokens(data.getCurrentTokens() + amount);
+            data.setLifetimeTokens(data.getLifetimeTokens() + amount);
+            participantDataDao.update(data);
+            return data;
         });
     }
     
     /**
      * @param amounts Each participant's uuid mapped to the amount to add to their
-     * {@link ParticipantCurrency#getCurrent()} and {@link ParticipantCurrency#getLifetime()} values
-     * @return A list of the {@link ParticipantCurrency} associated with the given uuids with the updated
-     * {@link ParticipantCurrency#getCurrent()} and {@link ParticipantCurrency#getLifetime()} values
+     * {@link ParticipantData#getCurrentTokens()} and {@link ParticipantData#getLifetimeTokens()} values
+     * @return A list of the {@link ParticipantData} associated with the given uuids with the updated
+     * {@link ParticipantData#getCurrentTokens()} and {@link ParticipantData#getLifetimeTokens()} values
      * after the given amount has been added to them
      * @throws SQLException if there is an issue communicating with the database, or if any of the given uuids don't
      * exist in the database
      */
-    public @NotNull List<ParticipantCurrency> addParticipantCurrencies(@NotNull Map<UUID, Integer> amounts) throws SQLException {
-        return TransactionManager.callInTransaction(participantCurrencyDao.getConnectionSource(), () -> {
-            List<ParticipantCurrency> updated = new ArrayList<>(amounts.size());
+    public @NotNull List<ParticipantData> addParticipantCurrencies(@NotNull Map<UUID, Integer> amounts) throws SQLException {
+        return TransactionManager.callInTransaction(participantDataDao.getConnectionSource(), () -> {
+            List<ParticipantData> updated = new ArrayList<>(amounts.size());
             
             for (Map.Entry<UUID, Integer> entry : amounts.entrySet()) {
                 UUID uuid = entry.getKey();
                 int amount = entry.getValue();
                 
-                ParticipantCurrency currency = participantCurrencyDao.queryForId(uuid.toString());
-                if (currency == null) {
+                ParticipantData data = participantDataDao.queryForId(uuid.toString());
+                if (data == null) {
                     throw new SQLException(String.format("No entry found in ParticipantCurrency table  for UUID %s", uuid));
                 }
                 
-                currency.setCurrent(currency.getCurrent() + amount);
-                currency.setLifetime(currency.getLifetime() + amount);
-                participantCurrencyDao.update(currency);
-                updated.add(currency);
+                data.setCurrentTokens(data.getCurrentTokens() + amount);
+                data.setLifetimeTokens(data.getLifetimeTokens() + amount);
+                participantDataDao.update(data);
+                updated.add(data);
             }
             return updated;
         });

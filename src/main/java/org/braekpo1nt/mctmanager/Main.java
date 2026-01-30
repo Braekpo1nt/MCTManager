@@ -21,6 +21,7 @@ import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import lombok.extern.java.Log;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.EnumResolver;
 import org.braekpo1nt.mctmanager.commands.bugreport.BugReportCommand;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
@@ -71,7 +72,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -431,36 +437,82 @@ public class Main extends JavaPlugin {
         
         LiteralCommandNode<CommandSourceStack> databaseCommand = Commands.literal("database")
                 .then(Commands.literal("clear")
-                        .executes(ctx -> {
-                            if (!getConfig().getString("database.mode", "prod").equals("test")) {
-                                ctx.getSource().getSender().sendMessage(Component.empty()
-                                        .append(Component.text("You can't clear the database unless you are in "))
-                                        .append(Component.text("\"test\""))
-                                        .append(Component.text(" mode. Check your config.yml file's database.mode value"))
-                                        .color(NamedTextColor.RED)
-                                );
-                                return Command.SINGLE_SUCCESS;
-                            }
-                            try {
-                                gameManager.getScoreService().clearDatabase();
-                                ctx.getSource().getSender().sendMessage(Component.empty()
-                                        .append(Component.text("Clearing the database")));
-                                getLogger().info("Clearing the database");
-                            } catch (SQLException e) {
-                                getLogger().log(Level.SEVERE, "Error clearing database", e);
-                                ctx.getSource().getSender().sendMessage(Component.empty()
-                                        .append(Component.text("Error clearing database. See console for details"))
-                                        .color(NamedTextColor.RED));
-                            }
-                            return Command.SINGLE_SUCCESS;
-                        }))
+                        .then(Commands.literal("score_service")
+                                .executes(ctx -> {
+                                    if (!getConfig().getString("database.mode", "prod").equals("test")) {
+                                        ctx.getSource().getSender().sendMessage(Component.empty()
+                                                .append(Component.text("You can't clear the database unless you are in "))
+                                                .append(Component.text("\"test\""))
+                                                .append(Component.text(" mode. Check your config.yml file's database.mode value"))
+                                                .color(NamedTextColor.RED)
+                                        );
+                                        return Command.SINGLE_SUCCESS;
+                                    }
+                                    try {
+                                        gameManager.getScoreService().clearDatabase();
+                                        ctx.getSource().getSender().sendMessage(Component.empty()
+                                                .append(Component.text("Clearing the database")));
+                                        getLogger().info("Clearing the database");
+                                    } catch (SQLException e) {
+                                        getLogger().log(Level.SEVERE, "Error clearing database", e);
+                                        ctx.getSource().getSender().sendMessage(Component.empty()
+                                                .append(Component.text("Error clearing database. See console for details"))
+                                                .color(NamedTextColor.RED));
+                                    }
+                                    return Command.SINGLE_SUCCESS;
+                                }))
+                        .then(Commands.literal("event_service")
+                                .executes(ctx -> {
+                                    
+                                    return Command.SINGLE_SUCCESS;
+                                })))
                 .build();
         
+        LiteralCommandNode<CommandSourceStack> eventCommand = Commands.literal("mctevent")
+                .then(Commands.literal("create")
+                        .then(Commands.argument("eventId", StringArgumentType.word())
+                                .then(Commands.argument("eventDate", StringArgumentType.word())
+                                        .then(Commands.argument("plainTextName", StringArgumentType.string())
+                                                .then(Commands.argument("componentName", ArgumentTypes.component())
+                                                        .executes(ctx -> {
+                                                            String eventId = ctx.getArgument("eventId", String.class);
+                                                            String eventDateString = ctx.getArgument("eventId", String.class);
+                                                            Date eventDate;
+                                                            try {
+                                                                eventDate = parseDate(eventDateString);
+                                                            } catch (DateTimeParseException e) {
+                                                                ctx.getSource().getSender().sendMessage(Component.empty()
+                                                                        .append(Component.text("Could not parse date string "))
+                                                                        .append(Component.text(eventDateString)
+                                                                                .decorate(TextDecoration.BOLD))
+                                                                        .color(NamedTextColor.RED)
+                                                                );
+                                                                return Command.SINGLE_SUCCESS;
+                                                            }
+                                                            String plainTextName = ctx.getArgument("plainTextName", String.class);
+                                                            Component componentName = ctx.getArgument("componentName", Component.class);
+                                                            Component result = gameManager.createEvent(eventId, eventDate, plainTextName, componentName).getMessage();
+                                                            if (result != null) {
+                                                                ctx.getSource().getSender().sendMessage(result);
+                                                            }
+                                                            return Command.SINGLE_SUCCESS;
+                                                        }))))))
+                .build();
         // Brigadier commands
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> {
             commands.registrar().register(ctDebugCommand);
             commands.registrar().register(databaseCommand);
+            commands.registrar().register(eventCommand);
         });
+    }
+    
+    // TODO: move these to a different helper class
+    private static final DateTimeFormatter DATE_FORMATTER =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    
+    public static Date parseDate(String dateString) {
+        LocalDate localDate = LocalDate.parse(dateString, DATE_FORMATTER);
+        return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
     }
     
     private static void givePlayerCustomModelItem(Player player, ItemStack itemStack, String customModelString) {

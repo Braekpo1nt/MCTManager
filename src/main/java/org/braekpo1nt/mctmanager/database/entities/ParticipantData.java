@@ -2,6 +2,8 @@ package org.braekpo1nt.mctmanager.database.entities;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -9,6 +11,8 @@ import org.jetbrains.annotations.NotNull;
 @DatabaseTable(tableName = "participant_data")
 @NoArgsConstructor
 @Data
+@AllArgsConstructor
+@Builder
 public class ParticipantData {
     /**
      * Primary key, player unique id

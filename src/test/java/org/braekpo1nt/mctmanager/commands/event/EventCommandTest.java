@@ -1,9 +1,13 @@
 package org.braekpo1nt.mctmanager.commands.event;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MockMain;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.TestUtils;
+import org.braekpo1nt.mctmanager.database.service.EventService;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfigController;
 import org.bukkit.command.PluginCommand;
 import org.junit.jupiter.api.AfterEach;
@@ -17,6 +21,7 @@ import org.mockbukkit.mockbukkit.exception.UnimplementedOperationException;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.logging.Level;
 
 class EventCommandTest {
@@ -24,6 +29,7 @@ class EventCommandTest {
     private ServerMock server;
     private Main plugin;
     private PluginCommand command;
+    private GameManager gameManager;
     
     @BeforeEach
     void setUpServerAndPlugin() {
@@ -36,6 +42,7 @@ class EventCommandTest {
             ex.printStackTrace();
             System.exit(1);
         }
+        gameManager = plugin.getGameManager();
         
         InputStream inputStream = EventConfigController.class.getResourceAsStream("exampleEventConfig.json");
         TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), "eventConfig.json"));
@@ -66,5 +73,10 @@ class EventCommandTest {
     void startWrongArgsTest() {
         Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{"event", "start", "blank"}));
         TestUtils.assertComponentPlaintextEquals("blank is not an integer", server.getConsoleSender().nextComponentMessage());
+    }
+    
+    @Test
+    void eventServiceTest() {
+        gameManager.createEvent("1alpha", new Date(), "1 Alpha", Component.text("1 Alpha").color(NamedTextColor.RED));
     }
 }
