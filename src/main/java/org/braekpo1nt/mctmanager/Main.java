@@ -488,7 +488,7 @@ public class Main extends JavaPlugin {
                                                 .then(Commands.argument("componentName", ArgumentTypes.component())
                                                         .executes(ctx -> {
                                                             String eventId = ctx.getArgument("eventId", String.class);
-                                                            String eventDateString = ctx.getArgument("eventId", String.class);
+                                                            String eventDateString = ctx.getArgument("eventDate", String.class);
                                                             Date eventDate;
                                                             try {
                                                                 eventDate = parseDate(eventDateString);
