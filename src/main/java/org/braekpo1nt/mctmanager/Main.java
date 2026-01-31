@@ -235,6 +235,18 @@ public class Main extends JavaPlugin {
         String password = getConfig().getString("database.password", "");
         String databaseName = getConfig().getString("database.database_name", "challenger_trials");
         String jdbcUrl = String.format("jdbc:mysql://%s:%s/%s", host, port, databaseName);
+        flywayMigration(jdbcUrl, user, password, "ENGINE=InnoDB", "AUTO_INCREMENT");
+        
+        return new Database(
+                host,
+                port,
+                user,
+                password,
+                databaseName
+        );
+    }
+    
+    protected void flywayMigration(String jdbcUrl, String user, String password, String engine, String autoincrement) throws SQLException {
         String mode = getConfig().getString("database.mode", "prod");
         try {
             switch (mode) {
@@ -248,8 +260,8 @@ public class Main extends JavaPlugin {
                             .validateOnMigrate(false) // don't block if scripts change
                             .cleanDisabled(false) // allow wiping DB
                             .placeholders(Map.of(
-                                    "engine", "ENGINE=InnoDB",
-                                    "autoincrement", "AUTO_INCREMENT"
+                                    "engine", engine,
+                                    "autoincrement", autoincrement
                             ))
                             .load();
                     ValidateResult validateResult = flyway.validateWithResult();
@@ -269,8 +281,8 @@ public class Main extends JavaPlugin {
                             .validateOnMigrate(true)
                             .cleanDisabled(true)
                             .placeholders(Map.of(
-                                    "engine", "ENGINE=InnoDB",
-                                    "autoincrement", "AUTO_INCREMENT"
+                                    "engine", engine,
+                                    "autoincrement", autoincrement
                             ))
                             .load();
                     flyway.migrate();
@@ -285,14 +297,6 @@ public class Main extends JavaPlugin {
             throw new SQLException("An error occurred applying the flyway migration", e);
         }
         getLogger().info("Flyway migrations applied successfully");
-        
-        return new Database(
-                host,
-                port,
-                user,
-                password,
-                databaseName
-        );
     }
     
     protected void registerCommands() {
