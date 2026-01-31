@@ -6,6 +6,9 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MockMain;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.TestUtils;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.FailureCommandResult;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.SuccessCommandResult;
 import org.braekpo1nt.mctmanager.database.service.EventService;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfigController;
@@ -76,7 +79,10 @@ class EventCommandTest {
     }
     
     @Test
-    void eventServiceTest() {
-        gameManager.createEvent("1alpha", new Date(), "1 Alpha", Component.text("1 Alpha").color(NamedTextColor.RED));
+    void ensureUniqueEventName() {
+        CommandResult result1 = gameManager.createEvent("1alpha", new Date(), "1 Alpha", Component.text("1 Alpha").color(NamedTextColor.RED));
+        Assertions.assertInstanceOf(SuccessCommandResult.class, result1);
+        CommandResult result2 = gameManager.createEvent("1alpha", new Date(), "1 Alpha2", Component.text("1 Alpha2").color(NamedTextColor.RED));
+        Assertions.assertInstanceOf(FailureCommandResult.class, result2);
     }
 }
