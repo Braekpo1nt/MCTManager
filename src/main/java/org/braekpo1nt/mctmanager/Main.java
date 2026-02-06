@@ -8,8 +8,11 @@ import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.tree.ArgumentCommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
@@ -475,7 +478,26 @@ public class Main extends JavaPlugin {
                                 }))
                         .then(Commands.literal("event_service")
                                 .executes(ctx -> {
-                                    
+                                    if (!getConfig().getString("database.mode", "prod").equals("test")) {
+                                        ctx.getSource().getSender().sendMessage(Component.empty()
+                                                .append(Component.text("You can't clear the database unless you are in "))
+                                                .append(Component.text("\"test\""))
+                                                .append(Component.text(" mode. Check your config.yml file's database.mode value"))
+                                                .color(NamedTextColor.RED)
+                                        );
+                                        return Command.SINGLE_SUCCESS;
+                                    }
+                                    try {
+                                        gameManager.getEventService().clearDatabase();
+                                        ctx.getSource().getSender().sendMessage(Component.empty()
+                                                .append(Component.text("Clearing the database")));
+                                        getLogger().info("Clearing the database");
+                                    } catch (SQLException e) {
+                                        getLogger().log(Level.SEVERE, "Error clearing database", e);
+                                        ctx.getSource().getSender().sendMessage(Component.empty()
+                                                .append(Component.text("Error clearing database. See console for details"))
+                                                .color(NamedTextColor.RED));
+                                    }
                                     return Command.SINGLE_SUCCESS;
                                 })))
                 .build();
@@ -486,36 +508,55 @@ public class Main extends JavaPlugin {
                                 .then(Commands.argument("eventDate", StringArgumentType.word())
                                         .then(Commands.argument("plainTextName", StringArgumentType.string())
                                                 .then(Commands.argument("componentName", ArgumentTypes.component())
-                                                        .executes(ctx -> {
-                                                            String eventId = ctx.getArgument("eventId", String.class);
-                                                            String eventDateString = ctx.getArgument("eventDate", String.class);
-                                                            Date eventDate;
-                                                            try {
-                                                                eventDate = parseDate(eventDateString);
-                                                            } catch (DateTimeParseException e) {
-                                                                ctx.getSource().getSender().sendMessage(Component.empty()
-                                                                        .append(Component.text("Could not parse date string "))
-                                                                        .append(Component.text(eventDateString)
-                                                                                .decorate(TextDecoration.BOLD))
-                                                                        .color(NamedTextColor.RED)
-                                                                );
-                                                                return Command.SINGLE_SUCCESS;
-                                                            }
-                                                            String plainTextName = ctx.getArgument("plainTextName", String.class);
-                                                            Component componentName = ctx.getArgument("componentName", Component.class);
-                                                            Component result = gameManager.createEvent(eventId, eventDate, plainTextName, componentName).getMessage();
-                                                            if (result != null) {
-                                                                ctx.getSource().getSender().sendMessage(result);
-                                                            }
-                                                            return Command.SINGLE_SUCCESS;
-                                                        }))))))
+                                                        .executes(ctx -> executeCreate(ctx, gameManager))
+                                                )
+                                        )
+                                )
+                        )
+                )
+                .then(Commands.literal("delete")
+                        .then(Commands.argument("eventId", StringArgumentType.word())
+                                .executes(ctx -> {
+                                    String eventId = ctx.getArgument("eventId", String.class);
+                                    Component result = gameManager.deleteEvent(eventId).getMessageOrEmpty();
+                                    ctx.getSource().getSender().sendMessage(result);
+                                    return Command.SINGLE_SUCCESS;
+                                })
+                        )
+                )
                 .build();
+        
+        
         // Brigadier commands
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> {
             commands.registrar().register(ctDebugCommand);
             commands.registrar().register(databaseCommand);
             commands.registrar().register(eventCommand);
         });
+    }
+    
+    private static int executeCreate(CommandContext<CommandSourceStack> ctx, GameManager gameManager) {
+        {
+            String eventId = ctx.getArgument("eventId", String.class);
+            String eventDateString = ctx.getArgument("eventDate", String.class);
+            Date eventDate;
+            try {
+                eventDate = parseDate(eventDateString);
+            } catch (DateTimeParseException e) {
+                ctx.getSource().getSender().sendMessage(Component.empty()
+                        .append(Component.text("Could not parse date string "))
+                        .append(Component.text(eventDateString)
+                                .decorate(TextDecoration.BOLD))
+                        .color(NamedTextColor.RED)
+                );
+                return Command.SINGLE_SUCCESS;
+            }
+            String plainTextName = ctx.getArgument("plainTextName", String.class);
+            Component componentName = ctx.getArgument("componentName", Component.class);
+            Component result = gameManager.createEvent(eventId, eventDate, plainTextName, componentName).getMessageOrEmpty();
+            ctx.getSource().getSender().sendMessage(result);
+            return Command.SINGLE_SUCCESS;
+        }
     }
     
     // TODO: move these to a different helper class

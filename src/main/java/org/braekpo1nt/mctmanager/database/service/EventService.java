@@ -19,6 +19,18 @@ public class EventService {
     }
     
     /**
+     * Deletes all entries in the EventService databases
+     * @throws SQLException if there is an error clearing the databases
+     */
+    public boolean clearDatabase() throws SQLException {
+        if (!mode.equals("test")) {
+            return false;
+        }
+        eventInfoDao.deleteBuilder().delete();
+        return true;
+    }
+    
+    /**
      * @param eventInfo the eventInfo to create
      * @return true if the EventInfo object was created, false if an EventInfo with that eventId already exists in the database
      * @throws SQLException if there are any issues persisting to the database
@@ -29,6 +41,22 @@ public class EventService {
                 return false;
             }
             eventInfoDao.create(eventInfo);
+            return true;
+        });
+    }
+    
+    /**
+     * Delete the given {@link EventInfo} from the database
+     * @param eventId the eventId of the {@link EventInfo} to delete
+     * @return true if the deletion was successful, false if there was no {@link EventInfo}
+     * found with the given ID
+     */
+    public boolean deleteEvent(String eventId) throws SQLException {
+        return TransactionManager.callInTransaction(eventInfoDao.getConnectionSource(), () -> {
+            if (!eventInfoDao.idExists(eventId)) {
+                return false;
+            }
+            eventInfoDao.deleteById(eventId);
             return true;
         });
     }

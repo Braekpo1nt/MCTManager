@@ -621,6 +621,39 @@ public class GameManager implements Listener {
         );
     }
     
+    /**
+     * Remove the event with the given ID from the database
+     * @param eventId the id of the event to remove
+     * @return a command result detailing the result of the operation
+     */
+    public CommandResult deleteEvent(@NotNull String eventId) {
+        try {
+            boolean eventExisted = eventService.deleteEvent(eventId);
+            if (!eventExisted) {
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text("No event with the id "))
+                        .append(Component.text(eventId)
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" was found"))
+                );
+            }
+            return CommandResult.success(Component.empty()
+                    .append(Component.text("Event with id "))
+                    .append(Component.text(eventId)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" deleted"))
+            );
+        } catch (SQLException e) {
+            Main.logger().log(Level.SEVERE, String.format("An error occurred while trying to remove the event with id \"%s\" from the database", eventId), e);
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text("An error occurred trying to delete the event with id "))
+                    .append(Component.text(eventId)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(". See console for details."))
+            );
+        }
+    }
+    
     public CommandResult startEvent(int maxGames, int currentGameNumber) {
         return state.startEvent(maxGames, currentGameNumber);
     }
