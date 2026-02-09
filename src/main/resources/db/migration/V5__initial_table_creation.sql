@@ -16,17 +16,29 @@ CREATE TABLE teams (
 
 -- A tournament/day (e.g. "MCT 1B")
 CREATE TABLE events (
-    id              BIGINT ${autoincrement} PRIMARY KEY,
-    title           VARCHAR(128) NOT NULL,
-    event_date      DATE NOT NULL,
-    created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    id                      VARCHAR(64) PRIMARY KEY,  -- user chosen
+
+    plain_display_name      VARCHAR(128) NOT NULL,
+    component_display_name  TEXT NOT NULL,
+
+    event_date              DATE NOT NULL,            -- scheduled day
+
+    created_at              TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_at             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    started_at              TIMESTAMP NULL,           -- actual runtime
+    ended_at                TIMESTAMP NULL,
+
+    winner_team_id          VARCHAR(64) NULL,
+
+    FOREIGN KEY (winner_team_id) REFERENCES teams(id)
 );
 
 -- holds a specific session of a specific game
 -- normalized to reference event_id
 CREATE TABLE game_sessions (
     id              CHAR(36) PRIMARY KEY,
-    event_id        BIGINT NOT NULL,
+    event_id        VARCHAR(64) NOT NULL,
     game_type       VARCHAR(64) NOT NULL,
     config_file     VARCHAR(128) NOT NULL,
     mode            VARCHAR(32) NOT NULL,
@@ -38,7 +50,7 @@ CREATE TABLE game_sessions (
 
 -- Roster membership, who is in each event and on what team
 CREATE TABLE event_participants (
-    event_id        BIGINT NOT NULL,
+    event_id        VARCHAR(64) NOT NULL,
     player_uuid     CHAR(36) NOT NULL,
     team_id         VARCHAR(64) NULL,
 
@@ -54,7 +66,7 @@ CREATE TABLE score_events (
     id              BIGINT ${autoincrement} PRIMARY KEY,
 
     session_id      CHAR(36) NOT NULL,
-    event_id        BIGINT NOT NULL,
+    event_id        VARCHAR(64) NOT NULL,
 
     participant_uuid CHAR(36) NULL,
     team_id         VARCHAR(64) NULL,
