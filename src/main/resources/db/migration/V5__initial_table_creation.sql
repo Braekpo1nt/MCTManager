@@ -161,13 +161,6 @@ CREATE TABLE event_participant_standings (
 -- Indexes
 -- (These make rebuilds and website queries fast)
 
--- rebuild current standings
-CREATE INDEX idx_score_session_participant
-ON score_events(session_id, participant_uuid);
-
-CREATE INDEX idx_score_session_team
-ON score_events(session_id, team_id);
-
 -- lifetime player history
 CREATE INDEX idx_score_participant
 ON score_events(participant_uuid);
@@ -179,10 +172,6 @@ ON score_events(team_id);
 -- chronological feeds / debugging
 CREATE INDEX idx_score_timestamp
 ON score_events(created_at);
-
--- event leaderboard
-CREATE INDEX idx_score_event
-ON score_events(event_id);
 
 CREATE INDEX idx_score_event_time
 ON score_events(event_id, created_at);
