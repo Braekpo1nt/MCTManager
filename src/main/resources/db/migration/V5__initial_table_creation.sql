@@ -2,16 +2,54 @@
 
 -- Global identity only. Never store scores here.
 CREATE TABLE players (
-    uuid            CHAR(36) PRIMARY KEY,
-    ign             VARCHAR(16) NOT NULL,
-    first_seen_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    uuid                CHAR(36) PRIMARY KEY,
+    ign                 VARCHAR(36) NOT NULL,
+    discord_username    VARCHAR(36) NOT NULL,
+    first_seen_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Teams may be per-event or global. This supports both.
-CREATE TABLE teams (
-    id              VARCHAR(64) PRIMARY KEY,
+-- ==============
+-- Teams
+-- ==============
+-- The teams which are used in maintenance mode
+CREATE TABLE maintenance_teams (
+    team_id         VARCHAR(64) PRIMARY KEY,
     display_name    VARCHAR(64) NOT NULL,
-    color           VARCHAR(32) NOT NULL
+    color           VARCHAR(32) NOT NULL,
+    modified_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- The teams which are used in practice mode
+CREATE TABLE practice_teams (
+    team_id         VARCHAR(64) PRIMARY KEY,
+    display_name    VARCHAR(64) NOT NULL,
+    color           VARCHAR(32) NOT NULL,
+    modified_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- The teams which are in an event (each team is associated with a specific event)
+CREATE TABLE event_teams (
+    id              BIGINT ${autoincrement} PRIMARY KEY,
+    event_id        VARCHAR(64) NOT NULL,
+    team_id         VARCHAR(64) NOT NULL
+    display_name    VARCHAR(64) NOT NULL,
+    color           VARCHAR(32) NOT NULL,
+    modified_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    
+    UNIQUE (event_id, team_id)
+);
+
+-- ================
+-- Participants
+-- ================
+-- Roster membership, who is in each event and on what team
+CREATE TABLE event_participants (
+    id              BIGINT ${autoincrement} PRIMARY KEY,
+    event_id        VARCHAR(64) NOT NULL,
+    player_uuid     CHAR(36) NOT NULL,
+    team_id         VARCHAR(64) NULL,
+
+    UNIQUE (event_id, player_uuid),
 );
 
 -- A tournament/day (e.g. "MCT 1B")
@@ -31,7 +69,6 @@ CREATE TABLE events (
 
     winner_team_id          VARCHAR(64) NULL,
 
-    FOREIGN KEY (winner_team_id) REFERENCES teams(id)
 );
 
 -- holds a specific session of a specific game
@@ -48,39 +85,24 @@ CREATE TABLE game_sessions (
     FOREIGN KEY (event_id) REFERENCES events(id)
 );
 
--- Roster membership, who is in each event and on what team
-CREATE TABLE event_participants (
-    event_id        VARCHAR(64) NOT NULL,
-    player_uuid     CHAR(36) NOT NULL,
-    team_id         VARCHAR(64) NULL,
-
-    PRIMARY KEY (event_id, player_uuid),
-
-    FOREIGN KEY (event_id) REFERENCES events(id),
-    FOREIGN KEY (player_uuid) REFERENCES players(uuid),
-    FOREIGN KEY (team_id) REFERENCES teams(id)
-);
-
 -- stores a running list of changes to the scores, a journal used to rebuild the current standings on a restart
 CREATE TABLE score_events (
-    id              BIGINT ${autoincrement} PRIMARY KEY,
+    id                  BIGINT ${autoincrement} PRIMARY KEY,
 
-    session_id      CHAR(36) NOT NULL,
-    event_id        VARCHAR(64) NOT NULL,
+    session_id          CHAR(36) NOT NULL, -- the game_session id of the game played
+    
+    context_id          VARCHAR(64) NULL,
+    -- event_id when mode = event
+    -- NULL otherwise (future ability to add a practice session or test session id)
 
-    participant_uuid CHAR(36) NULL,
-    team_id         VARCHAR(64) NULL,
+    participant_uuid    CHAR(36) NULL,
+    team_id             VARCHAR(32) NULL,
 
     points_base     INT NOT NULL,
     multiplier      DECIMAL(6,3) NOT NULL DEFAULT 1.0,
 
-    reason          VARCHAR(255) NULL,
-    created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    FOREIGN KEY (session_id) REFERENCES game_sessions(id),
-    FOREIGN KEY (event_id) REFERENCES events(id),
-    FOREIGN KEY (participant_uuid) REFERENCES players(uuid),
-    FOREIGN KEY (team_id) REFERENCES teams(id)
+    reason              VARCHAR(128) NULL,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Indexes
