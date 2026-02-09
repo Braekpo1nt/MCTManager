@@ -34,7 +34,7 @@ CREATE TABLE event_teams (
     team_id         VARCHAR(64) NOT NULL,
     display_name    VARCHAR(64) NOT NULL,
     color           VARCHAR(32) NOT NULL,
-    modified_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    modified_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
     UNIQUE (event_id, team_id)
 );
@@ -44,26 +44,31 @@ CREATE TABLE event_teams (
 -- ================
 -- Stores the participants in maintenance mode
 CREATE TABLE maintenance_participants (
-    id              BIGINT ${autoincrement} PRIMARY KEY,
-    player_uuid     CHAR(36) NOT NULL,
-    team_id         VARCHAR(64) NULL
+    participant_uuid    CHAR(36) PRIMARY KEY,
+    team_id             VARCHAR(64) NULL,
+    
+    FOREIGN KEY (participant_uuid) REFERENCES players(uuid) -- makes sure this is a real player
 );
 
 -- Stores the participants in practice mode
 CREATE TABLE practice_participants (
-    id              BIGINT ${autoincrement} PRIMARY KEY,
-    player_uuid     CHAR(36) NOT NULL,
-    team_id         VARCHAR(64) NULL
+    participant_uuid    CHAR(36) PRIMARY KEY,
+    team_id             VARCHAR(64) NULL,
+    
+    FOREIGN KEY (participant_uuid) REFERENCES players(uuid) -- makes sure this is a real player
 );
 
 -- Roster membership, who is in each event and on what team
 CREATE TABLE event_participants (
-    id              BIGINT ${autoincrement} PRIMARY KEY,
-    event_id        VARCHAR(64) NOT NULL,
-    player_uuid     CHAR(36) NOT NULL,
-    team_id         VARCHAR(64) NULL
+    id                  BIGINT ${autoincrement} PRIMARY KEY,
+    event_id            VARCHAR(64) NOT NULL,
+    participant_uuid    CHAR(36) NOT NULL,
+    team_id             VARCHAR(64) NULL,
 
-    UNIQUE (event_id, player_uuid),
+    UNIQUE (event_id, participant_uuid),
+    
+    FOREIGN KEY (participant_uuid) REFERENCES players(uuid), -- makes sure this is a real player
+    FOREIGN KEY (event_id) REFERENCES event_info(id) -- makes sure this is a real event
 );
 
 -- A tournament/day (e.g. "MCT 1B")
@@ -94,6 +99,8 @@ CREATE TABLE game_sessions (
     mode            VARCHAR(32) NOT NULL,
     start_time      TIMESTAMP NOT NULL,
     end_time        TIMESTAMP NULL,
+    
+    FOREIGN KEY (event_id) REFERENCES event_info(id) -- makes sure this is a real event
 );
 
 -- stores a running list of changes to the scores, a journal used to rebuild the current standings on a restart
@@ -103,7 +110,7 @@ CREATE TABLE score_events (
     source_type         ENUM('GAME','ADMIN','SYSTEM','MIGRATION') NOT NULL,
     
     session_id          BIGINT NULL, -- the game_session id of the game played, only if source_type is 'GAME'
-    context_id          VARCHAR(64) NULL,
+    event_id          VARCHAR(64) NULL,
     -- event_id when the score_event is tied to an event
     -- NULL otherwise (future ability to add a practice session or test session id)
 
@@ -114,7 +121,10 @@ CREATE TABLE score_events (
     multiplier          DECIMAL(6,3) NOT NULL DEFAULT 1.0,
 
     reason              VARCHAR(128) NULL,
-    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (participant_uuid) REFERENCES players(uuid),
+    FOREIGN KEY (session_id) REFERENCES game_sessions(id)
 );
 
 -- =============
@@ -128,22 +138,24 @@ CREATE TABLE score_events (
 
 -- The current score of each team for a given event
 CREATE TABLE event_team_standings (
-    event_id VARCHAR(64) NOT NULL,
-    team_id  VARCHAR(64) NOT NULL,
+    id          BIGINT ${autoincrement} PRIMARY KEY,
+    event_id    VARCHAR(64) NOT NULL,
+    team_id     VARCHAR(64) NOT NULL,
 
-    score INT NOT NULL DEFAULT 0,
+    score       INT NOT NULL DEFAULT 0,
 
-    PRIMARY KEY (event_id, team_id)
+    UNIQUE (event_id, team_id)
 );
 
 -- The current score of each participant for a given event
 CREATE TABLE event_participant_standings (
-    event_id VARCHAR(64) NOT NULL,
-    participant_uuid CHAR(36) NOT NULL,
+    id                  BIGINT ${autoincrement} PRIMARY KEY,
+    event_id            VARCHAR(64) NOT NULL,
+    participant_uuid    CHAR(36) NOT NULL,
 
-    score_base INT NOT NULL DEFAULT 0,   -- personal score (no multiplier)
+    score               INT NOT NULL DEFAULT 0,   -- personal score (no multiplier)
 
-    PRIMARY KEY (event_id, participant_uuid)
+    UNIQUE (event_id, participant_uuid)
 );
 
 -- Indexes
@@ -160,13 +172,23 @@ ON score_events(session_id, team_id);
 CREATE INDEX idx_score_participant
 ON score_events(participant_uuid);
 
+-- lifetime team history
+CREATE INDEX idx_score_team
+ON score_events(team_id);
+
 -- chronological feeds / debugging
 CREATE INDEX idx_score_timestamp
 ON score_events(created_at);
 
 -- event leaderboard
 CREATE INDEX idx_score_event
-ON score_events(context_id);
+ON score_events(event_id);
+
+CREATE INDEX idx_score_event_time
+ON score_events(event_id, created_at);
+
+CREATE INDEX idx_score_session
+ON score_events(session_id);
 
 -- Authoritative, not derivable from previous data
 
@@ -178,4 +200,6 @@ CREATE TABLE participant_wallets (
     lifetime_tokens INT NOT NULL DEFAULT 0,
 
     percent_rank    INT NOT NULL DEFAULT 0,
+    
+    FOREIGN KEY (participant_uuid) REFERENCES players(uuid) -- wallets without players should never exist
 );
