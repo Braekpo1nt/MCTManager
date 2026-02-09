@@ -158,28 +158,24 @@ CREATE TABLE event_participant_standings (
     UNIQUE (event_id, participant_uuid)
 );
 
+-- ===============
 -- Indexes
--- (These make rebuilds and website queries fast)
+-- ===============
+-- (These make rebuilds and website queries faster)
+
+CREATE INDEX idx_score_event_time
+ON score_events(event_id, created_at);
 
 -- lifetime player history
 CREATE INDEX idx_score_participant
 ON score_events(participant_uuid);
 
--- lifetime team history
-CREATE INDEX idx_score_team
-ON score_events(team_id);
-
--- chronological feeds / debugging
-CREATE INDEX idx_score_timestamp
-ON score_events(created_at);
-
-CREATE INDEX idx_score_event_time
-ON score_events(event_id, created_at);
-
 CREATE INDEX idx_score_session
 ON score_events(session_id);
 
+-- ==========
 -- Authoritative, not derivable from previous data
+-- ==========
 
 -- Participant wallets
 CREATE TABLE participant_wallets (
