@@ -4,7 +4,7 @@
 CREATE TABLE players (
     uuid                CHAR(36) PRIMARY KEY,
     ign                 VARCHAR(36) NOT NULL,
-    discord_username    VARCHAR(36) NOT NULL,
+    discord_username    VARCHAR(36) NULL,
     first_seen_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -42,6 +42,20 @@ CREATE TABLE event_teams (
 -- ================
 -- Participants
 -- ================
+-- Stores the participants in maintenance mode
+CREATE TABLE maintenance_participants (
+    id              BIGINT ${autoincrement} PRIMARY KEY,
+    player_uuid     CHAR(36) NOT NULL,
+    team_id         VARCHAR(64) NULL,
+);
+
+-- Stores the participants in practice mode
+CREATE TABLE practice_participants (
+    id              BIGINT ${autoincrement} PRIMARY KEY,
+    player_uuid     CHAR(36) NOT NULL,
+    team_id         VARCHAR(64) NULL,
+);
+
 -- Roster membership, who is in each event and on what team
 CREATE TABLE event_participants (
     id              BIGINT ${autoincrement} PRIMARY KEY,
@@ -53,7 +67,7 @@ CREATE TABLE event_participants (
 );
 
 -- A tournament/day (e.g. "MCT 1B")
-CREATE TABLE events (
+CREATE TABLE event_info (
     id                      VARCHAR(64) PRIMARY KEY,  -- user chosen
 
     plain_display_name      VARCHAR(128) NOT NULL,
@@ -93,7 +107,7 @@ CREATE TABLE score_events (
     
     session_id          BIGINT NULL, -- the game_session id of the game played, only if source_type is 'GAME'
     context_id          VARCHAR(64) NULL,
-    -- event_id when mode = "EVENT"
+    -- event_id when the score_event is tied to an event
     -- NULL otherwise (future ability to add a practice session or test session id)
 
     participant_uuid    CHAR(36) NULL,
@@ -138,6 +152,4 @@ CREATE TABLE participant_wallets (
     lifetime_tokens INT NOT NULL DEFAULT 0,
 
     percent_rank    INT NOT NULL DEFAULT 0,
-
-    FOREIGN KEY (player_uuid) REFERENCES players(uuid)
 );
