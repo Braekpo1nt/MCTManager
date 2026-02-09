@@ -74,7 +74,7 @@ CREATE TABLE events (
 -- holds a specific session of a specific game
 -- normalized to reference event_id
 CREATE TABLE game_sessions (
-    id              CHAR(36) PRIMARY KEY,
+    id              BIGINT ${autoincrement} PRIMARY KEY,
     event_id        VARCHAR(64) NOT NULL,
     game_type       VARCHAR(64) NOT NULL,
     config_file     VARCHAR(128) NOT NULL,
@@ -89,17 +89,18 @@ CREATE TABLE game_sessions (
 CREATE TABLE score_events (
     id                  BIGINT ${autoincrement} PRIMARY KEY,
 
-    session_id          CHAR(36) NOT NULL, -- the game_session id of the game played
+    source_type         ENUM('GAME','ADMIN','SYSTEM','MIGRATION') NOT NULL,
     
+    session_id          BIGINT NULL, -- the game_session id of the game played, only if source_type is 'GAME'
     context_id          VARCHAR(64) NULL,
-    -- event_id when mode = event
+    -- event_id when mode = "EVENT"
     -- NULL otherwise (future ability to add a practice session or test session id)
 
     participant_uuid    CHAR(36) NULL,
     team_id             VARCHAR(32) NULL,
 
-    points_base     INT NOT NULL,
-    multiplier      DECIMAL(6,3) NOT NULL DEFAULT 1.0,
+    points_base         INT NOT NULL,
+    multiplier          DECIMAL(6,3) NOT NULL DEFAULT 1.0,
 
     reason              VARCHAR(128) NULL,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
