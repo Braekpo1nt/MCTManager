@@ -31,7 +31,7 @@ CREATE TABLE practice_teams (
 CREATE TABLE event_teams (
     id              BIGINT ${autoincrement} PRIMARY KEY,
     event_id        VARCHAR(64) NOT NULL,
-    team_id         VARCHAR(64) NOT NULL
+    team_id         VARCHAR(64) NOT NULL,
     display_name    VARCHAR(64) NOT NULL,
     color           VARCHAR(32) NOT NULL,
     modified_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -46,14 +46,14 @@ CREATE TABLE event_teams (
 CREATE TABLE maintenance_participants (
     id              BIGINT ${autoincrement} PRIMARY KEY,
     player_uuid     CHAR(36) NOT NULL,
-    team_id         VARCHAR(64) NULL,
+    team_id         VARCHAR(64) NULL
 );
 
 -- Stores the participants in practice mode
 CREATE TABLE practice_participants (
     id              BIGINT ${autoincrement} PRIMARY KEY,
     player_uuid     CHAR(36) NOT NULL,
-    team_id         VARCHAR(64) NULL,
+    team_id         VARCHAR(64) NULL
 );
 
 -- Roster membership, who is in each event and on what team
@@ -61,7 +61,7 @@ CREATE TABLE event_participants (
     id              BIGINT ${autoincrement} PRIMARY KEY,
     event_id        VARCHAR(64) NOT NULL,
     player_uuid     CHAR(36) NOT NULL,
-    team_id         VARCHAR(64) NULL,
+    team_id         VARCHAR(64) NULL
 
     UNIQUE (event_id, player_uuid),
 );
@@ -81,8 +81,7 @@ CREATE TABLE event_info (
     started_at              TIMESTAMP NULL,           -- actual runtime
     ended_at                TIMESTAMP NULL,
 
-    winner_team_id          VARCHAR(64) NULL,
-
+    winner_team_id          VARCHAR(64) NULL
 );
 
 -- holds a specific session of a specific game
@@ -95,8 +94,6 @@ CREATE TABLE game_sessions (
     mode            VARCHAR(32) NOT NULL,
     start_time      TIMESTAMP NOT NULL,
     end_time        TIMESTAMP NULL,
-
-    FOREIGN KEY (event_id) REFERENCES events(id)
 );
 
 -- stores a running list of changes to the scores, a journal used to rebuild the current standings on a restart
@@ -111,7 +108,7 @@ CREATE TABLE score_events (
     -- NULL otherwise (future ability to add a practice session or test session id)
 
     participant_uuid    CHAR(36) NULL,
-    team_id             VARCHAR(32) NULL,
+    team_id             VARCHAR(64) NULL,
 
     points_base         INT NOT NULL,
     multiplier          DECIMAL(6,3) NOT NULL DEFAULT 1.0,
@@ -132,7 +129,7 @@ CREATE TABLE score_events (
 -- The current score of each team for a given event
 CREATE TABLE event_team_standings (
     event_id VARCHAR(64) NOT NULL,
-    team_id  VARCHAR(32) NOT NULL,
+    team_id  VARCHAR(64) NOT NULL,
 
     score INT NOT NULL DEFAULT 0,
 
@@ -169,7 +166,7 @@ ON score_events(created_at);
 
 -- event leaderboard
 CREATE INDEX idx_score_event
-ON score_events(event_id);
+ON score_events(context_id);
 
 -- Authoritative, not derivable from previous data
 
