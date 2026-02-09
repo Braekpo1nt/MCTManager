@@ -1,11 +1,29 @@
 -- initial table creation
 
 -- Global identity only. Never store scores here.
-CREATE TABLE players (
+CREATE TABLE all_players (
     uuid                CHAR(36) PRIMARY KEY,
     ign                 VARCHAR(36) NOT NULL,
     discord_username    VARCHAR(36) NULL,
     first_seen_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- A tournament/day (e.g. "MCT 1B")
+CREATE TABLE event_info (
+    id                      VARCHAR(64) PRIMARY KEY,  -- user chosen
+
+    plain_display_name      VARCHAR(128) NOT NULL,
+    component_display_name  TEXT NOT NULL,
+
+    event_date              DATE NOT NULL,            -- scheduled day
+
+    created_at              TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_at             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    started_at              TIMESTAMP NULL,           -- actual runtime
+    ended_at                TIMESTAMP NULL,
+
+    winner_team_id          VARCHAR(64) NULL
 );
 
 -- ==============
@@ -47,7 +65,7 @@ CREATE TABLE maintenance_participants (
     participant_uuid    CHAR(36) PRIMARY KEY,
     team_id             VARCHAR(64) NULL,
     
-    FOREIGN KEY (participant_uuid) REFERENCES players(uuid) -- makes sure this is a real player
+    FOREIGN KEY (participant_uuid) REFERENCES all_players(uuid) -- makes sure this is a real player
 );
 
 -- Stores the participants in practice mode
@@ -55,7 +73,7 @@ CREATE TABLE practice_participants (
     participant_uuid    CHAR(36) PRIMARY KEY,
     team_id             VARCHAR(64) NULL,
     
-    FOREIGN KEY (participant_uuid) REFERENCES players(uuid) -- makes sure this is a real player
+    FOREIGN KEY (participant_uuid) REFERENCES all_players(uuid) -- makes sure this is a real player
 );
 
 -- Roster membership, who is in each event and on what team
@@ -67,26 +85,8 @@ CREATE TABLE event_participants (
 
     UNIQUE (event_id, participant_uuid),
     
-    FOREIGN KEY (participant_uuid) REFERENCES players(uuid), -- makes sure this is a real player
+    FOREIGN KEY (participant_uuid) REFERENCES all_players(uuid), -- makes sure this is a real player
     FOREIGN KEY (event_id) REFERENCES event_info(id) -- makes sure this is a real event
-);
-
--- A tournament/day (e.g. "MCT 1B")
-CREATE TABLE event_info (
-    id                      VARCHAR(64) PRIMARY KEY,  -- user chosen
-
-    plain_display_name      VARCHAR(128) NOT NULL,
-    component_display_name  TEXT NOT NULL,
-
-    event_date              DATE NOT NULL,            -- scheduled day
-
-    created_at              TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    modified_at             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    started_at              TIMESTAMP NULL,           -- actual runtime
-    ended_at                TIMESTAMP NULL,
-
-    winner_team_id          VARCHAR(64) NULL
 );
 
 -- holds a specific session of a specific game
@@ -123,7 +123,7 @@ CREATE TABLE score_events (
     reason              VARCHAR(128) NULL,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
-    FOREIGN KEY (participant_uuid) REFERENCES players(uuid),
+    FOREIGN KEY (participant_uuid) REFERENCES all_players(uuid),
     FOREIGN KEY (session_id) REFERENCES game_sessions(id)
 );
 
@@ -186,5 +186,5 @@ CREATE TABLE participant_wallets (
 
     percent_rank    INT NOT NULL DEFAULT 0,
     
-    FOREIGN KEY (participant_uuid) REFERENCES players(uuid) -- wallets without players should never exist
+    FOREIGN KEY (participant_uuid) REFERENCES all_players(uuid) -- wallets without players should never exist
 );
