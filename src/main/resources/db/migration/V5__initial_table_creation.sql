@@ -120,6 +120,35 @@ CREATE TABLE score_events (
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- =============
+-- Projections
+-- =============
+-- Projections are for the website and maybe the tablist/sidebar 
+-- to read from without needing to calculate the sum of all the
+-- score_event entries for a specific event. They are used for live events
+-- right now.
+-- These are transient, erased and rebuilt upon a restart
+
+-- The current score of each team for a given event
+CREATE TABLE event_team_standings (
+    event_id VARCHAR(64) NOT NULL,
+    team_id  VARCHAR(32) NOT NULL,
+
+    score INT NOT NULL DEFAULT 0,
+
+    PRIMARY KEY (event_id, team_id)
+);
+
+-- The current score of each participant for a given event
+CREATE TABLE event_participant_standings (
+    event_id VARCHAR(64) NOT NULL,
+    participant_uuid CHAR(36) NOT NULL,
+
+    score_base INT NOT NULL DEFAULT 0,   -- personal score (no multiplier)
+
+    PRIMARY KEY (event_id, participant_uuid)
+);
+
 -- Indexes
 -- (These make rebuilds and website queries fast)
 
@@ -146,7 +175,7 @@ ON score_events(event_id);
 
 -- Participant wallets
 CREATE TABLE participant_wallets (
-    player_uuid     CHAR(36) PRIMARY KEY,
+    participant_uuid     CHAR(36) PRIMARY KEY,
 
     current_tokens  INT NOT NULL DEFAULT 0,
     lifetime_tokens INT NOT NULL DEFAULT 0,
