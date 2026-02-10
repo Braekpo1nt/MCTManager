@@ -78,17 +78,19 @@ CREATE TABLE event_teams (
 -- Stores the participants in maintenance mode
 CREATE TABLE maintenance_participants (
     participant_uuid    CHAR(36) PRIMARY KEY,
-    team_id             VARCHAR(64) NULL,
+    team_id             VARCHAR(64) NOT NULL,
     
     FOREIGN KEY (participant_uuid) REFERENCES all_players(uuid) -- makes sure this is a real player
+    FOREIGN KEY (team_id) REFERENCES maintenance_teams(team_id) -- make sure this is a real team
 );
 
 -- Stores the participants in practice mode
 CREATE TABLE practice_participants (
     participant_uuid    CHAR(36) PRIMARY KEY,
-    team_id             VARCHAR(64) NULL,
+    team_id             VARCHAR(64) NOT NULL,
     
     FOREIGN KEY (participant_uuid) REFERENCES all_players(uuid) -- makes sure this is a real player
+    FOREIGN KEY (team_id) REFERENCES maintenance_teams(team_id) -- make sure this is a real team
 );
 
 -- Roster membership, who is in each event and on what team
@@ -102,6 +104,7 @@ CREATE TABLE event_participants (
     
     FOREIGN KEY (participant_uuid) REFERENCES all_players(uuid), -- makes sure this is a real player
     FOREIGN KEY (event_id) REFERENCES event_info(id) -- makes sure this is a real event
+    FOREIGN KEY (team_id) REFERENCES event_teams(team_id) -- make sure this is a real team
 );
 
 -- holds a specific session of a specific game
