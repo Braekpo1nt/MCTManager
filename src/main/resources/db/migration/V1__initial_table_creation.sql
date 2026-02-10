@@ -130,13 +130,15 @@ CREATE TABLE score_events (
     source_type         VARCHAR(16) NOT NULL
         CHECK (source_type IN ('GAME','ADMIN','SYSTEM','MIGRATION')),
     
+    -- the id of the game session this score event took place during, 
+    -- or null if not from a game
     session_id          BIGINT NULL, 
     event_id          VARCHAR(64) NULL,
     -- event_id when the score_event is tied to an event
     -- NULL otherwise (future ability to add a practice session or test session id)
 
     participant_uuid    CHAR(36) NULL,
-    team_id             VARCHAR(64) NULL,
+    team_id             VARCHAR(64) NOT NULL,
 
     points_base         INT NOT NULL,
     multiplier          DECIMAL(6,3) NOT NULL DEFAULT 1.0,
