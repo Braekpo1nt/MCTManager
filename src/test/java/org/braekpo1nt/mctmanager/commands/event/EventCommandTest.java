@@ -37,7 +37,7 @@ class EventCommandTest {
     @BeforeEach
     void setUpServerAndPlugin() {
         server = MockBukkit.mock(new MyCustomServerMock());
-        server.getLogger().setLevel(Level.OFF);
+        server.getLogger().setLevel(Level.ALL);
         try {
             plugin = MockBukkit.load(MockMain.class);
         } catch (UnimplementedOperationException ex) {

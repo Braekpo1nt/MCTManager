@@ -107,9 +107,10 @@ CREATE TABLE game_sessions (
 CREATE TABLE score_events (
     id                  BIGINT ${autoincrement} PRIMARY KEY,
 
-    source_type         ENUM('GAME','ADMIN','SYSTEM','MIGRATION') NOT NULL,
+    source_type         VARCHAR(16) NOT NULL
+        CHECK (source_type IN ('GAME','ADMIN','SYSTEM','MIGRATION')),
     
-    session_id          BIGINT NULL, -- the game_session id of the game played, only if source_type is 'GAME'
+    session_id          BIGINT NULL, 
     event_id          VARCHAR(64) NULL,
     -- event_id when the score_event is tied to an event
     -- NULL otherwise (future ability to add a practice session or test session id)
