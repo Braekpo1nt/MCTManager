@@ -69,7 +69,7 @@ CREATE TABLE event_teams (
     color           VARCHAR(32) NOT NULL,
     modified_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
-    UNIQUE (event_id, team_id)
+    UNIQUE (event_id, team_id),
     
     FOREIGN KEY (event_id) REFERENCES event_info(id) -- makes sure this is a real event
 );
@@ -82,7 +82,7 @@ CREATE TABLE maintenance_participants (
     participant_uuid    CHAR(36) PRIMARY KEY,
     team_id             VARCHAR(64) NOT NULL,
     
-    FOREIGN KEY (participant_uuid) REFERENCES all_players(uuid) -- makes sure this is a real player
+    FOREIGN KEY (participant_uuid) REFERENCES all_players(uuid), -- makes sure this is a real player
     FOREIGN KEY (team_id) REFERENCES maintenance_teams(team_id) -- make sure this is a real team
 );
 
@@ -91,8 +91,8 @@ CREATE TABLE practice_participants (
     participant_uuid    CHAR(36) PRIMARY KEY,
     team_id             VARCHAR(64) NOT NULL,
     
-    FOREIGN KEY (participant_uuid) REFERENCES all_players(uuid) -- makes sure this is a real player
-    FOREIGN KEY (team_id) REFERENCES maintenance_teams(team_id) -- make sure this is a real team
+    FOREIGN KEY (participant_uuid) REFERENCES all_players(uuid), -- makes sure this is a real player
+    FOREIGN KEY (team_id) REFERENCES practice_teams(team_id) -- make sure this is a real team
 );
 
 -- Roster membership, who is in each event and on what team
@@ -100,13 +100,14 @@ CREATE TABLE event_participants (
     id                  BIGINT ${autoincrement} PRIMARY KEY,
     event_id            VARCHAR(64) NOT NULL,
     participant_uuid    CHAR(36) NOT NULL,
-    team_id             VARCHAR(64) NULL,
+    team_id             VARCHAR(64) NOT NULL,
 
     UNIQUE (event_id, participant_uuid),
     
     FOREIGN KEY (participant_uuid) REFERENCES all_players(uuid), -- makes sure this is a real player
-    FOREIGN KEY (event_id) REFERENCES event_info(id) -- makes sure this is a real event
-    FOREIGN KEY (team_id) REFERENCES event_teams(team_id) -- make sure this is a real team
+    FOREIGN KEY (event_id) REFERENCES event_info(id), -- makes sure this is a real event
+    FOREIGN KEY (event_id, team_id)
+        REFERENCES event_teams(event_id, team_id) -- make sure event_id + team_id references an actual entry
 );
 
 -- holds a specific session of a specific game
@@ -210,6 +211,9 @@ ON event_participant_standings(event_id);
 
 CREATE INDEX idx_event_team_standings_event
 ON event_team_standings(event_id);
+
+CREATE INDEX idx_event_info_version
+ON event_info(id, standings_version);
 
 -- ==========
 -- Authoritative, not derivable from previous data
