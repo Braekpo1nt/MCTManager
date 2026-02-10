@@ -1,7 +1,7 @@
 -- initial table creation
 
 -- Global identity only. Never store scores here.
-CREATE TABLE IF NOT EXISTS all_players (
+CREATE TABLE all_players (
     uuid                CHAR(36) PRIMARY KEY,
     ign                 VARCHAR(36) NOT NULL,
     discord_username    VARCHAR(36) NULL,
@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS all_players (
 );
 
 -- A tournament/day (e.g. "MCT 1B")
-CREATE TABLE IF NOT EXISTS event_info (
+CREATE TABLE event_info (
     id                      VARCHAR(64) PRIMARY KEY,  -- user chosen
 
     plain_display_name      VARCHAR(128) NOT NULL,
@@ -23,14 +23,29 @@ CREATE TABLE IF NOT EXISTS event_info (
     started_at              TIMESTAMP NULL,           -- actual runtime
     ended_at                TIMESTAMP NULL,
 
-    winner_team_id          VARCHAR(64) NULL
+    winner_team_id          VARCHAR(64) NULL,
+    
+    -- tells website when the standings have changed, reduces polling traffic
+    -- Incremented when the event_*_standings tables are updated
+    standings_version INT NOT NULL DEFAULT 0 
 );
+
+-- Holds a single row to tell all clients what the active event_id should be
+CREATE TABLE system_state (
+    id                  INT PRIMARY KEY CHECK (id = 1),
+    active_event_id     VARCHAR(64) NULL, -- the active event_id, or null if there is no active event
+    
+    FOREIGN KEY (active_event_id) REFERENCES event_info(id)
+);
+
+-- the only entry in system_state, updated when there is an active event
+INSERT INTO system_state(id, active_event_id) VALUES (1, NULL);
 
 -- ==============
 -- Teams
 -- ==============
 -- The teams which are used in maintenance mode
-CREATE TABLE IF NOT EXISTS maintenance_teams (
+CREATE TABLE maintenance_teams (
     team_id         VARCHAR(64) PRIMARY KEY,
     display_name    VARCHAR(64) NOT NULL,
     color           VARCHAR(32) NOT NULL,
@@ -38,7 +53,7 @@ CREATE TABLE IF NOT EXISTS maintenance_teams (
 );
 
 -- The teams which are used in practice mode
-CREATE TABLE IF NOT EXISTS practice_teams (
+CREATE TABLE practice_teams (
     team_id         VARCHAR(64) PRIMARY KEY,
     display_name    VARCHAR(64) NOT NULL,
     color           VARCHAR(32) NOT NULL,
@@ -46,7 +61,7 @@ CREATE TABLE IF NOT EXISTS practice_teams (
 );
 
 -- The teams which are in an event (each team is associated with a specific event)
-CREATE TABLE IF NOT EXISTS event_teams (
+CREATE TABLE event_teams (
     id              BIGINT ${autoincrement} PRIMARY KEY,
     event_id        VARCHAR(64) NOT NULL,
     team_id         VARCHAR(64) NOT NULL,
@@ -61,7 +76,7 @@ CREATE TABLE IF NOT EXISTS event_teams (
 -- Participants
 -- ================
 -- Stores the participants in maintenance mode
-CREATE TABLE IF NOT EXISTS maintenance_participants (
+CREATE TABLE maintenance_participants (
     participant_uuid    CHAR(36) PRIMARY KEY,
     team_id             VARCHAR(64) NULL,
     
@@ -69,7 +84,7 @@ CREATE TABLE IF NOT EXISTS maintenance_participants (
 );
 
 -- Stores the participants in practice mode
-CREATE TABLE IF NOT EXISTS practice_participants (
+CREATE TABLE practice_participants (
     participant_uuid    CHAR(36) PRIMARY KEY,
     team_id             VARCHAR(64) NULL,
     
@@ -77,7 +92,7 @@ CREATE TABLE IF NOT EXISTS practice_participants (
 );
 
 -- Roster membership, who is in each event and on what team
-CREATE TABLE IF NOT EXISTS event_participants (
+CREATE TABLE event_participants (
     id                  BIGINT ${autoincrement} PRIMARY KEY,
     event_id            VARCHAR(64) NOT NULL,
     participant_uuid    CHAR(36) NOT NULL,
@@ -91,7 +106,7 @@ CREATE TABLE IF NOT EXISTS event_participants (
 
 -- holds a specific session of a specific game
 -- normalized to reference event_id
-CREATE TABLE IF NOT EXISTS game_sessions (
+CREATE TABLE game_sessions (
     id              BIGINT ${autoincrement} PRIMARY KEY,
     event_id        VARCHAR(64) NOT NULL,
     game_type       VARCHAR(64) NOT NULL,
@@ -104,7 +119,7 @@ CREATE TABLE IF NOT EXISTS game_sessions (
 );
 
 -- stores a running list of changes to the scores, a journal used to rebuild the current standings on a restart
-CREATE TABLE IF NOT EXISTS score_events (
+CREATE TABLE score_events (
     id                  BIGINT ${autoincrement} PRIMARY KEY,
 
     source_type         VARCHAR(16) NOT NULL
@@ -138,7 +153,7 @@ CREATE TABLE IF NOT EXISTS score_events (
 -- These are transient, erased and rebuilt upon a restart
 
 -- The current score of each team for a given event
-CREATE TABLE IF NOT EXISTS event_team_standings (
+CREATE TABLE event_team_standings (
     id          BIGINT ${autoincrement} PRIMARY KEY,
     event_id    VARCHAR(64) NOT NULL,
     team_id     VARCHAR(64) NOT NULL,
@@ -149,7 +164,7 @@ CREATE TABLE IF NOT EXISTS event_team_standings (
 );
 
 -- The current score of each participant for a given event
-CREATE TABLE IF NOT EXISTS event_participant_standings (
+CREATE TABLE event_participant_standings (
     id                  BIGINT ${autoincrement} PRIMARY KEY,
     event_id            VARCHAR(64) NOT NULL,
     participant_uuid    CHAR(36) NOT NULL,
@@ -194,7 +209,7 @@ ON event_team_standings(event_id);
 -- ==========
 
 -- Participant wallets
-CREATE TABLE IF NOT EXISTS participant_wallets (
+CREATE TABLE participant_wallets (
     participant_uuid     CHAR(36) PRIMARY KEY,
 
     current_tokens  INT NOT NULL DEFAULT 0,
