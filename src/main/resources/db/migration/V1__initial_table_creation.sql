@@ -27,7 +27,7 @@ CREATE TABLE event_info (
     
     -- tells website when the standings have changed, reduces polling traffic
     -- Incremented when the event_*_standings tables are updated
-    standings_version INT NOT NULL DEFAULT 0 
+    standings_version       INT NOT NULL DEFAULT 0 
 );
 
 -- Holds a single row to tell all clients what the active event_id should be

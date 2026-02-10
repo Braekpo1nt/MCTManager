@@ -20,43 +20,56 @@ public class EventInfo {
     /**
      * Unique identifier for the event
      */
-    @DatabaseField(id = true)
+    @DatabaseField(id = true, columnName = "id")
     private @NotNull String eventId;
     /**
      * The display name to be used in the web and discord formats
      */
-    @DatabaseField(canBeNull = false)
+    @DatabaseField(canBeNull = false, columnName = "plain_display_name")
     private @NotNull String plainTextName;
     /**
      * The display name to be used in {@link net.kyori.adventure.text.Component}s,
      * internally in Minecraft (a raw text json string)
      */
-    @DatabaseField(canBeNull = false)
+    @DatabaseField(canBeNull = false, columnName = "component_display_name")
     private @NotNull String componentName;
-    /**
-     * The date the event was created and added to the database
-     */
-    @DatabaseField(canBeNull = false)
-    private @NotNull Date createdDate;
-    /**
-     * The date the event was modified (same as the {@link #createdDate} if
-     * it has never been modified
-     */
-    @DatabaseField(canBeNull = false)
-    private @NotNull Date modifiedDate;
     /**
      * The date the event is/was scheduled to take place
      */
-    @DatabaseField(canBeNull = false)
+    @DatabaseField(canBeNull = false, columnName = "event_date")
     private @NotNull Date eventDate;
+    /**
+     * The date the event was created and added to the database
+     */
+    @DatabaseField(canBeNull = false, columnName = "created_at")
+    private @NotNull Date createdAt;
+    /**
+     * The date the event was modified (same as the {@link #createdAt} if
+     * it has never been modified
+     */
+    @DatabaseField(canBeNull = false, columnName = "modified_at")
+    private @NotNull Date modifiedAt;
     /**
      * The date and time that the event was started (replaced each time the event is started)
      */
-    @DatabaseField
-    private @Nullable Date startTime;
+    @DatabaseField(columnName = "started_at")
+    private @Nullable Date startAt;
     /**
      * The date and time that the event was ended (replaced each time the event is ended)
      */
-    @DatabaseField
-    private @Nullable Date endTime;
+    @DatabaseField(columnName = "ended_at")
+    private @Nullable Date endedAt;
+    
+    /**
+     * The winner of the event. Null if the event has no winner yet.
+     */
+    @DatabaseField(columnName = "winner_team_id")
+    private @Nullable String winnerTeamId;
+    
+    /**
+     * Tells the website when the standings have changed, reduces polling traffic.
+     * Incremented when the scores change during an event
+     */
+    @DatabaseField(columnName = "standings_version", canBeNull = false)
+    private int standingsVersion;
 }
