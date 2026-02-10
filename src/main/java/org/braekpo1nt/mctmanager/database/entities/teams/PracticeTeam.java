@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.database.entities;
+package org.braekpo1nt.mctmanager.database.entities.teams;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
@@ -9,12 +9,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Date;
 
 /**
- * The teams used in maintenance mode
+ * The teams used in practice mode
  */
-@DatabaseTable(tableName = "maintenance_teams")
+@DatabaseTable(tableName = "practice_teams")
 @NoArgsConstructor
 @Data
-public class MaintenanceTeam {
+public class PracticeTeam {
     @DatabaseField(id = true, columnName = "team_id")
     private @NotNull String teamId;
     @DatabaseField(canBeNull = false, columnName = "display_name")
