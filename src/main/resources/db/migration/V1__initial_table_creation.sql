@@ -70,6 +70,8 @@ CREATE TABLE event_teams (
     modified_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
     UNIQUE (event_id, team_id)
+    
+    FOREIGN KEY (event_id) REFERENCES event_info(id) -- makes sure this is a real event
 );
 
 -- ================
