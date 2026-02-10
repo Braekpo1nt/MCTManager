@@ -4,7 +4,6 @@
 CREATE TABLE all_players (
     uuid                CHAR(36) PRIMARY KEY,
     ign                 VARCHAR(36) NOT NULL,
-    discord_username    VARCHAR(36) NULL,
     first_seen_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -219,14 +218,16 @@ ON event_info(id, standings_version);
 -- Authoritative, not derivable from previous data
 -- ==========
 
--- Participant wallets
-CREATE TABLE participant_wallets (
-    participant_uuid     CHAR(36) PRIMARY KEY,
+-- Metadata about all players, regardless of membership or participant status
+CREATE TABLE player_metadata (
+    participant_uuid    CHAR(36) PRIMARY KEY,
+    
+    discord_username    VARCHAR(36) NULL,
 
-    current_tokens  INT NOT NULL DEFAULT 0,
-    lifetime_tokens INT NOT NULL DEFAULT 0,
+    current_tokens      INT NOT NULL DEFAULT 0,
+    lifetime_tokens     INT NOT NULL DEFAULT 0,
 
-    percent_rank    INT NOT NULL DEFAULT 0,
+    percent_rank        INT NOT NULL DEFAULT 0,
     
     FOREIGN KEY (participant_uuid) REFERENCES all_players(uuid) -- wallets without players should never exist
 );

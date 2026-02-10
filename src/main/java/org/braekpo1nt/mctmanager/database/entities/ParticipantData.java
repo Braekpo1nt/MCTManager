@@ -8,11 +8,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * @deprecated in favor of {@link PlayerMetadata}
+ */
 @DatabaseTable(tableName = "participant_data")
 @NoArgsConstructor
 @Data
 @AllArgsConstructor
 @Builder
+@Deprecated
 public class ParticipantData {
     /**
      * Primary key, player unique id

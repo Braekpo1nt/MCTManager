@@ -5,20 +5,30 @@ import com.j256.ormlite.table.DatabaseTable;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Date;
 
+/**
+ * Source of truth about players who logged into the server, regardless of
+ * membership or participant status
+ */
 @DatabaseTable(tableName = "all_players")
 @NoArgsConstructor
 @Data
 public class AllPlayersEntity {
+    /**
+     * Primary key, player unique id
+     */
     @DatabaseField(id = true)
     private @NotNull String uuid;
+    /**
+     * The Minecraft IGN
+     */
     @DatabaseField(canBeNull = false)
     private @NotNull String ign;
-    @DatabaseField(columnName = "discord_username")
-    private @Nullable String discordUsername;
+    /**
+     * The first time this player logged in
+     */
     @DatabaseField(columnName = "first_seen_at")
     private @NotNull Date firstSeenAt;
 }
