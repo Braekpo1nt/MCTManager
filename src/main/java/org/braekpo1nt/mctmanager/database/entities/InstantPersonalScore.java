@@ -13,10 +13,12 @@ import java.util.Date;
 /**
  * An instantaneous personal score, earned by a participant.
  * For example, for a kill in a survival games, or reaching a checkpoint in parkour pathway.
+ * @deprecated use {@link ScoreEvent}
  */
 @DatabaseTable(tableName = "instant_personal_scores")
 @NoArgsConstructor
 @Data
+@Deprecated
 public class InstantPersonalScore {
     @DatabaseField(generatedId = true)
     private int id;

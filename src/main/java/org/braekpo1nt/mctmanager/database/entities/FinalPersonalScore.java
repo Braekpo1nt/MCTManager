@@ -12,10 +12,12 @@ import java.util.Date;
 
 /**
  * Represents a player's personal score at the end of a game
+ * @deprecated use {@link ScoreEvent}
  */
 @DatabaseTable(tableName = "final_personal_scores")
 @NoArgsConstructor
 @Data
+@Deprecated
 public class FinalPersonalScore {
     @DatabaseField(generatedId = true)
     private int id;

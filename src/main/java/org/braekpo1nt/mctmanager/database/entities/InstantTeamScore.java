@@ -10,9 +10,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;
 
+/**
+ * @deprecated use {@link ScoreEvent}
+ */
 @DatabaseTable(tableName = "instant_team_scores")
 @NoArgsConstructor
 @Data
+@Deprecated
 public class InstantTeamScore {
     @DatabaseField(generatedId = true)
     private int id;
