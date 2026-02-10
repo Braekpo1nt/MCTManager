@@ -11,10 +11,10 @@ import java.util.Date;
 /**
  * The teams used in practice mode
  */
-@DatabaseTable(tableName = "instant_personal_scores")
+@DatabaseTable(tableName = "practice_teams")
 @NoArgsConstructor
 @Data
-public class MaintenanceTeams {
+public class PracticeTeam {
     @DatabaseField(id = true, columnName = "team_id")
     private @NotNull String teamId;
     @DatabaseField(canBeNull = false, columnName = "display_name")
