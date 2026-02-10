@@ -1,7 +1,7 @@
 -- initial table creation
 
 -- Global identity only. Never store scores here.
-CREATE TABLE all_players (
+CREATE TABLE IF NOT EXISTS all_players (
     uuid                CHAR(36) PRIMARY KEY,
     ign                 VARCHAR(36) NOT NULL,
     discord_username    VARCHAR(36) NULL,
@@ -9,7 +9,7 @@ CREATE TABLE all_players (
 );
 
 -- A tournament/day (e.g. "MCT 1B")
-CREATE TABLE event_info (
+CREATE TABLE IF NOT EXISTS event_info (
     id                      VARCHAR(64) PRIMARY KEY,  -- user chosen
 
     plain_display_name      VARCHAR(128) NOT NULL,
@@ -30,7 +30,7 @@ CREATE TABLE event_info (
 -- Teams
 -- ==============
 -- The teams which are used in maintenance mode
-CREATE TABLE maintenance_teams (
+CREATE TABLE IF NOT EXISTS maintenance_teams (
     team_id         VARCHAR(64) PRIMARY KEY,
     display_name    VARCHAR(64) NOT NULL,
     color           VARCHAR(32) NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE maintenance_teams (
 );
 
 -- The teams which are used in practice mode
-CREATE TABLE practice_teams (
+CREATE TABLE IF NOT EXISTS practice_teams (
     team_id         VARCHAR(64) PRIMARY KEY,
     display_name    VARCHAR(64) NOT NULL,
     color           VARCHAR(32) NOT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE practice_teams (
 );
 
 -- The teams which are in an event (each team is associated with a specific event)
-CREATE TABLE event_teams (
+CREATE TABLE IF NOT EXISTS event_teams (
     id              BIGINT ${autoincrement} PRIMARY KEY,
     event_id        VARCHAR(64) NOT NULL,
     team_id         VARCHAR(64) NOT NULL,
@@ -61,7 +61,7 @@ CREATE TABLE event_teams (
 -- Participants
 -- ================
 -- Stores the participants in maintenance mode
-CREATE TABLE maintenance_participants (
+CREATE TABLE IF NOT EXISTS maintenance_participants (
     participant_uuid    CHAR(36) PRIMARY KEY,
     team_id             VARCHAR(64) NULL,
     
@@ -69,7 +69,7 @@ CREATE TABLE maintenance_participants (
 );
 
 -- Stores the participants in practice mode
-CREATE TABLE practice_participants (
+CREATE TABLE IF NOT EXISTS practice_participants (
     participant_uuid    CHAR(36) PRIMARY KEY,
     team_id             VARCHAR(64) NULL,
     
@@ -77,7 +77,7 @@ CREATE TABLE practice_participants (
 );
 
 -- Roster membership, who is in each event and on what team
-CREATE TABLE event_participants (
+CREATE TABLE IF NOT EXISTS event_participants (
     id                  BIGINT ${autoincrement} PRIMARY KEY,
     event_id            VARCHAR(64) NOT NULL,
     participant_uuid    CHAR(36) NOT NULL,
@@ -91,7 +91,7 @@ CREATE TABLE event_participants (
 
 -- holds a specific session of a specific game
 -- normalized to reference event_id
-CREATE TABLE game_sessions (
+CREATE TABLE IF NOT EXISTS game_sessions (
     id              BIGINT ${autoincrement} PRIMARY KEY,
     event_id        VARCHAR(64) NOT NULL,
     game_type       VARCHAR(64) NOT NULL,
@@ -104,7 +104,7 @@ CREATE TABLE game_sessions (
 );
 
 -- stores a running list of changes to the scores, a journal used to rebuild the current standings on a restart
-CREATE TABLE score_events (
+CREATE TABLE IF NOT EXISTS score_events (
     id                  BIGINT ${autoincrement} PRIMARY KEY,
 
     source_type         VARCHAR(16) NOT NULL
@@ -138,7 +138,7 @@ CREATE TABLE score_events (
 -- These are transient, erased and rebuilt upon a restart
 
 -- The current score of each team for a given event
-CREATE TABLE event_team_standings (
+CREATE TABLE IF NOT EXISTS event_team_standings (
     id          BIGINT ${autoincrement} PRIMARY KEY,
     event_id    VARCHAR(64) NOT NULL,
     team_id     VARCHAR(64) NOT NULL,
@@ -149,7 +149,7 @@ CREATE TABLE event_team_standings (
 );
 
 -- The current score of each participant for a given event
-CREATE TABLE event_participant_standings (
+CREATE TABLE IF NOT EXISTS event_participant_standings (
     id                  BIGINT ${autoincrement} PRIMARY KEY,
     event_id            VARCHAR(64) NOT NULL,
     participant_uuid    CHAR(36) NOT NULL,
@@ -162,24 +162,39 @@ CREATE TABLE event_participant_standings (
 -- ===============
 -- Indexes
 -- ===============
--- (These make rebuilds and website queries faster)
+
+-- (These make rebuilds faster)
+CREATE INDEX idx_score_event
+ON score_events(event_id);
 
 CREATE INDEX idx_score_event_time
 ON score_events(event_id, created_at);
 
--- lifetime player history
 CREATE INDEX idx_score_participant
 ON score_events(participant_uuid);
 
 CREATE INDEX idx_score_session
 ON score_events(session_id);
 
+-- (These make website queries faster)
+CREATE INDEX idx_event_teams_event
+ON event_teams(event_id);
+
+CREATE INDEX idx_event_participants_event_team
+ON event_participants(event_id, team_id);
+
+CREATE INDEX idx_event_participant_standings_event
+ON event_participant_standings(event_id);
+
+CREATE INDEX idx_event_team_standings_event
+ON event_team_standings(event_id);
+
 -- ==========
 -- Authoritative, not derivable from previous data
 -- ==========
 
 -- Participant wallets
-CREATE TABLE participant_wallets (
+CREATE TABLE IF NOT EXISTS participant_wallets (
     participant_uuid     CHAR(36) PRIMARY KEY,
 
     current_tokens  INT NOT NULL DEFAULT 0,
