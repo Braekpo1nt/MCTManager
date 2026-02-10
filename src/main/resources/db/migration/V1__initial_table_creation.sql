@@ -113,7 +113,7 @@ CREATE TABLE event_participants (
 -- normalized to reference event_id
 CREATE TABLE game_sessions (
     id              BIGINT ${autoincrement} PRIMARY KEY,
-    event_id        VARCHAR(64) NOT NULL,
+    event_id        VARCHAR(64) NULL,
     game_type       VARCHAR(64) NOT NULL,
     config_file     VARCHAR(128) NOT NULL,
     mode            VARCHAR(32) NOT NULL,

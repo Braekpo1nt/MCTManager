@@ -17,27 +17,38 @@ import java.util.Date;
 public class GameSession {
     @DatabaseField(generatedId = true)
     private int id;
-    @DatabaseField(canBeNull = false)
+    /**
+     * the eventId associated with this GameSession, or null if it was
+     * not during an event
+     */
+    @DatabaseField(columnName = "event_id")
+    private @Nullable String eventId;
+    @DatabaseField(canBeNull = false, columnName = "game_type")
     private @NotNull GameType gameType;
-    @DatabaseField(canBeNull = false)
+    @DatabaseField(canBeNull = false, columnName = "config_file")
     private @NotNull String configFile;
-    @DatabaseField(canBeNull = false)
-    private @NotNull Date startTime;
-    @DatabaseField
-    private @Nullable Date endTime;
-    @DatabaseField(canBeNull = false)
+    /**
+     * what mode were we in when this session took place
+     */
+    @DatabaseField(canBeNull = false, columnName = "mode")
     private @NotNull String mode;
+    @DatabaseField(canBeNull = false, columnName = "start_time")
+    private @NotNull Date startTime;
+    @DatabaseField(columnName = "end_time")
+    private @Nullable Date endTime;
     
     @Builder
     public GameSession(
             @NotNull GameType gameType,
+            @Nullable String eventId,
             @NotNull String configFile,
-            @NotNull Date startTime,
-            @NotNull String mode
+            @NotNull String mode,
+            @NotNull Date startTime
     ) {
         this.gameType = gameType;
+        this.eventId = eventId;
         this.configFile = configFile;
-        this.startTime = startTime;
         this.mode = mode;
+        this.startTime = startTime;
     }
 }
