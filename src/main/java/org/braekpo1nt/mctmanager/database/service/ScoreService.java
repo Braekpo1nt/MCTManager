@@ -98,10 +98,13 @@ public class ScoreService {
     
     public void registerParticipantIfNotRegistered(@NotNull AllPlayersEntity allPlayersEntity, @NotNull PlayerMetadata playerMetadata) {
         try {
-            allPlayersDao.createOrUpdate(allPlayersEntity);
-            playerMetadataDao.createIfNotExists(playerMetadata);
+            TransactionManager.callInTransaction(allPlayersDao.getConnectionSource(), () -> {
+                allPlayersDao.createOrUpdate(allPlayersEntity);
+                playerMetadataDao.createIfNotExists(playerMetadata);
+                return null;
+            });
         } catch (SQLException e) {
-            Main.logger().log(Level.SEVERE, String.format("Error creating AllPlayersEntity %s", allPlayersEntity), e);
+            Main.logger().log(Level.SEVERE, String.format("Error creating AllPlayersEntity %s and PlayerMetadata %s", allPlayersEntity, playerMetadata), e);
         }
     }
     
