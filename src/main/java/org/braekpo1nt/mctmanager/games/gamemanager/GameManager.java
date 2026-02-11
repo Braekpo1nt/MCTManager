@@ -382,7 +382,7 @@ public class GameManager implements Listener {
             scoreService.registerParticipantIfNotRegistered(
                     AllPlayersEntity.builder()
                             .uuid(uuidStr)
-                            .ign(plugin.getName())
+                            .ign(player.getName())
                             .firstSeenAt(new Date())
                             .build(),
                     PlayerMetadata.builder()

@@ -98,7 +98,7 @@ public class ScoreService {
     
     public void registerParticipantIfNotRegistered(@NotNull AllPlayersEntity allPlayersEntity, @NotNull PlayerMetadata playerMetadata) {
         try {
-            allPlayersDao.createIfNotExists(allPlayersEntity);
+            allPlayersDao.createOrUpdate(allPlayersEntity);
             playerMetadataDao.createIfNotExists(playerMetadata);
         } catch (SQLException e) {
             Main.logger().log(Level.SEVERE, String.format("Error creating AllPlayersEntity %s", allPlayersEntity), e);
