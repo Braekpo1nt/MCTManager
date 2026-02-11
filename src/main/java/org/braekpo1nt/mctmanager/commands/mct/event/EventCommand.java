@@ -5,11 +5,11 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
-import org.braekpo1nt.mctmanager.commands.manager.SubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.Usage;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.mct.event.vote.VoteCommand;
+import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -54,8 +54,8 @@ public class EventCommand extends CommandManager {
                 } else {
                     currentGameNumber = 1;
                 }
-                
-                return gameManager.startEvent(maxGames, currentGameNumber);
+                // TODO: get the eventInfo from the database, require eventId in command args
+                return gameManager.startEvent(EventInfo.getDebugEvent(), maxGames, currentGameNumber);
             }
             
             @Override

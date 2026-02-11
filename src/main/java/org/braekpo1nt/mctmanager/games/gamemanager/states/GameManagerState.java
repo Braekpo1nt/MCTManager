@@ -14,8 +14,7 @@ import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommand
 import org.braekpo1nt.mctmanager.config.Config;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
-import org.braekpo1nt.mctmanager.database.entities.FinalPersonalScore;
-import org.braekpo1nt.mctmanager.database.entities.FinalTeamScore;
+import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.GameSession;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
@@ -777,14 +776,6 @@ public abstract class GameManagerState {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
                 context.getScoreService().setGameSessionEndDate(gameSessionId, endDate); // TODO: move this to persistScores?
-                persistDatabaseScores(
-                        teamScores,
-                        participantScores,
-                        gameSessionId,
-                        id,
-                        endDate,
-                        multiplier
-                );
             } catch (SQLException e) {
                 Main.logger().log(Level.SEVERE, "An error occurred saving end-game data to the database", e);
                 context.messageAdmins(Component.empty()
@@ -1030,59 +1021,6 @@ public abstract class GameManagerState {
                     .toList();
             context.getScoreService().logScoreEvents(scoreEvents);
         });
-    }
-    
-    /**
-     * Persist the scores to the GameState and the database
-     * @param newTeamScores the team scores to persist
-     * @param newParticipantScores the participant scores to persist
-     * @param gameSessionId the id of the {@link GameSession}
-     * @param id the {@link GameInstanceId}
-     * @param endDate the time the game ended
-     * @param multiplier the multiplier the game used
-     * @throws ConfigIOException if there's an issue persisting scores to the GameState
-     * @throws SQLException if there's an issue persisting scores to the database
-     */
-    protected void persistDatabaseScores(
-            Map<String, Integer> newTeamScores,
-            Map<UUID, Integer> newParticipantScores,
-            int gameSessionId,
-            GameInstanceId id,
-            Date endDate,
-            double multiplier
-    ) throws SQLException {
-        List<FinalPersonalScore> finalPersonalScores = newParticipantScores.entrySet().stream()
-                .map(entry -> {
-                    OfflineParticipant participant = allParticipants.get(entry.getKey());
-                    return FinalPersonalScore.builder()
-                            .uuid(entry.getKey().toString())
-                            .ign(participant.getName())
-                            .teamId(participant.getTeamId())
-                            .gameSessionId(gameSessionId)
-                            .gameType(id.getGameType())
-                            .configFile(id.getConfigFile())
-                            .date(endDate)
-                            .mode(getMode())
-                            .multiplier(multiplier)
-                            .points(entry.getValue())
-                            .build();
-                })
-                .toList();
-        List<FinalTeamScore> finalTeamScores = newTeamScores.entrySet().stream()
-                .map(entry -> FinalTeamScore.builder()
-                        .teamId(entry.getKey())
-                        .gameSessionId(gameSessionId)
-                        .gameType(id.getGameType())
-                        .configFile(id.getConfigFile())
-                        .date(endDate)
-                        .mode(getMode())
-                        .multiplier(multiplier)
-                        .points((int) (entry.getValue() / multiplier))
-                        .build())
-                .toList();
-        context.getScoreService().logFinalPersonalScores(finalPersonalScores);
-        context.getScoreService().logFinalTeamScores(finalTeamScores);
-        Main.logger().info("Logged final scores to the database");
     }
     
     /**
@@ -1383,7 +1321,7 @@ public abstract class GameManagerState {
     // commands end
     
     // event start
-    public CommandResult startEvent(int maxGames, int currentGameNumber) {
+    public CommandResult startEvent(@NotNull EventInfo eventInfo, int maxGames, int currentGameNumber) {
         return CommandResult.failure("Can't start an event in this mode");
     }
     

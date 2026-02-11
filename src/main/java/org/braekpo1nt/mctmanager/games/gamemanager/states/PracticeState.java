@@ -5,6 +5,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
+import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
@@ -27,7 +28,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -122,7 +122,8 @@ public class PracticeState extends GameManagerState {
             }
             case "event" -> {
                 practiceManager.cleanup();
-                return startEvent(7, 0);
+                // TODO: use the active event from SystemState
+                return startEvent(EventInfo.getDebugEvent(), 7, 0);
             }
             default -> {
                 return CommandResult.failure(Component.empty()
@@ -177,11 +178,11 @@ public class PracticeState extends GameManagerState {
     }
     
     @Override
-    public CommandResult startEvent(int maxGames, int currentGameNumber) {
+    public CommandResult startEvent(@NotNull EventInfo eventInfo, int maxGames, int currentGameNumber) {
         try {
             EventConfig eventConfig = new EventConfigController(plugin.getDataFolder()).getConfig();
             practiceManager.cleanup();
-            context.setState(new ReadyUpState(context, contextReference, eventConfig, maxGames, currentGameNumber));
+            context.setState(new ReadyUpState(context, contextReference, eventInfo, eventConfig, maxGames, currentGameNumber));
             return CommandResult.success(Component.text("Switched to event mode"));
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, e.getMessage(), e);
@@ -208,13 +209,6 @@ public class PracticeState extends GameManagerState {
     }
     
     // leave/join stop
-    
-    
-    @Override
-    protected void persistDatabaseScores(Map<String, Integer> newTeamScores, Map<UUID, Integer> newParticipantScores, int gameSessionId, GameInstanceId id, Date endDate, double multiplier) throws SQLException {
-        super.persistDatabaseScores(newTeamScores, newParticipantScores, gameSessionId, id, endDate, multiplier);
-        context.getScoreService().addParticipantCurrencies(newParticipantScores);
-    }
     
     /**
      * Display the scores only, don't save them to the GameState

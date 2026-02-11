@@ -10,6 +10,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
+import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
@@ -57,10 +58,11 @@ public class ReadyUpState extends EventState {
     public ReadyUpState(
             @NotNull GameManager context,
             @NotNull ContextReference contextReference,
+            @NotNull EventInfo eventInfo,
             @NotNull EventConfig eventConfig,
             int maxGames,
             int startingGameNumber) {
-        super(context, contextReference, eventConfig, startingGameNumber, maxGames);
+        super(context, contextReference, eventInfo, eventConfig, startingGameNumber, maxGames);
         this.readyUpManager = new ReadyUpManager();
         this.topbar = new ReadyUpTopbar();
     }
@@ -162,7 +164,7 @@ public class ReadyUpState extends EventState {
     }
     
     @Override
-    public CommandResult startEvent(int maxGames, int currentGameNumber) {
+    public CommandResult startEvent(@NotNull EventInfo eventInfo, int maxGames, int currentGameNumber) {
         topbar.cleanup();
         plugin.getServer().getScheduler().cancelTask(readyUpPromptTaskId);
         readyUpManager.cleanup();

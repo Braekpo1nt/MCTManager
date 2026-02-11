@@ -72,4 +72,22 @@ public class EventInfo {
      */
     @DatabaseField(columnName = "standings_version", canBeNull = false)
     private int standingsVersion;
+    
+    /**
+     * // TODO: remove this
+     * @deprecated only use this for temporary testing
+     */
+    @Deprecated
+    public static EventInfo getDebugEvent() {
+        Date date = new Date();
+        return EventInfo.builder()
+                .eventId("debugEvent")
+                .plainTextName("Debug Event")
+                .componentName("{\"text\": \"Debug Event\"}")
+                .eventDate(date)
+                .createdAt(date)
+                .modifiedAt(date)
+                .standingsVersion(0)
+                .build();
+    }
 }

@@ -16,7 +16,6 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
-import org.braekpo1nt.mctmanager.database.entities.InstantTeamScore;
 import org.braekpo1nt.mctmanager.database.entities.ParticipantData;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.braekpo1nt.mctmanager.database.service.EventService;
@@ -654,8 +653,8 @@ public class GameManager implements Listener {
         }
     }
     
-    public CommandResult startEvent(int maxGames, int currentGameNumber) {
-        return state.startEvent(maxGames, currentGameNumber);
+    public CommandResult startEvent(@NotNull EventInfo eventInfo, int maxGames, int currentGameNumber) {
+        return state.startEvent(eventInfo, maxGames, currentGameNumber);
     }
     
     public CommandResult stopEvent() {

@@ -4,11 +4,7 @@ import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.misc.TransactionManager;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.database.Database;
-import org.braekpo1nt.mctmanager.database.entities.FinalPersonalScore;
-import org.braekpo1nt.mctmanager.database.entities.FinalTeamScore;
 import org.braekpo1nt.mctmanager.database.entities.GameSession;
-import org.braekpo1nt.mctmanager.database.entities.InstantPersonalScore;
-import org.braekpo1nt.mctmanager.database.entities.InstantTeamScore;
 import org.braekpo1nt.mctmanager.database.entities.ParticipantData;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.jetbrains.annotations.NotNull;
@@ -60,16 +56,6 @@ public class ScoreService {
             Main.logger().log(Level.SEVERE, String.format("Error persisting %s ScoreEvents to the database", scoreEvents.size()), e);
             return null;
         }
-    }
-    
-    public @Nullable Collection<FinalPersonalScore> logFinalPersonalScores(@NotNull Collection<FinalPersonalScore> finalPersonalScores) throws SQLException {
-        finalPersonalScoreDao.create(finalPersonalScores);
-        return finalPersonalScores;
-    }
-    
-    public @Nullable Collection<FinalTeamScore> logFinalTeamScores(@NotNull Collection<FinalTeamScore> finalTeamScores) throws SQLException {
-        finalTeamScoreDao.create(finalTeamScores);
-        return finalTeamScores;
     }
     
     public @Nullable GameSession createGameSession(@NotNull GameSession gameSession) {

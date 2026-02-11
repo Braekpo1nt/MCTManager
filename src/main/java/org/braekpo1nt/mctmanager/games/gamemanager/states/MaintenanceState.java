@@ -5,6 +5,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
+import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfigController;
@@ -70,7 +71,8 @@ public class MaintenanceState extends GameManagerState {
                 return CommandResult.success(Component.text("Switched to practice mode"));
             }
             case "event" -> {
-                return startEvent(7, 0);
+                // TODO: use the active event from SystemState
+                return startEvent(EventInfo.getDebugEvent(), 7, 0);
             }
             default -> {
                 return CommandResult.failure(Component.empty()
@@ -87,10 +89,10 @@ public class MaintenanceState extends GameManagerState {
     }
     
     @Override
-    public CommandResult startEvent(int maxGames, int currentGameNumber) {
+    public CommandResult startEvent(@NotNull EventInfo eventInfo, int maxGames, int currentGameNumber) {
         try {
             EventConfig eventConfig = new EventConfigController(plugin.getDataFolder()).getConfig();
-            context.setState(new ReadyUpState(context, contextReference, eventConfig, maxGames, currentGameNumber));
+            context.setState(new ReadyUpState(context, contextReference, eventInfo, eventConfig, maxGames, currentGameNumber));
             return CommandResult.success(Component.text("Switched to event mode"));
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, e.getMessage(), e);

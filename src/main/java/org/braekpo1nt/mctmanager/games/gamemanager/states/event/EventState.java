@@ -6,7 +6,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
-import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
@@ -21,16 +20,12 @@ import org.braekpo1nt.mctmanager.games.gamemanager.states.MaintenanceState;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.PracticeState;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
-import org.braekpo1nt.mctmanager.participant.Participant;
-import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -96,7 +91,7 @@ public abstract class EventState extends GameManagerState {
     
     // event start
     @Override
-    public CommandResult startEvent(int maxGames, int currentGameNumber) {
+    public CommandResult startEvent(@NotNull EventInfo eventInfo, int maxGames, int currentGameNumber) {
         return CommandResult.failure("Event is started");
     }
     
@@ -295,12 +290,6 @@ public abstract class EventState extends GameManagerState {
     @Override
     protected @Nullable String getEventId() {
         return eventData.getEventInfo().getEventId();
-    }
-    
-    @Override
-    protected void persistDatabaseScores(Map<String, Integer> newTeamScores, Map<UUID, Integer> newParticipantScores, int gameSessionId, GameInstanceId id, Date endDate, double multiplier) throws SQLException {
-        super.persistDatabaseScores(newTeamScores, newParticipantScores, gameSessionId, id, endDate, multiplier);
-        context.getScoreService().addParticipantCurrencies(newParticipantScores);
     }
     
     @Override
