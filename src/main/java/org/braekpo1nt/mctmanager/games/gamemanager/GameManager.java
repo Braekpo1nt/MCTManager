@@ -15,8 +15,10 @@ import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommand
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.database.Database;
+import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.ParticipantData;
+import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.braekpo1nt.mctmanager.database.service.EventService;
 import org.braekpo1nt.mctmanager.database.service.ScoreService;
@@ -375,15 +377,23 @@ public class GameManager implements Listener {
             MCTParticipant participant = new MCTParticipant(offlineParticipant, player);
             state.onParticipantJoin(event, participant);
         }
-        scoreService.createParticipantDataIfNotExists(ParticipantData.builder()
-                .uuid(player.getUniqueId().toString())
-                .ign(player.getName())
-                .percentRank(0.0)
-                .averageScore(0.0)
-                .totalEvents(0)
-                .currentTokens(0)
-                .lifetimeTokens(0)
-                .build());
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            String uuidStr = player.getUniqueId().toString();
+            scoreService.registerParticipantIfNotRegistered(
+                    AllPlayersEntity.builder()
+                            .uuid(uuidStr)
+                            .ign(plugin.getName())
+                            .firstSeenAt(new Date())
+                            .build(),
+                    PlayerMetadata.builder()
+                            .participantUUID(uuidStr)
+                            .discordUsername(null)
+                            .currentTokens(0)
+                            .lifetimeTokens(0)
+                            .percentRank(0.0)
+                            .build()
+            );
+        });
     }
     
     @EventHandler

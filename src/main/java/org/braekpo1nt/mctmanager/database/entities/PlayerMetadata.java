@@ -2,6 +2,8 @@ package org.braekpo1nt.mctmanager.database.entities;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -14,6 +16,8 @@ import org.jetbrains.annotations.Nullable;
 @DatabaseTable(tableName = "player_metadata")
 @NoArgsConstructor
 @Data
+@AllArgsConstructor
+@Builder
 public class PlayerMetadata {
     /**
      * Primary key, player unique id, must also be contained in all_players database

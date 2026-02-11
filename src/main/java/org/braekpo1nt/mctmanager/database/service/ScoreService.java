@@ -4,8 +4,10 @@ import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.misc.TransactionManager;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.database.Database;
+import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
 import org.braekpo1nt.mctmanager.database.entities.GameSession;
 import org.braekpo1nt.mctmanager.database.entities.ParticipantData;
+import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,6 +26,8 @@ public class ScoreService {
     private final @NotNull String mode;
     private final @NotNull Dao<GameSession, Integer> gameSessionDao;
     private final @NotNull Dao<ParticipantData, String> participantDataDao;
+    private final @NotNull Dao<AllPlayersEntity, String> allPlayersDao;
+    private final @NotNull Dao<PlayerMetadata, String> playerMetadataDao;
     private final @NotNull Dao<ScoreEvent, Integer> scoreEventsDao;
     
     public ScoreService(@NotNull String mode, @NotNull Database database) {
@@ -31,6 +35,8 @@ public class ScoreService {
         this.gameSessionDao = database.getGameSessionDao();
         this.participantDataDao = database.getParticipantDataDao();
         this.scoreEventsDao = database.getScoreEventsDao();
+        this.allPlayersDao = database.getAllPlayersDao();
+        this.playerMetadataDao = database.getPlayerMetadataDao();
     }
     
     /**
@@ -84,18 +90,18 @@ public class ScoreService {
             return false;
         }
         gameSessionDao.deleteBuilder().delete();
-        participantDataDao.deleteBuilder().delete();
+        allPlayersDao.deleteBuilder().delete();
+        playerMetadataDao.deleteBuilder().delete();
         scoreEventsDao.deleteBuilder().delete();
         return true;
     }
     
-    public @Nullable ParticipantData createParticipantDataIfNotExists(@NotNull ParticipantData participantData) {
+    public void registerParticipantIfNotRegistered(@NotNull AllPlayersEntity allPlayersEntity, @NotNull PlayerMetadata playerMetadata) {
         try {
-            participantDataDao.createIfNotExists(participantData);
-            return participantData;
+            allPlayersDao.createIfNotExists(allPlayersEntity);
+            playerMetadataDao.createIfNotExists(playerMetadata);
         } catch (SQLException e) {
-            Main.logger().log(Level.SEVERE, String.format("Error creating ParticipantData %s", participantData), e);
-            return null;
+            Main.logger().log(Level.SEVERE, String.format("Error creating AllPlayersEntity %s", allPlayersEntity), e);
         }
     }
     
