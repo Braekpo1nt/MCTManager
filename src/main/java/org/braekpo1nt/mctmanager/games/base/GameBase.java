@@ -732,11 +732,10 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         int multiplied = (int) (points * gameManager.getMultiplier());
         team.awardPoints(multiplied);
         displayScore(team);
-        gameManager.logInstantScore(
+        gameManager.logScoreEvent(
                 team.getTeamId(),
                 points,
                 gameSessionId,
-                gameInstanceId,
                 description
         );
     }

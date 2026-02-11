@@ -856,7 +856,7 @@ public abstract class GameManagerState {
     }
     
     /**
-     * Log a given {@link ScoreEvent} to the database
+     * Log a given participant's {@link ScoreEvent} to the database
      * @param participant the participant who earned the score
      * @param points the points earned by the player
      * @param gameSessionId the id of the game session
@@ -878,6 +878,37 @@ public abstract class GameManagerState {
                     .mode(getMode())
                     .participantUUID(participant.getUniqueId().toString())
                     .teamId(participant.getTeamId())
+                    .pointsBase(points)
+                    .multiplier(getMultiplier())
+                    .description(description)
+                    .createdAt(date)
+                    .build());
+        });
+    }
+    
+    /**
+     * Log a given team's {@link ScoreEvent} to the database
+     * @param teamId the teamId of the team who earned the score
+     * @param points the points earned by the player
+     * @param gameSessionId the id of the game session
+     * @param description the description of the action that resulted in the score
+     * (e.g. "Braekpo1nt was killed by rstln")
+     */
+    public void logScoreEvent(
+            @NotNull String teamId,
+            int points,
+            int gameSessionId,
+            @NotNull String description
+    ) {
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            Date date = new Date();
+            context.getScoreService().logScoreEvent(ScoreEvent.builder()
+                    .sourceType(ScoreEvent.SourceType.GAME)
+                    .gameSessionId(gameSessionId)
+                    .eventId(null)
+                    .mode(getMode())
+                    .participantUUID(null)
+                    .teamId(teamId)
                     .pointsBase(points)
                     .multiplier(getMultiplier())
                     .description(description)

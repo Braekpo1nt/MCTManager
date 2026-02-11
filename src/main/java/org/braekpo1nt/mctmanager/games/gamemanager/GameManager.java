@@ -961,7 +961,7 @@ public class GameManager implements Listener {
      * (e.g. "Braekpo1nt was killed by rstln")
      */
     public void logScoreEvent(
-            Participant participant,
+            @NotNull Participant participant,
             int points,
             int gameSessionId,
             @NotNull String description
@@ -974,26 +974,26 @@ public class GameManager implements Listener {
         );
     }
     
-    public void logInstantScore(
-            String teamId,
+    /**
+     * Log a given team's {@link ScoreEvent} to the database
+     * @param teamId the teamId of the team who earned the score
+     * @param points the points earned by the player
+     * @param gameSessionId the id of the game session
+     * @param description the description of the action that resulted in the score
+     * (e.g. "Braekpo1nt was killed by rstln")
+     */
+    public void logScoreEvent(
+            @NotNull String teamId,
             int points,
             int gameSessionId,
-            GameInstanceId gameInstanceId,
-            String description
+            @NotNull String description
     ) {
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            scoreService.logInstantScore(InstantTeamScore.builder()
-                    .teamId(teamId)
-                    .gameSessionId(gameSessionId)
-                    .gameType(gameInstanceId.getGameType())
-                    .configFile(gameInstanceId.getConfigFile())
-                    .date(new Date())
-                    .mode(getMode())
-                    .multiplier(getMultiplier())
-                    .points(points)
-                    .description(description)
-                    .build());
-        });
+        state.logScoreEvent(
+                teamId,
+                points,
+                gameSessionId,
+                description
+        );
     }
     
     public void logInstantScores(
