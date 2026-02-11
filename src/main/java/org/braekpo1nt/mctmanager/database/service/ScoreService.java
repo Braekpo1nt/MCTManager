@@ -53,30 +53,11 @@ public class ScoreService {
     }
     
     public @Nullable Collection<ScoreEvent> logScoreEvents(@NotNull Collection<ScoreEvent> scoreEvents) {
-        
-    }
-    
-    /**
-     * Persist the given InstantPersonalScores to the database
-     * @param instantPersonalScores the InstantPersonalScores to persist
-     * @return the given InstantPersonalScore objects with their assigned IDs
-     */
-    public @Nullable Collection<InstantPersonalScore> logInstantPersonalScores(@NotNull Collection<InstantPersonalScore> instantPersonalScores) {
         try {
-            instantPersonalScoreDao.create(instantPersonalScores);
-            return instantPersonalScores;
+            scoreEventsDao.create(scoreEvents);
+            return scoreEvents;
         } catch (SQLException e) {
-            Main.logger().log(Level.SEVERE, "Error logging InstantPersonalScores", e);
-            return null;
-        }
-    }
-    
-    public @Nullable Collection<InstantTeamScore> logInstantTeamScores(@NotNull Collection<InstantTeamScore> instantTeamScores) {
-        try {
-            instantTeamScoreDao.create(instantTeamScores);
-            return instantTeamScores;
-        } catch (SQLException e) {
-            Main.logger().log(Level.SEVERE, "Error logging InstantPersonalScores", e);
+            Main.logger().log(Level.SEVERE, String.format("Error persisting %s ScoreEvents to the database", scoreEvents.size()), e);
             return null;
         }
     }
@@ -116,12 +97,9 @@ public class ScoreService {
         if (!mode.equals("test")) {
             return false;
         }
-        instantPersonalScoreDao.deleteBuilder().delete();
-        instantTeamScoreDao.deleteBuilder().delete();
         gameSessionDao.deleteBuilder().delete();
-        finalPersonalScoreDao.deleteBuilder().delete();
-        finalTeamScoreDao.deleteBuilder().delete();
         participantDataDao.deleteBuilder().delete();
+        scoreEventsDao.deleteBuilder().delete();
         return true;
     }
     

@@ -16,7 +16,6 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
-import org.braekpo1nt.mctmanager.database.entities.InstantPersonalScore;
 import org.braekpo1nt.mctmanager.database.entities.InstantTeamScore;
 import org.braekpo1nt.mctmanager.database.entities.ParticipantData;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
@@ -1038,78 +1037,6 @@ public class GameManager implements Listener {
                 gameSessionId,
                 description
         );
-    }
-    
-    public void logInstantScores(
-            Collection<? extends Participant> awardedParticipants,
-            Collection<? extends Team> awardedTeams,
-            int points,
-            int gameSessionId,
-            GameInstanceId gameInstanceId,
-            String description) {
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            Date date = new Date();
-            Map<String, Integer> teamScores = awardedTeams.stream()
-                    .collect(Collectors.toMap(Team::getTeamId, t -> 0));
-            List<InstantPersonalScore> instantPersonalScores = new ArrayList<>(awardedParticipants.size());
-            for (Participant participant : awardedParticipants) {
-                teamScores.put(participant.getTeamId(), teamScores.get(participant.getTeamId()) + points);
-                instantPersonalScores.add(InstantPersonalScore.builder()
-                        .uuid(participant.getUniqueId().toString())
-                        .ign(participant.getName())
-                        .teamId(participant.getTeamId())
-                        .gameSessionId(gameSessionId)
-                        .gameType(gameInstanceId.getGameType())
-                        .configFile(gameInstanceId.getConfigFile())
-                        .date(date)
-                        .mode(getMode())
-                        .multiplier(getMultiplier())
-                        .points(points)
-                        .description(description)
-                        .build());
-            }
-            List<InstantTeamScore> instantTeamScores = teamScores.entrySet().stream()
-                    .map(entry -> InstantTeamScore.builder()
-                            .teamId(entry.getKey())
-                            .gameSessionId(gameSessionId)
-                            .gameType(gameInstanceId.getGameType())
-                            .configFile(gameInstanceId.getConfigFile())
-                            .date(date)
-                            .mode(getMode())
-                            .multiplier(getMultiplier())
-                            .points(entry.getValue())
-                            .description(description)
-                            .build())
-                    .toList();
-            scoreService.logInstantPersonalScores(instantPersonalScores);
-            scoreService.logInstantTeamScores(instantTeamScores);
-        });
-    }
-    
-    public void logInstantScores(
-            Collection<? extends Team> awardedTeams,
-            int points,
-            int gameSessionId,
-            GameInstanceId gameInstanceId,
-            String description
-    ) {
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            Date date = new Date();
-            List<InstantTeamScore> instantTeamScores = awardedTeams.stream()
-                    .map(team -> InstantTeamScore.builder()
-                            .teamId(team.getTeamId())
-                            .gameSessionId(gameSessionId)
-                            .gameType(gameInstanceId.getGameType())
-                            .configFile(gameInstanceId.getConfigFile())
-                            .date(date)
-                            .mode(getMode())
-                            .multiplier(getMultiplier())
-                            .points(points)
-                            .description(description)
-                            .build())
-                    .toList();
-            scoreService.logInstantTeamScores(instantTeamScores);
-        });
     }
     
     /**

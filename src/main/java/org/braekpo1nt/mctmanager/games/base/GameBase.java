@@ -757,12 +757,10 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             team.addPoints(multiplied);
             awardedTeams.add(team);
         }
-        gameManager.logInstantScores(
+        gameManager.logParticipantScoreEvents(
                 awardedParticipants,
-                awardedTeams,
                 points,
                 gameSessionId,
-                gameInstanceId,
                 description
         );
         displayParticipantScores(awardedParticipants);
@@ -782,11 +780,10 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             team.awardPoints(multiplied);
         }
         displayTeamScores(awardedTeams);
-        gameManager.logInstantScores(
+        gameManager.logTeamScoreEvents(
                 awardedTeams,
                 points,
                 gameSessionId,
-                gameInstanceId,
                 description
         );
     }
