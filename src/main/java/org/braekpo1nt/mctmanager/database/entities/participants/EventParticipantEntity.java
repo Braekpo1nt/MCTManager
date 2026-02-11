@@ -25,8 +25,14 @@ public class EventParticipantEntity {
     @DatabaseField(canBeNull = false, columnName = "event_id")
     private @NotNull String eventId;
     /**
-     * The UUID of the participant
+     * The UUID of the participant.
+     * Unique in combination with {@link #eventId}
      */
-    @DatabaseField(id = true, columnName = "participant_uuid")
+    @DatabaseField(canBeNull = false, columnName = "participant_uuid")
     private @NotNull String participantUUID;
+    /**
+     * The teamId of the participant
+     */
+    @DatabaseField(canBeNull = false, columnName = "teamId")
+    private @NotNull String teamId;
 }
