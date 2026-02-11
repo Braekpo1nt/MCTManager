@@ -127,7 +127,7 @@ CREATE TABLE game_sessions (
 CREATE TABLE score_events (
     id                  BIGINT ${autoincrement} PRIMARY KEY,
 
-    source_type         VARCHAR(16) NOT NULL
+    source_type         VARCHAR(16) NOT NULL,
     
     -- the id of the game session this score event took place during, 
     -- or null if not from a game
