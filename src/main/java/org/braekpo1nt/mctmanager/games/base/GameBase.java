@@ -713,11 +713,10 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         team.addPoints(multiplied);
         displayScore(participant);
         displayScore(team);
-        gameManager.logInstantScore(
+        gameManager.logScoreEvent(
                 participant,
                 points,
                 gameSessionId,
-                gameInstanceId,
                 description
         );
     }

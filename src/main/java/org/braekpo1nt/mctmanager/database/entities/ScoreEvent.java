@@ -39,6 +39,11 @@ public class ScoreEvent {
     @DatabaseField(columnName = "event_id")
     private @Nullable String eventId;
     /**
+     * The mode this score event took place in (practice, event, or maintenance)
+     */
+    @DatabaseField(canBeNull = false, columnName = "mode")
+    private @NotNull String mode;
+    /**
      * the UUID of the participant this score was awarded to,
      * or null if this was not for a participant
      */
@@ -83,6 +88,7 @@ public class ScoreEvent {
             @NotNull SourceType sourceType,
             @Nullable Integer gameSessionId,
             @Nullable String eventId,
+            @NotNull String mode,
             @Nullable String participantUUID,
             @NotNull String teamId,
             int pointsBase,
@@ -93,6 +99,7 @@ public class ScoreEvent {
         this.sourceType = sourceType;
         this.gameSessionId = gameSessionId;
         this.eventId = eventId;
+        this.mode = mode;
         this.participantUUID = participantUUID;
         this.teamId = teamId;
         this.pointsBase = pointsBase;

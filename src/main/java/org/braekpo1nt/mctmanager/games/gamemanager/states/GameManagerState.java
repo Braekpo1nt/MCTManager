@@ -17,6 +17,7 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.database.entities.FinalPersonalScore;
 import org.braekpo1nt.mctmanager.database.entities.FinalTeamScore;
 import org.braekpo1nt.mctmanager.database.entities.GameSession;
+import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfigController;
@@ -852,6 +853,37 @@ public abstract class GameManagerState {
         }
         updateScoreVisuals(teams.values(), onlineParticipants.values());
         displayStats(teamScores, participantScores, id);
+    }
+    
+    /**
+     * Log a given {@link ScoreEvent} to the database
+     * @param participant the participant who earned the score
+     * @param points the points earned by the player
+     * @param gameSessionId the id of the game session
+     * @param description the description of the action that resulted in the score
+     * (e.g. "Braekpo1nt was killed by rstln")
+     */
+    public void logScoreEvent(
+            @NotNull Participant participant,
+            int points,
+            int gameSessionId,
+            @NotNull String description
+    ) {
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            Date date = new Date();
+            context.getScoreService().logScoreEvent(ScoreEvent.builder()
+                    .sourceType(ScoreEvent.SourceType.GAME)
+                    .gameSessionId(gameSessionId)
+                    .eventId(null)
+                    .mode(getMode())
+                    .participantUUID(participant.getUniqueId().toString())
+                    .teamId(participant.getTeamId())
+                    .pointsBase(points)
+                    .multiplier(getMultiplier())
+                    .description(description)
+                    .createdAt(date)
+                    .build());
+        });
     }
     
     /**

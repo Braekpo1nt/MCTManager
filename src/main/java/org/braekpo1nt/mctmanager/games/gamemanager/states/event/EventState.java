@@ -5,6 +5,8 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.database.entities.EventInfo;
+import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
@@ -19,6 +21,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.states.MaintenanceState;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.PracticeState;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -49,11 +52,12 @@ public abstract class EventState extends GameManagerState {
     public EventState(
             @NotNull GameManager context,
             @NotNull ContextReference contextReference,
+            @NotNull EventInfo eventInfo,
             @NotNull EventConfig eventConfig,
             int startingGameNumber,
             int maxGames) {
         super(context, contextReference);
-        this.eventData = new EventData(eventConfig, startingGameNumber, maxGames);
+        this.eventData = new EventData(eventConfig, eventInfo, startingGameNumber, maxGames);
     }
     
     @Override
@@ -285,6 +289,39 @@ public abstract class EventState extends GameManagerState {
                         .append(Component.text(maxGames))
                         .append(Component.text("]"))
                         .color(NamedTextColor.GRAY));
+    }
+    
+    /**
+     * Log a given {@link ScoreEvent} to the database.
+     * Also includes the eventId associated with this event
+     * @param participant the participant who earned the score
+     * @param points the points earned by the player
+     * @param gameSessionId the id of the game session
+     * @param description the description of the action that resulted in the score
+     * (e.g. "Braekpo1nt was killed by rstln")
+     */
+    @Override
+    public void logScoreEvent(
+            @NotNull Participant participant,
+            int points,
+            int gameSessionId,
+            @NotNull String description
+    ) {
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            Date date = new Date();
+            context.getScoreService().logScoreEvent(ScoreEvent.builder()
+                    .sourceType(ScoreEvent.SourceType.GAME)
+                    .gameSessionId(gameSessionId)
+                    .eventId(eventData.getEventInfo().getEventId()) // logs the eventId as well
+                    .mode(getMode())
+                    .participantUUID(participant.getUniqueId().toString())
+                    .teamId(participant.getTeamId())
+                    .pointsBase(points)
+                    .multiplier(getMultiplier())
+                    .description(description)
+                    .createdAt(date)
+                    .build());
+        });
     }
     
     @Override

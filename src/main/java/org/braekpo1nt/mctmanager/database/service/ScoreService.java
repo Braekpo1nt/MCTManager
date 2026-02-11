@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.database.entities.GameSession;
 import org.braekpo1nt.mctmanager.database.entities.InstantPersonalScore;
 import org.braekpo1nt.mctmanager.database.entities.InstantTeamScore;
 import org.braekpo1nt.mctmanager.database.entities.ParticipantData;
+import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,23 +26,31 @@ import java.util.logging.Level;
 @SuppressWarnings("UnusedReturnValue")
 public class ScoreService {
     private final @NotNull String mode;
-    private final @NotNull Dao<InstantPersonalScore, Integer> instantPersonalScoreDao;
-    private final @NotNull Dao<InstantTeamScore, Integer> instantTeamScoreDao;
     private final @NotNull Dao<GameSession, Integer> gameSessionDao;
-    private final @NotNull Dao<FinalPersonalScore, Integer> finalPersonalScoreDao;
-    private final @NotNull Dao<FinalTeamScore, Integer> finalTeamScoreDao;
     private final @NotNull Dao<ParticipantData, String> participantDataDao;
+    private final @NotNull Dao<ScoreEvent, Integer> scoreEventsDao;
     
     public ScoreService(@NotNull String mode, @NotNull Database database) {
         this.mode = mode;
-        this.instantPersonalScoreDao = database.getInstantPersonalScoreDao();
-        this.instantTeamScoreDao = database.getInstantTeamScoreDao();
         this.gameSessionDao = database.getGameSessionDao();
-        this.finalPersonalScoreDao = database.getFinalPersonalScoreDao();
-        this.finalTeamScoreDao = database.getFinalTeamScoreDao();
         this.participantDataDao = database.getParticipantDataDao();
+        this.scoreEventsDao = database.getScoreEventsDao();
     }
     
+    /**
+     * Persist the given {@link ScoreEvent} to the database
+     * @param scoreEvent the {@link ScoreEvent} to persist
+     * @return the given {@link ScoreEvent} with its assigned ID, or null if something went wrong
+     */
+    public @Nullable ScoreEvent logScoreEvent(@NotNull ScoreEvent scoreEvent) {
+        try {
+            scoreEventsDao.create(scoreEvent);
+            return scoreEvent;
+        } catch (SQLException e) {
+            Main.logger().log(Level.SEVERE, String.format("Error persisting ScoreEvent to the database: %s", scoreEvent), e);
+            return null;
+        }
+    }
     
     /**
      * Persist the given instantPersonalScore to the database

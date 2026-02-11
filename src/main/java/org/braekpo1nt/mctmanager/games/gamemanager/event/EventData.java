@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.gamemanager.event;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
@@ -23,6 +24,8 @@ import java.util.UUID;
 public class EventData {
     @Getter
     private final EventConfig config;
+    @Getter
+    private final EventInfo eventInfo;
     @Getter
     @Setter
     private int currentGameNumber;
@@ -48,8 +51,9 @@ public class EventData {
     @Setter
     private @Nullable MCTTeam winningTeam;
     
-    public EventData(@NotNull EventConfig config, int startingGameNumber, int maxGames) {
+    public EventData(@NotNull EventConfig config, @NotNull EventInfo eventInfo, int startingGameNumber, int maxGames) {
         this.config = config;
+        this.eventInfo = eventInfo;
         this.currentGameNumber = startingGameNumber;
         this.maxGames = maxGames;
     }

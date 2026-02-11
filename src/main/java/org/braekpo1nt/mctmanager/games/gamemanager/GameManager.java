@@ -19,6 +19,7 @@ import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.InstantPersonalScore;
 import org.braekpo1nt.mctmanager.database.entities.InstantTeamScore;
 import org.braekpo1nt.mctmanager.database.entities.ParticipantData;
+import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.braekpo1nt.mctmanager.database.service.EventService;
 import org.braekpo1nt.mctmanager.database.service.ScoreService;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
@@ -952,48 +953,26 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Log a given score to the database
+     * Log a given {@link ScoreEvent} to the database
      * @param participant the participant who earned the score
      * @param points the points earned by the player
-     * @param gameInstanceId the game that the score was earned during
-     * @param description the description of the action that resulted in the score (e.g. Braekpo1nt was killed by rstln)
+     * @param gameSessionId the id of the game session
+     * @param description the description of the action that resulted in the score
+     * (e.g. "Braekpo1nt was killed by rstln")
      */
-    public void logInstantScore(
+    public void logScoreEvent(
             Participant participant,
             int points,
             int gameSessionId,
-            GameInstanceId gameInstanceId,
-            String description
+            @NotNull String description
     ) {
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            Date date = new Date();
-            scoreService.logInstantScore(InstantPersonalScore.builder()
-                    .uuid(participant.getUniqueId().toString())
-                    .ign(participant.getName())
-                    .teamId(participant.getTeamId())
-                    .gameSessionId(gameSessionId)
-                    .gameType(gameInstanceId.getGameType())
-                    .configFile(gameInstanceId.getConfigFile())
-                    .date(date)
-                    .mode(getMode())
-                    .multiplier(getMultiplier())
-                    .points(points)
-                    .description(description)
-                    .build());
-            scoreService.logInstantScore(InstantTeamScore.builder()
-                    .teamId(participant.getTeamId())
-                    .gameSessionId(gameSessionId)
-                    .gameType(gameInstanceId.getGameType())
-                    .configFile(gameInstanceId.getConfigFile())
-                    .date(date)
-                    .mode(getMode())
-                    .multiplier(getMultiplier())
-                    .points(points)
-                    .description(description)
-                    .build());
-        });
+        state.logScoreEvent(
+                participant,
+                points,
+                gameSessionId,
+                description
+        );
     }
-    
     
     public void logInstantScore(
             String teamId,

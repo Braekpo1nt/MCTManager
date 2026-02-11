@@ -128,15 +128,16 @@ CREATE TABLE score_events (
     id                  BIGINT ${autoincrement} PRIMARY KEY,
 
     source_type         VARCHAR(16) NOT NULL
-        CHECK (source_type IN ('GAME','ADMIN','SYSTEM','MIGRATION')),
     
     -- the id of the game session this score event took place during, 
     -- or null if not from a game
     session_id          BIGINT NULL, 
-    event_id          VARCHAR(64) NULL,
+    event_id            VARCHAR(64) NULL,
     -- event_id when the score_event is tied to an event
     -- NULL otherwise (future ability to add a practice session or test session id)
-
+    
+    mode                VARCHAR(32) NOT NULL,
+    
     participant_uuid    CHAR(36) NULL,
     team_id             VARCHAR(64) NOT NULL,
 
