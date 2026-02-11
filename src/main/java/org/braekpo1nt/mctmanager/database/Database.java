@@ -9,11 +9,7 @@ import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.EventParticipantStanding;
 import org.braekpo1nt.mctmanager.database.entities.EventTeamStanding;
-import org.braekpo1nt.mctmanager.database.entities.FinalPersonalScore;
-import org.braekpo1nt.mctmanager.database.entities.FinalTeamScore;
 import org.braekpo1nt.mctmanager.database.entities.GameSession;
-import org.braekpo1nt.mctmanager.database.entities.InstantPersonalScore;
-import org.braekpo1nt.mctmanager.database.entities.InstantTeamScore;
 import org.braekpo1nt.mctmanager.database.entities.ParticipantData;
 import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
@@ -32,10 +28,6 @@ import java.sql.SQLException;
 public class Database {
     
     // ScoreService
-    private @Deprecated Dao<InstantPersonalScore, Integer> instantPersonalScoreDao;
-    private @Deprecated Dao<InstantTeamScore, Integer> instantTeamScoreDao;
-    private @Deprecated Dao<FinalPersonalScore, Integer> finalPersonalScoreDao;
-    private @Deprecated Dao<FinalTeamScore, Integer> finalTeamScoreDao;
     private @Deprecated Dao<ParticipantData, String> participantDataDao;
     
     private final @NotNull Dao<AllPlayersEntity, String> allPlayersDao;
