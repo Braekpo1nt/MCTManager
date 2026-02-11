@@ -953,7 +953,7 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Log a given {@link ScoreEvent} to the database
+     * Log a given participant's {@link ScoreEvent} to the database
      * @param participant the participant who earned the score
      * @param points the points earned by the player
      * @param gameSessionId the id of the game session
@@ -977,7 +977,7 @@ public class GameManager implements Listener {
     /**
      * Log a given team's {@link ScoreEvent} to the database
      * @param teamId the teamId of the team who earned the score
-     * @param points the points earned by the player
+     * @param points the points earned by the team
      * @param gameSessionId the id of the game session
      * @param description the description of the action that resulted in the score
      * (e.g. "Braekpo1nt was killed by rstln")
@@ -990,6 +990,50 @@ public class GameManager implements Listener {
     ) {
         state.logScoreEvent(
                 teamId,
+                points,
+                gameSessionId,
+                description
+        );
+    }
+    
+    /**
+     * Batch log all the given participants' {@link ScoreEvent}s to the database
+     * @param awardedParticipants the list of participants who earned the score
+     * @param points the points earned by the participants (they all earn the same value)
+     * @param gameSessionId the id of the game session
+     * @param description the description of the action that resulted in the score
+     * (e.g. "Survived dead player")
+     */
+    public void logParticipantScoreEvents(
+            @NotNull Collection<? extends Participant> awardedParticipants,
+            int points,
+            int gameSessionId,
+            @NotNull String description
+    ) {
+        state.logParticipantScoreEvents(
+                awardedParticipants,
+                points,
+                gameSessionId,
+                description
+        );
+    }
+    
+    /**
+     * Batch log all the given teams' {@link ScoreEvent}s to the database
+     * @param awardedTeams the list of teams who earned the score
+     * @param points the points earned by each team (they all earn the same value)
+     * @param gameSessionId the id of the game session
+     * @param description the description of the action that resulted in the score
+     * (e.g. "Placed 3rd overall")
+     */
+    public void logTeamScoreEvents(
+            @NotNull Collection<? extends Team> awardedTeams,
+            int points,
+            int gameSessionId,
+            @NotNull String description
+    ) {
+        state.logTeamScoreEvents(
+                awardedTeams,
                 points,
                 gameSessionId,
                 description

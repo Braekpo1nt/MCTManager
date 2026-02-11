@@ -22,6 +22,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.states.PracticeState;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -292,13 +293,8 @@ public abstract class EventState extends GameManagerState {
     }
     
     /**
-     * Log a given {@link ScoreEvent} to the database.
-     * Also includes the eventId associated with this event
-     * @param participant the participant who earned the score
-     * @param points the points earned by the player
-     * @param gameSessionId the id of the game session
-     * @param description the description of the action that resulted in the score
-     * (e.g. "Braekpo1nt was killed by rstln")
+     * Includes the eventId in the log
+     * {@inheritDoc}
      */
     @Override
     public void logScoreEvent(
@@ -326,12 +322,8 @@ public abstract class EventState extends GameManagerState {
     }
     
     /**
-     * Log a given team's {@link ScoreEvent} to the database
-     * @param teamId the teamId of the team who earned the score
-     * @param points the points earned by the player
-     * @param gameSessionId the id of the game session
-     * @param description the description of the action that resulted in the score
-     * (e.g. "Braekpo1nt was killed by rstln")
+     * Includes the eventId in the log
+     * {@inheritDoc}
      */
     @Override
     public void logScoreEvent(
@@ -355,6 +347,72 @@ public abstract class EventState extends GameManagerState {
                     .description(description)
                     .createdAt(date)
                     .build());
+        });
+    }
+    
+    /**
+     * Includes the eventId in the log
+     * {@inheritDoc}
+     */
+    @Override
+    public void logParticipantScoreEvents(
+            @NotNull Collection<? extends Participant> awardedParticipants,
+            int points,
+            int gameSessionId,
+            @NotNull String description
+    ) {
+        // TODO: the only reason this is overridden is to add the eventId
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            Date date = new Date();
+            List<ScoreEvent> scoreEvents = awardedParticipants.stream()
+                    .map(participant ->
+                            ScoreEvent.builder()
+                                    .sourceType(ScoreEvent.SourceType.GAME)
+                                    .gameSessionId(gameSessionId)
+                                    .eventId(eventData.getEventInfo().getEventId())
+                                    .mode(getMode())
+                                    .participantUUID(participant.getUniqueId().toString())
+                                    .teamId(participant.getTeamId())
+                                    .pointsBase(points)
+                                    .multiplier(getMultiplier())
+                                    .description(description)
+                                    .createdAt(date)
+                                    .build())
+                    .toList();
+            context.getScoreService().logScoreEvents(scoreEvents);
+        });
+    }
+    
+    /**
+     * Includes the eventId in the log
+     * {@inheritDoc}
+     */
+    @Override
+    public void logTeamScoreEvents(
+            @NotNull Collection<? extends Team> awardedTeams,
+            int points,
+            int gameSessionId,
+            @NotNull String description
+    ) {
+        // TODO: the only reason this is overridden is to add the eventId
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            Date date = new Date();
+            List<ScoreEvent> scoreEvents = awardedTeams.stream()
+                    .map(team ->
+                            ScoreEvent.builder()
+                                    .sourceType(ScoreEvent.SourceType.GAME)
+                                    .gameSessionId(gameSessionId)
+                                    .eventId(eventData.getEventInfo().getEventId())
+                                    .mode(getMode())
+                                    .participantUUID(null)
+                                    .teamId(team.getTeamId())
+                                    .pointsBase(points)
+                                    .multiplier(getMultiplier())
+                                    .description(description)
+                                    .createdAt(date)
+                                    .build())
+                    .toList();
+            context.getScoreService().logScoreEvents(scoreEvents);
         });
     }
     

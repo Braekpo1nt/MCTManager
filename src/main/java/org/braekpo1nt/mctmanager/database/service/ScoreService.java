@@ -52,19 +52,8 @@ public class ScoreService {
         }
     }
     
-    /**
-     * Persist the given instantPersonalScore to the database
-     * @param instantPersonalScore the instantPersonalScore to persist
-     * @return the given InstantPersonalScore object with its assigned ID
-     */
-    public @Nullable InstantPersonalScore logInstantScore(@NotNull InstantPersonalScore instantPersonalScore) {
-        try {
-            instantPersonalScoreDao.create(instantPersonalScore);
-            return instantPersonalScore;
-        } catch (SQLException e) {
-            Main.logger().log(Level.SEVERE, String.format("Error creating AllScore %s", instantPersonalScore), e);
-            return null;
-        }
+    public @Nullable Collection<ScoreEvent> logScoreEvents(@NotNull Collection<ScoreEvent> scoreEvents) {
+        
     }
     
     /**
@@ -76,16 +65,6 @@ public class ScoreService {
         try {
             instantPersonalScoreDao.create(instantPersonalScores);
             return instantPersonalScores;
-        } catch (SQLException e) {
-            Main.logger().log(Level.SEVERE, "Error logging InstantPersonalScores", e);
-            return null;
-        }
-    }
-    
-    public @Nullable InstantTeamScore logInstantScore(@NotNull InstantTeamScore instantTeamScore) {
-        try {
-            instantTeamScoreDao.create(instantTeamScore);
-            return instantTeamScore;
         } catch (SQLException e) {
             Main.logger().log(Level.SEVERE, "Error logging InstantPersonalScores", e);
             return null;

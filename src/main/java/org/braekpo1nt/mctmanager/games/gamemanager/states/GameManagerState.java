@@ -889,7 +889,7 @@ public abstract class GameManagerState {
     /**
      * Log a given team's {@link ScoreEvent} to the database
      * @param teamId the teamId of the team who earned the score
-     * @param points the points earned by the player
+     * @param points the points earned by the team
      * @param gameSessionId the id of the game session
      * @param description the description of the action that resulted in the score
      * (e.g. "Braekpo1nt was killed by rstln")
@@ -914,6 +914,76 @@ public abstract class GameManagerState {
                     .description(description)
                     .createdAt(date)
                     .build());
+        });
+    }
+    
+    /**
+     * Batch log all the given participants' {@link ScoreEvent}s to the database
+     * @param awardedParticipants the list of participants who earned the score
+     * @param points the points earned by the participants (they all earn the same value)
+     * @param gameSessionId the id of the game session
+     * @param description the description of the action that resulted in the score
+     * (e.g. "Survived dead player")
+     */
+    public void logParticipantScoreEvents(
+            @NotNull Collection<? extends Participant> awardedParticipants,
+            int points,
+            int gameSessionId,
+            @NotNull String description
+    ) {
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            Date date = new Date();
+            List<ScoreEvent> scoreEvents = awardedParticipants.stream()
+                    .map(participant ->
+                            ScoreEvent.builder()
+                                    .sourceType(ScoreEvent.SourceType.GAME)
+                                    .gameSessionId(gameSessionId)
+                                    .eventId(null)
+                                    .mode(getMode())
+                                    .participantUUID(participant.getUniqueId().toString())
+                                    .teamId(participant.getTeamId())
+                                    .pointsBase(points)
+                                    .multiplier(getMultiplier())
+                                    .description(description)
+                                    .createdAt(date)
+                                    .build())
+                    .toList();
+            context.getScoreService().logScoreEvents(scoreEvents);
+        });
+    }
+    
+    /**
+     * Batch log all the given teams' {@link ScoreEvent}s to the database
+     * @param awardedTeams the list of teams who earned the score
+     * @param points the points earned by each team (they all earn the same value)
+     * @param gameSessionId the id of the game session
+     * @param description the description of the action that resulted in the score
+     * (e.g. "Placed 3rd overall")
+     */
+    public void logTeamScoreEvents(
+            @NotNull Collection<? extends Team> awardedTeams,
+            int points,
+            int gameSessionId,
+            @NotNull String description
+    ) {
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            Date date = new Date();
+            List<ScoreEvent> scoreEvents = awardedTeams.stream()
+                    .map(team ->
+                            ScoreEvent.builder()
+                                    .sourceType(ScoreEvent.SourceType.GAME)
+                                    .gameSessionId(gameSessionId)
+                                    .eventId(null)
+                                    .mode(getMode())
+                                    .participantUUID(null)
+                                    .teamId(team.getTeamId())
+                                    .pointsBase(points)
+                                    .multiplier(getMultiplier())
+                                    .description(description)
+                                    .createdAt(date)
+                                    .build())
+                    .toList();
+            context.getScoreService().logScoreEvents(scoreEvents);
         });
     }
     
