@@ -855,6 +855,75 @@ public abstract class GameManagerState {
         displayStats(teamScores, participantScores, id);
     }
     
+    protected @Nullable String getEventId() {
+        return null;
+    }
+    
+    /**
+     * An internal helper, creates the {@link ScoreEvent} from the given
+     * data and the current context
+     * @param participantUUID the participant who earned the score
+     * (if a participant was the target)
+     * @param teamId the teamId of the team or participant who was the target
+     * @param points the points earned by the player
+     * @param gameSessionId the id of the game session
+     * @param description the description of the action that resulted in the score
+     * (e.g. "Braekpo1nt was killed by rstln")
+     * @return a new {@link ScoreEvent} using the given data and the current context
+     */
+    protected @NotNull ScoreEvent createScoreEvent(
+            @Nullable String participantUUID,
+            @NotNull String teamId,
+            int points,
+            int gameSessionId,
+            @NotNull String description,
+            @NotNull Date date
+    ) {
+        return ScoreEvent.builder()
+                .sourceType(ScoreEvent.SourceType.GAME)
+                .gameSessionId(gameSessionId)
+                .eventId(getEventId())
+                .mode(getMode())
+                .participantUUID(participantUUID)
+                .teamId(teamId)
+                .pointsBase(points)
+                .multiplier(getMultiplier())
+                .description(description)
+                .createdAt(date)
+                .build();
+    }
+    
+    /**
+     * An internal helper, centralizes the individual score logging
+     * (both team and participant), and performs the database log asynchronously
+     * @param participantUUID the participant who earned the score
+     * (if a participant was the target)
+     * @param teamId the teamId of the team or participant who was the target
+     * @param points the points earned by the player
+     * @param gameSessionId the id of the game session
+     * @param description the description of the action that resulted in the score
+     * (e.g. "Braekpo1nt was killed by rstln")
+     */
+    protected void logScoreEvent(
+            @Nullable String participantUUID,
+            @NotNull String teamId,
+            int points,
+            int gameSessionId,
+            @NotNull String description
+    ) {
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            Date date = new Date();
+            context.getScoreService().logScoreEvent(createScoreEvent(
+                    participantUUID,
+                    teamId,
+                    points,
+                    gameSessionId,
+                    description,
+                    date
+            ));
+        });
+    }
+    
     /**
      * Log a given participant's {@link ScoreEvent} to the database
      * @param participant the participant who earned the score
@@ -869,21 +938,13 @@ public abstract class GameManagerState {
             int gameSessionId,
             @NotNull String description
     ) {
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            Date date = new Date();
-            context.getScoreService().logScoreEvent(ScoreEvent.builder()
-                    .sourceType(ScoreEvent.SourceType.GAME)
-                    .gameSessionId(gameSessionId)
-                    .eventId(null)
-                    .mode(getMode())
-                    .participantUUID(participant.getUniqueId().toString())
-                    .teamId(participant.getTeamId())
-                    .pointsBase(points)
-                    .multiplier(getMultiplier())
-                    .description(description)
-                    .createdAt(date)
-                    .build());
-        });
+        this.logScoreEvent(
+                participant.getUniqueId().toString(),
+                participant.getTeamId(),
+                points,
+                gameSessionId,
+                description
+        );
     }
     
     /**
@@ -900,21 +961,13 @@ public abstract class GameManagerState {
             int gameSessionId,
             @NotNull String description
     ) {
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            Date date = new Date();
-            context.getScoreService().logScoreEvent(ScoreEvent.builder()
-                    .sourceType(ScoreEvent.SourceType.GAME)
-                    .gameSessionId(gameSessionId)
-                    .eventId(null)
-                    .mode(getMode())
-                    .participantUUID(null)
-                    .teamId(teamId)
-                    .pointsBase(points)
-                    .multiplier(getMultiplier())
-                    .description(description)
-                    .createdAt(date)
-                    .build());
-        });
+        this.logScoreEvent(
+                null,
+                teamId,
+                points,
+                gameSessionId,
+                description
+        );
     }
     
     /**
@@ -935,18 +988,14 @@ public abstract class GameManagerState {
             Date date = new Date();
             List<ScoreEvent> scoreEvents = awardedParticipants.stream()
                     .map(participant ->
-                            ScoreEvent.builder()
-                                    .sourceType(ScoreEvent.SourceType.GAME)
-                                    .gameSessionId(gameSessionId)
-                                    .eventId(null)
-                                    .mode(getMode())
-                                    .participantUUID(participant.getUniqueId().toString())
-                                    .teamId(participant.getTeamId())
-                                    .pointsBase(points)
-                                    .multiplier(getMultiplier())
-                                    .description(description)
-                                    .createdAt(date)
-                                    .build())
+                            createScoreEvent(
+                                    participant.getUniqueId().toString(),
+                                    participant.getTeamId(),
+                                    points,
+                                    gameSessionId,
+                                    description,
+                                    date
+                            ))
                     .toList();
             context.getScoreService().logScoreEvents(scoreEvents);
         });
@@ -970,18 +1019,14 @@ public abstract class GameManagerState {
             Date date = new Date();
             List<ScoreEvent> scoreEvents = awardedTeams.stream()
                     .map(team ->
-                            ScoreEvent.builder()
-                                    .sourceType(ScoreEvent.SourceType.GAME)
-                                    .gameSessionId(gameSessionId)
-                                    .eventId(null)
-                                    .mode(getMode())
-                                    .participantUUID(null)
-                                    .teamId(team.getTeamId())
-                                    .pointsBase(points)
-                                    .multiplier(getMultiplier())
-                                    .description(description)
-                                    .createdAt(date)
-                                    .build())
+                            createScoreEvent(
+                                    null,
+                                    team.getTeamId(),
+                                    points,
+                                    gameSessionId,
+                                    description,
+                                    date
+                            ))
                     .toList();
             context.getScoreService().logScoreEvents(scoreEvents);
         });
