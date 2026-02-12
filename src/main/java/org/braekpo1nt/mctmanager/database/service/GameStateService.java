@@ -125,8 +125,8 @@ public class GameStateService {
                                 LEFT JOIN score_events se
                                   ON se.team_id = et.team_id
                                  AND se.event_id = ?
+                                WHERE et.event_id = ?
                                 GROUP BY et.team_id, et.display_name, et.color
-                                WHERE et.event_id = ?;
                             """,
                     eventId,
                     eventId
@@ -147,8 +147,8 @@ public class GameStateService {
                                 LEFT JOIN score_events se
                                   ON se.participant_uuid = ep.participant_uuid
                                  AND se.event_id = ?
+                                WHERE ep.event_id = ?
                                 GROUP BY ep.participant_uuid, ep.team_id, ap.ign
-                                WHERE ep.event_id = ?;
                             """,
                     eventId, eventId);
             
