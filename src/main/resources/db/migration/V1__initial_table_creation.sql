@@ -161,28 +161,6 @@ CREATE TABLE score_events (
 -- These are transient, erased and rebuilt upon a restart/mode transition
 -- They are a temporary cache for simplicity
 
--- The current score of each team for a given event
-CREATE TABLE event_team_standings (
-    id          BIGINT ${autoincrement} PRIMARY KEY,
-    event_id    VARCHAR(64) NOT NULL,
-    team_id     VARCHAR(64) NOT NULL,
-
-    score       INT NOT NULL DEFAULT 0,
-
-    UNIQUE (event_id, team_id)
-);
-
--- The current score of each participant for a given event
-CREATE TABLE event_participant_standings (
-    id                  BIGINT ${autoincrement} PRIMARY KEY,
-    event_id            VARCHAR(64) NOT NULL,
-    participant_uuid    CHAR(36) NOT NULL,
-
-    score               INT NOT NULL DEFAULT 0,   -- personal score (no multiplier)
-
-    UNIQUE (event_id, participant_uuid)
-);
-
 -- used to reduce pings
 CREATE TABLE active_state (
     id          BIGINT ${autoincrement} PRIMARY KEY,
@@ -229,12 +207,6 @@ ON event_teams(event_id);
 
 CREATE INDEX idx_event_participants_event_team
 ON event_participants(event_id, team_id);
-
-CREATE INDEX idx_event_participant_standings_event
-ON event_participant_standings(event_id);
-
-CREATE INDEX idx_event_team_standings_event
-ON event_team_standings(event_id);
 
 CREATE INDEX idx_event_info_version
 ON event_info(id, standings_version);
