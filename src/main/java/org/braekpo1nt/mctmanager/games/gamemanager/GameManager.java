@@ -609,11 +609,13 @@ public class GameManager implements Listener {
                     .eventId(eventId)
                     .plainTextName(plainTextName)
                     .componentName(GsonComponentSerializer.gson().serialize(componentName))
+                    .eventDate(eventDate)
                     .createdAt(now)
                     .modifiedAt(now)
-                    .eventDate(eventDate)
-                    .startAt(null)
+                    .startedAt(null)
                     .endedAt(null)
+                    .winnerTeamId(null)
+                    .standingsVersion(0)
                     .build());
             if (!uniqueKey) {
                 return CommandResult.failure(Component.empty()

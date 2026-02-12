@@ -53,7 +53,7 @@ public class EventInfo {
      * The date and time that the event was started (replaced each time the event is started)
      */
     @DatabaseField(columnName = "started_at")
-    private @Nullable Date startAt;
+    private @Nullable Date startedAt;
     /**
      * The date and time that the event was ended (replaced each time the event is ended)
      */
