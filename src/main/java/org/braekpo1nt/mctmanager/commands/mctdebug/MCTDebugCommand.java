@@ -35,7 +35,6 @@ public class MCTDebugCommand implements TabExecutor, Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     
-    
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         
@@ -45,15 +44,31 @@ public class MCTDebugCommand implements TabExecutor, Listener {
             return true;
         }
         
-        if (args.length != 0) {
+        if (args.length != 1) {
             sender.sendMessage(Component.text("Usage: /mctdebug <arg> [options]")
                     .color(NamedTextColor.RED));
             return true;
         }
         
+        String mode = args[0];
+        
         try {
-            gameManager.getGameStateService().rebuildPracticeMode();
-            sender.sendMessage("Success");
+            switch (mode) {
+                case "practice" -> {
+                    gameManager.getGameStateService().rebuildPracticeMode();
+                    sender.sendMessage("Loaded practice mode");
+                }
+                case "maintenance" -> {
+                    throw new UnsupportedOperationException("not yet implemented");
+                }
+                case "event" -> {
+                    throw new UnsupportedOperationException("not yet implemented event");
+                }
+                default -> {
+                    sender.sendMessage("not recognized practice|event|maintenance");
+                    return true;
+                }
+            }
         } catch (SQLException e) {
             Main.logger().log(Level.SEVERE, "An error occurred trying to rebuild practice mode", e);
             sender.sendMessage("An error occurred, see the console for more");
