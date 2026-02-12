@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.Mode;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -50,23 +51,23 @@ public class MCTDebugCommand implements TabExecutor, Listener {
             return true;
         }
         
-        String mode = args[0];
+        Mode mode = Mode.fromName(args[0]);
         
         try {
             switch (mode) {
-                case "practice" -> {
+                case PRACTICE -> {
                     gameManager.getGameStateService().rebuildPracticeMode();
                     sender.sendMessage("Loaded practice mode");
                 }
-                case "maintenance" -> {
+                case MAINTENANCE -> {
                     gameManager.getGameStateService().rebuildMaintenanceMode();
                     sender.sendMessage("Loaded maintenance mode");
                 }
-                case "event" -> {
+                case EVENT -> {
                     gameManager.getGameStateService().rebuildEventMode("MCT_1B");
                     sender.sendMessage("Loaded event mode");
                 }
-                default -> {
+                case null, default -> {
                     sender.sendMessage("not recognized practice|event|maintenance");
                     return true;
                 }

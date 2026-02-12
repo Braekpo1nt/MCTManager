@@ -56,6 +56,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
+import org.braekpo1nt.mctmanager.games.gamemanager.Mode;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
@@ -178,9 +179,9 @@ public abstract class GameManagerState {
      */
     public abstract void exit();
     
-    public abstract CommandResult switchMode(@NotNull String mode);
+    public abstract CommandResult switchMode(@NotNull Mode mode);
     
-    public abstract @NotNull String getMode();
+    public abstract @NotNull Mode getMode();
     
     public void cleanup() {
         this.leaderboardManagers.forEach(LeaderboardManager::tearDown);

@@ -5,6 +5,7 @@ import com.j256.ormlite.table.DatabaseTable;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.braekpo1nt.mctmanager.games.gamemanager.Mode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,7 +43,7 @@ public class ScoreEvent {
      * The mode this score event took place in (practice, event, or maintenance)
      */
     @DatabaseField(canBeNull = false, columnName = "mode")
-    private @NotNull String mode;
+    private @NotNull Mode mode;
     /**
      * the UUID of the participant this score was awarded to,
      * or null if this was not for a participant
@@ -88,7 +89,7 @@ public class ScoreEvent {
             @NotNull SourceType sourceType,
             @Nullable Integer gameSessionId,
             @Nullable String eventId,
-            @NotNull String mode,
+            @NotNull Mode mode,
             @Nullable String participantUUID,
             @NotNull String teamId,
             int pointsBase,

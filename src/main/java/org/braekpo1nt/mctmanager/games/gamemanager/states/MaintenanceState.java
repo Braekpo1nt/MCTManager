@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.Mode;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfigController;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.event.ReadyUpState;
@@ -42,7 +43,7 @@ public class MaintenanceState extends GameManagerState {
         this.sidebar.updateTitle(Component.empty()
                 .append(Sidebar.DEFAULT_TITLE)
                 .append(Component.text(" - "))
-                .append(Component.text("Maintenance")));
+                .append(Mode.MAINTENANCE.getTitle()));
         sidebar.addLines(
                 new KeyLine("team0", Component.empty()),
                 new KeyLine("team1", Component.empty()),
@@ -61,22 +62,22 @@ public class MaintenanceState extends GameManagerState {
     }
     
     @Override
-    public CommandResult switchMode(@NotNull String mode) {
+    public CommandResult switchMode(@NotNull Mode mode) {
         switch (mode) {
-            case "maintenance" -> {
+            case MAINTENANCE -> {
                 return CommandResult.success(Component.text("Already in maintenance mode"));
             }
-            case "practice" -> {
+            case PRACTICE -> {
                 context.setState(new PracticeState(context, contextReference));
                 return CommandResult.success(Component.text("Switched to practice mode"));
             }
-            case "event" -> {
+            case EVENT -> {
                 // TODO: use the active event from SystemState
                 return startEvent(EventInfo.getDebugEvent(), 7, 0);
             }
             default -> {
                 return CommandResult.failure(Component.empty()
-                        .append(Component.text(mode)
+                        .append(mode.getTitle()
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(" is not a valid mode")));
             }
@@ -84,8 +85,8 @@ public class MaintenanceState extends GameManagerState {
     }
     
     @Override
-    public @NotNull String getMode() {
-        return "maintenance";
+    public @NotNull Mode getMode() {
+        return Mode.MAINTENANCE;
     }
     
     @Override

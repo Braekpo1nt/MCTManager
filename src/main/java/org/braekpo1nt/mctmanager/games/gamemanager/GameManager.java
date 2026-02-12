@@ -209,11 +209,11 @@ public class GameManager implements Listener {
         this.state.enter();
     }
     
-    public CommandResult switchMode(@NotNull String mode) {
+    public CommandResult switchMode(@NotNull Mode mode) {
         return state.switchMode(mode);
     }
     
-    public @NotNull String getMode() {
+    public @NotNull Mode getMode() {
         return state.getMode();
     }
     

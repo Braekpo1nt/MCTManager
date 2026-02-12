@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.gamemanager.Mode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +32,7 @@ public class GameSession {
      * what mode were we in when this session took place
      */
     @DatabaseField(canBeNull = false, columnName = "mode")
-    private @NotNull String mode;
+    private @NotNull Mode mode;
     @DatabaseField(canBeNull = false, columnName = "start_time")
     private @NotNull Date startTime;
     @DatabaseField(columnName = "end_time")
@@ -42,7 +43,7 @@ public class GameSession {
             @NotNull GameType gameType,
             @Nullable String eventId,
             @NotNull String configFile,
-            @NotNull String mode,
+            @NotNull Mode mode,
             @NotNull Date startTime
     ) {
         this.gameType = gameType;

@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
+import org.braekpo1nt.mctmanager.games.gamemanager.Mode;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.EventData;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.ScoreKeeper;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfig;
@@ -57,22 +58,22 @@ public abstract class EventState extends GameManagerState {
     }
     
     @Override
-    public CommandResult switchMode(@NotNull String mode) {
+    public CommandResult switchMode(@NotNull Mode mode) {
         switch (mode) {
-            case "maintenance" -> {
+            case MAINTENANCE -> {
                 context.setState(new MaintenanceState(context, contextReference));
                 return CommandResult.success(Component.text("Switched to maintenance mode"));
             }
-            case "practice" -> {
+            case PRACTICE -> {
                 context.setState(new PracticeState(context, contextReference));
                 return CommandResult.success(Component.text("Switched to practice mode"));
             }
-            case "event" -> {
+            case EVENT -> {
                 return CommandResult.success(Component.text("Already in event mode"));
             }
             default -> {
                 return CommandResult.failure(Component.empty()
-                        .append(Component.text(mode)
+                        .append(mode.getTitle()
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(" is not a valid mode")));
             }
@@ -80,8 +81,8 @@ public abstract class EventState extends GameManagerState {
     }
     
     @Override
-    public @NotNull String getMode() {
-        return "event";
+    public @NotNull Mode getMode() {
+        return Mode.EVENT;
     }
     
     @Override
@@ -97,7 +98,7 @@ public abstract class EventState extends GameManagerState {
     
     @Override
     public CommandResult stopEvent() {
-        return switchMode("maintenance");
+        return switchMode(Mode.MAINTENANCE);
     }
     
     @Override

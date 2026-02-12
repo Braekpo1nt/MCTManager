@@ -5,6 +5,7 @@ import com.j256.ormlite.misc.TransactionManager;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipant;
 import org.braekpo1nt.mctmanager.database.entities.teams.ActiveTeam;
+import org.braekpo1nt.mctmanager.games.gamestate.preset.Preset;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
@@ -20,6 +21,10 @@ public class GameStateService {
         
         this.activeTeamsDao = database.getActiveTeamsDao();
         this.activeParticipantsDao = database.getActiveParticipantsDao();
+    }
+    
+    public void addTeam(Preset preset) {
+        
     }
     
     public void rebuildPracticeMode() throws SQLException {
