@@ -52,7 +52,7 @@ public class MCTDebugCommand implements TabExecutor, Listener {
         }
         
         try {
-            gameManager.getScoreService().rebuildPracticeMode();
+            gameManager.getGameStateService().rebuildPracticeMode();
             sender.sendMessage("Success");
         } catch (SQLException e) {
             Main.logger().log(Level.SEVERE, "An error occurred trying to rebuild practice mode", e);

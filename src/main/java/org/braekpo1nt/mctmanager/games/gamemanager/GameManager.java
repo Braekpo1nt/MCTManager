@@ -20,6 +20,7 @@ import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.braekpo1nt.mctmanager.database.service.EventService;
+import org.braekpo1nt.mctmanager.database.service.GameStateService;
 import org.braekpo1nt.mctmanager.database.service.ScoreService;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
@@ -89,6 +90,8 @@ public class GameManager implements Listener {
     private final ScoreService scoreService;
     @Getter
     private final EventService eventService;
+    @Getter
+    private final GameStateService gameStateService;
     // TODO: remove these getter and setter and make this a map like activeGames
     @Getter
     @Setter
@@ -161,6 +164,10 @@ public class GameManager implements Listener {
                 database
         );
         this.eventService = new EventService(
+                databaseMode,
+                database
+        );
+        this.gameStateService = new GameStateService(
                 databaseMode,
                 database
         );

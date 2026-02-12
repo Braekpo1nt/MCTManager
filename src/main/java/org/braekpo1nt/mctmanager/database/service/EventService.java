@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
 
+@SuppressWarnings("UnusedReturnValue")
 public class EventService {
     
     private final @NotNull String mode;
