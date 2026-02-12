@@ -23,7 +23,7 @@ public class AllPlayersEntity {
     /**
      * Primary key, player unique id
      */
-    @DatabaseField(id = true)
+    @DatabaseField(id = true, columnName = "uuid")
     private @NotNull String uuid;
     /**
      * The Minecraft IGN

@@ -158,7 +158,8 @@ CREATE TABLE score_events (
 -- to read from without needing to calculate the sum of all the
 -- score_event entries for a specific event. They are used for live events
 -- right now.
--- These are transient, erased and rebuilt upon a restart
+-- These are transient, erased and rebuilt upon a restart/mode transition
+-- They are a temporary cache for simplicity
 
 -- The current score of each team for a given event
 CREATE TABLE event_team_standings (
@@ -180,6 +181,29 @@ CREATE TABLE event_participant_standings (
     score               INT NOT NULL DEFAULT 0,   -- personal score (no multiplier)
 
     UNIQUE (event_id, participant_uuid)
+);
+
+-- used to reduce pings
+CREATE TABLE active_state (
+    id          BIGINT ${autoincrement} PRIMARY KEY,
+    version     INT
+);
+
+CREATE TABLE active_teams (
+    team_id         VARCHAR(64) PRIMARY KEY,
+    display_name    VARCHAR(64) NOT NULL,
+    color           VARCHAR(32) NOT NULL,
+    score           INT NOT NULL
+);
+
+CREATE TABLE active_participants (
+    participant_uuid    CHAR(36) PRIMARY KEY,
+    team_id             VARCHAR(64) NOT NULL,
+    ign                 VARCHAR(36) NOT NULL,
+    score               INT NOT NULL,
+    
+    FOREIGN KEY (participant_uuid) REFERENCES all_players(uuid), -- makes sure this is a real player
+    FOREIGN KEY (team_id) REFERENCES active_teams(team_id) -- make sure this is a real team
 );
 
 -- ===============
@@ -214,6 +238,9 @@ ON event_team_standings(event_id);
 
 CREATE INDEX idx_event_info_version
 ON event_info(id, standings_version);
+
+CREATE INDEX idx_active_participants_team
+ON active_participants(team_id);
 
 -- ==========
 -- Authoritative, not derivable from previous data

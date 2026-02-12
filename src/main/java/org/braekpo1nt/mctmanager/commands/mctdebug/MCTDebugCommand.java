@@ -14,9 +14,11 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
 
 /**
  * A utility command for testing various things, so I don't have to create a new command.
@@ -46,6 +48,15 @@ public class MCTDebugCommand implements TabExecutor, Listener {
         if (args.length != 0) {
             sender.sendMessage(Component.text("Usage: /mctdebug <arg> [options]")
                     .color(NamedTextColor.RED));
+            return true;
+        }
+        
+        try {
+            gameManager.getScoreService().rebuildPracticeMode();
+            sender.sendMessage("Success");
+        } catch (SQLException e) {
+            Main.logger().log(Level.SEVERE, "An error occurred trying to rebuild practice mode", e);
+            sender.sendMessage("An error occurred, see the console for more");
             return true;
         }
         
