@@ -64,7 +64,7 @@ public class MCTDebugCommand implements TabExecutor, Listener {
                 }
                 case "event" -> {
                     gameManager.getGameStateService().rebuildEventMode("MCT_1B");
-                    sender.sendMessage("Loaded maintenance mode");
+                    sender.sendMessage("Loaded event mode");
                 }
                 default -> {
                     sender.sendMessage("not recognized practice|event|maintenance");
