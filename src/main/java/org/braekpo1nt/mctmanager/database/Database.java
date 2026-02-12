@@ -7,8 +7,6 @@ import com.j256.ormlite.support.ConnectionSource;
 import lombok.Getter;
 import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
-import org.braekpo1nt.mctmanager.database.entities.EventParticipantStanding;
-import org.braekpo1nt.mctmanager.database.entities.EventTeamStanding;
 import org.braekpo1nt.mctmanager.database.entities.GameSession;
 import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
@@ -42,8 +40,6 @@ public class Database {
     private final @NotNull Dao<ActiveParticipant, Integer> activeParticipantsDao;
     private final @NotNull Dao<GameSession, Integer> gameSessionDao;
     private final @NotNull Dao<ScoreEvent, Integer> scoreEventsDao;
-    private final @NotNull Dao<EventTeamStanding, Integer> eventTeamStandingsDao;
-    private final @NotNull Dao<EventParticipantStanding, Integer> eventParticipantStandingsDao;
     private final @NotNull Dao<PlayerMetadata, String> playerMetadataDao;
     
     private Database(@NotNull ConnectionSource connectionSource) throws SQLException {
@@ -64,8 +60,6 @@ public class Database {
         this.activeParticipantsDao = DaoManager.createDao(connectionSource, ActiveParticipant.class);
         this.gameSessionDao = DaoManager.createDao(connectionSource, GameSession.class);
         this.scoreEventsDao = DaoManager.createDao(connectionSource, ScoreEvent.class);
-        this.eventTeamStandingsDao = DaoManager.createDao(connectionSource, EventTeamStanding.class);
-        this.eventParticipantStandingsDao = DaoManager.createDao(connectionSource, EventParticipantStanding.class);
         this.playerMetadataDao = DaoManager.createDao(connectionSource, PlayerMetadata.class);
     }
     
