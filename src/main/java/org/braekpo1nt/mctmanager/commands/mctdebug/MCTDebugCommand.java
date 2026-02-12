@@ -59,7 +59,8 @@ public class MCTDebugCommand implements TabExecutor, Listener {
                     sender.sendMessage("Loaded practice mode");
                 }
                 case "maintenance" -> {
-                    throw new UnsupportedOperationException("not yet implemented");
+                    gameManager.getGameStateService().rebuildMaintenanceMode();
+                    sender.sendMessage("Loaded maintenance mode");
                 }
                 case "event" -> {
                     throw new UnsupportedOperationException("not yet implemented event");

@@ -63,4 +63,46 @@ public class GameStateService {
             return null;
         });
     }
+    
+    public void rebuildMaintenanceMode() throws SQLException {
+        TransactionManager.callInTransaction(activeTeamsDao.getConnectionSource(), () -> {
+            // clear
+            activeTeamsDao.executeRaw("DELETE FROM active_participants");
+            activeTeamsDao.executeRaw("DELETE FROM active_teams");
+            
+            // rebuild teams
+            activeTeamsDao.executeRaw("""
+                        INSERT INTO active_teams (team_id, display_name, color, score)
+                        SELECT
+                            mt.team_id,
+                            mt.display_name,
+                            mt.color,
+                            COALESCE(SUM(se.points_base * se.multiplier), 0)
+                        FROM maintenance_teams mt
+                        LEFT JOIN score_events se
+                          ON se.team_id = mt.team_id
+                         AND se.mode = 'maintenance'
+                        GROUP BY mt.team_id, mt.display_name, mt.color
+                    """);
+            
+            // rebuild participants
+            activeTeamsDao.executeRaw("""
+                        INSERT INTO active_participants (participant_uuid, team_id, ign, score)
+                        SELECT
+                            mp.participant_uuid,
+                            mp.team_id,
+                            ap.ign,
+                            COALESCE(SUM(se.points_base), 0)
+                        FROM maintenance_participants mp
+                        JOIN all_players ap
+                          ON ap.uuid = mp.participant_uuid
+                        LEFT JOIN score_events se
+                          ON se.participant_uuid = mp.participant_uuid
+                         AND se.mode = 'maintenance'
+                        GROUP BY mp.participant_uuid, mp.team_id, ap.ign
+                    """);
+            
+            return null;
+        });
+    }
 }
