@@ -141,6 +141,14 @@ public class GameStateService {
         return eventParticipantsDao.queryForEq("event_id", eventId);
     }
     
+    public List<ActiveTeam> getActiveTeams() throws SQLException {
+        return activeTeamsDao.queryForAll();
+    }
+    
+    public List<ActiveParticipant> getActiveParticipants() throws SQLException {
+        return activeParticipantsDao.queryForAll();
+    }
+    
     public void rebuildPracticeMode() throws SQLException {
         TransactionManager.callInTransaction(activeTeamsDao.getConnectionSource(), () -> {
             // clear

@@ -22,9 +22,9 @@ import java.util.UUID;
 @AllArgsConstructor
 public class GameState {
     @Builder.Default
-    private @NotNull Map<UUID, MCTPlayer> players = new HashMap<>();
+    private @NotNull Map<UUID, MCTPlayerEntity> players = new HashMap<>();
     @Builder.Default
-    private @NotNull Map<String, MCTTeam> teams = new HashMap<>();
+    private @NotNull Map<String, MCTTeamEntity> teams = new HashMap<>();
     @Builder.Default
     private @NotNull List<UUID> admins = new ArrayList<>();
     
@@ -44,7 +44,7 @@ public class GameState {
      * @param color The color of the team
      */
     public void addTeam(String teamId, String teamDisplayName, String color) {
-        MCTTeam newTeam = new MCTTeam(teamId, teamDisplayName, 0, color);
+        MCTTeamEntity newTeam = new MCTTeamEntity(teamId, teamDisplayName, 0, color);
         teams.put(teamId, newTeam);
     }
     
@@ -64,7 +64,7 @@ public class GameState {
      * @param teamId the teamId to join it to
      */
     public void addPlayer(@NotNull UUID playerUniqueId, @NotNull String name, @NotNull String teamId) {
-        MCTPlayer newPlayer = new MCTPlayer(playerUniqueId, name, 0, teamId);
+        MCTPlayerEntity newPlayer = new MCTPlayerEntity(playerUniqueId, name, 0, teamId);
         players.put(playerUniqueId, newPlayer);
     }
     
@@ -82,7 +82,7 @@ public class GameState {
      * @param playerUniqueId The UUID of the player to get
      * @return The player with the given UUID, null if the player does not exist.
      */
-    public @Nullable MCTPlayer getPlayer(@NotNull UUID playerUniqueId) {
+    public @Nullable MCTPlayerEntity getPlayer(@NotNull UUID playerUniqueId) {
         return players.get(playerUniqueId);
     }
     
@@ -95,7 +95,7 @@ public class GameState {
         players.remove(playerUniqueId);
     }
     
-    MCTTeam getTeam(String teamId) {
+    MCTTeamEntity getTeam(String teamId) {
         return teams.get(teamId);
     }
     

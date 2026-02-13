@@ -508,7 +508,7 @@ public class GameManager implements Listener {
         }
         try {
             gameStateStorageUtil.loadGameState();
-        } catch (ConfigException e) {
+        } catch (ConfigException | SQLException e) {
             reportGameStateException("loading game state", e);
             return CommandResult.failure("Unable to load game state, see console for details.");
         }
@@ -1269,7 +1269,7 @@ public class GameManager implements Listener {
     // event end
     
     // Test methods
-    public void reportGameStateException(String attemptedOperation, ConfigException e) {
+    public void reportGameStateException(String attemptedOperation, Exception e) {
         Main.logger().severe(String.format("error while %s. See console log for error message.", attemptedOperation));
         messageAdmins(Component.empty()
                 .append(Component.text("error while "))

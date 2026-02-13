@@ -5,6 +5,9 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
+import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipant;
+import org.braekpo1nt.mctmanager.database.entities.teams.ActiveTeam;
+import org.braekpo1nt.mctmanager.database.service.GameStateService;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.ColorAttributes;
@@ -15,6 +18,7 @@ import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -25,7 +29,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Handles the CRUD operations for storing GameState objects
@@ -35,11 +41,13 @@ public class GameStateStorageUtil {
     
     private final Logger LOGGER;
     private final GameStateController gameStateController;
+    private final GameStateService gameStateService;
     protected GameState gameState = new GameState(new HashMap<>(), new HashMap<>(), new ArrayList<>());
     
     public GameStateStorageUtil(Main plugin) {
         this.LOGGER = plugin.getLogger();
         this.gameStateController = new GameStateController(plugin.getDataFolder());
+        this.gameStateService = plugin.getGameManager().getGameStateService();
     }
     
     /**
@@ -61,9 +69,37 @@ public class GameStateStorageUtil {
      * - reading the existing game state file
      * - parsing the game state from json
      */
-    public void loadGameState() throws ConfigIOException, ConfigInvalidException {
-        this.gameState = gameStateController.getGameState();
+    public void loadGameState() throws ConfigIOException, ConfigInvalidException, SQLException {
+        this.gameState = constructGameStateFromDatabase();
         LOGGER.info("Loaded gameState.json");
+    }
+    
+    private @NotNull GameState constructGameStateFromDatabase() throws SQLException {
+        List<ActiveTeam> activeTeams = gameStateService.getActiveTeams();
+        List<ActiveParticipant> activeParticipants = gameStateService.getActiveParticipants();
+        return new GameState(toPlayers(activeParticipants), toTeams(activeTeams), Collections.emptyList());
+    }
+    
+    public Map<String, MCTTeamEntity> toTeams(List<ActiveTeam> activeTeams) {
+        return activeTeams.stream()
+                .map(activeTeam -> MCTTeamEntity.builder()
+                        .name(activeTeam.getTeamId())
+                        .displayName(activeTeam.getDisplayName())
+                        .score(activeTeam.getScore())
+                        .color(activeTeam.getColor())
+                        .build())
+                .collect(Collectors.toMap(MCTTeamEntity::getName, Function.identity()));
+    }
+    
+    public Map<UUID, MCTPlayerEntity> toPlayers(List<ActiveParticipant> activeParticipants) {
+        return activeParticipants.stream()
+                .map(activeParticipant -> MCTPlayerEntity.builder()
+                        .uniqueId(UUID.fromString(activeParticipant.getParticipantUUID()))
+                        .name(activeParticipant.getIgn())
+                        .score(activeParticipant.getScore())
+                        .teamId(activeParticipant.getTeamId())
+                        .build())
+                .collect(Collectors.toMap(MCTPlayerEntity::getUniqueId, Function.identity()));
     }
     
     /**
@@ -126,7 +162,7 @@ public class GameStateStorageUtil {
                 .append(Component.text("Admin")
                         .color(NamedTextColor.DARK_RED))
                 .append(Component.text("]")));
-        for (MCTTeam mctTeam : gameState.getTeams().values()) {
+        for (MCTTeamEntity mctTeam : gameState.getTeams().values()) {
             Team team = scoreboard.registerNewTeam(mctTeam.getName());
             team.displayName(Component.text(mctTeam.getDisplayName()));
             NamedTextColor namedTextColor = ColorMap.getNamedTextColor(mctTeam.getColor());
@@ -168,7 +204,7 @@ public class GameStateStorageUtil {
      * @return the OfflineParticipant from the given UUID, or null if the UUID isn't in the game state
      */
     public @Nullable OfflineParticipant getOfflineParticipant(@NotNull UUID uuid) {
-        MCTPlayer player = gameState.getPlayer(uuid);
+        MCTPlayerEntity player = gameState.getPlayer(uuid);
         if (player == null) {
             return null;
         }
@@ -195,7 +231,7 @@ public class GameStateStorageUtil {
     
     public void updateParticipantScores(Collection<OfflineParticipant> participants) {
         for (OfflineParticipant participant : participants) {
-            MCTPlayer player = Objects.requireNonNull(
+            MCTPlayerEntity player = Objects.requireNonNull(
                     gameState.getPlayer(participant.getUniqueId()),
                     "attempted to update the score of a participant who is not in the GameState");
             player.setScore(participant.getScore());
@@ -208,7 +244,7 @@ public class GameStateStorageUtil {
     
     public void updateTeamScores(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams) {
         for (org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam team : teams) {
-            MCTTeam mctTeam = gameState.getTeam(team.getTeamId());
+            MCTTeamEntity mctTeam = gameState.getTeam(team.getTeamId());
             mctTeam.setScore(team.getScore());
         }
     }
@@ -220,7 +256,7 @@ public class GameStateStorageUtil {
      * player's UUID
      */
     public @Nullable String getPlayerTeamId(@NotNull UUID uuid) {
-        MCTPlayer player = gameState.getPlayer(uuid);
+        MCTPlayerEntity player = gameState.getPlayer(uuid);
         if (player != null) {
             return player.getTeamId();
         }
@@ -258,7 +294,7 @@ public class GameStateStorageUtil {
      * @return the given participant's score. 0 if the UUID isn't a player, or if it is an offlinePlayer.
      */
     public int getParticipantScore(UUID playerUniqueId) {
-        MCTPlayer player = gameState.getPlayer(playerUniqueId);
+        MCTPlayerEntity player = gameState.getPlayer(playerUniqueId);
         if (player == null) {
             return 0;
         }
@@ -276,7 +312,7 @@ public class GameStateStorageUtil {
     }
     
     public String getTeamDisplayName(String teamId) {
-        MCTTeam team = gameState.getTeam(teamId);
+        MCTTeamEntity team = gameState.getTeam(teamId);
         return team.getDisplayName();
     }
     

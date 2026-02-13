@@ -1,15 +1,15 @@
 package org.braekpo1nt.mctmanager.games.gamestate;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.UUID;
-
 @Data
 @Builder
-public class MCTPlayer {
-    private UUID uniqueId;
+@AllArgsConstructor
+public class MCTTeamEntity {
     private String name;
+    private String displayName;
     private int score;
-    private String teamId;
+    private String color;
 }
