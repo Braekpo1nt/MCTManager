@@ -39,6 +39,7 @@ import org.braekpo1nt.mctmanager.commands.teammsg.TeamMsgCommand;
 import org.braekpo1nt.mctmanager.commands.utils.UtilsCommand;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.database.Database;
+import org.braekpo1nt.mctmanager.database.service.GameStateService;
 import org.braekpo1nt.mctmanager.display.EdgeRenderer;
 import org.braekpo1nt.mctmanager.display.RectangleRenderer;
 import org.braekpo1nt.mctmanager.display.boundingbox.BoundingBoxRendererImpl;
@@ -113,13 +114,19 @@ public class Main extends JavaPlugin {
     private Database database;
     
     protected GameManager initialGameManager(Scoreboard mctScoreboard, @NotNull HubConfig config, Database database) {
+        String databaseMode = getConfig().getString("database.mode", "prod");
+        GameStateService gameStateService = new GameStateService(
+                databaseMode,
+                database
+        );
         return new GameManager(
                 this,
                 mctScoreboard,
-                new GameStateStorageUtil(this),
+                new GameStateStorageUtil(this, gameStateService),
                 new SidebarFactory(),
                 config,
-                database);
+                database,
+                gameStateService);
     }
     
     /**

@@ -44,10 +44,11 @@ public class GameStateStorageUtil {
     private final GameStateService gameStateService;
     protected GameState gameState = new GameState(new HashMap<>(), new HashMap<>(), new ArrayList<>());
     
-    public GameStateStorageUtil(Main plugin) {
+    public GameStateStorageUtil(@NotNull Main plugin, @NotNull GameStateService gameStateService) {
         this.LOGGER = plugin.getLogger();
+        // Pro Tip: The plugin.getGameManager() is null at this point
         this.gameStateController = new GameStateController(plugin.getDataFolder());
-        this.gameStateService = plugin.getGameManager().getGameStateService();
+        this.gameStateService = gameStateService;
     }
     
     /**

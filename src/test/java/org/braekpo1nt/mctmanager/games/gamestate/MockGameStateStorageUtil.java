@@ -5,7 +5,7 @@ import org.braekpo1nt.mctmanager.Main;
 public class MockGameStateStorageUtil extends GameStateStorageUtil {
     
     public MockGameStateStorageUtil(Main plugin) {
-        super(plugin);
+        super(plugin, gameStateService);
     }
     
     @Override

@@ -152,7 +152,8 @@ public class GameManager implements Listener {
                        @NotNull GameStateStorageUtil gameStateStorageUtil,
                        @NotNull SidebarFactory sidebarFactory,
                        @NotNull HubConfig config,
-                       @NotNull Database database) {
+                       @NotNull Database database,
+                       @NotNull GameStateService gameStateService) {
         this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.mctScoreboard = mctScoreboard;
@@ -167,10 +168,7 @@ public class GameManager implements Listener {
                 databaseMode,
                 database
         );
-        this.gameStateService = new GameStateService(
-                databaseMode,
-                database
-        );
+        this.gameStateService = gameStateService;
         this.sidebarFactory = sidebarFactory;
         this.config = config;
         this.tabList = new TabList(plugin);
