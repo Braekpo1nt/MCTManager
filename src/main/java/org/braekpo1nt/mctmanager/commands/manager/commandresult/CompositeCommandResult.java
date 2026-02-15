@@ -20,6 +20,10 @@ public class CompositeCommandResult implements CommandResult {
     }
     
     public CompositeCommandResult(@NotNull List<@NotNull CommandResult> commandResults) {
+        if (commandResults.stream().anyMatch(result -> result instanceof AsyncCommandResult)) {
+            // TODO: Try to find a way to make them work
+            throw new IllegalArgumentException("Can't add an AsyncCommandResult to a CompositeCommandResult");
+        }
         this.commandResults = commandResults;
     }
     

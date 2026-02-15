@@ -48,16 +48,13 @@ public class AsyncCommandResult implements CommandResult {
             // final or effectively final for runTask
             final CommandResult commandResult = result;
             plugin.getServer().getScheduler().runTask(plugin, () -> {
-                Component message = commandResult.getMessage();
-                if (message != null) {
-                    sender.sendMessage(message);
-                }
+                CommandResult.showResult(sender, commandResult);
             });
         });
     }
     
     @Override
     public @NotNull CommandResult and(CommandResult other) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        throw new UnsupportedOperationException("Cannot add an AsyncCommandResult to a CompositeCommandResult");
     }
 }

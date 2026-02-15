@@ -67,10 +67,7 @@ public class MasterCommandManager extends CommandManager implements TabExecutor 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         CommandResult commandResult = onSubCommand(sender, command, label, args);
-        Component message = commandResult.getMessage();
-        if (message != null) {
-            sender.sendMessage(message);
-        }
+        CommandResult.showResult(sender, commandResult);
         return true;
     }
 }

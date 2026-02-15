@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.commands.manager.commandresult;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.commands.manager.Usage;
+import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,6 +29,21 @@ public interface CommandResult {
      * @return the combined {@link CommandResult}s
      */
     @NotNull CommandResult and(CommandResult other);
+    
+    /**
+     * Convenience method for showing the message from a given {@link CommandResult}
+     * @param sender the sender to show the result to
+     * @param commandResult the {@link CommandResult} to get the {@link CommandResult#getMessage()} from
+     */
+    static void showResult(@NotNull CommandSender sender, CommandResult commandResult) {
+        Component message = commandResult.getMessage();
+        if (message != null) {
+            sender.sendMessage(message);
+        }
+        if (commandResult instanceof AsyncCommandResult asyncResult) {
+            asyncResult.executeAsync(sender);
+        }
+    }
     
     /**
      * Indicates a successful use of a command.
