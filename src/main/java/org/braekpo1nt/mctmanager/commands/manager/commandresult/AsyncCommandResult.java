@@ -10,12 +10,34 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
+/**
+ * Allows you to send a result message back to the command executor
+ * after an asynchronous operation
+ */
 public class AsyncCommandResult implements CommandResult {
     
+    /**
+     * The plugin to use for the asynchronous operation
+     */
     private final Main plugin;
+    /**
+     * the message to send immediately, before the asynchronous operation is complete.
+     * Null if no such message needs to be sent to the command executor.
+     */
     private final @Nullable Component immediateMessage;
+    /**
+     * the operation to be executed on an asynchronous thread,
+     * and the result of which will be shown to
+     */
     private final Supplier<CommandResult> supplier;
     
+    /**
+     * @param plugin The plugin to use for the asynchronous operation
+     * @param immediateMessage the message to send immediately, before the asynchronous operation is complete. Null if
+     * no such message needs to be sent to the command executor.
+     * @param supplier the operation to be executed on an asynchronous thread, and the result of which will be shown to
+     * the command executor upon completion
+     */
     public AsyncCommandResult(
             @NotNull Main plugin,
             @Nullable Component immediateMessage,
@@ -26,11 +48,19 @@ public class AsyncCommandResult implements CommandResult {
         this.supplier = supplier;
     }
     
+    /**
+     * @return the {@link #immediateMessage} only
+     */
     @Override
     public @Nullable Component getMessage() {
         return immediateMessage;
     }
     
+    /**
+     * Execute the {@link #supplier} in an asynchronous thread, and show the resulting {@link CommandResult} to the
+     * given sender back on the main thread.
+     * @param sender the sender to see the message resulting from the asynchronous operation {@link #supplier}
+     */
     public void executeAsync(@NotNull CommandSender sender) {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             CommandResult result;
@@ -53,8 +83,13 @@ public class AsyncCommandResult implements CommandResult {
         });
     }
     
+    /**
+     * Not supported for {@link AsyncCommandResult}
+     * @throws UnsupportedOperationException when called, because this is not supported yet
+     */
     @Override
     public @NotNull CommandResult and(CommandResult other) {
+        // TODO: find a way to make this work
         throw new UnsupportedOperationException("Cannot add an AsyncCommandResult to a CompositeCommandResult");
     }
 }
