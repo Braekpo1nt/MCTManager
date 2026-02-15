@@ -1,10 +1,13 @@
 package org.braekpo1nt.mctmanager.commands.manager.commandresult;
 
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.Usage;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.function.Supplier;
 
 public interface CommandResult {
     
@@ -89,5 +92,16 @@ public interface CommandResult {
      */
     static CommandResult failure(@NotNull Usage usage) {
         return new UsageCommandResult(usage);
+    }
+    
+    /**
+     * @param plugin The plugin to use for the asynchronous operation
+     * @param immediateMessage the message to send immediately, before the asynchronous operation is complete. Null if
+     * no such message needs to be sent to the command executor.
+     * @param supplier the operation to be executed on an asynchronous thread, and the result of which will be shown to
+     * the command executor upon completion
+     */
+    static CommandResult async(@NotNull Main plugin, Component immediateMessage, Supplier<CommandResult> supplier) {
+        return new AsyncCommandResult(plugin, immediateMessage, supplier);
     }
 }
