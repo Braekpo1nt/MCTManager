@@ -38,6 +38,8 @@ public class PlayingGameState extends EventState {
     
     @Override
     public void enter() {
+        // TODO: have command startGame throw an UnableToStartGameException
+        // use the commandResult.message(sender) pattern, perhaps?
         CommandResult commandResult = this.startGame(teams.keySet(), onlineAdmins, activeGameId.getGameType(), activeGameId.getConfigFile());
         if (!(commandResult instanceof SuccessCommandResult)) {
             context.messageAdmins(commandResult.getMessage());
