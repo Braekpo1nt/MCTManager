@@ -1,10 +1,11 @@
 package org.braekpo1nt.mctmanager.games.gamestate;
 
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.database.service.GameStateService;
 
 public class MockGameStateStorageUtil extends GameStateStorageUtil {
     
-    public MockGameStateStorageUtil(Main plugin) {
+    public MockGameStateStorageUtil(Main plugin, GameStateService gameStateService) {
         super(plugin, gameStateService);
     }
     

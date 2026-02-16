@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import org.braekpo1nt.mctmanager.database.Database;
+import org.braekpo1nt.mctmanager.database.service.GameStateService;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.MockGameManager;
 import org.braekpo1nt.mctmanager.games.gamestate.MockGameStateStorageUtil;
@@ -9,14 +10,10 @@ import org.braekpo1nt.mctmanager.hub.config.HubConfig;
 import org.braekpo1nt.mctmanager.packetevents.PacketEventsAPIMock;
 import org.braekpo1nt.mctmanager.ui.sidebar.MockSidebarFactory;
 import org.bukkit.scoreboard.Scoreboard;
-import org.flywaydb.core.Flyway;
-import org.flywaydb.core.api.FlywayException;
-import org.flywaydb.core.api.output.ValidateResult;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.sql.SQLException;
-import java.util.Map;
 import java.util.logging.Level;
 
 public class MockMain extends Main {
@@ -35,13 +32,20 @@ public class MockMain extends Main {
     
     @Override
     protected GameManager initialGameManager(Scoreboard mctScoreboard, @NotNull HubConfig config, Database database) {
+        String databaseMode = getConfig().getString("database.mode", "prod");
+        GameStateService gameStateService = new GameStateService(
+                databaseMode,
+                database
+        );
         return new MockGameManager(
                 this,
                 mctScoreboard,
-                new MockGameStateStorageUtil(this),
+                new MockGameStateStorageUtil(this, gameStateService),
                 new MockSidebarFactory(),
                 config,
-                database);
+                database,
+                gameStateService
+        );
     }
     
     @Override
