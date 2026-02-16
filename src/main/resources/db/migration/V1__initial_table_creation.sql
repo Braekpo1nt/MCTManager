@@ -31,14 +31,19 @@ CREATE TABLE event_info (
 
 -- Holds a single row to tell all clients what the active event_id should be
 CREATE TABLE system_state (
-    id                  INT PRIMARY KEY CHECK (id = 1),
-    active_event_id     VARCHAR(64) NULL, -- the active event_id, or null if there is no active event
+    id                      INT PRIMARY KEY CHECK (id = 1),
+    -- the score version of active_*_scores, to reduce polling complexity
+    active_version          INT NOT NULL, 
+    -- the active event_id, or null if there is no active event
+    active_event_id         VARCHAR(64) NULL,
+    current_game_number     INT NOT NULL DEFAULT 1,
+    max_games               INT NOT NULL DEFAULT 7,
     
     FOREIGN KEY (active_event_id) REFERENCES event_info(id)
 );
 
 -- the only entry in system_state, updated when there is an active event
-INSERT INTO system_state(id, active_event_id) VALUES (1, NULL);
+INSERT INTO system_state(id, active_version, active_event_id, current_game_number, max_games) VALUES (1, 0, NULL, 1, 7);
 
 -- ==============
 -- Teams
@@ -162,10 +167,6 @@ CREATE TABLE score_events (
 -- They are a temporary cache for simplicity
 
 -- used to reduce pings
-CREATE TABLE active_state (
-    id          BIGINT ${autoincrement} PRIMARY KEY,
-    version     INT
-);
 
 CREATE TABLE active_teams (
     team_id         VARCHAR(64) PRIMARY KEY,
@@ -182,6 +183,24 @@ CREATE TABLE active_participants (
     
     FOREIGN KEY (participant_uuid) REFERENCES all_players(uuid), -- makes sure this is a real player
     FOREIGN KEY (team_id) REFERENCES active_teams(team_id) -- make sure this is a real team
+);
+
+CREATE TABLE active_teams_in_game (
+    team_id         VARCHAR(64) PRIMARY KEY,
+    session_id      BIGINT NOT NULL, -- the game the team is in
+    game_score      INT NOT NULL, -- the score from the game
+    
+    FOREIGN KEY (team_id) REFERENCES active_teams(team_id),
+    FOREIGN KEY (session_id) REFERENCES game_sessions(id)
+);
+
+CREATE TABLE active_participants_in_game (
+    participant_uuid    CHAR(36) PRIMARY KEY,
+    session_id          BIGINT NOT NULL, -- the game the participant is in
+    game_score          INT NOT NULL, -- the score from the game
+    
+    FOREIGN KEY (participant_uuid) REFERENCES active_participants(participant_uuid),
+    FOREIGN KEY (session_id) REFERENCES game_sessions(id)
 );
 
 -- ===============
