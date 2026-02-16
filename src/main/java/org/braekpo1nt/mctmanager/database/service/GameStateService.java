@@ -20,7 +20,6 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 @SuppressWarnings("UnusedReturnValue")
 public class GameStateService {
@@ -156,51 +155,27 @@ public class GameStateService {
         return activeParticipantsDao.queryForAll();
     }
     
-    public void updateActiveParticipant(String participantUUID, int score) throws SQLException {
-        UpdateBuilder<ActiveParticipant, String> updateBuilder = activeParticipantsDao.updateBuilder();
-        updateBuilder
-                .updateColumnValue("score", score)
-                .where()
-                .idEq(participantUUID);
-        updateBuilder.update();
+    public void updateActiveParticipant(ActiveParticipant activeParticipant) throws SQLException {
+        activeParticipantsDao.update(activeParticipant);
     }
     
-    public void updateActiveTeam(String teamId, int score) throws SQLException {
-        UpdateBuilder<ActiveTeam, String> updateBuilder = activeTeamsDao.updateBuilder();
-        updateBuilder
-                .updateColumnValue("score", score)
-                .where()
-                .idEq(teamId);
-        updateBuilder.update();
+    public void updateActiveTeam(ActiveTeam activeTeam) throws SQLException {
+        activeTeamsDao.update(activeTeam);
     }
     
-    public void updateActiveParticipants(Map<String, Integer> scores) throws Exception {
+    public void updateActiveParticipants(List<ActiveParticipant> activeParticipants) throws Exception {
         activeParticipantsDao.callBatchTasks(() -> {
-            for (Map.Entry<String, Integer> entry : scores.entrySet()) {
-                UpdateBuilder<ActiveParticipant, String> updateBuilder = activeParticipantsDao.updateBuilder();
-                String participantUUID = entry.getKey();
-                int score = entry.getValue();
-                updateBuilder
-                        .updateColumnValue("score", score)
-                        .where()
-                        .idEq(participantUUID);
-                updateBuilder.update();
+            for (ActiveParticipant activeParticipant : activeParticipants) {
+                activeParticipantsDao.update(activeParticipant);
             }
             return null;
         });
     }
     
-    public void updateActiveTeams(Map<String, Integer> scores) throws Exception {
+    public void updateActiveTeams(List<ActiveTeam> activeTeams) throws Exception {
         activeTeamsDao.callBatchTasks(() -> {
-            for (Map.Entry<String, Integer> entry : scores.entrySet()) {
-                UpdateBuilder<ActiveTeam, String> updateBuilder = activeTeamsDao.updateBuilder();
-                String teamId = entry.getKey();
-                int score = entry.getValue();
-                updateBuilder
-                        .updateColumnValue("score", score)
-                        .where()
-                        .idEq(teamId);
-                updateBuilder.update();
+            for (ActiveTeam activeTeam : activeTeams) {
+                activeTeamsDao.update(activeTeam);
             }
             return null;
         });

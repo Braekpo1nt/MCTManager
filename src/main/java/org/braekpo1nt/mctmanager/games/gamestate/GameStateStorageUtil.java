@@ -281,7 +281,7 @@ public class GameStateStorageUtil {
         player.setScore(participant.getScore());
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                gameStateService.updateActiveParticipant(player.getUniqueId().toString(), player.getScore());
+                gameStateService.updateActiveParticipant(fromPlayer(player));
             } catch (SQLException e) {
                 LOGGER.log(Level.SEVERE, "An error occurred trying to update participant score", e);
             }
@@ -289,17 +289,17 @@ public class GameStateStorageUtil {
     }
     
     public void updateParticipantScores(Collection<OfflineParticipant> participants) {
-        Map<String, Integer> updatedScores = new HashMap<>(participants.size());
+        List<ActiveParticipant> activeParticipants = new ArrayList<>(participants.size());
         for (OfflineParticipant participant : participants) {
             MCTPlayerEntity player = Objects.requireNonNull(
                     gameState.getPlayer(participant.getUniqueId()),
                     "attempted to update the score of a participant who is not in the GameState");
             player.setScore(participant.getScore());
-            updatedScores.put(player.getUniqueId().toString(), player.getScore());
+            activeParticipants.add(fromPlayer(player));
         }
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                gameStateService.updateActiveParticipants(updatedScores);
+                gameStateService.updateActiveParticipants(activeParticipants);
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, "An error occurred trying to update participant score", e);
             }
@@ -311,15 +311,15 @@ public class GameStateStorageUtil {
     }
     
     public void updateTeamScores(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams) {
-        Map<String, Integer> updatedScores = new HashMap<>(teams.size());
+        List<ActiveTeam> activeTeams = new ArrayList<>(teams.size());
         for (org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam team : teams) {
             MCTTeamEntity mctTeam = gameState.getTeam(team.getTeamId());
             mctTeam.setScore(team.getScore());
-            updatedScores.put(team.getTeamId(), team.getScore());
+            activeTeams.add(fromTeam(mctTeam));
         }
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                gameStateService.updateActiveTeams(updatedScores);
+                gameStateService.updateActiveTeams(activeTeams);
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, "An error occurred trying to update participant score", e);
             }
