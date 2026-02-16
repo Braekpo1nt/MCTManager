@@ -1093,19 +1093,8 @@ public class GameManager implements Listener {
         } else {
             updatedList = Collections.emptyList();
         }
-        try {
-            gameStateStorageUtil.updateScore(updated);
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-                try {
-                    gameStateStorageUtil.saveGameState();
-                } catch (SQLException e) {
-                    reportGameStateException("setting a player's score", e);
-                }
-            });
-            state.updateScoreVisuals(Collections.singletonList(teams.get(updated.getTeamId())), updatedList);
-        } catch (ConfigIOException e) {
-            reportGameStateException("setting a player's score", e);
-        }
+        gameStateStorageUtil.updateScore(updated);
+        state.updateScoreVisuals(Collections.singletonList(teams.get(updated.getTeamId())), updatedList);
         return updated.getScore();
     }
     
@@ -1157,13 +1146,6 @@ public class GameManager implements Listener {
         }
         try {
             gameStateStorageUtil.updateScores(teams.values(), allParticipants.values());
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-                try {
-                    gameStateStorageUtil.saveGameState();
-                } catch (SQLException e) {
-                    reportGameStateException("setting a player's score", e);
-                }
-            });
             state.updateScoreVisuals(teams.values(), onlineParticipants.values());
         } catch (ConfigIOException e) {
             reportGameStateException("setting all scores", e);

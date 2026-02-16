@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.database.service;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.misc.TransactionManager;
 import com.j256.ormlite.stmt.ColumnArg;
+import com.j256.ormlite.stmt.UpdateBuilder;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.SystemState;
 import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipant;
@@ -18,14 +19,16 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @SuppressWarnings("UnusedReturnValue")
 public class GameStateService {
     private final @NotNull String mode;
     private final @NotNull Dao<SystemState, Integer> systemStateDao;
     
-    private final @NotNull Dao<ActiveTeam, Integer> activeTeamsDao;
-    private final @NotNull Dao<ActiveParticipant, Integer> activeParticipantsDao;
+    private final @NotNull Dao<ActiveTeam, String> activeTeamsDao;
+    private final @NotNull Dao<ActiveParticipant, String> activeParticipantsDao;
     
     private final @NotNull Dao<MaintenanceTeam, String> maintenanceTeamsDao;
     private final @NotNull Dao<PracticeTeam, String> practiceTeamsDao;
@@ -152,6 +155,32 @@ public class GameStateService {
     public List<ActiveParticipant> getActiveParticipants() throws SQLException {
         return activeParticipantsDao.queryForAll();
     }
+    
+    public void updateActiveParticipant(String participantUUID, int score) throws SQLException {
+        UpdateBuilder<ActiveParticipant, String> updateBuilder = activeParticipantsDao.updateBuilder();
+        updateBuilder
+                .updateColumnValue("score", score)
+                .where()
+                .idEq(participantUUID);
+        updateBuilder.update();
+    }
+    
+    public void updateActiveParticipants(Map<String, Integer> scores) throws Exception {
+        activeParticipantsDao.callBatchTasks(() -> {
+            for (Map.Entry<String, Integer> entry : scores.entrySet()) {
+                UpdateBuilder<ActiveParticipant, String> updateBuilder = activeParticipantsDao.updateBuilder();
+                String participantUUID = entry.getKey();
+                int score = entry.getValue();
+                updateBuilder
+                        .updateColumnValue("score", score)
+                        .where()
+                        .idEq(participantUUID);
+                updateBuilder.update();
+            }
+            return null;
+        });
+    }
+    
     
     /**
      * update the scores of the active teams and participants

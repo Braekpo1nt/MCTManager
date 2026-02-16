@@ -30,6 +30,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -42,10 +43,12 @@ public class GameStateStorageUtil {
     private final Logger LOGGER;
     private final GameStateController gameStateController;
     private final GameStateService gameStateService;
+    private final Main plugin;
     protected GameState gameState = new GameState(new HashMap<>(), new HashMap<>(), new ArrayList<>());
     
     public GameStateStorageUtil(@NotNull Main plugin, @NotNull GameStateService gameStateService) {
         this.LOGGER = plugin.getLogger();
+        this.plugin = plugin;
         // Pro Tip: The plugin.getGameManager() is null at this point
         this.gameStateController = new GameStateController(plugin.getDataFolder());
         this.gameStateService = gameStateService;
@@ -58,6 +61,7 @@ public class GameStateStorageUtil {
      * - writing to the game state file
      * - converting the game state to json
      */
+    @Deprecated
     public void saveGameState() throws ConfigIOException, SQLException {
         gameStateController.saveGameState(gameState);
         // TODO: this is bulky and unnecessary, should update each time a score is changed instead of reloading everything
@@ -87,46 +91,62 @@ public class GameStateStorageUtil {
     
     public Map<String, MCTTeamEntity> toTeams(List<ActiveTeam> activeTeams) {
         return activeTeams.stream()
-                .map(activeTeam -> MCTTeamEntity.builder()
-                        .name(activeTeam.getTeamId())
-                        .displayName(activeTeam.getDisplayName())
-                        .score(activeTeam.getScore())
-                        .color(activeTeam.getColor())
-                        .build())
+                .map(GameStateStorageUtil::toTeam)
                 .collect(Collectors.toMap(MCTTeamEntity::getName, Function.identity()));
+    }
+    
+    private static MCTTeamEntity toTeam(ActiveTeam activeTeam) {
+        return MCTTeamEntity.builder()
+                .name(activeTeam.getTeamId())
+                .displayName(activeTeam.getDisplayName())
+                .score(activeTeam.getScore())
+                .color(activeTeam.getColor())
+                .build();
     }
     
     public Map<UUID, MCTPlayerEntity> toPlayers(List<ActiveParticipant> activeParticipants) {
         return activeParticipants.stream()
-                .map(activeParticipant -> MCTPlayerEntity.builder()
-                        .uniqueId(UUID.fromString(activeParticipant.getParticipantUUID()))
-                        .name(activeParticipant.getIgn())
-                        .score(activeParticipant.getScore())
-                        .teamId(activeParticipant.getTeamId())
-                        .build())
+                .map(GameStateStorageUtil::toPlayer)
                 .collect(Collectors.toMap(MCTPlayerEntity::getUniqueId, Function.identity()));
+    }
+    
+    private static MCTPlayerEntity toPlayer(ActiveParticipant activeParticipant) {
+        return MCTPlayerEntity.builder()
+                .uniqueId(UUID.fromString(activeParticipant.getParticipantUUID()))
+                .name(activeParticipant.getIgn())
+                .score(activeParticipant.getScore())
+                .teamId(activeParticipant.getTeamId())
+                .build();
     }
     
     public List<ActiveTeam> fromTeams(Collection<MCTTeamEntity> entities) {
         return entities.stream()
-                .map(team -> ActiveTeam.builder()
-                        .teamId(team.getName())
-                        .displayName(team.getDisplayName())
-                        .color(team.getColor())
-                        .score(team.getScore())
-                        .build())
+                .map(GameStateStorageUtil::fromTeam)
                 .toList();
+    }
+    
+    private static ActiveTeam fromTeam(MCTTeamEntity team) {
+        return ActiveTeam.builder()
+                .teamId(team.getName())
+                .displayName(team.getDisplayName())
+                .color(team.getColor())
+                .score(team.getScore())
+                .build();
     }
     
     public List<ActiveParticipant> fromPlayers(Collection<MCTPlayerEntity> entities) {
         return entities.stream()
-                .map(player -> ActiveParticipant.builder()
-                        .participantUUID(player.getUniqueId().toString())
-                        .teamId(player.getTeamId())
-                        .ign(player.getName())
-                        .score(player.getScore())
-                        .build())
+                .map(GameStateStorageUtil::fromPlayer)
                 .toList();
+    }
+    
+    private static ActiveParticipant fromPlayer(MCTPlayerEntity player) {
+        return ActiveParticipant.builder()
+                .participantUUID(player.getUniqueId().toString())
+                .teamId(player.getTeamId())
+                .ign(player.getName())
+                .score(player.getScore())
+                .build();
     }
     
     /**
@@ -251,18 +271,34 @@ public class GameStateStorageUtil {
     }
     
     public void updateScore(OfflineParticipant participant) {
-        Objects.requireNonNull(gameState.getPlayer(participant.getUniqueId()),
-                        "attempted to update score of non-existent participant")
-                .setScore(participant.getScore());
+        MCTPlayerEntity player = Objects.requireNonNull(gameState.getPlayer(participant.getUniqueId()),
+                "attempted to update score of non-existent participant");
+        player.setScore(participant.getScore());
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                gameStateService.updateActiveParticipant(player.getUniqueId().toString(), player.getScore());
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "An error occurred trying to update participant score", e);
+            }
+        });
     }
     
     public void updateParticipantScores(Collection<OfflineParticipant> participants) {
+        Map<String, Integer> updatedScores = new HashMap<>(participants.size());
         for (OfflineParticipant participant : participants) {
             MCTPlayerEntity player = Objects.requireNonNull(
                     gameState.getPlayer(participant.getUniqueId()),
                     "attempted to update the score of a participant who is not in the GameState");
             player.setScore(participant.getScore());
+            updatedScores.put(player.getUniqueId().toString(), player.getScore());
         }
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                gameStateService.updateActiveParticipants(updatedScores);
+            } catch (Exception e) {
+                LOGGER.log(Level.SEVERE, "An error occurred trying to update participant score", e);
+            }
+        });
     }
     
     public void updateScore(org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam team) {

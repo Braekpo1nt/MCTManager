@@ -33,11 +33,11 @@ public class Database {
     private final @NotNull Dao<MaintenanceTeam, String> maintenanceTeamsDao;
     private final @NotNull Dao<PracticeTeam, String> practiceTeamsDao;
     private final @NotNull Dao<EventTeam, Integer> eventTeamsDao;
-    private final @NotNull Dao<ActiveTeam, Integer> activeTeamsDao;
+    private final @NotNull Dao<ActiveTeam, String> activeTeamsDao;
     private final @NotNull Dao<MaintenanceParticipantEntity, String> maintenanceParticipantsDao;
     private final @NotNull Dao<PracticeParticipantEntity, String> practiceParticipantsDao;
     private final @NotNull Dao<EventParticipantEntity, Integer> eventParticipantsDao;
-    private final @NotNull Dao<ActiveParticipant, Integer> activeParticipantsDao;
+    private final @NotNull Dao<ActiveParticipant, String> activeParticipantsDao;
     private final @NotNull Dao<GameSession, Integer> gameSessionDao;
     private final @NotNull Dao<ScoreEvent, Integer> scoreEventsDao;
     private final @NotNull Dao<PlayerMetadata, String> playerMetadataDao;
