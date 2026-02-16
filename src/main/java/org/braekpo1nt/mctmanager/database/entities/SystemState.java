@@ -19,8 +19,23 @@ public class SystemState {
     @DatabaseField(id = true)
     private int id;
     /**
+     * the score version of the active_* tables, to reduce polling frequency
+     */
+    @DatabaseField(canBeNull = false, columnName = "active_version")
+    private int activeVersion;
+    /**
      * The active eventId, or null if there is no active event
      */
     @DatabaseField(columnName = "active_event_id")
     private @Nullable String activeEventId;
+    /**
+     * The current game number of the active event
+     */
+    @DatabaseField(canBeNull = false, columnName = "current_game_number")
+    private int currentGameNumber;
+    /**
+     * The maximum game number of the active event
+     */
+    @DatabaseField(canBeNull = false, columnName = "max_games")
+    private int maxGames;
 }
