@@ -270,6 +270,11 @@ public class GameStateStorageUtil {
         updateParticipantScores(participants);
     }
     
+    public void updateScoresSync(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams, Collection<OfflineParticipant> participants) throws SQLException {
+        updateTeamScoresSync(teams);
+        updateParticipantScoresSync(participants);
+    }
+    
     public void updateScore(OfflineParticipant participant) {
         MCTPlayerEntity player = Objects.requireNonNull(gameState.getPlayer(participant.getUniqueId()),
                 "attempted to update score of non-existent participant");
@@ -306,10 +311,19 @@ public class GameStateStorageUtil {
     }
     
     public void updateTeamScores(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams) {
+        Map<String, Integer> updatedScores = new HashMap<>(teams.size());
         for (org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam team : teams) {
             MCTTeamEntity mctTeam = gameState.getTeam(team.getTeamId());
             mctTeam.setScore(team.getScore());
+            updatedScores.put(team.getTeamId(), team.getScore());
         }
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                gameStateService.updateActiveTeams(updatedScores);
+            } catch (Exception e) {
+                LOGGER.log(Level.SEVERE, "An error occurred trying to update participant score", e);
+            }
+        });
     }
     
     /**

@@ -827,18 +827,12 @@ public abstract class GameManagerState {
                         participant.getScore() + newScore));
             }
         }
-        gameStateStorageUtil.updateScores(teams.values(), allParticipants.values());
         if (plugin.isEnabled()) {
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-                try {
-                    gameStateStorageUtil.saveGameState();
-                } catch (ConfigIOException | SQLException e) {
-                    context.reportGameStateException("updating scores", e);
-                }
-            });
+            gameStateStorageUtil.updateScores(teams.values(), allParticipants.values());
         } else {
+            // TODO: this may not be needed if active_* tables are rebuilt on plugin start
             try {
-                gameStateStorageUtil.saveGameState();
+                gameStateStorageUtil.updateScoresSync(teams.values(), allParticipants.values());
             } catch (ConfigIOException | SQLException e) {
                 context.reportGameStateException("updating scores", e);
             }

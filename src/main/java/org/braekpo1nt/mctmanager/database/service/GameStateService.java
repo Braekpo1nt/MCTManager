@@ -165,6 +165,15 @@ public class GameStateService {
         updateBuilder.update();
     }
     
+    public void updateActiveTeam(String teamId, int score) throws SQLException {
+        UpdateBuilder<ActiveTeam, String> updateBuilder = activeTeamsDao.updateBuilder();
+        updateBuilder
+                .updateColumnValue("score", score)
+                .where()
+                .idEq(teamId);
+        updateBuilder.update();
+    }
+    
     public void updateActiveParticipants(Map<String, Integer> scores) throws Exception {
         activeParticipantsDao.callBatchTasks(() -> {
             for (Map.Entry<String, Integer> entry : scores.entrySet()) {
@@ -175,6 +184,22 @@ public class GameStateService {
                         .updateColumnValue("score", score)
                         .where()
                         .idEq(participantUUID);
+                updateBuilder.update();
+            }
+            return null;
+        });
+    }
+    
+    public void updateActiveTeams(Map<String, Integer> scores) throws Exception {
+        activeTeamsDao.callBatchTasks(() -> {
+            for (Map.Entry<String, Integer> entry : scores.entrySet()) {
+                UpdateBuilder<ActiveTeam, String> updateBuilder = activeTeamsDao.updateBuilder();
+                String teamId = entry.getKey();
+                int score = entry.getValue();
+                updateBuilder
+                        .updateColumnValue("score", score)
+                        .where()
+                        .idEq(teamId);
                 updateBuilder.update();
             }
             return null;
