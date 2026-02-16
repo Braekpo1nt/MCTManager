@@ -2,6 +2,8 @@ package org.braekpo1nt.mctmanager.database.entities.teams;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -9,6 +11,8 @@ import org.jetbrains.annotations.NotNull;
 @DatabaseTable(tableName = "active_teams")
 @NoArgsConstructor
 @Data
+@AllArgsConstructor
+@Builder
 public class ActiveTeam {
     /**
      * The teamId of the team
