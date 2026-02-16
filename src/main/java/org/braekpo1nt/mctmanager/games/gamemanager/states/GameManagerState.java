@@ -833,7 +833,7 @@ public abstract class GameManagerState {
             // TODO: this may not be needed if active_* tables are rebuilt on plugin start
             try {
                 gameStateStorageUtil.updateScoresSync(teams.values(), allParticipants.values());
-            } catch (ConfigIOException | SQLException e) {
+            } catch (Exception e) {
                 context.reportGameStateException("updating scores", e);
             }
         }

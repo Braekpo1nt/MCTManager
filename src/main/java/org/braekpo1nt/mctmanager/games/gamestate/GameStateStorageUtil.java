@@ -150,15 +150,6 @@ public class GameStateStorageUtil {
     }
     
     /**
-     * Checks if the game state contains a team with the given name
-     * @param teamId The internal name of the team to check for
-     * @return True if the team exists in the game state, false otherwise
-     */
-    public boolean containsTeam(String teamId) {
-        return gameState.containsTeam(teamId);
-    }
-    
-    /**
      * Add a team to the game state.
      * @param teamId The internal name of the team.
      * @param teamDisplayName The display name of the team.
@@ -238,15 +229,6 @@ public class GameStateStorageUtil {
     }
     
     /**
-     * Checks if the game state contains the given player
-     * @param playerUniqueId The UUID of the player to check for
-     * @return True if the player with the given UUID exists, false otherwise
-     */
-    public boolean containsPlayer(UUID playerUniqueId) {
-        return gameState.containsPlayer(playerUniqueId);
-    }
-    
-    /**
      * @param uuid the UUID of the participant to get
      * @return the OfflineParticipant from the given UUID, or null if the UUID isn't in the game state
      */
@@ -270,7 +252,11 @@ public class GameStateStorageUtil {
         updateParticipantScores(participants);
     }
     
-    public void updateScoresSync(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams, Collection<OfflineParticipant> participants) throws SQLException {
+    /**
+     * Identical operation to {@link #updateScores}, but does not use plugin scheduler to run
+     * tasks asynchronously. Used only when the plugin is being disabled.
+     */
+    public void updateScoresSync(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams, Collection<OfflineParticipant> participants) throws Exception {
         updateTeamScoresSync(teams);
         updateParticipantScoresSync(participants);
     }
@@ -306,6 +292,21 @@ public class GameStateStorageUtil {
         });
     }
     
+    /**
+     * Identical to {@link #updateParticipantScores(Collection)} but not async
+     */
+    private void updateParticipantScoresSync(Collection<OfflineParticipant> participants) throws Exception {
+        List<ActiveParticipant> activeParticipants = new ArrayList<>(participants.size());
+        for (OfflineParticipant participant : participants) {
+            MCTPlayerEntity player = Objects.requireNonNull(
+                    gameState.getPlayer(participant.getUniqueId()),
+                    "attempted to update the score of a participant who is not in the GameState");
+            player.setScore(participant.getScore());
+            activeParticipants.add(fromPlayer(player));
+        }
+        gameStateService.updateActiveParticipants(activeParticipants);
+    }
+    
     public void updateScore(org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam team) {
         gameState.getTeam(team.getTeamId()).setScore(team.getScore());
     }
@@ -327,17 +328,16 @@ public class GameStateStorageUtil {
     }
     
     /**
-     * Gets the internal team name of the player with the given UUID
-     * @param uuid The UUID of the player to find the team of
-     * @return The internal team name of the player with the given UUID, null if the game state doesn't contain the
-     * player's UUID
+     * Identical to {@link #updateTeamScores(Collection)} but not async
      */
-    public @Nullable String getPlayerTeamId(@NotNull UUID uuid) {
-        MCTPlayerEntity player = gameState.getPlayer(uuid);
-        if (player != null) {
-            return player.getTeamId();
+    private void updateTeamScoresSync(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams) throws Exception {
+        List<ActiveTeam> activeTeams = new ArrayList<>(teams.size());
+        for (org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam team : teams) {
+            MCTTeamEntity mctTeam = gameState.getTeam(team.getTeamId());
+            mctTeam.setScore(team.getScore());
+            activeTeams.add(fromTeam(mctTeam));
         }
-        return null;
+        gameStateService.updateActiveTeams(activeTeams);
     }
     
     /**
@@ -366,18 +366,6 @@ public class GameStateStorageUtil {
         saveGameState();
     }
     
-    /**
-     * @param playerUniqueId the UUID of the player to get the score of.
-     * @return the given participant's score. 0 if the UUID isn't a player, or if it is an offlinePlayer.
-     */
-    public int getParticipantScore(UUID playerUniqueId) {
-        MCTPlayerEntity player = gameState.getPlayer(playerUniqueId);
-        if (player == null) {
-            return 0;
-        }
-        return player.getScore();
-    }
-    
     public @NotNull NamedTextColor getTeamColor(@NotNull String teamId) {
         String colorString = gameState.getTeam(teamId).getColor();
         return ColorMap.getNamedTextColor(colorString);
@@ -402,16 +390,6 @@ public class GameStateStorageUtil {
     
     public int getTeamScore(String teamId) {
         return gameState.getTeam(teamId).getScore();
-    }
-    
-    /**
-     * Gets the color string of the given team
-     * @param teamId The teamId to get the color string of
-     * @return The color string of the given team
-     * @throws NullPointerException if the given teamId is not a valid team
-     */
-    public String getTeamColorString(@NotNull String teamId) {
-        return gameState.getTeam(teamId).getColor();
     }
     
     /**
