@@ -587,7 +587,7 @@ public class GameManager implements Listener {
     public void saveGameState() {
         try {
             gameStateStorageUtil.saveGameState();
-        } catch (ConfigException e) {
+        } catch (ConfigException | SQLException e) {
             reportGameStateException("adding score to player", e);
         }
     }
@@ -1095,7 +1095,13 @@ public class GameManager implements Listener {
         }
         try {
             gameStateStorageUtil.updateScore(updated);
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, gameStateStorageUtil::saveGameState);
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+                try {
+                    gameStateStorageUtil.saveGameState();
+                } catch (SQLException e) {
+                    reportGameStateException("setting a player's score", e);
+                }
+            });
             state.updateScoreVisuals(Collections.singletonList(teams.get(updated.getTeamId())), updatedList);
         } catch (ConfigIOException e) {
             reportGameStateException("setting a player's score", e);
@@ -1119,7 +1125,13 @@ public class GameManager implements Listener {
         teams.put(old.getTeamId(), updated);
         try {
             gameStateStorageUtil.updateScore(updated);
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, gameStateStorageUtil::saveGameState);
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+                try {
+                    gameStateStorageUtil.saveGameState();
+                } catch (SQLException e) {
+                    reportGameStateException("setting a player's score", e);
+                }
+            });
             state.updateScoreVisuals(Collections.singletonList(updated), Collections.emptyList());
         } catch (ConfigIOException e) {
             reportGameStateException("adding score to team", e);
@@ -1145,7 +1157,13 @@ public class GameManager implements Listener {
         }
         try {
             gameStateStorageUtil.updateScores(teams.values(), allParticipants.values());
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, gameStateStorageUtil::saveGameState);
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+                try {
+                    gameStateStorageUtil.saveGameState();
+                } catch (SQLException e) {
+                    reportGameStateException("setting a player's score", e);
+                }
+            });
             state.updateScoreVisuals(teams.values(), onlineParticipants.values());
         } catch (ConfigIOException e) {
             reportGameStateException("setting all scores", e);

@@ -58,8 +58,12 @@ public class GameStateStorageUtil {
      * - writing to the game state file
      * - converting the game state to json
      */
-    public void saveGameState() throws ConfigIOException {
+    public void saveGameState() throws ConfigIOException, SQLException {
         gameStateController.saveGameState(gameState);
+        // TODO: this is bulky and unnecessary, should update each time a score is changed instead of reloading everything
+        List<ActiveTeam> activeTeams = fromTeams(gameState.getTeams().values());
+        List<ActiveParticipant> activeParticipants = fromPlayers(gameState.getPlayers().values());
+        gameStateService.updateActiveTeamsAndParticipants(activeTeams, activeParticipants);
     }
     
     /**
@@ -103,6 +107,28 @@ public class GameStateStorageUtil {
                 .collect(Collectors.toMap(MCTPlayerEntity::getUniqueId, Function.identity()));
     }
     
+    public List<ActiveTeam> fromTeams(Collection<MCTTeamEntity> entities) {
+        return entities.stream()
+                .map(team -> ActiveTeam.builder()
+                        .teamId(team.getName())
+                        .displayName(team.getDisplayName())
+                        .color(team.getColor())
+                        .score(team.getScore())
+                        .build())
+                .toList();
+    }
+    
+    public List<ActiveParticipant> fromPlayers(Collection<MCTPlayerEntity> entities) {
+        return entities.stream()
+                .map(player -> ActiveParticipant.builder()
+                        .participantUUID(player.getUniqueId().toString())
+                        .teamId(player.getTeamId())
+                        .ign(player.getName())
+                        .score(player.getScore())
+                        .build())
+                .toList();
+    }
+    
     /**
      * Checks if the game state contains a team with the given name
      * @param teamId The internal name of the team to check for
@@ -119,12 +145,12 @@ public class GameStateStorageUtil {
      * @param color The color of the team
      * @throws ConfigIOException If there is an error saving the game state while adding a new team.
      */
-    public void addTeam(String teamId, String teamDisplayName, String color) throws ConfigIOException {
+    public void addTeam(String teamId, String teamDisplayName, String color) throws ConfigIOException, SQLException {
         gameState.addTeam(teamId, teamDisplayName, color);
         saveGameState();
     }
     
-    public void removeTeam(String teamId) throws ConfigIOException {
+    public void removeTeam(String teamId) throws ConfigIOException, SQLException {
         gameState.removeTeam(teamId);
         saveGameState();
     }
@@ -186,7 +212,7 @@ public class GameStateStorageUtil {
      * @param teamId the teamId to join it to
      * @throws ConfigIOException if there is an IO error saving the game state
      */
-    public void addNewPlayer(@NotNull UUID playerToJoin, @NotNull String name, @NotNull String teamId) throws ConfigIOException {
+    public void addNewPlayer(@NotNull UUID playerToJoin, @NotNull String name, @NotNull String teamId) throws ConfigIOException, SQLException {
         gameState.addPlayer(playerToJoin, name, teamId);
         saveGameState();
     }
@@ -285,7 +311,7 @@ public class GameStateStorageUtil {
      * @param playerUniqueId The UUID for the player
      * @throws ConfigIOException if there is an IO error saving the game state
      */
-    public void leavePlayer(UUID playerUniqueId) throws ConfigIOException {
+    public void leavePlayer(UUID playerUniqueId) throws ConfigIOException, SQLException {
         gameState.removePlayer(playerUniqueId);
         saveGameState();
     }
@@ -352,7 +378,7 @@ public class GameStateStorageUtil {
      * @param adminUniqueId the unique id of the admin
      * @throws ConfigIOException If there is an issue saving the game state
      */
-    public void addAdmin(UUID adminUniqueId) throws ConfigIOException {
+    public void addAdmin(UUID adminUniqueId) throws ConfigIOException, SQLException {
         gameState.addAdmin(adminUniqueId);
         saveGameState();
     }
@@ -362,7 +388,7 @@ public class GameStateStorageUtil {
      * @param adminUniqueId the unique id of the admin
      * @throws ConfigIOException If there is an issue saving the game state
      */
-    public void removeAdmin(UUID adminUniqueId) throws ConfigIOException {
+    public void removeAdmin(UUID adminUniqueId) throws ConfigIOException, SQLException {
         gameState.removeAdmin(adminUniqueId);
         saveGameState();
     }

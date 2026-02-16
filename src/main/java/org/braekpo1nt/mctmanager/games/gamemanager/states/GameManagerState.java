@@ -832,14 +832,14 @@ public abstract class GameManagerState {
             plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
                 try {
                     gameStateStorageUtil.saveGameState();
-                } catch (ConfigIOException e) {
+                } catch (ConfigIOException | SQLException e) {
                     context.reportGameStateException("updating scores", e);
                 }
             });
         } else {
             try {
                 gameStateStorageUtil.saveGameState();
-            } catch (ConfigIOException e) {
+            } catch (ConfigIOException | SQLException e) {
                 context.reportGameStateException("updating scores", e);
             }
         }
@@ -1390,7 +1390,7 @@ public abstract class GameManagerState {
         }
         try {
             gameStateStorageUtil.addTeam(teamId, teamDisplayName, colorString);
-        } catch (ConfigIOException e) {
+        } catch (ConfigIOException | SQLException e) {
             context.reportGameStateException("adding a team", e);
         }
         
@@ -1430,7 +1430,7 @@ public abstract class GameManagerState {
             gameStateStorageUtil.removeTeam(teamId);
             results.add(CommandResult.success(Component.text("Removed team ")
                     .append(team.getFormattedDisplayName())));
-        } catch (ConfigIOException e) {
+        } catch (ConfigIOException | SQLException e) {
             context.reportGameStateException("removing team", e);
             results.add(CommandResult.failure(Component.text("error occurred removing team, see console for details.")));
             return CompositeCommandResult.all(results);
@@ -1498,7 +1498,7 @@ public abstract class GameManagerState {
                 true);
         try {
             gameStateStorageUtil.addNewPlayer(offlineParticipant.getUniqueId(), offlineParticipant.getName(), offlineParticipant.getTeamId());
-        } catch (ConfigIOException e) {
+        } catch (ConfigIOException | SQLException e) {
             context.reportGameStateException("adding new player", e);
             results.add(CommandResult.failure(Component.text("error occurred adding new player, see console for details.")));
         }
@@ -1538,7 +1538,7 @@ public abstract class GameManagerState {
         allParticipants.remove(offlineParticipant.getUniqueId());
         try {
             gameStateStorageUtil.leavePlayer(offlineParticipant.getUniqueId());
-        } catch (ConfigIOException e) {
+        } catch (ConfigIOException | SQLException e) {
             context.reportGameStateException("leaving player", e);
             return CommandResult.failure(Component.text("error occurred leaving player, see console for details."));
         }
@@ -1741,7 +1741,7 @@ public abstract class GameManagerState {
         }
         try {
             gameStateStorageUtil.addAdmin(uniqueId);
-        } catch (ConfigIOException e) {
+        } catch (ConfigIOException | SQLException e) {
             context.reportGameStateException("adding new admin", e);
             results.add(CommandResult.failure(Component.text("error occurred adding new admin, see console for details.")));
             return CompositeCommandResult.all(results);
@@ -1788,7 +1788,7 @@ public abstract class GameManagerState {
         UUID adminUniqueId = offlineAdmin.getUniqueId();
         try {
             gameStateStorageUtil.removeAdmin(adminUniqueId);
-        } catch (ConfigIOException e) {
+        } catch (ConfigIOException | SQLException e) {
             context.reportGameStateException("removing admin", e);
             return CommandResult.failure(Component.text("error occurred removing admin, see console for details."));
         }

@@ -2,7 +2,9 @@ package org.braekpo1nt.mctmanager.database.service;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.misc.TransactionManager;
+import com.j256.ormlite.stmt.ColumnArg;
 import org.braekpo1nt.mctmanager.database.Database;
+import org.braekpo1nt.mctmanager.database.entities.SystemState;
 import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipant;
 import org.braekpo1nt.mctmanager.database.entities.participants.EventParticipantEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.MaintenanceParticipantEntity;
@@ -11,7 +13,6 @@ import org.braekpo1nt.mctmanager.database.entities.teams.ActiveTeam;
 import org.braekpo1nt.mctmanager.database.entities.teams.EventTeam;
 import org.braekpo1nt.mctmanager.database.entities.teams.MaintenanceTeam;
 import org.braekpo1nt.mctmanager.database.entities.teams.PracticeTeam;
-import org.braekpo1nt.mctmanager.games.gamestate.preset.Preset;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
@@ -21,6 +22,8 @@ import java.util.List;
 @SuppressWarnings("UnusedReturnValue")
 public class GameStateService {
     private final @NotNull String mode;
+    private final @NotNull Dao<SystemState, Integer> systemStateDao;
+    
     private final @NotNull Dao<ActiveTeam, Integer> activeTeamsDao;
     private final @NotNull Dao<ActiveParticipant, Integer> activeParticipantsDao;
     
@@ -33,6 +36,7 @@ public class GameStateService {
     
     public GameStateService(@NotNull String mode, @NotNull Database database) {
         this.mode = mode;
+        this.systemStateDao = database.getSystemStateDao();
         
         this.activeTeamsDao = database.getActiveTeamsDao();
         this.activeParticipantsDao = database.getActiveParticipantsDao();
@@ -147,6 +151,27 @@ public class GameStateService {
     
     public List<ActiveParticipant> getActiveParticipants() throws SQLException {
         return activeParticipantsDao.queryForAll();
+    }
+    
+    /**
+     * update the scores of the active teams and participants
+     * @param activeTeams the teams to update
+     * @param activeParticipants the participants to update
+     * @throws SQLException if there is an issue communicating with the database
+     */
+    public void updateActiveTeamsAndParticipants(List<ActiveTeam> activeTeams, List<ActiveParticipant> activeParticipants) throws SQLException {
+        // TODO: this is bulky and unnecessary, should update each time a score is changed instead of reloading everything
+        TransactionManager.callInTransaction(activeTeamsDao.getConnectionSource(), () -> {
+            activeParticipantsDao.deleteBuilder().delete();
+            activeTeamsDao.deleteBuilder().delete();
+            activeTeamsDao.create(activeTeams);
+            activeParticipantsDao.create(activeParticipants);
+            systemStateDao.updateBuilder()
+                    .updateColumnValue("active_version",
+                            new ColumnArg("active_version + 1")
+                    );
+            return null;
+        });
     }
     
     public void rebuildPracticeMode() throws SQLException {
