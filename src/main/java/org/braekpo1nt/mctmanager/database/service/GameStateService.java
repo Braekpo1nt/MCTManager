@@ -155,15 +155,18 @@ public class GameStateService {
         return activeParticipantsDao.queryForAll();
     }
     
-    public void updateActiveParticipant(ActiveParticipant activeParticipant) throws SQLException {
+    public void updateActiveParticipant(@NotNull ActiveParticipant activeParticipant) throws SQLException {
         activeParticipantsDao.update(activeParticipant);
     }
     
-    public void updateActiveTeam(ActiveTeam activeTeam) throws SQLException {
+    public void updateActiveTeam(@NotNull ActiveTeam activeTeam) throws SQLException {
         activeTeamsDao.update(activeTeam);
     }
     
-    public void updateActiveParticipants(List<ActiveParticipant> activeParticipants) throws Exception {
+    public void updateActiveParticipants(@NotNull List<ActiveParticipant> activeParticipants) throws Exception {
+        if (activeParticipants.isEmpty()) {
+            return;
+        }
         activeParticipantsDao.callBatchTasks(() -> {
             for (ActiveParticipant activeParticipant : activeParticipants) {
                 activeParticipantsDao.update(activeParticipant);
@@ -172,7 +175,10 @@ public class GameStateService {
         });
     }
     
-    public void updateActiveTeams(List<ActiveTeam> activeTeams) throws Exception {
+    public void updateActiveTeams(@NotNull List<ActiveTeam> activeTeams) throws Exception {
+        if (activeTeams.isEmpty()) {
+            return;
+        }
         activeTeamsDao.callBatchTasks(() -> {
             for (ActiveTeam activeTeam : activeTeams) {
                 activeTeamsDao.update(activeTeam);

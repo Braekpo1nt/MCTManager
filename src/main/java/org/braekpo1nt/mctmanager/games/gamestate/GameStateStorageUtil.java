@@ -248,8 +248,30 @@ public class GameStateStorageUtil {
     }
     
     public void updateScores(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams, Collection<OfflineParticipant> participants) {
-        updateTeamScores(teams);
-        updateParticipantScores(participants);
+        List<ActiveTeam> activeTeams = new ArrayList<>(teams.size());
+        for (org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam team : teams) {
+            MCTTeamEntity mctTeam = gameState.getTeam(team.getTeamId());
+            mctTeam.setScore(team.getScore());
+            activeTeams.add(fromTeam(mctTeam));
+        }
+        
+        List<ActiveParticipant> activeParticipants = new ArrayList<>(participants.size());
+        for (OfflineParticipant participant : participants) {
+            MCTPlayerEntity player = Objects.requireNonNull(
+                    gameState.getPlayer(participant.getUniqueId()),
+                    "attempted to update the score of a participant who is not in the GameState");
+            player.setScore(participant.getScore());
+            activeParticipants.add(fromPlayer(player));
+        }
+        
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                gameStateService.updateActiveParticipants(activeParticipants);
+                gameStateService.updateActiveTeams(activeTeams);
+            } catch (Exception e) {
+                LOGGER.log(Level.SEVERE, "An error occurred trying to update participant score", e);
+            }
+        });
     }
     
     /**
@@ -257,8 +279,25 @@ public class GameStateStorageUtil {
      * tasks asynchronously. Used only when the plugin is being disabled.
      */
     public void updateScoresSync(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams, Collection<OfflineParticipant> participants) throws Exception {
-        updateTeamScoresSync(teams);
-        updateParticipantScoresSync(participants);
+        List<ActiveTeam> activeTeams = new ArrayList<>(teams.size());
+        for (org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam team : teams) {
+            MCTTeamEntity mctTeam = gameState.getTeam(team.getTeamId());
+            mctTeam.setScore(team.getScore());
+            activeTeams.add(fromTeam(mctTeam));
+        }
+        
+        List<ActiveParticipant> activeParticipants = new ArrayList<>(participants.size());
+        for (OfflineParticipant participant : participants) {
+            MCTPlayerEntity player = Objects.requireNonNull(
+                    gameState.getPlayer(participant.getUniqueId()),
+                    "attempted to update the score of a participant who is not in the GameState");
+            player.setScore(participant.getScore());
+            activeParticipants.add(fromPlayer(player));
+        }
+        
+        // not in asynchronous plugin
+        gameStateService.updateActiveParticipants(activeParticipants);
+        gameStateService.updateActiveTeams(activeTeams);
     }
     
     public void updateScore(OfflineParticipant participant) {
@@ -274,70 +313,8 @@ public class GameStateStorageUtil {
         });
     }
     
-    public void updateParticipantScores(Collection<OfflineParticipant> participants) {
-        List<ActiveParticipant> activeParticipants = new ArrayList<>(participants.size());
-        for (OfflineParticipant participant : participants) {
-            MCTPlayerEntity player = Objects.requireNonNull(
-                    gameState.getPlayer(participant.getUniqueId()),
-                    "attempted to update the score of a participant who is not in the GameState");
-            player.setScore(participant.getScore());
-            activeParticipants.add(fromPlayer(player));
-        }
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                gameStateService.updateActiveParticipants(activeParticipants);
-            } catch (Exception e) {
-                LOGGER.log(Level.SEVERE, "An error occurred trying to update participant score", e);
-            }
-        });
-    }
-    
-    /**
-     * Identical to {@link #updateParticipantScores(Collection)} but not async
-     */
-    private void updateParticipantScoresSync(Collection<OfflineParticipant> participants) throws Exception {
-        List<ActiveParticipant> activeParticipants = new ArrayList<>(participants.size());
-        for (OfflineParticipant participant : participants) {
-            MCTPlayerEntity player = Objects.requireNonNull(
-                    gameState.getPlayer(participant.getUniqueId()),
-                    "attempted to update the score of a participant who is not in the GameState");
-            player.setScore(participant.getScore());
-            activeParticipants.add(fromPlayer(player));
-        }
-        gameStateService.updateActiveParticipants(activeParticipants);
-    }
-    
     public void updateScore(org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam team) {
         gameState.getTeam(team.getTeamId()).setScore(team.getScore());
-    }
-    
-    public void updateTeamScores(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams) {
-        List<ActiveTeam> activeTeams = new ArrayList<>(teams.size());
-        for (org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam team : teams) {
-            MCTTeamEntity mctTeam = gameState.getTeam(team.getTeamId());
-            mctTeam.setScore(team.getScore());
-            activeTeams.add(fromTeam(mctTeam));
-        }
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                gameStateService.updateActiveTeams(activeTeams);
-            } catch (Exception e) {
-                LOGGER.log(Level.SEVERE, "An error occurred trying to update participant score", e);
-            }
-        });
-    }
-    
-    /**
-     * Identical to {@link #updateTeamScores(Collection)} but not async
-     */
-    private void updateTeamScoresSync(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams) throws Exception {
-        List<ActiveTeam> activeTeams = new ArrayList<>(teams.size());
-        for (org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam team : teams) {
-            MCTTeamEntity mctTeam = gameState.getTeam(team.getTeamId());
-            mctTeam.setScore(team.getScore());
-            activeTeams.add(fromTeam(mctTeam));
-        }
-        gameStateService.updateActiveTeams(activeTeams);
     }
     
     /**
