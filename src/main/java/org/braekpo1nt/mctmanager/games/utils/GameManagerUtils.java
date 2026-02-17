@@ -251,7 +251,18 @@ public class GameManagerUtils {
                     .append(Component.text(" does not exist.")));
         }
         
-        OfflinePlayer playerToJoin = plugin.getServer().getOfflinePlayer(ign);
+        OfflinePlayer playerToJoin;
+        try {
+            playerToJoin = plugin.getServer().getOfflinePlayer(ign);
+        } catch (Exception e) {
+            Main.logger().log(Level.SEVERE, String.format("Error finding user \"%s\". Do they exist?", ign), e);
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text("Error finding user "))
+                    .append(Component.text(ign)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(". Does the user exist? See console for details."))
+            );
+        }
         return gameManager.joinParticipantToTeam(playerToJoin, ign, teamId);
     }
     
