@@ -255,7 +255,7 @@ public class GameManagerUtils {
         try {
             playerToJoin = plugin.getServer().getOfflinePlayer(ign);
         } catch (Exception e) {
-            Main.logger().log(Level.SEVERE, String.format("Error finding user \"%s\". Do they exist?", ign), e);
+            Main.logger().log(Level.WARNING, String.format("Error finding user \"%s\". Do they exist?", ign), e);
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Error finding user "))
                     .append(Component.text(ign)

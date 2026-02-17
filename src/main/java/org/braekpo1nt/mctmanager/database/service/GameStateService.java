@@ -5,7 +5,10 @@ import com.j256.ormlite.misc.TransactionManager;
 import com.j256.ormlite.stmt.ColumnArg;
 import com.j256.ormlite.stmt.DeleteBuilder;
 import com.j256.ormlite.stmt.UpdateBuilder;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.database.Database;
+import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
+import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
 import org.braekpo1nt.mctmanager.database.entities.SystemState;
 import org.braekpo1nt.mctmanager.database.entities.admin.AdminEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipant;
@@ -20,12 +23,16 @@ import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 @SuppressWarnings("UnusedReturnValue")
 public class GameStateService {
     private final @NotNull String mode;
+    private final @NotNull Dao<AllPlayersEntity, String> allPlayersDao;
+    private final @NotNull Dao<PlayerMetadata, String> playerMetadataDao;
     private final @NotNull Dao<SystemState, Integer> systemStateDao;
     
     private final @NotNull Dao<ActiveTeam, String> activeTeamsDao;
@@ -41,6 +48,8 @@ public class GameStateService {
     
     public GameStateService(@NotNull String mode, @NotNull Database database) {
         this.mode = mode;
+        this.allPlayersDao = database.getAllPlayersDao();
+        this.playerMetadataDao = database.getPlayerMetadataDao();
         this.systemStateDao = database.getSystemStateDao();
         
         this.activeTeamsDao = database.getActiveTeamsDao();
@@ -151,12 +160,35 @@ public class GameStateService {
         return eventParticipantsDao.queryForEq("event_id", eventId);
     }
     
+    public void registerParticipantIfNotRegistered(@NotNull AllPlayersEntity allPlayersEntity, @NotNull PlayerMetadata playerMetadata) throws SQLException {
+        TransactionManager.callInTransaction(allPlayersDao.getConnectionSource(), () -> {
+            allPlayersDao.createOrUpdate(allPlayersEntity);
+            playerMetadataDao.createIfNotExists(playerMetadata);
+            return null;
+        });
+    }
+    
     public void addTeam(@NotNull ActiveTeam team) throws SQLException {
         activeTeamsDao.create(team);
     }
     
     public void addParticipant(@NotNull ActiveParticipant participant) throws SQLException {
-        activeParticipantsDao.create(participant);
+        TransactionManager.callInTransaction(activeParticipantsDao.getConnectionSource(), () -> {
+            allPlayersDao.createOrUpdate(AllPlayersEntity.builder()
+                    .uuid(participant.getParticipantUUID())
+                    .ign(participant.getIgn())
+                    .firstSeenAt(new Date())
+                    .build());
+            playerMetadataDao.createIfNotExists(PlayerMetadata.builder()
+                    .participantUUID(participant.getParticipantUUID())
+                    .discordUsername(null)
+                    .currentTokens(0)
+                    .lifetimeTokens(0)
+                    .percentRank(0.0)
+                    .build());
+            activeParticipantsDao.create(participant);
+            return null;
+        });
     }
     
     public List<ActiveTeam> getActiveTeams() throws SQLException {

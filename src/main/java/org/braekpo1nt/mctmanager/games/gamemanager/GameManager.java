@@ -383,20 +383,24 @@ public class GameManager implements Listener {
         }
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             String uuidStr = player.getUniqueId().toString();
-            scoreService.registerParticipantIfNotRegistered(
-                    AllPlayersEntity.builder()
-                            .uuid(uuidStr)
-                            .ign(player.getName())
-                            .firstSeenAt(new Date())
-                            .build(),
-                    PlayerMetadata.builder()
-                            .participantUUID(uuidStr)
-                            .discordUsername(null)
-                            .currentTokens(0)
-                            .lifetimeTokens(0)
-                            .percentRank(0.0)
-                            .build()
-            );
+            try {
+                gameStateService.registerParticipantIfNotRegistered(
+                        AllPlayersEntity.builder()
+                                .uuid(uuidStr)
+                                .ign(player.getName())
+                                .firstSeenAt(new Date())
+                                .build(),
+                        PlayerMetadata.builder()
+                                .participantUUID(uuidStr)
+                                .discordUsername(null)
+                                .currentTokens(0)
+                                .lifetimeTokens(0)
+                                .percentRank(0.0)
+                                .build()
+                );
+            } catch (SQLException e) {
+                reportGameStateException("trying to create a new player in the database", e);
+            }
         });
     }
     
