@@ -169,6 +169,8 @@ public class GameStateStorageUtil {
     }
     
     public void removeTeam(String teamId) throws ConfigIOException, SQLException {
+        List<UUID> uuidsOnTeam = this.getParticipantUUIDsOnTeam(teamId);
+        gameState.removePlayers(uuidsOnTeam);
         gameState.removeTeam(teamId);
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {

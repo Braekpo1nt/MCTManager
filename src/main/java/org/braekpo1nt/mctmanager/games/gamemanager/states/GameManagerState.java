@@ -1412,31 +1412,65 @@ public abstract class GameManagerState {
                     .append(Component.text(teamId))
                     .append(Component.text(" does not exist.")));
         }
-        Set<OfflineParticipant> members = team.getMemberUUIDs().stream().map(allParticipants::get).collect(Collectors.toSet());
-        List<CommandResult> results = new ArrayList<>();
-        for (OfflineParticipant member : members) {
-            results.add(leaveParticipant(member));
+        
+        // leave all participants on team start
+        Set<OfflineParticipant> members = team.getMemberUUIDs().stream()
+                .map(allParticipants::get)
+                .collect(Collectors.toSet());
+        Set<MCTParticipant> onlineMembers = team.getMemberUUIDs().stream()
+                .map(onlineParticipants::get)
+                .collect(Collectors.toSet());
+        for (MCTParticipant participant : onlineMembers) {
+            onParticipantQuit(participant);
+            onlineParticipants.remove(participant.getUniqueId());
         }
+        org.bukkit.scoreboard.Team scoreboardTeam = mctScoreboard.getTeam(teamId);
+        if (scoreboardTeam == null) {
+            Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (removeTeam)", teamId));
+        }
+        List<CommandResult> results = new ArrayList<>();
+        for (OfflineParticipant participant : members) {
+            team.leaveMember(participant.getUniqueId());
+            allParticipants.remove(participant.getUniqueId());
+            tabList.leaveParticipant(participant.getParticipantID());
+            results.add(CommandResult.success(Component.text("Removed ")
+                    .append(participant.displayName())
+                    .append(Component.text(" from team "))
+                    .append(team.getFormattedDisplayName())));
+            if (scoreboardTeam != null) {
+                if (participant.getPlayer() != null) {
+                    scoreboardTeam.removePlayer(participant.getPlayer());
+                }
+            }
+        }
+        context.updateLeaderboards();
+        Audience.audience(onlineMembers).sendMessage(Component.text("You've been removed from ")
+                .append(team.getFormattedDisplayName()));
+        
+        // leave all participants on team end
+        
         teams.remove(team.getTeamId());
         tabList.removeTeam(teamId);
         updateSidebarTeamScores();
-        try {
-            gameStateStorageUtil.removeTeam(teamId);
-            results.add(CommandResult.success(Component.text("Removed team ")
-                    .append(team.getFormattedDisplayName())));
-        } catch (ConfigIOException | SQLException e) {
-            context.reportGameStateException("removing team", e);
-            results.add(CommandResult.failure(Component.text("error occurred removing team, see console for details.")));
-            return CompositeCommandResult.all(results);
-        }
-        org.bukkit.scoreboard.Team scoreboardTeam = mctScoreboard.getTeam(teamId);
         if (scoreboardTeam != null) {
             scoreboardTeam.unregister();
         } else {
             Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (removeTeam)", teamId));
         }
         
-        return CompositeCommandResult.all(results);
+        return CommandResult.async(plugin, Component.text("Removing team ")
+                .append(team.getFormattedDisplayName())
+                .append(Component.text("...")), () -> {
+            try {
+                gameStateStorageUtil.removeTeam(teamId);
+                results.add(CommandResult.success(Component.text("Removed team ")
+                        .append(team.getFormattedDisplayName())));
+            } catch (ConfigIOException | SQLException e) {
+                context.reportGameStateException("removing team", e);
+                results.add(CommandResult.failure(Component.text("error occurred removing team, see console for details.")));
+            }
+            return CompositeCommandResult.all(results);
+        });
     }
     // team stop
     

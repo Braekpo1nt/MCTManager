@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -97,6 +98,12 @@ public class GameState {
      */
     public void removePlayer(UUID playerUniqueId) {
         players.remove(playerUniqueId);
+    }
+    
+    public void removePlayers(Collection<UUID> playerUUIDs) {
+        for (UUID playerUUID : playerUUIDs) {
+            players.remove(playerUUID);
+        }
     }
     
     MCTTeamEntity getTeam(String teamId) {

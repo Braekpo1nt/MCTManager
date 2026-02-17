@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.database.service;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.misc.TransactionManager;
 import com.j256.ormlite.stmt.ColumnArg;
+import com.j256.ormlite.stmt.DeleteBuilder;
 import com.j256.ormlite.stmt.UpdateBuilder;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.SystemState;
@@ -219,8 +220,21 @@ public class GameStateService {
         });
     }
     
+    /**
+     * Deletes the team and all participants who are on that team
+     * @param teamId the teamId of the team to delete
+     * @throws SQLException if there is an issue communicating to the database
+     */
     public void deleteTeam(@NotNull String teamId) throws SQLException {
-        activeTeamsDao.deleteById(teamId);
+        TransactionManager.callInTransaction(activeTeamsDao.getConnectionSource(), () -> {
+            DeleteBuilder<ActiveParticipant, String> deleteBuilder = activeParticipantsDao.deleteBuilder();
+            deleteBuilder
+                    .where()
+                    .eq("team_id", teamId);
+            deleteBuilder.delete();
+            activeTeamsDao.deleteById(teamId);
+            return null;
+        });
     }
     
     public void deleteParticipant(@NotNull String participantUUID) throws SQLException {
