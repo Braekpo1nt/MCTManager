@@ -6,6 +6,7 @@ import com.j256.ormlite.stmt.ColumnArg;
 import com.j256.ormlite.stmt.UpdateBuilder;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.SystemState;
+import org.braekpo1nt.mctmanager.database.entities.admin.AdminEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipant;
 import org.braekpo1nt.mctmanager.database.entities.participants.EventParticipantEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.MaintenanceParticipantEntity;
@@ -28,6 +29,7 @@ public class GameStateService {
     
     private final @NotNull Dao<ActiveTeam, String> activeTeamsDao;
     private final @NotNull Dao<ActiveParticipant, String> activeParticipantsDao;
+    private final @NotNull Dao<AdminEntity, String> adminDao;
     
     private final @NotNull Dao<MaintenanceTeam, String> maintenanceTeamsDao;
     private final @NotNull Dao<PracticeTeam, String> practiceTeamsDao;
@@ -42,6 +44,7 @@ public class GameStateService {
         
         this.activeTeamsDao = database.getActiveTeamsDao();
         this.activeParticipantsDao = database.getActiveParticipantsDao();
+        this.adminDao = database.getAdminDao();
         
         this.maintenanceTeamsDao = database.getMaintenanceTeamsDao();
         this.practiceTeamsDao = database.getPracticeTeamsDao();
@@ -222,6 +225,16 @@ public class GameStateService {
     
     public void deleteParticipant(@NotNull String participantUUID) throws SQLException {
         activeParticipantsDao.deleteById(participantUUID);
+    }
+    
+    // Admins
+    
+    public void addAdmin(@NotNull AdminEntity admin) throws SQLException {
+        adminDao.create(admin);
+    }
+    
+    public void deleteAdmin(@NotNull String uuid) throws SQLException {
+        adminDao.deleteById(uuid);
     }
     
     public void rebuildPracticeMode() throws SQLException {

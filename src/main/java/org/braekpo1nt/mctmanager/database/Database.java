@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.database.entities.GameSession;
 import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.braekpo1nt.mctmanager.database.entities.SystemState;
+import org.braekpo1nt.mctmanager.database.entities.admin.AdminEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipant;
 import org.braekpo1nt.mctmanager.database.entities.participants.EventParticipantEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.MaintenanceParticipantEntity;
@@ -38,6 +39,7 @@ public class Database {
     private final @NotNull Dao<PracticeParticipantEntity, String> practiceParticipantsDao;
     private final @NotNull Dao<EventParticipantEntity, Integer> eventParticipantsDao;
     private final @NotNull Dao<ActiveParticipant, String> activeParticipantsDao;
+    private final @NotNull Dao<AdminEntity, String> adminDao;
     private final @NotNull Dao<GameSession, Integer> gameSessionDao;
     private final @NotNull Dao<ScoreEvent, Integer> scoreEventsDao;
     private final @NotNull Dao<PlayerMetadata, String> playerMetadataDao;
@@ -58,6 +60,7 @@ public class Database {
         this.practiceParticipantsDao = DaoManager.createDao(connectionSource, PracticeParticipantEntity.class);
         this.eventParticipantsDao = DaoManager.createDao(connectionSource, EventParticipantEntity.class);
         this.activeParticipantsDao = DaoManager.createDao(connectionSource, ActiveParticipant.class);
+        this.adminDao = DaoManager.createDao(connectionSource, AdminEntity.class);
         this.gameSessionDao = DaoManager.createDao(connectionSource, GameSession.class);
         this.scoreEventsDao = DaoManager.createDao(connectionSource, ScoreEvent.class);
         this.playerMetadataDao = DaoManager.createDao(connectionSource, PlayerMetadata.class);

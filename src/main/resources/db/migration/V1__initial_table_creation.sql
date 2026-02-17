@@ -46,6 +46,15 @@ CREATE TABLE system_state (
 INSERT INTO system_state(id, active_version, active_event_id, current_game_number, max_games) VALUES (1, 0, NULL, 1, 7);
 
 -- ==============
+-- Admins
+-- ==============
+CREATE TABLE admins (
+    uuid    CHAR(32) PRIMARY KEY,
+    
+    FOREIGN KEY (uuid) REFERENCES all_players(uuid) -- makes sure this is a real player
+);
+
+-- ==============
 -- Teams
 -- ==============
 -- The teams which are used in maintenance mode

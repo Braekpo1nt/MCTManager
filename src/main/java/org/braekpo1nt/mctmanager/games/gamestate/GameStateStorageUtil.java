@@ -5,6 +5,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
+import org.braekpo1nt.mctmanager.database.entities.admin.AdminEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipant;
 import org.braekpo1nt.mctmanager.database.entities.teams.ActiveTeam;
 import org.braekpo1nt.mctmanager.database.service.GameStateService;
