@@ -251,6 +251,10 @@ public class GameStateService {
         adminDao.deleteById(uuid);
     }
     
+    public List<AdminEntity> getAdmins() throws SQLException {
+        return adminDao.queryForAll();
+    }
+    
     public void rebuildPracticeMode() throws SQLException {
         TransactionManager.callInTransaction(activeTeamsDao.getConnectionSource(), () -> {
             // clear

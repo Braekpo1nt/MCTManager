@@ -49,7 +49,7 @@ INSERT INTO system_state(id, active_version, active_event_id, current_game_numbe
 -- Admins
 -- ==============
 CREATE TABLE admins (
-    uuid    CHAR(32) PRIMARY KEY,
+    uuid    CHAR(36) PRIMARY KEY,
     
     FOREIGN KEY (uuid) REFERENCES all_players(uuid) -- makes sure this is a real player
 );

@@ -85,13 +85,20 @@ public class GameStateStorageUtil {
     private @NotNull GameState constructGameStateFromDatabase() throws SQLException {
         List<ActiveTeam> activeTeams = gameStateService.getActiveTeams();
         List<ActiveParticipant> activeParticipants = gameStateService.getActiveParticipants();
-        return new GameState(toPlayers(activeParticipants), toTeams(activeTeams), Collections.emptyList());
+        List<AdminEntity> adminEntities = gameStateService.getAdmins();
+        return new GameState(toPlayers(activeParticipants), toTeams(activeTeams), toAdmins(adminEntities));
     }
     
     public Map<String, MCTTeamEntity> toTeams(List<ActiveTeam> activeTeams) {
         return activeTeams.stream()
                 .map(GameStateStorageUtil::toTeam)
                 .collect(Collectors.toMap(MCTTeamEntity::getName, Function.identity()));
+    }
+    
+    public List<UUID> toAdmins(List<AdminEntity> adminEntities) {
+        return adminEntities.stream()
+                .map(admin -> UUID.fromString(admin.getUuid()))
+                .collect(Collectors.toCollection(ArrayList::new));
     }
     
     private static MCTTeamEntity toTeam(ActiveTeam activeTeam) {
