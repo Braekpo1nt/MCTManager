@@ -147,6 +147,14 @@ public class GameStateService {
         return eventParticipantsDao.queryForEq("event_id", eventId);
     }
     
+    public void addTeam(@NotNull ActiveTeam team) throws SQLException {
+        activeTeamsDao.create(team);
+    }
+    
+    public void addParticipant(@NotNull ActiveParticipant participant) throws SQLException {
+        activeParticipantsDao.create(participant);
+    }
+    
     public List<ActiveTeam> getActiveTeams() throws SQLException {
         return activeTeamsDao.queryForAll();
     }
@@ -187,7 +195,6 @@ public class GameStateService {
         });
     }
     
-    
     /**
      * update the scores of the active teams and participants
      * @param activeTeams the teams to update
@@ -207,6 +214,14 @@ public class GameStateService {
                     );
             return null;
         });
+    }
+    
+    public void deleteTeam(@NotNull String teamId) throws SQLException {
+        activeTeamsDao.deleteById(teamId);
+    }
+    
+    public void deleteParticipant(@NotNull String participantUUID) throws SQLException {
+        activeParticipantsDao.deleteById(participantUUID);
     }
     
     public void rebuildPracticeMode() throws SQLException {

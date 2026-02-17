@@ -42,10 +42,12 @@ public class GameState {
      * @param teamId The internal name of the team
      * @param teamDisplayName The display name of the team
      * @param color The color of the team
+     * @return the newly created team
      */
-    public void addTeam(String teamId, String teamDisplayName, String color) {
+    public MCTTeamEntity addTeam(String teamId, String teamDisplayName, String color) {
         MCTTeamEntity newTeam = new MCTTeamEntity(teamId, teamDisplayName, 0, color);
         teams.put(teamId, newTeam);
+        return newTeam;
     }
     
     
@@ -62,10 +64,12 @@ public class GameState {
      * Adds the given player to the game state, joined to the given team
      * @param playerUniqueId the UUID of the player
      * @param teamId the teamId to join it to
+     * @return the newly created player
      */
-    public void addPlayer(@NotNull UUID playerUniqueId, @NotNull String name, @NotNull String teamId) {
+    public MCTPlayerEntity addPlayer(@NotNull UUID playerUniqueId, @NotNull String name, @NotNull String teamId) {
         MCTPlayerEntity newPlayer = new MCTPlayerEntity(playerUniqueId, name, 0, teamId);
         players.put(playerUniqueId, newPlayer);
+        return newPlayer;
     }
     
     /**

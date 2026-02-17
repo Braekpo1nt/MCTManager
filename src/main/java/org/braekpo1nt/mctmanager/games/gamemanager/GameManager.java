@@ -1114,13 +1114,6 @@ public class GameManager implements Listener {
         teams.put(old.getTeamId(), updated);
         try {
             gameStateStorageUtil.updateScore(updated);
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-                try {
-                    gameStateStorageUtil.saveGameState();
-                } catch (SQLException e) {
-                    reportGameStateException("setting a player's score", e);
-                }
-            });
             state.updateScoreVisuals(Collections.singletonList(updated), Collections.emptyList());
         } catch (ConfigIOException e) {
             reportGameStateException("adding score to team", e);

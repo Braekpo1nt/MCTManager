@@ -157,13 +157,25 @@ public class GameStateStorageUtil {
      * @throws ConfigIOException If there is an error saving the game state while adding a new team.
      */
     public void addTeam(String teamId, String teamDisplayName, String color) throws ConfigIOException, SQLException {
-        gameState.addTeam(teamId, teamDisplayName, color);
-        saveGameState();
+        MCTTeamEntity team = gameState.addTeam(teamId, teamDisplayName, color);
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                gameStateService.addTeam(fromTeam(team));
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "An error occurred trying to create a new team", e);
+            }
+        });
     }
     
     public void removeTeam(String teamId) throws ConfigIOException, SQLException {
         gameState.removeTeam(teamId);
-        saveGameState();
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                gameStateService.deleteTeam(teamId);
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "An error occurred trying to delete a team", e);
+            }
+        });
     }
     
     /**
@@ -224,8 +236,14 @@ public class GameStateStorageUtil {
      * @throws ConfigIOException if there is an IO error saving the game state
      */
     public void addNewPlayer(@NotNull UUID playerToJoin, @NotNull String name, @NotNull String teamId) throws ConfigIOException, SQLException {
-        gameState.addPlayer(playerToJoin, name, teamId);
-        saveGameState();
+        MCTPlayerEntity player = gameState.addPlayer(playerToJoin, name, teamId);
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                gameStateService.addParticipant(fromPlayer(player));
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "An error occurred trying to create a participant", e);
+            }
+        });
     }
     
     /**
@@ -269,7 +287,7 @@ public class GameStateStorageUtil {
                 gameStateService.updateActiveParticipants(activeParticipants);
                 gameStateService.updateActiveTeams(activeTeams);
             } catch (Exception e) {
-                LOGGER.log(Level.SEVERE, "An error occurred trying to update participant score", e);
+                LOGGER.log(Level.SEVERE, "An error occurred trying to update participant and team scores in bulk", e);
             }
         });
     }
@@ -313,8 +331,16 @@ public class GameStateStorageUtil {
         });
     }
     
-    public void updateScore(org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam team) {
-        gameState.getTeam(team.getTeamId()).setScore(team.getScore());
+    public void updateScore(org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam mctTeam) {
+        MCTTeamEntity team = gameState.getTeam(mctTeam.getTeamId());
+        team.setScore(mctTeam.getScore());
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                gameStateService.updateActiveTeam(fromTeam(team));
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "An error occurred trying to update team score", e);
+            }
+        });
     }
     
     /**
@@ -340,7 +366,13 @@ public class GameStateStorageUtil {
      */
     public void leavePlayer(UUID playerUniqueId) throws ConfigIOException, SQLException {
         gameState.removePlayer(playerUniqueId);
-        saveGameState();
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                gameStateService.deleteParticipant(playerUniqueId.toString());
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "An error occurred trying to delete a participant", e);
+            }
+        });
     }
     
     public @NotNull NamedTextColor getTeamColor(@NotNull String teamId) {
@@ -385,7 +417,13 @@ public class GameStateStorageUtil {
      */
     public void addAdmin(UUID adminUniqueId) throws ConfigIOException, SQLException {
         gameState.addAdmin(adminUniqueId);
-        saveGameState();
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                gameStateService.addAdmin(new AdminEntity(adminUniqueId.toString()));
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "An error occurred trying to delete a participant", e);
+            }
+        });
     }
     
     /**
@@ -395,7 +433,13 @@ public class GameStateStorageUtil {
      */
     public void removeAdmin(UUID adminUniqueId) throws ConfigIOException, SQLException {
         gameState.removeAdmin(adminUniqueId);
-        saveGameState();
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                gameStateService.deleteAdmin(adminUniqueId.toString());
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "An error occurred trying to delete a participant", e);
+            }
+        });
     }
     
 }
