@@ -16,6 +16,7 @@ import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -112,7 +113,11 @@ public class GameStateStorageUtil {
                 .toList();
     }
     
+    @Contract("null -> null")
     public static ActiveTeam fromTeam(MCTTeamEntity team) {
+        if (team == null) {
+            return null;
+        }
         return ActiveTeam.builder()
                 .teamId(team.getName())
                 .displayName(team.getDisplayName())
@@ -127,7 +132,11 @@ public class GameStateStorageUtil {
                 .toList();
     }
     
+    @Contract("null -> null")
     private static ActiveParticipant fromPlayer(MCTPlayerEntity player) {
+        if (player == null) {
+            return null;
+        }
         return ActiveParticipant.builder()
                 .participantUUID(player.getUniqueId().toString())
                 .teamId(player.getTeamId())
@@ -236,23 +245,48 @@ public class GameStateStorageUtil {
         );
     }
     
-    public void updateScores(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams, Collection<OfflineParticipant> participants) throws Exception {
-        List<ActiveTeam> activeTeams = new ArrayList<>(teams.size());
+    /**
+     * Update the scores in memory. Does not persist to the database unless you call
+     * {@link #persistScores(Collection, Collection)}.
+     * @param teams the teams to persist the scores for
+     * @param participants the participants to persist the scores for
+     */
+    public void updateScores(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams, Collection<OfflineParticipant> participants) {
         for (org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam team : teams) {
             MCTTeamEntity mctTeam = gameState.getTeam(team.getTeamId());
             mctTeam.setScore(team.getScore());
-            activeTeams.add(fromTeam(mctTeam));
         }
         
-        List<ActiveParticipant> activeParticipants = new ArrayList<>(participants.size());
         for (OfflineParticipant participant : participants) {
             MCTPlayerEntity player = Objects.requireNonNull(
                     gameState.getPlayer(participant.getUniqueId()),
                     "attempted to update the score of a participant who is not in the GameState");
             player.setScore(participant.getScore());
-            activeParticipants.add(fromPlayer(player));
         }
-        
+    }
+    
+    /**
+     * Used to persist the current score values of the given teams and participants to the
+     * database. Meant to be called after {@link #updateScores(Collection, Collection)}
+     * @param teams the teams to update
+     * @param participants the participants to update
+     * @throws Exception if there is an issue communicating with the database
+     */
+    public void persistScores(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams, Collection<OfflineParticipant> participants) throws Exception {
+        List<ActiveTeam> activeTeams = teams.stream()
+                .map(team -> {
+                    MCTTeamEntity mctTeamEntity = gameState.getTeam(team.getTeamId());
+                    return fromTeam(mctTeamEntity);
+                })
+                .filter(Objects::nonNull)
+                .toList();
+        List<ActiveParticipant> activeParticipants = participants.stream()
+                .map(participant -> {
+                    MCTPlayerEntity mctPlayerEntity = gameState.getPlayer(participant.getUniqueId());
+                    return fromPlayer(mctPlayerEntity);
+                })
+                .filter(Objects::nonNull)
+                .toList();
         persistScores(activeParticipants, activeTeams);
     }
     
