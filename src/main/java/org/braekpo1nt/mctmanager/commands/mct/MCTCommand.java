@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.commands.mct;
 
-import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.MasterCommandManager;
@@ -43,13 +42,6 @@ public class MCTCommand extends MasterCommandManager {
         addSubCommand(new TeamCommand(plugin, gameManager, "team"));
         addSubCommand(new AdminCommand(gameManager));
         addSubCommand(new EventCommand(gameManager, "event"));
-        addSubCommand(new SubCommand("save") {
-            @Override
-            public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                gameManager.saveGameState();
-                return CommandResult.success(Component.text("Saved game state"));
-            }
-        });
         addSubCommand(new SubCommand("load") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {

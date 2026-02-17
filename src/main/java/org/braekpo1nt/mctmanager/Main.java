@@ -685,9 +685,6 @@ public class Main extends JavaPlugin {
             if (gameManager.editorIsRunning()) {
                 gameManager.stopEditor();
             }
-            if (saveGameStateOnDisable) {
-                gameManager.saveGameState();
-            }
             gameManager.cleanup();
         } else {
             Main.logger().info("[MCTManager] Skipping save game state.");

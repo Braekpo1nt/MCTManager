@@ -54,22 +54,6 @@ public class GameStateStorageUtil {
     }
     
     /**
-     * Save the GameState to storage
-     * @throws ConfigIOException if there is a problem
-     * - creating a new game state file
-     * - writing to the game state file
-     * - converting the game state to json
-     */
-    @Deprecated
-    public void saveGameState() throws ConfigIOException, SQLException {
-        gameStateController.saveGameState(gameState);
-        // TODO: this is bulky and unnecessary, should update each time a score is changed instead of reloading everything
-        List<ActiveTeam> activeTeams = fromTeams(gameState.getTeams().values());
-        List<ActiveParticipant> activeParticipants = fromPlayers(gameState.getPlayers().values());
-        gameStateService.updateActiveTeamsAndParticipants(activeTeams, activeParticipants);
-    }
-    
-    /**
      * Load the GameState from storage
      * @throws ConfigInvalidException if the config is invalid
      * @throws ConfigIOException if there is a problem

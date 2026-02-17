@@ -584,14 +584,6 @@ public class GameManager implements Listener {
         return CompositeCommandResult.all(results);
     }
     
-    public void saveGameState() {
-        try {
-            gameStateStorageUtil.saveGameState();
-        } catch (ConfigException | SQLException e) {
-            reportGameStateException("adding score to player", e);
-        }
-    }
-    
     public boolean eventIsActive() {
         return state.eventIsActive();
     }
