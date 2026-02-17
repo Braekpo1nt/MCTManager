@@ -74,15 +74,6 @@ public class GameState {
     }
     
     /**
-     * Checks if the game state contains the given player
-     * @param playerUniqueId The UUID of the player to check for
-     * @return True if the player with the given UUID exists, false otherwise
-     */
-    public boolean containsPlayer(UUID playerUniqueId) {
-        return players.containsKey(playerUniqueId);
-    }
-    
-    /**
      * Returns the player with the given UUID
      * @param playerUniqueId The UUID of the player to get
      * @return The player with the given UUID, null if the player does not exist.
