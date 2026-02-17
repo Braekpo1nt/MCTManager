@@ -31,7 +31,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -42,14 +41,12 @@ import java.util.stream.Collectors;
 public class GameStateStorageUtil {
     
     private final Logger LOGGER;
-    private final GameStateController gameStateController;
     private final GameStateService gameStateService;
     protected GameState gameState = new GameState(new HashMap<>(), new HashMap<>(), new ArrayList<>());
     
     public GameStateStorageUtil(@NotNull Main plugin, @NotNull GameStateService gameStateService) {
         this.LOGGER = plugin.getLogger();
         // Pro Tip: The plugin.getGameManager() is null at this point
-        this.gameStateController = new GameStateController(plugin.getDataFolder());
         this.gameStateService = gameStateService;
     }
     
@@ -73,19 +70,19 @@ public class GameStateStorageUtil {
         return new GameState(toPlayers(activeParticipants), toTeams(activeTeams), toAdmins(adminEntities));
     }
     
-    public Map<String, MCTTeamEntity> toTeams(List<ActiveTeam> activeTeams) {
+    public static Map<String, MCTTeamEntity> toTeams(List<ActiveTeam> activeTeams) {
         return activeTeams.stream()
                 .map(GameStateStorageUtil::toTeam)
                 .collect(Collectors.toMap(MCTTeamEntity::getName, Function.identity()));
     }
     
-    public List<UUID> toAdmins(List<AdminEntity> adminEntities) {
+    public static List<UUID> toAdmins(List<AdminEntity> adminEntities) {
         return adminEntities.stream()
                 .map(admin -> UUID.fromString(admin.getUuid()))
                 .collect(Collectors.toCollection(ArrayList::new));
     }
     
-    private static MCTTeamEntity toTeam(ActiveTeam activeTeam) {
+    public static MCTTeamEntity toTeam(ActiveTeam activeTeam) {
         return MCTTeamEntity.builder()
                 .name(activeTeam.getTeamId())
                 .displayName(activeTeam.getDisplayName())
@@ -94,13 +91,13 @@ public class GameStateStorageUtil {
                 .build();
     }
     
-    public Map<UUID, MCTPlayerEntity> toPlayers(List<ActiveParticipant> activeParticipants) {
+    public static Map<UUID, MCTPlayerEntity> toPlayers(List<ActiveParticipant> activeParticipants) {
         return activeParticipants.stream()
                 .map(GameStateStorageUtil::toPlayer)
                 .collect(Collectors.toMap(MCTPlayerEntity::getUniqueId, Function.identity()));
     }
     
-    private static MCTPlayerEntity toPlayer(ActiveParticipant activeParticipant) {
+    public static MCTPlayerEntity toPlayer(ActiveParticipant activeParticipant) {
         return MCTPlayerEntity.builder()
                 .uniqueId(UUID.fromString(activeParticipant.getParticipantUUID()))
                 .name(activeParticipant.getIgn())
@@ -109,13 +106,13 @@ public class GameStateStorageUtil {
                 .build();
     }
     
-    public List<ActiveTeam> fromTeams(Collection<MCTTeamEntity> entities) {
+    public static List<ActiveTeam> fromTeams(Collection<MCTTeamEntity> entities) {
         return entities.stream()
                 .map(GameStateStorageUtil::fromTeam)
                 .toList();
     }
     
-    private static ActiveTeam fromTeam(MCTTeamEntity team) {
+    public static ActiveTeam fromTeam(MCTTeamEntity team) {
         return ActiveTeam.builder()
                 .teamId(team.getName())
                 .displayName(team.getDisplayName())
