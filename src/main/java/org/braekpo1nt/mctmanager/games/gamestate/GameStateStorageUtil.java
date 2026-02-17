@@ -44,12 +44,10 @@ public class GameStateStorageUtil {
     private final Logger LOGGER;
     private final GameStateController gameStateController;
     private final GameStateService gameStateService;
-    private final Main plugin;
     protected GameState gameState = new GameState(new HashMap<>(), new HashMap<>(), new ArrayList<>());
     
     public GameStateStorageUtil(@NotNull Main plugin, @NotNull GameStateService gameStateService) {
         this.LOGGER = plugin.getLogger();
-        this.plugin = plugin;
         // Pro Tip: The plugin.getGameManager() is null at this point
         this.gameStateController = new GameStateController(plugin.getDataFolder());
         this.gameStateService = gameStateService;
@@ -159,26 +157,14 @@ public class GameStateStorageUtil {
      */
     public void addTeam(String teamId, String teamDisplayName, String color) throws ConfigIOException, SQLException {
         MCTTeamEntity team = gameState.addTeam(teamId, teamDisplayName, color);
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                gameStateService.addTeam(fromTeam(team));
-            } catch (SQLException e) {
-                LOGGER.log(Level.SEVERE, "An error occurred trying to create a new team", e);
-            }
-        });
+        gameStateService.addTeam(fromTeam(team));
     }
     
     public void removeTeam(String teamId) throws ConfigIOException, SQLException {
         List<UUID> uuidsOnTeam = this.getParticipantUUIDsOnTeam(teamId);
         gameState.removePlayers(uuidsOnTeam);
         gameState.removeTeam(teamId);
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                gameStateService.deleteTeam(teamId);
-            } catch (SQLException e) {
-                LOGGER.log(Level.SEVERE, "An error occurred trying to delete a team", e);
-            }
-        });
+        gameStateService.deleteTeam(teamId);
     }
     
     /**
@@ -240,13 +226,7 @@ public class GameStateStorageUtil {
      */
     public void addNewPlayer(@NotNull UUID playerToJoin, @NotNull String name, @NotNull String teamId) throws ConfigIOException, SQLException {
         MCTPlayerEntity player = gameState.addPlayer(playerToJoin, name, teamId);
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                gameStateService.addParticipant(fromPlayer(player));
-            } catch (SQLException e) {
-                LOGGER.log(Level.SEVERE, "An error occurred trying to create a participant", e);
-            }
-        });
+        gameStateService.addParticipant(fromPlayer(player));
     }
     
     /**
@@ -268,7 +248,7 @@ public class GameStateStorageUtil {
         );
     }
     
-    public void updateScores(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams, Collection<OfflineParticipant> participants) {
+    public void updateScores(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams, Collection<OfflineParticipant> participants) throws Exception {
         List<ActiveTeam> activeTeams = new ArrayList<>(teams.size());
         for (org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam team : teams) {
             MCTTeamEntity mctTeam = gameState.getTeam(team.getTeamId());
@@ -285,65 +265,30 @@ public class GameStateStorageUtil {
             activeParticipants.add(fromPlayer(player));
         }
         
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                gameStateService.updateActiveParticipants(activeParticipants);
-                gameStateService.updateActiveTeams(activeTeams);
-            } catch (Exception e) {
-                LOGGER.log(Level.SEVERE, "An error occurred trying to update participant and team scores in bulk", e);
-            }
-        });
+        persistScores(activeParticipants, activeTeams);
     }
     
     /**
-     * Identical operation to {@link #updateScores}, but does not use plugin scheduler to run
-     * tasks asynchronously. Used only when the plugin is being disabled.
+     * @param activeParticipants the participants to commit to the database
+     * @param activeTeams the teams to commit to the database
+     * @throws Exception if there is an issue communicating with the database
      */
-    public void updateScoresSync(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams, Collection<OfflineParticipant> participants) throws Exception {
-        List<ActiveTeam> activeTeams = new ArrayList<>(teams.size());
-        for (org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam team : teams) {
-            MCTTeamEntity mctTeam = gameState.getTeam(team.getTeamId());
-            mctTeam.setScore(team.getScore());
-            activeTeams.add(fromTeam(mctTeam));
-        }
-        
-        List<ActiveParticipant> activeParticipants = new ArrayList<>(participants.size());
-        for (OfflineParticipant participant : participants) {
-            MCTPlayerEntity player = Objects.requireNonNull(
-                    gameState.getPlayer(participant.getUniqueId()),
-                    "attempted to update the score of a participant who is not in the GameState");
-            player.setScore(participant.getScore());
-            activeParticipants.add(fromPlayer(player));
-        }
-        
-        // not in asynchronous plugin
+    protected void persistScores(List<ActiveParticipant> activeParticipants, List<ActiveTeam> activeTeams) throws Exception {
         gameStateService.updateActiveParticipants(activeParticipants);
         gameStateService.updateActiveTeams(activeTeams);
     }
     
-    public void updateScore(OfflineParticipant participant) {
+    public void updateScore(OfflineParticipant participant) throws SQLException {
         MCTPlayerEntity player = Objects.requireNonNull(gameState.getPlayer(participant.getUniqueId()),
                 "attempted to update score of non-existent participant");
         player.setScore(participant.getScore());
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                gameStateService.updateActiveParticipant(fromPlayer(player));
-            } catch (SQLException e) {
-                LOGGER.log(Level.SEVERE, "An error occurred trying to update participant score", e);
-            }
-        });
+        gameStateService.updateActiveParticipant(fromPlayer(player));
     }
     
-    public void updateScore(org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam mctTeam) {
+    public void updateScore(org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam mctTeam) throws SQLException {
         MCTTeamEntity team = gameState.getTeam(mctTeam.getTeamId());
         team.setScore(mctTeam.getScore());
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                gameStateService.updateActiveTeam(fromTeam(team));
-            } catch (SQLException e) {
-                LOGGER.log(Level.SEVERE, "An error occurred trying to update team score", e);
-            }
-        });
+        gameStateService.updateActiveTeam(fromTeam(team));
     }
     
     /**
@@ -369,13 +314,7 @@ public class GameStateStorageUtil {
      */
     public void leavePlayer(UUID playerUniqueId) throws ConfigIOException, SQLException {
         gameState.removePlayer(playerUniqueId);
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                gameStateService.deleteParticipant(playerUniqueId.toString());
-            } catch (SQLException e) {
-                LOGGER.log(Level.SEVERE, "An error occurred trying to delete a participant", e);
-            }
-        });
+        gameStateService.deleteParticipant(playerUniqueId.toString());
     }
     
     public @NotNull NamedTextColor getTeamColor(@NotNull String teamId) {
@@ -420,13 +359,7 @@ public class GameStateStorageUtil {
      */
     public void addAdmin(UUID adminUniqueId) throws ConfigIOException, SQLException {
         gameState.addAdmin(adminUniqueId);
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                gameStateService.addAdmin(new AdminEntity(adminUniqueId.toString()));
-            } catch (SQLException e) {
-                LOGGER.log(Level.SEVERE, "An error occurred trying to delete a participant", e);
-            }
-        });
+        gameStateService.addAdmin(new AdminEntity(adminUniqueId.toString()));
     }
     
     /**
@@ -436,13 +369,7 @@ public class GameStateStorageUtil {
      */
     public void removeAdmin(UUID adminUniqueId) throws ConfigIOException, SQLException {
         gameState.removeAdmin(adminUniqueId);
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                gameStateService.deleteAdmin(adminUniqueId.toString());
-            } catch (SQLException e) {
-                LOGGER.log(Level.SEVERE, "An error occurred trying to delete a participant", e);
-            }
-        });
+        gameStateService.deleteAdmin(adminUniqueId.toString());
     }
     
 }

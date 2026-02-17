@@ -1093,8 +1093,17 @@ public class GameManager implements Listener {
         } else {
             updatedList = Collections.emptyList();
         }
-        gameStateStorageUtil.updateScore(updated);
-        state.updateScoreVisuals(Collections.singletonList(teams.get(updated.getTeamId())), updatedList);
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                // TODO: consider splitting up the persisting of the scores and the in-memory update
+                gameStateStorageUtil.updateScore(updated);
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    state.updateScoreVisuals(Collections.singletonList(teams.get(updated.getTeamId())), updatedList);
+                });
+            } catch (SQLException e) {
+                reportGameStateException("setting a participant's score", e);
+            }
+        });
         return updated.getScore();
     }
     
@@ -1112,12 +1121,17 @@ public class GameManager implements Listener {
         }
         MCTTeam updated = new MCTTeam(old, score);
         teams.put(old.getTeamId(), updated);
-        try {
-            gameStateStorageUtil.updateScore(updated);
-            state.updateScoreVisuals(Collections.singletonList(updated), Collections.emptyList());
-        } catch (ConfigIOException e) {
-            reportGameStateException("adding score to team", e);
-        }
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                // TODO: consider splitting up the persisting of the scores and the in-memory update
+                gameStateStorageUtil.updateScore(updated);
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    state.updateScoreVisuals(Collections.singletonList(updated), Collections.emptyList());
+                });
+            } catch (ConfigIOException | SQLException e) {
+                reportGameStateException("adding score to team", e);
+            }
+        });
         return updated.getScore();
     }
     
@@ -1140,7 +1154,7 @@ public class GameManager implements Listener {
         try {
             gameStateStorageUtil.updateScores(teams.values(), allParticipants.values());
             state.updateScoreVisuals(teams.values(), onlineParticipants.values());
-        } catch (ConfigIOException e) {
+        } catch (Exception e) {
             reportGameStateException("setting all scores", e);
         }
     }

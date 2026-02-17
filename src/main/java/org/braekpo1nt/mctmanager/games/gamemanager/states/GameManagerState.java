@@ -828,17 +828,28 @@ public abstract class GameManagerState {
             }
         }
         if (plugin.isEnabled()) {
-            gameStateStorageUtil.updateScores(teams.values(), allParticipants.values());
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+                try {
+                    // TODO: consider splitting this up so that the database connection happens in another thread, and the in-memory update happens on the main thread, such as gameSateStorageUtil.persistScores(teams.values(), allParticipants.values());
+                    gameStateStorageUtil.updateScores(teams.values(), allParticipants.values());
+                } catch (Exception e) {
+                    context.reportGameStateException("updating scores", e);
+                }
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    updateScoreVisuals(teams.values(), onlineParticipants.values());
+                    displayStats(teamScores, participantScores, id);
+                });
+            });
         } else {
             // TODO: this may not be needed if active_* tables are rebuilt on plugin start
             try {
-                gameStateStorageUtil.updateScoresSync(teams.values(), allParticipants.values());
+                gameStateStorageUtil.updateScores(teams.values(), allParticipants.values());
             } catch (Exception e) {
                 context.reportGameStateException("updating scores", e);
             }
+            updateScoreVisuals(teams.values(), onlineParticipants.values());
+            displayStats(teamScores, participantScores, id);
         }
-        updateScoreVisuals(teams.values(), onlineParticipants.values());
-        displayStats(teamScores, participantScores, id);
     }
     
     protected @Nullable String getEventId() {
