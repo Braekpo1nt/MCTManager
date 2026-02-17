@@ -121,7 +121,7 @@ public class GameStateStorageUtil {
                 .build();
     }
     
-    public List<ActiveParticipant> fromPlayers(Collection<MCTPlayerEntity> entities) {
+    public static List<ActiveParticipant> fromPlayers(Collection<MCTPlayerEntity> entities) {
         return entities.stream()
                 .map(GameStateStorageUtil::fromPlayer)
                 .toList();
