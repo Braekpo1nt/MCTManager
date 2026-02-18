@@ -1089,17 +1089,15 @@ public class GameManager implements Listener {
         } else {
             updatedList = Collections.emptyList();
         }
+        gameStateStorageUtil.updateScore(updated);
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                // TODO: consider splitting up the persisting of the scores and the in-memory update
-                gameStateStorageUtil.updateScore(updated);
-                plugin.getServer().getScheduler().runTask(plugin, () -> {
-                    state.updateScoreVisuals(Collections.singletonList(teams.get(updated.getTeamId())), updatedList);
-                });
+                gameStateStorageUtil.persistScore(updated);
             } catch (SQLException e) {
                 reportGameStateException("setting a participant's score", e);
             }
         });
+        state.updateScoreVisuals(Collections.singletonList(teams.get(updated.getTeamId())), updatedList);
         return updated.getScore();
     }
     
@@ -1117,17 +1115,15 @@ public class GameManager implements Listener {
         }
         MCTTeam updated = new MCTTeam(old, score);
         teams.put(old.getTeamId(), updated);
+        gameStateStorageUtil.updateScore(updated);
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                // TODO: consider splitting up the persisting of the scores and the in-memory update
-                gameStateStorageUtil.updateScore(updated);
-                plugin.getServer().getScheduler().runTask(plugin, () -> {
-                    state.updateScoreVisuals(Collections.singletonList(updated), Collections.emptyList());
-                });
-            } catch (ConfigIOException | SQLException e) {
+                gameStateStorageUtil.persistScore(updated);
+            } catch (SQLException e) {
                 reportGameStateException("adding score to team", e);
             }
         });
+        state.updateScoreVisuals(Collections.singletonList(updated), Collections.emptyList());
         return updated.getScore();
     }
     

@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipan
 import org.braekpo1nt.mctmanager.database.entities.teams.ActiveTeam;
 import org.braekpo1nt.mctmanager.database.service.GameStateService;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.ColorAttributes;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
@@ -300,16 +301,51 @@ public class GameStateStorageUtil {
         gameStateService.updateActiveTeams(activeTeams);
     }
     
-    public void updateScore(OfflineParticipant participant) throws SQLException {
+    /**
+     * Update the score of the given participant in-memory.
+     * Meant to be used in combination with {@link #persistScore(OfflineParticipant)}, or
+     * the score won't be persisted to the database.
+     * @param participant the participant to update the score of
+     */
+    public void updateScore(OfflineParticipant participant) {
         MCTPlayerEntity player = Objects.requireNonNull(gameState.getPlayer(participant.getUniqueId()),
                 "attempted to update score of non-existent participant");
         player.setScore(participant.getScore());
+    }
+    
+    /**
+     * Persist the score of the given participant in the database.
+     * Meant to be called after {@link #updateScore(OfflineParticipant)} in a different thread so
+     * that the persistence doesn't lag the game.
+     * @param participant the participant to update the score of
+     * @throws SQLException if there's an issue communicating with the database
+     */
+    public void persistScore(OfflineParticipant participant) throws SQLException {
+        MCTPlayerEntity player = Objects.requireNonNull(gameState.getPlayer(participant.getUniqueId()),
+                "attempted to persist score of non-existent participant");
         gameStateService.updateActiveParticipant(fromPlayer(player));
     }
     
-    public void updateScore(org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam mctTeam) throws SQLException {
+    /**
+     * Update the score of the given team in-memory.
+     * Meant to be used in combination with {@link #persistScore(MCTTeam)}, or
+     * the score won't be persisted to the database.
+     * @param mctTeam the team to update the score of
+     */
+    public void updateScore(org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam mctTeam) {
         MCTTeamEntity team = gameState.getTeam(mctTeam.getTeamId());
         team.setScore(mctTeam.getScore());
+    }
+    
+    /**
+     * Persist the score of the given team in the database.
+     * Meant to be called after {@link #updateScore(MCTTeam)} in a different thread so
+     * that the persistence doesn't lag the game.
+     * @param mctTeam the team to update the score of
+     * @throws SQLException if there's an issue communicating with the database
+     */
+    public void persistScore(org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam mctTeam) throws SQLException {
+        MCTTeamEntity team = gameState.getTeam(mctTeam.getTeamId());
         gameStateService.updateActiveTeam(fromTeam(team));
     }
     
