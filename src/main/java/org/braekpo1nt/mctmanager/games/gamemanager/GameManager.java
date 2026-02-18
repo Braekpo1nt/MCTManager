@@ -1143,12 +1143,15 @@ public class GameManager implements Listener {
                 onlineParticipants.put(participant.getUniqueId(), new MCTParticipant(online, score));
             }
         }
-        try {
-            gameStateStorageUtil.updateScores(teams.values(), allParticipants.values());
-            state.updateScoreVisuals(teams.values(), onlineParticipants.values());
-        } catch (Exception e) {
-            reportGameStateException("setting all scores", e);
-        }
+        gameStateStorageUtil.updateScores(teams.values(), allParticipants.values());
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                gameStateStorageUtil.persistScores(teams.values(), allParticipants.values());
+            } catch (Exception e) {
+                reportGameStateException("setting all scores", e);
+            }
+        });
+        state.updateScoreVisuals(teams.values(), onlineParticipants.values());
     }
     
     /**

@@ -4,8 +4,6 @@ import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.misc.TransactionManager;
 import com.j256.ormlite.stmt.ColumnArg;
 import com.j256.ormlite.stmt.DeleteBuilder;
-import com.j256.ormlite.stmt.UpdateBuilder;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
 import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
@@ -25,8 +23,6 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
 
 @SuppressWarnings("UnusedReturnValue")
 public class GameStateService {
@@ -232,24 +228,14 @@ public class GameStateService {
     }
     
     /**
-     * update the scores of the active teams and participants
-     * @param activeTeams the teams to update
-     * @param activeParticipants the participants to update
+     * increment the version of the system_state active_version by 1
      * @throws SQLException if there is an issue communicating with the database
      */
-    public void updateActiveTeamsAndParticipants(List<ActiveTeam> activeTeams, List<ActiveParticipant> activeParticipants) throws SQLException {
-        // TODO: this is bulky and unnecessary, should update each time a score is changed instead of reloading everything
-        TransactionManager.callInTransaction(activeTeamsDao.getConnectionSource(), () -> {
-            activeParticipantsDao.deleteBuilder().delete();
-            activeTeamsDao.deleteBuilder().delete();
-            activeTeamsDao.create(activeTeams);
-            activeParticipantsDao.create(activeParticipants);
-            systemStateDao.updateBuilder()
-                    .updateColumnValue("active_version",
-                            new ColumnArg("active_version + 1")
-                    );
-            return null;
-        });
+    public void incrementSystemStateVersion() throws SQLException {
+        systemStateDao.updateBuilder()
+                .updateColumnValue("active_version",
+                        new ColumnArg("active_version + 1")
+                );
     }
     
     /**
