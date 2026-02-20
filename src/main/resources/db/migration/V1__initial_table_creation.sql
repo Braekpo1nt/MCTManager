@@ -131,6 +131,8 @@ CREATE TABLE game_sessions (
     game_type       VARCHAR(64) NOT NULL,
     config_file     VARCHAR(128) NOT NULL,
     mode            VARCHAR(32) NOT NULL,
+    multiplier      DECIMAL(6,3) NOT NULL DEFAULT 1.0,
+    session_undone  BOOLEAN NOT NULL DEFAULT FALSE,
     start_time      TIMESTAMP NOT NULL,
     end_time        TIMESTAMP NULL,
     
@@ -156,7 +158,6 @@ CREATE TABLE score_events (
     team_id             VARCHAR(64) NOT NULL,
 
     points_base         INT NOT NULL,
-    multiplier          DECIMAL(6,3) NOT NULL DEFAULT 1.0,
 
     reason              VARCHAR(128) NULL,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

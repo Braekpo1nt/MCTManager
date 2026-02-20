@@ -9,7 +9,7 @@ import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.GameSession;
 import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
-import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
+import org.braekpo1nt.mctmanager.database.entities.ScoreEventEntity;
 import org.braekpo1nt.mctmanager.database.entities.SystemState;
 import org.braekpo1nt.mctmanager.database.entities.admin.AdminEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipant;
@@ -41,7 +41,7 @@ public class Database {
     private final @NotNull Dao<ActiveParticipant, String> activeParticipantsDao;
     private final @NotNull Dao<AdminEntity, String> adminDao;
     private final @NotNull Dao<GameSession, Integer> gameSessionDao;
-    private final @NotNull Dao<ScoreEvent, Integer> scoreEventsDao;
+    private final @NotNull Dao<ScoreEventEntity, Integer> scoreEventsDao;
     private final @NotNull Dao<PlayerMetadata, String> playerMetadataDao;
     
     private Database(@NotNull ConnectionSource connectionSource) throws SQLException {
@@ -62,7 +62,7 @@ public class Database {
         this.activeParticipantsDao = DaoManager.createDao(connectionSource, ActiveParticipant.class);
         this.adminDao = DaoManager.createDao(connectionSource, AdminEntity.class);
         this.gameSessionDao = DaoManager.createDao(connectionSource, GameSession.class);
-        this.scoreEventsDao = DaoManager.createDao(connectionSource, ScoreEvent.class);
+        this.scoreEventsDao = DaoManager.createDao(connectionSource, ScoreEventEntity.class);
         this.playerMetadataDao = DaoManager.createDao(connectionSource, PlayerMetadata.class);
     }
     

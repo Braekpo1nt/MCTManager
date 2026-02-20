@@ -281,17 +281,30 @@ public class GameStateService {
             
             // rebuild teams
             activeTeamsDao.executeRaw("""
-                        INSERT INTO active_teams (team_id, display_name, color, score)
+                    INSERT INTO active_teams (team_id, display_name, color, score)
+                    SELECT
+                        pt.team_id,
+                        pt.display_name,
+                        pt.color,
+                        COALESCE(se.total, 0) AS total
+                    FROM practice_teams pt
+                    LEFT JOIN (
                         SELECT
-                            pt.team_id,
-                            pt.display_name,
-                            pt.color,
-                            COALESCE(SUM(se.points_base * se.multiplier), 0)
-                        FROM practice_teams pt
-                        LEFT JOIN score_events se
-                          ON se.team_id = pt.team_id
-                         AND se.mode = 'practice'
-                        GROUP BY pt.team_id, pt.display_name, pt.color
+                            se.team_id,
+                            SUM(
+                                CASE
+                                    WHEN se.session_id IS NULL THEN se.points_base
+                                    WHEN gs.session_undone = FALSE THEN se.points_base * gs.multiplier
+                                    ELSE 0
+                                END
+                            ) AS total
+                        FROM score_events se
+                        LEFT JOIN game_sessions gs
+                            ON gs.id = se.session_id
+                        WHERE se.mode = 'practice'
+                        GROUP BY se.team_id
+                    ) se
+                        ON se.team_id = pt.team_id
                     """);
             
             // rebuild participants
@@ -301,19 +314,76 @@ public class GameStateService {
                             pp.participant_uuid,
                             pp.team_id,
                             ap.ign,
-                            COALESCE(SUM(se.points_base), 0)
+                            COALESCE(se.total, 0) AS total
                         FROM practice_participants pp
                         JOIN all_players ap
                           ON ap.uuid = pp.participant_uuid
-                        LEFT JOIN score_events se
+                        LEFT JOIN (
+                            SELECT se.participant_uuid,
+                                   SUM(se.points_base) AS total
+                            FROM score_events se
+                            LEFT JOIN game_sessions gs
+                              ON gs.id = se.session_id
+                            WHERE se.mode = 'practice'
+                              AND se.participant_uuid IS NOT NULL
+                              AND (
+                                    se.session_id IS NULL
+                                 OR gs.session_undone = FALSE
+                              )
+                            GROUP BY se.participant_uuid
+                        ) se
                           ON se.participant_uuid = pp.participant_uuid
-                         AND se.mode = 'practice'
-                        GROUP BY pp.participant_uuid, pp.team_id, ap.ign
                     """);
             
             return null;
         });
     }
+    
+    /*
+    to see what is essentially happening, take a look at the result of this command:
+
+SELECT
+      se.id,
+      se.session_id,
+      se.points_base,
+      se.mode,
+      se.participant_uuid,
+      se.team_id,
+      se.points_base,
+      mt.display_name,
+      mt.color,
+      gs.session_undone,
+      gs.multiplier
+  FROM maintenance_teams mt
+  LEFT JOIN score_events se
+        ON se.team_id = mt.team_id
+        AND se.mode = 'maintenance'
+  LEFT JOIN game_sessions gs
+      ON gs.id = se.session_id
+      AND gs.session_undone = FALSE;
+      
+      The algorithm takes the resulting select, groups them by team_id, provides defaults for when the multiplier is missing (e.g. the COALESCE statements), applies a multiplier when a session_id is not null, and sums them up for each team_id, and puts the result in the active_teams table.
+      
+SELECT
+        se.participant_uuid,
+        se.team_id,
+        ap.ign,
+        se.mode,
+        se.session_id,
+        se.points_base,
+        se.source_type,
+        gs.multiplier,
+        gs.session_undone
+    FROM score_events se
+    LEFT JOIN all_players ap
+        ON ap.uuid = se.participant_uuid
+    LEFT JOIN maintenance_participants mp
+        ON mp.participant_uuid = se.participant_uuid
+    LEFT JOIN game_sessions gs
+      ON gs.id = se.session_id
+      AND gs.session_undone = FALSE
+    WHERE se.participant_uuid IS NOT NULL;
+     */
     
     public void rebuildMaintenanceMode() throws SQLException {
         TransactionManager.callInTransaction(activeTeamsDao.getConnectionSource(), () -> {
@@ -323,17 +393,30 @@ public class GameStateService {
             
             // rebuild teams
             activeTeamsDao.executeRaw("""
-                        INSERT INTO active_teams (team_id, display_name, color, score)
+                    INSERT INTO active_teams (team_id, display_name, color, score)
+                    SELECT
+                        mt.team_id,
+                        mt.display_name,
+                        mt.color,
+                        COALESCE(se.total, 0) AS total
+                    FROM maintenance_teams mt
+                    LEFT JOIN (
                         SELECT
-                            mt.team_id,
-                            mt.display_name,
-                            mt.color,
-                            COALESCE(SUM(se.points_base * se.multiplier), 0)
-                        FROM maintenance_teams mt
-                        LEFT JOIN score_events se
-                          ON se.team_id = mt.team_id
-                         AND se.mode = 'maintenance'
-                        GROUP BY mt.team_id, mt.display_name, mt.color
+                            se.team_id,
+                            SUM(
+                                CASE
+                                    WHEN se.session_id IS NULL THEN se.points_base
+                                    WHEN gs.session_undone = FALSE THEN se.points_base * gs.multiplier
+                                    ELSE 0
+                                END
+                            ) AS total
+                        FROM score_events se
+                        LEFT JOIN game_sessions gs
+                            ON gs.id = se.session_id
+                        WHERE se.mode = 'maintenance'
+                        GROUP BY se.team_id
+                    ) se
+                        ON se.team_id = mt.team_id
                     """);
             
             // rebuild participants
@@ -343,14 +426,25 @@ public class GameStateService {
                             mp.participant_uuid,
                             mp.team_id,
                             ap.ign,
-                            COALESCE(SUM(se.points_base), 0)
+                            COALESCE(se.total, 0) AS total
                         FROM maintenance_participants mp
                         JOIN all_players ap
                           ON ap.uuid = mp.participant_uuid
-                        LEFT JOIN score_events se
+                        LEFT JOIN (
+                            SELECT se.participant_uuid,
+                                   SUM(se.points_base) AS total
+                            FROM score_events se
+                            LEFT JOIN game_sessions gs
+                              ON gs.id = se.session_id
+                            WHERE se.mode = 'maintenance'
+                              AND se.participant_uuid IS NOT NULL
+                              AND (
+                                    se.session_id IS NULL
+                                 OR gs.session_undone = FALSE
+                              )
+                            GROUP BY se.participant_uuid
+                        ) se
                           ON se.participant_uuid = mp.participant_uuid
-                         AND se.mode = 'maintenance'
-                        GROUP BY mp.participant_uuid, mp.team_id, ap.ign
                     """);
             
             return null;
@@ -364,44 +458,70 @@ public class GameStateService {
             activeTeamsDao.executeRaw("DELETE FROM active_teams");
             
             // rebuild teams
-            activeTeamsDao.executeRaw(
-                    """
-                                INSERT INTO active_teams (team_id, display_name, color, score)
+            activeTeamsDao.executeRaw("""
+                            INSERT INTO active_teams (team_id, display_name, color, score)
+                            SELECT
+                                et.team_id,
+                                et.display_name,
+                                et.color,
+                                CAST(COALESCE(se.total, 0) AS SIGNED) AS total
+                            FROM event_teams et
+                            LEFT JOIN (
                                 SELECT
-                                    et.team_id,
-                                    et.display_name,
-                                    et.color,
-                                    COALESCE(SUM(se.points_base * se.multiplier), 0)
-                                FROM event_teams et
-                                LEFT JOIN score_events se
-                                  ON se.team_id = et.team_id
-                                 AND se.event_id = ?
-                                WHERE et.event_id = ?
-                                GROUP BY et.team_id, et.display_name, et.color
+                                    se.team_id,
+                                    SUM(
+                                        CASE
+                                            WHEN se.session_id IS NULL THEN se.points_base
+                                            WHEN gs.session_undone = FALSE THEN se.points_base * gs.multiplier
+                                            ELSE 0
+                                        END
+                                    ) AS total
+                                FROM score_events se
+                                LEFT JOIN game_sessions gs
+                                    ON gs.id = se.session_id
+                                WHERE se.event_id = ?
+                                GROUP BY se.team_id
+                            ) se
+                                ON se.team_id = et.team_id
+                            WHERE et.event_id = ?
                             """,
                     eventId,
                     eventId
             );
             
             // rebuild participants
-            activeTeamsDao.executeRaw(
-                    """
-                                INSERT INTO active_participants (participant_uuid, team_id, ign, score)
+            activeTeamsDao.executeRaw("""
+                            INSERT INTO active_participants (participant_uuid, team_id, ign, score)
+                            SELECT
+                                ep.participant_uuid,
+                                ep.team_id,
+                                ap.ign,
+                                CAST(COALESCE(se.total, 0) AS SIGNED) AS total
+                            FROM event_participants ep
+                            JOIN all_players ap
+                                ON ap.uuid = ep.participant_uuid
+                            LEFT JOIN (
                                 SELECT
-                                    ep.participant_uuid,
-                                    ep.team_id,
-                                    ap.ign,
-                                    COALESCE(SUM(se.points_base), 0)
-                                FROM event_participants ep
-                                JOIN all_players ap
-                                  ON ap.uuid = ep.participant_uuid
-                                LEFT JOIN score_events se
-                                  ON se.participant_uuid = ep.participant_uuid
-                                 AND se.event_id = ?
-                                WHERE ep.event_id = ?
-                                GROUP BY ep.participant_uuid, ep.team_id, ap.ign
+                                    se.participant_uuid,
+                                    SUM(
+                                        CASE
+                                            WHEN se.session_id IS NULL THEN se.points_base
+                                            WHEN gs.session_undone = FALSE THEN se.points_base
+                                            ELSE 0
+                                        END
+                                    ) AS total
+                                FROM score_events se
+                                LEFT JOIN game_sessions gs
+                                    ON gs.id = se.session_id
+                                WHERE se.event_id = ?
+                                GROUP BY se.participant_uuid
+                            ) se
+                                ON se.participant_uuid = ep.participant_uuid
+                            WHERE ep.event_id = ?
                             """,
-                    eventId, eventId);
+                    eventId,
+                    eventId
+            );
             
             return null;
         });

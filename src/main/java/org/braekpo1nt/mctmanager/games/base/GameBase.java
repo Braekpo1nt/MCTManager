@@ -10,6 +10,7 @@ import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
+import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.braekpo1nt.mctmanager.games.base.listeners.GameListener;
 import org.braekpo1nt.mctmanager.games.base.states.GameStateBase;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
@@ -52,6 +53,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -713,12 +715,18 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         team.addPoints(multiplied);
         displayScore(participant);
         displayScore(team);
-        gameManager.logScoreEvent(
-                participant,
-                points,
-                gameSessionId,
-                description
-        );
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            Date date = new Date();
+            gameManager.logScoreEvent(ScoreEvent.builder()
+                    .sourceType(ScoreEvent.SourceType.GAME)
+                    .gameSessionId(gameSessionId)
+                    .participantUUID(participant.getUniqueId().toString())
+                    .teamId(participant.getTeamId())
+                    .pointsBase(points)
+                    .description(description)
+                    .createdAt(date)
+                    .build());
+        });
     }
     
     /**
@@ -732,12 +740,18 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         int multiplied = (int) (points * gameManager.getMultiplier());
         team.awardPoints(multiplied);
         displayScore(team);
-        gameManager.logScoreEvent(
-                team.getTeamId(),
-                points,
-                gameSessionId,
-                description
-        );
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            Date date = new Date();
+            gameManager.logScoreEvent(ScoreEvent.builder()
+                    .sourceType(ScoreEvent.SourceType.GAME)
+                    .gameSessionId(gameSessionId)
+                    .participantUUID(null)
+                    .teamId(team.getTeamId())
+                    .pointsBase(points)
+                    .description(description)
+                    .createdAt(date)
+                    .build());
+        });
     }
     
     /**
@@ -757,12 +771,20 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             team.addPoints(multiplied);
             awardedTeams.add(team);
         }
-        gameManager.logParticipantScoreEvents(
-                awardedParticipants,
-                points,
-                gameSessionId,
-                description
-        );
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            Date date = new Date();
+            gameManager.logScoreEvents(awardedParticipants.stream()
+                    .map(participant -> ScoreEvent.builder()
+                            .sourceType(ScoreEvent.SourceType.GAME)
+                            .gameSessionId(gameSessionId)
+                            .participantUUID(participant.getUniqueId().toString())
+                            .teamId(participant.getTeamId())
+                            .pointsBase(points)
+                            .description(description)
+                            .createdAt(date)
+                            .build())
+                    .toList());
+        });
         displayParticipantScores(awardedParticipants);
         displayTeamScores(awardedTeams);
     }
@@ -780,12 +802,20 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             team.awardPoints(multiplied);
         }
         displayTeamScores(awardedTeams);
-        gameManager.logTeamScoreEvents(
-                awardedTeams,
-                points,
-                gameSessionId,
-                description
-        );
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            Date date = new Date();
+            gameManager.logScoreEvents(awardedTeams.stream()
+                    .map(team -> ScoreEvent.builder()
+                            .sourceType(ScoreEvent.SourceType.GAME)
+                            .gameSessionId(gameSessionId)
+                            .participantUUID(null)
+                            .teamId(team.getTeamId())
+                            .pointsBase(points)
+                            .description(description)
+                            .createdAt(date)
+                            .build())
+                    .toList());
+        });
     }
     // Award Points end
     

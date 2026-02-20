@@ -5,6 +5,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.command.Command;
@@ -13,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 public class ScoreAddTeamSubCommand extends TabSubCommand {
@@ -46,14 +48,24 @@ public class ScoreAddTeamSubCommand extends TabSubCommand {
                     .append(Component.text(" is not an integer")));
         }
         int score = Integer.parseInt(scoreString);
+        int currentScore = team.getScore();
         if (invert) {
             score = -score;
-            int currentScore = team.getScore();
-            if (currentScore + score < 0) {
-                score = -currentScore;
-            }
+        }
+        if (currentScore + score < 0) {
+            score = -currentScore;
         }
         int newScore = gameManager.addScore(team, score);
+        int actualDelta = newScore - currentScore;
+        gameManager.logScoreEvent(ScoreEvent.builder()
+                .sourceType(ScoreEvent.SourceType.ADMIN)
+                .gameSessionId(null)
+                .participantUUID(null)
+                .teamId(team.getTeamId())
+                .pointsBase(actualDelta)
+                .description("add score to team command")
+                .createdAt(new Date())
+                .build());
         return CommandResult.success(Component.empty()
                 .append(team.getFormattedDisplayName())
                 .append(Component.text(" score is now "))

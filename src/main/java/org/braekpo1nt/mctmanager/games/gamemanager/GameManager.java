@@ -13,11 +13,11 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
+import org.braekpo1nt.mctmanager.database.entities.ScoreEventEntity;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.braekpo1nt.mctmanager.database.service.EventService;
 import org.braekpo1nt.mctmanager.database.service.GameStateService;
@@ -962,92 +962,25 @@ public class GameManager implements Listener {
         return team.getMemberUUIDs().stream().map(allParticipants::get).collect(Collectors.toSet());
     }
     
-    /**
-     * Log a given participant's {@link ScoreEvent} to the database
-     * @param participant the participant who earned the score
-     * @param points the points earned by the player
-     * @param gameSessionId the id of the game session
-     * @param description the description of the action that resulted in the score
-     * (e.g. "Braekpo1nt was killed by rstln")
-     */
     public void logScoreEvent(
-            @NotNull Participant participant,
-            int points,
-            int gameSessionId,
-            @NotNull String description
+            @NotNull ScoreEvent scoreEventDTO
     ) {
-        state.logScoreEvent(
-                participant,
-                points,
-                gameSessionId,
-                description
+        scoreService.logScoreEvent(scoreEventDTO.toScoreEvent(
+                state.getEventId(),
+                state.getMode())
         );
     }
     
-    /**
-     * Log a given team's {@link ScoreEvent} to the database
-     * @param teamId the teamId of the team who earned the score
-     * @param points the points earned by the team
-     * @param gameSessionId the id of the game session
-     * @param description the description of the action that resulted in the score
-     * (e.g. "Braekpo1nt was killed by rstln")
-     */
-    public void logScoreEvent(
-            @NotNull String teamId,
-            int points,
-            int gameSessionId,
-            @NotNull String description
+    public void logScoreEvents(
+            @NotNull Collection<ScoreEvent> scoreEventDTOs
     ) {
-        state.logScoreEvent(
-                teamId,
-                points,
-                gameSessionId,
-                description
-        );
-    }
-    
-    /**
-     * Batch log all the given participants' {@link ScoreEvent}s to the database
-     * @param awardedParticipants the list of participants who earned the score
-     * @param points the points earned by the participants (they all earn the same value)
-     * @param gameSessionId the id of the game session
-     * @param description the description of the action that resulted in the score
-     * (e.g. "Survived dead player")
-     */
-    public void logParticipantScoreEvents(
-            @NotNull Collection<? extends Participant> awardedParticipants,
-            int points,
-            int gameSessionId,
-            @NotNull String description
-    ) {
-        state.logParticipantScoreEvents(
-                awardedParticipants,
-                points,
-                gameSessionId,
-                description
-        );
-    }
-    
-    /**
-     * Batch log all the given teams' {@link ScoreEvent}s to the database
-     * @param awardedTeams the list of teams who earned the score
-     * @param points the points earned by each team (they all earn the same value)
-     * @param gameSessionId the id of the game session
-     * @param description the description of the action that resulted in the score
-     * (e.g. "Placed 3rd overall")
-     */
-    public void logTeamScoreEvents(
-            @NotNull Collection<? extends Team> awardedTeams,
-            int points,
-            int gameSessionId,
-            @NotNull String description
-    ) {
-        state.logTeamScoreEvents(
-                awardedTeams,
-                points,
-                gameSessionId,
-                description
-        );
+        List<ScoreEventEntity> scoreEvents = scoreEventDTOs.stream()
+                .map(scoreEventDTO -> scoreEventDTO.toScoreEvent(
+                        state.getEventId(),
+                        state.getMode()
+                ))
+                .toList();
+        scoreService.logScoreEvents(scoreEvents);
     }
     
     /**
@@ -1071,12 +1004,13 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Sets the participant's score to the given value, or 0 if the value is negative
+     * Sets the participant's score to the given actualDelta, or 0 if the actualDelta is negative
      * @param participant the participant to set the score of
      * @param value the score to set the participant to
      * @return the new score of the participant
      */
     public int setScore(@NotNull OfflineParticipant participant, int value) {
+        // TODO: make this also reflect a score for the team, since the rebuild logic sums up the admin command score events into the team's. Either that, or log a matching negative score event for the team.
         int score = Math.max(0, value);
         OfflineParticipant updated = new OfflineParticipant(participant, score);
         allParticipants.put(participant.getUniqueId(), updated);
@@ -1102,7 +1036,7 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Sets the score of the team with the given name to the given value
+     * Sets the score of the team with the given name to the given actualDelta
      * @param team The UUID of the participant to set the score to
      * @param value The score to set to. If the score is negative, the score will be set to 0.
      * @return the new score of the team
@@ -1128,15 +1062,37 @@ public class GameManager implements Listener {
     }
     
     /**
+     * Small helper record for passing score data to the database
+     * @param teamId the teamId
+     * @param actualDelta the actual delta
+     */
+    private record AllScoreEntity(@Nullable String uuid, @NotNull String teamId, int actualDelta) {
+    }
+    
+    /**
      * Set all the teams and players scores to the given score
      * @param value the score to set to. If the score is negative, the score will be set to 0.
      */
-    public void setScoreAll(int value) {
+    public void setScoreAll(int value, String description) {
         int score = Math.max(0, value);
+        // this list is for passing info to the logScoreEvents call below, and nothing else
+        List<AllScoreEntity> actualDeltas = new ArrayList<>(allParticipants.size() + teams.size());
         for (MCTTeam team : teams.values()) {
+            int actualDelta = score - team.getScore();
+            actualDeltas.add(new AllScoreEntity(
+                    null,
+                    team.getTeamId(),
+                    actualDelta
+            ));
             teams.put(team.getTeamId(), new MCTTeam(team, score));
         }
         for (OfflineParticipant participant : allParticipants.values()) {
+            int actualDelta = score - participant.getScore();
+            actualDeltas.add(new AllScoreEntity(
+                    participant.getUniqueId().toString(),
+                    participant.getTeamId(),
+                    actualDelta
+            ));
             allParticipants.put(participant.getUniqueId(), new OfflineParticipant(participant, score));
             MCTParticipant online = onlineParticipants.get(participant.getUniqueId());
             if (online != null) {
@@ -1145,8 +1101,21 @@ public class GameManager implements Listener {
         }
         gameStateStorageUtil.updateScores(teams.values(), allParticipants.values());
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            Date date = new Date();
+            List<ScoreEvent> scoreEvents = actualDeltas.stream()
+                    .map(actualDelta -> ScoreEvent.builder()
+                            .sourceType(ScoreEvent.SourceType.ADMIN)
+                            .gameSessionId(null)
+                            .participantUUID(actualDelta.uuid())
+                            .teamId(actualDelta.teamId())
+                            .pointsBase(actualDelta.actualDelta())
+                            .description(description)
+                            .createdAt(date)
+                            .build())
+                    .toList();
             try {
                 gameStateStorageUtil.persistScores(teams.values(), allParticipants.values());
+                logScoreEvents(scoreEvents);
             } catch (Exception e) {
                 reportGameStateException("setting all scores", e);
             }
@@ -1232,10 +1201,6 @@ public class GameManager implements Listener {
         return state.openHubMenu(participant);
     }
     
-    public int getGameIterations(@NotNull GameInstanceId id) {
-        return state.getGameIterations(id);
-    }
-    
     public CommandResult undoGame(@NotNull GameInstanceId id, int iterationIndex) {
         return state.undoGame(id, iterationIndex);
     }
@@ -1291,7 +1256,7 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Sets the visibility of the main TabList to the given value for the given player.
+     * Sets the visibility of the main TabList to the given actualDelta for the given player.
      * This is used to allow players to see the player list as default.
      * @param uuid the UUID of the player who is currently viewing the TabList to set the visibility of
      * @param visible true if the player should see the TabList content, false otherwise.

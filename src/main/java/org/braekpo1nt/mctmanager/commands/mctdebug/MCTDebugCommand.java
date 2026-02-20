@@ -3,6 +3,8 @@ package org.braekpo1nt.mctmanager.commands.mctdebug;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.CommandUtils;
+import org.braekpo1nt.mctmanager.database.service.ScoreService;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.Mode;
 import org.bukkit.Material;
@@ -18,7 +20,9 @@ import org.jetbrains.annotations.Nullable;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.logging.Level;
 
 /**
@@ -45,39 +49,91 @@ public class MCTDebugCommand implements TabExecutor, Listener {
             return true;
         }
         
-        if (args.length != 1) {
+        if (args.length < 1) {
             sender.sendMessage(Component.text("Usage: /mctdebug <arg> [options]")
                     .color(NamedTextColor.RED));
             return true;
         }
         
-        Mode mode = Mode.fromName(args[0]);
-        
-        try {
-            switch (mode) {
-                case PRACTICE -> {
-                    gameManager.getGameStateService().rebuildPracticeMode();
-                    sender.sendMessage("Loaded practice mode");
-                }
-                case MAINTENANCE -> {
-                    gameManager.getGameStateService().rebuildMaintenanceMode();
-                    sender.sendMessage("Loaded maintenance mode");
-                }
-                case EVENT -> {
-                    gameManager.getGameStateService().rebuildEventMode("MCT_1B");
-                    sender.sendMessage("Loaded event mode");
-                }
-                case null, default -> {
-                    sender.sendMessage("not recognized practice|event|maintenance");
+        String type = args[0];
+        switch (type) {
+            case "rebuild" -> {
+                if (args.length != 2) {
+                    sender.sendMessage(Component.text("Usage: /mctdebug <arg> [options]")
+                            .color(NamedTextColor.RED));
                     return true;
                 }
+                Mode mode = Mode.fromName(args[1]);
+                
+                try {
+                    switch (mode) {
+                        case PRACTICE -> {
+                            gameManager.getGameStateService().rebuildPracticeMode();
+                            sender.sendMessage("Loaded practice mode");
+                        }
+                        case MAINTENANCE -> {
+                            gameManager.getGameStateService().rebuildMaintenanceMode();
+                            sender.sendMessage("Loaded maintenance mode");
+                        }
+                        case EVENT -> {
+                            gameManager.getGameStateService().rebuildEventMode("MCT_1B");
+                            sender.sendMessage("Loaded event mode");
+                        }
+                        case null, default -> {
+                            sender.sendMessage("not recognized practice|event|maintenance");
+                            return true;
+                        }
+                    }
+                } catch (SQLException e) {
+                    Main.logger().log(Level.SEVERE, "An error occurred trying to rebuild practice mode", e);
+                    sender.sendMessage("An error occurred, see the console for more");
+                    return true;
+                }
+                
+                return true;
             }
-        } catch (SQLException e) {
-            Main.logger().log(Level.SEVERE, "An error occurred trying to rebuild practice mode", e);
-            sender.sendMessage("An error occurred, see the console for more");
-            return true;
+            case "totals" -> {
+                if (args.length != 2) {
+                    sender.sendMessage(Component.text("Usage: /mctdebug <arg> [options]")
+                            .color(NamedTextColor.RED));
+                    return true;
+                }
+                
+                if (!CommandUtils.isInteger(args[1])) {
+                    sender.sendMessage("Not an integer");
+                    return true;
+                }
+                
+                try {
+                    int sessionId = Integer.parseInt(args[1]);
+                    Map<UUID, ScoreService.PointTotal> participantSessionTotals = gameManager.getScoreService().getParticipantSessionTotals(sessionId);
+                    sender.sendMessage(Component.empty()
+                            .append(Component.text("Score totals for "))
+                            .append(Component.text(sessionId))
+                            .append(Component.text(":")));
+                    for (ScoreService.PointTotal pointTotal : participantSessionTotals.values()) {
+                        sender.sendMessage(Component.empty()
+                                .append(Component.text(pointTotal.participantUUID().toString()))
+                                .append(Component.text(", "))
+                                .append(Component.text(pointTotal.teamId()))
+                                .append(Component.text(" -> "))
+                                .append(Component.text(pointTotal.totalPoints())));
+                    }
+                    
+                    Map<String, Integer> teamSessionTotals = gameManager.getScoreService().getTeamSessionTotals(sessionId);
+                    for (Map.Entry<String, Integer> entry : teamSessionTotals.entrySet()) {
+                        sender.sendMessage(Component.empty()
+                                .append(Component.text(entry.getKey()))
+                                .append(Component.text(" -> "))
+                                .append(Component.text(entry.getValue()))
+                        );
+                    }
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+                
+            }
         }
-        
         return true;
     }
     

@@ -81,7 +81,7 @@ public class EventInfo {
     public static EventInfo getDebugEvent() {
         Date date = new Date();
         return EventInfo.builder()
-                .eventId("debugEvent")
+                .eventId("MCT_1B")
                 .plainTextName("Debug Event")
                 .componentName("{\"text\": \"Debug Event\"}")
                 .eventDate(date)

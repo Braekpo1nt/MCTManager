@@ -16,7 +16,6 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.GameSession;
-import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfigController;
@@ -848,181 +847,8 @@ public abstract class GameManagerState {
         displayStats(teamScores, participantScores, id);
     }
     
-    protected @Nullable String getEventId() {
+    @Nullable public String getEventId() {
         return null;
-    }
-    
-    /**
-     * An internal helper, creates the {@link ScoreEvent} from the given
-     * data and the current context
-     * @param participantUUID the participant who earned the score
-     * (if a participant was the target)
-     * @param teamId the teamId of the team or participant who was the target
-     * @param points the points earned by the player
-     * @param gameSessionId the id of the game session
-     * @param description the description of the action that resulted in the score
-     * (e.g. "Braekpo1nt was killed by rstln")
-     * @return a new {@link ScoreEvent} using the given data and the current context
-     */
-    protected @NotNull ScoreEvent createScoreEvent(
-            @Nullable String participantUUID,
-            @NotNull String teamId,
-            int points,
-            int gameSessionId,
-            @NotNull String description,
-            @NotNull Date date
-    ) {
-        return ScoreEvent.builder()
-                .sourceType(ScoreEvent.SourceType.GAME)
-                .gameSessionId(gameSessionId)
-                .eventId(getEventId())
-                .mode(getMode())
-                .participantUUID(participantUUID)
-                .teamId(teamId)
-                .pointsBase(points)
-                .multiplier(getMultiplier())
-                .description(description)
-                .createdAt(date)
-                .build();
-    }
-    
-    /**
-     * An internal helper, centralizes the individual score logging
-     * (both team and participant), and performs the database log asynchronously
-     * @param participantUUID the participant who earned the score
-     * (if a participant was the target)
-     * @param teamId the teamId of the team or participant who was the target
-     * @param points the points earned by the player
-     * @param gameSessionId the id of the game session
-     * @param description the description of the action that resulted in the score
-     * (e.g. "Braekpo1nt was killed by rstln")
-     */
-    protected void logScoreEvent(
-            @Nullable String participantUUID,
-            @NotNull String teamId,
-            int points,
-            int gameSessionId,
-            @NotNull String description
-    ) {
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            Date date = new Date();
-            context.getScoreService().logScoreEvent(createScoreEvent(
-                    participantUUID,
-                    teamId,
-                    points,
-                    gameSessionId,
-                    description,
-                    date
-            ));
-        });
-    }
-    
-    /**
-     * Log a given participant's {@link ScoreEvent} to the database
-     * @param participant the participant who earned the score
-     * @param points the points earned by the player
-     * @param gameSessionId the id of the game session
-     * @param description the description of the action that resulted in the score
-     * (e.g. "Braekpo1nt was killed by rstln")
-     */
-    public void logScoreEvent(
-            @NotNull Participant participant,
-            int points,
-            int gameSessionId,
-            @NotNull String description
-    ) {
-        this.logScoreEvent(
-                participant.getUniqueId().toString(),
-                participant.getTeamId(),
-                points,
-                gameSessionId,
-                description
-        );
-    }
-    
-    /**
-     * Log a given team's {@link ScoreEvent} to the database
-     * @param teamId the teamId of the team who earned the score
-     * @param points the points earned by the team
-     * @param gameSessionId the id of the game session
-     * @param description the description of the action that resulted in the score
-     * (e.g. "Braekpo1nt was killed by rstln")
-     */
-    public void logScoreEvent(
-            @NotNull String teamId,
-            int points,
-            int gameSessionId,
-            @NotNull String description
-    ) {
-        this.logScoreEvent(
-                null,
-                teamId,
-                points,
-                gameSessionId,
-                description
-        );
-    }
-    
-    /**
-     * Batch log all the given participants' {@link ScoreEvent}s to the database
-     * @param awardedParticipants the list of participants who earned the score
-     * @param points the points earned by the participants (they all earn the same value)
-     * @param gameSessionId the id of the game session
-     * @param description the description of the action that resulted in the score
-     * (e.g. "Survived dead player")
-     */
-    public void logParticipantScoreEvents(
-            @NotNull Collection<? extends Participant> awardedParticipants,
-            int points,
-            int gameSessionId,
-            @NotNull String description
-    ) {
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            Date date = new Date();
-            List<ScoreEvent> scoreEvents = awardedParticipants.stream()
-                    .map(participant ->
-                            createScoreEvent(
-                                    participant.getUniqueId().toString(),
-                                    participant.getTeamId(),
-                                    points,
-                                    gameSessionId,
-                                    description,
-                                    date
-                            ))
-                    .toList();
-            context.getScoreService().logScoreEvents(scoreEvents);
-        });
-    }
-    
-    /**
-     * Batch log all the given teams' {@link ScoreEvent}s to the database
-     * @param awardedTeams the list of teams who earned the score
-     * @param points the points earned by each team (they all earn the same value)
-     * @param gameSessionId the id of the game session
-     * @param description the description of the action that resulted in the score
-     * (e.g. "Placed 3rd overall")
-     */
-    public void logTeamScoreEvents(
-            @NotNull Collection<? extends Team> awardedTeams,
-            int points,
-            int gameSessionId,
-            @NotNull String description
-    ) {
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            Date date = new Date();
-            List<ScoreEvent> scoreEvents = awardedTeams.stream()
-                    .map(team ->
-                            createScoreEvent(
-                                    null,
-                                    team.getTeamId(),
-                                    points,
-                                    gameSessionId,
-                                    description,
-                                    date
-                            ))
-                    .toList();
-            context.getScoreService().logScoreEvents(scoreEvents);
-        });
     }
     
     /**
@@ -1137,6 +963,7 @@ public abstract class GameManagerState {
                 .configFile(configFile)
                 .startTime(new Date())
                 .mode(getMode())
+                .multiplier(getMultiplier())
                 .build());
         if (gameSession == null) {
             throw new SQLException("An error occurred creating a GameSession object in the database");
@@ -1345,10 +1172,6 @@ public abstract class GameManagerState {
     
     public CommandResult openHubMenu(@NotNull MCTParticipant participant) {
         return CommandResult.failure("Can't open the hub menu at this time");
-    }
-    
-    public int getGameIterations(@NotNull GameInstanceId id) {
-        return -1;
     }
     
     public CommandResult undoGame(@NotNull GameInstanceId id, int iterationIndex) {

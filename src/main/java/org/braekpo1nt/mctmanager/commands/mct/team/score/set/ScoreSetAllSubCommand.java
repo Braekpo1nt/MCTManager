@@ -37,7 +37,7 @@ public class ScoreSetAllSubCommand extends SubCommand {
         if (score < 0) {
             return CommandResult.failure(Component.text("Score must be at least 0"));
         }
-        gameManager.setScoreAll(score);
+        gameManager.setScoreAll(score, "set score all command");
         
         return CommandResult.success(Component.empty()
                 .append(Component.text("All team and participant scores have been set to "))

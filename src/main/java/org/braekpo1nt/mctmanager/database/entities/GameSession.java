@@ -33,6 +33,16 @@ public class GameSession {
      */
     @DatabaseField(canBeNull = false, columnName = "mode")
     private @NotNull Mode mode;
+    /**
+     * What was the score multiplier during the game
+     */
+    @DatabaseField(canBeNull = false, columnName = "multiplier")
+    private double multiplier;
+    /**
+     * True if the session was undone, false otherwise
+     */
+    @DatabaseField(canBeNull = false, columnName = "session_undone")
+    private boolean sessionUndone;
     @DatabaseField(canBeNull = false, columnName = "start_time")
     private @NotNull Date startTime;
     @DatabaseField(columnName = "end_time")
@@ -44,12 +54,16 @@ public class GameSession {
             @Nullable String eventId,
             @NotNull String configFile,
             @NotNull Mode mode,
+            @Nullable Boolean sessionUndone,
+            @NotNull Double multiplier,
             @NotNull Date startTime
     ) {
         this.gameType = gameType;
         this.eventId = eventId;
         this.configFile = configFile;
         this.mode = mode;
+        this.sessionUndone = sessionUndone != null ? sessionUndone : false;
+        this.multiplier = multiplier;
         this.startTime = startTime;
     }
 }

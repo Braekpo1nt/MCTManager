@@ -5,6 +5,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.bukkit.Bukkit;
@@ -15,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 public class ScoreAddPlayerSubCommand extends TabSubCommand {
@@ -58,6 +60,16 @@ public class ScoreAddPlayerSubCommand extends TabSubCommand {
             score = -currentScore;
         }
         int newScore = gameManager.addScore(offlineParticipant, score);
+        int actualDelta = newScore - currentScore;
+        gameManager.logScoreEvent(ScoreEvent.builder()
+                .sourceType(ScoreEvent.SourceType.ADMIN)
+                .gameSessionId(null)
+                .participantUUID(offlineParticipant.getUniqueId().toString())
+                .teamId(offlineParticipant.getTeamId())
+                .pointsBase(actualDelta)
+                .description("add score to participant command")
+                .createdAt(new Date())
+                .build());
         return CommandResult.success(Component.empty()
                 .append(Component.text(playerName))
                 .append(Component.text(" score is now "))

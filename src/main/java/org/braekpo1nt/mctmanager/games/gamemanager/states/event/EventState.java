@@ -1,26 +1,23 @@
 package org.braekpo1nt.mctmanager.games.gamemanager.states.event;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
+import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
-import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamemanager.Mode;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.EventData;
-import org.braekpo1nt.mctmanager.games.gamemanager.event.ScoreKeeper;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.GameManagerState;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.MaintenanceState;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.PracticeState;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
-import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -28,11 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 public abstract class EventState extends GameManagerState {
     
@@ -102,113 +95,50 @@ public abstract class EventState extends GameManagerState {
     }
     
     @Override
-    public int getGameIterations(@NotNull GameInstanceId id) {
-        return eventData.getGameIterations(id);
-    }
-    
-    @Override
     public CommandResult undoGame(@NotNull GameInstanceId id, int iterationIndex) {
-        if (!eventData.getScoreKeepers().containsKey(id)) {
-            return CommandResult.failure(Component.empty()
-                    .append(Component.text("No points were tracked for "))
-                    .append(Component.text(id.getTitle())
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(".")));
-        }
-        List<ScoreKeeper> gameScoreKeepers = eventData.getScoreKeepers().get(id);
-        if (iterationIndex < 0) {
-            return CommandResult.failure(Component.empty()
-                    .append(Component.text(iterationIndex + 1)
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" is not a valid play-through")));
-        }
-        if (iterationIndex >= gameScoreKeepers.size()) {
-            return CommandResult.failure(Component.text(id.getTitle())
-                    .append(Component.text(" has only been played "))
-                    .append(Component.text(gameScoreKeepers.size()))
-                    .append(Component.text(" time(s). Can't undo play-through "))
-                    .append(Component.text(iterationIndex + 1)));
-        }
-        ScoreKeeper iterationScoreKeeper = gameScoreKeepers.get(iterationIndex);
-        if (iterationScoreKeeper == null) {
-            return CommandResult.failure(Component.empty()
-                    .append(Component.text("No points were tracked for play-through "))
-                    .append(Component.text(iterationIndex + 1)
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" of "))
-                    .append(Component.text(id.getTitle())
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(".")));
-        }
-        undoScores(iterationScoreKeeper);
-        gameScoreKeepers.set(iterationIndex, null); // remove tracked points for this iteration
-        Component report = createScoreKeeperReport(id, iterationScoreKeeper);
-        plugin.getServer().getConsoleSender().sendMessage(report);
-        return CommandResult.success(report);
-    }
-    
-    /**
-     * Removes the scores that were tracked by the given ScoreKeeper
-     * @param scoreKeeper holds the tracked scores to be removed
-     */
-    private void undoScores(ScoreKeeper scoreKeeper) {
-        for (MCTTeam team : teams.values()) {
-            int teamScoreToSubtract = scoreKeeper.getScore(team.getTeamId());
-            int teamCurrentScore = team.getScore();
-            if (teamCurrentScore - teamScoreToSubtract < 0) {
-                teamScoreToSubtract = teamCurrentScore;
-            }
-            context.addScore(team, -teamScoreToSubtract);
-            
-            Collection<OfflineParticipant> participantsOnTeam = context.getParticipantsOnTeam(team.getTeamId());
-            for (OfflineParticipant participant : participantsOnTeam) {
-                int participantScoreToSubtract = scoreKeeper.getScore(participant.getUniqueId());
-                int participantCurrentScore = participant.getScore();
-                if (participantCurrentScore - participantScoreToSubtract < 0) {
-                    participantScoreToSubtract = participantCurrentScore;
-                }
-                context.addScore(participant, -participantScoreToSubtract);
-            }
-        }
+        // TODO: implement this operation
+        return CommandResult.failure(Component.text("This operation is not yet implemented. Speak to the developers for more details."));
     }
     
     /**
      * Creates a report describing the scores associated with the given ScoreKeeper
      * @param id The game instance id the ScoreKeeper is associated with
-     * @param scoreKeeper The scorekeeper describing the given scores
+     * @param scoreEvents The {@link ScoreEvent}s that were undone
      * @return A component with a report of the ScoreKeeper's scores
      */
     @NotNull
-    private Component createScoreKeeperReport(@NotNull GameInstanceId id, @NotNull ScoreKeeper scoreKeeper) {
-        TextComponent.Builder reportBuilder = Component.text()
-                .append(Component.text("|Scores for ("))
-                .append(Component.text(id.getTitle())
-                        .decorate(TextDecoration.BOLD))
-                .append(Component.text("):\n"))
-                .color(NamedTextColor.YELLOW);
-        for (MCTTeam team : teams.values()) {
-            int teamScoreToSubtract = scoreKeeper.getScore(team.getTeamId());
-            reportBuilder.append(Component.text("|  - "))
-                    .append(team.getFormattedDisplayName())
-                    .append(Component.text(": "))
-                    .append(Component.text(teamScoreToSubtract)
-                            .color(NamedTextColor.GOLD)
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text("\n"));
-            
-            Collection<OfflineParticipant> participantsOnTeam = context.getParticipantsOnTeam(team.getTeamId());
-            for (OfflineParticipant participant : participantsOnTeam) {
-                int participantScoreToSubtract = scoreKeeper.getScore(participant.getUniqueId());
-                reportBuilder.append(Component.text("|    - "))
-                        .append(participant.displayName())
-                        .append(Component.text(": "))
-                        .append(Component.text(participantScoreToSubtract)
-                                .color(NamedTextColor.GOLD)
-                                .decorate(TextDecoration.BOLD))
-                        .append(Component.text("\n"));
-            }
-        }
-        return reportBuilder.build();
+    private Component createUndoReport(@NotNull GameInstanceId id, @NotNull List<ScoreEvent> scoreEvents) {
+        // TODO: implement this
+        throw new UnsupportedOperationException("not yet implemented");
+        //        TextComponent.Builder reportBuilder = Component.text()
+//                .append(Component.text("|Scores for ("))
+//                .append(Component.text(id.getTitle())
+//                        .decorate(TextDecoration.BOLD))
+//                .append(Component.text("):\n"))
+//                .color(NamedTextColor.YELLOW);
+//        for (MCTTeam team : teams.values()) {
+//            int teamScoreToSubtract = scoreKeeper.getScore(team.getTeamId());
+//            reportBuilder.append(Component.text("|  - "))
+//                    .append(team.getFormattedDisplayName())
+//                    .append(Component.text(": "))
+//                    .append(Component.text(teamScoreToSubtract)
+//                            .color(NamedTextColor.GOLD)
+//                            .decorate(TextDecoration.BOLD))
+//                    .append(Component.text("\n"));
+//            
+//            Collection<OfflineParticipant> participantsOnTeam = context.getParticipantsOnTeam(team.getTeamId());
+//            for (OfflineParticipant participant : participantsOnTeam) {
+//                int participantScoreToSubtract = scoreKeeper.getScore(participant.getUniqueId());
+//                reportBuilder.append(Component.text("|    - "))
+//                        .append(participant.displayName())
+//                        .append(Component.text(": "))
+//                        .append(Component.text(participantScoreToSubtract)
+//                                .color(NamedTextColor.GOLD)
+//                                .decorate(TextDecoration.BOLD))
+//                        .append(Component.text("\n"));
+//            }
+//        }
+//        return reportBuilder.build();
     }
     
     @Override
@@ -289,19 +219,8 @@ public abstract class EventState extends GameManagerState {
     }
     
     @Override
-    protected @Nullable String getEventId() {
+    @Nullable public String getEventId() {
         return eventData.getEventInfo().getEventId();
-    }
-    
-    @Override
-    public void addScores(
-            Map<String, Integer> newTeamScores,
-            Map<UUID, Integer> newParticipantScores,
-            int gameSessionId,
-            @NotNull GameInstanceId id,
-            @NotNull Date endDate) {
-        super.addScores(newTeamScores, newParticipantScores, gameSessionId, id, endDate);
-        eventData.trackScores(newTeamScores, newParticipantScores, id);
     }
     // game stop
     

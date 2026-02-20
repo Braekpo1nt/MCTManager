@@ -583,7 +583,7 @@ public class GameManagerUtils {
                 .append(Component.text(" participant(s)."))));
         
         if (resetScores) {
-            gameManager.setScoreAll(0);
+            gameManager.setScoreAll(0, "apply preset reset scores command");
             results.add(CommandResult.success(Component.empty()
                     .append(Component.text("All team and player scores have been set to 0"))));
         }
