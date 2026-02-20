@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.games.gamemanager;
 
 import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
@@ -19,8 +18,8 @@ import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
-import org.braekpo1nt.mctmanager.database.entities.ScoreEventEntity;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
+import org.braekpo1nt.mctmanager.database.entities.ScoreEventEntity;
 import org.braekpo1nt.mctmanager.database.service.EventService;
 import org.braekpo1nt.mctmanager.database.service.GameStateService;
 import org.braekpo1nt.mctmanager.database.service.ScoreService;
@@ -989,29 +988,33 @@ public class GameManager implements Listener {
      * Adds the given score to the participant with the given UUID
      * @param participant The participant to add the score to
      * @param score The score to add. Could be positive or negative.
+     * @param description a description of why the score changed
      * @return the new score of the participant
      */
-    public int addScore(OfflineParticipant participant, int score) {
-        return setScore(participant, participant.getScore() + score);
+    public int addScore(OfflineParticipant participant, int score, @NotNull String description) {
+        return setScore(participant, participant.getScore() + score, description);
     }
     
     /**
      * Adds the given score to the given team
      * @param team The team to add the score to
      * @param score The score to add. Could be positive or negative.
+     * @param description a description of why the score changed
      * @return the new score of the team
      */
-    public int addScore(@NotNull Team team, int score) {
-        return setScore(team, team.getScore() + score);
+    public int addScore(@NotNull Team team, int score, @NotNull String description) {
+        return setScore(team, team.getScore() + score, description);
     }
     
     /**
      * Sets the participant's score to the given actualDelta, or 0 if the actualDelta is negative
      * @param participant the participant to set the score of
      * @param value the score to set the participant to
+     * @param description a description of why the score changed
      * @return the new score of the participant
      */
-    public int setScore(@NotNull OfflineParticipant participant, int value) {
+    public int setScore(@NotNull OfflineParticipant participant, int value, @NotNull String description) {
+        int oldScore = participant.getScore();
         int score = Math.max(0, value);
         OfflineParticipant updated = new OfflineParticipant(participant, score);
         allParticipants.put(participant.getUniqueId(), updated);
@@ -1028,6 +1031,27 @@ public class GameManager implements Listener {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
                 gameStateStorageUtil.persistScore(updated);
+                int actualDelta = score - oldScore;
+                logScoreEvents(List.of(
+                        ScoreEvent.builder()
+                                .sourceType(ScoreEvent.SourceType.ADMIN)
+                                .gameSessionId(null)
+                                .participantUUID(participant.getUniqueId().toString())
+                                .teamId(participant.getTeamId())
+                                .pointsBase(actualDelta)
+                                .description(description)
+                                .createdAt(new Date())
+                                .build(),
+                        ScoreEvent.builder()
+                                .sourceType(ScoreEvent.SourceType.ADMIN)
+                                .gameSessionId(null)
+                                .participantUUID(null)
+                                .teamId(participant.getTeamId())
+                                .pointsBase(-actualDelta)
+                                .description(String.format("%s (team adjustment)", description))
+                                .createdAt(new Date())
+                                .build()
+                ));
             } catch (SQLException e) {
                 reportGameStateException("setting a participant's score", e);
             }
@@ -1040,9 +1064,11 @@ public class GameManager implements Listener {
      * Sets the score of the team with the given name to the given actualDelta
      * @param team The UUID of the participant to set the score to
      * @param value The score to set to. If the score is negative, the score will be set to 0.
+     * @param description a description of why the score changed
      * @return the new score of the team
      */
-    public int setScore(Team team, int value) {
+    public int setScore(Team team, int value, @NotNull String description) {
+        int oldScore = team.getScore();
         int score = Math.max(0, value);
         MCTTeam old = teams.get(team.getTeamId());
         if (old == null) {
@@ -1054,6 +1080,16 @@ public class GameManager implements Listener {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
                 gameStateStorageUtil.persistScore(updated);
+                int actualDelta = score - oldScore;
+                logScoreEvent(ScoreEvent.builder()
+                        .sourceType(ScoreEvent.SourceType.ADMIN)
+                        .gameSessionId(null)
+                        .participantUUID(null)
+                        .teamId(team.getTeamId())
+                        .pointsBase(actualDelta)
+                        .description(description)
+                        .createdAt(new Date())
+                        .build());
             } catch (SQLException e) {
                 reportGameStateException("adding score to team", e);
             }
@@ -1068,8 +1104,18 @@ public class GameManager implements Listener {
     @AllArgsConstructor
     @Getter
     private static class AllScoreEntity {
+        /**
+         * the uuid of the participant or null if it's just a team
+         */
         private final @Nullable String uuid;
+        /**
+         * the teamId of the team, or the teamId of the participant
+         */
         private final @NotNull String teamId;
+        /**
+         * the actual delta score
+         * (the difference between what the score was and what it is being set to)
+         */
         @Setter
         private int actualDelta;
     }
@@ -1078,7 +1124,7 @@ public class GameManager implements Listener {
      * Set all the teams and players scores to the given score
      * @param value the score to set to. If the score is negative, the score will be set to 0.
      */
-    public void setScoreAll(int value, String description) {
+    public void setScoreAll(int value, @NotNull String description) {
         int score = Math.max(0, value);
         // this list is for passing info to the logScoreEvents call below, and nothing else
         Map<String, AllScoreEntity> teamDeltas = new HashMap<>(teams.size());

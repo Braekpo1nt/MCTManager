@@ -5,7 +5,6 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.bukkit.Bukkit;
@@ -16,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 public class ScoreSetPlayerSubCommand extends TabSubCommand {
@@ -53,28 +51,7 @@ public class ScoreSetPlayerSubCommand extends TabSubCommand {
         if (score < 0) {
             return CommandResult.failure(Component.text("Score must be at least 0"));
         }
-        int actualDelta = score - offlineParticipant.getScore();
-        int newScore = gameManager.setScore(offlineParticipant, score);
-        gameManager.logScoreEvents(List.of(
-                ScoreEvent.builder()
-                        .sourceType(ScoreEvent.SourceType.ADMIN)
-                        .gameSessionId(null)
-                        .participantUUID(offlineParticipant.getUniqueId().toString())
-                        .teamId(offlineParticipant.getTeamId())
-                        .pointsBase(actualDelta)
-                        .description("set score of participant command")
-                        .createdAt(new Date())
-                        .build(),
-                ScoreEvent.builder()
-                        .sourceType(ScoreEvent.SourceType.ADMIN)
-                        .gameSessionId(null)
-                        .participantUUID(null)
-                        .teamId(offlineParticipant.getTeamId())
-                        .pointsBase(-actualDelta)
-                        .description("set score of participant command team adjust")
-                        .createdAt(new Date())
-                        .build()
-        ));
+        int newScore = gameManager.setScore(offlineParticipant, score, "set score of participant command");
         return CommandResult.success(Component.empty()
                 .append(Component.text(playerName))
                 .append(Component.text(" score is now "))
