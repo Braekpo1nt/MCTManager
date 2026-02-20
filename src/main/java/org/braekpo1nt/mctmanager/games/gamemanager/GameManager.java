@@ -1,6 +1,8 @@
 package org.braekpo1nt.mctmanager.games.gamemanager;
 
 import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
@@ -1062,10 +1064,14 @@ public class GameManager implements Listener {
     
     /**
      * Small helper record for passing score data to the database
-     * @param teamId the teamId
-     * @param actualDelta the actual delta
      */
-    private record AllScoreEntity(@Nullable String uuid, @NotNull String teamId, int actualDelta) {
+    @AllArgsConstructor
+    @Getter
+    private static class AllScoreEntity {
+        private final @Nullable String uuid;
+        private final @NotNull String teamId;
+        @Setter
+        private int actualDelta;
     }
     
     /**
@@ -1075,16 +1081,18 @@ public class GameManager implements Listener {
     public void setScoreAll(int value, String description) {
         int score = Math.max(0, value);
         // this list is for passing info to the logScoreEvents call below, and nothing else
-        List<AllScoreEntity> actualDeltas = new ArrayList<>(allParticipants.size() + teams.size());
+        Map<String, AllScoreEntity> teamDeltas = new HashMap<>(teams.size());
         for (MCTTeam team : teams.values()) {
             int actualDelta = score - team.getScore();
-            actualDeltas.add(new AllScoreEntity(
-                    null,
-                    team.getTeamId(),
-                    actualDelta
-            ));
+            teamDeltas.put(team.getTeamId(),
+                    new AllScoreEntity(
+                            null,
+                            team.getTeamId(),
+                            actualDelta
+                    ));
             teams.put(team.getTeamId(), new MCTTeam(team, score));
         }
+        List<AllScoreEntity> actualDeltas = new ArrayList<>(allParticipants.size() + teams.size());
         for (OfflineParticipant participant : allParticipants.values()) {
             int actualDelta = score - participant.getScore();
             actualDeltas.add(new AllScoreEntity(
@@ -1092,12 +1100,15 @@ public class GameManager implements Listener {
                     participant.getTeamId(),
                     actualDelta
             ));
+            AllScoreEntity teamEntry = teamDeltas.get(participant.getTeamId());
+            teamEntry.setActualDelta(teamEntry.getActualDelta() - actualDelta);
             allParticipants.put(participant.getUniqueId(), new OfflineParticipant(participant, score));
             MCTParticipant online = onlineParticipants.get(participant.getUniqueId());
             if (online != null) {
                 onlineParticipants.put(participant.getUniqueId(), new MCTParticipant(online, score));
             }
         }
+        actualDeltas.addAll(teamDeltas.values());
         gameStateStorageUtil.updateScores(teams.values(), allParticipants.values());
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             Date date = new Date();
@@ -1105,9 +1116,9 @@ public class GameManager implements Listener {
                     .map(actualDelta -> ScoreEvent.builder()
                             .sourceType(ScoreEvent.SourceType.ADMIN)
                             .gameSessionId(null)
-                            .participantUUID(actualDelta.uuid())
-                            .teamId(actualDelta.teamId())
-                            .pointsBase(actualDelta.actualDelta())
+                            .participantUUID(actualDelta.getUuid())
+                            .teamId(actualDelta.getTeamId())
+                            .pointsBase(actualDelta.getActualDelta())
                             .description(description)
                             .createdAt(date)
                             .build())

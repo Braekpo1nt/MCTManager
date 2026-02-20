@@ -55,15 +55,26 @@ public class ScoreSetPlayerSubCommand extends TabSubCommand {
         }
         int actualDelta = score - offlineParticipant.getScore();
         int newScore = gameManager.setScore(offlineParticipant, score);
-        gameManager.logScoreEvent(ScoreEvent.builder()
-                .sourceType(ScoreEvent.SourceType.ADMIN)
-                .gameSessionId(null)
-                .participantUUID(offlineParticipant.getUniqueId().toString())
-                .teamId(offlineParticipant.getTeamId())
-                .pointsBase(actualDelta)
-                .description("set score of participant command")
-                .createdAt(new Date())
-                .build());
+        gameManager.logScoreEvents(List.of(
+                ScoreEvent.builder()
+                        .sourceType(ScoreEvent.SourceType.ADMIN)
+                        .gameSessionId(null)
+                        .participantUUID(offlineParticipant.getUniqueId().toString())
+                        .teamId(offlineParticipant.getTeamId())
+                        .pointsBase(actualDelta)
+                        .description("set score of participant command")
+                        .createdAt(new Date())
+                        .build(),
+                ScoreEvent.builder()
+                        .sourceType(ScoreEvent.SourceType.ADMIN)
+                        .gameSessionId(null)
+                        .participantUUID(null)
+                        .teamId(offlineParticipant.getTeamId())
+                        .pointsBase(-actualDelta)
+                        .description("set score of participant command team adjust")
+                        .createdAt(new Date())
+                        .build()
+        ));
         return CommandResult.success(Component.empty()
                 .append(Component.text(playerName))
                 .append(Component.text(" score is now "))
