@@ -1010,7 +1010,6 @@ public class GameManager implements Listener {
      * @return the new score of the participant
      */
     public int setScore(@NotNull OfflineParticipant participant, int value) {
-        // TODO: make this also reflect a score for the team, since the rebuild logic sums up the admin command score events into the team's. Either that, or log a matching negative score event for the team.
         int score = Math.max(0, value);
         OfflineParticipant updated = new OfflineParticipant(participant, score);
         allParticipants.put(participant.getUniqueId(), updated);
