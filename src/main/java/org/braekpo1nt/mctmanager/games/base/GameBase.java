@@ -6,11 +6,14 @@ import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
+import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipantInGame;
+import org.braekpo1nt.mctmanager.database.entities.teams.ActiveTeamInGame;
 import org.braekpo1nt.mctmanager.games.base.listeners.GameListener;
 import org.braekpo1nt.mctmanager.games.base.states.GameStateBase;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
@@ -51,6 +54,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -208,6 +212,31 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
         _initializeAdminSidebar();
         // admin end
+        
+        // database start
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                gameManager.getGameStateService().addInGameParticipantsAndTeams(
+                        newTeams.stream()
+                                .map(team -> ActiveTeamInGame.builder()
+                                        .teamId(team.getTeamId())
+                                        .gameSessionId(gameSessionId)
+                                        .gameScore(0)
+                                        .build())
+                                .toList(),
+                        newParticipants.stream()
+                                .map(participant -> ActiveParticipantInGame.builder()
+                                        .participantUUID(participant.getUniqueId().toString())
+                                        .gameSessionId(gameSessionId)
+                                        .gameScore(0)
+                                        .build())
+                                .toList()
+                );
+            } catch (SQLException e) {
+                reportSQLException("initializing *_in_game tables for game", e);
+            }
+        });
+        // database end
         this.state = getStartState();
         this.state.enter();
     }
@@ -276,6 +305,13 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
         storedGameRules.clear();
         cleanup();
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                gameManager.getGameStateService().removeInGameTeamsAndParticipants(gameSessionId);
+            } catch (SQLException e) {
+                reportSQLException("clearing the active game entries for this game", e);
+            }
+        });
         gameManager.gameIsOver(gameSessionId, getGameInstanceId(), teamScores, participantScores, participants.values().stream().map(Participant::getUniqueId).toList(), admins);
         participants.clear();
         admins.clear();
@@ -468,28 +504,45 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     // Participant end
     
     // quit/join start
+    
     @Override
-    public void onTeamJoin(Team newTeam) {
+    public void onJoin(@NotNull Team team, @NotNull Participant participant) {
+        onTeamJoin(team);
+        onParticipantJoin(participant);
+    }
+    
+    protected void onTeamJoin(Team newTeam) {
         if (teams.containsKey(newTeam.getTeamId())) {
             return;
         }
         QT quitTeam = teamQuitDatas.remove(newTeam.getTeamId());
+        T team;
         if (quitTeam != null) {
-            T team = createTeam(newTeam, quitTeam);
+            team = createTeam(newTeam, quitTeam);
             teams.put(team.getTeamId(), team);
             setupTeamOptions(team);
             state.onTeamRejoin(team);
         } else {
-            T team = createTeam(newTeam);
+            team = createTeam(newTeam);
             teams.put(team.getTeamId(), team);
             setupTeamOptions(team);
             tabList.addTeam(team.getTeamId(), team.getDisplayName(), team.getColor());
             state.onNewTeamJoin(team);
         }
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                gameManager.getGameStateService().createOrUpdate(ActiveTeamInGame.builder()
+                        .teamId(team.getTeamId())
+                        .gameSessionId(gameSessionId)
+                        .gameScore(team.getScore())
+                        .build());
+            } catch (SQLException e) {
+                reportSQLException("joining team to game and updating in-game table", e);
+            }
+        });
     }
     
-    @Override
-    public void onParticipantJoin(Participant newParticipant) {
+    protected void onParticipantJoin(Participant newParticipant) {
         T team = teams.get(newParticipant.getTeamId());
         QP quitData = quitDatas.remove(newParticipant.getParticipantID());
         newParticipant.setGameMode(GameMode.ADVENTURE);
@@ -508,6 +561,17 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             addParticipant(participant, team);
             state.onNewParticipantJoin(participant, team);
         }
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                gameManager.getGameStateService().createOrUpdate(ActiveParticipantInGame.builder()
+                        .participantUUID(participant.getUniqueId().toString())
+                        .gameSessionId(gameSessionId)
+                        .gameScore(participant.getScore())
+                        .build());
+            } catch (SQLException e) {
+                reportSQLException("joining participant to game and updating in-game database", e);
+            }
+        });
         // update the UI
         sidebar.updateLine(participant.getUniqueId(), "title", title);
         displayScore(participant);
@@ -515,11 +579,23 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     @Override
-    public void onParticipantQuit(UUID participantUUID) {
+    public void onQuit(@NotNull String teamId, @NotNull UUID participantUUID) {
+        onParticipantQuit(participantUUID);
+        onTeamQuit(teamId);
+    }
+    
+    protected void onParticipantQuit(@NotNull UUID participantUUID) {
         P participant = participants.get(participantUUID);
         if (participant == null) {
             return;
         }
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                gameManager.getGameStateService().deleteParticipantInGame(participantUUID.toString());
+            } catch (SQLException e) {
+                reportSQLException("quitting participant from game and removing from the in-game table", e);
+            }
+        });
         T team = teams.get(participant.getTeamId());
         state.onParticipantQuit(participant, team);
         participants.remove(participantUUID);
@@ -530,12 +606,19 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         _resetParticipant(participant, team);
     }
     
-    @Override
-    public void onTeamQuit(@NotNull String teamId) {
+    protected void onTeamQuit(@NotNull String teamId) {
         T team = teams.get(teamId);
         if (team == null || team.size() > 0) {
             return;
         }
+        // no more members on the team
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                gameManager.getGameStateService().deleteTeamInGame(teamId);
+            } catch (SQLException e) {
+                reportSQLException("quitting team from game and removing from the in-game table", e);
+            }
+        });
         state.onTeamQuit(team);
         teams.remove(team.getTeamId());
         teamQuitDatas.put(team.getTeamId(), getQuitData(team));
@@ -726,6 +809,12 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
                     .description(description)
                     .createdAt(date)
                     .build());
+            try {
+                gameManager.getGameStateService().update(ActiveParticipantInGame.from(participant, gameSessionId));
+                gameManager.getGameStateService().update(ActiveTeamInGame.from(team, gameSessionId));
+            } catch (SQLException e) {
+                reportSQLException("update in-game participant score", e);
+            }
         });
     }
     
@@ -751,6 +840,11 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
                     .description(description)
                     .createdAt(date)
                     .build());
+            try {
+                gameManager.getGameStateService().update(ActiveTeamInGame.from(team, gameSessionId));
+            } catch (SQLException e) {
+                reportSQLException("update in-game team score", e);
+            }
         });
     }
     
@@ -784,6 +878,12 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
                             .createdAt(date)
                             .build())
                     .toList());
+            try {
+                gameManager.getGameStateService().updateActiveParticipantsInGame(ActiveParticipantInGame.from(awardedParticipants, gameSessionId));
+                gameManager.getGameStateService().updateActiveTeamsInGame(ActiveTeamInGame.from(awardedTeams, gameSessionId));
+            } catch (Exception e) {
+                reportSQLException("bulk update in-game participant and team score", new SQLException(e));
+            }
         });
         displayParticipantScores(awardedParticipants);
         displayTeamScores(awardedTeams);
@@ -815,6 +915,11 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
                             .createdAt(date)
                             .build())
                     .toList());
+            try {
+                gameManager.getGameStateService().updateActiveTeamsInGame(ActiveTeamInGame.from(awardedTeams, gameSessionId));
+            } catch (Exception e) {
+                reportSQLException("bulk update in-game team score", new SQLException(e));
+            }
         });
     }
     // Award Points end
@@ -1071,5 +1176,15 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
                 Audience.audience(admins),
                 Audience.audience(participants.values())
         ).showTitle(title);
+    }
+    
+    private void reportSQLException(String attemptedAction, SQLException e) {
+        Main.logger().log(Level.SEVERE, String.format("A database error occurred attempting to %s during game %s (instance id %s)", attemptedAction, type.getTitle(), gameInstanceId), e);
+        messageAdmins(Component.empty()
+                .append(Component.text("A database error occurred during "))
+                .append(title
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text(". See console for details."))
+        );
     }
 }

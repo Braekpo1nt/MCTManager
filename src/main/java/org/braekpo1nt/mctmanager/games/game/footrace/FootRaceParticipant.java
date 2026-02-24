@@ -7,7 +7,9 @@ import lombok.ToString;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.ParticipantData;
 import org.braekpo1nt.mctmanager.participant.QuitDataBase;
+import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @ToString(callSuper = true)
 @Getter
@@ -36,6 +38,12 @@ public class FootRaceParticipant extends ParticipantData {
      */
     private int placement;
     
+    /**
+     * Used for rejoining, saved when quitting,
+     * teleported to this pos when rejoining and set to null
+     */
+    private @Nullable Location lastPosition;
+    
     public FootRaceParticipant(@NotNull Participant participant, int currentCheckpoint, int score) {
         super(participant, score);
         this.lapCooldown = System.currentTimeMillis();
@@ -43,6 +51,7 @@ public class FootRaceParticipant extends ParticipantData {
         this.currentCheckpoint = currentCheckpoint;
         this.finished = false;
         this.placement = 0;
+        this.lastPosition = null;
     }
     
     public FootRaceParticipant(Participant participant, QuitData quitData) {
@@ -52,6 +61,7 @@ public class FootRaceParticipant extends ParticipantData {
         this.currentCheckpoint = quitData.getCurrentCheckpoint();
         this.finished = quitData.isFinished();
         this.placement = quitData.getPlacement();
+        this.lastPosition = quitData.getLastPosition();
     }
     
     /**
@@ -77,15 +87,20 @@ public class FootRaceParticipant extends ParticipantData {
          * The participant's placement upon finishing the race
          */
         private final int placement;
+        /**
+         * the last position they were at before they quit
+         */
+        private @NotNull Location lastPosition;
     }
     
-    public QuitData getQuitData() {
+    public QuitData getQuitData(@NotNull Location lastPosition) {
         return new QuitData(
                 getScore(),
                 lap,
                 currentCheckpoint,
                 finished,
-                placement
+                placement,
+                lastPosition
         );
     }
 }

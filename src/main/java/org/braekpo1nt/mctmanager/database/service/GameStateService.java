@@ -10,10 +10,12 @@ import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
 import org.braekpo1nt.mctmanager.database.entities.SystemState;
 import org.braekpo1nt.mctmanager.database.entities.admin.AdminEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipant;
+import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipantInGame;
 import org.braekpo1nt.mctmanager.database.entities.participants.EventParticipantEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.MaintenanceParticipantEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.PracticeParticipantEntity;
 import org.braekpo1nt.mctmanager.database.entities.teams.ActiveTeam;
+import org.braekpo1nt.mctmanager.database.entities.teams.ActiveTeamInGame;
 import org.braekpo1nt.mctmanager.database.entities.teams.EventTeam;
 import org.braekpo1nt.mctmanager.database.entities.teams.MaintenanceTeam;
 import org.braekpo1nt.mctmanager.database.entities.teams.PracticeTeam;
@@ -35,6 +37,9 @@ public class GameStateService {
     private final @NotNull Dao<ActiveParticipant, String> activeParticipantsDao;
     private final @NotNull Dao<AdminEntity, String> adminDao;
     
+    private final @NotNull Dao<ActiveTeamInGame, String> activeTeamsInGameDao;
+    private final @NotNull Dao<ActiveParticipantInGame, String> activeParticipantsInGameDao;
+    
     private final @NotNull Dao<MaintenanceTeam, String> maintenanceTeamsDao;
     private final @NotNull Dao<PracticeTeam, String> practiceTeamsDao;
     private final @NotNull Dao<EventTeam, Integer> eventTeamsDao;
@@ -51,6 +56,9 @@ public class GameStateService {
         this.activeTeamsDao = database.getActiveTeamsDao();
         this.activeParticipantsDao = database.getActiveParticipantsDao();
         this.adminDao = database.getAdminDao();
+        
+        this.activeTeamsInGameDao = database.getActiveTeamsInGameDao();
+        this.activeParticipantsInGameDao = database.getActiveParticipantsInGameDao();
         
         this.maintenanceTeamsDao = database.getMaintenanceTeamsDao();
         this.practiceTeamsDao = database.getPracticeTeamsDao();
@@ -271,6 +279,116 @@ public class GameStateService {
     
     public List<AdminEntity> getAdmins() throws SQLException {
         return adminDao.queryForAll();
+    }
+    
+    // In Game
+    
+    public void addIfNotExists(@NotNull ActiveTeamInGame team) throws SQLException {
+        activeTeamsInGameDao.createIfNotExists(team);
+    }
+    
+    public void addIfNotExists(@NotNull ActiveParticipantInGame participant) throws SQLException {
+        activeParticipantsInGameDao.createIfNotExists(participant);
+    }
+    
+    public void createOrUpdate(@NotNull ActiveTeamInGame team) throws SQLException {
+        activeTeamsInGameDao.createOrUpdate(team);
+    }
+    
+    public void createOrUpdate(@NotNull ActiveParticipantInGame participant) throws SQLException {
+        activeParticipantsInGameDao.createOrUpdate(participant);
+    }
+    
+    public void deleteTeamInGame(@NotNull String teamId) throws SQLException {
+        // safe if row with id doesn't exist
+        activeTeamsInGameDao.deleteById(teamId);
+    }
+    
+    public void deleteParticipantInGame(@NotNull String participantUUID) throws SQLException {
+        activeParticipantsInGameDao.deleteById(participantUUID);
+    }
+    
+    /**
+     * Add the given rows to the in-game tables, or update them to match
+     * the given teams and participants if they already exist
+     * @param teams the teams to add
+     * @param participants the participants to add
+     * @throws SQLException if there is an issue communicating with the database
+     */
+    public void addInGameParticipantsAndTeams(@NotNull List<ActiveTeamInGame> teams, @NotNull List<ActiveParticipantInGame> participants) throws SQLException {
+        TransactionManager.callInTransaction(activeParticipantsInGameDao.getConnectionSource(), () -> {
+            try {
+                activeTeamsInGameDao.callBatchTasks(() -> {
+                    for (ActiveTeamInGame team : teams) {
+                        activeTeamsInGameDao.createOrUpdate(team);
+                    }
+                    return null;
+                });
+                activeParticipantsInGameDao.callBatchTasks(() -> {
+                    for (ActiveParticipantInGame participant : participants) {
+                        activeParticipantsInGameDao.createOrUpdate(participant);
+                    }
+                    return null;
+                });
+            } catch (Exception e) {
+                throw new SQLException("Error occurred creating participants and teams in-game", e);
+            }
+            return null;
+        });
+    }
+    
+    /**
+     * Remove the rows from the in-game tables for the given gameSessionId
+     * @param gameSessionId the game session ID to delete the entries for
+     * @throws SQLException if there's an issue communicating with the database
+     */
+    public void removeInGameTeamsAndParticipants(int gameSessionId) throws SQLException {
+        TransactionManager.callInTransaction(activeParticipantsInGameDao.getConnectionSource(), () -> {
+            DeleteBuilder<ActiveTeamInGame, String> teamDeleteBuilder = activeTeamsInGameDao.deleteBuilder();
+            teamDeleteBuilder
+                    .where()
+                    .eq("session_id", gameSessionId);
+            teamDeleteBuilder.delete();
+            
+            DeleteBuilder<ActiveParticipantInGame, String> participantDeleteBuilder = activeParticipantsInGameDao.deleteBuilder();
+            participantDeleteBuilder
+                    .where()
+                    .eq("session_id", gameSessionId);
+            participantDeleteBuilder.delete();
+            return null;
+        });
+    }
+    
+    public void update(@NotNull ActiveParticipantInGame participant) throws SQLException {
+        activeParticipantsInGameDao.update(participant);
+    }
+    
+    public void update(@NotNull ActiveTeamInGame team) throws SQLException {
+        activeTeamsInGameDao.update(team);
+    }
+    
+    public void updateActiveParticipantsInGame(@NotNull List<ActiveParticipantInGame> participants) throws Exception {
+        if (participants.isEmpty()) {
+            return;
+        }
+        activeParticipantsDao.callBatchTasks(() -> {
+            for (ActiveParticipantInGame participant : participants) {
+                activeParticipantsInGameDao.update(participant);
+            }
+            return null;
+        });
+    }
+    
+    public void updateActiveTeamsInGame(@NotNull List<ActiveTeamInGame> teams) throws Exception {
+        if (teams.isEmpty()) {
+            return;
+        }
+        activeTeamsDao.callBatchTasks(() -> {
+            for (ActiveTeamInGame team : teams) {
+                activeTeamsInGameDao.update(team);
+            }
+            return null;
+        });
     }
     
     public void rebuildPracticeMode() throws SQLException {

@@ -310,8 +310,7 @@ public abstract class GameManagerState {
         if (id != null) {
             MCTGame activeGame = activeGames.get(id);
             if (activeGame != null) {
-                activeGame.onParticipantQuit(participant.getUniqueId());
-                activeGame.onTeamQuit(participant.getTeamId());
+                activeGame.onQuit(participant.getTeamId(), participant.getUniqueId());
             }
             onParticipantReturnToHub(participant);
             participant.teleport(config.getSpawn());
@@ -772,7 +771,6 @@ public abstract class GameManagerState {
             admin.sendMessage(Component.text("Returning to hub"));
         }
         Date endDate = new Date();
-        double multiplier = getMultiplier();
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
                 context.getScoreService().setGameSessionEndDate(gameSessionId, endDate);
@@ -1452,8 +1450,8 @@ public abstract class GameManagerState {
                     .append(Component.text(" game is active right now")));
         }
         @Nullable GameInstanceId teamGameId = context.getTeamActiveGame(participant.getTeamId());
+        MCTTeam team = teams.get(participant.getTeamId());
         if (teamGameId != null && !teamGameId.equals(id)) {
-            MCTTeam team = teams.get(participant.getTeamId());
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Can't join "))
                     .append(Component.text(id.getTitle()))
@@ -1463,8 +1461,7 @@ public abstract class GameManagerState {
                     .append(Component.text(teamGameId.getTitle())));
         }
         onParticipantJoinGame(id, participant);
-        activeGame.onTeamJoin(teams.get(participant.getTeamId()));
-        activeGame.onParticipantJoin(participant);
+        activeGame.onJoin(team, participant);
         return CommandResult.success(Component.empty()
                 .append(Component.text("Joining "))
                 .append(Component.text(id.getTitle())));
@@ -1547,10 +1544,9 @@ public abstract class GameManagerState {
             participant.teleport(spawn);
             return CommandResult.success(Component.text("Returning to hub"));
         }
-        activeGame.onParticipantQuit(participant.getUniqueId());
+        activeGame.onQuit(participant.getTeamId(), participant.getUniqueId());
         onParticipantReturnToHub(participant);
         participant.teleport(spawn);
-        activeGame.onTeamQuit(participant.getTeamId());
         return CommandResult.success(Component.text("Quitting current game. Returning to hub."));
     }
     
