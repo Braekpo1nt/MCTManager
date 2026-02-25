@@ -232,6 +232,19 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
                                         .build())
                                 .toList()
                 );
+                Date date = new Date();
+                gameManager.logScoreEvents(newParticipants.stream()
+                        .map(participant -> ScoreEvent.builder()
+                                .sourceType(ScoreEvent.SourceType.GAME)
+                                .gameSessionId(gameSessionId)
+                                .participantUUID(participant.getUniqueId().toString())
+                                .teamId(participant.getTeamId())
+                                .pointsBase(0)
+                                .description("joined game")
+                                .createdAt(date)
+                                .build())
+                        .toList()
+                );
             } catch (SQLException e) {
                 reportSQLException("initializing in_game_* tables for game", e);
             }
@@ -568,6 +581,17 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
                         .gameSessionId(gameSessionId)
                         .gameScore(participant.getScore())
                         .build());
+                if (quitData == null) {
+                    gameManager.logScoreEvent(ScoreEvent.builder()
+                            .sourceType(ScoreEvent.SourceType.GAME)
+                            .gameSessionId(gameSessionId)
+                            .participantUUID(participant.getUniqueId().toString())
+                            .teamId(participant.getTeamId())
+                            .pointsBase(0)
+                            .description("joined game")
+                            .createdAt(new Date())
+                            .build());
+                }
             } catch (SQLException e) {
                 reportSQLException("joining participant to game and updating in-game database", e);
             }
