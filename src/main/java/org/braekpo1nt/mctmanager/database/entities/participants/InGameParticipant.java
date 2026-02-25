@@ -13,12 +13,12 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 
-@DatabaseTable(tableName = "active_participants_in_game")
+@DatabaseTable(tableName = "in_game_participants")
 @NoArgsConstructor
 @Data
 @AllArgsConstructor
 @Builder
-public class ActiveParticipantInGame {
+public class InGameParticipant {
     /**
      * The UUID of the participant
      */
@@ -35,15 +35,15 @@ public class ActiveParticipantInGame {
     @DatabaseField(canBeNull = false, columnName = "game_score")
     private int gameScore;
     
-    public static <P extends Participant> @NotNull ActiveParticipantInGame from(@NotNull P participant, int gameSessionId) {
-        return ActiveParticipantInGame.builder()
+    public static <P extends Participant> @NotNull InGameParticipant from(@NotNull P participant, int gameSessionId) {
+        return InGameParticipant.builder()
                 .participantUUID(participant.getUniqueId().toString())
                 .gameSessionId(gameSessionId)
                 .gameScore(participant.getScore())
                 .build();
     }
     
-    public static <P extends Participant> @NotNull List<ActiveParticipantInGame> from(@NotNull Collection<P> participants, int gameSessionId) {
+    public static <P extends Participant> @NotNull List<InGameParticipant> from(@NotNull Collection<P> participants, int gameSessionId) {
         return participants.stream()
                 .map(participant -> from(participant, gameSessionId))
                 .toList();

@@ -24,6 +24,8 @@ CREATE TABLE event_info (
 
     winner_team_id          VARCHAR(64) NULL,
     
+    canonical               BOOLEAN NOT NULL,
+    
     -- tells website when the standings have changed, reduces polling traffic
     -- Incremented when the event_*_standings tables are updated
     standings_version       INT NOT NULL DEFAULT 0 
@@ -195,7 +197,7 @@ CREATE TABLE active_participants (
     FOREIGN KEY (team_id) REFERENCES active_teams(team_id) -- make sure this is a real team
 );
 
-CREATE TABLE active_teams_in_game (
+CREATE TABLE in_game_teams (
     team_id         VARCHAR(64) PRIMARY KEY,
     session_id      BIGINT NOT NULL, -- the game the team is in
     game_score      INT NOT NULL, -- the score from the game
@@ -204,7 +206,7 @@ CREATE TABLE active_teams_in_game (
     FOREIGN KEY (session_id) REFERENCES game_sessions(id)
 );
 
-CREATE TABLE active_participants_in_game (
+CREATE TABLE in_game_participants (
     participant_uuid    CHAR(36) PRIMARY KEY,
     session_id          BIGINT NOT NULL, -- the game the participant is in
     game_score          INT NOT NULL, -- the score from the game

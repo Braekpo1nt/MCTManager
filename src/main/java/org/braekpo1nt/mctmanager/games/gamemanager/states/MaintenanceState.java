@@ -73,7 +73,10 @@ public class MaintenanceState extends GameManagerState {
             }
             case EVENT -> {
                 // TODO: use the active event from SystemState
-                return startEvent(EventInfo.getDebugEvent(), 7, 0);
+                return CommandResult.success(Component.empty()
+                        .append(Component.text("At this time, you must switch to event mode using the \"/event start\" command"))
+                );
+//                return startEvent(EventInfo.getDebugEvent(), 7, 0);
             }
             default -> {
                 return CommandResult.failure(Component.empty()

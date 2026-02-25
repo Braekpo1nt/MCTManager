@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -13,10 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 /**
  * handles event management

@@ -12,8 +12,8 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
-import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipantInGame;
-import org.braekpo1nt.mctmanager.database.entities.teams.ActiveTeamInGame;
+import org.braekpo1nt.mctmanager.database.entities.participants.InGameParticipant;
+import org.braekpo1nt.mctmanager.database.entities.teams.InGameTeam;
 import org.braekpo1nt.mctmanager.games.base.listeners.GameListener;
 import org.braekpo1nt.mctmanager.games.base.states.GameStateBase;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
@@ -218,14 +218,14 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             try {
                 gameManager.getGameStateService().addInGameParticipantsAndTeams(
                         newTeams.stream()
-                                .map(team -> ActiveTeamInGame.builder()
+                                .map(team -> InGameTeam.builder()
                                         .teamId(team.getTeamId())
                                         .gameSessionId(gameSessionId)
                                         .gameScore(0)
                                         .build())
                                 .toList(),
                         newParticipants.stream()
-                                .map(participant -> ActiveParticipantInGame.builder()
+                                .map(participant -> InGameParticipant.builder()
                                         .participantUUID(participant.getUniqueId().toString())
                                         .gameSessionId(gameSessionId)
                                         .gameScore(0)
@@ -233,7 +233,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
                                 .toList()
                 );
             } catch (SQLException e) {
-                reportSQLException("initializing *_in_game tables for game", e);
+                reportSQLException("initializing in_game_* tables for game", e);
             }
         });
         // database end
@@ -531,7 +531,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                gameManager.getGameStateService().createOrUpdate(ActiveTeamInGame.builder()
+                gameManager.getGameStateService().createOrUpdate(InGameTeam.builder()
                         .teamId(team.getTeamId())
                         .gameSessionId(gameSessionId)
                         .gameScore(team.getScore())
@@ -563,7 +563,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                gameManager.getGameStateService().createOrUpdate(ActiveParticipantInGame.builder()
+                gameManager.getGameStateService().createOrUpdate(InGameParticipant.builder()
                         .participantUUID(participant.getUniqueId().toString())
                         .gameSessionId(gameSessionId)
                         .gameScore(participant.getScore())
@@ -810,8 +810,8 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
                     .createdAt(date)
                     .build());
             try {
-                gameManager.getGameStateService().update(ActiveParticipantInGame.from(participant, gameSessionId));
-                gameManager.getGameStateService().update(ActiveTeamInGame.from(team, gameSessionId));
+                gameManager.getGameStateService().update(InGameParticipant.from(participant, gameSessionId));
+                gameManager.getGameStateService().update(InGameTeam.from(team, gameSessionId));
             } catch (SQLException e) {
                 reportSQLException("update in-game participant score", e);
             }
@@ -841,7 +841,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
                     .createdAt(date)
                     .build());
             try {
-                gameManager.getGameStateService().update(ActiveTeamInGame.from(team, gameSessionId));
+                gameManager.getGameStateService().update(InGameTeam.from(team, gameSessionId));
             } catch (SQLException e) {
                 reportSQLException("update in-game team score", e);
             }
@@ -879,8 +879,8 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
                             .build())
                     .toList());
             try {
-                gameManager.getGameStateService().updateActiveParticipantsInGame(ActiveParticipantInGame.from(awardedParticipants, gameSessionId));
-                gameManager.getGameStateService().updateActiveTeamsInGame(ActiveTeamInGame.from(awardedTeams, gameSessionId));
+                gameManager.getGameStateService().updateInGameParticipants(InGameParticipant.from(awardedParticipants, gameSessionId));
+                gameManager.getGameStateService().updateInGameTeams(InGameTeam.from(awardedTeams, gameSessionId));
             } catch (Exception e) {
                 reportSQLException("bulk update in-game participant and team score", new SQLException(e));
             }
@@ -916,7 +916,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
                             .build())
                     .toList());
             try {
-                gameManager.getGameStateService().updateActiveTeamsInGame(ActiveTeamInGame.from(awardedTeams, gameSessionId));
+                gameManager.getGameStateService().updateInGameTeams(InGameTeam.from(awardedTeams, gameSessionId));
             } catch (Exception e) {
                 reportSQLException("bulk update in-game team score", new SQLException(e));
             }

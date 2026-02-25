@@ -604,7 +604,7 @@ public class GameManager implements Listener {
             boolean uniqueKey = eventService.addEventInfo(EventInfo.builder()
                     .eventId(eventId)
                     .plainTextName(plainTextName)
-                    .componentName(GsonComponentSerializer.gson().serialize(componentName))
+                    .componentName(componentName)
                     .eventDate(eventDate)
                     .createdAt(now)
                     .modifiedAt(now)

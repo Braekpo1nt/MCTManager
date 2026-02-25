@@ -7,19 +7,19 @@ import com.j256.ormlite.jdbc.JdbcPooledConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import lombok.Getter;
 import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
-import org.braekpo1nt.mctmanager.database.entities.EventInfo;
+import org.braekpo1nt.mctmanager.database.entities.EventInfoDto;
 import org.braekpo1nt.mctmanager.database.entities.GameSession;
 import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEventEntity;
 import org.braekpo1nt.mctmanager.database.entities.SystemState;
 import org.braekpo1nt.mctmanager.database.entities.admin.AdminEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipant;
-import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipantInGame;
+import org.braekpo1nt.mctmanager.database.entities.participants.InGameParticipant;
 import org.braekpo1nt.mctmanager.database.entities.participants.EventParticipantEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.MaintenanceParticipantEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.PracticeParticipantEntity;
 import org.braekpo1nt.mctmanager.database.entities.teams.ActiveTeam;
-import org.braekpo1nt.mctmanager.database.entities.teams.ActiveTeamInGame;
+import org.braekpo1nt.mctmanager.database.entities.teams.InGameTeam;
 import org.braekpo1nt.mctmanager.database.entities.teams.EventTeam;
 import org.braekpo1nt.mctmanager.database.entities.teams.MaintenanceTeam;
 import org.braekpo1nt.mctmanager.database.entities.teams.PracticeTeam;
@@ -32,18 +32,18 @@ public class Database {
     
     // ScoreService
     private final @NotNull Dao<AllPlayersEntity, String> allPlayersDao;
-    private final @NotNull Dao<EventInfo, String> eventInfoDao;
+    private final @NotNull Dao<EventInfoDto, String> eventInfoDao;
     private final @NotNull Dao<SystemState, Integer> systemStateDao;
     private final @NotNull Dao<MaintenanceTeam, String> maintenanceTeamsDao;
     private final @NotNull Dao<PracticeTeam, String> practiceTeamsDao;
     private final @NotNull Dao<EventTeam, Integer> eventTeamsDao;
     private final @NotNull Dao<ActiveTeam, String> activeTeamsDao;
-    private final @NotNull Dao<ActiveTeamInGame, String> activeTeamsInGameDao;
+    private final @NotNull Dao<InGameTeam, String> inGameTeamsDao;
     private final @NotNull Dao<MaintenanceParticipantEntity, String> maintenanceParticipantsDao;
     private final @NotNull Dao<PracticeParticipantEntity, String> practiceParticipantsDao;
     private final @NotNull Dao<EventParticipantEntity, Integer> eventParticipantsDao;
     private final @NotNull Dao<ActiveParticipant, String> activeParticipantsDao;
-    private final @NotNull Dao<ActiveParticipantInGame, String> activeParticipantsInGameDao;
+    private final @NotNull Dao<InGameParticipant, String> inGameParticipantsDao;
     private final @NotNull Dao<AdminEntity, String> adminDao;
     private final @NotNull Dao<GameSession, Integer> gameSessionDao;
     private final @NotNull Dao<ScoreEventEntity, Integer> scoreEventsDao;
@@ -55,18 +55,18 @@ public class Database {
         
         // Create the DAOs
         this.allPlayersDao = DaoManager.createDao(connectionSource, AllPlayersEntity.class);
-        this.eventInfoDao = DaoManager.createDao(connectionSource, EventInfo.class);
+        this.eventInfoDao = DaoManager.createDao(connectionSource, EventInfoDto.class);
         this.systemStateDao = DaoManager.createDao(connectionSource, SystemState.class);
         this.maintenanceTeamsDao = DaoManager.createDao(connectionSource, MaintenanceTeam.class);
         this.practiceTeamsDao = DaoManager.createDao(connectionSource, PracticeTeam.class);
         this.eventTeamsDao = DaoManager.createDao(connectionSource, EventTeam.class);
         this.activeTeamsDao = DaoManager.createDao(connectionSource, ActiveTeam.class);
-        this.activeTeamsInGameDao = DaoManager.createDao(connectionSource, ActiveTeamInGame.class);
+        this.inGameTeamsDao = DaoManager.createDao(connectionSource, InGameTeam.class);
         this.maintenanceParticipantsDao = DaoManager.createDao(connectionSource, MaintenanceParticipantEntity.class);
         this.practiceParticipantsDao = DaoManager.createDao(connectionSource, PracticeParticipantEntity.class);
         this.eventParticipantsDao = DaoManager.createDao(connectionSource, EventParticipantEntity.class);
         this.activeParticipantsDao = DaoManager.createDao(connectionSource, ActiveParticipant.class);
-        this.activeParticipantsInGameDao = DaoManager.createDao(connectionSource, ActiveParticipantInGame.class);
+        this.inGameParticipantsDao = DaoManager.createDao(connectionSource, InGameParticipant.class);
         this.adminDao = DaoManager.createDao(connectionSource, AdminEntity.class);
         this.gameSessionDao = DaoManager.createDao(connectionSource, GameSession.class);
         this.scoreEventsDao = DaoManager.createDao(connectionSource, ScoreEventEntity.class);

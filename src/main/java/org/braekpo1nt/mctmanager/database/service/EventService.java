@@ -4,6 +4,7 @@ import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.misc.TransactionManager;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
+import org.braekpo1nt.mctmanager.database.entities.EventInfoDto;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,7 +14,7 @@ import java.sql.SQLException;
 public class EventService {
     
     private final @NotNull String mode;
-    private final @NotNull Dao<EventInfo, String> eventInfoDao;
+    private final @NotNull Dao<EventInfoDto, String> eventInfoDao;
     
     public EventService(@NotNull String mode, @NotNull Database database) {
         this.mode = mode;
@@ -38,6 +39,15 @@ public class EventService {
      * @throws SQLException if there are any issues persisting to the database
      */
     public boolean addEventInfo(@NotNull EventInfo eventInfo) throws SQLException {
+        return addEventInfo(EventInfoDto.from(eventInfo));
+    }
+    
+    /**
+     * @param eventInfo the eventInfo to create
+     * @return true if the EventInfo object was created, false if an EventInfo with that eventId already exists in the database
+     * @throws SQLException if there are any issues persisting to the database
+     */
+    public boolean addEventInfo(@NotNull EventInfoDto eventInfo) throws SQLException {
         return TransactionManager.callInTransaction(eventInfoDao.getConnectionSource(), () -> {
             if (eventInfoDao.idExists(eventInfo.getEventId())) {
                 return false;
@@ -48,9 +58,9 @@ public class EventService {
     }
     
     /**
-     * Delete the given {@link EventInfo} from the database
-     * @param eventId the eventId of the {@link EventInfo} to delete
-     * @return true if the deletion was successful, false if there was no {@link EventInfo}
+     * Delete the given {@link EventInfoDto} from the database
+     * @param eventId the eventId of the {@link EventInfoDto} to delete
+     * @return true if the deletion was successful, false if there was no {@link EventInfoDto}
      * found with the given ID
      */
     public boolean deleteEvent(String eventId) throws SQLException {
@@ -65,10 +75,23 @@ public class EventService {
     
     /**
      * @param eventId the eventId of the event to retrieve
+     * @return the {@link EventInfoDto} with the given eventId, or null if no such event exists
+     * @throws SQLException if there is an issue connecting to the database
+     */
+    public @Nullable EventInfoDto getEventInfoDto(@NotNull String eventId) throws SQLException {
+        return eventInfoDao.queryForId(eventId);
+    }
+    
+    /**
+     * @param eventId the eventId of the event to retrieve
      * @return the {@link EventInfo} with the given eventId, or null if no such event exists
      * @throws SQLException if there is an issue connecting to the database
      */
     public @Nullable EventInfo getEventInfo(@NotNull String eventId) throws SQLException {
-        return eventInfoDao.queryForId(eventId);
+        EventInfoDto eventInfoDto = eventInfoDao.queryForId(eventId);
+        if (eventInfoDto == null) {
+            return null;
+        }
+        return eventInfoDto.to();
     }
 }
