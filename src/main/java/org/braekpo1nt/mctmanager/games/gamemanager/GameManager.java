@@ -381,6 +381,7 @@ public class GameManager implements Listener {
         if (offlineParticipant != null) {
             MCTParticipant participant = new MCTParticipant(offlineParticipant, player);
             state.onParticipantJoin(event, participant);
+            return;
         }
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             String uuidStr = player.getUniqueId().toString();
