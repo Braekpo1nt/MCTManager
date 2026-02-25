@@ -5,6 +5,7 @@ import com.j256.ormlite.misc.TransactionManager;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
 
@@ -60,5 +61,14 @@ public class EventService {
             eventInfoDao.deleteById(eventId);
             return true;
         });
+    }
+    
+    /**
+     * @param eventId the eventId of the event to retrieve
+     * @return the {@link EventInfo} with the given eventId, or null if no such event exists
+     * @throws SQLException if there is an issue connecting to the database
+     */
+    public @Nullable EventInfo getEventInfo(@NotNull String eventId) throws SQLException {
+        return eventInfoDao.queryForId(eventId);
     }
 }

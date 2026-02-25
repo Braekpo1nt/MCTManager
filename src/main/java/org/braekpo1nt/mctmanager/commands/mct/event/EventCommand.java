@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.commands.mct.event;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
@@ -16,8 +17,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permissible;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 
 public class EventCommand extends CommandManager {
     
@@ -26,10 +29,33 @@ public class EventCommand extends CommandManager {
         addSubCommand(new TabSubCommand("start") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                if (args.length < 1 || 2 < args.length) {
-                    return CommandResult.failure(getUsage().of("<numberOfGames>").of("[currentGameNumber]"));
+                if (args.length < 2 || 3 < args.length) {
+                    return CommandResult.failure(getUsage().of("<eventId>").of("<numberOfGames>").of("[currentGameNumber]"));
                 }
-                String maxGamesString = args[0];
+                String eventId = args[0];
+                EventInfo eventInfo;
+                try {
+                    eventInfo = gameManager.getEventService().getEventInfo(eventId);
+                } catch (SQLException e) {
+                    Main.logger().log(Level.SEVERE, String.format("A database error occurred retrieving EventInfo with eventId \"%s\"", eventId), e);
+                    return CommandResult.failure(Component.empty()
+                            .append(Component.text("A database error occurred getting the info for eventId"))
+                            .append(Component.text(eventId)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(". See console for more details."))
+                            .append(Component.newline())
+                            .append(Component.text(e.getMessage()))
+                    );
+                }
+                if (eventInfo == null) {
+                    return CommandResult.failure(Component.empty()
+                            .append(Component.text(eventId)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" is not a valid eventId."))
+                    );
+                }
+                
+                String maxGamesString = args[1];
                 if (!CommandUtils.isInteger(maxGamesString)) {
                     return CommandResult.failure(Component.empty()
                             .append(Component.text(maxGamesString)
@@ -39,8 +65,8 @@ public class EventCommand extends CommandManager {
                 int maxGames = Integer.parseInt(maxGamesString);
                 
                 int currentGameNumber;
-                if (args.length == 2) {
-                    String currentGameNumberString = args[1];
+                if (args.length == 3) {
+                    String currentGameNumberString = args[2];
                     if (!CommandUtils.isInteger(currentGameNumberString)) {
                         return CommandResult.failure(Component.empty()
                                 .append(Component.text(currentGameNumberString)
@@ -54,8 +80,7 @@ public class EventCommand extends CommandManager {
                 } else {
                     currentGameNumber = 1;
                 }
-                // TODO: get the eventInfo from the database, require eventId in command args
-                return gameManager.startEvent(EventInfo.getDebugEvent(), maxGames, currentGameNumber);
+                return gameManager.startEvent(eventInfo, maxGames, currentGameNumber);
             }
             
             @Override
