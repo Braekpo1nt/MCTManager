@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.database;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
+import com.j256.ormlite.jdbc.JdbcPooledConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import lombok.Getter;
 import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
@@ -78,7 +79,25 @@ public class Database {
             String user,
             String password,
             String databaseName) throws SQLException {
-        this(new JdbcConnectionSource(String.format("jdbc:mysql://%s:%s/%s", host, port, databaseName), user, password));
+        this(getConnectionSource(host, port, user, password, databaseName));
+    }
+    
+    /**
+     * A {@link JdbcPooledConnectionSource} is better for a 24/7 plugin because it recreates connections
+     * when lost automatically. Handles DB server timeouts, handles router resets, internet disconnections, etc.
+     * @param host the host address (e.g. localhost)
+     * @param port the port (e.g. 8330680)
+     * @param user the username (e.g. "admin")
+     * @param password the password (e.g. "password")
+     * @param databaseName the name of the database (e.g. "challenger_trials")
+     * @return a ConnectionSource usable by ORMLite
+     * @throws SQLException if there is an issue connecting to the database
+     */
+    private static @NotNull JdbcPooledConnectionSource getConnectionSource(String host, String port, String user, String password, String databaseName) throws SQLException {
+        JdbcPooledConnectionSource jdbcPooledConnectionSource = new JdbcPooledConnectionSource(String.format("jdbc:mysql://%s:%s/%s", host, port, databaseName), user, password);
+        jdbcPooledConnectionSource.setMaxConnectionsFree(5);
+        jdbcPooledConnectionSource.setCheckConnectionsEveryMillis(30_000);
+        return jdbcPooledConnectionSource;
     }
     
     public Database(String sqlitePath) throws SQLException {
