@@ -20,6 +20,7 @@ import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEventEntity;
+import org.braekpo1nt.mctmanager.database.exceptions.EventStillInUseException;
 import org.braekpo1nt.mctmanager.database.service.EventService;
 import org.braekpo1nt.mctmanager.database.service.GameStateService;
 import org.braekpo1nt.mctmanager.database.service.ScoreService;
@@ -598,6 +599,15 @@ public class GameManager implements Listener {
         return state.startGame(teamIds, gameAdmins, gameType, configFile);
     }
     
+    /**
+     * @return a list of all eventIds in the database, or empty list if there are no
+     * entries in the database
+     * @throws SQLException if there is an issue connecting to the database
+     */
+    public @NotNull List<String> getEventIds() throws SQLException {
+        return eventService.getEventIds();
+    }
+    
     public CommandResult createEvent(String eventId, Date eventDate, String plainTextName, Component componentName) {
         Date now = new Date();
         try {
@@ -663,6 +673,14 @@ public class GameManager implements Listener {
                     .append(Component.text(eventId)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(". See console for details."))
+            );
+        } catch (EventStillInUseException e) {
+            Main.logger().log(Level.WARNING, String.format("Tried to delete event with id \"%s\" when there are other tables still referencing it", eventId), e);
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text("You can't delete event "))
+                    .append(Component.text(eventId)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" because there are still score values and/or participants referencing it. This would destroy history."))
             );
         }
     }

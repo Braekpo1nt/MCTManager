@@ -82,6 +82,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -520,10 +521,21 @@ public class Main extends JavaPlugin {
                 )
                 .then(Commands.literal("delete")
                         .then(Commands.argument("eventId", StringArgumentType.word())
+                                .suggests((ctx, builder) -> CompletableFuture.supplyAsync(() -> {
+                                    try {
+                                        List<String> eventIds = gameManager.getEventIds();
+                                        for (String eventId : eventIds) {
+                                            builder.suggest(eventId);
+                                        }
+                                    } catch (SQLException e) {
+                                        getLogger().log(Level.WARNING, "Can't get eventIds from the database", e);
+                                    }
+                                    return builder.build();
+                                }))
                                 .executes(ctx -> {
                                     String eventId = ctx.getArgument("eventId", String.class);
-                                    Component result = gameManager.deleteEvent(eventId).getMessageOrEmpty();
-                                    ctx.getSource().getSender().sendMessage(result);
+                                    CommandResult commandResult = gameManager.deleteEvent(eventId);
+                                    CommandResult.showResult(ctx.getSource().getSender(), commandResult);
                                     return Command.SINGLE_SUCCESS;
                                 })
                         )

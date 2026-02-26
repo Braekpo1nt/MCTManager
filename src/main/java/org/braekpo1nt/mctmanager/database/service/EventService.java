@@ -1,14 +1,17 @@
 package org.braekpo1nt.mctmanager.database.service;
 
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.GenericRawResults;
 import com.j256.ormlite.misc.TransactionManager;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.EventInfoDto;
+import org.braekpo1nt.mctmanager.database.exceptions.EventStillInUseException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
+import java.util.List;
 
 @SuppressWarnings("UnusedReturnValue")
 public class EventService {
@@ -63,14 +66,21 @@ public class EventService {
      * @return true if the deletion was successful, false if there was no {@link EventInfoDto}
      * found with the given ID
      */
-    public boolean deleteEvent(String eventId) throws SQLException {
-        return TransactionManager.callInTransaction(eventInfoDao.getConnectionSource(), () -> {
-            if (!eventInfoDao.idExists(eventId)) {
-                return false;
+    public boolean deleteEvent(String eventId) throws SQLException, EventStillInUseException {
+        try {
+            return TransactionManager.callInTransaction(eventInfoDao.getConnectionSource(), () -> {
+                if (!eventInfoDao.idExists(eventId)) {
+                    return false;
+                }
+                eventInfoDao.deleteById(eventId);
+                return true;
+            });
+        } catch (SQLException e) {
+            if (Database.containsForeignKeyViolation(e)) {
+                throw new EventStillInUseException(eventId, e);
             }
-            eventInfoDao.deleteById(eventId);
-            return true;
-        });
+            throw e;
+        }
     }
     
     /**
@@ -93,5 +103,20 @@ public class EventService {
             return null;
         }
         return eventInfoDto.to();
+    }
+    
+    /**
+     * @return a list of all eventIds in the database (empty list if there are none)
+     * @throws SQLException if there are any issues communicating with the database
+     */
+    public @NotNull List<String> getEventIds() throws SQLException {
+        try (GenericRawResults<String[]> raw =
+                     eventInfoDao.queryRaw("SELECT id FROM event_info ORDER BY event_date DESC")) {
+            return raw.getResults().stream()
+                    .map(r -> r[0])
+                    .toList();
+        } catch (Exception e) {
+            throw new SQLException("Exception thrown while getting eventIds from table");
+        }
     }
 }

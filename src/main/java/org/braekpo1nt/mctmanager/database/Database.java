@@ -26,6 +26,7 @@ import org.braekpo1nt.mctmanager.database.entities.teams.PracticeTeam;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 
 @Getter
 public class Database {
@@ -102,5 +103,30 @@ public class Database {
     
     public Database(String sqlitePath) throws SQLException {
         this(new JdbcConnectionSource("jdbc:sqlite:" + sqlitePath));
+    }
+    
+    /**
+     * @param original the original throwable
+     * @return true if the given throwable has a parent cause (no matter how far up) which
+     * indicates a foreign key violation exception.
+     */
+    public static boolean containsForeignKeyViolation(final Throwable original) {
+        Throwable throwable = original;
+        while (throwable != null) {
+            
+            if (throwable instanceof SQLIntegrityConstraintViolationException) {
+                return true;
+            }
+            
+            if (throwable instanceof SQLException sqlException) {
+                // MariaDB / MySQL FK violation error code
+                if (sqlException.getErrorCode() == 1451) {
+                    return true;
+                }
+            }
+            
+            throwable = throwable.getCause();
+        }
+        return false;
     }
 }
