@@ -216,6 +216,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         // database start
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
+                // update the live representation of the players and teams
                 gameManager.getGameStateService().addInGameParticipantsAndTeams(
                         newTeams.stream()
                                 .map(team -> InGameTeam.builder()
@@ -232,6 +233,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
                                         .build())
                                 .toList()
                 );
+                // put a score in for each player, so they show up whether they earn points or not
                 Date date = new Date();
                 gameManager.logScoreEvents(newParticipants.stream()
                         .map(participant -> ScoreEvent.builder()
