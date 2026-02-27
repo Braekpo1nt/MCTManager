@@ -239,12 +239,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
             context.getParentContext().messageOnDeckParticipants(deathMessage);
         }
         // new code stop
-    }
-    
-    @Override
-    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull CTFMatchParticipant participant) {
-        participant.setAlive(false);
-        context.getParentContext().getTabList().setParticipantGrey(participant, true);
+        
         if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
             if (hasSouthFlag(participant)) {
                 dropSouthFlag(participant);
@@ -254,6 +249,12 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
                 dropNorthFlag(participant);
             }
         }
+    }
+    
+    @Override
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull CTFMatchParticipant participant) {
+        participant.setAlive(false);
+        context.getParentContext().getTabList().setParticipantGrey(participant, true);
         if (allParticipantsAreDead()) {
             onBothTeamsLose(Component.text("Both teams are dead."));
         }
