@@ -8,6 +8,7 @@ import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -25,6 +26,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.EnumResolver;
 import org.braekpo1nt.mctmanager.commands.bugreport.BugReportCommand;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.FailureCommandResult;
 import org.braekpo1nt.mctmanager.commands.mct.MCTCommand;
@@ -542,12 +544,25 @@ public class Main extends JavaPlugin {
                 )
                 .build();
         
+        LiteralCommandNode<CommandSourceStack> plantCommand = Commands.literal("plant")
+                .then(Commands.literal("tree")
+                        .executes(BrigadierAdapters.wraps(ctx -> {
+                            return CommandResult.success(Component.text("Planted a tree!"));
+                        }))
+                )
+                .then(Commands.literal("grass")
+                        .executes(BrigadierAdapters.wraps(ctx -> {
+                            return CommandResult.failure(Component.text("Grass failed to grow."));
+                        }))
+                )
+                .build();
         
         // Brigadier commands
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> {
             commands.registrar().register(ctDebugCommand);
             commands.registrar().register(databaseCommand);
             commands.registrar().register(eventCommand);
+            commands.registrar().register(plantCommand);
         });
     }
     
