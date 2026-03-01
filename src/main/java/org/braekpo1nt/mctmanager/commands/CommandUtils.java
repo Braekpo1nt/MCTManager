@@ -1,17 +1,16 @@
 package org.braekpo1nt.mctmanager.commands;
 
+import com.mojang.brigadier.tree.CommandNode;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CommandUtils {
     
@@ -149,5 +148,51 @@ public class CommandUtils {
         System.arraycopy(original, 0, result, 0, indexToRemove);
         System.arraycopy(original, indexToRemove + 1, result, indexToRemove, original.length - indexToRemove - 1);
         return result;
+    }
+    
+    //========================
+    // a few helpers for theoretical automatic permission node creation:
+    //========================
+    
+    public static @NotNull Component displayCommandNodes(List<List<String>> allPermNodes) {
+        TextComponent.Builder builder = Component.text();
+        for (List<String> permNodes : allPermNodes) {
+            for (String permNode : permNodes) {
+                builder
+                        .append(Component.text(permNode))
+                        .append(Component.text("."));
+            }
+            builder.append(Component.newline());
+        }
+        return builder.build();
+    }
+    
+    public static List<List<String>> toPermNodes(CommandNode<CommandSourceStack> root) {
+        List<List<String>> result = new ArrayList<>();
+        Deque<String> path = new ArrayDeque<>();
+        
+        traverse(root, path, result);
+        
+        return result;
+    }
+    
+    private static void traverse(
+            CommandNode<CommandSourceStack> node,
+            Deque<String> path,
+            List<List<String>> result
+    ) {
+        // Add current node to path
+        path.addLast(node.getName());
+        
+        // Record current path
+        result.add(new ArrayList<>(path));
+        
+        // Traverse children
+        for (CommandNode<CommandSourceStack> child : node.getChildren()) {
+            traverse(child, path, result);
+        }
+        
+        // Backtrack
+        path.removeLast();
     }
 }
