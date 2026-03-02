@@ -6,6 +6,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
@@ -52,6 +53,7 @@ public class EventSubCommand implements BrigadierSubCommand {
     private ArgumentBuilder<CommandSourceStack, ?> buildStart() {
         return Commands.literal("start")
                 .then(Commands.argument("eventId", StringArgumentType.word())
+                        .suggests(suggestsEventId())
                         .then(Commands.argument("numberOfGames", IntegerArgumentType.integer())
                                 .executes(BrigadierAdapters.wraps(ctx -> {
                                     String eventId = ctx.getArgument("eventId", String.class);
@@ -146,17 +148,7 @@ public class EventSubCommand implements BrigadierSubCommand {
     private ArgumentBuilder<CommandSourceStack, ?> buildDelete() {
         return Commands.literal("delete")
                 .then(Commands.argument("eventId", StringArgumentType.word())
-                        .suggests((ctx, builder) -> CompletableFuture.supplyAsync(() -> {
-                            try {
-                                List<String> eventIds = gameManager.getEventIds();
-                                for (String eventId : eventIds) {
-                                    builder.suggest(eventId);
-                                }
-                            } catch (SQLException e) {
-                                Main.logger().log(Level.WARNING, "Can't get eventIds from the database", e);
-                            }
-                            return builder.build();
-                        }))
+                        .suggests(suggestsEventId())
                         .executes(ctx -> {
                             String eventId = ctx.getArgument("eventId", String.class);
                             CommandResult commandResult = gameManager.deleteEvent(eventId);
@@ -164,6 +156,20 @@ public class EventSubCommand implements BrigadierSubCommand {
                             return Command.SINGLE_SUCCESS;
                         })
                 );
+    }
+    
+    private @NotNull SuggestionProvider<CommandSourceStack> suggestsEventId() {
+        return (ctx, builder) -> CompletableFuture.supplyAsync(() -> {
+            try {
+                List<String> eventIds = gameManager.getEventIds();
+                for (String eventId : eventIds) {
+                    builder.suggest(eventId);
+                }
+            } catch (SQLException e) {
+                Main.logger().log(Level.WARNING, "Can't get eventIds from the database", e);
+            }
+            return builder.build();
+        });
     }
     
 }
