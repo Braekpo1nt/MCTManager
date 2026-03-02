@@ -520,7 +520,7 @@ public class Main extends JavaPlugin {
             commands.registrar().register(ctDebugCommand);
             commands.registrar().register(databaseCommand);
             commands.registrar().register(plantCommand);
-            commands.registrar().register(new MCTCommand2(gameManager).build());
+            commands.registrar().register(new MCTCommand2(this, gameManager).build());
         });
     }
     
