@@ -19,42 +19,6 @@ public class VoteCommand extends CommandManager {
     
     public VoteCommand(GameManager gameManager, @NotNull String name) {
         super(name);
-        addSubCommand(new TabSubCommand("add") {
-            @Override
-            public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                if (args.length != 1) {
-                    return CommandResult.failure(getUsage().of("<game>"));
-                }
-                
-                String gameId = args[0];
-                GameType gameToAdd = GameType.fromID(gameId);
-                if (gameToAdd == null) {
-                    return CommandResult.failure(Component.text("")
-                            .append(Component.text(gameId)
-                                    .decorate(TextDecoration.BOLD))
-                            .append(Component.text(" is not a recognized game")));
-                }
-                if (!VoteManager.votableGames().contains(gameToAdd)) {
-                    return CommandResult.failure(Component.text("")
-                            .append(Component.text(gameId)
-                                    .decorate(TextDecoration.BOLD))
-                            .append(Component.text(" is not a votable game")));
-                }
-                
-                return gameManager.addGameToVotingPool(gameToAdd);
-            }
-            
-            @Override
-            public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                if (args.length == 1) {
-                    List<GameType> votingPool = gameManager.getVotingPool();
-                    return VoteManager.votableGames().stream()
-                            .filter(gameType -> !votingPool.contains(gameType))
-                            .map(GameType::getId).toList();
-                }
-                return null;
-            }
-        });
         addSubCommand(new TabSubCommand("remove") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {

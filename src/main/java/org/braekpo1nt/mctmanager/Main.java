@@ -1,16 +1,10 @@
 package org.braekpo1nt.mctmanager;
 
 import java.sql.SQLException;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -35,8 +29,7 @@ import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import lombok.extern.java.Log;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
-import org.braekpo1nt.mctmanager.commands.argumenttypes.EnumResolver;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.EnumArgumentType;
 import org.braekpo1nt.mctmanager.commands.bugreport.BugReportCommand;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
@@ -393,7 +386,7 @@ public class Main extends JavaPlugin {
                                     return Command.SINGLE_SUCCESS;
                                 }))
                         .then(Commands.literal("settype")
-                                .then(Commands.argument("type", new EnumResolver<>(BoundingBoxRendererImpl.Type.class, BoundingBoxRendererImpl.Type.values()))
+                                .then(Commands.argument("type", new EnumArgumentType<>(BoundingBoxRendererImpl.Type.class, BoundingBoxRendererImpl.Type.values()))
                                         .executes(ctx -> {
                                             if (boxRenderer != null) {
                                                 BoundingBoxRendererImpl.Type type = ctx.getArgument("type", BoundingBoxRendererImpl.Type.class);
@@ -447,7 +440,7 @@ public class Main extends JavaPlugin {
                                                     return Command.SINGLE_SUCCESS;
                                                 })))))
                 .then(Commands.literal("enumtest")
-                        .then(Commands.argument("value", new EnumResolver<>(BlockFace.class, BlockFace.values()))
+                        .then(Commands.argument("value", new EnumArgumentType<>(BlockFace.class, BlockFace.values()))
                                 .executes(ctx -> {
                                     BlockFace value = ctx.getArgument("value", BlockFace.class);
                                     ctx.getSource().getSender().sendMessage(Component.empty()

@@ -14,6 +14,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
  * Enum arguments are suggested and parsed in lowercase.
  * @param <E> The type of enum to be parsed
  */
-public class EnumResolver<E extends Enum<E>> implements CustomArgumentType.Converted<E, String> {
+public class EnumArgumentType<E extends Enum<E>> implements CustomArgumentType.Converted<E, String> {
     
     private static final InvalidEnumInputException ERROR_INVALID_ENUM_VALUE = new InvalidEnumInputException();
     
@@ -52,9 +53,20 @@ public class EnumResolver<E extends Enum<E>> implements CustomArgumentType.Conve
      * @param type The type of the enum to parse
      * @param suggestions The values to be suggested the user when typing this argument
      */
-    public EnumResolver(Class<E> type, E[] suggestions) {
+    public EnumArgumentType(Class<E> type, E[] suggestions) {
         this.type = type;
         this.suggestions = Arrays.stream(suggestions).map(e -> e.toString().toLowerCase()).collect(Collectors.toSet());
+    }
+    
+    /**
+     * @param type The type of the enum to parse
+     * @param suggestions he values to be suggested the user when typing this argument
+     */
+    public EnumArgumentType(Class<E> type, List<E> suggestions) {
+        this.type = type;
+        this.suggestions = suggestions.stream()
+                .map(e -> e.toString().toLowerCase())
+                .collect(Collectors.toSet());
     }
     
     /**
