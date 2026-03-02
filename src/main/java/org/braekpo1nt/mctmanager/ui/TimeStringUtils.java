@@ -5,8 +5,16 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 public class TimeStringUtils {
+    
+    // TODO: move these to a different helper class
+    private static final DateTimeFormatter DATE_FORMATTER =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd");
     
     private TimeStringUtils() {
         // do not instantiate
@@ -75,5 +83,10 @@ public class TimeStringUtils {
                 return NamedTextColor.WHITE;
             }
         }
+    }
+    
+    public static Date parseDate(String dateString) {
+        LocalDate localDate = LocalDate.parse(dateString, DATE_FORMATTER);
+        return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
     }
 }

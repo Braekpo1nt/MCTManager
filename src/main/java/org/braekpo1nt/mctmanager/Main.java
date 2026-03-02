@@ -40,6 +40,7 @@ import org.braekpo1nt.mctmanager.commands.argumenttypes.EnumResolver;
 import org.braekpo1nt.mctmanager.commands.bugreport.BugReportCommand;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.MCTCommand2;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.FailureCommandResult;
 import org.braekpo1nt.mctmanager.commands.mct.MCTCommand;
@@ -508,41 +509,6 @@ public class Main extends JavaPlugin {
                                 })))
                 .build();
         
-        LiteralCommandNode<CommandSourceStack> eventCommand = Commands.literal("mctevent")
-                .then(Commands.literal("create")
-                        .then(Commands.argument("eventId", StringArgumentType.word())
-                                .then(Commands.argument("eventDate", StringArgumentType.word())
-                                        .then(Commands.argument("plainTextName", StringArgumentType.string())
-                                                .then(Commands.argument("componentName", ArgumentTypes.component())
-                                                        .executes(ctx -> executeCreate(ctx, gameManager))
-                                                )
-                                        )
-                                )
-                        )
-                )
-                .then(Commands.literal("delete")
-                        .then(Commands.argument("eventId", StringArgumentType.word())
-                                .suggests((ctx, builder) -> CompletableFuture.supplyAsync(() -> {
-                                    try {
-                                        List<String> eventIds = gameManager.getEventIds();
-                                        for (String eventId : eventIds) {
-                                            builder.suggest(eventId);
-                                        }
-                                    } catch (SQLException e) {
-                                        getLogger().log(Level.WARNING, "Can't get eventIds from the database", e);
-                                    }
-                                    return builder.build();
-                                }))
-                                .executes(ctx -> {
-                                    String eventId = ctx.getArgument("eventId", String.class);
-                                    CommandResult commandResult = gameManager.deleteEvent(eventId);
-                                    CommandResult.showResult(ctx.getSource().getSender(), commandResult);
-                                    return Command.SINGLE_SUCCESS;
-                                })
-                        )
-                )
-                .build();
-        
         LiteralCommandNode<CommandSourceStack> plantCommand = Commands.literal("plant")
                 .then(Commands.literal("tree")
                         .executes(BrigadierAdapters.wraps(ctx -> {
@@ -560,42 +526,9 @@ public class Main extends JavaPlugin {
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> {
             commands.registrar().register(ctDebugCommand);
             commands.registrar().register(databaseCommand);
-            commands.registrar().register(eventCommand);
             commands.registrar().register(plantCommand);
+            commands.registrar().register(new MCTCommand2(gameManager).build());
         });
-    }
-    
-    private static int executeCreate(CommandContext<CommandSourceStack> ctx, GameManager gameManager) {
-        {
-            String eventId = ctx.getArgument("eventId", String.class);
-            String eventDateString = ctx.getArgument("eventDate", String.class);
-            Date eventDate;
-            try {
-                eventDate = parseDate(eventDateString);
-            } catch (DateTimeParseException e) {
-                ctx.getSource().getSender().sendMessage(Component.empty()
-                        .append(Component.text("Could not parse date string "))
-                        .append(Component.text(eventDateString)
-                                .decorate(TextDecoration.BOLD))
-                        .color(NamedTextColor.RED)
-                );
-                return Command.SINGLE_SUCCESS;
-            }
-            String plainTextName = ctx.getArgument("plainTextName", String.class);
-            Component componentName = ctx.getArgument("componentName", Component.class);
-            Component result = gameManager.createEvent(eventId, eventDate, plainTextName, componentName).getMessageOrEmpty();
-            ctx.getSource().getSender().sendMessage(result);
-            return Command.SINGLE_SUCCESS;
-        }
-    }
-    
-    // TODO: move these to a different helper class
-    private static final DateTimeFormatter DATE_FORMATTER =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    
-    public static Date parseDate(String dateString) {
-        LocalDate localDate = LocalDate.parse(dateString, DATE_FORMATTER);
-        return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
     }
     
     private static void givePlayerCustomModelItem(Player player, ItemStack itemStack, String customModelString) {
