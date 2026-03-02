@@ -10,7 +10,6 @@ public class EventCommand extends CommandManager {
     
     public EventCommand(GameManager gameManager, @NotNull String name) {
         super(name);
-        addSubCommand(new EventUndoSubCommand(gameManager, "undo"));
         addSubCommand(new ModifyCommand(gameManager, "modify"));
     }
     
