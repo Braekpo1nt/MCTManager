@@ -9,7 +9,6 @@ import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.mct.admin.AdminCommand;
 import org.braekpo1nt.mctmanager.commands.mct.debug.DebugCommand;
 import org.braekpo1nt.mctmanager.commands.mct.edit.EditCommand;
-import org.braekpo1nt.mctmanager.commands.mct.event.EventCommand;
 import org.braekpo1nt.mctmanager.commands.mct.game.GameCommand;
 import org.braekpo1nt.mctmanager.commands.mct.hub.HubCommand;
 import org.braekpo1nt.mctmanager.commands.mct.mode.ModeCommand;
@@ -41,7 +40,6 @@ public class MCTCommand extends MasterCommandManager {
         addSubCommand(new ModeCommand(gameManager, "mode"));
         addSubCommand(new TeamCommand(plugin, gameManager, "team"));
         addSubCommand(new AdminCommand(gameManager));
-        addSubCommand(new EventCommand(gameManager, "event"));
         addSubCommand(new SubCommand("load") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
