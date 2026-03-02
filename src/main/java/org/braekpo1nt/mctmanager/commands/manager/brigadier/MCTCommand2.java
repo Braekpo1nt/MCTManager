@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.commands.manager.brigadier;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.event.EventSubCommand;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.jetbrains.annotations.NotNull;
 
