@@ -22,6 +22,7 @@ public class VoteCommand implements BrigadierSubCommand {
     public LiteralArgumentBuilder<CommandSourceStack> create() {
         return Commands.literal("vote")
                 .then(buildAdd())
+                .then(buildRemove())
                 ;
     }
     
@@ -31,6 +32,17 @@ public class VoteCommand implements BrigadierSubCommand {
                         .executes(BrigadierAdapters.wraps(ctx -> {
                             GameType gameToAdd = ctx.getArgument("game", GameType.class);
                             return gameManager.addGameToVotingPool(gameToAdd);
+                        }))
+                )
+                ;
+    }
+    
+    private ArgumentBuilder<CommandSourceStack, ?> buildRemove() {
+        return Commands.literal("remove")
+                .then(Commands.argument("game", new EnumArgumentType<>(GameType.class, VoteManager.votableGames()))
+                        .executes(BrigadierAdapters.wraps(ctx -> {
+                            GameType gameToRemove = ctx.getArgument("game", GameType.class);
+                            return gameManager.removeGameFromVotingPool(gameToRemove);
                         }))
                 )
                 ;

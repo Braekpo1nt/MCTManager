@@ -41,6 +41,7 @@ public class EventSubCommand implements BrigadierSubCommand {
                 .then(buildStop())
                 .then(buildCreate())
                 .then(buildDelete())
+                .then(new VoteCommand(gameManager).create())
                 ;
     }
     
