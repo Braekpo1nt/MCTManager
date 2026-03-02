@@ -38,6 +38,7 @@ public class EventSubCommand implements BrigadierSubCommand {
     public LiteralArgumentBuilder<CommandSourceStack> create() {
         return Commands.literal("event")
                 .then(buildStart())
+                .then(buildStop())
                 .then(buildCreate())
                 .then(buildDelete())
                 ;
@@ -89,6 +90,24 @@ public class EventSubCommand implements BrigadierSubCommand {
         return gameManager.startEvent(eventInfo, maxGames, currentGameNumber);
     }
     
+    private ArgumentBuilder<CommandSourceStack, ?> buildStop() {
+        return Commands.literal("stop")
+                .executes(BrigadierAdapters.wraps(ctx ->
+                        CommandResult.success(Component.text("Are you sure? Type ")
+                                .append(Component.empty()
+                                        .append(Component.text("/mct event stop "))
+                                        .append(Component.text("confirm")
+                                                .decorate(TextDecoration.BOLD))
+                                        .decorate(TextDecoration.ITALIC))
+                                .append(Component.text(" to confirm."))
+                                .color(NamedTextColor.YELLOW))
+                ))
+                .then(Commands.literal("confirm")
+                        .executes(BrigadierAdapters.wraps(ctx -> gameManager.stopEvent()))
+                )
+                ;
+    }
+    
     private ArgumentBuilder<CommandSourceStack, ?> buildCreate() {
         return Commands.literal("create")
                 .then(Commands.argument("eventId", StringArgumentType.word())
@@ -103,22 +122,20 @@ public class EventSubCommand implements BrigadierSubCommand {
     }
     
     private CommandResult executeCreate(CommandContext<CommandSourceStack> ctx) {
-        {
-            String eventId = ctx.getArgument("eventId", String.class);
-            String eventDateString = ctx.getArgument("eventDate", String.class);
-            Date eventDate;
-            try {
-                eventDate = TimeStringUtils.parseDate(eventDateString);
-            } catch (DateTimeParseException e) {
-                return CommandResult.failure(Component.empty()
-                        .append(Component.text("Could not parse date string "))
-                        .append(Component.text(eventDateString)
-                                .decorate(TextDecoration.BOLD)));
-            }
-            String plainTextName = ctx.getArgument("plainTextName", String.class);
-            Component componentName = ctx.getArgument("componentName", Component.class);
-            return gameManager.createEvent(eventId, eventDate, plainTextName, componentName);
+        String eventId = ctx.getArgument("eventId", String.class);
+        String eventDateString = ctx.getArgument("eventDate", String.class);
+        Date eventDate;
+        try {
+            eventDate = TimeStringUtils.parseDate(eventDateString);
+        } catch (DateTimeParseException e) {
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text("Could not parse date string "))
+                    .append(Component.text(eventDateString)
+                            .decorate(TextDecoration.BOLD)));
         }
+        String plainTextName = ctx.getArgument("plainTextName", String.class);
+        Component componentName = ctx.getArgument("componentName", Component.class);
+        return gameManager.createEvent(eventId, eventDate, plainTextName, componentName);
     }
     
     private ArgumentBuilder<CommandSourceStack, ?> buildDelete() {
