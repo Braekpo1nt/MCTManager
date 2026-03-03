@@ -1,0 +1,68 @@
+package org.braekpo1nt.mctmanager.commands.manager.brigadier.team;
+
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import io.papermc.paper.command.brigadier.Commands;
+import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.bukkit.OfflinePlayer;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
+
+public class JoinSubCommand implements BrigadierSubCommand {
+    
+    private final @NotNull Main plugin;
+    private final @NotNull GameManager gameManager;
+    
+    public JoinSubCommand(@NotNull Main plugin, @NotNull GameManager gameManager) {
+        this.plugin = plugin;
+        this.gameManager = gameManager;
+    }
+    
+    @Override
+    public LiteralArgumentBuilder<CommandSourceStack> create() {
+        return Commands.literal("join")
+                .then(Commands.argument("teamId", StringArgumentType.word())
+                        .then(Commands.argument("member", StringArgumentType.word())
+                                .suggests((source, builder) -> suggestPlayerNames(builder))
+                                .executes(BrigadierAdapters.wraps(this::executeJoin))
+                        )
+                )
+                ;
+    }
+    
+    /**
+     * @param builder the suggestion builder
+     * @return the player names of all online/offline players and members of teams
+     */
+    private @NotNull CompletableFuture<Suggestions> suggestPlayerNames(SuggestionsBuilder builder) {
+        return CompletableFuture.supplyAsync(() -> {
+            Stream.concat(
+                            Arrays.stream(plugin.getServer().getOfflinePlayers())
+                                    .map(OfflinePlayer::getName),
+                            gameManager.getAllParticipantNames().stream()
+                    )
+                    .distinct()
+                    .filter(name -> name.toLowerCase().startsWith(builder.getRemainingLowerCase()))
+                    .forEach(builder::suggest);
+            return builder.build();
+        });
+    }
+    
+    private CommandResult executeJoin(CommandContext<CommandSourceStack> ctx) {
+        String teamId = ctx.getArgument("teamId", String.class);
+        String member = ctx.getArgument("member", String.class);
+        return GameManagerUtils.joinParticipant(plugin, gameManager, member, teamId);
+    }
+}

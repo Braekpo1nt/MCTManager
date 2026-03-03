@@ -22,6 +22,7 @@ public class TeamCommand implements BrigadierSubCommand {
     public LiteralArgumentBuilder<CommandSourceStack> create() {
         return Commands.literal("team")
                 .then(new AddSubCommand(gameManager).create())
+                .then(new JoinSubCommand(plugin, gameManager).create())
                 ;
     }
 }
