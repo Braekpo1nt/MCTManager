@@ -27,7 +27,7 @@ public class UndoCommand implements BrigadierSubCommand {
     public LiteralArgumentBuilder<CommandSourceStack> create() {
         return Commands.literal("undo")
                 .then(Commands.argument("game", new EnumArgumentType<>(GameType.class, GameType.values()))
-                        .then(Commands.argument("configFile", StringArgumentType.string())
+                        .then(Commands.argument("configFile", StringArgumentType.word())
                                 .then(Commands.argument("iteration", IntegerArgumentType.integer())
                                         .executes(BrigadierAdapters.wraps(this::executeUndo))
                                 )

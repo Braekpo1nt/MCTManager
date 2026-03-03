@@ -31,8 +31,8 @@ public class AddSubCommand implements BrigadierSubCommand {
     public LiteralArgumentBuilder<CommandSourceStack> create() {
         return Commands.literal("add")
                 .then(Commands.argument("teamId", StringArgumentType.word())
-                        .then(Commands.argument("displayName", StringArgumentType.greedyString())
-                                .then(Commands.argument("color", ArgumentTypes.namedColor())
+                        .then(Commands.argument("displayName", StringArgumentType.string())
+                                .then(Commands.argument("color", StringArgumentType.word())
                                         .suggests(this::suggestColor)
                                         .executes(BrigadierAdapters.wraps(this::executeAdd))
                                 )
