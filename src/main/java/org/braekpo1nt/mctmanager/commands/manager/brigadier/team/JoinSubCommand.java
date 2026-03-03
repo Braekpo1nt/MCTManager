@@ -16,6 +16,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -36,6 +37,13 @@ public class JoinSubCommand implements BrigadierSubCommand {
     public LiteralArgumentBuilder<CommandSourceStack> create() {
         return Commands.literal("join")
                 .then(Commands.argument("teamId", new TeamArgumentType(gameManager))
+                        .executes(BrigadierAdapters.wraps(ctx -> {
+                            Team team = ctx.getArgument("teamId", Team.class);
+                            if (!(ctx.getSource().getSender() instanceof Player player)) {
+                                return CommandResult.failure("Must be a player to use the no-argument option");
+                            }
+                            return GameManagerUtils.joinParticipant(plugin, gameManager, player.getName(), team);
+                        }))
                         .then(Commands.argument("member", StringArgumentType.word())
                                 .suggests((source, builder) -> suggestPlayerNames(builder))
                                 .executes(BrigadierAdapters.wraps(this::executeJoin))
