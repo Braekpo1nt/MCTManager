@@ -23,6 +23,7 @@ public class TeamCommand implements BrigadierSubCommand {
         return Commands.literal("team")
                 .then(new AddSubCommand(gameManager).create())
                 .then(new JoinSubCommand(plugin, gameManager).create())
+                .then(new LeaveSubCommand(plugin, gameManager).create())
                 ;
     }
 }

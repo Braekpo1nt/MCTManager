@@ -22,9 +22,10 @@ import java.util.concurrent.CompletableFuture;
 public class OfflineParticipantArgumentType implements CustomArgumentType.Converted<OfflineParticipant, String> {
     
     private static final DynamicCommandExceptionType ERROR_PARTICIPANT_DOES_NOT_EXIST = new DynamicCommandExceptionType(name -> MessageComponentSerializer.message().serialize(Component.empty()
+            .append(Component.text("Player "))
             .append(Component.text(name.toString())
                     .decorate(TextDecoration.BOLD))
-            .append(Component.text(" is not a participant."))
+            .append(Component.text(" is not a on a team."))
     ));
     
     private final @NotNull Main plugin;
