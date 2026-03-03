@@ -251,6 +251,10 @@ public class GameManagerUtils {
                     .append(Component.text(" does not exist.")));
         }
         
+        return joinParticipant(plugin, gameManager, ign, team);
+    }
+    
+    public static CommandResult joinParticipant(Main plugin, @NotNull GameManager gameManager, @NotNull String ign, @NotNull Team team) {
         OfflinePlayer playerToJoin;
         try {
             playerToJoin = plugin.getServer().getOfflinePlayer(ign);
@@ -263,7 +267,7 @@ public class GameManagerUtils {
                     .append(Component.text(". Does the user exist? See console for details."))
             );
         }
-        return gameManager.joinParticipantToTeam(playerToJoin, ign, teamId);
+        return gameManager.joinParticipantToTeam(playerToJoin, ign, team.getTeamId());
     }
     
     /**

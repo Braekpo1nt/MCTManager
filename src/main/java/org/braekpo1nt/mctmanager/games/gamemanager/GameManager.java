@@ -895,7 +895,8 @@ public class GameManager implements Listener {
      * @param teamId The internal teamId of the team to join the player to.
      */
     public CommandResult joinParticipantToTeam(@NotNull OfflinePlayer offlinePlayer, @NotNull String name, @NotNull String teamId) {
-        return state.joinParticipantToTeam(offlinePlayer, name, teamId);
+        MCTTeam team = teams.get(teamId);
+        return state.joinParticipantToTeam(offlinePlayer, name, team);
     }
     
     /**

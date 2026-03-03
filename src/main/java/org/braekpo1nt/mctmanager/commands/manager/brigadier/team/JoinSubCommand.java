@@ -8,11 +8,13 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.TeamArgumentType;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +35,7 @@ public class JoinSubCommand implements BrigadierSubCommand {
     @Override
     public LiteralArgumentBuilder<CommandSourceStack> create() {
         return Commands.literal("join")
-                .then(Commands.argument("teamId", StringArgumentType.word())
+                .then(Commands.argument("teamId", new TeamArgumentType(gameManager))
                         .then(Commands.argument("member", StringArgumentType.word())
                                 .suggests((source, builder) -> suggestPlayerNames(builder))
                                 .executes(BrigadierAdapters.wraps(this::executeJoin))
@@ -61,8 +63,8 @@ public class JoinSubCommand implements BrigadierSubCommand {
     }
     
     private CommandResult executeJoin(CommandContext<CommandSourceStack> ctx) {
-        String teamId = ctx.getArgument("teamId", String.class);
+        Team team = ctx.getArgument("teamId", Team.class);
         String member = ctx.getArgument("member", String.class);
-        return GameManagerUtils.joinParticipant(plugin, gameManager, member, teamId);
+        return GameManagerUtils.joinParticipant(plugin, gameManager, member, team);
     }
 }

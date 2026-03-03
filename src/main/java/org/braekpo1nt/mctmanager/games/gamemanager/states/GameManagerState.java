@@ -1310,22 +1310,16 @@ public abstract class GameManagerState {
      * Note, this will not join a player to a team if that player is an admin.
      * @param offlinePlayer The player to join to the given team
      * @param name The name of the participant to join to the given team
-     * @param teamId The internal teamId of the team to join the player to.
+     * @param team The internal teamId of the team to join the player to.
      */
-    public CommandResult joinParticipantToTeam(@NotNull OfflinePlayer offlinePlayer, @NotNull String name, @NotNull String teamId) {
-        MCTTeam team = teams.get(teamId);
-        if (team == null) {
-            return CommandResult.failure(Component.empty()
-                    .append(Component.text(teamId).decorate(TextDecoration.BOLD))
-                    .append(Component.text(" is not a valid teamId")));
-        }
+    public CommandResult joinParticipantToTeam(@NotNull OfflinePlayer offlinePlayer, @NotNull String name, @NotNull MCTTeam team) {
         List<CommandResult> results = new ArrayList<>();
         if (context.isAdmin(offlinePlayer.getUniqueId())) {
             results.add(removeAdmin(offlinePlayer, name));
         }
         OfflineParticipant existingParticipant = allParticipants.get(offlinePlayer.getUniqueId());
         if (existingParticipant != null) {
-            if (existingParticipant.getTeamId().equals(teamId)) {
+            if (existingParticipant.isOnTeam(team)) {
                 results.add(CommandResult.success(Component.empty()
                         .append(existingParticipant.displayName())
                         .append(Component.text(" is already a member of "))
@@ -1343,8 +1337,8 @@ public abstract class GameManagerState {
             Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (joinParticipantToTeam)", team.getTeamId()));
         }
         
-        Component displayName = team.createDisplayName(name);
-        OfflineParticipant offlineParticipant = new OfflineParticipant(offlinePlayer.getUniqueId(), name, displayName, teamId, 0);
+        Component displayName = team.getFormattedDisplayName();
+        OfflineParticipant offlineParticipant = new OfflineParticipant(offlinePlayer.getUniqueId(), name, displayName, team.getTeamId(), 0);
         allParticipants.put(offlineParticipant.getUniqueId(), offlineParticipant);
         team.joinMember(offlineParticipant.getUniqueId());
         tabList.joinParticipant(
