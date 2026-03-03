@@ -26,21 +26,38 @@ public class PresetController extends ConfigController<PresetDTO> {
     }
     
     /**
+     * @param presetFile the file referencing the preset to load
+     * @throws ConfigInvalidException if there is a problem parsing the JSON into a configDTO
+     * @throws ConfigIOException if there is an IO problem getting the configDTO
+     */
+    public @NotNull Preset getPreset(@NotNull File presetFile) throws ConfigException {
+        PresetDTO presetDTO = loadConfigDTO(presetFile, PresetDTO.class);
+        presetDTO.validate(new Validator("preset"));
+        return presetDTO.toPreset();
+    }
+    
+    /**
+     * @param presetFile the name of the preset file in the {@link #presetDirectory}
      * @throws ConfigInvalidException if there is a problem parsing the JSON into a configDTO
      * @throws ConfigIOException if there is an IO problem getting the configDTO
      */
     public @NotNull Preset getPreset(@NotNull String presetFile) throws ConfigException {
-        PresetDTO presetDTO = loadConfigDTO(new File(presetDirectory, presetFile), PresetDTO.class);
-        presetDTO.validate(new Validator("preset"));
-        return presetDTO.toPreset();
+        return getPreset(new File(presetDirectory, presetFile));
     }
     
     /**
      * @throws ConfigIOException if there is an IO error saving the config to the file system
      */
     public void savePreset(@NotNull Preset preset, @NotNull String presetFile) {
+        savePreset(preset, new File(presetDirectory, presetFile));
+    }
+    
+    /**
+     * @throws ConfigIOException if there is an IO error saving the config to the file system
+     */
+    public void savePreset(@NotNull Preset preset, @NotNull File presetFile) {
         PresetDTO presetDTO = PresetDTO.fromPreset(preset);
-        saveConfigDTO(presetDTO, new File(presetDirectory, presetFile));
+        saveConfigDTO(presetDTO, presetFile);
     }
     
     /**

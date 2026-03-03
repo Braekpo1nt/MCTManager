@@ -1,16 +1,21 @@
 package org.braekpo1nt.mctmanager.commands;
 
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.brigadier.tree.CommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 public class CommandUtils {
     
@@ -194,5 +199,13 @@ public class CommandUtils {
         
         // Backtrack
         path.removeLast();
+    }
+    
+    public static CompletableFuture<Suggestions> suggestColor(CommandContext<CommandSourceStack> ctx, SuggestionsBuilder builder) {
+        List<String> suggestions = ColorMap.getPartiallyMatchingColorStrings(builder.getRemainingLowerCase());
+        for (String suggestion : suggestions) {
+            builder.suggest(suggestion);
+        }
+        return builder.buildFuture();
     }
 }

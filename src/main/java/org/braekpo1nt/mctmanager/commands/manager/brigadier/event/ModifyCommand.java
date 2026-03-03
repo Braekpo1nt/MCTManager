@@ -20,7 +20,7 @@ public class ModifyCommand implements BrigadierSubCommand {
     }
     
     @Override
-    public LiteralArgumentBuilder<CommandSourceStack> create() {
+    public @NotNull LiteralArgumentBuilder<CommandSourceStack> create() {
         return Commands.literal("modify")
                 .then(Commands.literal("maxgames")
                         .then(Commands.argument("newCount", IntegerArgumentType.integer())

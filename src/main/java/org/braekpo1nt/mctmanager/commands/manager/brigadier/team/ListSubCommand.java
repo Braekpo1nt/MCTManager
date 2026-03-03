@@ -24,8 +24,9 @@ public class ListSubCommand implements BrigadierSubCommand {
     }
     
     @Override
-    public LiteralArgumentBuilder<CommandSourceStack> create() {
+    public @NotNull LiteralArgumentBuilder<CommandSourceStack> create() {
         return Commands.literal("list")
+                .executes(BrigadierAdapters.wraps(ctx -> executeList(false)))
                 .then(Commands.argument("showAll", BoolArgumentType.bool())
                         .executes(BrigadierAdapters.wraps(ctx -> {
                             boolean showAll = ctx.getArgument("showAll", Boolean.class);

@@ -36,6 +36,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -484,6 +485,29 @@ public class GameManagerUtils {
         return sortedTeams;
     }
     
+    public static @NotNull CommandResult applyPreset(
+            @NotNull Main plugin,
+            @NotNull GameManager gameManager,
+            @NotNull PresetStorageUtil storageUtil,
+            @NotNull String presetFile,
+            boolean override,
+            boolean resetScores,
+            boolean whiteList,
+            boolean unWhitelist,
+            boolean kickUnWhitelisted) {
+        return applyPreset(
+                plugin,
+                gameManager,
+                storageUtil,
+                new File(new File(plugin.getDataFolder(), "preset"), presetFile),
+                override,
+                resetScores,
+                whiteList,
+                unWhitelist,
+                kickUnWhitelisted
+        );
+    }
+    
     /**
      * @param whiteList if true, all participants in the preset will be whitelisted.
      * If false, no participants will be whitelisted by this process.
@@ -506,7 +530,7 @@ public class GameManagerUtils {
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
             @NotNull PresetStorageUtil storageUtil,
-            @NotNull String presetFile,
+            @NotNull File presetFile,
             boolean override,
             boolean resetScores,
             boolean whiteList,

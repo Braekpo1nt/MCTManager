@@ -21,7 +21,7 @@ public class VoteCommand implements BrigadierSubCommand {
     }
     
     @Override
-    public LiteralArgumentBuilder<CommandSourceStack> create() {
+    public @NotNull LiteralArgumentBuilder<CommandSourceStack> create() {
         return Commands.literal("vote")
                 .then(buildAdd())
                 .then(buildRemove())

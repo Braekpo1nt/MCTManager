@@ -38,7 +38,7 @@ public class EventSubCommand implements BrigadierSubCommand {
     }
     
     @Override
-    public LiteralArgumentBuilder<CommandSourceStack> create() {
+    public @NotNull LiteralArgumentBuilder<CommandSourceStack> create() {
         return Commands.literal("event")
                 .then(buildStart())
                 .then(buildStop())

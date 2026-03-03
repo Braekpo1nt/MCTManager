@@ -34,7 +34,7 @@ public class JoinSubCommand implements BrigadierSubCommand {
     }
     
     @Override
-    public LiteralArgumentBuilder<CommandSourceStack> create() {
+    public @NotNull LiteralArgumentBuilder<CommandSourceStack> create() {
         return Commands.literal("join")
                 .then(Commands.argument("teamId", new TeamArgumentType(gameManager))
                         .executes(BrigadierAdapters.wraps(ctx -> {

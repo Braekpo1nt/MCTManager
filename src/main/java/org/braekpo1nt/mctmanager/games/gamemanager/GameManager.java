@@ -957,8 +957,19 @@ public class GameManager implements Listener {
      * @param uuid the UUID of the participant
      * @return the OfflineParticipant, or null if they don't exist
      */
-    public @Nullable OfflineParticipant getOfflineParticipant(UUID uuid) {
+    public @Nullable OfflineParticipant getOfflineParticipant(@NotNull UUID uuid) {
         return allParticipants.get(uuid);
+    }
+    
+    /**
+     * @param ign the in game name of the participant
+     * @return the OfflineParticipant, or null if they don't exist
+     */
+    public @Nullable OfflineParticipant getOfflineParticipant(@NotNull String ign) {
+        return allParticipants.values().stream()
+                .filter(offlineParticipant -> offlineParticipant.getName().matches(ign))
+                .findFirst()
+                .orElse(null);
     }
     
     /**
