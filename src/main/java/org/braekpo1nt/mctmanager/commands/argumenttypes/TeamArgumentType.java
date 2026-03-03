@@ -32,10 +32,10 @@ public class TeamArgumentType implements CustomArgumentType.Converted<Team, Stri
     }
     
     @Override
-    public @NotNull Team convert(@NotNull String nativeType) throws CommandSyntaxException {
-        Team team = gameManager.getTeam(nativeType);
+    public @NotNull Team convert(@NotNull String teamId) throws CommandSyntaxException {
+        Team team = gameManager.getTeam(teamId);
         if (team == null) {
-            throw ERROR_TEAM_DOES_NOT_EXISTS.create(nativeType);
+            throw ERROR_TEAM_DOES_NOT_EXISTS.create(teamId);
         }
         return team;
     }
