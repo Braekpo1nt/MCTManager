@@ -21,7 +21,7 @@ public class GameCommand implements BrigadierSubCommand {
     @Override
     public @NotNull LiteralArgumentBuilder<CommandSourceStack> create() {
         return Commands.literal("game")
-                .then(new StartSubCommand(plugin, gameManager).create())
+                .then(new StartSubCommand(gameManager).create())
                 .then(new StopSubCommand(gameManager).create())
                 ;
     }

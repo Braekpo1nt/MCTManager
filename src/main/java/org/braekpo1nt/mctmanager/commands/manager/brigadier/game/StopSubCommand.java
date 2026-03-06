@@ -15,6 +15,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class StopSubCommand implements BrigadierSubCommand {
     
+    private final static String GAME_ID_ARG = "gameId";
+    
     private final @NotNull GameManager gameManager;
     
     public StopSubCommand(@NotNull GameManager gameManager) {
@@ -25,9 +27,9 @@ public class StopSubCommand implements BrigadierSubCommand {
     public @NotNull LiteralArgumentBuilder<CommandSourceStack> create() {
         return Commands.literal("stop")
                 .executes(BrigadierAdapters.wraps(this::executeStopAll))
-                .then(Commands.argument("gameId", new GameIdArgumentType(gameManager, false))
+                .then(Commands.argument(GAME_ID_ARG, new GameIdArgumentType(gameManager, true))
                         .executes(BrigadierAdapters.wraps(this::executeStopGame))
-                        .then(Commands.argument("configFile", new ConfigFileArgumentType(gameManager, false, "gameId"))
+                        .then(Commands.argument("configFile", new ConfigFileArgumentType(gameManager, true, GAME_ID_ARG))
                                 .executes(BrigadierAdapters.wraps(this::executeStopGameConfig))
                         )
                 )
@@ -39,12 +41,12 @@ public class StopSubCommand implements BrigadierSubCommand {
     }
     
     private @NotNull CommandResult executeStopGame(@NotNull CommandContext<CommandSourceStack> ctx) {
-        GameType gameType = ctx.getArgument("gameId", GameType.class);
+        GameType gameType = ctx.getArgument(GAME_ID_ARG, GameType.class);
         return gameManager.stopGame(gameType, null);
     }
     
     private @NotNull CommandResult executeStopGameConfig(@NotNull CommandContext<CommandSourceStack> ctx) {
-        GameType gameType = ctx.getArgument("gameId", GameType.class);
+        GameType gameType = ctx.getArgument(GAME_ID_ARG, GameType.class);
         String configFile = ctx.getArgument("configFile", String.class);
         return gameManager.stopGame(gameType, configFile);
     }
