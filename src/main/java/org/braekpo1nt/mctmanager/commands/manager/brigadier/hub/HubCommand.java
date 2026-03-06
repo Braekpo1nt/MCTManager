@@ -20,6 +20,9 @@ public class HubCommand implements BrigadierSubCommand {
     public @NotNull LiteralArgumentBuilder<CommandSourceStack> create() {
         return Commands.literal("hub")
                 .executes(BrigadierAdapters.wraps(this::executeTpToHub))
+                .then(Commands.literal("menu")
+                        .executes(BrigadierAdapters.wraps(this::executeMenu))
+                )
                 ;
     }
     
@@ -35,5 +38,16 @@ public class HubCommand implements BrigadierSubCommand {
             return gameManager.returnAdminToHub(player);
         }
         return CommandResult.failure("Only participants and admins can use this command");
+    }
+    
+    private @NotNull CommandResult executeMenu(@NotNull CommandContext<CommandSourceStack> ctx) {
+        if (!(ctx.getSource().getSender() instanceof Player player)) {
+            return CommandResult.failure("This command can only be run by a player");
+        }
+        Participant participant = gameManager.getOnlineParticipant(player.getUniqueId());
+        if (participant == null) {
+            return CommandResult.failure("This command can only be run by a participant");
+        }
+        return gameManager.openHubMenu(participant.getUniqueId());
     }
 }
