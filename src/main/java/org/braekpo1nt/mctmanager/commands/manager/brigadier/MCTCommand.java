@@ -15,17 +15,18 @@ import org.braekpo1nt.mctmanager.commands.manager.brigadier.option.OptionCommand
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.score.ScoreCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.tablist.TabListCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.team.TeamCommand;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.timer.TimerCommand;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.jetbrains.annotations.NotNull;
 
-public class MCTCommand2 implements BrigadierCommand {
+public class MCTCommand implements BrigadierCommand {
     
     private final @NotNull Main plugin;
     private final @NotNull GameManager gameManager;
     private final @NotNull BlockEffectsListener blockEffectsListener;
     
-    public MCTCommand2(@NotNull Main plugin, @NotNull GameManager gameManager, @NotNull BlockEffectsListener blockEffectsListener) {
+    public MCTCommand(@NotNull Main plugin, @NotNull GameManager gameManager, @NotNull BlockEffectsListener blockEffectsListener) {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.blockEffectsListener = blockEffectsListener;
@@ -45,6 +46,10 @@ public class MCTCommand2 implements BrigadierCommand {
                 .then(new EditCommand(gameManager).create())
                 .then(new ScoreCommand(gameManager).create())
                 .then(new TabListCommand(gameManager).create())
+                .then(new TimerCommand(gameManager).create())
+                .then(Commands.literal("load")
+                        .executes(BrigadierAdapters.wraps(ctx -> gameManager.loadGameState()))
+                )
                 .build();
     }
 }
