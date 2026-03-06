@@ -32,6 +32,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.EnumArgumentType;
 import org.braekpo1nt.mctmanager.commands.bugreport.BugReportCommand;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
+import org.braekpo1nt.mctmanager.commands.manager.PermissionedLiteralArgumentBuilder;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
@@ -515,12 +516,21 @@ public class Main extends JavaPlugin {
                 )
                 .build();
         
+        LiteralCommandNode<CommandSourceStack> mctCommand1 = new MCTCommand(this, gameManager, blockEffectsListener).build();
+        LiteralCommandNode<CommandSourceStack> myPermTest = BrigadierAdapters.literal("myPermTest", getServer().getPluginManager())
+                .then(BrigadierAdapters.literal("say", getServer().getPluginManager())
+                        .executes(BrigadierAdapters.wraps(ctx -> {
+                            return CommandResult.success(Component.text("SUccess!!!"));
+                        }))
+                )
+                .build();
         // Brigadier commands
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> {
             commands.registrar().register(ctDebugCommand);
             commands.registrar().register(databaseCommand);
             commands.registrar().register(plantCommand);
-            commands.registrar().register(new MCTCommand(this, gameManager, blockEffectsListener).build());
+            commands.registrar().register(mctCommand1);
+            commands.registrar().register(myPermTest);
         });
     }
     
