@@ -17,6 +17,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Team;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -32,6 +33,7 @@ public class ScoreCommand implements BrigadierSubCommand {
     @Override
     public @NotNull LiteralArgumentBuilder<CommandSourceStack> create() {
         return Commands.literal("score")
+                .executes(BrigadierAdapters.wraps(this::executeScoreSelf))
                 .then(Commands.literal("player")
                         .then(Commands.argument("participant", new OfflineParticipantArgumentType(gameManager))
                                 .executes(BrigadierAdapters.wraps(this::executeScorePlayer))
@@ -52,6 +54,21 @@ public class ScoreCommand implements BrigadierSubCommand {
                         )
                 )
                 ;
+    }
+    
+    private @NotNull CommandResult executeScoreSelf(@NotNull CommandContext<CommandSourceStack> ctx) {
+        if (!(ctx.getSource().getSender() instanceof Player player)) {
+            return CommandResult.failure("Only players can use the no-args command");
+        }
+        OfflineParticipant offlineParticipant = gameManager.getOfflineParticipant(player.getUniqueId());
+        if (offlineParticipant == null) {
+            return CommandResult.failure(Component.text("You are not a participant"));
+        }
+        return CommandResult.success(Component.empty()
+                .append(player.displayName())
+                .append(Component.text(": "))
+                .append(Component.text(offlineParticipant.getScore())
+                        .color(NamedTextColor.GOLD)));
     }
     
     private @NotNull CommandResult executeScorePlayer(CommandContext<CommandSourceStack> ctx) {
