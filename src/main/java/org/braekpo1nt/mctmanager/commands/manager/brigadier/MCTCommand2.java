@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.commands.manager.brigadier.admin.AdminCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.debug.DebugCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.event.EventSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.game.GameCommand;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.hub.HubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.team.TeamCommand;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +31,7 @@ public class MCTCommand2 implements BrigadierCommand {
                 .then(new AdminCommand(gameManager).create())
                 .then(new DebugCommand().create())
                 .then(new GameCommand(gameManager).create())
+                .then(new HubCommand(gameManager).create())
                 .build();
     }
 }

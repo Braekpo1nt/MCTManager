@@ -16,6 +16,10 @@ public class HubCommand implements BrigadierSubCommand {
     
     private final @NotNull GameManager gameManager;
     
+    public HubCommand(@NotNull GameManager gameManager) {
+        this.gameManager = gameManager;
+    }
+    
     @Override
     public @NotNull LiteralArgumentBuilder<CommandSourceStack> create() {
         return Commands.literal("hub")
