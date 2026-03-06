@@ -226,7 +226,7 @@ public class Main extends JavaPlugin {
         new BugReportCommand(this, gameManager);
         new NotReadyCommand(this, gameManager);
         
-        registerCommands();
+        registerCommands(blockEffectsListener);
         
         alwaysGiveNightVision();
     }
@@ -302,7 +302,7 @@ public class Main extends JavaPlugin {
         getLogger().info("Flyway migrations applied successfully");
     }
     
-    protected void registerCommands() {
+    protected void registerCommands(@NotNull BlockEffectsListener blockEffectsListener) {
         LiteralCommandNode<CommandSourceStack> ctDebugCommand = Commands.literal("ctdebug")
                 .requires(sender -> sender.getSender().isOp())
                 .then(Commands.literal("custommodel")
@@ -520,7 +520,7 @@ public class Main extends JavaPlugin {
             commands.registrar().register(ctDebugCommand);
             commands.registrar().register(databaseCommand);
             commands.registrar().register(plantCommand);
-            commands.registrar().register(new MCTCommand2(this, gameManager).build());
+            commands.registrar().register(new MCTCommand2(this, gameManager, blockEffectsListener).build());
         });
     }
     

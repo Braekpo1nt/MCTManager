@@ -10,18 +10,22 @@ import org.braekpo1nt.mctmanager.commands.manager.brigadier.event.EventSubComman
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.game.GameCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.hub.HubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.mode.ModeCommand;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.option.OptionCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.team.TeamCommand;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.jetbrains.annotations.NotNull;
 
 public class MCTCommand2 implements BrigadierCommand {
     
     private final @NotNull Main plugin;
     private final @NotNull GameManager gameManager;
+    private final @NotNull BlockEffectsListener blockEffectsListener;
     
-    public MCTCommand2(@NotNull Main plugin, @NotNull GameManager gameManager) {
+    public MCTCommand2(@NotNull Main plugin, @NotNull GameManager gameManager, @NotNull BlockEffectsListener blockEffectsListener) {
         this.plugin = plugin;
         this.gameManager = gameManager;
+        this.blockEffectsListener = blockEffectsListener;
     }
     
     @Override
@@ -34,6 +38,7 @@ public class MCTCommand2 implements BrigadierCommand {
                 .then(new GameCommand(gameManager).create())
                 .then(new HubCommand(gameManager).create())
                 .then(new ModeCommand(gameManager).create())
+                .then(new OptionCommand(blockEffectsListener).create())
                 .build();
     }
 }

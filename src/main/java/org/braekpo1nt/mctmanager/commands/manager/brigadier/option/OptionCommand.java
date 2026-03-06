@@ -10,6 +10,9 @@ public class OptionCommand implements BrigadierSubCommand {
     
     private final @NotNull BlockEffectsListener blockEffectsListener;
     
+    public OptionCommand(@NotNull BlockEffectsListener blockEffectsListener) {
+        this.blockEffectsListener = blockEffectsListener;
+    }
     
     @Override
     public @NotNull LiteralArgumentBuilder<CommandSourceStack> create() {
