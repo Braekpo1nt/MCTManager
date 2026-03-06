@@ -6,6 +6,7 @@ import io.papermc.paper.command.brigadier.Commands;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.admin.AdminCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.debug.DebugCommand;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.edit.EditCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.event.EventSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.game.GameCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.hub.HubCommand;
@@ -39,6 +40,7 @@ public class MCTCommand2 implements BrigadierCommand {
                 .then(new HubCommand(gameManager).create())
                 .then(new ModeCommand(gameManager).create())
                 .then(new OptionCommand(blockEffectsListener).create())
+                .then(new EditCommand(plugin, gameManager).create())
                 .build();
     }
 }
