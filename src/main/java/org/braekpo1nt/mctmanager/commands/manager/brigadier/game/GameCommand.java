@@ -23,6 +23,7 @@ public class GameCommand implements BrigadierSubCommand {
         return Commands.literal("game")
                 .then(new StartSubCommand(gameManager).create())
                 .then(new StopSubCommand(gameManager).create())
+                .then(new JoinSubCommand(gameManager).create())
                 ;
     }
 }
