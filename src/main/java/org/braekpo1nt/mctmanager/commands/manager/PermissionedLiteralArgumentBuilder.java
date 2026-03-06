@@ -5,7 +5,6 @@ import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.commands.manager.brigadier.PermissionedCommandNode;
 import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.PluginManager;
 import org.jetbrains.annotations.NotNull;
@@ -83,23 +82,6 @@ public class PermissionedLiteralArgumentBuilder<S> extends ArgumentBuilder<S, Pe
         if (getPermissionNode() != null && pluginManager.getPermission(getPermissionNode()) == null) {
             Main.logf("registering permission: %s", getPermissionNode());
             pluginManager.addPermission(new Permission(getPermissionNode()));
-        }
-//        for (CommandNode<S> argument : getArguments()) {
-//            if (argument instanceof PermissionedCommandNode permedArg) {
-//                registerPermissions(pluginManager, permedArg);
-//            }
-//        }
-    }
-    
-    private void registerPermissions(@NotNull PluginManager pluginManager, @NotNull PermissionedCommandNode permedArg) {
-        if (permedArg.getPermissionNode() != null) {
-            Main.logf("registering permission: %s", getPermissionNode());
-            pluginManager.addPermission(new Permission(permedArg.getPermissionNode()));
-        }
-        for (PermissionedCommandNode child : permedArg.getPermissionedChildren()) {
-            if (child instanceof PermissionedCommandNode permedChild) {
-                registerPermissions(pluginManager, permedChild);
-            }
         }
     }
     

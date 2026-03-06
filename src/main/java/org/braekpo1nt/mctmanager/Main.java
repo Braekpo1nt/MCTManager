@@ -69,6 +69,7 @@ import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.components.CustomModelDataComponent;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -517,11 +518,29 @@ public class Main extends JavaPlugin {
                 .build();
         
         LiteralCommandNode<CommandSourceStack> mctCommand1 = new MCTCommand(this, gameManager, blockEffectsListener).build();
-        LiteralCommandNode<CommandSourceStack> myPermTest = BrigadierAdapters.literal("myPermTest", getServer().getPluginManager())
-                .then(BrigadierAdapters.literal("say", getServer().getPluginManager())
-                        .executes(BrigadierAdapters.wraps(ctx -> {
-                            return CommandResult.success(Component.text("SUccess!!!"));
-                        }))
+        PluginManager pluginManager = getServer().getPluginManager();
+        LiteralCommandNode<CommandSourceStack> myPermTest = BrigadierAdapters.literal("myPermTest", pluginManager)
+                .then(BrigadierAdapters.literal("say", pluginManager)
+                        .then(Commands.literal("canWe")
+                                .then(Commands.argument("run", StringArgumentType.word())
+                                        .suggests((c, b) -> {
+                                            b.suggest("rUn");
+                                            return b.buildFuture();
+                                        })
+                                        .executes(BrigadierAdapters.wraps(ctx -> {
+                                            String run = ctx.getArgument("run", String.class);
+                                            return CommandResult.success(Component.text("Success 1")
+                                                    .append(Component.text(run)));
+                                        }))
+                                        .then(BrigadierAdapters.literal("this", pluginManager)
+                                                .executes(BrigadierAdapters.wraps(ctx -> {
+                                                    String run = ctx.getArgument("run", String.class);
+                                                    return CommandResult.success(Component.text("Success 2")
+                                                            .append(Component.text(run)));
+                                                }))
+                                        )
+                                )
+                        )
                 )
                 .build();
         // Brigadier commands
