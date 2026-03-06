@@ -29,7 +29,7 @@ public class MCTCommand2 implements BrigadierCommand {
                 .then(new TeamCommand(plugin, gameManager).create())
                 .then(new AdminCommand(gameManager).create())
                 .then(new DebugCommand().create())
-                .then(new GameCommand(plugin, gameManager).create())
+                .then(new GameCommand(gameManager).create())
                 .build();
     }
 }
