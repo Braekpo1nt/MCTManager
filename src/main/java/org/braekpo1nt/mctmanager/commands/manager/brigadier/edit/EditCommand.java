@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.commands.manager.brigadier.edit;
 
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -41,6 +42,18 @@ public class EditCommand implements BrigadierSubCommand {
                                 .executes(BrigadierAdapters.wraps(this::executeValidate))
                         )
                 )
+                .then(Commands.literal("save")
+                        .then(Commands.argument("configFile", StringArgumentType.word())
+                                .suggests((this::suggestEditorConfig))
+                                .executes(BrigadierAdapters.wraps(ctx -> executeSave(ctx, false)))
+                                .then(Commands.argument("forceSave", BoolArgumentType.bool())
+                                        .executes(BrigadierAdapters.wraps(ctx -> {
+                                            boolean forceSave = ctx.getArgument("forceSave", Boolean.class);
+                                            return executeSave(ctx, forceSave);
+                                        }))
+                                )
+                        )
+                )
                 ;
     }
     
@@ -62,5 +75,10 @@ public class EditCommand implements BrigadierSubCommand {
         }
         String configFile = ctx.getArgument("configFile", String.class);
         return gameManager.validateEditor(configFile);
+    }
+    
+    private @NotNull CommandResult executeSave(CommandContext<CommandSourceStack> ctx, boolean forceSave) {
+        String configFile = ctx.getArgument("configFile", String.class);
+        return gameManager.saveEditor(configFile, forceSave);
     }
 }
