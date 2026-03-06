@@ -13,6 +13,7 @@ import org.braekpo1nt.mctmanager.commands.manager.brigadier.hub.HubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.mode.ModeCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.option.OptionCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.score.ScoreCommand;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.tablist.TabListCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.team.TeamCommand;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
@@ -43,6 +44,7 @@ public class MCTCommand2 implements BrigadierCommand {
                 .then(new OptionCommand(blockEffectsListener).create())
                 .then(new EditCommand(gameManager).create())
                 .then(new ScoreCommand(gameManager).create())
+                .then(new TabListCommand(gameManager).create())
                 .build();
     }
 }
