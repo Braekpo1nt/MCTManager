@@ -22,6 +22,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * @deprecated Don't use this unless you figure out how to replace the "+" with a ":" or a "/". Right now
+ * {@link ConfigFileArgumentType} and {@link GameIdArgumentType} are used in place of this
+ */
+@Deprecated
 public class GameInstanceIdArgumentType implements CustomArgumentType.Converted<GameInstanceId, String> {
     
     private final static DynamicCommandExceptionType ERROR_INVALID_GAME_TYPE = new DynamicCommandExceptionType(gameTypeStr -> MessageComponentSerializer.message().serialize(Component.empty()

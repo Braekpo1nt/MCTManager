@@ -1,9 +1,9 @@
 package org.braekpo1nt.mctmanager.commands.manager.brigadier.game;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
-import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.ConfigFileArgumentType;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.GameIdArgumentType;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
@@ -24,19 +24,28 @@ public class StopSubCommand implements BrigadierSubCommand {
     @Override
     public @NotNull LiteralArgumentBuilder<CommandSourceStack> create() {
         return Commands.literal("stop")
+                .executes(BrigadierAdapters.wraps(this::executeStopAll))
                 .then(Commands.argument("gameId", new GameIdArgumentType(gameManager, false))
-                        .then(Commands.argument("configFile", new ConfigFileArgumentType(gameManager, false))
-                                .executes(BrigadierAdapters.wraps(ctx -> {
-                                    GameType gameType = ctx.getArgument("gameId", GameType.class);
-                                    String configFile = ctx.getArgument("configFile", String.class);
-                                    return CommandResult.success(Component.empty()
-                                            .append(Component.text(gameType.getTitle()))
-                                            .append(Component.text(":"))
-                                            .append(Component.text(configFile))
-                                    );
-                                }))
+                        .executes(BrigadierAdapters.wraps(this::executeStopGame))
+                        .then(Commands.argument("configFile", new ConfigFileArgumentType(gameManager, false, "gameId"))
+                                .executes(BrigadierAdapters.wraps(this::executeStopGameConfig))
                         )
                 )
                 ;
+    }
+    
+    private @NotNull CommandResult executeStopAll(@NotNull CommandContext<CommandSourceStack> ctx) {
+        return gameManager.stopAllGames();
+    }
+    
+    private @NotNull CommandResult executeStopGame(@NotNull CommandContext<CommandSourceStack> ctx) {
+        GameType gameType = ctx.getArgument("gameId", GameType.class);
+        return gameManager.stopGame(gameType, null);
+    }
+    
+    private @NotNull CommandResult executeStopGameConfig(@NotNull CommandContext<CommandSourceStack> ctx) {
+        GameType gameType = ctx.getArgument("gameId", GameType.class);
+        String configFile = ctx.getArgument("configFile", String.class);
+        return gameManager.stopGame(gameType, configFile);
     }
 }
