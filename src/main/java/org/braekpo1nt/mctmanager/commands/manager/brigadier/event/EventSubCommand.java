@@ -128,7 +128,7 @@ public class EventSubCommand implements BrigadierSubCommand {
                 );
     }
     
-    private CommandResult executeCreate(CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CommandResult executeCreate(CommandContext<CommandSourceStack> ctx) {
         String eventId = ctx.getArgument("eventId", String.class);
         String eventDateString = ctx.getArgument("eventDate", String.class);
         Date eventDate;

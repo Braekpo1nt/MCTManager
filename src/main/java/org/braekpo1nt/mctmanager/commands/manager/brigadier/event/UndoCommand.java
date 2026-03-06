@@ -36,7 +36,7 @@ public class UndoCommand implements BrigadierSubCommand {
                 ;
     }
     
-    private CommandResult executeUndo(CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CommandResult executeUndo(CommandContext<CommandSourceStack> ctx) {
         GameType gameType = ctx.getArgument("game", GameType.class);
         String configFile = ctx.getArgument("configFile", String.class);
         int iterationNumber = ctx.getArgument("iteration", Integer.class);

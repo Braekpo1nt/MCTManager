@@ -8,16 +8,17 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.logging.Level;
 
 public class BrigadierAdapters {
     @FunctionalInterface
     public interface ResultCommand {
-        CommandResult run(CommandContext<CommandSourceStack> ctx) throws Exception;
+        @NotNull CommandResult run(@NotNull CommandContext<CommandSourceStack> ctx) throws Exception;
     }
     
-    public static Command<CommandSourceStack> wraps(ResultCommand command) {
+    public static @NotNull Command<CommandSourceStack> wraps(@NotNull ResultCommand command) {
         return ctx -> {
             CommandSourceStack source = ctx.getSource();
             CommandSender sender = source.getSender();

@@ -45,7 +45,7 @@ public class PresetApplySubCommand implements BrigadierSubCommand {
                 ;
     }
     
-    private CommandResult executeApply(CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CommandResult executeApply(CommandContext<CommandSourceStack> ctx) {
         File presetFile = ctx.getArgument(PresetCommand.PRESET_FILE_ARG, File.class);
         boolean override = ctx.getArgument("override", Boolean.class);
         boolean resetScores = ctx.getArgument("resetScores", Boolean.class);

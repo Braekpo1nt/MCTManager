@@ -4,7 +4,6 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.OfflineParticipantArgumentType;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
@@ -15,11 +14,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class LeaveSubCommand implements BrigadierSubCommand {
     
-    private final @NotNull Main plugin;
     private final @NotNull GameManager gameManager;
     
-    public LeaveSubCommand(@NotNull Main plugin, @NotNull GameManager gameManager) {
-        this.plugin = plugin;
+    public LeaveSubCommand(@NotNull GameManager gameManager) {
         this.gameManager = gameManager;
     }
     
@@ -32,7 +29,7 @@ public class LeaveSubCommand implements BrigadierSubCommand {
                 ;
     }
     
-    private CommandResult executeLeave(CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CommandResult executeLeave(CommandContext<CommandSourceStack> ctx) {
         OfflineParticipant offlineParticipant = ctx.getArgument("member", OfflineParticipant.class);
         return gameManager.leaveParticipant(offlineParticipant);
     }

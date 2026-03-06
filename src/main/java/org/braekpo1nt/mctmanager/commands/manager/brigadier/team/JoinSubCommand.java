@@ -70,7 +70,7 @@ public class JoinSubCommand implements BrigadierSubCommand {
         });
     }
     
-    private CommandResult executeJoin(CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CommandResult executeJoin(CommandContext<CommandSourceStack> ctx) {
         Team team = ctx.getArgument("teamId", Team.class);
         String member = ctx.getArgument("member", String.class);
         return GameManagerUtils.joinParticipant(plugin, gameManager, member, team);

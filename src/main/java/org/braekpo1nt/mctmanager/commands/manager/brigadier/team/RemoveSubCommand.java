@@ -30,7 +30,7 @@ public class RemoveSubCommand implements BrigadierSubCommand {
                 ;
     }
     
-    private CommandResult executeRemove(CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CommandResult executeRemove(CommandContext<CommandSourceStack> ctx) {
         Team teamToRemove = ctx.getArgument("teamId", Team.class);
         return gameManager.removeTeam(teamToRemove.getTeamId());
     }

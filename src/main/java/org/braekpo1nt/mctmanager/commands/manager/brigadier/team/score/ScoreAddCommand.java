@@ -46,7 +46,7 @@ public class ScoreAddCommand implements BrigadierSubCommand {
                 ;
     }
     
-    private CommandResult executeAddParticipant(CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CommandResult executeAddParticipant(CommandContext<CommandSourceStack> ctx) {
         OfflineParticipant offlineParticipant = ctx.getArgument("participantName", OfflineParticipant.class);
         int score = ctx.getArgument("score", Integer.class);
         int currentScore = offlineParticipant.getScore();
@@ -63,7 +63,7 @@ public class ScoreAddCommand implements BrigadierSubCommand {
                 .append(Component.text(newScore)));
     }
     
-    private CommandResult executeAddTeam(CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CommandResult executeAddTeam(CommandContext<CommandSourceStack> ctx) {
         Team team = ctx.getArgument("teamId", Team.class);
         int score = ctx.getArgument("score", Integer.class);
         int currentScore = team.getScore();

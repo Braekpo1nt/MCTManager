@@ -30,7 +30,7 @@ public class ModifyCommand implements BrigadierSubCommand {
                 ;
     }
     
-    private CommandResult executeMaxGames(CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CommandResult executeMaxGames(CommandContext<CommandSourceStack> ctx) {
         int newCount = ctx.getArgument("newCount", Integer.class);
         return gameManager.modifyMaxGames(newCount);
     }

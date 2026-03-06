@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.database.service;
 
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.GenericRawResults;
 import com.j256.ormlite.misc.TransactionManager;
 import com.j256.ormlite.stmt.ColumnArg;
 import com.j256.ormlite.stmt.DeleteBuilder;
@@ -24,7 +25,10 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @SuppressWarnings("UnusedReturnValue")
 public class GameStateService {
@@ -279,6 +283,33 @@ public class GameStateService {
     
     public List<AdminEntity> getAdmins() throws SQLException {
         return adminDao.queryForAll();
+    }
+    
+    /**
+     * @return a map from UUID to Admin Names
+     * @throws SQLException if there's a SQL error
+     */
+    public @NotNull Map<UUID, String> getAdminNames() throws SQLException {
+        String sql = """
+                SELECT
+                    ad.uuid,
+                    ap.ign
+                FROM admins ad
+                LEFT JOIN all_players ap
+                    ON ad.uuid = ap.uuid;
+                """;
+        Map<UUID, String> result = new HashMap<>();
+        try (GenericRawResults<String[]> raw =
+                     adminDao.queryRaw(sql)) {
+            for (String[] row : raw.getResults()) {
+                UUID uuid = UUID.fromString(row[0]);
+                String ign = row[1];
+                result.put(uuid, ign);
+            }
+        } catch (Exception e) {
+            throw new SQLException("Exception thrown while getting admin names", e);
+        }
+        return result;
     }
     
     // In Game

@@ -49,7 +49,7 @@ public class ScoreSetCommand implements BrigadierSubCommand {
                 ;
     }
     
-    private CommandResult executeSetParticipant(CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CommandResult executeSetParticipant(CommandContext<CommandSourceStack> ctx) {
         OfflineParticipant offlineParticipant = ctx.getArgument("participantName", OfflineParticipant.class);
         int score = ctx.getArgument("score", Integer.class);
         if (score < 0) {
@@ -62,7 +62,7 @@ public class ScoreSetCommand implements BrigadierSubCommand {
                 .append(Component.text(newScore)));
     }
     
-    private CommandResult executeSetTeam(CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CommandResult executeSetTeam(CommandContext<CommandSourceStack> ctx) {
         Team team = ctx.getArgument("teamId", Team.class);
         int score = ctx.getArgument("score", Integer.class);
         if (score < 0) {
@@ -75,7 +75,7 @@ public class ScoreSetCommand implements BrigadierSubCommand {
                 .append(Component.text(newScore)));
     }
     
-    private CommandResult executeSetAll(CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CommandResult executeSetAll(CommandContext<CommandSourceStack> ctx) {
         int score = ctx.getArgument("score", Integer.class);
         if (score < 0) {
             return CommandResult.failure(Component.text("Score must be at least 0"));

@@ -90,7 +90,7 @@ public abstract class EventState extends GameManagerState {
     }
     
     @Override
-    public CommandResult stopEvent() {
+    public @NotNull CommandResult stopEvent() {
         return switchMode(Mode.MAINTENANCE);
     }
     

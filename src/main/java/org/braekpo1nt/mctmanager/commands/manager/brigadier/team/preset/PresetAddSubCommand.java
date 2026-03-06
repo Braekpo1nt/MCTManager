@@ -42,7 +42,7 @@ public class PresetAddSubCommand implements BrigadierSubCommand {
                 ;
     }
     
-    private CommandResult executeAdd(CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CommandResult executeAdd(CommandContext<CommandSourceStack> ctx) {
         File presetFile = ctx.getArgument(PresetCommand.PRESET_FILE_ARG, File.class);
         String teamId = ctx.getArgument("teamId", String.class);
         String displayName = ctx.getArgument("displayName", String.class);

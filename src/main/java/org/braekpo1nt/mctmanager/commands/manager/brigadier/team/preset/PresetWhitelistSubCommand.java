@@ -38,7 +38,7 @@ public class PresetWhitelistSubCommand implements BrigadierSubCommand {
                 ;
     }
     
-    private CommandResult executeWhitelist(CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CommandResult executeWhitelist(CommandContext<CommandSourceStack> ctx) {
         File presetFile = ctx.getArgument(PresetCommand.PRESET_FILE_ARG, File.class);
         boolean shouldWhitelist = ctx.getArgument("whitelist", Boolean.class);
         Preset preset;

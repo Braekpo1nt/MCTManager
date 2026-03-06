@@ -35,7 +35,7 @@ public class AddSubCommand implements BrigadierSubCommand {
                 ;
     }
     
-    private CommandResult executeAdd(CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CommandResult executeAdd(CommandContext<CommandSourceStack> ctx) {
         String teamId = ctx.getArgument("teamId", String.class);
         String displayName = ctx.getArgument("displayName", String.class);
         String colorString = ctx.getArgument("color", String.class);

@@ -24,7 +24,7 @@ public class TeamCommand implements BrigadierSubCommand {
         return Commands.literal("team")
                 .then(new AddSubCommand(gameManager).create())
                 .then(new JoinSubCommand(plugin, gameManager).create())
-                .then(new LeaveSubCommand(plugin, gameManager).create())
+                .then(new LeaveSubCommand(gameManager).create())
                 .then(new ListSubCommand(plugin, gameManager).create())
                 .then(new RemoveSubCommand(gameManager).create())
                 .then(new ScoreCommand(gameManager).create())

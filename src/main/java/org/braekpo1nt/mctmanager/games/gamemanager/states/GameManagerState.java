@@ -1152,7 +1152,7 @@ public abstract class GameManagerState {
         return CommandResult.failure("Can't start an event in this mode");
     }
     
-    public CommandResult stopEvent() {
+    public @NotNull CommandResult stopEvent() {
         return CommandResult.failure("No event is running");
     }
     
@@ -1619,7 +1619,7 @@ public abstract class GameManagerState {
      * Removes the given player from the admins
      * @param offlineAdmin The admin to remove
      */
-    public CommandResult removeAdmin(@NotNull OfflinePlayer offlineAdmin, String adminName) {
+    public @NotNull CommandResult removeAdmin(@NotNull OfflinePlayer offlineAdmin, @NotNull String adminName) {
         if (!context.isAdmin(offlineAdmin.getUniqueId())) {
             return CommandResult.failure(Component.empty()
                     .append(Component.text(adminName)

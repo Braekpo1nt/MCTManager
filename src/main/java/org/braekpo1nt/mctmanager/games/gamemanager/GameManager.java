@@ -11,6 +11,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
@@ -72,6 +73,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
@@ -465,6 +467,22 @@ public class GameManager implements Listener {
         return state.joinParticipantToGame(gameType, configFile, mctParticipant);
     }
     
+    public @NotNull List<String> getActiveConfigFiles(@NotNull GameType gameType) {
+        return activeGames.keySet().stream()
+                .filter(gameInstanceId -> gameInstanceId.getGameType().equals(gameType))
+                .map(GameInstanceId::getConfigFile)
+                .toList();
+    }
+    
+    /**
+     * Expensive operation, searches the file system, should be performed on separate thread
+     * @param gameId the {@link GameType} to search for the config files of
+     * @return a list of the config files in the directory associated with the given gameId
+     */
+    public @NotNull List<String> getConfigFiles(@NotNull GameType gameId) {
+        return CommandUtils.getGameConfigs(plugin, gameId);
+    }
+    
     public @Nullable List<String> tabCompleteActiveGame(@NotNull String[] args) {
         return state.tabCompleteActiveGames(args);
     }
@@ -689,7 +707,7 @@ public class GameManager implements Listener {
         return state.startEvent(eventInfo, maxGames, currentGameNumber);
     }
     
-    public CommandResult stopEvent() {
+    public @NotNull CommandResult stopEvent() {
         return state.stopEvent();
     }
     
@@ -816,6 +834,15 @@ public class GameManager implements Listener {
      */
     public boolean gameIsActive(@NotNull GameInstanceId id) {
         return activeGames.containsKey(id);
+    }
+    
+    /**
+     * @param gameType the GameType to check for active games during
+     * @return true if there are any active games with the given GameType
+     */
+    public boolean gameIsActive(@NotNull GameType gameType) {
+        return activeGames.keySet().stream()
+                .anyMatch(gameInstanceId -> gameInstanceId.getGameType().equals(gameType));
     }
     
     // editor start
@@ -1231,9 +1258,33 @@ public class GameManager implements Listener {
     /**
      * Removes the given player from the admins
      * @param offlineAdmin The admin to remove
+     * @param adminName Something to use as the admin name for console output, even if it's just the UUID of the offline
+     * player
      */
-    public CommandResult removeAdmin(@NotNull OfflinePlayer offlineAdmin, String adminName) {
+    public @NotNull CommandResult removeAdmin(@NotNull OfflinePlayer offlineAdmin, @NotNull String adminName) {
         return state.removeAdmin(offlineAdmin, adminName);
+    }
+    
+    /**
+     * Note, this is reaches out to the database and should be called in a separate thread
+     * @return a list of all the names of all the admins, online or not, or an empty list
+     * if there are no admins or if there is an error connecting to the database
+     */
+    public @NotNull List<String> getAllAdminNames() {
+        try {
+            return gameStateStorageUtil.getAllAdminNames().values().stream()
+                    .toList();
+        } catch (SQLException e) {
+            return Collections.emptyList();
+        }
+    }
+    
+    public @Nullable OfflinePlayer getOfflineAdmin(@NotNull String name) {
+        OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(name);
+        if (isAdmin(offlinePlayer.getUniqueId())) {
+            return offlinePlayer;
+        }
+        return null;
     }
     
     public void messageAdmins(Component message) {
