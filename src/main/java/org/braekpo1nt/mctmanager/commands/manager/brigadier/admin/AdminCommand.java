@@ -8,8 +8,6 @@ import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import io.papermc.paper.command.brigadier.argument.resolvers.selector.PlayerSelectorArgumentResolver;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.OfflineAdminArgumentType;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
