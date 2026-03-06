@@ -33,10 +33,10 @@ import org.braekpo1nt.mctmanager.commands.argumenttypes.EnumArgumentType;
 import org.braekpo1nt.mctmanager.commands.bugreport.BugReportCommand;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
-import org.braekpo1nt.mctmanager.commands.manager.brigadier.MCTCommand2;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.FailureCommandResult;
-import org.braekpo1nt.mctmanager.commands.mct.MCTCommand;
+import org.braekpo1nt.mctmanager.commands.mct.MCTCommandOriginal;
 import org.braekpo1nt.mctmanager.commands.mctdebug.MCTDebugCommand;
 import org.braekpo1nt.mctmanager.commands.notready.NotReadyCommand;
 import org.braekpo1nt.mctmanager.commands.readyup.ReadyUpCommand;
@@ -97,7 +97,7 @@ public class Main extends JavaPlugin {
     private GameManager gameManager;
     private boolean saveGameStateOnDisable = true;
     public final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
-    private MCTCommand mctCommand;
+    private MCTCommandOriginal mctCommand;
     /**
      * This should be the application-wide logger used to print logs to the console or standard out.
      * Initialized to Lombok log value so that tests don't trigger NullPointerExceptions
@@ -217,7 +217,7 @@ public class Main extends JavaPlugin {
         
         // Commands
         new MCTDebugCommand(this, gameManager);
-        mctCommand = new MCTCommand(this, gameManager, blockEffectsListener);
+        mctCommand = new MCTCommandOriginal(this, gameManager, blockEffectsListener);
         new UtilsCommand(this);
         new ReadyUpCommand(this, gameManager);
         new UnReadyCommand(this, gameManager);
@@ -520,7 +520,7 @@ public class Main extends JavaPlugin {
             commands.registrar().register(ctDebugCommand);
             commands.registrar().register(databaseCommand);
             commands.registrar().register(plantCommand);
-            commands.registrar().register(new MCTCommand2(this, gameManager, blockEffectsListener).build());
+            commands.registrar().register(new MCTCommand(this, gameManager, blockEffectsListener).build());
         });
     }
     
@@ -606,7 +606,7 @@ public class Main extends JavaPlugin {
         return Command.SINGLE_SUCCESS;
     }
     
-    public MCTCommand getMctCommand() {
+    public MCTCommandOriginal getMctCommand() {
         return mctCommand;
     }
     

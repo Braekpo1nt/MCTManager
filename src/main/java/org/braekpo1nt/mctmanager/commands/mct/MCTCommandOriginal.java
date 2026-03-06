@@ -27,10 +27,12 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The super command for all MCT related commands.
  * Handles all sub-commands which start with /mct ...
+ * @deprecated in favor of {@link org.braekpo1nt.mctmanager.commands.manager.brigadier.MCTCommand}
  */
-public class MCTCommand extends MasterCommandManager {
+@Deprecated
+public class MCTCommandOriginal extends MasterCommandManager {
     
-    public MCTCommand(@NotNull Main plugin, @NotNull GameManager gameManager, BlockEffectsListener blockEffectsListener) {
+    public MCTCommandOriginal(@NotNull Main plugin, @NotNull GameManager gameManager, BlockEffectsListener blockEffectsListener) {
         super(plugin, "mct");
         CommandUtils.refreshGameConfigs(plugin);
         addSubCommand(new GameCommand(plugin, gameManager));
