@@ -9,7 +9,6 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
@@ -21,11 +20,9 @@ import java.util.concurrent.CompletableFuture;
 
 public class EditCommand implements BrigadierSubCommand {
     
-    private final @NotNull Main plugin;
     private final @NotNull GameManager gameManager;
     
-    public EditCommand(@NotNull Main plugin, @NotNull GameManager gameManager) {
-        this.plugin = plugin;
+    public EditCommand(@NotNull GameManager gameManager) {
         this.gameManager = gameManager;
     }
     
@@ -54,6 +51,12 @@ public class EditCommand implements BrigadierSubCommand {
                                 )
                         )
                 )
+                .then(Commands.literal("load")
+                        .then(Commands.argument("configFile", StringArgumentType.word())
+                                .suggests((this::suggestEditorConfig))
+                                .executes(BrigadierAdapters.wraps(this::executeLoad))
+                        )
+                )
                 ;
     }
     
@@ -80,5 +83,13 @@ public class EditCommand implements BrigadierSubCommand {
     private @NotNull CommandResult executeSave(CommandContext<CommandSourceStack> ctx, boolean forceSave) {
         String configFile = ctx.getArgument("configFile", String.class);
         return gameManager.saveEditor(configFile, forceSave);
+    }
+    
+    private @NotNull CommandResult executeLoad(@NotNull CommandContext<CommandSourceStack> ctx) {
+        String configFile = ctx.getArgument("configFile", String.class);
+        if (!gameManager.editorIsRunning()) {
+            return CommandResult.failure(Component.text("No editor is running."));
+        }
+        return gameManager.loadEditor(configFile);
     }
 }

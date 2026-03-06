@@ -40,7 +40,7 @@ public class MCTCommand2 implements BrigadierCommand {
                 .then(new HubCommand(gameManager).create())
                 .then(new ModeCommand(gameManager).create())
                 .then(new OptionCommand(blockEffectsListener).create())
-                .then(new EditCommand(plugin, gameManager).create())
+                .then(new EditCommand(gameManager).create())
                 .build();
     }
 }
