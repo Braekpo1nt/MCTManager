@@ -140,6 +140,10 @@ public class Permissioned<S> extends LiteralArgumentBuilder<S> {
     public LiteralCommandNode<S> build(PluginManager pluginManager) {
         log.atDebug().log("building entire tree for {}", name);
         this.setPermissionNode(getName());
-        return (LiteralCommandNode<S>) buildChildren(pluginManager);
+        CommandNode<S> commandNode = buildChildren(pluginManager);
+        if (!(commandNode instanceof LiteralCommandNode<S> literalCommandNode)) {
+            throw new IllegalStateException("Attempted to build a command where the root node is a not an instance of LiteralCommandNode<S>");
+        }
+        return literalCommandNode;
     }
 }
