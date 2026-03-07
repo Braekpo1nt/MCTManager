@@ -1,6 +1,8 @@
 package org.braekpo1nt.mctmanager.commands.manager.brigadier;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.tree.CommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
@@ -32,6 +34,14 @@ public class PermissionedWrapper<S> {
         this.name = name;
         this.permissionNode = name;
         this.children = new ArrayList<>();
+    }
+    
+    public PermissionedWrapper<S> then(LiteralArgumentBuilder<S> argument) {
+        return then(new PermissionedWrapper<>(argument, argument.getLiteral()));
+    }
+    
+    public PermissionedWrapper<S> then(RequiredArgumentBuilder<S, ?> argument) {
+        return then(new PermissionedWrapper<>(argument, argument.getName()));
     }
     
     public PermissionedWrapper<S> then(PermissionedWrapper<S> argument) {
