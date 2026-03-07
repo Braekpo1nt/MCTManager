@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.commands.manager.brigadier;
 
+import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.tree.CommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
@@ -124,5 +125,42 @@ class BrigadierTest {
                 .build(pluginManager);
         Assertions.assertNotNull(command);
         Assertions.assertEquals(Set.of("test"), pluginManager.getPermissionNodes().keySet());
+    }
+    
+    @Test
+    void singleNodeSingleArgTest() {
+        CommandNode<CommandSourceStack> command = Permissioned.literal("foo")
+                .then(Permissioned.argument("bar", StringArgumentType.word()))
+                .build(pluginManager);
+        Assertions.assertNotNull(command);
+        Assertions.assertEquals(Set.of("foo", "foo.bar"), pluginManager.getPermissionNodes().keySet());
+    }
+    
+    @Test
+    void singleNodeSingleArgSingleNormalTest() {
+        CommandNode<CommandSourceStack> command = Permissioned.literal("foo")
+                .then(Permissioned.argument("bar", StringArgumentType.word())
+                        .then(Commands.argument("ref", StringArgumentType.word()))
+                )
+                .build(pluginManager);
+        Assertions.assertNotNull(command);
+        Assertions.assertEquals(Set.of("foo", "foo.bar", "foo.bar.ref"), pluginManager.getPermissionNodes().keySet());
+    }
+    
+    @Test
+    void multiMixTest1() {
+        CommandNode<CommandSourceStack> command = Permissioned.literal("foo")
+                .then(Permissioned.literal("bar")
+                        .then(Permissioned.argument("tag", StringArgumentType.word())
+                                .then(Commands.literal("ref"))
+                                .then(Permissioned.literal("mes"))
+                        )
+                )
+                .then(Permissioned.literal("car")
+                        .executes(ctx -> Command.SINGLE_SUCCESS)
+                )
+                .build(pluginManager);
+        Assertions.assertNotNull(command);
+        Assertions.assertEquals(Set.of("foo", "foo.bar", "foo.car", "foo.bar.tag", "foo.bar.tag.ref", "foo.bar.tag.mes"), pluginManager.getPermissionNodes().keySet());
     }
 }
