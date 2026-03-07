@@ -81,7 +81,6 @@ public class PermissionedWrapper<S> {
      * @return the build CommandNode
      */
     public CommandNode<S> build(PretendPluginManager pluginManager) {
-        System.out.printf("building entire tree for %s%n", name);
         this.setPermissionNode(getName());
         return buildChildren(pluginManager);
     }
