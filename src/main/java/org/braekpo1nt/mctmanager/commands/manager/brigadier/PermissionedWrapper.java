@@ -7,10 +7,7 @@ import com.mojang.brigadier.tree.CommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import lombok.Getter;
-import lombok.Setter;
-import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.permissions.Permission;
-import org.bukkit.plugin.PluginManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,7 +19,9 @@ public class PermissionedWrapper<S> {
     private final @NotNull ArgumentBuilder<S, ?> argument;
     @Getter
     private final @NotNull String name;
+    @Getter
     private @Nullable String permissionNode;
+    @Getter
     private final @NotNull List<PermissionedWrapper<S>> children;
     
     public static PermissionedWrapper<CommandSourceStack> literal(@NotNull String literal) {
@@ -32,7 +31,6 @@ public class PermissionedWrapper<S> {
     public PermissionedWrapper(@NotNull ArgumentBuilder<S, ?> argument, @NotNull String name) {
         this.argument = argument;
         this.name = name;
-        this.permissionNode = name;
         this.children = new ArrayList<>();
     }
     
@@ -45,7 +43,6 @@ public class PermissionedWrapper<S> {
     }
     
     public PermissionedWrapper<S> then(PermissionedWrapper<S> argument) {
-        argument.setPermissionNode(String.format("%s.%s", permissionNode, argument.getName()));
         children.add(argument);
         return this;
     }
@@ -60,14 +57,32 @@ public class PermissionedWrapper<S> {
         }
     }
     
-    public CommandNode<S> build(PretendPluginManager pluginManager) {
-        
+    /**
+     * Different from {@link #build(PretendPluginManager)} only in that
+     * it doesn't assign the permission nodes recursively. This prevents
+     * redundant assignment that a single public method would produce.
+     * @param pluginManager the pluginManager to register the permission nodes with
+     * @return the build CommandNode
+     */
+    private CommandNode<S> buildChildren(PretendPluginManager pluginManager) {
         if (permissionNode != null && pluginManager.getPermission(permissionNode) == null) {
             pluginManager.addPermission(new Permission(permissionNode));
         }
         for (PermissionedWrapper<S> child : children) {
-            argument.then(child.build(pluginManager));
+            argument.then(child.buildChildren(pluginManager));
         }
         return argument.build();
+    }
+    
+    /**
+     * Sets the permission nodes of this and all children first,
+     * then builds the Command
+     * @param pluginManager the pluginManager to register the permission nodes with
+     * @return the build CommandNode
+     */
+    public CommandNode<S> build(PretendPluginManager pluginManager) {
+        System.out.printf("building entire tree for %s%n", name);
+        this.setPermissionNode(getName());
+        return buildChildren(pluginManager);
     }
 }
