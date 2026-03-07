@@ -89,6 +89,7 @@ dependencies {
 
     testCompileOnly 'org.projectlombok:lombok:1.18.36'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.36'
+    testImplementation 'org.assertj:assertj-core:3.27.7'
 }
 
 def targetJavaVersion = 21
