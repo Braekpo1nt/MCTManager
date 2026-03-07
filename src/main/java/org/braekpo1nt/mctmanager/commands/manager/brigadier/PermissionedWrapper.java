@@ -68,6 +68,15 @@ public class PermissionedWrapper<S> {
         if (permissionNode != null && pluginManager.getPermission(permissionNode) == null) {
             pluginManager.addPermission(new Permission(permissionNode));
         }
+        if (permissionNode != null) {
+            argument
+                    .requires(s -> {
+                        if (!(s instanceof CommandSourceStack source)) {
+                            return argument.getRequirement().test(s);
+                        }
+                        return source.getSender().hasPermission(permissionNode) && argument.getRequirement().test(s);
+                    });
+        }
         for (PermissionedWrapper<S> child : children) {
             argument.then(child.buildChildren(pluginManager));
         }
