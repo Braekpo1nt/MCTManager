@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.commands.manager.brigadier;
 
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.tree.CommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
@@ -22,7 +23,7 @@ class BrigadierTest {
     
     @Test
     void singleNodeTest() {
-        CommandNode<CommandSourceStack> command = PermissionedWrapper.literal("test")
+        CommandNode<CommandSourceStack> command = Permissioned.literal("test")
                 .build(pluginManager);
         Assertions.assertNotNull(command);
         Assertions.assertEquals(Set.of("test"), pluginManager.getPermissionNodes().keySet());
@@ -30,8 +31,8 @@ class BrigadierTest {
     
     @Test
     void doubleNodeTest() {
-        CommandNode<CommandSourceStack> command = PermissionedWrapper.literal("foo")
-                .then(PermissionedWrapper.literal("bar")
+        CommandNode<CommandSourceStack> command = Permissioned.literal("foo")
+                .then(Permissioned.literal("bar")
                 )
                 .build(pluginManager);
         assertThat(command).isNotNull();
@@ -41,9 +42,9 @@ class BrigadierTest {
     
     @Test
     void tripleNodeTest() {
-        CommandNode<CommandSourceStack> command = PermissionedWrapper.literal("foo")
-                .then(PermissionedWrapper.literal("bar")
-                        .then(PermissionedWrapper.literal("ref"))
+        CommandNode<CommandSourceStack> command = Permissioned.literal("foo")
+                .then(Permissioned.literal("bar")
+                        .then(Permissioned.literal("ref"))
                 )
                 .build(pluginManager);
         assertThat(command).isNotNull();
@@ -53,10 +54,10 @@ class BrigadierTest {
     
     @Test
     void doubleNodeBranchTest() {
-        CommandNode<CommandSourceStack> command = PermissionedWrapper.literal("foo")
-                .then(PermissionedWrapper.literal("bar")
+        CommandNode<CommandSourceStack> command = Permissioned.literal("foo")
+                .then(Permissioned.literal("bar")
                 )
-                .then(PermissionedWrapper.literal("ref"))
+                .then(Permissioned.literal("ref"))
                 .build(pluginManager);
         assertThat(command).isNotNull();
         assertThat(pluginManager.getPermissionNodes().keySet()).containsExactlyInAnyOrder("foo", "foo.bar", "foo.ref");
@@ -65,11 +66,11 @@ class BrigadierTest {
     
     @Test
     void tripleNodeBranchTest() {
-        CommandNode<CommandSourceStack> command = PermissionedWrapper.literal("foo")
-                .then(PermissionedWrapper.literal("bar")
-                        .then(PermissionedWrapper.literal("pan"))
+        CommandNode<CommandSourceStack> command = Permissioned.literal("foo")
+                .then(Permissioned.literal("bar")
+                        .then(Permissioned.literal("pan"))
                 )
-                .then(PermissionedWrapper.literal("ref"))
+                .then(Permissioned.literal("ref"))
                 .build(pluginManager);
         assertThat(command).isNotNull();
         assertThat(pluginManager.getPermissionNodes().keySet()).containsExactlyInAnyOrder("foo", "foo.bar", "foo.ref", "foo.bar.pan");
@@ -78,7 +79,7 @@ class BrigadierTest {
     
     @Test
     void doubleNodeMixedTest() {
-        CommandNode<CommandSourceStack> command = PermissionedWrapper.literal("foo")
+        CommandNode<CommandSourceStack> command = Permissioned.literal("foo")
                 .then(Commands.literal("bar")
                 )
                 .build(pluginManager);
@@ -89,7 +90,7 @@ class BrigadierTest {
     
     @Test
     void tripleNodeMixedTest() {
-        CommandNode<CommandSourceStack> command = PermissionedWrapper.literal("foo")
+        CommandNode<CommandSourceStack> command = Permissioned.literal("foo")
                 .then(Commands.literal("bar")
                         .then(Commands.literal("ref"))
                 )
@@ -104,8 +105,8 @@ class BrigadierTest {
     
     @Test
     void tripleNodeLastNormalTest() {
-        CommandNode<CommandSourceStack> command = PermissionedWrapper.literal("foo")
-                .then(PermissionedWrapper.literal("bar")
+        CommandNode<CommandSourceStack> command = Permissioned.literal("foo")
+                .then(Permissioned.literal("bar")
                         .then(Commands.literal("ref"))
                 )
                 .build(pluginManager);
@@ -115,5 +116,13 @@ class BrigadierTest {
                 .containsExactlyInAnyOrder("foo", "foo.bar", "foo.bar.ref")
         ;
         assertThat(command.getChildren()).hasSize(1);
+    }
+    
+    @Test
+    void singleArgTest() {
+        CommandNode<CommandSourceStack> command = Permissioned.argument("test", StringArgumentType.word())
+                .build(pluginManager);
+        Assertions.assertNotNull(command);
+        Assertions.assertEquals(Set.of("test"), pluginManager.getPermissionNodes().keySet());
     }
 }

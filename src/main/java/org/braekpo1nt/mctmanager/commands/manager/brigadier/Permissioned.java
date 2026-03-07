@@ -1,5 +1,7 @@
 package org.braekpo1nt.mctmanager.commands.manager.brigadier;
 
+import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
@@ -15,9 +17,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 @Slf4j
-public class PermissionedWrapper<S> {
+public class Permissioned<S> {
     
     private final @NotNull ArgumentBuilder<S, ?> argument;
     @Getter
@@ -25,28 +28,46 @@ public class PermissionedWrapper<S> {
     @Getter
     private @Nullable String permissionNode;
     @Getter
-    private final @NotNull List<PermissionedWrapper<S>> children;
+    private final @NotNull List<Permissioned<S>> children;
     
-    public static PermissionedWrapper<CommandSourceStack> literal(@NotNull String literal) {
-        return new PermissionedWrapper<>(Commands.literal(literal), literal);
+    public static Permissioned<CommandSourceStack> literal(@NotNull String literal) {
+        return new Permissioned<>(Commands.literal(literal), literal);
     }
     
-    public PermissionedWrapper(@NotNull ArgumentBuilder<S, ?> argument, @NotNull String name) {
+    public static Permissioned<CommandSourceStack> argument(@NotNull String name, ArgumentType<?> argumentType) {
+        return new Permissioned<>(Commands.argument(name, argumentType), name);
+    }
+    
+    public Permissioned(@NotNull ArgumentBuilder<S, ?> argument, @NotNull String name) {
         this.argument = argument;
         this.name = name;
         this.children = new ArrayList<>();
     }
     
-    public PermissionedWrapper<S> then(LiteralArgumentBuilder<S> argument) {
-        return then(new PermissionedWrapper<>(argument, argument.getLiteral()));
+    public Permissioned<S> then(@NotNull ArgumentBuilder<S, ?> argument, @NotNull String name) {
+        return then(new Permissioned<>(argument, name));
     }
     
-    public PermissionedWrapper<S> then(RequiredArgumentBuilder<S, ?> argument) {
-        return then(new PermissionedWrapper<>(argument, argument.getName()));
+    public Permissioned<S> then(LiteralArgumentBuilder<S> argument) {
+        return then(argument, argument.getLiteral());
     }
     
-    public PermissionedWrapper<S> then(PermissionedWrapper<S> argument) {
+    public Permissioned<S> then(RequiredArgumentBuilder<S, ?> argument) {
+        return then(argument, argument.getName());
+    }
+    
+    public Permissioned<S> then(Permissioned<S> argument) {
         children.add(argument);
+        return this;
+    }
+    
+    public Permissioned<S> executes(final Command<S> command) {
+        argument.executes(command);
+        return this;
+    }
+    
+    public Permissioned<S> requires(final Predicate<S> requirement) {
+        argument.requires(requirement);
         return this;
     }
     
@@ -56,7 +77,7 @@ public class PermissionedWrapper<S> {
             return;
         }
         this.permissionNode = permissionNode;
-        for (PermissionedWrapper<S> child : children) {
+        for (Permissioned<S> child : children) {
             child.setPermissionNode(String.format("%s.%s", this.permissionNode, child.getName()));
         }
     }
@@ -83,7 +104,7 @@ public class PermissionedWrapper<S> {
                         return source.getSender().hasPermission(permissionNode) && argument.getRequirement().test(s);
                     });
         }
-        for (PermissionedWrapper<S> child : children) {
+        for (Permissioned<S> child : children) {
             argument.then(child.buildChildren(pluginManager));
         }
         return argument.build();
