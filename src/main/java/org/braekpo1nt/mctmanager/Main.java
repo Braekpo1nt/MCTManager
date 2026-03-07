@@ -1,13 +1,5 @@
 package org.braekpo1nt.mctmanager;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import com.github.retrooper.packetevents.PacketEvents;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -32,7 +24,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.EnumArgumentType;
 import org.braekpo1nt.mctmanager.commands.bugreport.BugReportCommand;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
-import org.braekpo1nt.mctmanager.commands.manager.PermissionedLiteralArgumentBuilder;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
@@ -83,6 +74,14 @@ import org.flywaydb.core.api.output.ValidateResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 @Log
 public class Main extends JavaPlugin {
     
@@ -99,7 +98,6 @@ public class Main extends JavaPlugin {
     private GameManager gameManager;
     private boolean saveGameStateOnDisable = true;
     public final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
-    private MCTCommandOriginal mctCommand;
     /**
      * This should be the application-wide logger used to print logs to the console or standard out.
      * Initialized to Lombok log value so that tests don't trigger NullPointerExceptions
@@ -219,7 +217,6 @@ public class Main extends JavaPlugin {
         
         // Commands
         new MCTDebugCommand(this, gameManager);
-        mctCommand = new MCTCommandOriginal(this, gameManager, blockEffectsListener);
         new UtilsCommand(this);
         new ReadyUpCommand(this, gameManager);
         new UnReadyCommand(this, gameManager);
@@ -517,7 +514,8 @@ public class Main extends JavaPlugin {
                 )
                 .build();
         
-        LiteralCommandNode<CommandSourceStack> mctCommand1 = new MCTCommand(this, gameManager, blockEffectsListener).build();
+        LiteralCommandNode<CommandSourceStack> mctCommand = new MCTCommand(this, gameManager, blockEffectsListener).build();
+        
         PluginManager pluginManager = getServer().getPluginManager();
         LiteralCommandNode<CommandSourceStack> myPermTest = BrigadierAdapters.literal("myPermTest", pluginManager)
                 .then(BrigadierAdapters.literal("say", pluginManager)
@@ -548,7 +546,7 @@ public class Main extends JavaPlugin {
             commands.registrar().register(ctDebugCommand);
             commands.registrar().register(databaseCommand);
             commands.registrar().register(plantCommand);
-            commands.registrar().register(mctCommand1);
+            commands.registrar().register(mctCommand);
             commands.registrar().register(myPermTest);
         });
     }
@@ -635,10 +633,6 @@ public class Main extends JavaPlugin {
         return Command.SINGLE_SUCCESS;
     }
     
-    public MCTCommandOriginal getMctCommand() {
-        return mctCommand;
-    }
-    
     private void alwaysGiveNightVision() {
         Main.logger().info("[MCTManager] Night vision activated");
         new BukkitRunnable() {
@@ -668,7 +662,6 @@ public class Main extends JavaPlugin {
             Main.logger().info("[MCTManager] Skipping save game state.");
         }
         gameManager = null;
-        mctCommand = null;
         if (boxRenderer != null) {
             boxRenderer.hide();
             boxRenderer = null;
