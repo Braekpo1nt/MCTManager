@@ -177,4 +177,21 @@ class BrigadierTest {
         Assertions.assertNotNull(command);
         Assertions.assertEquals(Set.of("mct", "mct.foo", "mct.bar"), pluginManager.getPermissionNodes().keySet());
     }
+    
+    @Test
+    void buildWithPluginManager() {
+        CommandNode<CommandSourceStack> command = Permissioned.literal("test")
+                .pluginManager(pluginManager)
+                .build();
+        Assertions.assertNotNull(command);
+        Assertions.assertEquals(Set.of("test"), pluginManager.getPermissionNodes().keySet());
+    }
+    
+    @Test
+    void buildWithoutPluginManager() {
+        Assertions.assertThrows(IllegalStateException.class, () -> {
+            Permissioned.literal("test")
+                    .build();
+        });
+    }
 }

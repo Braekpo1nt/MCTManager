@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 @Slf4j
-public class Permissioned<S> {
+public class Permissioned<S> extends ArgumentBuilder<S, Permissioned<S>> {
     
     private final @NotNull ArgumentBuilder<S, ?> argument;
     @Getter
@@ -29,6 +29,7 @@ public class Permissioned<S> {
     private @Nullable String permissionNode;
     @Getter
     private final @NotNull List<Permissioned<S>> children;
+    private @Nullable PluginManager pluginManager;
     
     public static Permissioned<CommandSourceStack> literal(@NotNull String literal) {
         return new Permissioned<>(Commands.literal(literal), literal);
@@ -61,6 +62,11 @@ public class Permissioned<S> {
         return this;
     }
     
+    @Override
+    protected Permissioned<S> getThis() {
+        return this;
+    }
+    
     public Permissioned<S> executes(final Command<S> command) {
         argument.executes(command);
         return this;
@@ -68,6 +74,11 @@ public class Permissioned<S> {
     
     public Permissioned<S> requires(final Predicate<S> requirement) {
         argument.requires(requirement);
+        return this;
+    }
+    
+    public Permissioned<S> pluginManager(@NotNull PluginManager pluginManager) {
+        this.pluginManager = pluginManager;
         return this;
     }
     
@@ -108,6 +119,14 @@ public class Permissioned<S> {
             argument.then(child.buildChildren(pluginManager));
         }
         return argument.build();
+    }
+    
+    @Override
+    public CommandNode<S> build() {
+        if (pluginManager == null) {
+            throw new IllegalStateException("Attempted to call build() on a Permissioned<S> command without first assigning pluginManager with .pluginManager(PluginManager).");
+        }
+        return build(pluginManager);
     }
     
     /**
