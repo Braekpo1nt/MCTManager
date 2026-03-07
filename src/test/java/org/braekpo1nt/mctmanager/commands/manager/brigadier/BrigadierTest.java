@@ -39,6 +39,18 @@ class BrigadierTest {
     }
     
     @Test
+    void tripleNodeTest() {
+        CommandNode<CommandSourceStack> command = PermissionedWrapper.literal("foo")
+                .then(PermissionedWrapper.literal("bar")
+                        .then(PermissionedWrapper.literal("ref"))
+                )
+                .build(pluginManager);
+        assertThat(command).isNotNull();
+        assertThat(pluginManager.getPermissionNodes().keySet()).containsExactlyInAnyOrder("foo", "foo.bar", "foo.bar.ref");
+        assertThat(command.getChildren()).hasSize(1);
+    }
+    
+    @Test
     void doubleNodeBranchTest() {
         CommandNode<CommandSourceStack> command = PermissionedWrapper.literal("foo")
                 .then(PermissionedWrapper.literal("bar")
@@ -47,6 +59,19 @@ class BrigadierTest {
                 .build(pluginManager);
         assertThat(command).isNotNull();
         assertThat(pluginManager.getPermissionNodes().keySet()).containsExactlyInAnyOrder("foo", "foo.bar", "foo.ref");
+        assertThat(command.getChildren()).hasSize(2);
+    }
+    
+    @Test
+    void tripleNodeBranchTest() {
+        CommandNode<CommandSourceStack> command = PermissionedWrapper.literal("foo")
+                .then(PermissionedWrapper.literal("bar")
+                        .then(PermissionedWrapper.literal("pan"))
+                )
+                .then(PermissionedWrapper.literal("ref"))
+                .build(pluginManager);
+        assertThat(command).isNotNull();
+        assertThat(pluginManager.getPermissionNodes().keySet()).containsExactlyInAnyOrder("foo", "foo.bar", "foo.ref", "foo.bar.pan");
         assertThat(command.getChildren()).hasSize(2);
     }
     
