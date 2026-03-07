@@ -13,7 +13,7 @@ import static org.mockito.Mockito.mock;
 /**
  * Used to check if the right permission nodes are being created
  */
-public class PretendPluginManager extends PluginManagerMock {
+class PretendPluginManager extends PluginManagerMock {
     
     private final Map<String, Permission> permissionNodes = new HashMap<>();
     
