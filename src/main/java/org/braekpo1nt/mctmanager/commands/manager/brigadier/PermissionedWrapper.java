@@ -9,6 +9,7 @@ import io.papermc.paper.command.brigadier.Commands;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bukkit.permissions.Permission;
+import org.bukkit.plugin.PluginManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,13 +62,13 @@ public class PermissionedWrapper<S> {
     }
     
     /**
-     * Different from {@link #build(PretendPluginManager)} only in that
+     * Different from {@link #build(PluginManager)} only in that
      * it doesn't assign the permission nodes recursively. This prevents
      * redundant assignment that a single public method would produce.
      * @param pluginManager the pluginManager to register the permission nodes with
      * @return the build CommandNode
      */
-    private CommandNode<S> buildChildren(PretendPluginManager pluginManager) {
+    private CommandNode<S> buildChildren(PluginManager pluginManager) {
         log.atDebug().log("building individual {} with permission node {}", name, permissionNode);
         if (permissionNode != null && pluginManager.getPermission(permissionNode) == null) {
             pluginManager.addPermission(new Permission(permissionNode));
@@ -94,7 +95,7 @@ public class PermissionedWrapper<S> {
      * @param pluginManager the pluginManager to register the permission nodes with
      * @return the build CommandNode
      */
-    public CommandNode<S> build(PretendPluginManager pluginManager) {
+    public CommandNode<S> build(PluginManager pluginManager) {
         log.atDebug().log("building entire tree for {}", name);
         this.setPermissionNode(getName());
         return buildChildren(pluginManager);
