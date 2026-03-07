@@ -8,6 +8,7 @@ import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import lombok.Getter;
 import lombok.Setter;
+import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.PluginManager;
 import org.jetbrains.annotations.NotNull;
@@ -21,7 +22,6 @@ public class PermissionedWrapper<S> {
     private final @NotNull ArgumentBuilder<S, ?> argument;
     @Getter
     private final @NotNull String name;
-    @Setter
     private @Nullable String permissionNode;
     private final @NotNull List<PermissionedWrapper<S>> children;
     
@@ -50,7 +50,18 @@ public class PermissionedWrapper<S> {
         return this;
     }
     
+    public void setPermissionNode(@Nullable String permissionNode) {
+        if (permissionNode == null) {
+            return;
+        }
+        this.permissionNode = permissionNode;
+        for (PermissionedWrapper<S> child : children) {
+            child.setPermissionNode(String.format("%s.%s", this.permissionNode, child.getName()));
+        }
+    }
+    
     public CommandNode<S> build(PretendPluginManager pluginManager) {
+        
         if (permissionNode != null && pluginManager.getPermission(permissionNode) == null) {
             pluginManager.addPermission(new Permission(permissionNode));
         }
