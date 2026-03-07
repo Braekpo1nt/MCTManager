@@ -21,6 +21,15 @@ repositories {
         url = "https://repo.onarandombox.com/content/groups/public/"
     }
     maven {
+        // the order matters, the packet events repose should be before the jitpack one
+        name = "PacketEvents1"
+        url = uri("https://repo.codemc.io/repository/maven-releases/")
+    }
+    maven {
+        name = "PacketEvents2"
+        url = uri("https://repo.codemc.io/repository/maven-snapshots/")
+    }
+    maven {
         name = "jitpack" // MockBukkit
         url = "https://jitpack.io/"
     }
@@ -30,14 +39,6 @@ repositories {
     maven {
         name = "WorldEdit"
         url = "https://maven.enginehub.org/repo/"
-    }
-    maven {
-        name = "PacketEvents1"
-        url = uri("https://repo.codemc.io/repository/maven-releases/")
-    }
-    maven {
-        name = "PacketEvents2"
-        url = uri("https://repo.codemc.io/repository/maven-snapshots/")
     }
 }
 
@@ -60,7 +61,7 @@ dependencies {
 
     // This would normally be compileOnly, but it's implementation so that the MockBukkit
     // tests can work. I mock PacketEventsAPI in the test folders to be a no-op implementation.
-    implementation 'com.github.retrooper:packetevents-spigot:2.10.0'
+    implementation 'com.github.retrooper:packetevents-spigot:2.11.2'
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'com.sk89q.worldedit:worldedit-bukkit:7.4.0-SNAPSHOT'
     implementation 'com.github.stefvanschie.inventoryframework:IF:0.11.3'
