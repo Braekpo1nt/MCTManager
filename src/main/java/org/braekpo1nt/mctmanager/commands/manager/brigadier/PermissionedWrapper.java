@@ -7,6 +7,7 @@ import com.mojang.brigadier.tree.CommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.bukkit.permissions.Permission;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class PermissionedWrapper<S> {
     
     private final @NotNull ArgumentBuilder<S, ?> argument;
@@ -48,6 +50,7 @@ public class PermissionedWrapper<S> {
     }
     
     public void setPermissionNode(@Nullable String permissionNode) {
+        log.atDebug().log("setting permission for {}", name);
         if (permissionNode == null) {
             return;
         }
@@ -65,10 +68,12 @@ public class PermissionedWrapper<S> {
      * @return the build CommandNode
      */
     private CommandNode<S> buildChildren(PretendPluginManager pluginManager) {
+        log.atDebug().log("building individual {} with permission node {}", name, permissionNode);
         if (permissionNode != null && pluginManager.getPermission(permissionNode) == null) {
             pluginManager.addPermission(new Permission(permissionNode));
         }
         if (permissionNode != null) {
+            log.atDebug().log("requires permission node {} for {}", permissionNode, name);
             argument
                     .requires(s -> {
                         if (!(s instanceof CommandSourceStack source)) {
@@ -90,6 +95,7 @@ public class PermissionedWrapper<S> {
      * @return the build CommandNode
      */
     public CommandNode<S> build(PretendPluginManager pluginManager) {
+        log.atDebug().log("building entire tree for {}", name);
         this.setPermissionNode(getName());
         return buildChildren(pluginManager);
     }
