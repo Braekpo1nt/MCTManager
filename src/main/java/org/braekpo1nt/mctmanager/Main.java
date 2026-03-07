@@ -28,7 +28,6 @@ import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.FailureCommandResult;
-import org.braekpo1nt.mctmanager.commands.mct.MCTCommandOriginal;
 import org.braekpo1nt.mctmanager.commands.mctdebug.MCTDebugCommand;
 import org.braekpo1nt.mctmanager.commands.notready.NotReadyCommand;
 import org.braekpo1nt.mctmanager.commands.readyup.ReadyUpCommand;
