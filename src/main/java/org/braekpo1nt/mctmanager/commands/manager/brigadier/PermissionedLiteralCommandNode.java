@@ -1,10 +1,9 @@
-package org.braekpo1nt.mctmanager.commands.manager;
+package org.braekpo1nt.mctmanager.commands.manager.brigadier;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.RedirectModifier;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
-import org.braekpo1nt.mctmanager.commands.manager.brigadier.PermissionedCommandNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

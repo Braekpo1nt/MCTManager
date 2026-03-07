@@ -1,10 +1,11 @@
-package org.braekpo1nt.mctmanager.commands.manager;
+package org.braekpo1nt.mctmanager.commands.manager.brigadier;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.manager.MasterCommandManager;
 import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.PluginManager;
 import org.jetbrains.annotations.NotNull;

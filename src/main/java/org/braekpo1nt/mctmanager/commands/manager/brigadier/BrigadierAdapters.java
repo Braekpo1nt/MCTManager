@@ -6,7 +6,6 @@ import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.commands.manager.PermissionedLiteralArgumentBuilder;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.PluginManager;
