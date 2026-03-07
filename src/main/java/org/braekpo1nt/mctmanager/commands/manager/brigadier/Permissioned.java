@@ -6,6 +6,7 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.tree.CommandNode;
+import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import lombok.Getter;
@@ -20,7 +21,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 @Slf4j
-public class Permissioned<S> extends ArgumentBuilder<S, Permissioned<S>> {
+public class Permissioned<S> extends LiteralArgumentBuilder<S> {
     
     private final @NotNull ArgumentBuilder<S, ?> argument;
     @Getter
@@ -40,6 +41,7 @@ public class Permissioned<S> extends ArgumentBuilder<S, Permissioned<S>> {
     }
     
     public Permissioned(@NotNull ArgumentBuilder<S, ?> argument, @NotNull String name) {
+        super(name);
         this.argument = argument;
         this.name = name;
         this.children = new ArrayList<>();
@@ -122,7 +124,7 @@ public class Permissioned<S> extends ArgumentBuilder<S, Permissioned<S>> {
     }
     
     @Override
-    public CommandNode<S> build() {
+    public LiteralCommandNode<S> build() {
         if (pluginManager == null) {
             throw new IllegalStateException("Attempted to call build() on a Permissioned<S> command without first assigning pluginManager with .pluginManager(PluginManager).");
         }
@@ -135,9 +137,9 @@ public class Permissioned<S> extends ArgumentBuilder<S, Permissioned<S>> {
      * @param pluginManager the pluginManager to register the permission nodes with
      * @return the build CommandNode
      */
-    public CommandNode<S> build(PluginManager pluginManager) {
+    public LiteralCommandNode<S> build(PluginManager pluginManager) {
         log.atDebug().log("building entire tree for {}", name);
         this.setPermissionNode(getName());
-        return buildChildren(pluginManager);
+        return (LiteralCommandNode<S>) buildChildren(pluginManager);
     }
 }

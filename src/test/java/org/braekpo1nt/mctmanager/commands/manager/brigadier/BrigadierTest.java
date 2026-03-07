@@ -121,10 +121,12 @@ class BrigadierTest {
     
     @Test
     void singleArgTest() {
-        CommandNode<CommandSourceStack> command = Permissioned.argument("test", StringArgumentType.word())
+        CommandNode<CommandSourceStack> command = Permissioned.literal("test")
+                .then(Permissioned.argument("arg", StringArgumentType.word())
+                )
                 .build(pluginManager);
         Assertions.assertNotNull(command);
-        Assertions.assertEquals(Set.of("test"), pluginManager.getPermissionNodes().keySet());
+        Assertions.assertEquals(Set.of("test", "test.arg"), pluginManager.getPermissionNodes().keySet());
     }
     
     @Test

@@ -34,7 +34,7 @@ public class MCTCommand implements BrigadierCommand {
     
     @Override
     public LiteralCommandNode<CommandSourceStack> build() {
-        return Commands.literal("mct2")
+        return Permissioned.literal("mct")
                 .then(new EventSubCommand(gameManager).create())
                 .then(new TeamCommand(plugin, gameManager).create())
                 .then(new AdminCommand(gameManager).create())
