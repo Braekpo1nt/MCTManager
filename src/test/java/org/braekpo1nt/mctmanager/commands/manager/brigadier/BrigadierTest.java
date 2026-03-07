@@ -152,7 +152,9 @@ class BrigadierTest {
         CommandNode<CommandSourceStack> command = Permissioned.literal("foo")
                 .then(Permissioned.literal("bar")
                         .then(Permissioned.argument("tag", StringArgumentType.word())
-                                .then(Commands.literal("ref"))
+                                .then(Commands.literal("ref")
+                                        .then(Commands.literal("ignore"))
+                                )
                                 .then(Permissioned.literal("mes"))
                         )
                 )
@@ -162,5 +164,17 @@ class BrigadierTest {
                 .build(pluginManager);
         Assertions.assertNotNull(command);
         Assertions.assertEquals(Set.of("foo", "foo.bar", "foo.car", "foo.bar.tag", "foo.bar.tag.ref", "foo.bar.tag.mes"), pluginManager.getPermissionNodes().keySet());
+    }
+    
+    @Test
+    void onlyRootPermissioned() {
+        CommandNode<CommandSourceStack> command = Permissioned.literal("mct")
+                .then(Commands.literal("foo"))
+                .then(Commands.literal("bar")
+                        .then(Commands.argument("ref", StringArgumentType.word()))
+                )
+                .build(pluginManager);
+        Assertions.assertNotNull(command);
+        Assertions.assertEquals(Set.of("mct", "mct.foo", "mct.bar"), pluginManager.getPermissionNodes().keySet());
     }
 }
