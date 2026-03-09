@@ -50,6 +50,7 @@ public class MCTCommand implements BrigadierCommand {
                 .then(Commands.literal("load")
                         .executes(BrigadierAdapters.wraps(ctx -> gameManager.loadGameState()))
                 )
+                .pluginManager(plugin.getServer().getPluginManager())
                 .build();
     }
 }
