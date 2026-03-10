@@ -1,5 +1,7 @@
 package org.braekpo1nt.mctmanager.games.gamemanager;
 
+import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.service.GameStateService;
@@ -35,5 +37,15 @@ public class MockGameManager extends GameManager {
     @Override
     public List<LeaderboardManager> createLeaderboardManagers() {
         return Collections.emptyList();
+    }
+    
+    @Override
+    public ArgumentType<?> getComponentArgumentType() {
+        return StringArgumentType.word();
+    }
+    
+    @Override
+    public ArgumentType<?> getPlayerArgumentType() {
+        return StringArgumentType.word();
     }
 }

@@ -1,6 +1,8 @@
 package org.braekpo1nt.mctmanager.games.gamemanager;
 
 import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
+import com.mojang.brigadier.arguments.ArgumentType;
+import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,7 +11,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
@@ -73,7 +74,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
@@ -1401,5 +1401,21 @@ public class GameManager implements Listener {
      */
     public void setTabListVisibility(@NotNull UUID uuid, boolean visible) {
         tabList.setVisibility(uuid, visible);
+    }
+    
+    /**
+     * @deprecated replace this once you figure out how to mock the {@link ArgumentTypes#player()}
+     */
+    @Deprecated
+    public ArgumentType<?> getPlayerArgumentType() {
+        return ArgumentTypes.player();
+    }
+    
+    /**
+     * @deprecated replace this once you figure out how to mock the {@link ArgumentTypes#component()}
+     */
+    @Deprecated
+    public ArgumentType<?> getComponentArgumentType() {
+        return ArgumentTypes.component();
     }
 }

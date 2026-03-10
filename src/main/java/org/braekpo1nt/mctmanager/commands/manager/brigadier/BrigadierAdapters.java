@@ -8,7 +8,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.bukkit.command.CommandSender;
-import org.bukkit.plugin.PluginManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.logging.Level;
@@ -37,9 +36,5 @@ public class BrigadierAdapters {
                 return 0;
             }
         };
-    }
-    
-    public static PermissionedLiteralArgumentBuilder<CommandSourceStack> literal(@NotNull String literal, @NotNull PluginManager pluginManager) {
-        return PermissionedLiteralArgumentBuilder.literal(literal, pluginManager);
     }
 }

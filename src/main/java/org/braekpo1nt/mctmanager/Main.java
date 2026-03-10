@@ -10,7 +10,6 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
@@ -26,7 +25,7 @@ import org.braekpo1nt.mctmanager.commands.argumenttypes.EnumArgumentType;
 import org.braekpo1nt.mctmanager.commands.bugreport.BugReportCommand;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
-import org.braekpo1nt.mctmanager.commands.manager.brigadier.MCTCommand;
+import org.braekpo1nt.mctmanager.commands.mct.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.FailureCommandResult;
 import org.braekpo1nt.mctmanager.commands.mctdebug.MCTDebugCommand;
@@ -516,38 +515,12 @@ public class Main extends JavaPlugin {
         
         LiteralCommandNode<CommandSourceStack> mctCommand = new MCTCommand(this, gameManager, blockEffectsListener).build();
         
-        PluginManager pluginManager = getServer().getPluginManager();
-        LiteralCommandNode<CommandSourceStack> myPermTest = BrigadierAdapters.literal("myPermTest", pluginManager)
-                .then(BrigadierAdapters.literal("say", pluginManager)
-                        .then(Commands.literal("canWe")
-                                .then(Commands.argument("run", StringArgumentType.word())
-                                        .suggests((c, b) -> {
-                                            b.suggest("rUn");
-                                            return b.buildFuture();
-                                        })
-                                        .executes(BrigadierAdapters.wraps(ctx -> {
-                                            String run = ctx.getArgument("run", String.class);
-                                            return CommandResult.success(Component.text("Success 1")
-                                                    .append(Component.text(run)));
-                                        }))
-                                        .then(BrigadierAdapters.literal("this", pluginManager)
-                                                .executes(BrigadierAdapters.wraps(ctx -> {
-                                                    String run = ctx.getArgument("run", String.class);
-                                                    return CommandResult.success(Component.text("Success 2")
-                                                            .append(Component.text(run)));
-                                                }))
-                                        )
-                                )
-                        )
-                )
-                .build();
         // Brigadier commands
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> {
             commands.registrar().register(ctDebugCommand);
             commands.registrar().register(databaseCommand);
             commands.registrar().register(plantCommand);
             commands.registrar().register(mctCommand);
-            commands.registrar().register(myPermTest);
         });
     }
     

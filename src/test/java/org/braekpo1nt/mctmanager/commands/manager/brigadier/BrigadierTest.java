@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.tree.CommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,6 +55,43 @@ class BrigadierTest {
     }
     
     @Test
+    void tripleNodeSetRootTest() {
+        CommandNode<CommandSourceStack> command = Permissioned.literal("foo")
+                .then(Permissioned.literal("bar")
+                        .then(Permissioned.literal("ref"))
+                )
+                .permissionRoot("mctmanager")
+                .build(pluginManager);
+        assertThat(command).isNotNull();
+        assertThat(pluginManager.getPermissionNodes().keySet()).containsExactlyInAnyOrder("mctmanager.foo", "mctmanager.foo.bar", "mctmanager.foo.bar.ref");
+    }
+    
+    @Test
+    void subRootIgnoredWhenRootSetTest() {
+        CommandNode<CommandSourceStack> command = Permissioned.literal("foo")
+                .then(Permissioned.literal("bar")
+                        .then(Permissioned.literal("ref"))
+                        .permissionRoot("ignore")
+                )
+                .permissionRoot("mctmanager")
+                .build(pluginManager);
+        assertThat(command).isNotNull();
+        assertThat(pluginManager.getPermissionNodes().keySet()).containsExactlyInAnyOrder("mctmanager.foo", "mctmanager.foo.bar", "mctmanager.foo.bar.ref");
+    }
+    
+    @Test
+    void subRootIgnoredTest() {
+        CommandNode<CommandSourceStack> command = Permissioned.literal("foo")
+                .then(Permissioned.literal("bar")
+                        .then(Permissioned.literal("ref"))
+                        .permissionRoot("ignore")
+                )
+                .build(pluginManager);
+        assertThat(command).isNotNull();
+        assertThat(pluginManager.getPermissionNodes().keySet()).containsExactlyInAnyOrder("foo", "foo.bar", "foo.bar.ref");
+    }
+    
+    @Test
     void doubleNodeBranchTest() {
         CommandNode<CommandSourceStack> command = Permissioned.literal("foo")
                 .then(Permissioned.literal("bar")
@@ -62,6 +100,19 @@ class BrigadierTest {
                 .build(pluginManager);
         assertThat(command).isNotNull();
         assertThat(pluginManager.getPermissionNodes().keySet()).containsExactlyInAnyOrder("foo", "foo.bar", "foo.ref");
+        assertThat(command.getChildren()).hasSize(2);
+    }
+    
+    @Test
+    void doubleNodeBranchSetRootTest() {
+        CommandNode<CommandSourceStack> command = Permissioned.literal("foo")
+                .then(Permissioned.literal("bar")
+                )
+                .then(Permissioned.literal("ref"))
+                .permissionRoot("mctmanager")
+                .build(pluginManager);
+        assertThat(command).isNotNull();
+        assertThat(pluginManager.getPermissionNodes().keySet()).containsExactlyInAnyOrder("mctmanager.foo", "mctmanager.foo.bar", "mctmanager.foo.ref");
         assertThat(command.getChildren()).hasSize(2);
     }
     
@@ -75,6 +126,20 @@ class BrigadierTest {
                 .build(pluginManager);
         assertThat(command).isNotNull();
         assertThat(pluginManager.getPermissionNodes().keySet()).containsExactlyInAnyOrder("foo", "foo.bar", "foo.ref", "foo.bar.pan");
+        assertThat(command.getChildren()).hasSize(2);
+    }
+    
+    @Test
+    void tripleNodeBranchSetRootTest() {
+        CommandNode<CommandSourceStack> command = Permissioned.literal("foo")
+                .then(Permissioned.literal("bar")
+                        .then(Permissioned.literal("pan"))
+                )
+                .then(Permissioned.literal("ref"))
+                .permissionRoot("mctmanager")
+                .build(pluginManager);
+        assertThat(command).isNotNull();
+        assertThat(pluginManager.getPermissionNodes().keySet()).containsExactlyInAnyOrder("mctmanager.foo", "mctmanager.foo.bar", "mctmanager.foo.ref", "mctmanager.foo.bar.pan");
         assertThat(command.getChildren()).hasSize(2);
     }
     
@@ -169,6 +234,28 @@ class BrigadierTest {
     }
     
     @Test
+    void suggestsTest() {
+        CommandNode<CommandSourceStack> command = Permissioned.literal("foo")
+                .then(Permissioned.literal("bar")
+                        .then(Permissioned.argument("tag", StringArgumentType.word())
+                                .suggests((ctx, builder) -> builder
+                                        .suggest("test")
+                                        .buildFuture())
+                                .then(Commands.literal("ref")
+                                        .then(Commands.literal("ignore"))
+                                )
+                                .then(Permissioned.literal("mes"))
+                        )
+                )
+                .then(Permissioned.literal("car")
+                        .executes(ctx -> Command.SINGLE_SUCCESS)
+                )
+                .build(pluginManager);
+        Assertions.assertNotNull(command);
+        Assertions.assertEquals(Set.of("foo", "foo.bar", "foo.car", "foo.bar.tag", "foo.bar.tag.ref", "foo.bar.tag.mes"), pluginManager.getPermissionNodes().keySet());
+    }
+    
+    @Test
     void onlyRootPermissioned() {
         CommandNode<CommandSourceStack> command = Permissioned.literal("mct")
                 .then(Commands.literal("foo"))
@@ -178,22 +265,5 @@ class BrigadierTest {
                 .build(pluginManager);
         Assertions.assertNotNull(command);
         Assertions.assertEquals(Set.of("mct", "mct.foo", "mct.bar"), pluginManager.getPermissionNodes().keySet());
-    }
-    
-    @Test
-    void buildWithPluginManager() {
-        CommandNode<CommandSourceStack> command = Permissioned.literal("test")
-                .pluginManager(pluginManager)
-                .build();
-        Assertions.assertNotNull(command);
-        Assertions.assertEquals(Set.of("test"), pluginManager.getPermissionNodes().keySet());
-    }
-    
-    @Test
-    void buildWithoutPluginManager() {
-        Assertions.assertThrows(IllegalStateException.class, () -> {
-            Permissioned.literal("test")
-                    .build();
-        });
     }
 }
