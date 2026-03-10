@@ -1279,16 +1279,9 @@ public class GameManager implements Listener {
         }
     }
     
-    public @Nullable OfflinePlayer getOfflineAdmin(@NotNull String name) throws SQLException {
-        Map.Entry<UUID, String> adminInfo = gameStateStorageUtil.getAllAdminNames().entrySet().stream()
-                .filter(entry -> entry.getValue().equals(name))
-                .findFirst()
-                .orElse(null);
-        if (adminInfo == null) {
-            return null;
-        }
-        if (isAdmin(adminInfo.getKey())) {
-            return plugin.getServer().getOfflinePlayer(adminInfo.getKey());
+    public @Nullable OfflinePlayer getOfflineAdmin(@NotNull UUID uuid) {
+        if (isAdmin(uuid)) {
+            return plugin.getServer().getOfflinePlayer(uuid);
         }
         return null;
     }

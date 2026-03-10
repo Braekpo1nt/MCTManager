@@ -4,12 +4,9 @@ import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import io.papermc.paper.command.brigadier.MessageComponentSerializer;
 import io.papermc.paper.command.brigadier.argument.CustomArgumentType;
-import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,12 +15,7 @@ import java.io.FileFilter;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
-public class FileArgumentType implements CustomArgumentType.Converted<File, String> {
-    
-    private static final DynamicCommandExceptionType ERROR_FILE_NOT_FOUND = new DynamicCommandExceptionType(filePath -> MessageComponentSerializer.message().serialize(Component.empty()
-            .append(Component.text("File not found: "))
-            .append(Component.text(filePath.toString()))
-    ));
+public class FileArgumentType implements CustomArgumentType.Converted<FileResolver, String> {
     
     private final @NotNull File parentDirectory;
     private final @Nullable FileFilter filter;
@@ -54,12 +46,8 @@ public class FileArgumentType implements CustomArgumentType.Converted<File, Stri
     }
     
     @Override
-    public @NotNull File convert(@NotNull String fileName) throws CommandSyntaxException {
-        File file = new File(parentDirectory, fileName);
-        if (!file.exists()) {
-            throw ERROR_FILE_NOT_FOUND.create(file.getAbsolutePath());
-        }
-        return file;
+    public @NotNull FileResolver convert(@NotNull String fileName) throws CommandSyntaxException {
+        return new FileResolver(new File(parentDirectory, fileName));
     }
     
     @Override

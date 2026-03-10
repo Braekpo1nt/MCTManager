@@ -1,5 +1,7 @@
 package org.braekpo1nt.mctmanager.commands;
 
+import com.mojang.brigadier.tree.LiteralCommandNode;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MockMain;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
@@ -16,6 +18,7 @@ import org.mockbukkit.mockbukkit.exception.UnimplementedOperationException;
 
 import java.util.logging.Level;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 class MCTCommandTest {
@@ -49,7 +52,8 @@ class MCTCommandTest {
     
     @Test
     void testBuild() {
-        new MCTCommand(plugin, gameManager, mock(BlockEffectsListener.class)).build();
+        LiteralCommandNode<CommandSourceStack> command = new MCTCommand(plugin, gameManager, mock(BlockEffectsListener.class)).build();
+        assertThat(command).isNotNull();
     }
     
 }

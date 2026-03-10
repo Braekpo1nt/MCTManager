@@ -4,27 +4,15 @@ import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import io.papermc.paper.command.brigadier.MessageComponentSerializer;
 import io.papermc.paper.command.brigadier.argument.CustomArgumentType;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
-import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
-public class OfflineParticipantArgumentType implements CustomArgumentType.Converted<OfflineParticipant, String> {
-    
-    private static final DynamicCommandExceptionType ERROR_PARTICIPANT_DOES_NOT_EXIST = new DynamicCommandExceptionType(name -> MessageComponentSerializer.message().serialize(Component.empty()
-            .append(Component.text("Player "))
-            .append(Component.text(name.toString())
-                    .decorate(TextDecoration.BOLD))
-            .append(Component.text(" is not a on a team."))
-    ));
+public class OfflineParticipantArgumentType implements CustomArgumentType.Converted<OfflineParticipantResolver, String> {
     
     private final @NotNull GameManager gameManager;
     
@@ -36,6 +24,11 @@ public class OfflineParticipantArgumentType implements CustomArgumentType.Conver
     }
     
     @Override
+    public @NotNull OfflineParticipantResolver convert(@NotNull String ign) throws CommandSyntaxException {
+        return new OfflineParticipantResolver(gameManager, ign);
+    }
+    
+    @Override
     public <S> @NotNull CompletableFuture<Suggestions> listSuggestions(@NotNull CommandContext<S> context, @NotNull SuggestionsBuilder builder) {
         return CompletableFuture.supplyAsync(() -> {
             gameManager.getAllParticipantNames().stream()
@@ -43,15 +36,6 @@ public class OfflineParticipantArgumentType implements CustomArgumentType.Conver
                     .forEach(builder::suggest);
             return builder.build();
         });
-    }
-    
-    @Override
-    public @NotNull OfflineParticipant convert(@NotNull String playerName) throws CommandSyntaxException {
-        OfflineParticipant offlineParticipant = gameManager.getOfflineParticipant(playerName);
-        if (offlineParticipant == null) {
-            throw ERROR_PARTICIPANT_DOES_NOT_EXIST.create(playerName);
-        }
-        return offlineParticipant;
     }
     
     @Override

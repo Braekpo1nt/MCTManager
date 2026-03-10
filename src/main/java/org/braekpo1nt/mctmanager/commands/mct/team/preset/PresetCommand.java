@@ -4,6 +4,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.FileResolver;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.FileArgumentType;
@@ -51,7 +52,7 @@ public class PresetCommand implements BrigadierSubCommand {
         return CompletableFuture.supplyAsync(() -> {
             Preset preset;
             try {
-                File presetFile = ctx.getArgument(PRESET_FILE_ARG, File.class);
+                File presetFile = ctx.getArgument(PRESET_FILE_ARG, FileResolver.class).resolve();
                 preset = storageUtil.loadPreset(presetFile);
             } catch (Exception e) {
                 return builder.build();

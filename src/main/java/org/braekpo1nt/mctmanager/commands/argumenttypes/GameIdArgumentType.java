@@ -16,6 +16,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class GameIdArgumentType implements CustomArgumentType.Converted<GameType, String> {
@@ -35,10 +36,16 @@ public class GameIdArgumentType implements CustomArgumentType.Converted<GameType
     
     private final @NotNull GameManager gameManager;
     private final boolean activeOnly;
+    private final @NotNull List<GameType> allowedValues;
     
-    public GameIdArgumentType(@NotNull GameManager gameManager, boolean activeOnly) {
+    public GameIdArgumentType(@NotNull GameManager gameManager, boolean activeOnly, @NotNull List<GameType> allowedValues) {
         this.gameManager = gameManager;
         this.activeOnly = activeOnly;
+        this.allowedValues = allowedValues;
+    }
+    
+    public GameIdArgumentType(@NotNull GameManager gameManager, boolean activeOnly) {
+        this(gameManager, activeOnly, Arrays.asList(GameType.values()));
     }
     
     @Override
@@ -64,7 +71,7 @@ public class GameIdArgumentType implements CustomArgumentType.Converted<GameType
                         .filter(id -> id.startsWith(builder.getRemaining()))
                         .forEach(builder::suggest);
             } else {
-                Arrays.stream(GameType.values())
+                allowedValues.stream()
                         .map(GameType::getId)
                         .filter(id -> id.startsWith(builder.getRemaining()))
                         .forEach(builder::suggest);

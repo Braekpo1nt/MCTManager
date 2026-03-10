@@ -2,7 +2,9 @@ package org.braekpo1nt.mctmanager.commands.mct.team.score;
 
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.OfflineParticipantResolver;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.OfflineParticipantArgumentType;
@@ -45,8 +47,9 @@ public class ScoreAddCommand implements BrigadierSubCommand {
                 ;
     }
     
-    private @NotNull CommandResult executeAddParticipant(CommandContext<CommandSourceStack> ctx) {
-        OfflineParticipant offlineParticipant = ctx.getArgument("participantName", OfflineParticipant.class);
+    private @NotNull CommandResult executeAddParticipant(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        OfflineParticipant offlineParticipant = ctx.getArgument("participantName", OfflineParticipantResolver.class)
+                .resolve();
         int score = ctx.getArgument("score", Integer.class);
         int currentScore = offlineParticipant.getScore();
         if (invert) {

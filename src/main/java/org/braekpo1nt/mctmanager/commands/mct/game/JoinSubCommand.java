@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.commands.mct.game;
 
 import com.mojang.brigadier.context.CommandContext;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+import io.papermc.paper.command.brigadier.Commands;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.ConfigFileArgumentType;
@@ -33,9 +34,9 @@ public class JoinSubCommand implements BrigadierSubCommand {
     public @NotNull Permissioned<CommandSourceStack> create() {
         return Permissioned.literal("join")
                 .executes(BrigadierAdapters.wraps(this::executeJoin))
-                .then(Permissioned.argument(GAME_ID_ARG, new GameIdArgumentType(gameManager, true))
+                .then(Commands.argument(GAME_ID_ARG, new GameIdArgumentType(gameManager, true))
                         .executes(BrigadierAdapters.wraps(this::executeJoinGame))
-                        .then(Permissioned.argument("configFile", new ConfigFileArgumentType(gameManager, true, GAME_ID_ARG))
+                        .then(Commands.argument("configFile", new ConfigFileArgumentType(gameManager, true, GAME_ID_ARG))
                                 .executes(BrigadierAdapters.wraps(this::executeJoinGameConfig))
                         )
                 )

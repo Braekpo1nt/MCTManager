@@ -112,10 +112,24 @@ public class EventSubCommand implements BrigadierSubCommand {
                 ;
     }
     
+    private static final String DATE_FORMAT = "yyyy-MM-dd";
+    
     private Permissioned<CommandSourceStack> buildCreate() {
         return Permissioned.literal("create")
                 .then(Permissioned.argument("eventId", StringArgumentType.word())
                         .then(Permissioned.argument("eventDate", StringArgumentType.word())
+                                .suggests((ctx, builder) -> CompletableFuture.supplyAsync(() -> {
+                                    String remaining = builder.getRemaining();
+                                    if (remaining.isBlank() || remaining.isEmpty()) {
+                                        builder.suggest(DATE_FORMAT);
+                                        return builder.build();
+                                    }
+                                    if (remaining.length() > DATE_FORMAT.length()) {
+                                        return builder.build();
+                                    }
+                                    builder.suggest(remaining + DATE_FORMAT.substring(remaining.length()));
+                                    return builder.build();
+                                }))
                                 .then(Permissioned.argument("plainTextName", StringArgumentType.string())
                                         .then(Permissioned.argument("componentName", gameManager.getComponentArgumentType())
                                                 .executes(BrigadierAdapters.wraps(this::executeCreate))

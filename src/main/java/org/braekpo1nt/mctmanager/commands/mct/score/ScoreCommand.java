@@ -1,16 +1,20 @@
 package org.braekpo1nt.mctmanager.commands.mct.score;
 
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
-import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
+import io.papermc.paper.command.brigadier.Commands;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.OfflineParticipantArgumentType;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.OfflineParticipantResolver;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.TeamArgumentType;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
@@ -33,22 +37,22 @@ public class ScoreCommand implements BrigadierSubCommand {
     public @NotNull Permissioned<CommandSourceStack> create() {
         return Permissioned.literal("score")
                 .executes(BrigadierAdapters.wraps(this::executeScoreSelf))
-                .then(Permissioned.literal("player")
-                        .then(Permissioned.argument("participant", new OfflineParticipantArgumentType(gameManager))
+                .then(Commands.literal("player")
+                        .then(Commands.argument("participant", new OfflineParticipantArgumentType(gameManager))
                                 .executes(BrigadierAdapters.wraps(this::executeScorePlayer))
                         )
                 )
-                .then(Permissioned.literal("team")
-                        .then(Permissioned.argument("teamId", new TeamArgumentType(gameManager))
+                .then(Commands.literal("team")
+                        .then(Commands.argument("teamId", new TeamArgumentType(gameManager))
                                 .executes(BrigadierAdapters.wraps(this::executeScoreTeam))
                         )
                 )
-                .then(Permissioned.literal("all")
+                .then(Commands.literal("all")
                         .executes(BrigadierAdapters.wraps(this::executeScoreAll))
-                        .then(Permissioned.literal("players")
+                        .then(Commands.literal("players")
                                 .executes(BrigadierAdapters.wraps(this::executeScoreAllPlayers))
                         )
-                        .then(Permissioned.literal("teams")
+                        .then(Commands.literal("teams")
                                 .executes(BrigadierAdapters.wraps(this::executeScoreAllTeams))
                         )
                 )
@@ -70,8 +74,10 @@ public class ScoreCommand implements BrigadierSubCommand {
                         .color(NamedTextColor.GOLD)));
     }
     
-    private @NotNull CommandResult executeScorePlayer(CommandContext<CommandSourceStack> ctx) {
-        OfflineParticipant offlineParticipant = ctx.getArgument("participant", OfflineParticipant.class);
+    private @NotNull CommandResult executeScorePlayer(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        OfflineParticipant offlineParticipant = ctx.getArgument("participant", OfflineParticipantResolver.class)
+                .resolve();
+        Main.logf("test score command to ");
         return CommandResult.success(Component.empty()
                 .append(offlineParticipant.displayName())
                 .append(Component.text(": "))

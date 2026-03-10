@@ -1,7 +1,9 @@
 package org.braekpo1nt.mctmanager.commands.mct.team;
 
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.OfflineParticipantResolver;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.OfflineParticipantArgumentType;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
@@ -22,14 +24,15 @@ public class LeaveSubCommand implements BrigadierSubCommand {
     @Override
     public @NotNull Permissioned<CommandSourceStack> create() {
         return Permissioned.literal("leave")
-                .then(Permissioned.argument("member", new OfflineParticipantArgumentType(gameManager))
+                .then(Permissioned.argument("participant", new OfflineParticipantArgumentType(gameManager))
                         .executes(BrigadierAdapters.wraps(this::executeLeave))
                 )
                 ;
     }
     
-    private @NotNull CommandResult executeLeave(CommandContext<CommandSourceStack> ctx) {
-        OfflineParticipant offlineParticipant = ctx.getArgument("member", OfflineParticipant.class);
+    private @NotNull CommandResult executeLeave(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        OfflineParticipant offlineParticipant = ctx.getArgument("participant", OfflineParticipantResolver.class)
+                .resolve();
         return gameManager.leaveParticipant(offlineParticipant);
     }
 }
