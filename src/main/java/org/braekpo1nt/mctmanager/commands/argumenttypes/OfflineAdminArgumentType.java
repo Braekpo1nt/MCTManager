@@ -15,6 +15,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.SQLException;
 import java.util.concurrent.CompletableFuture;
 
 public class OfflineAdminArgumentType implements CustomArgumentType.Converted<OfflinePlayer, String> {
@@ -25,6 +26,13 @@ public class OfflineAdminArgumentType implements CustomArgumentType.Converted<Of
             .append(Component.text(" is not an admin"))
     ));
     
+    private static final DynamicCommandExceptionType ERROR_SQL_COMMUNICATION_FAILED = new DynamicCommandExceptionType(name -> MessageComponentSerializer.message().serialize(Component.empty()
+            .append(Component.text("Could not connect to database to find "))
+            .append(Component.text(name.toString())
+                    .decorate(TextDecoration.BOLD))
+            .append(Component.text(". see console for details."))
+    ));
+    
     private final @NotNull GameManager gameManager;
     
     public OfflineAdminArgumentType(@NotNull GameManager gameManager) {
@@ -33,7 +41,12 @@ public class OfflineAdminArgumentType implements CustomArgumentType.Converted<Of
     
     @Override
     public @NotNull OfflinePlayer convert(@NotNull String name) throws CommandSyntaxException {
-        OfflinePlayer admin = gameManager.getOfflineAdmin(name);
+        OfflinePlayer admin;
+        try {
+            admin = gameManager.getOfflineAdmin(name);
+        } catch (SQLException e) {
+            throw ERROR_SQL_COMMUNICATION_FAILED.create(name);
+        }
         if (admin == null) {
             throw ERROR_ADMIN_DOES_NOT_EXIST.create(name);
         }
