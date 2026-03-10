@@ -1,62 +1,59 @@
 package org.braekpo1nt.mctmanager.commands.mct;
 
+import com.mojang.brigadier.tree.LiteralCommandNode;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.commands.CommandUtils;
-import org.braekpo1nt.mctmanager.commands.manager.MasterCommandManager;
-import org.braekpo1nt.mctmanager.commands.manager.SubCommand;
-import org.braekpo1nt.mctmanager.commands.manager.Usage;
-import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierCommand;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.commands.mct.admin.AdminCommand;
 import org.braekpo1nt.mctmanager.commands.mct.debug.DebugCommand;
 import org.braekpo1nt.mctmanager.commands.mct.edit.EditCommand;
-import org.braekpo1nt.mctmanager.commands.mct.event.EventCommand;
+import org.braekpo1nt.mctmanager.commands.mct.event.EventSubCommand;
 import org.braekpo1nt.mctmanager.commands.mct.game.GameCommand;
 import org.braekpo1nt.mctmanager.commands.mct.hub.HubCommand;
 import org.braekpo1nt.mctmanager.commands.mct.mode.ModeCommand;
-import org.braekpo1nt.mctmanager.commands.mct.option.OptionSubCommand;
+import org.braekpo1nt.mctmanager.commands.mct.option.OptionCommand;
 import org.braekpo1nt.mctmanager.commands.mct.score.ScoreCommand;
 import org.braekpo1nt.mctmanager.commands.mct.tablist.TabListCommand;
 import org.braekpo1nt.mctmanager.commands.mct.team.TeamCommand;
 import org.braekpo1nt.mctmanager.commands.mct.timer.TimerCommand;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.permissions.Permissible;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * The super command for all MCT related commands.
- * Handles all sub-commands which start with /mct ...
- */
-public class MCTCommand extends MasterCommandManager {
+public class MCTCommand implements BrigadierCommand {
     
-    public MCTCommand(@NotNull Main plugin, @NotNull GameManager gameManager, BlockEffectsListener blockEffectsListener) {
-        super(plugin, "mct");
-        CommandUtils.refreshGameConfigs(plugin);
-        addSubCommand(new GameCommand(plugin, gameManager));
-        addSubCommand(new EditCommand(plugin, gameManager, "edit"));
-        addSubCommand(new HubCommand(gameManager, "hub"));
-        addSubCommand(new OptionSubCommand(blockEffectsListener, "option"));
-        addSubCommand(new ModeCommand(gameManager, "mode"));
-        addSubCommand(new TeamCommand(plugin, gameManager, "team"));
-        addSubCommand(new AdminCommand(gameManager));
-        addSubCommand(new EventCommand(gameManager, "event"));
-        addSubCommand(new SubCommand("load") {
-            @Override
-            public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                return gameManager.loadGameState();
-            }
-        });
-        addSubCommand(new ScoreCommand(plugin, gameManager, "score"));
-        addSubCommand(new TimerCommand(gameManager, "timer"));
-        addSubCommand(new TabListCommand(gameManager, "tablist"));
-        addSubCommand(new DebugCommand("debug"));
-        onInit(plugin.getServer().getPluginManager());
+    private final @NotNull Main plugin;
+    private final @NotNull GameManager gameManager;
+    private final @NotNull BlockEffectsListener blockEffectsListener;
+    
+    public MCTCommand(@NotNull Main plugin, @NotNull GameManager gameManager, @NotNull BlockEffectsListener blockEffectsListener) {
+        this.plugin = plugin;
+        this.gameManager = gameManager;
+        this.blockEffectsListener = blockEffectsListener;
     }
     
     @Override
-    protected @NotNull Usage getSubCommandUsageArg(Permissible permissible) {
-        return new Usage("<options>");
+    public LiteralCommandNode<CommandSourceStack> build() {
+        return Permissioned.literal("mct")
+                .then(new EventSubCommand(gameManager).create())
+                .then(new TeamCommand(plugin, gameManager).create())
+                .then(new AdminCommand(gameManager).create())
+                .then(new DebugCommand().create())
+                .then(new GameCommand(gameManager).create())
+                .then(new HubCommand(gameManager).create())
+                .then(new ModeCommand(gameManager).create())
+                .then(new OptionCommand(blockEffectsListener).create())
+                .then(new EditCommand(gameManager).create())
+                .then(new ScoreCommand(gameManager).create())
+                .then(new TabListCommand(gameManager).create())
+                .then(new TimerCommand(gameManager).create())
+                .then(Permissioned.literal("load")
+                        .executes(BrigadierAdapters.wraps(ctx -> gameManager.loadGameState()))
+                )
+                .permissionRoot("mctmanager")
+                .build(plugin.getServer().getPluginManager());
     }
 }

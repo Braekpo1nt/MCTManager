@@ -36,6 +36,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -251,6 +252,10 @@ public class GameManagerUtils {
                     .append(Component.text(" does not exist.")));
         }
         
+        return joinParticipant(plugin, gameManager, ign, team);
+    }
+    
+    public static CommandResult joinParticipant(Main plugin, @NotNull GameManager gameManager, @NotNull String ign, @NotNull Team team) {
         OfflinePlayer playerToJoin;
         try {
             playerToJoin = plugin.getServer().getOfflinePlayer(ign);
@@ -263,7 +268,7 @@ public class GameManagerUtils {
                     .append(Component.text(". Does the user exist? See console for details."))
             );
         }
-        return gameManager.joinParticipantToTeam(playerToJoin, ign, teamId);
+        return gameManager.joinParticipantToTeam(playerToJoin, ign, team.getTeamId());
     }
     
     /**
@@ -480,6 +485,29 @@ public class GameManagerUtils {
         return sortedTeams;
     }
     
+    public static @NotNull CommandResult applyPreset(
+            @NotNull Main plugin,
+            @NotNull GameManager gameManager,
+            @NotNull PresetStorageUtil storageUtil,
+            @NotNull String presetFile,
+            boolean override,
+            boolean resetScores,
+            boolean whiteList,
+            boolean unWhitelist,
+            boolean kickUnWhitelisted) {
+        return applyPreset(
+                plugin,
+                gameManager,
+                storageUtil,
+                new File(new File(plugin.getDataFolder(), "preset"), presetFile),
+                override,
+                resetScores,
+                whiteList,
+                unWhitelist,
+                kickUnWhitelisted
+        );
+    }
+    
     /**
      * @param whiteList if true, all participants in the preset will be whitelisted.
      * If false, no participants will be whitelisted by this process.
@@ -502,7 +530,7 @@ public class GameManagerUtils {
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
             @NotNull PresetStorageUtil storageUtil,
-            @NotNull String presetFile,
+            @NotNull File presetFile,
             boolean override,
             boolean resetScores,
             boolean whiteList,

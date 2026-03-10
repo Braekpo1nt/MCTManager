@@ -1,50 +1,36 @@
 package org.braekpo1nt.mctmanager.commands.mct.event;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextDecoration;
-import org.braekpo1nt.mctmanager.commands.CommandUtils;
-import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
-import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.context.CommandContext;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.List;
-
-public class ModifyCommand extends CommandManager {
+public class ModifyCommand implements BrigadierSubCommand {
     
-    public ModifyCommand(GameManager gameManager, @NotNull String name) {
-        super(name);
-        addSubCommand(new TabSubCommand("maxgames") {
-            @Override
-            public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                if (!gameManager.eventIsActive()) {
-                    return CommandResult.failure(Component.text("There is no event running."));
-                }
-                
-                if (args.length != 1) {
-                    return CommandResult.failure(getUsage().of("<newCount>"));
-                }
-                
-                String newCountString = args[0];
-                if (!CommandUtils.isInteger(newCountString)) {
-                    return CommandResult.failure(Component.empty()
-                            .append(Component.text(newCountString)
-                                    .decorate(TextDecoration.BOLD))
-                            .append(Component.text(" is not a valid integer")));
-                }
-                
-                int newCount = Integer.parseInt(newCountString);
-                return gameManager.modifyMaxGames(newCount);
-            }
-            
-            @Override
-            public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                return Collections.emptyList();
-            }
-        });
+    public final @NotNull GameManager gameManager;
+    
+    public ModifyCommand(@NotNull GameManager gameManager) {
+        this.gameManager = gameManager;
+    }
+    
+    @Override
+    public @NotNull Permissioned<CommandSourceStack> create() {
+        return Permissioned.literal("modify")
+                .then(Permissioned.literal("maxgames")
+                        .then(Permissioned.argument("newCount", IntegerArgumentType.integer())
+                                .executes(BrigadierAdapters.wraps(this::executeMaxGames))
+                        )
+                )
+                ;
+    }
+    
+    private @NotNull CommandResult executeMaxGames(CommandContext<CommandSourceStack> ctx) {
+        int newCount = ctx.getArgument("newCount", Integer.class);
+        return gameManager.modifyMaxGames(newCount);
     }
 }

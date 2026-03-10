@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.MockGameManager;
 import org.braekpo1nt.mctmanager.games.gamestate.MockGameStateStorageUtil;
 import org.braekpo1nt.mctmanager.hub.config.HubConfig;
+import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.braekpo1nt.mctmanager.packetevents.PacketEventsAPIMock;
 import org.braekpo1nt.mctmanager.ui.sidebar.MockSidebarFactory;
 import org.bukkit.scoreboard.Scoreboard;
@@ -60,7 +61,7 @@ public class MockMain extends Main {
     }
     
     @Override
-    protected void registerCommands() {
+    protected void registerCommands(@NotNull BlockEffectsListener blockEffectsListener) {
         // do nothing
     }
 }

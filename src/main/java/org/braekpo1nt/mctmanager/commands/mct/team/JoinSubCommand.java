@@ -1,56 +1,77 @@
 package org.braekpo1nt.mctmanager.commands.mct.team;
 
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.TeamArgumentType;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
+import org.braekpo1nt.mctmanager.participant.Team;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
-public class JoinSubCommand extends TabSubCommand {
-    private final Main plugin;
-    private final GameManager gameManager;
+public class JoinSubCommand implements BrigadierSubCommand {
     
-    public JoinSubCommand(Main plugin, GameManager gameManager, @NotNull String name) {
-        super(name);
+    private final @NotNull Main plugin;
+    private final @NotNull GameManager gameManager;
+    
+    public JoinSubCommand(@NotNull Main plugin, @NotNull GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
     }
     
     @Override
-    public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length < 1) {
-            return CommandResult.failure(getUsage().of("<team>").of("[member]"));
-        }
-        String teamId = args[0];
-        String playerName;
-        if (args.length == 1) {
-            if (!(sender instanceof Player player)) {
-                return CommandResult.failure("Must be a player to use the no-argument option");
-            }
-            playerName = player.getName();
-        } else {
-            playerName = args[1];
-        }
-        return GameManagerUtils.joinParticipant(plugin, gameManager, playerName, teamId);
+    public @NotNull Permissioned<CommandSourceStack> create() {
+        return Permissioned.literal("join")
+                .then(Permissioned.argument("teamId", new TeamArgumentType(gameManager))
+                        .executes(BrigadierAdapters.wraps(ctx -> {
+                            Team team = ctx.getArgument("teamId", Team.class);
+                            if (!(ctx.getSource().getSender() instanceof Player player)) {
+                                return CommandResult.failure("Must be a player to use the no-argument option");
+                            }
+                            return GameManagerUtils.joinParticipant(plugin, gameManager, player.getName(), team);
+                        }))
+                        .then(Permissioned.argument("member", StringArgumentType.word())
+                                .suggests((source, builder) -> suggestPlayerNames(builder))
+                                .executes(BrigadierAdapters.wraps(this::executeJoin))
+                        )
+                )
+                ;
     }
     
-    @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length == 1) {
-            return gameManager.getTeamIds().stream().sorted().toList();
-        }
-        if (args.length == 2) {
-            // this is intentional to allow default auto-completing of online players
-            return null;
-        }
-        return Collections.emptyList();
+    /**
+     * @param builder the suggestion builder
+     * @return the player names of all online/offline players and members of teams
+     */
+    private @NotNull CompletableFuture<Suggestions> suggestPlayerNames(SuggestionsBuilder builder) {
+        return CompletableFuture.supplyAsync(() -> {
+            Stream.concat(
+                            Arrays.stream(plugin.getServer().getOfflinePlayers())
+                                    .map(OfflinePlayer::getName),
+                            gameManager.getAllParticipantNames().stream()
+                    )
+                    .distinct()
+                    .filter(name -> name.toLowerCase().startsWith(builder.getRemainingLowerCase()))
+                    .forEach(builder::suggest);
+            return builder.build();
+        });
+    }
+    
+    private @NotNull CommandResult executeJoin(CommandContext<CommandSourceStack> ctx) {
+        Team team = ctx.getArgument("teamId", Team.class);
+        String member = ctx.getArgument("member", String.class);
+        return GameManagerUtils.joinParticipant(plugin, gameManager, member, team);
     }
 }

@@ -130,8 +130,16 @@ public class OfflineParticipant implements AudienceDelegate {
      * @param offlineParticipant the participant to check if they are on the same team or not
      * @return true if the {@link #getTeamId()} of this participant matches that of the given participant
      */
-    public boolean sameTeam(OfflineParticipant offlineParticipant) {
+    public boolean sameTeam(@NotNull OfflineParticipant offlineParticipant) {
         return getTeamId().equals(offlineParticipant.getTeamId());
+    }
+    
+    /**
+     * @param team the team to check if this participant is a member of
+     * @return true if the given team's {@link Team#getTeamId()} matches this participant's {@link #getTeamId()}
+     */
+    public boolean isOnTeam(@NotNull Team team) {
+        return getTeamId().equals(team.getTeamId());
     }
     
 }

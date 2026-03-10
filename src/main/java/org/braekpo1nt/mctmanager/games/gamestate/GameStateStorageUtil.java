@@ -411,6 +411,21 @@ public class GameStateStorageUtil {
     }
     
     /**
+     * @return a list of the UUIDs of the admins
+     */
+    public List<UUID> getAdminUUIDs() {
+        return gameState.getAdmins();
+    }
+    
+    /**
+     * @return a map from UUID to Admin Names
+     * @throws SQLException if there's a SQL error
+     */
+    public @NotNull Map<UUID, String> getAllAdminNames() throws SQLException {
+        return gameStateService.getAdminNames();
+    }
+    
+    /**
      * Add an admin to the game state
      * @param adminUniqueId the unique id of the admin
      * @throws ConfigIOException If there is an issue saving the game state

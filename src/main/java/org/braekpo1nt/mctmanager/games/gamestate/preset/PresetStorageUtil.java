@@ -20,19 +20,25 @@ import java.util.logging.Level;
 public class PresetStorageUtil {
     
     private final PresetController controller;
+    private final File presetDirectory;
     
     public PresetStorageUtil(File pluginDataFolder) {
-        this.controller = new PresetController(new File(pluginDataFolder, "presets"));
+        presetDirectory = new File(pluginDataFolder, "presets");
+        this.controller = new PresetController(presetDirectory);
+    }
+    
+    public void savePreset(@NotNull Preset preset, @NotNull File presetFile) throws ConfigIOException {
+        controller.savePreset(preset, presetFile);
     }
     
     /**
-     * Save the preset to its file
-     * @param preset the preset to save
-     * @param presetFile the file to save the preset to
-     * @throws ConfigIOException if there is an IO error saving the config to the file system
+     * Load the preset from its file
+     * @return the loaded preset
+     * @throws ConfigInvalidException if there is a problem parsing the JSON into a configDTO
+     * @throws ConfigIOException if there is an IO problem getting the configDTO
      */
-    public void savePreset(@NotNull Preset preset, @NotNull String presetFile) throws ConfigIOException {
-        controller.savePreset(preset, presetFile);
+    public @NotNull Preset loadPreset(@NotNull File presetFile) throws ConfigException {
+        return controller.getPreset(presetFile);
     }
     
     /**
@@ -43,6 +49,10 @@ public class PresetStorageUtil {
      */
     public @NotNull Preset loadPreset(@NotNull String presetFile) throws ConfigException {
         return controller.getPreset(presetFile);
+    }
+    
+    public CommandResult modifyPreset(@NotNull String presetFile, Function<Preset, CommandResult> modify) {
+        return modifyPreset(new File(presetDirectory, presetFile), modify);
     }
     
     /**
@@ -58,7 +68,7 @@ public class PresetStorageUtil {
      * @param modify the method to modify the preset with
      * @return the result of the modification.
      */
-    public CommandResult modifyPreset(@NotNull String presetFile, Function<Preset, CommandResult> modify) {
+    public CommandResult modifyPreset(@NotNull File presetFile, Function<Preset, CommandResult> modify) {
         Preset preset;
         try {
             preset = loadPreset(presetFile);

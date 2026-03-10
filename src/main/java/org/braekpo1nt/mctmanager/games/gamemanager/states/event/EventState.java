@@ -90,7 +90,7 @@ public abstract class EventState extends GameManagerState {
     }
     
     @Override
-    public CommandResult stopEvent() {
+    public @NotNull CommandResult stopEvent() {
         return switchMode(Mode.MAINTENANCE);
     }
     
@@ -174,6 +174,12 @@ public abstract class EventState extends GameManagerState {
     
     @Override
     public CommandResult addGameToVotingPool(@NotNull GameType gameToAdd) {
+        if (!VoteManager.votableGames().contains(gameToAdd)) {
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text(gameToAdd.getTitle())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" is not a votable game")));
+        }
         if (!eventData.getPlayedGames().contains(gameToAdd)) {
             return CommandResult.failure("This game is already in the voting pool");
         }

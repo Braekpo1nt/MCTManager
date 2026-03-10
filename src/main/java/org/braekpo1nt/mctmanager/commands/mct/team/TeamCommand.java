@@ -1,29 +1,33 @@
 package org.braekpo1nt.mctmanager.commands.mct.team;
 
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
-import org.braekpo1nt.mctmanager.commands.manager.Usage;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
 import org.braekpo1nt.mctmanager.commands.mct.team.preset.PresetCommand;
 import org.braekpo1nt.mctmanager.commands.mct.team.score.ScoreCommand;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
-import org.bukkit.permissions.Permissible;
 import org.jetbrains.annotations.NotNull;
 
-public class TeamCommand extends CommandManager {
+public class TeamCommand implements BrigadierSubCommand {
+    private final @NotNull Main plugin;
+    private final @NotNull GameManager gameManager;
     
-    public TeamCommand(Main plugin, GameManager gameManager, @NotNull String name) {
-        super(name);
-        addSubCommand(new AddSubCommand(gameManager, "add"));
-        addSubCommand(new JoinSubCommand(plugin, gameManager, "join"));
-        addSubCommand(new LeaveSubCommand(plugin, gameManager, "leave"));
-        addSubCommand(new ListSubCommand(gameManager, "list"));
-        addSubCommand(new RemoveSubCommand(gameManager, "remove"));
-        addSubCommand(new ScoreCommand(gameManager, "score"));
-        addSubCommand(new PresetCommand(plugin, gameManager, "preset"));
+    public TeamCommand(@NotNull Main plugin, @NotNull GameManager gameManager) {
+        this.plugin = plugin;
+        this.gameManager = gameManager;
     }
     
     @Override
-    protected @NotNull Usage getSubCommandUsageArg(Permissible permissible) {
-        return new Usage("<options>");
+    public @NotNull Permissioned<CommandSourceStack> create() {
+        return Permissioned.literal("team")
+                .then(new AddSubCommand(gameManager).create())
+                .then(new JoinSubCommand(plugin, gameManager).create())
+                .then(new LeaveSubCommand(gameManager).create())
+                .then(new ListSubCommand(plugin, gameManager).create())
+                .then(new RemoveSubCommand(gameManager).create())
+                .then(new ScoreCommand(gameManager).create())
+                .then(new PresetCommand(plugin, gameManager).create())
+                ;
     }
 }
