@@ -25,6 +25,11 @@ public class PlayerMetadata {
     @DatabaseField(id = true, columnName = "participant_uuid")
     private @NotNull String participantUUID;
     /**
+     * The in-game name of the player
+     */
+    @DatabaseField(canBeNull = false, columnName = "ign")
+    private @NotNull String ign;
+    /**
      * The username associated with the participant
      */
     @DatabaseField(columnName = "discord_username")

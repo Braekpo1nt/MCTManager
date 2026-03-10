@@ -397,6 +397,7 @@ public class GameManager implements Listener {
                                 .build(),
                         PlayerMetadata.builder()
                                 .participantUUID(uuidStr)
+                                .ign(player.getName())
                                 .discordUsername(null)
                                 .currentTokens(0)
                                 .lifetimeTokens(0)
