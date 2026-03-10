@@ -21,8 +21,10 @@ import org.braekpo1nt.mctmanager.database.entities.teams.EventTeam;
 import org.braekpo1nt.mctmanager.database.entities.teams.MaintenanceTeam;
 import org.braekpo1nt.mctmanager.database.entities.teams.PracticeTeam;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -176,6 +178,45 @@ public class GameStateService {
         });
     }
     
+    public void update(@NotNull PlayerMetadata playerMetadata) throws SQLException {
+        playerMetadataDao.update(playerMetadata);
+    }
+    
+    public PlayerMetadata getPlayerMetadata(@NotNull UUID uuid) throws SQLException {
+        return playerMetadataDao.queryForId(uuid.toString());
+    }
+    
+    /**
+     * @param uuids the UUIDs of the PlayerMetadata objects to get from the database.
+     * @return a matching PlayerMetadata entry for each UUID given, unless an entry can't be found
+     * for a UUID in which case nothing is added for it. Thus, the resulting list may or may not be
+     * the same size as the given list, depending on the presence of the ids in the database.
+     * @throws SQLException if there is a SQL Error
+     */
+    public @Nullable List<PlayerMetadata> getPlayerMetadatas(Collection<UUID> uuids) throws SQLException {
+        List<PlayerMetadata> playerMetadatas = new ArrayList<>(uuids.size());
+        for (UUID uuid : uuids) {
+            PlayerMetadata playerMetadata = playerMetadataDao.queryForId(uuid.toString());
+            if (playerMetadata != null) {
+                playerMetadatas.add(playerMetadata);
+            }
+        }
+        return playerMetadatas;
+    }
+    
+    /**
+     * @param ign the in-game-name of the player to find the metadata of
+     * @return the first-found player with that ign, or null if there is no such player
+     * @throws SQLException if there is an error
+     */
+    public @Nullable PlayerMetadata getPlayerMetadata(@NotNull String ign) throws SQLException {
+        return playerMetadataDao.queryForFieldValuesArgs(
+                        Map.of("ign", ign)
+                ).stream()
+                .findFirst()
+                .orElse(null);
+    }
+    
     public void addTeam(@NotNull ActiveTeam team) throws SQLException {
         activeTeamsDao.create(team);
     }
@@ -189,6 +230,7 @@ public class GameStateService {
                     .build());
             playerMetadataDao.createIfNotExists(PlayerMetadata.builder()
                     .participantUUID(participant.getParticipantUUID())
+                    .ign(participant.getIgn())
                     .discordUsername(null)
                     .currentTokens(0)
                     .lifetimeTokens(0)

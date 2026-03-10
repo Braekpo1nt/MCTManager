@@ -16,6 +16,7 @@ import org.braekpo1nt.mctmanager.commands.mct.hub.HubCommand;
 import org.braekpo1nt.mctmanager.commands.mct.mode.ModeCommand;
 import org.braekpo1nt.mctmanager.commands.mct.option.OptionCommand;
 import org.braekpo1nt.mctmanager.commands.mct.score.ScoreCommand;
+import org.braekpo1nt.mctmanager.commands.mct.stats.StatsCommand;
 import org.braekpo1nt.mctmanager.commands.mct.tablist.TabListCommand;
 import org.braekpo1nt.mctmanager.commands.mct.team.TeamCommand;
 import org.braekpo1nt.mctmanager.commands.mct.timer.TimerCommand;
@@ -53,6 +54,7 @@ public class MCTCommand implements BrigadierCommand {
                 .then(Permissioned.literal("load")
                         .executes(BrigadierAdapters.wraps(ctx -> gameManager.loadGameState()))
                 )
+                .then(new StatsCommand(gameManager.getGameStateService()).create())
                 .permissionRoot("mctmanager")
                 .build(plugin.getServer().getPluginManager());
     }
