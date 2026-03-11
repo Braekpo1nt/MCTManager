@@ -15,6 +15,10 @@ import org.jetbrains.annotations.Nullable;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("UnusedReturnValue")
 public class EventService {
@@ -138,5 +142,51 @@ public class EventService {
     
     public @NotNull List<EventParticipantEntity> getParticipants(@NotNull String eventId) throws SQLException {
         return eventParticipantsDao.queryForEq("event_id", eventId);
+    }
+    
+    /**
+     * Delete all teams and participants associated with the given eventId, and add all the given teams and
+     * participants.
+     * @param teams the teams to add
+     * @param participants the participants to add
+     * @param eventId the eventId
+     * @throws SQLException if there is a database error
+     * @throws IllegalArgumentException if not all the teams and participants share the same eventId as the input
+     * eventId, or if the participants have a teamId that doesn't exist in the keys for teams
+     */
+    public void replaceEventTeamsAndParticipants(List<EventTeam> teams, List<EventParticipantEntity> participants, @NotNull String eventId) throws SQLException {
+        Set<String> teamIds = teams.stream()
+                .map(EventTeam::getTeamId)
+                .collect(Collectors.toSet());
+        for (EventTeam team : teams) {
+            if (Objects.equals(eventId, team.getEventId())) {
+                throw new IllegalArgumentException(String.format("Team \"%s\" eventId \"%s\" doesn't match the input one (\"%s\")", team.getTeamId(), team.getEventId(), eventId));
+            }
+        }
+        for (EventParticipantEntity participant : participants) {
+            if (!teamIds.contains(participant.getTeamId())) {
+                throw new IllegalArgumentException(String.format("Participant teamId \"%s\" doesn't exist in the given team ids", participant.getTeamId()));
+            }
+            if (Objects.equals(eventId, participant.getEventId())) {
+                throw new IllegalArgumentException(String.format("Participant \"%s\" eventId \"%s\" doesn't match the input one (\"%s\")", participant.getParticipantUUID(), participant.getEventId(), eventId));
+            }
+        }
+        TransactionManager.callInTransaction(eventTeamsDao.getConnectionSource(), () -> {
+            eventTeamsDao.executeRaw("""
+                            DELETE FROM event_teams
+                            WHERE event_id = ?
+                            """,
+                    eventId
+            );
+            eventParticipantsDao.executeRaw("""
+                            DELETE FROM event_participants
+                            WHERE event_id = ?
+                            """,
+                    eventId
+            );
+            eventTeamsDao.create(teams);
+            eventParticipantsDao.create(participants);
+            return null;
+        });
     }
 }

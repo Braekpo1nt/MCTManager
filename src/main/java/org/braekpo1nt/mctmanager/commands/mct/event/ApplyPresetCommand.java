@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class ApplyPresetCommand implements BrigadierSubCommand {
@@ -55,15 +56,21 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
         return Permissioned.literal("applyPreset");
     }
     
-    private @NotNull CommandResult applyPreset(@NotNull EventInfo eventInfo, @NotNull Preset preset) throws SQLException, CommandSyntaxException {
-        Map<String, EventTeam> teams = getTeams(eventInfo, preset);
-        List<EventParticipantEntity> participants = getParticipants(eventInfo, preset);
-        
-        return CommandResult.success();
+    private @NotNull CommandResult applyPreset(@NotNull EventInfo eventInfo, @NotNull Preset preset) {
+        return CommandResult.async(plugin, Component.text("Applying preset"), () -> {
+            List<EventTeam> teams = getTeams(eventInfo, preset);
+            List<EventParticipantEntity> participants = getParticipants(eventInfo, preset);
+            try {
+                eventService.replaceEventTeamsAndParticipants(teams, participants, eventInfo.getEventId());
+            } catch (SQLException e) {
+                return EventSubCommand.handleSQLException("apply preset to event", e);
+            }
+            return CommandResult.success(Component.text("Preset applied."));
+        });
     }
     
-    private Map<String, EventTeam> getTeams(EventInfo eventInfo, Preset preset) {
-        Map<String, EventTeam> newTeams = new HashMap<>(preset.getTeamCount());
+    private List<EventTeam> getTeams(EventInfo eventInfo, Preset preset) {
+        List<EventTeam> newTeams = new ArrayList<>(preset.getTeamCount());
         for (Preset.PresetTeam team : preset.getTeams()) {
             EventTeam newTeam = EventTeam.builder()
                     .eventId(eventInfo.getEventId())
@@ -71,7 +78,7 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
                     .displayName(team.getDisplayName())
                     .color(team.getColor())
                     .build();
-            newTeams.put(newTeam.getTeamId(), newTeam);
+            newTeams.add(newTeam);
         }
         return newTeams;
     }
