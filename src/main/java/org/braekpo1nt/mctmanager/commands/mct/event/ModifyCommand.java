@@ -21,6 +21,7 @@ import java.sql.SQLException;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
 
+// TODO: if the command doesn't change anything, don't perform the operation (e.g. setting the date to the same date shouldn't update the date
 public class ModifyCommand implements BrigadierSubCommand {
     
     public final @NotNull GameManager gameManager;
@@ -83,13 +84,24 @@ public class ModifyCommand implements BrigadierSubCommand {
     
     private @NotNull CommandResult executeModifyComponentName(@NotNull CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         EventInfoResolver eventInfoResolver = ctx.getArgument("eventId", EventInfoResolver.class);
-        String eventDateString = ctx.getArgument("date", String.class);
+        Component componentName = ctx.getArgument("component", Component.class);
         try {
             EventInfo eventInfo = eventInfoResolver.resolve();
-            
+            Component oldComponentName = eventInfo.getComponentName();
+            eventInfo.setComponentName(componentName);
+            gameManager.getEventService().update(eventInfo);
+            return CommandResult.success(Component.empty()
+                    .append(Component.text("Set component name for "))
+                    .append(Component.text(eventInfo.getEventId())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" to "))
+                    .append(componentName)
+                    .append(Component.text(" (was "))
+                    .append(oldComponentName)
+                    .append(Component.text(")"))
+            );
         } catch (SQLException e) {
             return EventSubCommand.handleSQLException("Get EventInfo", e);
         }
-        return null;
     }
 }
