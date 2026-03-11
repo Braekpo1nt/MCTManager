@@ -21,5 +21,4 @@ public class StatsCommand implements BrigadierSubCommand {
                 ;
     }
     
-    
 }

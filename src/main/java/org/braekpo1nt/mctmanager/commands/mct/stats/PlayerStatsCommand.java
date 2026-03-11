@@ -18,7 +18,6 @@ import org.braekpo1nt.mctmanager.database.service.GameStateService;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
-import java.util.Collection;
 import java.util.logging.Level;
 
 public class PlayerStatsCommand implements BrigadierSubCommand {
@@ -48,14 +47,7 @@ public class PlayerStatsCommand implements BrigadierSubCommand {
         PlayerMetadataResolver resolver = ctx.getArgument("playerName", PlayerMetadataResolver.class);
         String discordUsername = ctx.getArgument("discordUsername", String.class);
         try {
-            Collection<PlayerMetadata> playerMetadatas = resolver.resolve(ctx.getSource());
-            if (playerMetadatas.isEmpty()) {
-                return CommandResult.failure("Could not find player");
-            }
-            if (playerMetadatas.size() != 1) {
-                return CommandResult.failure("Must reference only one player");
-            }
-            PlayerMetadata playerMetadata = playerMetadatas.stream().findFirst().get();
+            PlayerMetadata playerMetadata = resolver.resolveSingle(ctx.getSource());
             String oldDiscordUsername = playerMetadata.getDiscordUsername();
             playerMetadata.setDiscordUsername(discordUsername);
             gameStateService.update(playerMetadata);
@@ -68,7 +60,8 @@ public class PlayerStatsCommand implements BrigadierSubCommand {
                         .append(Component.text(discordUsername)
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(" (was "))
-                        .append(Component.text(oldDiscordUsername))
+                        .append(Component.text(oldDiscordUsername)
+                                .decorate(TextDecoration.BOLD))
                         .append(Component.text(")"))
                 );
             } else {

@@ -182,7 +182,7 @@ public class GameStateService {
         playerMetadataDao.update(playerMetadata);
     }
     
-    public PlayerMetadata getPlayerMetadata(@NotNull UUID uuid) throws SQLException {
+    public @Nullable PlayerMetadata getPlayerMetadata(@NotNull UUID uuid) throws SQLException {
         return playerMetadataDao.queryForId(uuid.toString());
     }
     
@@ -193,7 +193,7 @@ public class GameStateService {
      * the same size as the given list, depending on the presence of the ids in the database.
      * @throws SQLException if there is a SQL Error
      */
-    public @Nullable List<PlayerMetadata> getPlayerMetadatas(Collection<UUID> uuids) throws SQLException {
+    public @NotNull List<PlayerMetadata> getPlayerMetadatas(Collection<UUID> uuids) throws SQLException {
         List<PlayerMetadata> playerMetadatas = new ArrayList<>(uuids.size());
         for (UUID uuid : uuids) {
             PlayerMetadata playerMetadata = playerMetadataDao.queryForId(uuid.toString());
@@ -215,6 +215,55 @@ public class GameStateService {
                 ).stream()
                 .findFirst()
                 .orElse(null);
+    }
+    
+    /**
+     * @return a list of all player IGNs in the all_players table
+     * @throws SQLException if there is a SQL error
+     */
+    public @NotNull List<String> getPlayerIGNs() throws SQLException {
+        String sql = """
+                SELECT
+                    ap.ign
+                FROM all_players ap
+                """;
+        try (GenericRawResults<String[]> raw =
+                     adminDao.queryRaw(sql)) {
+            List<String[]> rawResults = raw.getResults();
+            List<String> result = new ArrayList<>(rawResults.size());
+            for (String[] row : rawResults) {
+                String ign = row[0];
+                result.add(ign);
+            }
+            return result;
+        } catch (Exception e) {
+            throw new SQLException("Exception thrown while getting admin names", e);
+        }
+    }
+    
+    /**
+     * @return a list of all player IGNs in the all_players table
+     * @throws SQLException if there is a SQL error
+     */
+    public @NotNull List<String> getPlayerIGNsPartialMatch(@NotNull String partial) throws SQLException {
+        String sql = """
+                SELECT
+                    ap.ign
+                FROM all_players ap
+                WHERE ap.ign LIKE '?%'
+                """;
+        try (GenericRawResults<String[]> raw =
+                     adminDao.queryRaw(sql, partial)) {
+            List<String[]> rawResults = raw.getResults();
+            List<String> result = new ArrayList<>(rawResults.size());
+            for (String[] row : rawResults) {
+                String ign = row[0];
+                result.add(ign);
+            }
+            return result;
+        } catch (Exception e) {
+            throw new SQLException("Exception thrown while getting admin names", e);
+        }
     }
     
     public void addTeam(@NotNull ActiveTeam team) throws SQLException {
