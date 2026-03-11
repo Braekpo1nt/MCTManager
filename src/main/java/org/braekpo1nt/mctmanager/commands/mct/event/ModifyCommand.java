@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.commands.mct.event;
 
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -43,6 +44,11 @@ public class ModifyCommand implements BrigadierSubCommand {
                         .then(Permissioned.literal("componentName")
                                 .then(Permissioned.argument("component", gameManager.getComponentArgumentType())
                                         .executes(BrigadierAdapters.wraps(this::executeModifyComponentName))
+                                )
+                        )
+                        .then(Permissioned.literal("canonical")
+                                .then(Permissioned.argument("isCanon", BoolArgumentType.bool())
+                                        .executes(BrigadierAdapters.wraps(this::executeModifyCanonical))
                                 )
                         )
                 )
@@ -98,6 +104,29 @@ public class ModifyCommand implements BrigadierSubCommand {
                     .append(componentName)
                     .append(Component.text(" (was "))
                     .append(oldComponentName)
+                    .append(Component.text(")"))
+            );
+        } catch (SQLException e) {
+            return EventSubCommand.handleSQLException("Get EventInfo", e);
+        }
+    }
+    
+    private @NotNull CommandResult executeModifyCanonical(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        EventInfoResolver eventInfoResolver = ctx.getArgument("eventId", EventInfoResolver.class);
+        boolean isCanon = ctx.getArgument("isCanon", Boolean.class);
+        try {
+            EventInfo eventInfo = eventInfoResolver.resolve();
+            boolean oldValue = eventInfo.isCanonical();
+            eventInfo.setCanonical(isCanon);
+            gameManager.getEventService().update(eventInfo);
+            return CommandResult.success(Component.empty()
+                    .append(Component.text("Set canonical for "))
+                    .append(Component.text(eventInfo.getEventId())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" to "))
+                    .append(Component.text(isCanon))
+                    .append(Component.text(" (was "))
+                    .append(Component.text(oldValue))
                     .append(Component.text(")"))
             );
         } catch (SQLException e) {
