@@ -9,9 +9,9 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoArgumentType;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoResolver;
-import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
@@ -51,6 +51,11 @@ public class ModifyCommand implements BrigadierSubCommand {
                                         .executes(BrigadierAdapters.wraps(this::executeModifyCanonical))
                                 )
                         )
+                        .then(Permissioned.literal("plainTextName")
+                                .then(Permissioned.argument("name", StringArgumentType.string())
+                                        .executes(BrigadierAdapters.wraps(this::executeModifyPlainName))
+                                )
+                        )
                 )
                 ;
     }
@@ -84,7 +89,7 @@ public class ModifyCommand implements BrigadierSubCommand {
                     .append(Component.text(")"))
             );
         } catch (SQLException e) {
-            return EventSubCommand.handleSQLException("Get EventInfo", e);
+            return EventSubCommand.handleSQLException("change event date", e);
         }
     }
     
@@ -107,7 +112,7 @@ public class ModifyCommand implements BrigadierSubCommand {
                     .append(Component.text(")"))
             );
         } catch (SQLException e) {
-            return EventSubCommand.handleSQLException("Get EventInfo", e);
+            return EventSubCommand.handleSQLException("change component name", e);
         }
     }
     
@@ -130,7 +135,30 @@ public class ModifyCommand implements BrigadierSubCommand {
                     .append(Component.text(")"))
             );
         } catch (SQLException e) {
-            return EventSubCommand.handleSQLException("Get EventInfo", e);
+            return EventSubCommand.handleSQLException("change canonical value", e);
+        }
+    }
+    
+    private @NotNull CommandResult executeModifyPlainName(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        EventInfoResolver eventInfoResolver = ctx.getArgument("eventId", EventInfoResolver.class);
+        String plainTextName = ctx.getArgument("name", String.class);
+        try {
+            EventInfo eventInfo = eventInfoResolver.resolve();
+            String oldName = eventInfo.getPlainTextName();
+            eventInfo.setPlainTextName(plainTextName);
+            gameManager.getEventService().update(eventInfo);
+            return CommandResult.success(Component.empty()
+                    .append(Component.text("Set plaintext name for "))
+                    .append(Component.text(eventInfo.getEventId())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" to "))
+                    .append(Component.text(plainTextName))
+                    .append(Component.text(" (was "))
+                    .append(Component.text(oldName))
+                    .append(Component.text(")"))
+            );
+        } catch (SQLException e) {
+            return EventSubCommand.handleSQLException("change eventId", e);
         }
     }
 }
