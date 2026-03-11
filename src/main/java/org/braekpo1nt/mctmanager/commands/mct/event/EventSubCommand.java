@@ -3,7 +3,6 @@ package org.braekpo1nt.mctmanager.commands.mct.event;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.suggestion.SuggestionProvider;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -23,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.SQLException;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
@@ -51,15 +49,14 @@ public class EventSubCommand implements BrigadierSubCommand {
     
     private Permissioned<CommandSourceStack> buildStart() {
         return Permissioned.literal("start")
-                .then(Permissioned.argument("eventId", StringArgumentType.word())
-                        .suggests(suggestsEventId())
+                .then(Permissioned.argument("eventId", new EventInfoArgumentType(gameManager.getEventService()))
                         .then(Permissioned.argument("numberOfGames", IntegerArgumentType.integer())
                                 .executes(BrigadierAdapters.wraps(ctx -> {
                                     try {
                                         EventInfoResolver eventInfoResolver = ctx.getArgument("eventId", EventInfoResolver.class);
                                         EventInfo eventInfo = eventInfoResolver.resolve();
                                         int maxGames = ctx.getArgument("numberOfGames", Integer.class);
-                                        return executeStart(eventInfo, maxGames, 1);
+                                        return gameManager.startEvent(eventInfo, maxGames, 1);
                                     } catch (SQLException e) {
                                         return handleSQLException("get EventInfo", e);
                                     }
@@ -71,7 +68,7 @@ public class EventSubCommand implements BrigadierSubCommand {
                                                 EventInfo eventInfo = eventInfoResolver.resolve();
                                                 int maxGames = ctx.getArgument("numberOfGames", Integer.class);
                                                 int currentGameNumber = ctx.getArgument("currentGameNumber", Integer.class);
-                                                return executeStart(eventInfo, maxGames, currentGameNumber);
+                                                return gameManager.startEvent(eventInfo, maxGames, currentGameNumber);
                                             } catch (SQLException e) {
                                                 return handleSQLException("get EventInfo", e);
                                             }
@@ -79,10 +76,6 @@ public class EventSubCommand implements BrigadierSubCommand {
                                 )
                         )
                 );
-    }
-    
-    private CommandResult executeStart(EventInfo eventInfo, int maxGames, int currentGameNumber) {
-        return gameManager.startEvent(eventInfo, maxGames, currentGameNumber);
     }
     
     private Permissioned<CommandSourceStack> buildStop() {
@@ -170,20 +163,6 @@ public class EventSubCommand implements BrigadierSubCommand {
                 .append(Component.newline())
                 .append(Component.text(e.getMessage()))
         );
-    }
-    
-    private @NotNull SuggestionProvider<CommandSourceStack> suggestsEventId() {
-        return (ctx, builder) -> CompletableFuture.supplyAsync(() -> {
-            try {
-                List<String> eventIds = gameManager.getEventIds();
-                for (String eventId : eventIds) {
-                    builder.suggest(eventId);
-                }
-            } catch (SQLException e) {
-                Main.logger().log(Level.WARNING, "Can't get eventIds from the database", e);
-            }
-            return builder.build();
-        });
     }
     
     private Permissioned<CommandSourceStack> buildMaxGames() {
