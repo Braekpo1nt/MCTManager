@@ -3,6 +3,8 @@ package org.braekpo1nt.mctmanager.commands.mct.event;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -102,18 +104,7 @@ public class EventSubCommand implements BrigadierSubCommand {
         return Permissioned.literal("create")
                 .then(Permissioned.argument("eventId", StringArgumentType.word())
                         .then(Permissioned.argument("eventDate", StringArgumentType.word())
-                                .suggests((ctx, builder) -> CompletableFuture.supplyAsync(() -> {
-                                    String remaining = builder.getRemaining();
-                                    if (remaining.isBlank() || remaining.isEmpty()) {
-                                        builder.suggest(DATE_FORMAT);
-                                        return builder.build();
-                                    }
-                                    if (remaining.length() > DATE_FORMAT.length()) {
-                                        return builder.build();
-                                    }
-                                    builder.suggest(remaining + DATE_FORMAT.substring(remaining.length()));
-                                    return builder.build();
-                                }))
+                                .suggests(EventSubCommand::suggestDate)
                                 .then(Permissioned.argument("plainTextName", StringArgumentType.string())
                                         .then(Permissioned.argument("componentName", gameManager.getComponentArgumentType())
                                                 .executes(BrigadierAdapters.wraps(this::executeCreate))
@@ -121,6 +112,21 @@ public class EventSubCommand implements BrigadierSubCommand {
                                 )
                         )
                 );
+    }
+    
+    public static CompletableFuture<Suggestions> suggestDate(CommandContext<CommandSourceStack> ctx, SuggestionsBuilder builder) {
+        return CompletableFuture.supplyAsync(() -> {
+            String remaining = builder.getRemaining();
+            if (remaining.isBlank() || remaining.isEmpty()) {
+                builder.suggest(DATE_FORMAT);
+                return builder.build();
+            }
+            if (remaining.length() > DATE_FORMAT.length()) {
+                return builder.build();
+            }
+            builder.suggest(remaining + DATE_FORMAT.substring(remaining.length()));
+            return builder.build();
+        });
     }
     
     private @NotNull CommandResult executeCreate(CommandContext<CommandSourceStack> ctx) {
@@ -156,15 +162,6 @@ public class EventSubCommand implements BrigadierSubCommand {
                 );
     }
     
-    private @NotNull CommandResult handleSQLException(String attemptedAction, SQLException e) {
-        Main.logger().log(Level.WARNING, String.format("A database error occurred trying to %s", attemptedAction), e);
-        return CommandResult.failure(Component.empty()
-                .append(Component.text("A database error occurred. See console for details."))
-                .append(Component.newline())
-                .append(Component.text(e.getMessage()))
-        );
-    }
-    
     private Permissioned<CommandSourceStack> buildMaxGames() {
         return Permissioned.literal("setMaxGames")
                 .then(Permissioned.argument("newCount", IntegerArgumentType.integer())
@@ -173,6 +170,15 @@ public class EventSubCommand implements BrigadierSubCommand {
                             return gameManager.modifyMaxGames(newCount);
                         }))
                 );
+    }
+    
+    public static @NotNull CommandResult handleSQLException(String attemptedAction, SQLException e) {
+        Main.logger().log(Level.WARNING, String.format("A database error occurred trying to %s", attemptedAction), e);
+        return CommandResult.failure(Component.empty()
+                .append(Component.text("A database error occurred. See console for details."))
+                .append(Component.newline())
+                .append(Component.text(e.getMessage()))
+        );
     }
     
 }
