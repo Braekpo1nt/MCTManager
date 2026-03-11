@@ -135,4 +135,8 @@ public class EventService {
     public @NotNull List<EventTeam> getTeams(@NotNull String eventId) throws SQLException {
         return eventTeamsDao.queryForEq("event_id", eventId);
     }
+    
+    public @NotNull List<EventParticipantEntity> getParticipants(@NotNull String eventId) throws SQLException {
+        return eventParticipantsDao.queryForEq("event_id", eventId);
+    }
 }
