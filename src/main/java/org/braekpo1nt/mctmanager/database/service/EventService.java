@@ -119,4 +119,8 @@ public class EventService {
             throw new SQLException("Exception thrown while getting eventIds from table");
         }
     }
+    
+    public void update(@NotNull EventInfo eventInfo) throws SQLException {
+        eventInfoDao.update(EventInfoDto.from(eventInfo));
+    }
 }
