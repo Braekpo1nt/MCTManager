@@ -100,7 +100,7 @@ public class EventSubCommand implements BrigadierSubCommand {
     
     private Permissioned<CommandSourceStack> buildCreate() {
         return Permissioned.literal("create")
-                .then(Permissioned.argument("eventId", new EventInfoArgumentType(gameManager.getEventService()))
+                .then(Permissioned.argument("eventId", StringArgumentType.word())
                         .then(Permissioned.argument("eventDate", StringArgumentType.word())
                                 .suggests((ctx, builder) -> CompletableFuture.supplyAsync(() -> {
                                     String remaining = builder.getRemaining();
