@@ -242,7 +242,7 @@ public class GameStateService {
     }
     
     /**
-     * @return a list of all player IGNs in the all_players table
+     * @return a list of all player IGNs in the all_players table which start with the given partial string
      * @throws SQLException if there is a SQL error
      */
     public @NotNull List<String> getPlayerIGNsPartialMatch(@NotNull String partial) throws SQLException {
@@ -250,7 +250,7 @@ public class GameStateService {
                 SELECT
                     ap.ign
                 FROM all_players ap
-                WHERE ap.ign LIKE '?%'
+                WHERE ap.ign LIKE CONCAT(?, '%')
                 """;
         try (GenericRawResults<String[]> raw =
                      adminDao.queryRaw(sql, partial)) {
