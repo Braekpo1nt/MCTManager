@@ -35,7 +35,7 @@ public class ModifyCommand implements BrigadierSubCommand {
                 .then(Permissioned.argument("eventId", new EventInfoArgumentType(gameManager.getEventService()))
                         .then(Permissioned.literal("eventDate")
                                 .then(Permissioned.argument("date", StringArgumentType.word())
-                                        .suggests(EventSubCommand::suggestDate)
+                                        .suggests(TimeStringUtils::suggestDate)
                                         .executes(BrigadierAdapters.wraps(this::executeModifyEventDate))
                                 )
                         )
@@ -67,7 +67,14 @@ public class ModifyCommand implements BrigadierSubCommand {
             eventInfo.setEventDate(eventDate);
             gameManager.getEventService().update(eventInfo);
             return CommandResult.success(Component.empty()
-                    .append(Component.text(oldDate))
+                    .append(Component.text("Set date for "))
+                    .append(Component.text(eventInfo.getEventId())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" to "))
+                    .append(Component.text(TimeStringUtils.toString(eventDate)))
+                    .append(Component.text(" (was "))
+                    .append(Component.text(TimeStringUtils.toString(oldDate)))
+                    .append(Component.text(")"))
             );
         } catch (SQLException e) {
             return EventSubCommand.handleSQLException("Get EventInfo", e);

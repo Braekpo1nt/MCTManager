@@ -3,8 +3,6 @@ package org.braekpo1nt.mctmanager.commands.mct.event;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.suggestion.Suggestions;
-import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -24,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.SQLException;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
-import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 public class EventSubCommand implements BrigadierSubCommand {
@@ -98,13 +95,11 @@ public class EventSubCommand implements BrigadierSubCommand {
                 ;
     }
     
-    private static final String DATE_FORMAT = "yyyy-MM-dd";
-    
     private Permissioned<CommandSourceStack> buildCreate() {
         return Permissioned.literal("create")
                 .then(Permissioned.argument("eventId", StringArgumentType.word())
                         .then(Permissioned.argument("eventDate", StringArgumentType.word())
-                                .suggests(EventSubCommand::suggestDate)
+                                .suggests(TimeStringUtils::suggestDate)
                                 .then(Permissioned.argument("plainTextName", StringArgumentType.string())
                                         .then(Permissioned.argument("componentName", gameManager.getComponentArgumentType())
                                                 .executes(BrigadierAdapters.wraps(this::executeCreate))
@@ -112,21 +107,6 @@ public class EventSubCommand implements BrigadierSubCommand {
                                 )
                         )
                 );
-    }
-    
-    public static CompletableFuture<Suggestions> suggestDate(CommandContext<CommandSourceStack> ctx, SuggestionsBuilder builder) {
-        return CompletableFuture.supplyAsync(() -> {
-            String remaining = builder.getRemaining();
-            if (remaining.isBlank() || remaining.isEmpty()) {
-                builder.suggest(DATE_FORMAT);
-                return builder.build();
-            }
-            if (remaining.length() > DATE_FORMAT.length()) {
-                return builder.build();
-            }
-            builder.suggest(remaining + DATE_FORMAT.substring(remaining.length()));
-            return builder.build();
-        });
     }
     
     private @NotNull CommandResult executeCreate(CommandContext<CommandSourceStack> ctx) {

@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.List;
 
 @SuppressWarnings("UnusedReturnValue")
@@ -121,6 +122,7 @@ public class EventService {
     }
     
     public void update(@NotNull EventInfo eventInfo) throws SQLException {
+        eventInfo.setModifiedAt(new Date());
         eventInfoDao.update(EventInfoDto.from(eventInfo));
     }
 }
