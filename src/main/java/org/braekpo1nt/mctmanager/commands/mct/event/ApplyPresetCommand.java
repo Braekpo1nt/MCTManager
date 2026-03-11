@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.commands.mct.event;
 
+import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
@@ -7,17 +8,26 @@ import io.papermc.paper.command.brigadier.MessageComponentSerializer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoArgumentType;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoResolver;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.FileArgumentType;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.FileResolver;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.participants.EventParticipantEntity;
 import org.braekpo1nt.mctmanager.database.entities.teams.EventTeam;
 import org.braekpo1nt.mctmanager.database.service.EventService;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.Preset;
+import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,6 +38,8 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class ApplyPresetCommand implements BrigadierSubCommand {
+    
+    public static final String PRESET_FILE_ARG = "presetFile";
     
     private final DynamicCommandExceptionType ERROR_TEAM_ID_EXISTS = new DynamicCommandExceptionType(teamId -> MessageComponentSerializer.message().serialize(Component.empty()
             .append(Component.text("A team with ID "))
@@ -43,17 +55,44 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
             .append(Component.text(" already exists for this event."))
     ));
     
+    private final @NotNull PresetStorageUtil storageUtil;
     private final @NotNull EventService eventService;
     private final @NotNull Main plugin;
     
-    public ApplyPresetCommand(@NotNull EventService eventService, @NotNull Main plugin) {
+    public ApplyPresetCommand(@NotNull PresetStorageUtil storageUtil, @NotNull EventService eventService, @NotNull Main plugin) {
+        this.storageUtil = storageUtil;
         this.eventService = eventService;
         this.plugin = plugin;
     }
     
     @Override
     public @NotNull Permissioned<CommandSourceStack> create() {
-        return Permissioned.literal("applyPreset");
+        return Permissioned.literal("applyPreset")
+                .then(Permissioned.argument("eventId", new EventInfoArgumentType(eventService))
+                        .then(Permissioned.argument(PRESET_FILE_ARG,
+                                        new FileArgumentType(new File(plugin.getDataFolder(), "presets"), ".json"))
+                                .executes(BrigadierAdapters.wraps(this::executeApplyPreset))
+                        )
+                )
+                ;
+    }
+    
+    private @NotNull CommandResult executeApplyPreset(@NotNull CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        EventInfoResolver eventInfoResolver = ctx.getArgument("eventId", EventInfoResolver.class);
+        FileResolver fileResolver = ctx.getArgument(PRESET_FILE_ARG, FileResolver.class);
+        try {
+            EventInfo eventInfo = eventInfoResolver.resolve();
+            File presetFile = fileResolver.resolve();
+            Preset preset = storageUtil.loadPreset(presetFile);
+            return applyPreset(eventInfo, preset);
+        } catch (SQLException e) {
+            return EventSubCommand.handleSQLException("applying preset", e);
+        } catch (ConfigException e) {
+            Main.logger().log(Level.SEVERE, String.format("Could not load preset. %s", e.getMessage()), e);
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text("Error occurred loading preset. See console for details: "))
+                    .append(Component.text(e.getMessage())));
+        }
     }
     
     private @NotNull CommandResult applyPreset(@NotNull EventInfo eventInfo, @NotNull Preset preset) {
