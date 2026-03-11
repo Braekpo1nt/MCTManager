@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.commands.mct.event;
 
-import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -10,6 +9,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoArgumentType;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoResolver;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
@@ -54,44 +55,33 @@ public class EventSubCommand implements BrigadierSubCommand {
                         .suggests(suggestsEventId())
                         .then(Permissioned.argument("numberOfGames", IntegerArgumentType.integer())
                                 .executes(BrigadierAdapters.wraps(ctx -> {
-                                    String eventId = ctx.getArgument("eventId", String.class);
-                                    int maxGames = ctx.getArgument("numberOfGames", Integer.class);
-                                    return executeStart(eventId, maxGames, 1);
+                                    try {
+                                        EventInfoResolver eventInfoResolver = ctx.getArgument("eventId", EventInfoResolver.class);
+                                        EventInfo eventInfo = eventInfoResolver.resolve();
+                                        int maxGames = ctx.getArgument("numberOfGames", Integer.class);
+                                        return executeStart(eventInfo, maxGames, 1);
+                                    } catch (SQLException e) {
+                                        return handleSQLException("get EventInfo", e);
+                                    }
                                 }))
                                 .then(Permissioned.argument("currentGameNumber", IntegerArgumentType.integer())
                                         .executes(BrigadierAdapters.wraps(ctx -> {
-                                            String eventId = ctx.getArgument("eventId", String.class);
-                                            int maxGames = ctx.getArgument("numberOfGames", Integer.class);
-                                            int currentGameNumber = ctx.getArgument("currentGameNumber", Integer.class);
-                                            return executeStart(eventId, maxGames, currentGameNumber);
+                                            try {
+                                                EventInfoResolver eventInfoResolver = ctx.getArgument("eventId", EventInfoResolver.class);
+                                                EventInfo eventInfo = eventInfoResolver.resolve();
+                                                int maxGames = ctx.getArgument("numberOfGames", Integer.class);
+                                                int currentGameNumber = ctx.getArgument("currentGameNumber", Integer.class);
+                                                return executeStart(eventInfo, maxGames, currentGameNumber);
+                                            } catch (SQLException e) {
+                                                return handleSQLException("get EventInfo", e);
+                                            }
                                         }))
                                 )
                         )
                 );
     }
     
-    private CommandResult executeStart(String eventId, int maxGames, int currentGameNumber) {
-        EventInfo eventInfo;
-        try {
-            eventInfo = gameManager.getEventService().getEventInfo(eventId);
-        } catch (SQLException e) {
-            Main.logger().log(Level.SEVERE, String.format("A database error occurred retrieving EventInfo with eventId \"%s\"", eventId), e);
-            return CommandResult.failure(Component.empty()
-                    .append(Component.text("A database error occurred getting the info for eventId"))
-                    .append(Component.text(eventId)
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(". See console for more details."))
-                    .append(Component.newline())
-                    .append(Component.text(e.getMessage()))
-            );
-        }
-        if (eventInfo == null) {
-            return CommandResult.failure(Component.empty()
-                    .append(Component.text(eventId)
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" is not a valid eventId."))
-            );
-        }
+    private CommandResult executeStart(EventInfo eventInfo, int maxGames, int currentGameNumber) {
         return gameManager.startEvent(eventInfo, maxGames, currentGameNumber);
     }
     
@@ -117,7 +107,7 @@ public class EventSubCommand implements BrigadierSubCommand {
     
     private Permissioned<CommandSourceStack> buildCreate() {
         return Permissioned.literal("create")
-                .then(Permissioned.argument("eventId", StringArgumentType.word())
+                .then(Permissioned.argument("eventId", new EventInfoArgumentType(gameManager.getEventService()))
                         .then(Permissioned.argument("eventDate", StringArgumentType.word())
                                 .suggests((ctx, builder) -> CompletableFuture.supplyAsync(() -> {
                                     String remaining = builder.getRemaining();
@@ -159,15 +149,27 @@ public class EventSubCommand implements BrigadierSubCommand {
     
     private Permissioned<CommandSourceStack> buildDelete() {
         return Permissioned.literal("delete")
-                .then(Permissioned.argument("eventId", StringArgumentType.word())
-                        .suggests(suggestsEventId())
-                        .executes(ctx -> {
-                            String eventId = ctx.getArgument("eventId", String.class);
-                            CommandResult commandResult = gameManager.deleteEvent(eventId);
-                            CommandResult.showResult(ctx.getSource().getSender(), commandResult);
-                            return Command.SINGLE_SUCCESS;
-                        })
+                .then(Permissioned.argument("eventId", new EventInfoArgumentType(gameManager.getEventService()))
+                        .executes(BrigadierAdapters.wraps(ctx -> {
+                            EventInfoResolver eventInfoResolver = ctx.getArgument("eventId", EventInfoResolver.class);
+                            EventInfo eventInfo;
+                            try {
+                                eventInfo = eventInfoResolver.resolve();
+                            } catch (SQLException e) {
+                                return handleSQLException("Get EventInfo", e);
+                            }
+                            return gameManager.deleteEvent(eventInfo.getEventId());
+                        }))
                 );
+    }
+    
+    private @NotNull CommandResult handleSQLException(String attemptedAction, SQLException e) {
+        Main.logger().log(Level.WARNING, String.format("A database error occurred trying to %s", attemptedAction), e);
+        return CommandResult.failure(Component.empty()
+                .append(Component.text("A database error occurred. See console for details."))
+                .append(Component.newline())
+                .append(Component.text(e.getMessage()))
+        );
     }
     
     private @NotNull SuggestionProvider<CommandSourceStack> suggestsEventId() {
