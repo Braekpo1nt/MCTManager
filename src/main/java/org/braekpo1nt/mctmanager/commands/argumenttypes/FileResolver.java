@@ -36,4 +36,7 @@ public class FileResolver {
         return file;
     }
     
+    public @NotNull File resolveNotExists() {
+        return file;
+    }
 }

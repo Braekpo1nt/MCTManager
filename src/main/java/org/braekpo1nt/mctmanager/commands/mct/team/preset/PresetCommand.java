@@ -52,7 +52,8 @@ public class PresetCommand implements BrigadierSubCommand {
         return CompletableFuture.supplyAsync(() -> {
             Preset preset;
             try {
-                File presetFile = ctx.getArgument(PRESET_FILE_ARG, FileResolver.class).resolve();
+                FileResolver resolver = ctx.getArgument(PresetCommand.PRESET_FILE_ARG, FileResolver.class);
+                File presetFile = resolver.resolve();
                 preset = storageUtil.loadPreset(presetFile);
             } catch (Exception e) {
                 return builder.build();

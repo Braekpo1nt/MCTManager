@@ -2,7 +2,9 @@ package org.braekpo1nt.mctmanager.commands.mct.team.preset;
 
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.FileResolver;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -37,8 +39,9 @@ public class PresetWhitelistSubCommand implements BrigadierSubCommand {
                 ;
     }
     
-    private @NotNull CommandResult executeWhitelist(CommandContext<CommandSourceStack> ctx) {
-        File presetFile = ctx.getArgument(PresetCommand.PRESET_FILE_ARG, File.class);
+    private @NotNull CommandResult executeWhitelist(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        FileResolver resolver = ctx.getArgument(PresetCommand.PRESET_FILE_ARG, FileResolver.class);
+        File presetFile = resolver.resolve();
         boolean shouldWhitelist = ctx.getArgument("whitelist", Boolean.class);
         Preset preset;
         try {
