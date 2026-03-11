@@ -62,7 +62,40 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
         return CommandResult.success();
     }
     
-    private Map<String, EventTeam> getTeams(EventInfo eventInfo, Preset preset) throws SQLException, CommandSyntaxException {
+    private Map<String, EventTeam> getTeams(EventInfo eventInfo, Preset preset) {
+        Map<String, EventTeam> newTeams = new HashMap<>(preset.getTeamCount());
+        for (Preset.PresetTeam team : preset.getTeams()) {
+            EventTeam newTeam = EventTeam.builder()
+                    .eventId(eventInfo.getEventId())
+                    .teamId(team.getTeamId())
+                    .displayName(team.getDisplayName())
+                    .color(team.getColor())
+                    .build();
+            newTeams.put(newTeam.getTeamId(), newTeam);
+        }
+        return newTeams;
+    }
+    
+    private List<EventParticipantEntity> getParticipants(EventInfo eventInfo, Preset preset) {
+        List<EventParticipantEntity> newParticipants = new ArrayList<>();
+        for (Preset.PresetTeam team : preset.getTeams()) {
+            for (String ign : team.getMembers()) {
+                OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(ign);
+                EventParticipantEntity newParticipant = EventParticipantEntity.builder()
+                        .eventId(eventInfo.getEventId())
+                        .participantUUID(offlinePlayer.getUniqueId().toString())
+                        .teamId(team.getTeamId())
+                        .build();
+                newParticipants.add(newParticipant);
+            }
+        }
+        return newParticipants;
+    }
+    
+    /**
+     * Ensures there are no duplicates
+     */
+    private Map<String, EventTeam> getTeamsNoDuplicates(EventInfo eventInfo, Preset preset) throws SQLException, CommandSyntaxException {
         Map<String, EventTeam> oldTeams = eventService.getTeams(eventInfo.getEventId()).stream()
                 .collect(Collectors.toMap(EventTeam::getTeamId, Function.identity()));
         Map<String, EventTeam> newTeams = new HashMap<>(preset.getTeamCount());
@@ -81,7 +114,10 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
         return newTeams;
     }
     
-    private List<EventParticipantEntity> getParticipants(EventInfo eventInfo, Preset preset) throws SQLException, CommandSyntaxException {
+    /**
+     * Ensures there are no duplicates
+     */
+    private List<EventParticipantEntity> getParticipantsNoDuplicates(EventInfo eventInfo, Preset preset) throws SQLException, CommandSyntaxException {
         Map<String, EventParticipantEntity> oldParticipants = eventService.getParticipants(eventInfo.getEventId()).stream()
                 .collect(Collectors.toMap(EventParticipantEntity::getParticipantUUID, Function.identity()));
         List<EventParticipantEntity> newParticipants = new ArrayList<>();
