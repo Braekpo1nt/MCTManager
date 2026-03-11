@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.commands.mct.stats;
 
+import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -38,9 +39,40 @@ public class PlayerStatsCommand implements BrigadierSubCommand {
                                                 .executes(BrigadierAdapters.wraps(this::executeSetDiscord))
                                         )
                                 )
+                                .then(Permissioned.literal("percentRank")
+                                        .then(Permissioned.argument("rank", DoubleArgumentType.doubleArg())
+                                                .executes(BrigadierAdapters.wraps(this::executeSetPercentRank))
+                                        )
+                                )
                         )
                 )
                 ;
+    }
+    
+    private @NotNull CommandResult executeSetPercentRank(@NotNull CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        PlayerMetadataResolver resolver = ctx.getArgument("playerName", PlayerMetadataResolver.class);
+        double percentRank = ctx.getArgument("rank", Double.class);
+        try {
+            PlayerMetadata playerMetadata = resolver.resolveSingle(ctx.getSource());
+            double oldPercentRank = playerMetadata.getPercentRank();
+            playerMetadata.setPercentRank(percentRank);
+            gameStateService.update(playerMetadata);
+            return CommandResult.success(Component.empty()
+                    .append(Component.text("Set percent rank of "))
+                    .append(Component.text(playerMetadata.getIgn())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" to "))
+                    .append(Component.text(percentRank)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" (was "))
+                    .append(Component.text(oldPercentRank)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(")"))
+            );
+        } catch (SQLException e) {
+            Main.logger().log(Level.SEVERE, "SQL error occurred updating PlayerMetadata percentRank", e);
+            return CommandResult.failure("A database error occurred. See console for details.");
+        }
     }
     
     private @NotNull CommandResult executeSetDiscord(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
@@ -75,7 +107,7 @@ public class PlayerStatsCommand implements BrigadierSubCommand {
                 );
             }
         } catch (SQLException e) {
-            Main.logger().log(Level.SEVERE, "SQL error occurred updating PlayerMetadata", e);
+            Main.logger().log(Level.SEVERE, "SQL error occurred updating PlayerMetadata discordUsername", e);
             return CommandResult.failure("A database error occurred. See console for details.");
         }
     }
