@@ -6,6 +6,8 @@ import com.j256.ormlite.misc.TransactionManager;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.EventInfoDto;
+import org.braekpo1nt.mctmanager.database.entities.participants.EventParticipantEntity;
+import org.braekpo1nt.mctmanager.database.entities.teams.EventTeam;
 import org.braekpo1nt.mctmanager.database.exceptions.EventStillInUseException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,10 +21,14 @@ public class EventService {
     
     private final @NotNull String mode;
     private final @NotNull Dao<EventInfoDto, String> eventInfoDao;
+    private final @NotNull Dao<EventTeam, Integer> eventTeamsDao;
+    private final @NotNull Dao<EventParticipantEntity, Integer> eventParticipantsDao;
     
     public EventService(@NotNull String mode, @NotNull Database database) {
         this.mode = mode;
         this.eventInfoDao = database.getEventInfoDao();
+        this.eventTeamsDao = database.getEventTeamsDao();
+        this.eventParticipantsDao = database.getEventParticipantsDao();
     }
     
     /**
@@ -124,5 +130,9 @@ public class EventService {
     public void update(@NotNull EventInfo eventInfo) throws SQLException {
         eventInfo.setModifiedAt(new Date());
         eventInfoDao.update(EventInfoDto.from(eventInfo));
+    }
+    
+    public @NotNull List<EventTeam> getTeams(@NotNull String eventId) throws SQLException {
+        return eventTeamsDao.queryForEq("event_id", eventId);
     }
 }
