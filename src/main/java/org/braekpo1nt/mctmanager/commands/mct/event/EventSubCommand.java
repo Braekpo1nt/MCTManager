@@ -27,9 +27,11 @@ import java.util.logging.Level;
 public class EventSubCommand implements BrigadierSubCommand {
     
     private final @NotNull GameManager gameManager;
+    private final @NotNull Main plugin;
     
-    public EventSubCommand(@NotNull GameManager gameManager) {
+    public EventSubCommand(@NotNull GameManager gameManager, @NotNull Main plugin) {
         this.gameManager = gameManager;
+        this.plugin = plugin;
     }
     
     @Override
@@ -42,6 +44,7 @@ public class EventSubCommand implements BrigadierSubCommand {
                 .then(new VoteCommand(gameManager).create())
                 .then(new UndoCommand(gameManager).create())
                 .then(new ModifyCommand(gameManager).create())
+                .then(new ApplyPresetCommand(gameManager.getEventService(), plugin).create())
                 .then(buildMaxGames())
                 ;
     }

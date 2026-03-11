@@ -17,7 +17,6 @@ import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.participants.EventParticipantEntity;
 import org.braekpo1nt.mctmanager.database.entities.teams.EventTeam;
@@ -30,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,8 +59,8 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
     private final @NotNull EventService eventService;
     private final @NotNull Main plugin;
     
-    public ApplyPresetCommand(@NotNull PresetStorageUtil storageUtil, @NotNull EventService eventService, @NotNull Main plugin) {
-        this.storageUtil = storageUtil;
+    public ApplyPresetCommand(@NotNull EventService eventService, @NotNull Main plugin) {
+        this.storageUtil = new PresetStorageUtil(plugin.getDataFolder());
         this.eventService = eventService;
         this.plugin = plugin;
     }
@@ -109,6 +109,7 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
     }
     
     private List<EventTeam> getTeams(EventInfo eventInfo, Preset preset) {
+        Date now = new Date();
         List<EventTeam> newTeams = new ArrayList<>(preset.getTeamCount());
         for (Preset.PresetTeam team : preset.getTeams()) {
             EventTeam newTeam = EventTeam.builder()
@@ -116,6 +117,7 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
                     .teamId(team.getTeamId())
                     .displayName(team.getDisplayName())
                     .color(team.getColor())
+                    .modifiedAt(now)
                     .build();
             newTeams.add(newTeam);
         }

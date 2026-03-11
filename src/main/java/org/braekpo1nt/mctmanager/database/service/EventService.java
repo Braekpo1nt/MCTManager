@@ -159,7 +159,7 @@ public class EventService {
                 .map(EventTeam::getTeamId)
                 .collect(Collectors.toSet());
         for (EventTeam team : teams) {
-            if (Objects.equals(eventId, team.getEventId())) {
+            if (!Objects.equals(eventId, team.getEventId())) {
                 throw new IllegalArgumentException(String.format("Team \"%s\" eventId \"%s\" doesn't match the input one (\"%s\")", team.getTeamId(), team.getEventId(), eventId));
             }
         }
@@ -167,7 +167,7 @@ public class EventService {
             if (!teamIds.contains(participant.getTeamId())) {
                 throw new IllegalArgumentException(String.format("Participant teamId \"%s\" doesn't exist in the given team ids", participant.getTeamId()));
             }
-            if (Objects.equals(eventId, participant.getEventId())) {
+            if (!Objects.equals(eventId, participant.getEventId())) {
                 throw new IllegalArgumentException(String.format("Participant \"%s\" eventId \"%s\" doesn't match the input one (\"%s\")", participant.getParticipantUUID(), participant.getEventId(), eventId));
             }
         }
