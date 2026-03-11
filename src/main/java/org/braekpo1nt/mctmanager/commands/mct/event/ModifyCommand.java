@@ -3,6 +3,8 @@ package org.braekpo1nt.mctmanager.commands.mct.event;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
@@ -21,16 +23,13 @@ public class ModifyCommand implements BrigadierSubCommand {
     @Override
     public @NotNull Permissioned<CommandSourceStack> create() {
         return Permissioned.literal("modify")
-                .then(Permissioned.literal("maxgames")
-                        .then(Permissioned.argument("newCount", IntegerArgumentType.integer())
-                                .executes(BrigadierAdapters.wraps(this::executeMaxGames))
-                        )
+                .then(Permissioned.argument("newCount", gameManager.getComponentArgumentType())
+                        .executes(BrigadierAdapters.wraps(this::executeModify))
                 )
                 ;
     }
     
-    private @NotNull CommandResult executeMaxGames(CommandContext<CommandSourceStack> ctx) {
-        int newCount = ctx.getArgument("newCount", Integer.class);
-        return gameManager.modifyMaxGames(newCount);
+    private @NotNull CommandResult executeModify(CommandContext<CommandSourceStack> ctx) {
+        return CommandResult.success(Component.text("Not yet implemented"));
     }
 }

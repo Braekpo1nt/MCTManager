@@ -44,6 +44,7 @@ public class EventSubCommand implements BrigadierSubCommand {
                 .then(new VoteCommand(gameManager).create())
                 .then(new UndoCommand(gameManager).create())
                 .then(new ModifyCommand(gameManager).create())
+                .then(buildMaxGames())
                 ;
     }
     
@@ -181,6 +182,16 @@ public class EventSubCommand implements BrigadierSubCommand {
             }
             return builder.build();
         });
+    }
+    
+    private Permissioned<CommandSourceStack> buildMaxGames() {
+        return Permissioned.literal("setMaxGames")
+                .then(Permissioned.argument("newCount", IntegerArgumentType.integer())
+                        .executes(BrigadierAdapters.wraps(ctx -> {
+                            int newCount = ctx.getArgument("newCount", Integer.class);
+                            return gameManager.modifyMaxGames(newCount);
+                        }))
+                );
     }
     
 }
