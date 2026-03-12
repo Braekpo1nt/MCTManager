@@ -6,6 +6,7 @@ import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.MessageComponentSerializer;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoArgumentType;
@@ -89,12 +90,24 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
                 .then(Permissioned.argument("eventId", new EventInfoArgumentType(eventService))
                         .then(Permissioned.argument(PRESET_FILE_ARG,
                                         new FileArgumentType(new File(plugin.getDataFolder(), "presets"), ".json"))
-                                .executes(BrigadierAdapters.wraps(this::executeApplyPreset))
+                                .executes(BrigadierAdapters.wraps(ctx -> CommandResult.success(Component.empty()
+                                        .append(Component.text("Are you sure you want to overwrite the players and teams associated with this event? This operation can't be undone. If you're sure, add \"confirm\" to the end of this command"))
+                                        .color(NamedTextColor.YELLOW)
+                                )))
+                                .then(Permissioned.literal("confirm")
+                                        .executes(BrigadierAdapters.wraps(this::executeApplyPreset))
+                                )
                         )
                 )
                 ;
     }
     
+    /**
+     * Resolves the command arguments and applies the preset to the eventId
+     * @param ctx the context
+     * @return the result
+     * @throws CommandSyntaxException if there's a syntax error
+     */
     private @NotNull CommandResult executeApplyPreset(@NotNull CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         EventInfoResolver eventInfoResolver = ctx.getArgument("eventId", EventInfoResolver.class);
         FileResolver fileResolver = ctx.getArgument(PRESET_FILE_ARG, FileResolver.class);
