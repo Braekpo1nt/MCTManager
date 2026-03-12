@@ -4,6 +4,8 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
@@ -86,9 +88,13 @@ public class PresetResolveCommand implements BrigadierSubCommand {
                                         .build());
                                 results.add(CommandResult.success(Component.empty()
                                         .append(Component.text("New player: "))
-                                        .append(Component.text(ign))
+                                        .append(Component.text(ign)
+                                                .clickEvent(ClickEvent.copyToClipboard(ign))
+                                                .hoverEvent(HoverEvent.showText(Component.text("Copy"))))
                                         .append(Component.text(" - "))
-                                        .append(Component.text(uuidStr))
+                                        .append(Component.text(uuidStr)
+                                                .clickEvent(ClickEvent.copyToClipboard(uuidStr))
+                                                .hoverEvent(HoverEvent.showText(Component.text("Copy"))))
                                 ));
                             }
                         } catch (SQLException e) {
