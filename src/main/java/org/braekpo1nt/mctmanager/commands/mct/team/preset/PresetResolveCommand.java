@@ -63,27 +63,27 @@ public class PresetResolveCommand implements BrigadierSubCommand {
                 () -> {
                     Preset preset = storageUtil.loadPreset(presetFile);
                     List<CommandResult> results = new ArrayList<>();
+                    List<AllPlayersEntity> allPlayersEntities = new ArrayList<>();
+                    List<PlayerMetadata> playerMetadatas = new ArrayList<>();
                     for (String ign : preset.getMembers()) {
                         try {
                             AllPlayersEntity player = gameStateService.getPlayer(ign);
                             if (player == null) {
                                 OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(ign);
                                 String uuidStr = offlinePlayer.getUniqueId().toString();
-                                gameStateService.registerParticipantIfNotRegistered(
-                                        AllPlayersEntity.builder()
-                                                .uuid(uuidStr)
-                                                .ign(ign)
-                                                .firstSeenAt(new Date())
-                                                .build(),
-                                        PlayerMetadata.builder()
-                                                .participantUUID(uuidStr)
-                                                .ign(ign)
-                                                .discordUsername(null)
-                                                .currentTokens(0)
-                                                .lifetimeTokens(0)
-                                                .percentRank(0.0)
-                                                .build()
-                                );
+                                allPlayersEntities.add(AllPlayersEntity.builder()
+                                        .uuid(uuidStr)
+                                        .ign(ign)
+                                        .firstSeenAt(new Date())
+                                        .build());
+                                playerMetadatas.add(PlayerMetadata.builder()
+                                        .participantUUID(uuidStr)
+                                        .ign(ign)
+                                        .discordUsername(null)
+                                        .currentTokens(0)
+                                        .lifetimeTokens(0)
+                                        .percentRank(0.0)
+                                        .build());
                                 results.add(CommandResult.success(Component.empty()
                                         .append(Component.text("New player: "))
                                         .append(Component.text(ign))
@@ -92,7 +92,7 @@ public class PresetResolveCommand implements BrigadierSubCommand {
                                 ));
                             }
                         } catch (SQLException e) {
-                            return CommandResult.sqlException("resolve the preset file", e);
+                            return CommandResult.sqlException("find a player by name while resolve the preset file", e);
                         } catch (GameStateService.MultiplePlayersWithNameException e) {
                             results.add(CommandResult.success(Component.empty()
                                     .append(Component.text("Warning: multiple players with the name "))
@@ -101,6 +101,11 @@ public class PresetResolveCommand implements BrigadierSubCommand {
                                     .append(Component.text(" exist in the all_players database"))
                                     .color(NamedTextColor.YELLOW)));
                         }
+                    }
+                    try {
+                        gameStateService.registerParticipantsIfNotRegistered(allPlayersEntities, playerMetadatas);
+                    } catch (SQLException e) {
+                        return CommandResult.sqlException("commit resolved players to the database", e);
                     }
                     results.add(CommandResult.success(Component.text("Finished resolving preset file")));
                     return CompositeCommandResult.all(results);

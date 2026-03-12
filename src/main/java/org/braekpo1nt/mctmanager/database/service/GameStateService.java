@@ -178,6 +178,25 @@ public class GameStateService {
         });
     }
     
+    /**
+     * Register all the given players at once. Handled in a transaction so if something goes wrong,
+     * nothing is committed.
+     * @param allPlayersEntities all the players
+     * @param playerMetadatas all the metadatas
+     * @throws SQLException if there's a database error
+     */
+    public void registerParticipantsIfNotRegistered(@NotNull List<AllPlayersEntity> allPlayersEntities, @NotNull List<PlayerMetadata> playerMetadatas) throws SQLException {
+        TransactionManager.callInTransaction(allPlayersDao.getConnectionSource(), () -> {
+            for (AllPlayersEntity allPlayersEntity : allPlayersEntities) {
+                allPlayersDao.createOrUpdate(allPlayersEntity);
+            }
+            for (PlayerMetadata playerMetadata : playerMetadatas) {
+                playerMetadataDao.createIfNotExists(playerMetadata);
+            }
+            return null;
+        });
+    }
+    
     public static class MultiplePlayersWithNameException extends Exception {
         public MultiplePlayersWithNameException(String ign) {
             super(String.format("Multiple players with the ign \"%s\" exist", ign));
