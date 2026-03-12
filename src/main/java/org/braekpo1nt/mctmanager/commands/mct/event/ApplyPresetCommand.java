@@ -62,7 +62,7 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
             .append(Component.text("A player with the name "))
             .append(Component.text(ign.toString())
                     .decorate(TextDecoration.BOLD))
-            .append(Component.text(" could not be found in the all_players database. Have they logged in yet?"))
+            .append(Component.text(" could not be found in the all_players database. Have they logged in yet? Resolve players in the preset with the \"/mct team preset <preset.json> resolve\" command"))
     ));
     
     private final DynamicCommandExceptionType ERROR_MULTIPLE_PLAYERS_WITH_NAME = new DynamicCommandExceptionType(ign -> MessageComponentSerializer.message().serialize(Component.empty()
