@@ -7,6 +7,9 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.sql.SQLException;
+import java.util.logging.Level;
+
 public interface CommandResult {
     
     /**
@@ -101,5 +104,22 @@ public interface CommandResult {
      */
     static CommandResult async(@NotNull Main plugin, Component immediateMessage, AsyncCommandResult.ResultSupplier supplier) {
         return new AsyncCommandResult(plugin, immediateMessage, supplier);
+    }
+    
+    /**
+     * Convenience method to report that a SQLException occurred when running a command.
+     * Also logs the error to the console.
+     * @param attemptedAction the attempted action, complete the sentence "A database error occurred trying to..." (no
+     * trailing or leading spaces needed)
+     * @param e the exception that occurred
+     * @return a {@link CommandResult} detailing the database error that occurred and
+     */
+    static @NotNull CommandResult sqlException(String attemptedAction, SQLException e) {
+        Main.logger().log(Level.SEVERE, String.format("A database error occurred trying to %s", attemptedAction), e);
+        return failure(Component.empty()
+                .append(Component.text("A database error occurred. See console for details."))
+                .append(Component.newline())
+                .append(Component.text(e.getMessage()))
+        );
     }
 }

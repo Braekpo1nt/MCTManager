@@ -89,7 +89,7 @@ public class ModifyCommand implements BrigadierSubCommand {
                     .append(Component.text(")"))
             );
         } catch (SQLException e) {
-            return EventSubCommand.handleSQLException("change event date", e);
+            return CommandResult.sqlException("change event date", e);
         }
     }
     
@@ -112,7 +112,7 @@ public class ModifyCommand implements BrigadierSubCommand {
                     .append(Component.text(")"))
             );
         } catch (SQLException e) {
-            return EventSubCommand.handleSQLException("change component name", e);
+            return CommandResult.sqlException("change component name", e);
         }
     }
     
@@ -135,7 +135,7 @@ public class ModifyCommand implements BrigadierSubCommand {
                     .append(Component.text(")"))
             );
         } catch (SQLException e) {
-            return EventSubCommand.handleSQLException("change canonical value", e);
+            return CommandResult.sqlException("change canonical value", e);
         }
     }
     
@@ -158,7 +158,7 @@ public class ModifyCommand implements BrigadierSubCommand {
                     .append(Component.text(")"))
             );
         } catch (SQLException e) {
-            return EventSubCommand.handleSQLException("change eventId", e);
+            return CommandResult.sqlException("change eventId", e);
         }
     }
 }

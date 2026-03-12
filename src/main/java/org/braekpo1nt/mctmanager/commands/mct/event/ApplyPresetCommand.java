@@ -35,7 +35,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -105,7 +104,7 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
             Preset preset = storageUtil.loadPreset(presetFile);
             return applyPreset(eventInfo, preset);
         } catch (SQLException e) {
-            return EventSubCommand.handleSQLException("applying preset", e);
+            return CommandResult.sqlException("applying preset", e);
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, String.format("Could not load preset. %s", e.getMessage()), e);
             return CommandResult.failure(Component.empty()
@@ -137,7 +136,7 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
                         List<EventParticipantEntity> participants = getParticipants(eventInfo, preset);
                         eventService.replaceEventTeamsAndParticipants(teams, participants, eventInfo.getEventId());
                     } catch (SQLException e) {
-                        return EventSubCommand.handleSQLException("apply preset to event", e);
+                        return CommandResult.sqlException("apply preset to event", e);
                     }
                     return CommandResult.success(Component.text("Preset applied."));
                 });

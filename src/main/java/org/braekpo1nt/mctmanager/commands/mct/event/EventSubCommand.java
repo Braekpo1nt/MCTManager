@@ -22,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.SQLException;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
-import java.util.logging.Level;
 
 public class EventSubCommand implements BrigadierSubCommand {
     
@@ -60,7 +59,7 @@ public class EventSubCommand implements BrigadierSubCommand {
                                         int maxGames = ctx.getArgument("numberOfGames", Integer.class);
                                         return gameManager.startEvent(eventInfo, maxGames, 1);
                                     } catch (SQLException e) {
-                                        return handleSQLException("get EventInfo", e);
+                                        return CommandResult.sqlException("get EventInfo", e);
                                     }
                                 }))
                                 .then(Permissioned.argument("currentGameNumber", IntegerArgumentType.integer())
@@ -72,7 +71,7 @@ public class EventSubCommand implements BrigadierSubCommand {
                                                 int currentGameNumber = ctx.getArgument("currentGameNumber", Integer.class);
                                                 return gameManager.startEvent(eventInfo, maxGames, currentGameNumber);
                                             } catch (SQLException e) {
-                                                return handleSQLException("get EventInfo", e);
+                                                return CommandResult.sqlException("get EventInfo", e);
                                             }
                                         }))
                                 )
@@ -138,7 +137,7 @@ public class EventSubCommand implements BrigadierSubCommand {
                             try {
                                 eventInfo = eventInfoResolver.resolve();
                             } catch (SQLException e) {
-                                return handleSQLException("Get EventInfo", e);
+                                return CommandResult.sqlException("Get EventInfo", e);
                             }
                             return gameManager.deleteEvent(eventInfo.getEventId());
                         }))
@@ -153,15 +152,6 @@ public class EventSubCommand implements BrigadierSubCommand {
                             return gameManager.modifyMaxGames(newCount);
                         }))
                 );
-    }
-    
-    public static @NotNull CommandResult handleSQLException(String attemptedAction, SQLException e) {
-        Main.logger().log(Level.WARNING, String.format("A database error occurred trying to %s", attemptedAction), e);
-        return CommandResult.failure(Component.empty()
-                .append(Component.text("A database error occurred. See console for details."))
-                .append(Component.newline())
-                .append(Component.text(e.getMessage()))
-        );
     }
     
 }
