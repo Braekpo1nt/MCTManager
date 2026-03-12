@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.gamemanager.states.event;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
@@ -24,8 +25,10 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 public abstract class EventState extends GameManagerState {
     
@@ -91,7 +94,20 @@ public abstract class EventState extends GameManagerState {
     
     @Override
     public @NotNull CommandResult stopEvent() {
+        if (plugin.isEnabled()) {
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, this::unsetActiveEventId);
+        } else {
+            unsetActiveEventId();
+        }
         return switchMode(Mode.MAINTENANCE);
+    }
+    
+    private void unsetActiveEventId() {
+        try {
+            context.getEventService().setActiveEvent(null);
+        } catch (SQLException e) {
+            Main.logger().log(Level.SEVERE, "Could not update active event ID in system_state table", e);
+        }
     }
     
     @Override

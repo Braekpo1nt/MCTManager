@@ -3,9 +3,11 @@ package org.braekpo1nt.mctmanager.database.service;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.GenericRawResults;
 import com.j256.ormlite.misc.TransactionManager;
+import com.j256.ormlite.stmt.UpdateBuilder;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.EventInfoDto;
+import org.braekpo1nt.mctmanager.database.entities.SystemState;
 import org.braekpo1nt.mctmanager.database.entities.participants.EventParticipantEntity;
 import org.braekpo1nt.mctmanager.database.entities.teams.EventTeam;
 import org.braekpo1nt.mctmanager.database.exceptions.EventStillInUseException;
@@ -28,11 +30,14 @@ public class EventService {
     private final @NotNull Dao<EventTeam, Integer> eventTeamsDao;
     private final @NotNull Dao<EventParticipantEntity, Integer> eventParticipantsDao;
     
+    private final @NotNull Dao<SystemState, Integer> systemStateDao;
+    
     public EventService(@NotNull String mode, @NotNull Database database) {
         this.mode = mode;
         this.eventInfoDao = database.getEventInfoDao();
         this.eventTeamsDao = database.getEventTeamsDao();
         this.eventParticipantsDao = database.getEventParticipantsDao();
+        this.systemStateDao = database.getSystemStateDao();
     }
     
     /**
@@ -188,5 +193,14 @@ public class EventService {
             eventParticipantsDao.create(participants);
             return null;
         });
+    }
+    
+    public void setActiveEvent(@Nullable String eventId) throws SQLException {
+        UpdateBuilder<SystemState, Integer> updateBuilder = systemStateDao.updateBuilder();
+        updateBuilder.where()
+                .idEq(SystemState.ONLY_ID);
+        updateBuilder
+                .updateColumnValue("active_event_id", eventId);
+        updateBuilder.update();
     }
 }

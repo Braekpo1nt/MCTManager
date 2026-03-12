@@ -14,6 +14,10 @@ import org.jetbrains.annotations.Nullable;
 @Data
 public class SystemState {
     /**
+     * There is only one entry in the system_state table, and this is the id for it
+     */
+    public static final int ONLY_ID = 1;
+    /**
      * The entity ID. Should be 1, since this has only one entry.
      */
     @DatabaseField(id = true)

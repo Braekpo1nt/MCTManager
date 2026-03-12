@@ -8,6 +8,7 @@ import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
@@ -30,11 +31,13 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.sql.SQLException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 
 public class ReadyUpState extends EventState {
     
@@ -132,6 +135,13 @@ public class ReadyUpState extends EventState {
                     presetConfig.isKickUnWhitelisted());
             context.messageAdmins(commandResult.getMessageOrEmpty());
         }
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                context.getEventService().setActiveEvent(eventData.getEventInfo().getEventId());
+            } catch (SQLException e) {
+                Main.logger().log(Level.SEVERE, "Could not update active event ID in system_state table", e);
+            }
+        });
     }
     
     @Override
