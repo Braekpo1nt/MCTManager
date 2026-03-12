@@ -178,6 +178,23 @@ public class GameStateService {
         });
     }
     
+    public static class MultiplePlayersWithNameException extends Exception {
+        public MultiplePlayersWithNameException(String ign) {
+            super(String.format("Multiple players with the ign \"%s\" exist", ign));
+        }
+    }
+    
+    public @Nullable AllPlayersEntity getPlayer(String ign) throws SQLException, MultiplePlayersWithNameException {
+        List<AllPlayersEntity> options = allPlayersDao.queryForEq("ign", ign);
+        if (options.isEmpty()) {
+            return null;
+        }
+        if (options.size() != 1) {
+            throw new MultiplePlayersWithNameException(ign);
+        }
+        return options.getFirst();
+    }
+    
     public void update(@NotNull PlayerMetadata playerMetadata) throws SQLException {
         playerMetadataDao.update(playerMetadata);
     }

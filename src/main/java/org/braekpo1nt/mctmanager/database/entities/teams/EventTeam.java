@@ -36,6 +36,7 @@ public class EventTeam {
      */
     @DatabaseField(canBeNull = false, columnName = "team_id")
     private @NotNull String teamId;
+    @DatabaseField(canBeNull = false, columnName = "display_name")
     private @NotNull String displayName;
     @DatabaseField(canBeNull = false, columnName = "color")
     private @NotNull String color;

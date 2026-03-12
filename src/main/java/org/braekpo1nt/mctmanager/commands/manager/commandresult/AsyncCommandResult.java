@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.commands.manager.commandresult;
 
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
@@ -7,7 +8,6 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Supplier;
 import java.util.logging.Level;
 
 /**
@@ -15,6 +15,11 @@ import java.util.logging.Level;
  * after an asynchronous operation
  */
 public class AsyncCommandResult implements CommandResult {
+    
+    @FunctionalInterface
+    public interface ResultSupplier {
+        @NotNull CommandResult run() throws CommandSyntaxException;
+    }
     
     /**
      * The plugin to use for the asynchronous operation
@@ -29,7 +34,7 @@ public class AsyncCommandResult implements CommandResult {
      * the operation to be executed on an asynchronous thread,
      * and the result of which will be shown to
      */
-    private final Supplier<CommandResult> supplier;
+    private final @NotNull AsyncCommandResult.ResultSupplier supplier;
     
     /**
      * @param plugin The plugin to use for the asynchronous operation
@@ -41,7 +46,7 @@ public class AsyncCommandResult implements CommandResult {
     public AsyncCommandResult(
             @NotNull Main plugin,
             @Nullable Component immediateMessage,
-            @NotNull Supplier<CommandResult> supplier
+            @NotNull AsyncCommandResult.ResultSupplier supplier
     ) {
         this.plugin = plugin;
         this.immediateMessage = immediateMessage;
@@ -65,7 +70,11 @@ public class AsyncCommandResult implements CommandResult {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             CommandResult result;
             try {
-                result = supplier.get();
+                result = supplier.run();
+            } catch (CommandSyntaxException e) {
+                result = CommandResult.failure(Component.empty()
+                        .append(Component.text(e.getMessage()))
+                );
             } catch (Exception e) {
                 Main.logger().log(Level.SEVERE, "An error occurred executing an asynchronous command", e);
                 result = CommandResult.failure(Component.empty()

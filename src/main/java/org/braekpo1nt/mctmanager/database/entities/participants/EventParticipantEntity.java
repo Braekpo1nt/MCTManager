@@ -37,6 +37,6 @@ public class EventParticipantEntity {
     /**
      * The teamId of the participant
      */
-    @DatabaseField(canBeNull = false, columnName = "teamId")
+    @DatabaseField(canBeNull = false, columnName = "team_id")
     private @NotNull String teamId;
 }

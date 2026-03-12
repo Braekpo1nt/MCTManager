@@ -41,8 +41,8 @@ public class PresetDTO implements Validatable {
         }
     }
     
-    Preset toPreset() {
-        return new Preset(PresetTeamDTO.toPresetTeams(teams));
+    Preset toPreset(@NotNull String fileName) {
+        return new Preset(fileName, PresetTeamDTO.toPresetTeams(teams));
     }
     
     static PresetDTO fromPreset(@NotNull Preset preset) {

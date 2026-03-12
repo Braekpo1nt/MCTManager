@@ -7,8 +7,6 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Supplier;
-
 public interface CommandResult {
     
     /**
@@ -101,7 +99,7 @@ public interface CommandResult {
      * @param supplier the operation to be executed on an asynchronous thread, and the result of which will be shown to
      * the command executor upon completion
      */
-    static CommandResult async(@NotNull Main plugin, Component immediateMessage, Supplier<CommandResult> supplier) {
+    static CommandResult async(@NotNull Main plugin, Component immediateMessage, AsyncCommandResult.ResultSupplier supplier) {
         return new AsyncCommandResult(plugin, immediateMessage, supplier);
     }
 }

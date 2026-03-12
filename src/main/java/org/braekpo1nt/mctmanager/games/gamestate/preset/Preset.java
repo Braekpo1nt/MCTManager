@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.gamestate.preset;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,12 +13,22 @@ import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
+@RequiredArgsConstructor
 public class Preset {
+    /**
+     * Purely for debug output and command output convenience, not a reliable
+     * source of usable file information
+     */
+    private final @NotNull String fileName;
+    
     private List<PresetTeam> teams = new ArrayList<>();
     
     public int getTeamCount() {
         return teams.size();
+    }
+    
+    public Preset() {
+        this.fileName = "unknown";
     }
     
     /**

@@ -172,14 +172,14 @@ public class EventService {
             }
         }
         TransactionManager.callInTransaction(eventTeamsDao.getConnectionSource(), () -> {
-            eventTeamsDao.executeRaw("""
-                            DELETE FROM event_teams
+            eventParticipantsDao.executeRaw("""
+                            DELETE FROM event_participants
                             WHERE event_id = ?
                             """,
                     eventId
             );
-            eventParticipantsDao.executeRaw("""
-                            DELETE FROM event_participants
+            eventTeamsDao.executeRaw("""
+                            DELETE FROM event_teams
                             WHERE event_id = ?
                             """,
                     eventId

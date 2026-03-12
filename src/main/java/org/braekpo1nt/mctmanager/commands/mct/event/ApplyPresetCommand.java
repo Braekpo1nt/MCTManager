@@ -17,10 +17,12 @@ import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
+import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.participants.EventParticipantEntity;
 import org.braekpo1nt.mctmanager.database.entities.teams.EventTeam;
 import org.braekpo1nt.mctmanager.database.service.EventService;
+import org.braekpo1nt.mctmanager.database.service.GameStateService;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.Preset;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
 import org.bukkit.OfflinePlayer;
@@ -33,6 +35,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -55,14 +58,30 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
             .append(Component.text(" already exists for this event."))
     ));
     
+    private final DynamicCommandExceptionType ERROR_PLAYER_DOES_NOT_EXIST = new DynamicCommandExceptionType(ign -> MessageComponentSerializer.message().serialize(Component.empty()
+            .append(Component.text("A player with the name "))
+            .append(Component.text(ign.toString())
+                    .decorate(TextDecoration.BOLD))
+            .append(Component.text(" could not be found in the all_players database. Have they logged in yet?"))
+    ));
+    
+    private final DynamicCommandExceptionType ERROR_MULTIPLE_PLAYERS_WITH_NAME = new DynamicCommandExceptionType(ign -> MessageComponentSerializer.message().serialize(Component.empty()
+            .append(Component.text("A multiple players with the name "))
+            .append(Component.text(ign.toString())
+                    .decorate(TextDecoration.BOLD))
+            .append(Component.text(" exist in the all_players database. Can't use IGN for preset"))
+    ));
+    
     private final @NotNull PresetStorageUtil storageUtil;
     private final @NotNull EventService eventService;
+    private final @NotNull GameStateService gameStateService;
     private final @NotNull Main plugin;
     
-    public ApplyPresetCommand(@NotNull EventService eventService, @NotNull Main plugin) {
+    public ApplyPresetCommand(@NotNull EventService eventService, @NotNull Main plugin, @NotNull GameStateService gameStateService) {
         this.storageUtil = new PresetStorageUtil(plugin.getDataFolder());
         this.eventService = eventService;
         this.plugin = plugin;
+        this.gameStateService = gameStateService;
     }
     
     @Override
@@ -95,19 +114,40 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
         }
     }
     
+    /**
+     * Applies the given preset to the given event. This is a replacement operation, it removes all participants and
+     * teams that were previously associated with the event and adds all those from the given preset
+     * @param eventInfo the event to apply the preset to
+     * @param preset the preset to apply
+     * @return a result detailing the operation's success
+     */
     private @NotNull CommandResult applyPreset(@NotNull EventInfo eventInfo, @NotNull Preset preset) {
-        return CommandResult.async(plugin, Component.text("Applying preset"), () -> {
-            List<EventTeam> teams = getTeams(eventInfo, preset);
-            List<EventParticipantEntity> participants = getParticipants(eventInfo, preset);
-            try {
-                eventService.replaceEventTeamsAndParticipants(teams, participants, eventInfo.getEventId());
-            } catch (SQLException e) {
-                return EventSubCommand.handleSQLException("apply preset to event", e);
-            }
-            return CommandResult.success(Component.text("Preset applied."));
-        });
+        return CommandResult.async(plugin,
+                Component.empty()
+                        .append(Component.text("Applying preset "))
+                        .append(Component.text(preset.getFileName())
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" to "))
+                        .append(Component.text(eventInfo.getEventId())
+                                .decorate(TextDecoration.BOLD))
+                ,
+                () -> {
+                    List<EventTeam> teams = getTeams(eventInfo, preset);
+                    try {
+                        List<EventParticipantEntity> participants = getParticipants(eventInfo, preset);
+                        eventService.replaceEventTeamsAndParticipants(teams, participants, eventInfo.getEventId());
+                    } catch (SQLException e) {
+                        return EventSubCommand.handleSQLException("apply preset to event", e);
+                    }
+                    return CommandResult.success(Component.text("Preset applied."));
+                });
     }
     
+    /**
+     * @param eventInfo the event with the eventId to give to the created {@link EventTeam}s
+     * @param preset the preset to get the teams from
+     * @return the preset teams as {@link EventTeam} objects
+     */
     private List<EventTeam> getTeams(EventInfo eventInfo, Preset preset) {
         Date now = new Date();
         List<EventTeam> newTeams = new ArrayList<>(preset.getTeamCount());
@@ -124,7 +164,42 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
         return newTeams;
     }
     
-    private List<EventParticipantEntity> getParticipants(EventInfo eventInfo, Preset preset) {
+    /**
+     * @param eventInfo the event with the eventId to give to the created {@link EventParticipantEntity}s
+     * @param preset the preset to get the participants from
+     * @return the preset participants as {@link EventParticipantEntity} objects
+     */
+    private List<EventParticipantEntity> getParticipants(EventInfo eventInfo, Preset preset) throws CommandSyntaxException, SQLException {
+        List<EventParticipantEntity> newParticipants = new ArrayList<>();
+        for (Preset.PresetTeam team : preset.getTeams()) {
+            for (String ign : team.getMembers()) {
+                AllPlayersEntity player;
+                try {
+                    player = gameStateService.getPlayer(ign);
+                } catch (GameStateService.MultiplePlayersWithNameException e) {
+                    throw ERROR_MULTIPLE_PLAYERS_WITH_NAME.create(ign);
+                }
+                if (player == null) {
+                    throw ERROR_PLAYER_DOES_NOT_EXIST.create(ign);
+                }
+                String playerUUID = player.getUuid();
+                EventParticipantEntity newParticipant = EventParticipantEntity.builder()
+                        .eventId(eventInfo.getEventId())
+                        .participantUUID(playerUUID)
+                        .teamId(team.getTeamId())
+                        .build();
+                newParticipants.add(newParticipant);
+            }
+        }
+        return newParticipants;
+    }
+    
+    /**
+     * @param eventInfo the event with the eventId to give to the created {@link EventParticipantEntity}s
+     * @param preset the preset to get the participants from
+     * @return the preset participants as {@link EventParticipantEntity} objects
+     */
+    private List<EventParticipantEntity> getParticipantsBukkit(EventInfo eventInfo, Preset preset) {
         List<EventParticipantEntity> newParticipants = new ArrayList<>();
         for (Preset.PresetTeam team : preset.getTeams()) {
             for (String ign : team.getMembers()) {
@@ -141,7 +216,7 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
     }
     
     /**
-     * Ensures there are no duplicates
+     * Ensures there are no duplicates already present in the event
      */
     private Map<String, EventTeam> getTeamsNoDuplicates(EventInfo eventInfo, Preset preset) throws SQLException, CommandSyntaxException {
         Map<String, EventTeam> oldTeams = eventService.getTeams(eventInfo.getEventId()).stream()
@@ -163,7 +238,7 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
     }
     
     /**
-     * Ensures there are no duplicates
+     * Ensures there are no duplicates already present in the event
      */
     private List<EventParticipantEntity> getParticipantsNoDuplicates(EventInfo eventInfo, Preset preset) throws SQLException, CommandSyntaxException {
         Map<String, EventParticipantEntity> oldParticipants = eventService.getParticipants(eventInfo.getEventId()).stream()

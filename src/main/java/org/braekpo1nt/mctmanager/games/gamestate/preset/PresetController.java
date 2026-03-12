@@ -33,7 +33,7 @@ public class PresetController extends ConfigController<PresetDTO> {
     public @NotNull Preset getPreset(@NotNull File presetFile) throws ConfigException {
         PresetDTO presetDTO = loadConfigDTO(presetFile, PresetDTO.class);
         presetDTO.validate(new Validator("preset"));
-        return presetDTO.toPreset();
+        return presetDTO.toPreset(presetFile.getName());
     }
     
     /**
