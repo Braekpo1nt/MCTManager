@@ -44,6 +44,7 @@ public class PresetCommand implements BrigadierSubCommand {
                         .then(new PresetRemoveSubCommand(storageUtil).create())
                         .then(new PresetJoinSubCommand(plugin, storageUtil).create())
                         .then(new PresetLeaveSubCommand(storageUtil).create())
+                        .then(new PresetResolveCommand(plugin, storageUtil, gameManager.getGameStateService()).create())
                 )
                 ;
     }
