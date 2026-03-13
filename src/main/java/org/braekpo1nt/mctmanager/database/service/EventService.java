@@ -17,7 +17,6 @@ import org.jetbrains.annotations.Nullable;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -177,6 +176,7 @@ public class EventService {
             }
         }
         TransactionManager.callInTransaction(eventTeamsDao.getConnectionSource(), () -> {
+            // order matters because of foreign keys
             eventParticipantsDao.executeRaw("""
                             DELETE FROM event_participants
                             WHERE event_id = ?
