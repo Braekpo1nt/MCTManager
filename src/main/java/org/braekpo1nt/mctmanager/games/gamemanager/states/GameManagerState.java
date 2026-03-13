@@ -958,6 +958,7 @@ public abstract class GameManagerState {
         
         GameSession gameSession = context.getScoreService().createGameSession(GameSession.builder()
                 .gameType(gameType)
+                .eventId(getEventId())
                 .configFile(configFile)
                 .startTime(new Date())
                 .mode(getMode())
