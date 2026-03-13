@@ -195,12 +195,16 @@ public class EventService {
         });
     }
     
-    public void setActiveEvent(@Nullable String eventId) throws SQLException {
+    public void updateActiveEvent(@Nullable String eventId, int currentGameNumber, int maxGames) throws SQLException {
         UpdateBuilder<SystemState, Integer> updateBuilder = systemStateDao.updateBuilder();
         updateBuilder.where()
                 .idEq(SystemState.ONLY_ID);
         updateBuilder
-                .updateColumnValue("active_event_id", eventId);
+                .updateColumnValue("active_event_id", eventId)
+                .updateColumnValue("current_game_number", currentGameNumber)
+                .updateColumnValue("max_games", maxGames)
+        ;
         updateBuilder.update();
     }
+    
 }

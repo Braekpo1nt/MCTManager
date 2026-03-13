@@ -104,7 +104,11 @@ public abstract class EventState extends GameManagerState {
     
     private void unsetActiveEventId() {
         try {
-            context.getEventService().setActiveEvent(null);
+            context.getEventService().updateActiveEvent(
+                    null,
+                    1,
+                    7
+            );
         } catch (SQLException e) {
             Main.logger().log(Level.SEVERE, "Could not update active event ID in system_state table", e);
         }
@@ -174,6 +178,17 @@ public abstract class EventState extends GameManagerState {
         }
         eventData.setMaxGames(newMaxGames);
         sidebar.updateLine("currentGame", getCurrentGameLine());
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                context.getEventService().updateActiveEvent(
+                        eventData.getEventInfo().getEventId(),
+                        eventData.getCurrentGameNumber(),
+                        eventData.getMaxGames()
+                );
+            } catch (SQLException e) {
+                Main.logger().log(Level.SEVERE, "Could not update active currentGameNumber", e);
+            }
+        });
         return CommandResult.success(Component.text("Max games has been set to ")
                 .append(Component.text(newMaxGames)));
     }

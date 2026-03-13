@@ -137,7 +137,11 @@ public class ReadyUpState extends EventState {
         }
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                context.getEventService().setActiveEvent(eventData.getEventInfo().getEventId());
+                context.getEventService().updateActiveEvent(
+                        eventData.getEventInfo().getEventId(),
+                        eventData.getCurrentGameNumber(),
+                        eventData.getMaxGames()
+                );
             } catch (SQLException e) {
                 Main.logger().log(Level.SEVERE, "Could not update active event ID in system_state table", e);
             }
