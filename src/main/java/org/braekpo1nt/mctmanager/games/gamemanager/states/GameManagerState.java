@@ -1372,7 +1372,7 @@ public abstract class GameManagerState {
     }
     
     public CommandResult joinParticipantToTeamEvent(@NotNull OfflinePlayer offlinePlayer, @NotNull String name, @NotNull MCTTeam team, @NotNull EventInfo eventInfo) {
-        
+        // TODO: specific stuff for each state, because if we're in event state then we must also join the participant to the active teams database and the game state
     }
     
     /**
