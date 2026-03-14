@@ -13,6 +13,9 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.SQLException;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Generates an {@link EventInfoResolver} when given an eventId
+ */
 public class EventInfoArgumentType implements CustomArgumentType.Converted<EventInfoResolver, String> {
     
     private final @NotNull EventService eventService;

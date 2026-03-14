@@ -5,6 +5,8 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoArgumentType;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoResolver;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.TeamArgumentType;
@@ -46,9 +48,33 @@ public class JoinSubCommand implements BrigadierSubCommand {
                         .then(Permissioned.argument("member", StringArgumentType.word())
                                 .suggests((source, builder) -> suggestPlayerNames(builder))
                                 .executes(BrigadierAdapters.wraps(this::executeJoin))
+                                .then(Permissioned.literal("practice")
+                                        .executes(BrigadierAdapters.wraps(this::executeJoinPractice))
+                                )
+                                .then(Permissioned.literal("maintenance")
+                                        .executes(BrigadierAdapters.wraps(this::executeJoinMaintenance))
+                                )
+                                .then(Permissioned.literal("event")
+                                        .then(Permissioned.argument("eventId", new EventInfoArgumentType(gameManager.getEventService()))
+                                                .executes(BrigadierAdapters.wraps(this::executeJoinEvent))
+                                        )
+                                )
                         )
                 )
                 ;
+    }
+    
+    private @NotNull CommandResult executeJoinPractice(CommandContext<CommandSourceStack> ctx) {
+        return null;
+    }
+    
+    private @NotNull CommandResult executeJoinMaintenance(CommandContext<CommandSourceStack> ctx) {
+        return null;
+    }
+    
+    private @NotNull CommandResult executeJoinEvent(CommandContext<CommandSourceStack> ctx) {
+        EventInfoResolver resolver = ctx.getArgument("eventId")
+        return null;
     }
     
     /**
