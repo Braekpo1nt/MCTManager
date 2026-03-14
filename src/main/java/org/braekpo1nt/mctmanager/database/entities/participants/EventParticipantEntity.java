@@ -39,4 +39,11 @@ public class EventParticipantEntity {
      */
     @DatabaseField(canBeNull = false, columnName = "team_id")
     private @NotNull String teamId;
+    /**
+     * Whether the player is a substitute for the team or not. Allows players
+     * to be removed from the teams mid-event, but still be included in
+     * stats and leaderboards.
+     */
+    @DatabaseField(canBeNull = false, columnName = "substitute")
+    private @NotNull Boolean substitute;
 }

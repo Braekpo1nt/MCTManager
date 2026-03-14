@@ -199,6 +199,7 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
                         .eventId(eventInfo.getEventId())
                         .participantUUID(playerUUID)
                         .teamId(team.getTeamId())
+                        .substitute(false)
                         .build();
                 newParticipants.add(newParticipant);
             }
@@ -220,6 +221,7 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
                         .eventId(eventInfo.getEventId())
                         .participantUUID(offlinePlayer.getUniqueId().toString())
                         .teamId(team.getTeamId())
+                        .substitute(false)
                         .build();
                 newParticipants.add(newParticipant);
             }
@@ -266,6 +268,7 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
                         .eventId(eventInfo.getEventId())
                         .participantUUID(offlinePlayer.getUniqueId().toString())
                         .teamId(team.getTeamId())
+                        .substitute(false)
                         .build();
                 newParticipants.add(newParticipant);
             }
