@@ -1371,6 +1371,10 @@ public abstract class GameManagerState {
         return CompositeCommandResult.all(results);
     }
     
+    public CommandResult joinParticipantToTeamEvent(@NotNull OfflinePlayer offlinePlayer, @NotNull String name, @NotNull MCTTeam team, @NotNull EventInfo eventInfo) {
+        
+    }
+    
     /**
      * Leaves the player from the team and removes them from the game state.
      * If a game is running, and the player is online, removes that player from the game as well.

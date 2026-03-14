@@ -927,6 +927,11 @@ public class GameManager implements Listener {
         return state.joinParticipantToTeam(offlinePlayer, name, team);
     }
     
+    public CommandResult joinParticipantToTeamEvent(@NotNull OfflinePlayer offlinePlayer, @NotNull String name, @NotNull String teamId, @NotNull EventInfo eventInfo) {
+        MCTTeam team = teams.get(teamId);
+        return state.joinParticipantToTeamEvent(offlinePlayer, name, team, eventInfo);
+    }
+    
     /**
      * @param teamId the teamId of the team to get the {@link OfflineParticipant}s from
      * @return a collection of {@link OfflineParticipant}s who are on the given team

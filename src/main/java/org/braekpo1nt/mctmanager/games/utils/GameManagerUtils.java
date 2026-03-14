@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
+import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.Preset;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
@@ -253,6 +254,22 @@ public class GameManagerUtils {
         }
         
         return joinParticipant(plugin, gameManager, ign, team);
+    }
+    
+    public static CommandResult joinParticipantEvent(Main plugin, @NotNull GameManager gameManager, @NotNull String ign, @NotNull Team team, @NotNull EventInfo eventInfo) {
+        OfflinePlayer playerToJoin;
+        try {
+            playerToJoin = plugin.getServer().getOfflinePlayer(ign);
+        } catch (Exception e) {
+            Main.logger().log(Level.WARNING, String.format("Error finding user \"%s\". Do they exist?", ign), e);
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text("Error finding user "))
+                    .append(Component.text(ign)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(". Does the user exist? See console for details."))
+            );
+        }
+        return gameManager.joinParticipantToTeamEvent(playerToJoin, ign, team.getTeamId(), eventInfo);
     }
     
     public static CommandResult joinParticipant(Main plugin, @NotNull GameManager gameManager, @NotNull String ign, @NotNull Team team) {

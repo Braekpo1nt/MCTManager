@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.commands.mct.team;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
@@ -13,6 +14,7 @@ import org.braekpo1nt.mctmanager.commands.argumenttypes.TeamArgumentType;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Team;
@@ -20,6 +22,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
@@ -72,9 +75,17 @@ public class JoinSubCommand implements BrigadierSubCommand {
         return null;
     }
     
-    private @NotNull CommandResult executeJoinEvent(CommandContext<CommandSourceStack> ctx) {
-        EventInfoResolver resolver = ctx.getArgument("eventId")
-        return null;
+    private @NotNull CommandResult executeJoinEvent(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        EventInfoResolver resolver = ctx.getArgument("eventId", EventInfoResolver.class);
+        EventInfo eventInfo;
+        try {
+            eventInfo = resolver.resolve();
+        } catch (SQLException e) {
+            return CommandResult.sqlException("join participant to event", e);
+        }
+        Team team = ctx.getArgument("teamId", Team.class);
+        String member = ctx.getArgument("member", String.class);
+        return GameManagerUtils.joinParticipantEvent(plugin, gameManager, member, team, eventInfo);
     }
     
     /**
