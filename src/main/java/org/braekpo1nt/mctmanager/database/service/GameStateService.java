@@ -150,9 +150,24 @@ public class GameStateService {
         return eventTeamsDao.queryForEq("event_id", eventId);
     }
     
-    public EventParticipantEntity addParticipant(@NotNull EventParticipantEntity participant) throws SQLException {
-        eventParticipantsDao.create(participant);
-        return participant;
+    public void addParticipant(@NotNull EventParticipantEntity participant, @NotNull String ign) throws SQLException {
+        TransactionManager.callInTransaction(activeParticipantsDao.getConnectionSource(), () -> {
+            allPlayersDao.createOrUpdate(AllPlayersEntity.builder()
+                    .uuid(participant.getParticipantUUID())
+                    .ign(ign)
+                    .firstSeenAt(new Date())
+                    .build());
+            playerMetadataDao.createIfNotExists(PlayerMetadata.builder()
+                    .participantUUID(participant.getParticipantUUID())
+                    .ign(ign)
+                    .discordUsername(null)
+                    .currentTokens(0)
+                    .lifetimeTokens(0)
+                    .percentRank(0.0)
+                    .build());
+            eventParticipantsDao.create(participant);
+            return null;
+        });
     }
     
     public <T extends Collection<EventParticipantEntity>> T addEventParticipants(@NotNull T participants) throws SQLException {

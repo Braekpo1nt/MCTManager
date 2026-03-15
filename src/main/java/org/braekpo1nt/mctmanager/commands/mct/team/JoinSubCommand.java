@@ -75,6 +75,12 @@ public class JoinSubCommand implements BrigadierSubCommand {
         return null;
     }
     
+    /**
+     * Joins the participant to the given event
+     * @param ctx the context
+     * @return the result
+     * @throws CommandSyntaxException if there's syntax error
+     */
     private @NotNull CommandResult executeJoinEvent(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         EventInfoResolver resolver = ctx.getArgument("eventId", EventInfoResolver.class);
         EventInfo eventInfo;
@@ -85,7 +91,7 @@ public class JoinSubCommand implements BrigadierSubCommand {
         }
         Team team = ctx.getArgument("teamId", Team.class);
         String member = ctx.getArgument("member", String.class);
-        return GameManagerUtils.joinParticipantEvent(plugin, gameManager, member, team, eventInfo);
+        return GameManagerUtils.joinParticipantEvent(plugin, gameManager, member, team.getTeamId(), eventInfo);
     }
     
     /**

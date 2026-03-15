@@ -918,18 +918,25 @@ public class GameManager implements Listener {
      * Joins the given player to the team with the given teamId. If the player was on a team already (not teamId) they
      * will be removed from that team and added to the other team.
      * Note, this will not join a player to a team if that player is an admin.
-     * @param offlinePlayer The player to join to the given team
-     * @param name The name of the participant to join to the given team
-     * @param teamId The internal teamId of the team to join the player to.
+     * @param offlinePlayer The participant to join to the given team
+     * @param ign The name of the participant to join to the given team
+     * @param teamId The teamId of the team to join the participant to.
      */
-    public CommandResult joinParticipantToTeam(@NotNull OfflinePlayer offlinePlayer, @NotNull String name, @NotNull String teamId) {
+    public CommandResult joinParticipantToTeam(@NotNull OfflinePlayer offlinePlayer, @NotNull String ign, @NotNull String teamId) {
         MCTTeam team = teams.get(teamId);
-        return state.joinParticipantToTeam(offlinePlayer, name, team);
+        return state.joinParticipantToTeam(offlinePlayer, ign, team);
     }
     
-    public CommandResult joinParticipantToTeamEvent(@NotNull OfflinePlayer offlinePlayer, @NotNull String name, @NotNull String teamId, @NotNull EventInfo eventInfo) {
-        MCTTeam team = teams.get(teamId);
-        return state.joinParticipantToTeamEvent(offlinePlayer, name, team, eventInfo);
+    /**
+     * Join the participant to the event team
+     * @param offlinePlayer The participant to join to the given team
+     * @param ign The name of the participant to join to the given team
+     * @param teamId The teamId of the team to join the participant to.
+     * @param eventInfo the event to join the participant to
+     * @return the result
+     */
+    public CommandResult joinParticipantToTeamEvent(@NotNull OfflinePlayer offlinePlayer, @NotNull String ign, @NotNull String teamId, @NotNull EventInfo eventInfo) {
+        return state.joinParticipantToTeamEvent(offlinePlayer, ign, teamId, eventInfo);
     }
     
     /**
