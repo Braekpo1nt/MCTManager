@@ -273,6 +273,12 @@ public abstract class EventState extends GameManagerState {
         sidebar.updateLine(participant.getUniqueId(), "currentGame", getCurrentGameLine());
     }
     
+    @Override
+    public CommandResult joinParticipantToTeam(@NotNull OfflinePlayer offlinePlayer, @NotNull String ign, @NotNull MCTTeam team) {
+        CommandResult eventResult = super.joinParticipantToTeamEvent(offlinePlayer, ign, team.getTeamId(), eventData.getEventInfo());
+        CommandResult activeResult = super.joinParticipantToTeam(offlinePlayer, ign, team);
+    }
+    
     /**
      * Adds the participant to the event_participants table, then
      * joins them to the active teams list if the running event matches
