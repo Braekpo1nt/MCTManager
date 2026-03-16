@@ -6,13 +6,12 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
-import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoArgumentType;
-import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoResolver;
-import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoResolver;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.TeamArgumentType;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
@@ -51,47 +50,9 @@ public class JoinSubCommand implements BrigadierSubCommand {
                         .then(Permissioned.argument("member", StringArgumentType.word())
                                 .suggests((source, builder) -> suggestPlayerNames(builder))
                                 .executes(BrigadierAdapters.wraps(this::executeJoin))
-                                .then(Permissioned.literal("practice")
-                                        .executes(BrigadierAdapters.wraps(this::executeJoinPractice))
-                                )
-                                .then(Permissioned.literal("maintenance")
-                                        .executes(BrigadierAdapters.wraps(this::executeJoinMaintenance))
-                                )
-                                .then(Permissioned.literal("event")
-                                        .then(Permissioned.argument("eventId", new EventInfoArgumentType(gameManager.getEventService()))
-                                                .executes(BrigadierAdapters.wraps(this::executeJoinEvent))
-                                        )
-                                )
                         )
                 )
                 ;
-    }
-    
-    private @NotNull CommandResult executeJoinPractice(CommandContext<CommandSourceStack> ctx) {
-        return null;
-    }
-    
-    private @NotNull CommandResult executeJoinMaintenance(CommandContext<CommandSourceStack> ctx) {
-        return null;
-    }
-    
-    /**
-     * Joins the participant to the given event
-     * @param ctx the context
-     * @return the result
-     * @throws CommandSyntaxException if there's syntax error
-     */
-    private @NotNull CommandResult executeJoinEvent(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-        EventInfoResolver resolver = ctx.getArgument("eventId", EventInfoResolver.class);
-        EventInfo eventInfo;
-        try {
-            eventInfo = resolver.resolve();
-        } catch (SQLException e) {
-            return CommandResult.sqlException("join participant to event", e);
-        }
-        Team team = ctx.getArgument("teamId", Team.class);
-        String member = ctx.getArgument("member", String.class);
-        return GameManagerUtils.joinParticipantEvent(plugin, gameManager, member, team.getTeamId(), eventInfo);
     }
     
     /**
