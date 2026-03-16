@@ -6,15 +6,23 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
+import org.braekpo1nt.mctmanager.database.entities.participants.MaintenanceParticipantEntity;
+import org.braekpo1nt.mctmanager.database.entities.teams.MaintenanceTeam;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamemanager.Mode;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfigController;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.event.ReadyUpState;
+import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.SQLException;
+import java.util.Date;
 import java.util.logging.Level;
 
 public class MaintenanceState extends GameManagerState {
@@ -86,6 +94,63 @@ public class MaintenanceState extends GameManagerState {
             }
         }
     }
+    
+    // team/participants management start
+    @Override
+    public Team addTeam(String teamId, String teamDisplayName, String colorString) {
+        try {
+            context.getGameStateService().addTeam(MaintenanceTeam.builder()
+                    .teamId(teamId)
+                    .displayName(teamDisplayName)
+                    .color(colorString)
+                    .modifiedAt(new Date())
+                    .build());
+        } catch (SQLException e) {
+            context.reportGameStateException("adding team to maintenance database", e);
+        }
+        return super.addTeam(teamId, teamDisplayName, colorString);
+    }
+    
+    @Override
+    public CommandResult removeTeam(String teamId) {
+        try {
+            context.getGameStateService().deleteMaintenanceTeam(teamId);
+        } catch (SQLException e) {
+            context.reportGameStateException("removing team from maintenance database", e);
+        }
+        return super.removeTeam(teamId);
+    }
+    
+    /**
+     * Same as super method but adds the participant to the maintenance_participants database as well
+     */
+    @Override
+    public CommandResult joinParticipantToTeam(@NotNull OfflinePlayer offlinePlayer, @NotNull String ign, @NotNull MCTTeam team) {
+        try {
+            context.getGameStateService().addParticipant(
+                    MaintenanceParticipantEntity.builder()
+                            .teamId(team.getTeamId())
+                            .participantUUID(offlinePlayer.getUniqueId().toString())
+                            .build(),
+                    ign
+            );
+        } catch (SQLException e) {
+            context.reportGameStateException("adding participant to maintenance database", e);
+        }
+        return super.joinParticipantToTeam(offlinePlayer, ign, team);
+    }
+    
+    @Override
+    public CommandResult leaveParticipant(@NotNull OfflineParticipant offlineParticipant) {
+        try {
+            context.getGameStateService().deleteMaintenanceParticipant(offlineParticipant.getUniqueId().toString());
+        } catch (SQLException e) {
+            context.reportGameStateException("removing participant from maintenance database", e);
+        }
+        return super.leaveParticipant(offlineParticipant);
+    }
+    
+    // team/participants management stop
     
     @Override
     public @NotNull Mode getMode() {

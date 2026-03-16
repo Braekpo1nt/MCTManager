@@ -4,6 +4,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoArgumentType;
@@ -13,11 +14,16 @@ import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
+import org.braekpo1nt.mctmanager.database.entities.participants.MaintenanceParticipantEntity;
+import org.braekpo1nt.mctmanager.database.entities.teams.MaintenanceTeam;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.Mode;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
+import java.util.Date;
 
 public class DatabaseTeamCommand implements BrigadierSubCommand {
     
@@ -41,6 +47,11 @@ public class DatabaseTeamCommand implements BrigadierSubCommand {
                                                         .executes(BrigadierAdapters.wraps(this::executeAddMaintenance))
                                                 )
                                         )
+                                )
+                        )
+                        .then(Permissioned.literal("remove")
+                                .then(Permissioned.argument("teamId", StringArgumentType.word())
+                                        .executes(BrigadierAdapters.wraps(this::executeRemoveMaintenance))
                                 )
                         )
                         .then(Permissioned.literal("join")
@@ -95,23 +106,87 @@ public class DatabaseTeamCommand implements BrigadierSubCommand {
     }
     
     private @NotNull CommandResult executeAddMaintenance(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-        return null;
+        String teamId = ctx.getArgument("teamId", String.class);
+        String displayName = ctx.getArgument("displayName", String.class);
+        String color = ctx.getArgument("color", String.class);
+        return CommandResult.async(plugin, "Adding team", () -> {
+            try {
+                gameManager.getGameStateService().addTeam(MaintenanceTeam.builder()
+                        .teamId(teamId)
+                        .displayName(displayName)
+                        .color(color)
+                        .modifiedAt(new Date())
+                        .build());
+                return CommandResult.success(Component.empty()
+                        .append(Component.text("Added "))
+                        .append(Component.text(teamId))
+                        .append(Component.text(" to maintenance mode"))
+                );
+            } catch (SQLException e) {
+                return CommandResult.sqlException("add team to maintenance database", e);
+            }
+        });
+    }
+    
+    private @NotNull CommandResult executeRemoveMaintenance(CommandContext<CommandSourceStack> ctx) {
+        String teamId = ctx.getArgument("teamId", String.class);
+        return CommandResult.async(plugin, "Removing team", () -> {
+            try {
+                boolean existed = gameManager.getGameStateService().deleteMaintenanceTeam(teamId);
+                if (!existed) {
+                    return CommandResult.failure(Component.empty()
+                            .append(Component.text("Could not find team with id "))
+                            .append(Component.text(teamId))
+                    );
+                }
+                return CommandResult.success(Component.empty()
+                        .append(Component.text("Removed team "))
+                        .append(Component.text(teamId))
+                );
+            } catch (SQLException e) {
+                return CommandResult.sqlException("remove a team from maintenance database", e);
+            }
+        });
     }
     
     private @NotNull CommandResult executeJoinMaintenance(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-        return null;
+        String teamId = ctx.getArgument("teamId", String.class);
+        String member = ctx.getArgument("member", String.class);
+        if (gameManager.getMode().equals(Mode.MAINTENANCE)) {
+            return GameManagerUtils.joinParticipant(plugin, gameManager, member, teamId);
+        }
+        OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(member);
+        return CommandResult.async(plugin, "Adding participant", () -> {
+            try {
+                gameManager.getGameStateService().addParticipant(
+                        MaintenanceParticipantEntity.builder()
+                                .teamId(teamId)
+                                .participantUUID(offlinePlayer.getUniqueId().toString())
+                                .build(),
+                        member
+                );
+                return CommandResult.success(Component.empty()
+                        .append(Component.text("Added "))
+                        .append(Component.text(member))
+                        .append(Component.text(" to "))
+                        .append(Component.text(teamId))
+                );
+            } catch (SQLException e) {
+                return CommandResult.sqlException("add a participant to maintenance database", e);
+            }
+        });
     }
     
     private @NotNull CommandResult executeAddPractice(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-        return null;
+        return CommandResult.success();
     }
     
     private @NotNull CommandResult executeJoinPractice(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-        return null;
+        return CommandResult.success();
     }
     
     private @NotNull CommandResult executeAddEvent(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-        return null;
+        return CommandResult.success();
     }
     
     private @NotNull CommandResult executeJoinEvent(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {

@@ -5,10 +5,10 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.braekpo1nt.mctmanager.database.entities.participants.EventParticipantEntity;
+import org.braekpo1nt.mctmanager.database.entities.teams.EventTeam;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
@@ -22,6 +22,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.states.GameManagerState;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.MaintenanceState;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.PracticeState;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
+import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -31,8 +32,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Level;
 
 public abstract class EventState extends GameManagerState {
@@ -273,11 +274,50 @@ public abstract class EventState extends GameManagerState {
         sidebar.updateLine(participant.getUniqueId(), "currentGame", getCurrentGameLine());
     }
     
+    // team/participants management start
+    @Override
+    public Team addTeam(String teamId, String teamDisplayName, String colorString) {
+        try {
+            context.getGameStateService().addTeam(EventTeam.builder()
+                    .teamId(teamId)
+                    .displayName(teamDisplayName)
+                    .color(colorString)
+                    .eventId(eventData.getEventInfo().getEventId())
+                    .modifiedAt(new Date())
+                    .build());
+        } catch (SQLException e) {
+            context.reportGameStateException("adding team to event database", e);
+        }
+        return super.addTeam(teamId, teamDisplayName, colorString);
+    }
+    
+    @Override
+    public CommandResult removeTeam(String teamId) {
+        try {
+            context.getGameStateService().removeEventTeam(teamId, eventData.getEventInfo().getEventId());
+        } catch (SQLException e) {
+            context.reportGameStateException("removing team from event database", e);
+        }
+        return super.removeTeam(teamId);
+    }
+    
     @Override
     public CommandResult joinParticipantToTeam(@NotNull OfflinePlayer offlinePlayer, @NotNull String ign, @NotNull MCTTeam team) {
-        CommandResult eventResult = super.joinParticipantToTeamEvent(offlinePlayer, ign, team.getTeamId(), eventData.getEventInfo());
-        CommandResult activeResult = super.joinParticipantToTeam(offlinePlayer, ign, team);
+        try {
+            context.getGameStateService().addParticipant(
+                    EventParticipantEntity.builder()
+                            .participantUUID(offlinePlayer.getUniqueId().toString())
+                            .teamId(team.getTeamId())
+                            .eventId(eventData.getEventInfo().getEventId())
+                            .build(),
+                    ign
+            );
+        } catch (SQLException e) {
+            context.reportGameStateException("joining participant to event database", e);
+        }
+        return super.joinParticipantToTeam(offlinePlayer, ign, team);
     }
+    // team/participants management stop
     
     /**
      * Adds the participant to the event_participants table, then
@@ -288,7 +328,9 @@ public abstract class EventState extends GameManagerState {
      * @param teamId the teamId to join them to
      * @param eventInfo the event to join them to
      * @return the result of the command
+     * @deprecated in favor of overrides of joinParticipantToTeam
      */
+    @Deprecated
     @Override
     public CommandResult joinParticipantToTeamEvent(@NotNull OfflinePlayer offlinePlayer, @NotNull String ign, @NotNull String teamId, @NotNull EventInfo eventInfo) {
         if (eventData.getEventInfo().getEventId().equals(eventInfo.getEventId())) {

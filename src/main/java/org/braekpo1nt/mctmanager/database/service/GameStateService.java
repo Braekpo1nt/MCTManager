@@ -5,19 +5,20 @@ import com.j256.ormlite.dao.GenericRawResults;
 import com.j256.ormlite.misc.TransactionManager;
 import com.j256.ormlite.stmt.ColumnArg;
 import com.j256.ormlite.stmt.DeleteBuilder;
+import com.j256.ormlite.stmt.QueryBuilder;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
 import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
 import org.braekpo1nt.mctmanager.database.entities.SystemState;
 import org.braekpo1nt.mctmanager.database.entities.admin.AdminEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipant;
-import org.braekpo1nt.mctmanager.database.entities.participants.InGameParticipant;
 import org.braekpo1nt.mctmanager.database.entities.participants.EventParticipantEntity;
+import org.braekpo1nt.mctmanager.database.entities.participants.InGameParticipant;
 import org.braekpo1nt.mctmanager.database.entities.participants.MaintenanceParticipantEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.PracticeParticipantEntity;
 import org.braekpo1nt.mctmanager.database.entities.teams.ActiveTeam;
-import org.braekpo1nt.mctmanager.database.entities.teams.InGameTeam;
 import org.braekpo1nt.mctmanager.database.entities.teams.EventTeam;
+import org.braekpo1nt.mctmanager.database.entities.teams.InGameTeam;
 import org.braekpo1nt.mctmanager.database.entities.teams.MaintenanceTeam;
 import org.braekpo1nt.mctmanager.database.entities.teams.PracticeTeam;
 import org.jetbrains.annotations.NotNull;
@@ -76,8 +77,28 @@ public class GameStateService {
     
     // Maintenance
     
-    public void addTeam(MaintenanceTeam team) throws SQLException {
+    public void addTeam(@NotNull MaintenanceTeam team) throws SQLException {
         maintenanceTeamsDao.create(team);
+    }
+    
+    /**
+     * Deletes all participants associated with the team, then deletes the team
+     * @param teamId the id of the team to delete
+     * @return true if the id was deleted successfully, false if the id doesn't exist
+     * @throws SQLException if there's a database error
+     */
+    public boolean deleteMaintenanceTeam(@NotNull String teamId) throws SQLException {
+        return TransactionManager.callInTransaction(maintenanceTeamsDao.getConnectionSource(), () -> {
+            if (!maintenanceTeamsDao.idExists(teamId)) {
+                return false;
+            }
+            DeleteBuilder<MaintenanceParticipantEntity, String> deleteBuilder = maintenanceParticipantsDao.deleteBuilder();
+            deleteBuilder.where()
+                    .eq("team_id", teamId);
+            deleteBuilder.delete();
+            maintenanceTeamsDao.deleteById(teamId);
+            return true;
+        });
     }
     
     public void addMaintenanceTeams(Collection<MaintenanceTeam> teams) throws SQLException {
@@ -88,16 +109,16 @@ public class GameStateService {
         return maintenanceTeamsDao.queryForAll();
     }
     
-    public void addParticipant(@NotNull MaintenanceParticipantEntity participant) throws SQLException {
-        maintenanceParticipantsDao.create(participant);
+    public void addParticipant(@NotNull MaintenanceParticipantEntity participant, String ign) throws SQLException {
+        TransactionManager.callInTransaction(maintenanceParticipantsDao.getConnectionSource(), () -> {
+            registerParticipantIfNot(participant.getParticipantUUID(), ign);
+            maintenanceParticipantsDao.create(participant);
+            return null;
+        });
     }
     
-    public void addMaintenanceParticipants(@NotNull Collection<MaintenanceParticipantEntity> participants) throws SQLException {
-        maintenanceParticipantsDao.create(participants);
-    }
-    
-    public List<MaintenanceParticipantEntity> getAllMaintenanceParticipants() throws SQLException {
-        return maintenanceParticipantsDao.queryForAll();
+    public void deleteMaintenanceParticipant(@NotNull String uuid) throws SQLException {
+        maintenanceParticipantsDao.deleteById(uuid);
     }
     
     // Practice
@@ -105,6 +126,26 @@ public class GameStateService {
     public PracticeTeam addTeam(PracticeTeam team) throws SQLException {
         practiceTeamsDao.create(team);
         return team;
+    }
+    
+    /**
+     * Deletes all participants associated with the team, then deletes the team
+     * @param teamId the id of the team to delete
+     * @return true if the id was deleted successfully, false if the id doesn't exist
+     * @throws SQLException if there's a database error
+     */
+    public boolean removePracticeTeam(@NotNull String teamId) throws SQLException {
+        return TransactionManager.callInTransaction(practiceTeamsDao.getConnectionSource(), () -> {
+            if (!practiceTeamsDao.idExists(teamId)) {
+                return false;
+            }
+            DeleteBuilder<PracticeParticipantEntity, String> deleteBuilder = practiceParticipantsDao.deleteBuilder();
+            deleteBuilder.where()
+                    .eq("team_id", teamId);
+            deleteBuilder.delete();
+            practiceTeamsDao.deleteById(teamId);
+            return true;
+        });
     }
     
     public Collection<PracticeTeam> addPracticeTeams(Collection<PracticeTeam> teams) throws SQLException {
@@ -116,12 +157,12 @@ public class GameStateService {
         return practiceTeamsDao.queryForAll();
     }
     
-    public void addParticipant(@NotNull PracticeParticipantEntity participant) throws SQLException {
-        practiceParticipantsDao.create(participant);
-    }
-    
-    public void addPracticeParticipants(@NotNull Collection<PracticeParticipantEntity> participants) throws SQLException {
-        practiceParticipantsDao.create(participants);
+    public void addParticipant(@NotNull PracticeParticipantEntity participant, @NotNull String ign) throws SQLException {
+        TransactionManager.callInTransaction(practiceParticipantsDao.getConnectionSource(), () -> {
+            registerParticipantIfNot(participant.getParticipantUUID(), ign);
+            practiceParticipantsDao.create(participant);
+            return null;
+        });
     }
     
     public List<PracticeParticipantEntity> getAllPracticeParticipants() throws SQLException {
@@ -135,9 +176,34 @@ public class GameStateService {
         return team;
     }
     
-    public Collection<EventTeam> addEventTeams(Collection<EventTeam> teams) throws SQLException {
-        eventTeamsDao.create(teams);
-        return teams;
+    /**
+     * Deletes all participants associated with the team, then deletes the team
+     * @param teamId the id of the team to delete
+     * @param eventId the id of the event to delete the team from
+     * @return true if the id was deleted successfully, false if the id doesn't exist
+     * @throws SQLException if there's a database error
+     */
+    public boolean removeEventTeam(@NotNull String teamId, @NotNull String eventId) throws SQLException {
+        return TransactionManager.callInTransaction(eventTeamsDao.getConnectionSource(), () -> {
+            QueryBuilder<EventTeam, Integer> queryBuilder = eventTeamsDao.queryBuilder();
+            queryBuilder.where()
+                    .eq("team_id", teamId)
+                    .eq("event_id", eventId)
+            ;
+            List<EventTeam> queryResult = queryBuilder.query();
+            if (queryResult.isEmpty()) {
+                return false;
+            }
+            int id = queryResult.getFirst().getId();
+            DeleteBuilder<EventParticipantEntity, Integer> participantDeleteBuilder = eventParticipantsDao.deleteBuilder();
+            participantDeleteBuilder.where()
+                    .eq("team_id", teamId)
+                    .eq("event_id", eventId)
+            ;
+            participantDeleteBuilder.delete();
+            eventTeamsDao.deleteById(id);
+            return true;
+        });
     }
     
     /**
@@ -152,27 +218,10 @@ public class GameStateService {
     
     public void addParticipant(@NotNull EventParticipantEntity participant, @NotNull String ign) throws SQLException {
         TransactionManager.callInTransaction(activeParticipantsDao.getConnectionSource(), () -> {
-            allPlayersDao.createOrUpdate(AllPlayersEntity.builder()
-                    .uuid(participant.getParticipantUUID())
-                    .ign(ign)
-                    .firstSeenAt(new Date())
-                    .build());
-            playerMetadataDao.createIfNotExists(PlayerMetadata.builder()
-                    .participantUUID(participant.getParticipantUUID())
-                    .ign(ign)
-                    .discordUsername(null)
-                    .currentTokens(0)
-                    .lifetimeTokens(0)
-                    .percentRank(0.0)
-                    .build());
+            registerParticipantIfNot(participant.getParticipantUUID(), ign);
             eventParticipantsDao.create(participant);
             return null;
         });
-    }
-    
-    public <T extends Collection<EventParticipantEntity>> T addEventParticipants(@NotNull T participants) throws SQLException {
-        eventParticipantsDao.create(participants);
-        return participants;
     }
     
     /**
@@ -183,6 +232,29 @@ public class GameStateService {
      */
     public List<EventParticipantEntity> getAllEventParticipants(@NotNull String eventId) throws SQLException {
         return eventParticipantsDao.queryForEq("event_id", eventId);
+    }
+    
+    /**
+     * Using the given info, register a new participant with the all_players and player_metadata databases
+     * Not implemented in a transaction for internal careful use only.
+     * @param uuid the uuid of the player
+     * @param ign the ign of the player
+     * @throws SQLException if there is an exception
+     */
+    private void registerParticipantIfNot(@NotNull String uuid, @NotNull String ign) throws SQLException {
+        allPlayersDao.createOrUpdate(AllPlayersEntity.builder()
+                .uuid(uuid)
+                .ign(ign)
+                .firstSeenAt(new Date())
+                .build());
+        playerMetadataDao.createIfNotExists(PlayerMetadata.builder()
+                .participantUUID(uuid)
+                .ign(ign)
+                .discordUsername(null)
+                .currentTokens(0)
+                .lifetimeTokens(0)
+                .percentRank(0.0)
+                .build());
     }
     
     public void registerParticipantIfNotRegistered(@NotNull AllPlayersEntity allPlayersEntity, @NotNull PlayerMetadata playerMetadata) throws SQLException {
@@ -323,19 +395,7 @@ public class GameStateService {
     
     public void addParticipant(@NotNull ActiveParticipant participant) throws SQLException {
         TransactionManager.callInTransaction(activeParticipantsDao.getConnectionSource(), () -> {
-            allPlayersDao.createOrUpdate(AllPlayersEntity.builder()
-                    .uuid(participant.getParticipantUUID())
-                    .ign(participant.getIgn())
-                    .firstSeenAt(new Date())
-                    .build());
-            playerMetadataDao.createIfNotExists(PlayerMetadata.builder()
-                    .participantUUID(participant.getParticipantUUID())
-                    .ign(participant.getIgn())
-                    .discordUsername(null)
-                    .currentTokens(0)
-                    .lifetimeTokens(0)
-                    .percentRank(0.0)
-                    .build());
+            registerParticipantIfNot(participant.getParticipantUUID(), participant.getIgn());
             activeParticipantsDao.create(participant);
             return null;
         });

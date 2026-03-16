@@ -2,6 +2,8 @@ package org.braekpo1nt.mctmanager.database.entities.teams;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -14,6 +16,8 @@ import java.util.Date;
 @DatabaseTable(tableName = "practice_teams")
 @NoArgsConstructor
 @Data
+@AllArgsConstructor
+@Builder
 public class PracticeTeam {
     @DatabaseField(id = true, columnName = "team_id")
     private @NotNull String teamId;

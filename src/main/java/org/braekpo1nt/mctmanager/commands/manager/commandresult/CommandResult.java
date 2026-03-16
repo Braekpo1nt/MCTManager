@@ -102,6 +102,17 @@ public interface CommandResult {
      * @param supplier the operation to be executed on an asynchronous thread, and the result of which will be shown to
      * the command executor upon completion
      */
+    static CommandResult async(@NotNull Main plugin, String immediateMessage, AsyncCommandResult.ResultSupplier supplier) {
+        return new AsyncCommandResult(plugin, Component.text(immediateMessage), supplier);
+    }
+    
+    /**
+     * @param plugin The plugin to use for the asynchronous operation
+     * @param immediateMessage the message to send immediately, before the asynchronous operation is complete. Null if
+     * no such message needs to be sent to the command executor.
+     * @param supplier the operation to be executed on an asynchronous thread, and the result of which will be shown to
+     * the command executor upon completion
+     */
     static CommandResult async(@NotNull Main plugin, Component immediateMessage, AsyncCommandResult.ResultSupplier supplier) {
         return new AsyncCommandResult(plugin, immediateMessage, supplier);
     }

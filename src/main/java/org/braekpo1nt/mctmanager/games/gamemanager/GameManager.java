@@ -934,7 +934,9 @@ public class GameManager implements Listener {
      * @param teamId The teamId of the team to join the participant to.
      * @param eventInfo the event to join the participant to
      * @return the result
+     * @deprecated in favor of joinParticipantToTeam overrides
      */
+    @Deprecated
     public CommandResult joinParticipantToTeamEvent(@NotNull OfflinePlayer offlinePlayer, @NotNull String ign, @NotNull String teamId, @NotNull EventInfo eventInfo) {
         return state.joinParticipantToTeamEvent(offlinePlayer, ign, teamId, eventInfo);
     }

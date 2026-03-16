@@ -1311,14 +1311,14 @@ public abstract class GameManagerState {
      * will be removed from that team and added to the other team.
      * Note, this will not join a player to a team if that player is an admin.
      * @param offlinePlayer The player to join to the given team
-     * @param name The name of the participant to join to the given team
+     * @param ign The name of the participant to join to the given team
      * @param team The internal teamId of the team to join the player to.
      */
-    public CommandResult joinParticipantToTeam(@NotNull OfflinePlayer offlinePlayer, @NotNull String name, @NotNull MCTTeam team) {
+    public CommandResult joinParticipantToTeam(@NotNull OfflinePlayer offlinePlayer, @NotNull String ign, @NotNull MCTTeam team) {
         // TODO: handle any async operations for this in a separate thread, keep all uses and overrides in mind
         List<CommandResult> results = new ArrayList<>();
         if (context.isAdmin(offlinePlayer.getUniqueId())) {
-            results.add(removeAdmin(offlinePlayer, name));
+            results.add(removeAdmin(offlinePlayer, ign));
         }
         OfflineParticipant existingParticipant = allParticipants.get(offlinePlayer.getUniqueId());
         if (existingParticipant != null) {
@@ -1341,7 +1341,7 @@ public abstract class GameManagerState {
         }
         
         Component displayName = team.getFormattedDisplayName();
-        OfflineParticipant offlineParticipant = new OfflineParticipant(offlinePlayer.getUniqueId(), name, displayName, team.getTeamId(), 0);
+        OfflineParticipant offlineParticipant = new OfflineParticipant(offlinePlayer.getUniqueId(), ign, displayName, team.getTeamId(), 0);
         allParticipants.put(offlineParticipant.getUniqueId(), offlineParticipant);
         team.joinMember(offlineParticipant.getUniqueId());
         tabList.joinParticipant(
@@ -1380,7 +1380,9 @@ public abstract class GameManagerState {
      * @param teamId The teamId of the team to join the participant to.
      * @param eventInfo the event to join the participant to
      * @return the result
+     * @deprecated in favor of overrides of joinParticipantToTeam
      */
+    @Deprecated
     public CommandResult joinParticipantToTeamEvent(@NotNull OfflinePlayer offlinePlayer, @NotNull String ign, @NotNull String teamId, @NotNull EventInfo eventInfo) {
         try {
             context.getGameStateService().addParticipant(
