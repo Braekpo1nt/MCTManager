@@ -22,6 +22,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.states.GameManagerState;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.MaintenanceState;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.PracticeState;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
+import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.OfflinePlayer;
@@ -317,6 +318,17 @@ public abstract class EventState extends GameManagerState {
         }
         return super.joinParticipantToTeam(offlinePlayer, ign, team);
     }
+    
+    @Override
+    public CommandResult leaveParticipant(@NotNull OfflineParticipant offlineParticipant) {
+        try {
+            context.getGameStateService().deleteEventParticipant(offlineParticipant.getUniqueId().toString(), eventData.getEventInfo().getEventId());
+        } catch (SQLException e) {
+            context.reportGameStateException("leaving participant from event database", e);
+        }
+        return super.leaveParticipant(offlineParticipant);
+    }
+    
     // team/participants management stop
     
     /**

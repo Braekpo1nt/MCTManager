@@ -228,6 +228,15 @@ public class GameStateService {
         });
     }
     
+    public void deleteEventParticipant(String uuid, String eventId) throws SQLException {
+        DeleteBuilder<EventParticipantEntity, Integer> builder = eventParticipantsDao.deleteBuilder();
+        builder.where()
+                .eq("participant_uuid", uuid)
+                .eq("event_id", eventId)
+        ;
+        builder.delete();
+    }
+    
     /**
      * @param eventId the eventId to get all the participants for
      * @return a list of all {@link EventParticipantEntity}s which share the given eventId,
