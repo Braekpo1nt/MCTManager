@@ -165,6 +165,10 @@ public class GameStateService {
         });
     }
     
+    public void deletePracticeParticipant(@NotNull String uuid) throws SQLException {
+        practiceParticipantsDao.deleteById(uuid);
+    }
+    
     public List<PracticeParticipantEntity> getAllPracticeParticipants() throws SQLException {
         return practiceParticipantsDao.queryForAll();
     }

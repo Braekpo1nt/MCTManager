@@ -296,7 +296,7 @@ public class PracticeState extends GameManagerState {
     @Override
     public CommandResult leaveParticipant(@NotNull OfflineParticipant offlineParticipant) {
         try {
-            context.getGameStateService().deletePracticeParticipant(offlineParticipant.getUniqueId());
+            context.getGameStateService().deletePracticeParticipant(offlineParticipant.getUniqueId().toString());
         } catch (SQLException e) {
             context.reportGameStateException("removing participant from practice database", e);
         }
