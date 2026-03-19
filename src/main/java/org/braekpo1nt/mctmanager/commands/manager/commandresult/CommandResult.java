@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 public interface CommandResult {
@@ -47,6 +48,15 @@ public interface CommandResult {
         if (commandResult instanceof AsyncCommandResult asyncResult) {
             asyncResult.executeAsync(sender);
         }
+    }
+    
+    static void showResult(@NotNull CommandSender sender, Main plugin, CompletableFuture<CommandResult> completableFuture) {
+        completableFuture
+                .thenAccept(asyncResult -> {
+                    plugin.getServer().getScheduler().runTask(plugin, () -> {
+                        showResult(sender, asyncResult);
+                    });
+                });
     }
     
     /**

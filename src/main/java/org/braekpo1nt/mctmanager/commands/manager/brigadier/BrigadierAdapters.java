@@ -11,12 +11,19 @@ import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.SQLException;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 public class BrigadierAdapters {
     @FunctionalInterface
     public interface ResultCommand {
         @NotNull CommandResult run(@NotNull CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException;
+    }
+    
+    @FunctionalInterface
+    public interface AsyncResultCommand {
+        @NotNull CompletableFuture<CommandResult> run(@NotNull CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException;
     }
     
     /**
@@ -30,12 +37,47 @@ public class BrigadierAdapters {
      */
     public static @NotNull Command<CommandSourceStack> wraps(@NotNull ResultCommand command) {
         return ctx -> {
-            CommandSourceStack source = ctx.getSource();
-            CommandSender sender = source.getSender();
+            CommandSender sender = ctx.getSource().getSender();
             
             try {
                 CommandResult result = command.run(ctx);
                 CommandResult.showResult(sender, result);
+                return Command.SINGLE_SUCCESS;
+            } catch (CommandSyntaxException e) {
+                throw e;
+            } catch (Exception e) {
+                sender.sendMessage(Component.empty()
+                        .append(Component.text("An internal error occurred. See console for details."))
+                        .append(Component.newline())
+                        .append(Component.text(e.getMessage()))
+                        .color(NamedTextColor.RED)
+                );
+                Main.logger().log(Level.SEVERE, "An error occurred executing this command.", e);
+                return 0;
+            }
+        };
+    }
+    
+    public static @NotNull Command<CommandSourceStack> wraps(@NotNull Main plugin, @NotNull AsyncResultCommand command) {
+        return ctx -> {
+            CommandSender sender = ctx.getSource().getSender();
+            try {
+                CompletableFuture<CommandResult> futureResult = command.run(ctx)
+                        .exceptionally(ex -> switch (ex) {
+                            case CommandSyntaxException c -> CommandResult.failure(c.getMessage());
+                            case SQLException s -> CommandResult.sqlException("executing command", s);
+                            default -> {
+                                Main.logger().log(Level.SEVERE, "An error occurred executing this command.", ex);
+                                yield CommandResult.failure(
+                                        Component.empty()
+                                                .append(Component.text("An internal error occurred. See console for details."))
+                                                .append(Component.newline())
+                                                .append(Component.text(ex.getMessage()))
+                                                .color(NamedTextColor.RED)
+                                );
+                            }
+                        });
+                CommandResult.showResult(sender, plugin, futureResult);
                 return Command.SINGLE_SUCCESS;
             } catch (CommandSyntaxException e) {
                 throw e;
