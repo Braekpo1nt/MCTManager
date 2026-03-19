@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
 public interface CommandResult {
@@ -45,7 +46,7 @@ public interface CommandResult {
         if (message != null) {
             sender.sendMessage(message);
         }
-        if (commandResult instanceof AsyncCommandResult asyncResult) {
+        if (commandResult instanceof AsynchronousCommandResult asyncResult) {
             asyncResult.executeAsync(sender);
         }
     }
@@ -131,18 +132,28 @@ public interface CommandResult {
         return new AsyncThenSyncCommandResult(plugin, immediateMessage, asyncSupplier, syncSupplier);
     }
     
+    static CommandResult async(@NotNull Main plugin, Component immediateMessage, CompletableFuture<CommandResult> firstAsync, Supplier<CommandResult> thenSync) {
+        return new FirstAsyncThenSyncCommandResult(plugin, immediateMessage, firstAsync, thenSync);
+    }
+    
+    static CommandResult async(@NotNull Main plugin, CompletableFuture<CommandResult> firstAsync, Supplier<CommandResult> thenSync) {
+        return new FirstAsyncThenSyncCommandResult(plugin, null, firstAsync, thenSync);
+    }
+    
     /**
      * Convenience method to report that a SQLException occurred when running a command.
      * Also logs the error to the console.
-     * @param attemptedAction the attempted action, complete the sentence "A database error occurred trying to..." (no
+     * @param tryingTo the attempted action, complete the sentence "A database error occurred trying to..." (no
      * trailing or leading spaces needed)
      * @param e the exception that occurred
      * @return a {@link CommandResult} detailing the database error that occurred and
      */
-    static @NotNull CommandResult sqlException(String attemptedAction, SQLException e) {
-        Main.logger().log(Level.SEVERE, String.format("A database error occurred trying to %s", attemptedAction), e);
+    static @NotNull CommandResult sqlException(String tryingTo, SQLException e) {
+        Main.logger().log(Level.SEVERE, String.format("A database error occurred trying to %s", tryingTo), e);
         return failure(Component.empty()
-                .append(Component.text("A database error occurred. See console for details."))
+                .append(Component.text("A database error occurred trying to "))
+                .append(Component.text(tryingTo))
+                .append(Component.text(". See console for details"))
                 .append(Component.newline())
                 .append(Component.text(e.getMessage()))
         );

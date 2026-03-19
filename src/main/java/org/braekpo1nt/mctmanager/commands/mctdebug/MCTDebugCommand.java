@@ -1,19 +1,15 @@
 package org.braekpo1nt.mctmanager.commands.mctdebug;
 
-import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.command.brigadier.MessageComponentSerializer;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.EnumArgumentType;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierCommand;
@@ -23,23 +19,14 @@ import org.braekpo1nt.mctmanager.database.service.ScoreService;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.Mode;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 
 /**
@@ -61,7 +48,7 @@ public class MCTDebugCommand implements BrigadierCommand, Listener {
         return Permissioned.literal("mctdebug")
                 .executes(BrigadierAdapters.wraps(this::executeDebug))
                 .then(Permissioned.literal("futureTest")
-                        .executes(this::executeFutureTest)
+                        .executes(BrigadierAdapters.wraps(this::executeFutureTest))
                 )
                 .then(Commands.literal("rebuild")
                         .then(Commands.argument("mode", new EnumArgumentType<>(Mode.class, Mode.values()))
@@ -77,24 +64,8 @@ public class MCTDebugCommand implements BrigadierCommand, Listener {
                 .build(plugin.getServer().getPluginManager());
     }
     
-    private final static DynamicCommandExceptionType ERROR_COMPLETABLE_FUTURE = new DynamicCommandExceptionType(message -> MessageComponentSerializer.message().serialize(Component.empty()
-            .append(Component.text("Error running CompletableFuture operation: "))
-            .append(Component.text(message.toString())
-                    .decorate(TextDecoration.ITALIC))
-            .append(Component.newline())
-            .append(Component.text("See console for details"))
-    ));
-    
-    private int executeFutureTest(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-        asyncOperation()
-                .thenAccept(asyncResult -> {
-                    plugin.getServer().getScheduler().runTask(plugin, () -> {
-                        CommandResult syncResult = syncOperation();
-                        CommandResult combined = asyncResult.and(syncResult);
-                        CommandResult.showResult(ctx.getSource().getSender(), combined);
-                    });
-                });
-        return Command.SINGLE_SUCCESS;
+    private @NotNull CommandResult executeFutureTest(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        return CommandResult.async(plugin, asyncOperation(), this::syncOperation);
     }
     
     private CompletableFuture<CommandResult> asyncOperation() {
@@ -102,7 +73,7 @@ public class MCTDebugCommand implements BrigadierCommand, Listener {
             try {
                 callDatabaseTask();
             } catch (SQLException e) {
-                return CommandResult.sqlException("calling db task", e);
+                return CommandResult.sqlException("call db task", e);
             }
             return CommandResult.success(Component.text("async op success"));
         });

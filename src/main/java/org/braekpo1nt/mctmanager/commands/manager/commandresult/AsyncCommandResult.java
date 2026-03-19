@@ -14,7 +14,7 @@ import java.util.logging.Level;
  * Allows you to send a result message back to the command executor
  * after an asynchronous operation
  */
-public class AsyncCommandResult implements CommandResult {
+public class AsyncCommandResult implements AsynchronousCommandResult {
     
     @FunctionalInterface
     public interface ResultSupplier {
@@ -66,6 +66,7 @@ public class AsyncCommandResult implements CommandResult {
      * given sender back on the main thread.
      * @param sender the sender to see the message resulting from the asynchronous operation {@link #asyncSupplier}
      */
+    @Override
     public void executeAsync(@NotNull CommandSender sender) {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             CommandResult result;

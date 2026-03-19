@@ -63,6 +63,8 @@ public class BrigadierAdapters {
             CommandSender sender = ctx.getSource().getSender();
             try {
                 CompletableFuture<CommandResult> futureResult = command.run(ctx)
+                        // below is to catch exceptions while the future is being run,
+                        // not while it is being built
                         .exceptionally(ex -> switch (ex) {
                             case CommandSyntaxException c -> CommandResult.failure(c.getMessage());
                             case SQLException s -> CommandResult.sqlException("executing command", s);
@@ -79,6 +81,8 @@ public class BrigadierAdapters {
                         });
                 CommandResult.showResult(sender, plugin, futureResult);
                 return Command.SINGLE_SUCCESS;
+                // below is to catch exceptions in command.run() before or while the future is being built,
+                // not for catching exceptions inside the future
             } catch (CommandSyntaxException e) {
                 throw e;
             } catch (Exception e) {
