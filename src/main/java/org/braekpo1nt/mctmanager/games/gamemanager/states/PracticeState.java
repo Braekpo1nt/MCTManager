@@ -82,11 +82,18 @@ public class PracticeState extends GameManagerState {
     }
     
     @Override
-    public void onLoadGameState() {
+    public @NotNull CommandResult loadGameState() {
+        try {
+            context.getGameStateService().rebuildPracticeMode();
+        } catch (SQLException e) {
+            return CommandResult.sqlException("rebuild practice mode", e);
+        }
+        CommandResult result = super.loadGameState();
         practiceManager.setConfig(config.getPractice());
         for (MCTParticipant participant : onlineParticipants.values()) {
             participant.getInventory().close();
         }
+        return result;
     }
     
     /**
@@ -116,7 +123,7 @@ public class PracticeState extends GameManagerState {
     }
     
     @Override
-    public CommandResult switchMode(@NotNull Mode mode) {
+    public CommandResult switchMode(@NotNull Mode mode, boolean load) {
         switch (mode) {
             case MAINTENANCE -> {
                 practiceManager.cleanup();

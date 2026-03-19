@@ -70,7 +70,7 @@ public class MaintenanceState extends GameManagerState {
     }
     
     @Override
-    public CommandResult switchMode(@NotNull Mode mode) {
+    public CommandResult switchMode(@NotNull Mode mode, boolean load) {
         switch (mode) {
             case MAINTENANCE -> {
                 return CommandResult.success(Component.text("Already in maintenance mode"));
@@ -93,6 +93,16 @@ public class MaintenanceState extends GameManagerState {
                         .append(Component.text(" is not a valid mode")));
             }
         }
+    }
+    
+    @Override
+    public @NotNull CommandResult loadGameState() {
+        try {
+            context.getGameStateService().rebuildMaintenanceMode();
+        } catch (SQLException e) {
+            return CommandResult.sqlException("rebuild maintenance mode", e);
+        }
+        return super.loadGameState();
     }
     
     // team/participants management start

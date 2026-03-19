@@ -61,7 +61,7 @@ public abstract class EventState extends GameManagerState {
     }
     
     @Override
-    public CommandResult switchMode(@NotNull Mode mode) {
+    public CommandResult switchMode(@NotNull Mode mode, boolean load) {
         switch (mode) {
             case MAINTENANCE -> {
                 context.setState(new MaintenanceState(context, contextReference));
@@ -81,6 +81,16 @@ public abstract class EventState extends GameManagerState {
                         .append(Component.text(" is not a valid mode")));
             }
         }
+    }
+    
+    @Override
+    public @NotNull CommandResult loadGameState() {
+        try {
+            context.getGameStateService().rebuildEventMode(eventData.getEventInfo().getEventId());
+        } catch (SQLException e) {
+            return CommandResult.sqlException("rebuild event mode", e);
+        }
+        return super.loadGameState();
     }
     
     @Override
@@ -106,7 +116,7 @@ public abstract class EventState extends GameManagerState {
         } else {
             unsetActiveEventId();
         }
-        return switchMode(Mode.MAINTENANCE);
+        return switchMode(Mode.MAINTENANCE, false);
     }
     
     private void unsetActiveEventId() {

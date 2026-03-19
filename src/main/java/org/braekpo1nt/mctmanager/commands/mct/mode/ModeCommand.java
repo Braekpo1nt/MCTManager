@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.commands.mct.mode;
 
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
@@ -24,12 +25,21 @@ public class ModeCommand implements BrigadierSubCommand {
         return Permissioned.literal("mode")
                 .then(Permissioned.argument("mode", new EnumArgumentType<>(Mode.class, Mode.values()))
                         .executes(BrigadierAdapters.wraps(this::executeMode))
+                        .then(Permissioned.argument("load", BoolArgumentType.bool())
+                                .executes(BrigadierAdapters.wraps(this::executeModeLoad))
+                        )
                 )
                 ;
     }
     
     private @NotNull CommandResult executeMode(@NotNull CommandContext<CommandSourceStack> ctx) {
         Mode mode = ctx.getArgument("mode", Mode.class);
-        return gameManager.switchMode(mode);
+        return gameManager.switchMode(mode, false);
+    }
+    
+    private @NotNull CommandResult executeModeLoad(@NotNull CommandContext<CommandSourceStack> ctx) {
+        Mode mode = ctx.getArgument("mode", Mode.class);
+        boolean load = ctx.getArgument("load", Boolean.class);
+        return gameManager.switchMode(mode, load);
     }
 }

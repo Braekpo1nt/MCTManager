@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.config.Config;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
@@ -61,6 +62,7 @@ import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.hub.config.HubConfig;
+import org.braekpo1nt.mctmanager.hub.config.HubConfigController;
 import org.braekpo1nt.mctmanager.hub.leaderboard.LeaderboardManager;
 import org.braekpo1nt.mctmanager.participant.ColorAttributes;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
@@ -104,6 +106,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -179,7 +182,7 @@ public abstract class GameManagerState {
      */
     public abstract void exit();
     
-    public abstract CommandResult switchMode(@NotNull Mode mode);
+    public abstract CommandResult switchMode(@NotNull Mode mode, boolean load);
     
     public abstract @NotNull Mode getMode();
     
@@ -193,8 +196,96 @@ public abstract class GameManagerState {
         this.allParticipants.clear();
     }
     
-    public void onLoadGameState() {
-        // do nothing
+    public @NotNull CommandResult loadGameState() {
+        if (!activeGames.isEmpty()) {
+            return CommandResult.failure("Can't load the game state while a game is running");
+        }
+        if (context.getActiveEditor() != null) {
+            return CommandResult.failure("Can't load the game state while an editor is running");
+        }
+        for (Player admin : new ArrayList<>(onlineAdmins)) {
+            onAdminQuit(admin);
+        }
+        for (MCTParticipant participant : new ArrayList<>(onlineParticipants.values())) {
+            onParticipantQuit(participant);
+        }
+        try {
+            gameStateStorageUtil.loadGameState();
+        } catch (ConfigException | SQLException e) {
+            context.reportGameStateException("loading game state", e);
+            return CommandResult.failure("Unable to load game state, see console for details.");
+        }
+        List<CommandResult> results = new ArrayList<>();
+        try {
+            this.config = new HubConfigController(plugin.getDataFolder()).getConfig();
+            this.leaderboardManagers.forEach(LeaderboardManager::tearDown);
+            this.leaderboardManagers.clear();
+            this.leaderboardManagers.addAll(context.createLeaderboardManagers());
+            setConfig(this.config);
+            results.add(CommandResult.success(Component.text("Loaded hub config")));
+        } catch (ConfigException e) {
+            results.add(CommandResult.failure(Component.text("Could not load hub config. See console for details.")));
+            Main.logger().log(Level.SEVERE, String.format("Could not load new hub config, reverting to last working one. See console for details. %s", e.getMessage()), e);
+        }
+        gameStateStorageUtil.setupScoreboard(mctScoreboard);
+        teams.clear();
+        allParticipants.clear();
+        onlineParticipants.clear();
+        onlineAdmins.clear();
+        for (String teamId : gameStateStorageUtil.getTeamIds()) {
+            String teamDisplayName = gameStateStorageUtil.getTeamDisplayName(teamId);
+            NamedTextColor teamColor = gameStateStorageUtil.getTeamColor(teamId);
+            ColorAttributes colorAttributes = gameStateStorageUtil.getTeamColorAttributes(teamId);
+            List<UUID> members = gameStateStorageUtil.getParticipantUUIDsOnTeam(teamId);
+            int score = gameStateStorageUtil.getTeamScore(teamId);
+            MCTTeam team = new MCTTeam(
+                    teamId,
+                    teamDisplayName,
+                    teamColor,
+                    colorAttributes,
+                    members,
+                    score);
+            teams.put(teamId, team);
+        }
+        for (UUID uuid : gameStateStorageUtil.getPlayerUniqueIds()) {
+            OfflineParticipant offlineParticipant = gameStateStorageUtil.getOfflineParticipant(uuid);
+            if (offlineParticipant != null) {
+                allParticipants.put(offlineParticipant.getUniqueId(), offlineParticipant);
+            }
+        }
+        Map<UUID, Player> onlinePlayers = plugin.getServer().getOnlinePlayers().stream()
+                .collect(Collectors.toMap(Player::getUniqueId, Function.identity()));
+        // TabList start
+        tabList.cleanup();
+        for (MCTTeam team : teams.values()) {
+            int teamScore = gameStateStorageUtil.getTeamScore(team.getTeamId());
+            tabList.addTeam(team.getTeamId(), team.getDisplayName(), team.getColor());
+            tabList.setScore(team.getTeamId(), teamScore);
+        }
+        for (OfflineParticipant participant : allParticipants.values()) {
+            boolean grey = !onlinePlayers.containsKey(participant.getUniqueId());
+            tabList.joinParticipant(participant.getParticipantID(), participant.getName(), participant.getTeamId(), grey);
+        }
+        // TabList stop
+        
+        // Log on all online admins and participants
+        for (Player player : onlinePlayers.values()) {
+            if (context.isAdmin(player.getUniqueId())) {
+                onAdminJoin(player);
+            }
+            OfflineParticipant offlineParticipant = allParticipants.get(player.getUniqueId());
+            if (offlineParticipant != null) {
+                MCTParticipant participant = new MCTParticipant(offlineParticipant, player);
+                onParticipantJoin(participant);
+            }
+        }
+        
+        // sidebar start
+        updateSidebarTeamScores();
+        updateSidebarPersonalScores(onlineParticipants.values());
+        // sidebar stop
+        results.add(CommandResult.success(Component.text("Loaded gameState.json")));
+        return CompositeCommandResult.all(results);
     }
     
     // leave/join start
@@ -1161,6 +1252,7 @@ public abstract class GameManagerState {
     public boolean eventIsActive() {
         return false;
     }
+    
     
     public CommandResult readyUpParticipant(@NotNull MCTParticipant participant) {
         return CommandResult.failure("Can't ready up at this time");

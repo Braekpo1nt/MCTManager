@@ -211,8 +211,8 @@ public class GameManager implements Listener {
         this.state.enter();
     }
     
-    public CommandResult switchMode(@NotNull Mode mode) {
-        return state.switchMode(mode);
+    public CommandResult switchMode(@NotNull Mode mode, boolean load) {
+        return state.switchMode(mode, load);
     }
     
     public @NotNull Mode getMode() {
@@ -518,96 +518,7 @@ public class GameManager implements Listener {
     }
     
     public @NotNull CommandResult loadGameState() {
-        if (!activeGames.isEmpty()) {
-            return CommandResult.failure("Can't load the game state while a game is running");
-        }
-        if (activeEditor != null) {
-            return CommandResult.failure("Can't load the game state while an editor is running");
-        }
-        for (Player admin : new ArrayList<>(onlineAdmins)) {
-            state.onAdminQuit(admin);
-        }
-        for (MCTParticipant participant : new ArrayList<>(onlineParticipants.values())) {
-            state.onParticipantQuit(participant);
-        }
-        try {
-            gameStateStorageUtil.loadGameState();
-        } catch (ConfigException | SQLException e) {
-            reportGameStateException("loading game state", e);
-            return CommandResult.failure("Unable to load game state, see console for details.");
-        }
-        List<CommandResult> results = new ArrayList<>();
-        try {
-            this.config = new HubConfigController(plugin.getDataFolder()).getConfig();
-            this.leaderboardManagers.forEach(LeaderboardManager::tearDown);
-            this.leaderboardManagers.clear();
-            this.leaderboardManagers.addAll(createLeaderboardManagers());
-            state.setConfig(this.config);
-            results.add(CommandResult.success(Component.text("Loaded hub config")));
-        } catch (ConfigException e) {
-            results.add(CommandResult.failure(Component.text("Could not load hub config. See console for details.")));
-            Main.logger().log(Level.SEVERE, String.format("Could not load new hub config, reverting to last working one. See console for details. %s", e.getMessage()), e);
-        }
-        gameStateStorageUtil.setupScoreboard(mctScoreboard);
-        teams.clear();
-        allParticipants.clear();
-        onlineParticipants.clear();
-        onlineAdmins.clear();
-        for (String teamId : gameStateStorageUtil.getTeamIds()) {
-            String teamDisplayName = gameStateStorageUtil.getTeamDisplayName(teamId);
-            NamedTextColor teamColor = gameStateStorageUtil.getTeamColor(teamId);
-            ColorAttributes colorAttributes = gameStateStorageUtil.getTeamColorAttributes(teamId);
-            List<UUID> members = gameStateStorageUtil.getParticipantUUIDsOnTeam(teamId);
-            int score = gameStateStorageUtil.getTeamScore(teamId);
-            MCTTeam team = new MCTTeam(
-                    teamId,
-                    teamDisplayName,
-                    teamColor,
-                    colorAttributes,
-                    members,
-                    score);
-            teams.put(teamId, team);
-        }
-        for (UUID uuid : gameStateStorageUtil.getPlayerUniqueIds()) {
-            OfflineParticipant offlineParticipant = gameStateStorageUtil.getOfflineParticipant(uuid);
-            if (offlineParticipant != null) {
-                allParticipants.put(offlineParticipant.getUniqueId(), offlineParticipant);
-            }
-        }
-        Map<UUID, Player> onlinePlayers = plugin.getServer().getOnlinePlayers().stream()
-                .collect(Collectors.toMap(Player::getUniqueId, Function.identity()));
-        // TabList start
-        tabList.cleanup();
-        for (MCTTeam team : teams.values()) {
-            int teamScore = gameStateStorageUtil.getTeamScore(team.getTeamId());
-            tabList.addTeam(team.getTeamId(), team.getDisplayName(), team.getColor());
-            tabList.setScore(team.getTeamId(), teamScore);
-        }
-        for (OfflineParticipant participant : allParticipants.values()) {
-            boolean grey = !onlinePlayers.containsKey(participant.getUniqueId());
-            tabList.joinParticipant(participant.getParticipantID(), participant.getName(), participant.getTeamId(), grey);
-        }
-        // TabList stop
-        
-        // Log on all online admins and participants
-        for (Player player : onlinePlayers.values()) {
-            if (isAdmin(player.getUniqueId())) {
-                state.onAdminJoin(player);
-            }
-            OfflineParticipant offlineParticipant = allParticipants.get(player.getUniqueId());
-            if (offlineParticipant != null) {
-                MCTParticipant participant = new MCTParticipant(offlineParticipant, player);
-                state.onParticipantJoin(participant);
-            }
-        }
-        
-        // sidebar start
-        state.updateSidebarTeamScores();
-        state.updateSidebarPersonalScores(onlineParticipants.values());
-        // sidebar stop
-        results.add(CommandResult.success(Component.text("Loaded gameState.json")));
-        state.onLoadGameState();
-        return CompositeCommandResult.all(results);
+        return state.onLoadGameState();
     }
     
     public boolean eventIsActive() {
