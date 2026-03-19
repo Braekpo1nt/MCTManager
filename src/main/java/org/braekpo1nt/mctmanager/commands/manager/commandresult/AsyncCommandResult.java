@@ -8,6 +8,7 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 /**
@@ -68,7 +69,7 @@ public class AsyncCommandResult implements AsynchronousCommandResult {
      */
     @Override
     public void executeAsync(@NotNull CommandSender sender) {
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+        CompletableFuture.runAsync(() -> {
             CommandResult result;
             try {
                 result = asyncSupplier.run();
