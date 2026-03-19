@@ -155,7 +155,7 @@ public interface CommandResult {
      * @return the result with the given immediate message, async, and follow-up sync operation
      */
     static CommandResult async(@NotNull Main plugin, Component immediateMessage, CompletableFuture<CommandResult> firstAsync, Supplier<CommandResult> thenSync) {
-        return new FirstAsyncThenSyncCommandResult(plugin, immediateMessage, firstAsync, thenSync);
+        return new AsyncThenSyncCommandResult(plugin, immediateMessage, firstAsync, thenSync);
     }
     
     /**
@@ -169,7 +169,7 @@ public interface CommandResult {
      * @return the result with the given immediate message, async, and follow-up sync operation
      */
     static CommandResult async(@NotNull Main plugin, CompletableFuture<CommandResult> firstAsync, Supplier<CommandResult> thenSync) {
-        return new FirstAsyncThenSyncCommandResult(plugin, null, firstAsync, thenSync);
+        return new AsyncThenSyncCommandResult(plugin, null, firstAsync, thenSync);
     }
     
     /**

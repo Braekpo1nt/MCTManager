@@ -1,92 +1,52 @@
 package org.braekpo1nt.mctmanager.commands.manager.commandresult;
 
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.logging.Level;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 /**
- * @deprecated in favor of {@link FirstAsyncThenSyncCommandResult}
+ * Used when an async operation has to complete sequentially before a Bukkit API sync operation,
+ * and the results of both operations must be reported to the sender.
+ * No immediate message will be sent to the sender.
  */
-@Deprecated
-public class AsyncThenSyncCommandResult extends AsyncCommandResult {
+public class AsyncThenSyncCommandResult implements AsynchronousCommandResult {
+    
+    private final @NotNull Main plugin;
+    private final @Nullable Component immediateMessage;
+    private final @NotNull CompletableFuture<CommandResult> futureResult;
+    private final @NotNull Supplier<CommandResult> syncResult;
     
     /**
-     * the operation to be executed on the main bukkit thread after the asyncSupplier has finished,
-     * and the result of which will be shown to the command executor upon completion
+     * @param plugin the plugin
+     * @param firstAsync an async operation to run first
+     * @param thenSync a Bukkit-API-safe sync operation to run after the async is complete
      */
-    private final @NotNull AsyncCommandResult.ResultSupplier syncSupplier;
-    
-    /**
-     * @param plugin The plugin to use for the asynchronous operation
-     * @param immediateMessage the message to send immediately, before the asynchronous operation is complete. Null if
-     * no such message needs to be sent to the command executor.
-     * @param asyncSupplier the operation to be executed on an asynchronous thread, and the result of which will be
-     * shown to the command executor upon completion
-     * @param syncSupplier the operation to be executed on the main bukkit thread after the asyncSupplier has finished,
-     * and the result of which will be shown to the command executor upon completion
-     */
-    public AsyncThenSyncCommandResult(
-            @NotNull Main plugin,
-            @Nullable Component immediateMessage,
-            @NotNull AsyncCommandResult.ResultSupplier asyncSupplier,
-            @NotNull AsyncCommandResult.ResultSupplier syncSupplier
-    ) {
-        super(plugin, immediateMessage, asyncSupplier);
-        this.syncSupplier = syncSupplier;
+    public AsyncThenSyncCommandResult(@NotNull Main plugin, @Nullable Component immediateMessage, @NotNull CompletableFuture<CommandResult> firstAsync, @NotNull Supplier<CommandResult> thenSync) {
+        this.plugin = plugin;
+        this.immediateMessage = immediateMessage;
+        this.futureResult = firstAsync;
+        this.syncResult = thenSync;
     }
     
-    /**
-     * Execute the {@link #asyncSupplier} in an asynchronous thread, and show the resulting {@link CommandResult} to the
-     * given sender back on the main thread.
-     * @param sender the sender to see the message resulting from the asynchronous operation {@link #asyncSupplier}
-     */
+    @Override
+    public @Nullable Component getMessage() {
+        return immediateMessage;
+    }
+    
     @Override
     public void executeAsync(@NotNull CommandSender sender) {
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            CommandResult asyncResult;
-            try {
-                asyncResult = asyncSupplier.run();
-            } catch (CommandSyntaxException e) {
-                asyncResult = CommandResult.failure(Component.empty()
-                        .append(Component.text(e.getMessage()))
-                );
-            } catch (Exception e) {
-                Main.logger().log(Level.SEVERE, "An error occurred executing an asynchronous command", e);
-                asyncResult = CommandResult.failure(Component.empty()
-                        .append(Component.text("An error occurred executing an asynchronous command. See console for details:"))
-                        .append(Component.newline())
-                        .append(Component.text(e.getMessage()))
-                        .color(NamedTextColor.RED)
-                );
-            }
-            // final or effectively final for runTask
-            final CommandResult finalAsyncResult = asyncResult;
-            plugin.getServer().getScheduler().runTask(plugin, () -> {
-                CommandResult.showResult(sender, finalAsyncResult);
-                CommandResult syncResult;
-                try {
-                    syncResult = syncSupplier.run();
-                } catch (CommandSyntaxException e) {
-                    syncResult = CommandResult.failure(Component.empty()
-                            .append(Component.text(e.getMessage()))
-                    );
-                } catch (Exception e) {
-                    Main.logger().log(Level.SEVERE, "An error occurred executing an asynchronous command", e);
-                    syncResult = CommandResult.failure(Component.empty()
-                            .append(Component.text("An error occurred executing an asynchronous command. See console for details:"))
-                            .append(Component.newline())
-                            .append(Component.text(e.getMessage()))
-                            .color(NamedTextColor.RED)
-                    );
-                }
-                CommandResult.showResult(sender, syncResult);
-            });
-        });
+        futureResult
+                .thenAccept(asyncResult -> {
+                    plugin.getServer().getScheduler().runTask(plugin, () -> {
+                        CommandResult.showResult(sender, asyncResult);
+                        CommandResult.showResult(sender, syncResult.get());
+                    });
+                })
+        ;
     }
 }
