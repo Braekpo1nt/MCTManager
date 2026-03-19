@@ -85,31 +85,32 @@ public class MCTDebugCommand implements BrigadierCommand, Listener {
             .append(Component.text("See console for details"))
     ));
     
-    
     private int executeFutureTest(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-        CompletableFuture<String> completableFuture = CompletableFuture
-                .supplyAsync(() -> {
-                    try {
-                        callDatabaseTask();
-                    } catch (SQLException e) {
-                        ctx.getSource().getSender().sendMessage("Failed database");
-                        return "Database failed";
-                    }
-                    ctx.getSource().getSender().sendMessage("Succeeded database");
-                    return "Database done, ";
-                })
-                .thenApply(supplyResult -> {
-                    callTaskThatUsesBukkitAPIButMustHappenAfterDatabaseTaskCompletes();
-                    return supplyResult + " bukkit api task done, ";
-                })
-                .thenApply(thenApplyResult -> thenApplyResult + "all are done");
-        try {
-            ctx.getSource().getSender().sendMessage(Component.text(completableFuture.get()));
-        } catch (InterruptedException | ExecutionException e) {
-            Main.logger().log(Level.SEVERE, "Error completing future in test command", e);
-            throw ERROR_COMPLETABLE_FUTURE.create(e.getMessage());
-        }
+        asyncOperation()
+                .thenAccept(asyncResult -> {
+                    plugin.getServer().getScheduler().runTask(plugin, () -> {
+                        CommandResult syncResult = syncOperation();
+                        CommandResult combined = asyncResult.and(syncResult);
+                        CommandResult.showResult(ctx.getSource().getSender(), combined);
+                    });
+                });
         return Command.SINGLE_SUCCESS;
+    }
+    
+    private CompletableFuture<CommandResult> asyncOperation() {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                callDatabaseTask();
+            } catch (SQLException e) {
+                return CommandResult.sqlException("calling db task", e);
+            }
+            return CommandResult.success(Component.text("async op success"));
+        });
+    }
+    
+    private CommandResult syncOperation() {
+        callTaskThatUsesBukkitAPIButMustHappenAfterDatabaseTaskCompletes();
+        return CommandResult.success(Component.text("sync op success"));
     }
     
     private void callDatabaseTask() throws SQLException {
