@@ -205,6 +205,7 @@ public abstract class GameManagerState {
         if (context.getActiveEditor() != null) {
             return CommandResult.failure("Can't load the game state while an editor is running");
         }
+        // a given participant or admin may not be re-added when loading the new state
         for (Player admin : new ArrayList<>(onlineAdmins)) {
             onAdminQuit(admin);
         }
@@ -215,14 +216,22 @@ public abstract class GameManagerState {
                 plugin,
                 Component.text("Loading game state..."),
                 () -> {
+                    List<CommandResult> results = new ArrayList<>();
+                    try {
+                        rebuildFromScores();
+                    } catch (SQLException e) {
+                        context.reportGameStateException("rebuilding from scores", e);
+                        results.add(CommandResult.sqlException("rebuilding from scores", e));
+                    }
                     try {
                         rebuildFromScores();
                         gameStateStorageUtil.loadGameState();
-                        return CommandResult.success(Component.text("Rebuild and load success"));
+                        results.add(CommandResult.success(Component.text("Loaded from database")));
                     } catch (SQLException e) {
                         context.reportGameStateException("loading game state", e);
-                        return CommandResult.failure("Unable to load game state, see console for details.");
+                        results.add(CommandResult.sqlException("loading game state", e));
                     }
+                    return new CompositeCommandResult(results);
                 },
                 this::loadGameStateSync
         );
@@ -298,7 +307,7 @@ public abstract class GameManagerState {
         updateSidebarTeamScores();
         updateSidebarPersonalScores(onlineParticipants.values());
         // sidebar stop
-        results.add(CommandResult.success(Component.text("Loaded gameState.json")));
+        results.add(CommandResult.success(Component.text("Loaded gameState")));
         postLoadGameState();
         return CompositeCommandResult.all(results);
     }

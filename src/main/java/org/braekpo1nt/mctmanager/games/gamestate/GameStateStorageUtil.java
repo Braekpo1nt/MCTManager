@@ -62,7 +62,7 @@ public class GameStateStorageUtil {
      */
     public void loadGameState() throws ConfigIOException, ConfigInvalidException, SQLException {
         this.gameState = constructGameStateFromDatabase();
-        LOGGER.info("Loaded gameState.json");
+        LOGGER.info("Constructed game state from database");
     }
     
     private @NotNull GameState constructGameStateFromDatabase() throws SQLException {

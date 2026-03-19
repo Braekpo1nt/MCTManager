@@ -172,14 +172,14 @@ public class Main extends JavaPlugin {
             config = new HubConfigController(getDataFolder()).getDefaultConfig();
         }
         gameManager = initialGameManager(mctScoreboard, config, database);
-        CommandResult result = gameManager.loadGameState();
-        if (result instanceof FailureCommandResult) {
-            getServer().getConsoleSender().sendMessage(result.getMessageOrEmpty());
-            Main.logger().severe("[MCTManager] Could not load game state from memory. Disabling plugin.");
+        try {
+            CommandResult result = gameManager.loadGameState();
+            CommandResult.showResult(getServer().getConsoleSender(), result);
+        } catch (Exception e) {
+            Main.logger().log(Level.SEVERE, "[MCTManager] Could not load game state from memory. Disabling plugin.", e);
             this.getServer().getPluginManager().disablePlugin(this);
             return;
         }
-        CommandResult.showResult(getServer().getConsoleSender(), result);
         
         // Listeners
         BlockEffectsListener blockEffectsListener = new BlockEffectsListener(this);
