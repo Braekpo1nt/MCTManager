@@ -116,7 +116,7 @@ public interface CommandResult {
      * the command executor upon completion
      */
     static CommandResult async(@NotNull Main plugin, String immediateMessage, AsyncCommandResult.ResultSupplier supplier) {
-        return new AsyncCommandResult(plugin, Component.text(immediateMessage), supplier);
+        return async(plugin, Component.text(immediateMessage), supplier);
     }
     
     /**
@@ -130,14 +130,44 @@ public interface CommandResult {
         return new AsyncCommandResult(plugin, immediateMessage, supplier);
     }
     
-    static CommandResult async(@NotNull Main plugin, Component immediateMessage, AsyncCommandResult.ResultSupplier asyncSupplier, AsyncCommandResult.ResultSupplier syncSupplier) {
-        return new AsyncThenSyncCommandResult(plugin, immediateMessage, asyncSupplier, syncSupplier);
+    /**
+     * Used when an async operation has to complete sequentially before a Bukkit API sync operation,
+     * and the results of both operations must be reported to the sender.
+     * @param plugin the plugin
+     * @param immediateMessage the message to be sent immediately, or null if no message need be sent
+     * @param firstAsync a CompletableFuture to be performed first, asynchronously, before thenSync
+     * @param thenSync a thread-safe supplier which allows Bukkit API calls, and provides a
+     * {@link CommandResult when complete}
+     * @return the result with the given immediate message, async, and follow-up sync operation
+     */
+    static CommandResult async(@NotNull Main plugin, String immediateMessage, CompletableFuture<CommandResult> firstAsync, Supplier<CommandResult> thenSync) {
+        return async(plugin, Component.text(immediateMessage), firstAsync, thenSync);
     }
     
+    /**
+     * Used when an async operation has to complete sequentially before a Bukkit API sync operation,
+     * and the results of both operations must be reported to the sender.
+     * @param plugin the plugin
+     * @param immediateMessage the message to be sent immediately, or null if no message need be sent
+     * @param firstAsync a CompletableFuture to be performed first, asynchronously, before thenSync
+     * @param thenSync a thread-safe supplier which allows Bukkit API calls, and provides a
+     * {@link CommandResult when complete}
+     * @return the result with the given immediate message, async, and follow-up sync operation
+     */
     static CommandResult async(@NotNull Main plugin, Component immediateMessage, CompletableFuture<CommandResult> firstAsync, Supplier<CommandResult> thenSync) {
         return new FirstAsyncThenSyncCommandResult(plugin, immediateMessage, firstAsync, thenSync);
     }
     
+    /**
+     * Used when an async operation has to complete sequentially before a Bukkit API sync operation,
+     * and the results of both operations must be reported to the sender.
+     * No immediate message will be sent to the sender.
+     * @param plugin the plugin
+     * @param firstAsync a CompletableFuture to be performed first, asynchronously, before thenSync
+     * @param thenSync a thread-safe supplier which allows Bukkit API calls, and provides a
+     * {@link CommandResult when complete}
+     * @return the result with the given immediate message, async, and follow-up sync operation
+     */
     static CommandResult async(@NotNull Main plugin, CompletableFuture<CommandResult> firstAsync, Supplier<CommandResult> thenSync) {
         return new FirstAsyncThenSyncCommandResult(plugin, null, firstAsync, thenSync);
     }
