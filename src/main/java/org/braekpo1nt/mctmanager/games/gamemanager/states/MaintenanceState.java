@@ -96,13 +96,12 @@ public class MaintenanceState extends GameManagerState {
     }
     
     @Override
-    public @NotNull CommandResult loadGameState() {
+    protected void rebuildFromScores() throws SQLException {
         try {
             context.getGameStateService().rebuildMaintenanceMode();
         } catch (SQLException e) {
-            return CommandResult.sqlException("rebuild maintenance mode", e);
+            throw new SQLException("Unable to rebuild maintenance mode", e);
         }
-        return super.loadGameState();
     }
     
     // team/participants management start

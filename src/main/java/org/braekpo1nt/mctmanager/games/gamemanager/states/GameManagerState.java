@@ -196,6 +196,8 @@ public abstract class GameManagerState {
         this.allParticipants.clear();
     }
     
+    protected abstract void rebuildFromScores() throws SQLException;
+    
     public @NotNull CommandResult loadGameState() {
         if (!activeGames.isEmpty()) {
             return CommandResult.failure("Can't load the game state while a game is running");
@@ -285,7 +287,12 @@ public abstract class GameManagerState {
         updateSidebarPersonalScores(onlineParticipants.values());
         // sidebar stop
         results.add(CommandResult.success(Component.text("Loaded gameState.json")));
+        postLoadGameState();
         return CompositeCommandResult.all(results);
+    }
+    
+    protected void postLoadGameState() {
+        // do nothing
     }
     
     // leave/join start

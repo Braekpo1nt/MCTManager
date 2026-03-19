@@ -82,18 +82,20 @@ public class PracticeState extends GameManagerState {
     }
     
     @Override
-    public @NotNull CommandResult loadGameState() {
+    protected void rebuildFromScores() throws SQLException {
         try {
             context.getGameStateService().rebuildPracticeMode();
         } catch (SQLException e) {
-            return CommandResult.sqlException("rebuild practice mode", e);
+            throw new SQLException("Unable to rebuild practice mode", e);
         }
-        CommandResult result = super.loadGameState();
+    }
+    
+    @Override
+    public void postLoadGameState() {
         practiceManager.setConfig(config.getPractice());
         for (MCTParticipant participant : onlineParticipants.values()) {
             participant.getInventory().close();
         }
-        return result;
     }
     
     /**
