@@ -79,7 +79,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -199,14 +198,12 @@ public abstract class GameManagerState {
     
     protected abstract void rebuildFromScores() throws SQLException;
     
-    public void loadGameState(CommandSender sender) {
+    public @NotNull CommandResult loadGameState() {
         if (!activeGames.isEmpty()) {
-            CommandResult.showResult(sender, CommandResult.failure("Can't load the game state while a game is running"));
-            return;
+            return CommandResult.failure("Can't load the game state while a game is running");
         }
         if (context.getActiveEditor() != null) {
-            CommandResult.showResult(sender, CommandResult.failure("Can't load the game state while an editor is running"));
-            return;
+            return CommandResult.failure("Can't load the game state while an editor is running");
         }
         for (Player admin : new ArrayList<>(onlineAdmins)) {
             onAdminQuit(admin);
@@ -214,22 +211,24 @@ public abstract class GameManagerState {
         for (MCTParticipant participant : new ArrayList<>(onlineParticipants.values())) {
             onParticipantQuit(participant);
         }
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                rebuildFromScores();
-                gameStateStorageUtil.loadGameState();
-            } catch (SQLException e) {
-                context.reportGameStateException("loading game state", e);
-                CommandResult.showResult(sender, CommandResult.failure("Unable to load game state, see console for details."));
-                return;
-            }
-            plugin.getServer().getScheduler().runTask(plugin, () -> {
-                loadGameStateSync(sender);
-            });
-        });
+        return CommandResult.async(
+                plugin,
+                Component.text("Loading game state..."),
+                () -> {
+                    try {
+                        rebuildFromScores();
+                        gameStateStorageUtil.loadGameState();
+                        return CommandResult.success(Component.text("Rebuild and load success"));
+                    } catch (SQLException e) {
+                        context.reportGameStateException("loading game state", e);
+                        return CommandResult.failure("Unable to load game state, see console for details.");
+                    }
+                },
+                this::loadGameStateSync
+        );
     }
     
-    protected void loadGameStateSync(CommandSender sender) {
+    protected @NotNull CommandResult loadGameStateSync() {
         List<CommandResult> results = new ArrayList<>();
         try {
             this.config = new HubConfigController(plugin.getDataFolder()).getConfig();
@@ -301,7 +300,7 @@ public abstract class GameManagerState {
         // sidebar stop
         results.add(CommandResult.success(Component.text("Loaded gameState.json")));
         postLoadGameState();
-        CommandResult.showResult(sender, CompositeCommandResult.all(results));
+        return CompositeCommandResult.all(results);
     }
     
     protected void postLoadGameState() {

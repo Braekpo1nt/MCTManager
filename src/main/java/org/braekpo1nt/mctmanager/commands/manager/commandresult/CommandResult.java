@@ -117,6 +117,10 @@ public interface CommandResult {
         return new AsyncCommandResult(plugin, immediateMessage, supplier);
     }
     
+    static CommandResult async(@NotNull Main plugin, Component immediateMessage, AsyncCommandResult.ResultSupplier asyncSupplier, AsyncCommandResult.ResultSupplier syncSupplier) {
+        return new AsyncThenSyncCommandResult(plugin, immediateMessage, asyncSupplier, syncSupplier);
+    }
+    
     /**
      * Convenience method to report that a SQLException occurred when running a command.
      * Also logs the error to the console.

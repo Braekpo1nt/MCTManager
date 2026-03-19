@@ -24,17 +24,17 @@ public class AsyncCommandResult implements CommandResult {
     /**
      * The plugin to use for the asynchronous operation
      */
-    private final Main plugin;
+    protected final Main plugin;
     /**
      * the message to send immediately, before the asynchronous operation is complete.
      * Null if no such message needs to be sent to the command executor.
      */
-    private final @Nullable Component immediateMessage;
+    protected final @Nullable Component immediateMessage;
     /**
      * the operation to be executed on an asynchronous thread,
      * and the result of which will be shown to
      */
-    private final @NotNull AsyncCommandResult.ResultSupplier supplier;
+    protected final @NotNull AsyncCommandResult.ResultSupplier asyncSupplier;
     
     /**
      * @param plugin The plugin to use for the asynchronous operation
@@ -50,7 +50,7 @@ public class AsyncCommandResult implements CommandResult {
     ) {
         this.plugin = plugin;
         this.immediateMessage = immediateMessage;
-        this.supplier = supplier;
+        this.asyncSupplier = supplier;
     }
     
     /**
@@ -62,15 +62,15 @@ public class AsyncCommandResult implements CommandResult {
     }
     
     /**
-     * Execute the {@link #supplier} in an asynchronous thread, and show the resulting {@link CommandResult} to the
+     * Execute the {@link #asyncSupplier} in an asynchronous thread, and show the resulting {@link CommandResult} to the
      * given sender back on the main thread.
-     * @param sender the sender to see the message resulting from the asynchronous operation {@link #supplier}
+     * @param sender the sender to see the message resulting from the asynchronous operation {@link #asyncSupplier}
      */
     public void executeAsync(@NotNull CommandSender sender) {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             CommandResult result;
             try {
-                result = supplier.run();
+                result = asyncSupplier.run();
             } catch (CommandSyntaxException e) {
                 result = CommandResult.failure(Component.empty()
                         .append(Component.text(e.getMessage()))

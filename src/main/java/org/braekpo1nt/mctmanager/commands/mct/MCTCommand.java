@@ -54,10 +54,7 @@ public class MCTCommand implements BrigadierCommand {
                 .then(new TabListCommand(gameManager).create())
                 .then(new TimerCommand(gameManager).create())
                 .then(Permissioned.literal("load")
-                        .executes(BrigadierAdapters.wraps(ctx -> {
-                            gameManager.loadGameState(ctx.getSource().getSender());
-                            return CommandResult.success(Component.text("Loading the game state..."));
-                        }))
+                        .executes(BrigadierAdapters.wraps(ctx -> gameManager.loadGameState()))
                 )
                 .then(new StatsCommand(gameManager.getGameStateService()).create())
                 .permissionRoot("mctmanager")

@@ -518,8 +518,8 @@ public class GameManager implements Listener {
         return state.createSidebar();
     }
     
-    public void loadGameState(CommandSender sender) {
-        state.loadGameState(sender);
+    public @NotNull CommandResult loadGameState() {
+        return state.loadGameState();
     }
     
     public boolean eventIsActive() {
