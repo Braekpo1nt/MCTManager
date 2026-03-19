@@ -1,12 +1,17 @@
 package org.braekpo1nt.mctmanager.commands.mctdebug;
 
+import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
+import io.papermc.paper.command.brigadier.MessageComponentSerializer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.EnumArgumentType;
@@ -17,8 +22,8 @@ import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.database.service.ScoreService;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.Mode;
+import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
@@ -33,6 +38,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 
 /**
@@ -53,6 +60,9 @@ public class MCTDebugCommand implements BrigadierCommand, Listener {
     public LiteralCommandNode<CommandSourceStack> build() {
         return Permissioned.literal("mctdebug")
                 .executes(BrigadierAdapters.wraps(this::executeDebug))
+                .then(Permissioned.literal("futureTest")
+                        .executes(this::executeFutureTest)
+                )
                 .then(Commands.literal("rebuild")
                         .then(Commands.argument("mode", new EnumArgumentType<>(Mode.class, Mode.values()))
                                 .executes(BrigadierAdapters.wraps(this::executeRebuild))
@@ -65,6 +75,56 @@ public class MCTDebugCommand implements BrigadierCommand, Listener {
                 )
                 .permissionRoot("mctmanager")
                 .build(plugin.getServer().getPluginManager());
+    }
+    
+    private final static DynamicCommandExceptionType ERROR_COMPLETABLE_FUTURE = new DynamicCommandExceptionType(message -> MessageComponentSerializer.message().serialize(Component.empty()
+            .append(Component.text("Error running CompletableFuture operation: "))
+            .append(Component.text(message.toString())
+                    .decorate(TextDecoration.ITALIC))
+            .append(Component.newline())
+            .append(Component.text("See console for details"))
+    ));
+    
+    
+    private int executeFutureTest(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        CompletableFuture<String> completableFuture = CompletableFuture
+                .supplyAsync(() -> {
+                    try {
+                        callDatabaseTask();
+                    } catch (SQLException e) {
+                        ctx.getSource().getSender().sendMessage("Failed database");
+                        return "Database failed";
+                    }
+                    ctx.getSource().getSender().sendMessage("Succeeded database");
+                    return "Database done, ";
+                })
+                .thenApply(supplyResult -> {
+                    callTaskThatUsesBukkitAPIButMustHappenAfterDatabaseTaskCompletes();
+                    return supplyResult + " bukkit api task done, ";
+                })
+                .thenApply(thenApplyResult -> thenApplyResult + "all are done");
+        try {
+            ctx.getSource().getSender().sendMessage(Component.text(completableFuture.get()));
+        } catch (InterruptedException | ExecutionException e) {
+            Main.logger().log(Level.SEVERE, "Error completing future in test command", e);
+            throw ERROR_COMPLETABLE_FUTURE.create(e.getMessage());
+        }
+        return Command.SINGLE_SUCCESS;
+    }
+    
+    private void callDatabaseTask() throws SQLException {
+        gameManager.getGameStateService().getAllPracticeTeams().forEach(practiceTeam -> {
+            Main.logger().info("TeamId: " + practiceTeam.getTeamId());
+        });
+    }
+    
+    private void callTaskThatUsesBukkitAPIButMustHappenAfterDatabaseTaskCompletes() {
+        gameManager.getOnlineParticipants().forEach(participant -> participant.teleport(new Location(
+                participant.getLocation().getWorld(),
+                participant.getLocation().getX(),
+                participant.getLocation().getY() + 5,
+                participant.getLocation().getZ()
+        )));
     }
     
     private @NotNull CommandResult executeTotals(CommandContext<CommandSourceStack> ctx) {
