@@ -34,7 +34,9 @@ public interface CommandResult {
      * @param other the additional {@link CommandResult} to concatenate to this one.
      * @return the combined {@link CommandResult}s
      */
-    @NotNull CommandResult and(CommandResult other);
+    default @NotNull CommandResult and(CommandResult other) {
+        return new CompositeCommandResult(this, other);
+    }
     
     /**
      * Convenience method for showing the message from a given {@link CommandResult}

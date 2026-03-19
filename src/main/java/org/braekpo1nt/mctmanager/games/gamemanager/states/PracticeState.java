@@ -82,9 +82,10 @@ public class PracticeState extends GameManagerState {
     }
     
     @Override
-    protected void rebuildFromScores() throws SQLException {
+    protected @NotNull CommandResult rebuildFromScores() throws SQLException {
         try {
             context.getGameStateService().rebuildPracticeMode();
+            return CommandResult.success(Component.text("Rebuilt game state from practice mode"));
         } catch (SQLException e) {
             throw new SQLException("Unable to rebuild practice mode", e);
         }

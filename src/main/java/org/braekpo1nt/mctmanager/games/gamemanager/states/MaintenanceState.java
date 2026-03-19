@@ -96,9 +96,10 @@ public class MaintenanceState extends GameManagerState {
     }
     
     @Override
-    protected void rebuildFromScores() throws SQLException {
+    protected @NotNull CommandResult rebuildFromScores() throws SQLException {
         try {
             context.getGameStateService().rebuildMaintenanceMode();
+            return CommandResult.success(Component.text("Rebuilt game state from maintenance mode"));
         } catch (SQLException e) {
             throw new SQLException("Unable to rebuild maintenance mode", e);
         }

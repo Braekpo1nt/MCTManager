@@ -106,6 +106,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -196,7 +197,7 @@ public abstract class GameManagerState {
         this.allParticipants.clear();
     }
     
-    protected abstract void rebuildFromScores() throws SQLException;
+    protected abstract @NotNull CommandResult rebuildFromScores() throws SQLException;
     
     public @NotNull CommandResult loadGameState() {
         if (!activeGames.isEmpty()) {
@@ -215,26 +216,29 @@ public abstract class GameManagerState {
         return CommandResult.async(
                 plugin,
                 Component.text("Loading game state..."),
-                () -> {
-                    List<CommandResult> results = new ArrayList<>();
-                    try {
-                        rebuildFromScores();
-                    } catch (SQLException e) {
-                        context.reportGameStateException("rebuilding from scores", e);
-                        results.add(CommandResult.sqlException("rebuilding from scores", e));
-                    }
-                    try {
-                        rebuildFromScores();
-                        gameStateStorageUtil.loadGameState();
-                        results.add(CommandResult.success(Component.text("Loaded from database")));
-                    } catch (SQLException e) {
-                        context.reportGameStateException("loading game state", e);
-                        results.add(CommandResult.sqlException("loading game state", e));
-                    }
-                    return new CompositeCommandResult(results);
-                },
+                rebuildAndReload(),
                 this::loadGameStateSync
         );
+    }
+    
+    protected @NotNull CompletableFuture<CommandResult> rebuildAndReload() {
+        return CompletableFuture.supplyAsync(() -> {
+            List<CommandResult> results = new ArrayList<>();
+            try {
+                results.add(rebuildFromScores());
+            } catch (SQLException e) {
+                context.reportGameStateException("rebuilding from scores", e);
+                results.add(CommandResult.sqlException("rebuilding from scores", e));
+            }
+            try {
+                gameStateStorageUtil.loadGameState();
+                results.add(CommandResult.success(Component.text("Loaded from database")));
+            } catch (SQLException e) {
+                context.reportGameStateException("loading game state", e);
+                results.add(CommandResult.sqlException("loading game state", e));
+            }
+            return new CompositeCommandResult(results);
+        });
     }
     
     protected @NotNull CommandResult loadGameStateSync() {

@@ -84,9 +84,10 @@ public abstract class EventState extends GameManagerState {
     }
     
     @Override
-    protected void rebuildFromScores() throws SQLException {
+    protected @NotNull CommandResult rebuildFromScores() throws SQLException {
         try {
             context.getGameStateService().rebuildEventMode(eventData.getEventInfo().getEventId());
+            return CommandResult.success(Component.text("Rebuilt game state from event mode"));
         } catch (SQLException e) {
             throw new SQLException("Unable to rebuild event mode", e);
         }

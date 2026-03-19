@@ -44,9 +44,4 @@ public class FirstAsyncThenSyncCommandResult implements AsynchronousCommandResul
                 })
         ;
     }
-    
-    @Override
-    public @NotNull CommandResult and(CommandResult other) {
-        return new CompositeCommandResult(this, other);
-    }
 }

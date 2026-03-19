@@ -92,14 +92,4 @@ public class AsyncCommandResult implements AsynchronousCommandResult {
             });
         });
     }
-    
-    /**
-     * Not supported for {@link AsyncCommandResult}
-     * @throws UnsupportedOperationException when called, because this is not supported yet
-     */
-    @Override
-    public @NotNull CommandResult and(CommandResult other) {
-        // TODO: find a way to make this work
-        throw new UnsupportedOperationException("Cannot add an AsyncCommandResult to a CompositeCommandResult");
-    }
 }

@@ -60,7 +60,7 @@ public class GameStateStorageUtil {
      * - reading the existing game state file
      * - parsing the game state from json
      */
-    public void loadGameState() throws ConfigIOException, ConfigInvalidException, SQLException {
+    public void loadGameState() throws SQLException {
         this.gameState = constructGameStateFromDatabase();
         LOGGER.info("Constructed game state from database");
     }

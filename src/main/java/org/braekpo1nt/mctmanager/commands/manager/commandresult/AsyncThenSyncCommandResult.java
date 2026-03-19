@@ -10,6 +10,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.logging.Level;
 
+/**
+ * @deprecated in favor of {@link FirstAsyncThenSyncCommandResult}
+ */
+@Deprecated
 public class AsyncThenSyncCommandResult extends AsyncCommandResult {
     
     /**
