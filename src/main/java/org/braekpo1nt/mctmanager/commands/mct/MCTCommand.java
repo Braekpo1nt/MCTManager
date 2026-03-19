@@ -2,11 +2,13 @@ package org.braekpo1nt.mctmanager.commands.mct;
 
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.mct.admin.AdminCommand;
 import org.braekpo1nt.mctmanager.commands.mct.debug.DebugCommand;
 import org.braekpo1nt.mctmanager.commands.mct.edit.EditCommand;
@@ -52,7 +54,10 @@ public class MCTCommand implements BrigadierCommand {
                 .then(new TabListCommand(gameManager).create())
                 .then(new TimerCommand(gameManager).create())
                 .then(Permissioned.literal("load")
-                        .executes(BrigadierAdapters.wraps(ctx -> gameManager.loadGameState()))
+                        .executes(BrigadierAdapters.wraps(ctx -> {
+                            gameManager.loadGameState(ctx.getSource().getSender());
+                            return CommandResult.success(Component.text("Loading the game state..."));
+                        }))
                 )
                 .then(new StatsCommand(gameManager.getGameStateService()).create())
                 .permissionRoot("mctmanager")

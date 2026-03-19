@@ -46,6 +46,7 @@ import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.ui.tablist.TabList;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -517,8 +518,8 @@ public class GameManager implements Listener {
         return state.createSidebar();
     }
     
-    public @NotNull CommandResult loadGameState() {
-        return state.loadGameState();
+    public void loadGameState(CommandSender sender) {
+        state.loadGameState(sender);
     }
     
     public boolean eventIsActive() {
