@@ -518,7 +518,7 @@ public class GameManager implements Listener {
     }
     
     public @NotNull CommandResult loadGameState() {
-        return state.onLoadGameState();
+        return state.loadGameState();
     }
     
     public boolean eventIsActive() {
