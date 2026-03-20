@@ -78,6 +78,11 @@ public class MaintenanceState extends GameManagerState {
             }
             case PRACTICE -> {
                 context.setState(new PracticeState(context, contextReference));
+                if (load) {
+                    CommandResult loadResult = context.loadGameState();
+                    return loadResult
+                            .and(CommandResult.success(Component.text("Switched to practice mode")));
+                }
                 return CommandResult.success(Component.text("Switched to practice mode"));
             }
             case EVENT -> {

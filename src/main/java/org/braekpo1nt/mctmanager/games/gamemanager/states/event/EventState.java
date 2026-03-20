@@ -65,10 +65,20 @@ public abstract class EventState extends GameManagerState {
         switch (mode) {
             case MAINTENANCE -> {
                 context.setState(new MaintenanceState(context, contextReference));
+                if (load) {
+                    CommandResult loadResult = context.loadGameState();
+                    return loadResult
+                            .and(CommandResult.success(Component.text("Switched to maintenance mode")));
+                }
                 return CommandResult.success(Component.text("Switched to maintenance mode"));
             }
             case PRACTICE -> {
                 context.setState(new PracticeState(context, contextReference));
+                if (load) {
+                    CommandResult loadResult = context.loadGameState();
+                    return loadResult
+                            .and(CommandResult.success(Component.text("Switched to practice mode")));
+                }
                 return CommandResult.success(Component.text("Switched to practice mode"));
             }
             case EVENT -> {

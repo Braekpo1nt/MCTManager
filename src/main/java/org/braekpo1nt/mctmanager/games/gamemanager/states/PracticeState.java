@@ -128,6 +128,11 @@ public class PracticeState extends GameManagerState {
             case MAINTENANCE -> {
                 practiceManager.cleanup();
                 context.setState(new MaintenanceState(context, contextReference));
+                if (load) {
+                    CommandResult loadResult = context.loadGameState();
+                    return loadResult
+                            .and(CommandResult.success(Component.text("Switched to maintenance mode")));
+                }
                 return CommandResult.success(Component.text("Switched to maintenance mode"));
             }
             case PRACTICE -> {
