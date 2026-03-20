@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletionException;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -49,7 +48,7 @@ public class GameStateStorageUtil {
     private final Logger LOGGER;
     @Getter
     private final GameStateService gameStateService;
-    
+    @Getter
     protected GameState gameState = new GameState(new HashMap<>(), new HashMap<>(), new ArrayList<>());
     protected @NotNull StorageUtilState state;
     
@@ -149,7 +148,7 @@ public class GameStateStorageUtil {
     }
     
     @Contract("null -> null")
-    private static ActiveParticipant fromPlayer(MCTPlayerEntity player) {
+    public static ActiveParticipant fromPlayer(MCTPlayerEntity player) {
         if (player == null) {
             return null;
         }
@@ -168,16 +167,12 @@ public class GameStateStorageUtil {
      * @param color The color of the team
      * @throws ConfigIOException If there is an error saving the game state while adding a new team.
      */
-    public void addTeam(String teamId, String teamDisplayName, String color) throws ConfigIOException, SQLException {
-        MCTTeamEntity team = gameState.addTeam(teamId, teamDisplayName, color);
-        gameStateService.addTeam(fromTeam(team));
+    public void addTeam(String teamId, String teamDisplayName, String color) throws SQLException {
+        state.addTeam(teamId, teamDisplayName, color);
     }
     
-    public void removeTeam(String teamId) throws ConfigIOException, SQLException {
-        List<UUID> uuidsOnTeam = this.getParticipantUUIDsOnTeam(teamId);
-        gameState.removePlayers(uuidsOnTeam);
-        gameState.removeTeam(teamId);
-        gameStateService.deleteTeam(teamId);
+    public void removeTeam(String teamId) throws SQLException {
+        state.removeTeam(teamId);
     }
     
     /**
@@ -237,9 +232,8 @@ public class GameStateStorageUtil {
      * @param teamId the teamId to join it to
      * @throws ConfigIOException if there is an IO error saving the game state
      */
-    public void addNewPlayer(@NotNull UUID playerToJoin, @NotNull String name, @NotNull String teamId) throws ConfigIOException, SQLException {
-        MCTPlayerEntity player = gameState.addPlayer(playerToJoin, name, teamId);
-        gameStateService.addParticipant(fromPlayer(player));
+    public void addNewPlayer(@NotNull UUID playerToJoin, @NotNull String name, @NotNull String teamId) throws SQLException {
+        state.addNewPlayer(playerToJoin, name, teamId);
     }
     
     /**
@@ -385,9 +379,8 @@ public class GameStateStorageUtil {
      * @param playerUniqueId The UUID for the player
      * @throws ConfigIOException if there is an IO error saving the game state
      */
-    public void leavePlayer(UUID playerUniqueId) throws ConfigIOException, SQLException {
-        gameState.removePlayer(playerUniqueId);
-        gameStateService.deleteParticipant(playerUniqueId.toString());
+    public void leavePlayer(UUID playerUniqueId) throws SQLException {
+        state.leavePlayer(playerUniqueId);
     }
     
     public @NotNull NamedTextColor getTeamColor(@NotNull String teamId) {
