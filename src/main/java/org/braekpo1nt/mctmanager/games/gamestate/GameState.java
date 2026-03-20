@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.braekpo1nt.mctmanager.Main;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -69,6 +70,7 @@ public class GameState {
      */
     public MCTPlayerEntity addPlayer(@NotNull UUID playerUniqueId, @NotNull String name, @NotNull String teamId) {
         MCTPlayerEntity newPlayer = new MCTPlayerEntity(playerUniqueId, name, 0, teamId);
+        Main.logf("GameState.addPlayer(%s)", name);
         players.put(playerUniqueId, newPlayer);
         return newPlayer;
     }

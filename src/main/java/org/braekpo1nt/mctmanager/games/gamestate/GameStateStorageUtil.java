@@ -284,7 +284,7 @@ public class GameStateStorageUtil {
         for (OfflineParticipant participant : participants) {
             MCTPlayerEntity player = Objects.requireNonNull(
                     gameState.getPlayer(participant.getUniqueId()),
-                    "attempted to update the score of a participant who is not in the GameState");
+                    String.format("attempted to update the score of a participant who is not in the GameState \"%s\"", participant.getUniqueId()));
             player.setScore(participant.getScore());
         }
     }
