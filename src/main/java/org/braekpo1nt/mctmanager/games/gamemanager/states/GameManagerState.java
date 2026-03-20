@@ -1328,6 +1328,10 @@ public abstract class GameManagerState {
         return CommandResult.failure("No event is active");
     }
     
+    public CommandResult whitelist(boolean whitelist) {
+        return CommandResult.failure("No event is active");
+    }
+    
     public CommandResult addGameToVotingPool(@NotNull GameType gameToAdd) {
         return CommandResult.failure("No event is active");
     }

@@ -45,6 +45,7 @@ public class EventSubCommand implements BrigadierSubCommand {
                 .then(new ModifyCommand(gameManager).create())
                 .then(new ApplyPresetCommand(gameManager.getEventService(), plugin, gameManager.getGameStateService()).create())
                 .then(buildMaxGames())
+                .then(buildWhitelist())
                 ;
     }
     
@@ -152,6 +153,17 @@ public class EventSubCommand implements BrigadierSubCommand {
                             return gameManager.modifyMaxGames(newCount);
                         }))
                 );
+    }
+    
+    private Permissioned<CommandSourceStack> buildWhitelist() {
+        return Permissioned.literal("whitelist")
+                .then(Permissioned.literal("addAll")
+                        .executes(BrigadierAdapters.wraps(ctx -> gameManager.whitelist(true)))
+                )
+                .then(Permissioned.literal("removeAll")
+                        .executes(BrigadierAdapters.wraps(ctx -> gameManager.whitelist(false)))
+                )
+                ;
     }
     
 }

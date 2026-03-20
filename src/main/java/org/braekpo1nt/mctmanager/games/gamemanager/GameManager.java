@@ -1259,6 +1259,10 @@ public class GameManager implements Listener {
         return state.modifyMaxGames(newMaxGames);
     }
     
+    public CommandResult whitelist(boolean whitelist) {
+        return state.whitelist(whitelist);
+    }
+    
     public CommandResult addGameToVotingPool(@NotNull GameType gameToAdd) {
         return state.addGameToVotingPool(gameToAdd);
     }

@@ -222,6 +222,25 @@ public abstract class EventState extends GameManagerState {
     }
     
     /**
+     * @param whitelist true if all players in the event should be whitelisted, false if they should be un-whitelisted
+     * @return the result
+     */
+    @Override
+    public CommandResult whitelist(boolean whitelist) {
+        
+        for (OfflineParticipant offlineParticipant : context.getOfflineParticipants()) {
+            OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(offlineParticipant.getUniqueId());
+            offlinePlayer.setWhitelisted(whitelist);
+        }
+        
+        return whitelist ?
+                CommandResult.success(Component.text("Whitelisted all participants in this event"))
+                :
+                CommandResult.success(Component.text("De-whitelisted all participants in this event"))
+                ;
+    }
+    
+    /**
      * @return all the games in the voting pool (available to vote for in the event)
      */
     @Override
