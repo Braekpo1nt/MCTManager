@@ -287,60 +287,6 @@ public abstract class EventState extends GameManagerState {
     }
     
     // team/participants management start
-    @Override
-    public Team addTeam(String teamId, String teamDisplayName, String colorString) {
-        try {
-            context.getGameStateService().addTeam(EventTeam.builder()
-                    .teamId(teamId)
-                    .displayName(teamDisplayName)
-                    .color(colorString)
-                    .eventId(eventData.getEventInfo().getEventId())
-                    .modifiedAt(new Date())
-                    .build());
-        } catch (SQLException e) {
-            context.reportGameStateException("adding team to event database", e);
-        }
-        return super.addTeam(teamId, teamDisplayName, colorString);
-    }
-    
-    @Override
-    public CommandResult removeTeam(String teamId) {
-        try {
-            context.getGameStateService().deleteEventTeam(teamId, eventData.getEventInfo().getEventId());
-        } catch (SQLException e) {
-            context.reportGameStateException("removing team from event database", e);
-        }
-        return super.removeTeam(teamId);
-    }
-    
-    @Override
-    public CommandResult joinParticipantToTeam(@NotNull OfflinePlayer offlinePlayer, @NotNull String ign, @NotNull MCTTeam team) {
-        CommandResult result = super.joinParticipantToTeam(offlinePlayer, ign, team);
-        try {
-            context.getGameStateService().addParticipant(
-                    EventParticipantEntity.builder()
-                            .participantUUID(offlinePlayer.getUniqueId().toString())
-                            .teamId(team.getTeamId())
-                            .eventId(eventData.getEventInfo().getEventId())
-                            .build(),
-                    ign
-            );
-        } catch (SQLException e) {
-            context.reportGameStateException("joining participant to event database", e);
-        }
-        return result;
-    }
-    
-    @Override
-    public CommandResult leaveParticipant(@NotNull OfflineParticipant offlineParticipant) {
-        try {
-            context.getGameStateService().deleteEventParticipant(offlineParticipant.getUniqueId().toString(), eventData.getEventInfo().getEventId());
-        } catch (SQLException e) {
-            context.reportGameStateException("leaving participant from event database", e);
-        }
-        return super.leaveParticipant(offlineParticipant);
-    }
-    
     // team/participants management stop
     
     /**

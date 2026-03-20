@@ -6,8 +6,6 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
-import org.braekpo1nt.mctmanager.database.entities.participants.PracticeParticipantEntity;
-import org.braekpo1nt.mctmanager.database.entities.teams.PracticeTeam;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
@@ -21,12 +19,10 @@ import org.braekpo1nt.mctmanager.games.gamemanager.states.event.ReadyUpState;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetConfig;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
-import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -259,16 +255,6 @@ public class PracticeState extends GameManagerState {
     // team/participants management start
     @Override
     public Team addTeam(String teamId, String teamDisplayName, String colorString) {
-        try {
-            context.getGameStateService().addTeam(PracticeTeam.builder()
-                    .teamId(teamId)
-                    .displayName(teamDisplayName)
-                    .color(colorString)
-                    .modifiedAt(new Date())
-                    .build());
-        } catch (SQLException e) {
-            context.reportGameStateException("adding team to practice database", e);
-        }
         Team team = super.addTeam(teamId, teamDisplayName, colorString);
         if (team != null) {
             MCTTeam mctTeam = teams.get(teamId);
@@ -279,40 +265,8 @@ public class PracticeState extends GameManagerState {
     
     @Override
     public CommandResult removeTeam(String teamId) {
-        try {
-            context.getGameStateService().deletePracticeTeam(teamId);
-        } catch (SQLException e) {
-            context.reportGameStateException("removing team from practice database", e);
-        }
         practiceManager.removeTeam(teamId);
         return super.removeTeam(teamId);
-    }
-    
-    @Override
-    public CommandResult joinParticipantToTeam(@NotNull OfflinePlayer offlinePlayer, @NotNull String ign, @NotNull MCTTeam team) {
-        CommandResult result = super.joinParticipantToTeam(offlinePlayer, ign, team);
-        try {
-            context.getGameStateService().addParticipant(
-                    PracticeParticipantEntity.builder()
-                            .participantUUID(offlinePlayer.getUniqueId().toString())
-                            .teamId(team.getTeamId())
-                            .build(),
-                    ign
-            );
-        } catch (SQLException e) {
-            context.reportGameStateException("joining participant to practice database", e);
-        }
-        return result;
-    }
-    
-    @Override
-    public CommandResult leaveParticipant(@NotNull OfflineParticipant offlineParticipant) {
-        try {
-            context.getGameStateService().deletePracticeParticipant(offlineParticipant.getUniqueId().toString());
-        } catch (SQLException e) {
-            context.reportGameStateException("removing participant from practice database", e);
-        }
-        return super.leaveParticipant(offlineParticipant);
     }
     
     // team/participants management stop
