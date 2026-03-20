@@ -187,7 +187,7 @@ public class GameStateService {
      * @return true if the id was deleted successfully, false if the id doesn't exist
      * @throws SQLException if there's a database error
      */
-    public boolean removeEventTeam(@NotNull String teamId, @NotNull String eventId) throws SQLException {
+    public boolean deleteEventTeam(@NotNull String teamId, @NotNull String eventId) throws SQLException {
         return TransactionManager.callInTransaction(eventTeamsDao.getConnectionSource(), () -> {
             QueryBuilder<EventTeam, Integer> queryBuilder = eventTeamsDao.queryBuilder();
             queryBuilder.where()

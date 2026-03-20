@@ -306,7 +306,7 @@ public abstract class EventState extends GameManagerState {
     @Override
     public CommandResult removeTeam(String teamId) {
         try {
-            context.getGameStateService().removeEventTeam(teamId, eventData.getEventInfo().getEventId());
+            context.getGameStateService().deleteEventTeam(teamId, eventData.getEventInfo().getEventId());
         } catch (SQLException e) {
             context.reportGameStateException("removing team from event database", e);
         }

@@ -3,8 +3,10 @@ package org.braekpo1nt.mctmanager.games.gamestate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.braekpo1nt.mctmanager.database.entities.teams.EventTeam;
 import org.braekpo1nt.mctmanager.database.entities.teams.MaintenanceTeam;
 import org.braekpo1nt.mctmanager.database.entities.teams.PracticeTeam;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;
 
@@ -28,6 +30,16 @@ public class MCTTeamEntity {
     
     public PracticeTeam toPractice() {
         return PracticeTeam.builder()
+                .teamId(name)
+                .displayName(displayName)
+                .color(color)
+                .modifiedAt(new Date())
+                .build();
+    }
+    
+    public EventTeam toEvent(@NotNull String eventId) {
+        return EventTeam.builder()
+                .eventId(eventId)
                 .teamId(name)
                 .displayName(displayName)
                 .color(color)
