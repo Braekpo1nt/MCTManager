@@ -204,7 +204,8 @@ public class PracticeState extends GameManagerState {
             EventConfig eventConfig = new EventConfigController(plugin.getDataFolder()).getConfig();
             practiceManager.cleanup();
             context.setState(new ReadyUpState(context, contextReference, eventInfo, eventConfig, maxGames, currentGameNumber));
-            return CommandResult.success(Component.text("Switched to event mode"));
+            return context.loadGameState()
+                    .and(CommandResult.success(Component.text("Switched to event mode")));
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, e.getMessage(), e);
             return CommandResult.failure(Component.text("Can't switch to event mode. Error loading config file. See console for details:\n")
