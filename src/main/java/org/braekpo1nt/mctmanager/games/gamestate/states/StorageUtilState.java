@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.games.gamestate.states;
 
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.database.service.GameStateService;
 import org.braekpo1nt.mctmanager.games.gamestate.GameState;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
