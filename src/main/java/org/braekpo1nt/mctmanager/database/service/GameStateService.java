@@ -675,6 +675,7 @@ public class GameStateService {
             // clear
             activeTeamsDao.executeRaw("DELETE FROM active_participants");
             activeTeamsDao.executeRaw("DELETE FROM active_teams");
+            activeTeamsDao.executeRaw("DELETE FROM active_admins");
             
             // rebuild teams
             activeTeamsDao.executeRaw("""
@@ -732,6 +733,14 @@ public class GameStateService {
                           ON se.participant_uuid = pp.participant_uuid
                     """);
             
+            // rebuild admins
+            activeTeamsDao.executeRaw("""
+                        INSERT INTO active_admins (uuid)
+                        SELECT
+                        	pa.uuid
+                        FROM practice_admins pa
+                    """);
+            
             return null;
         });
     }
@@ -787,6 +796,7 @@ SELECT
             // clear
             activeTeamsDao.executeRaw("DELETE FROM active_participants");
             activeTeamsDao.executeRaw("DELETE FROM active_teams");
+            activeTeamsDao.executeRaw("DELETE FROM active_admins");
             
             // rebuild teams
             activeTeamsDao.executeRaw("""
@@ -844,6 +854,14 @@ SELECT
                           ON se.participant_uuid = mp.participant_uuid
                     """);
             
+            // rebuild admins
+            activeTeamsDao.executeRaw("""
+                        INSERT INTO active_admins (uuid)
+                        SELECT
+                        	ma.uuid
+                        FROM maintenance_admins ma
+                    """);
+            
             return null;
         });
     }
@@ -853,6 +871,7 @@ SELECT
             // clear
             activeTeamsDao.executeRaw("DELETE FROM active_participants");
             activeTeamsDao.executeRaw("DELETE FROM active_teams");
+            activeTeamsDao.executeRaw("DELETE FROM active_admins");
             
             // rebuild teams
             activeTeamsDao.executeRaw("""
@@ -917,6 +936,17 @@ SELECT
                             WHERE ep.event_id = ?
                             """,
                     eventId,
+                    eventId
+            );
+            
+            // rebuild admins
+            activeTeamsDao.executeRaw("""
+                            INSERT INTO active_admins (uuid)
+                            SELECT
+                            	ea.uuid
+                            FROM event_admins ea
+                            WHERE ea.event_id = ?
+                            """,
                     eventId
             );
             
