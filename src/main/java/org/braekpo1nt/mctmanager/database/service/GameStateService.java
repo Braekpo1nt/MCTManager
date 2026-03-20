@@ -373,7 +373,7 @@ public class GameStateService {
                 FROM all_players ap
                 """;
         try (GenericRawResults<String[]> raw =
-                     activeAdminDao.queryRaw(sql)) {
+                     allPlayersDao.queryRaw(sql)) {
             List<String[]> rawResults = raw.getResults();
             List<String> result = new ArrayList<>(rawResults.size());
             for (String[] row : rawResults) {
@@ -382,7 +382,7 @@ public class GameStateService {
             }
             return result;
         } catch (Exception e) {
-            throw new SQLException("Exception thrown while getting admin names", e);
+            throw new SQLException("Exception thrown while getting player names", e);
         }
     }
     
@@ -398,7 +398,7 @@ public class GameStateService {
                 WHERE ap.ign LIKE CONCAT(?, '%')
                 """;
         try (GenericRawResults<String[]> raw =
-                     activeAdminDao.queryRaw(sql, partial)) {
+                     allPlayersDao.queryRaw(sql, partial)) {
             List<String[]> rawResults = raw.getResults();
             List<String> result = new ArrayList<>(rawResults.size());
             for (String[] row : rawResults) {
@@ -407,7 +407,7 @@ public class GameStateService {
             }
             return result;
         } catch (Exception e) {
-            throw new SQLException("Exception thrown while getting admin names", e);
+            throw new SQLException("Exception thrown while getting player names", e);
         }
     }
     
@@ -501,11 +501,35 @@ public class GameStateService {
         activeAdminDao.create(admin);
     }
     
-    public void deleteAdmin(@NotNull String uuid) throws SQLException {
+    public void addAdmin(@NotNull MaintenanceAdminEntity admin) throws SQLException {
+        maintenanceAdminDao.create(admin);
+    }
+    
+    public void addAdmin(@NotNull PracticeAdminEntity admin) throws SQLException {
+        practiceAdminDao.create(admin);
+    }
+    
+    public void addAdmin(@NotNull EventAdminEntity admin) throws SQLException {
+        eventAdminDao.create(admin);
+    }
+    
+    public void deleteActiveAdmin(@NotNull String uuid) throws SQLException {
         activeAdminDao.deleteById(uuid);
     }
     
-    public List<ActiveAdminEntity> getAdmins() throws SQLException {
+    public void deleteMaintenanceAdmin(@NotNull String uuid) throws SQLException {
+        maintenanceAdminDao.deleteById(uuid);
+    }
+    
+    public void deletePracticeAdmin(@NotNull String uuid) throws SQLException {
+        practiceAdminDao.deleteById(uuid);
+    }
+    
+    public void deleteEventAdmin(@NotNull String uuid) throws SQLException {
+        eventAdminDao.deleteById(uuid);
+    }
+    
+    public List<ActiveAdminEntity> getActiveAdmins() throws SQLException {
         return activeAdminDao.queryForAll();
     }
     

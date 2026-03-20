@@ -96,7 +96,7 @@ public class GameStateStorageUtil {
     private @NotNull GameState constructGameStateFromDatabase() throws SQLException {
         List<ActiveTeam> activeTeams = gameStateService.getActiveTeams();
         List<ActiveParticipant> activeParticipants = gameStateService.getActiveParticipants();
-        List<ActiveAdminEntity> adminEntities = gameStateService.getAdmins();
+        List<ActiveAdminEntity> adminEntities = gameStateService.getActiveAdmins();
         return new GameState(toPlayers(activeParticipants), toTeams(activeTeams), toAdmins(adminEntities));
     }
     
@@ -464,7 +464,7 @@ public class GameStateStorageUtil {
      */
     public void removeAdmin(UUID adminUniqueId) throws ConfigIOException, SQLException {
         gameState.removeAdmin(adminUniqueId);
-        gameStateService.deleteAdmin(adminUniqueId.toString());
+        gameStateService.deleteActiveAdmin(adminUniqueId.toString());
     }
     
 }
