@@ -215,6 +215,7 @@ public abstract class GameManagerState {
         CommandResult loadResult = loadGameStateSync();
         return rebuildResult.and(loadResult);
     }
+    // TODO: return this to async operation after 3/21/2026 event
 //        return CommandResult.async(
 //        plugin,
 //                Component.text("Loading game state..."),
