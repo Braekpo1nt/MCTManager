@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.database.entities.admin;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -11,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@Builder
 public class EventAdminEntity {
     /**
      * Generated unique id, for uniqueness only

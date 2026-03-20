@@ -31,4 +31,8 @@ public abstract class StorageUtilState {
     public abstract void addNewPlayer(@NotNull UUID playerToJoin, @NotNull String name, @NotNull String teamId) throws SQLException;
     
     public abstract void leavePlayer(UUID playerUniqueId) throws SQLException;
+    
+    public abstract void addAdmin(UUID adminUniqueId) throws SQLException;
+    
+    public abstract void removeAdmin(UUID adminUniqueId) throws SQLException;
 }

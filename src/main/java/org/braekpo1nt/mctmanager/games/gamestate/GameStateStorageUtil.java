@@ -452,9 +452,8 @@ public class GameStateStorageUtil {
      * @param adminUniqueId the unique id of the admin
      * @throws ConfigIOException If there is an issue saving the game state
      */
-    public void addAdmin(UUID adminUniqueId) throws ConfigIOException, SQLException {
-        gameState.addAdmin(adminUniqueId);
-        gameStateService.addAdmin(new ActiveAdminEntity(adminUniqueId.toString()));
+    public void addAdmin(UUID adminUniqueId) throws SQLException {
+        state.addAdmin(adminUniqueId);
     }
     
     /**
@@ -462,9 +461,8 @@ public class GameStateStorageUtil {
      * @param adminUniqueId the unique id of the admin
      * @throws ConfigIOException If there is an issue saving the game state
      */
-    public void removeAdmin(UUID adminUniqueId) throws ConfigIOException, SQLException {
-        gameState.removeAdmin(adminUniqueId);
-        gameStateService.deleteActiveAdmin(adminUniqueId.toString());
+    public void removeAdmin(UUID adminUniqueId) throws SQLException {
+        state.removeAdmin(adminUniqueId);
     }
     
 }

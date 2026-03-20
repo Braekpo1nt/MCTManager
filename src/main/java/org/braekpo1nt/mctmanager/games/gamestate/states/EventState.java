@@ -1,5 +1,8 @@
 package org.braekpo1nt.mctmanager.games.gamestate.states;
 
+import org.braekpo1nt.mctmanager.database.entities.admin.ActiveAdminEntity;
+import org.braekpo1nt.mctmanager.database.entities.admin.EventAdminEntity;
+import org.braekpo1nt.mctmanager.database.entities.admin.PracticeAdminEntity;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.gamestate.MCTPlayerEntity;
 import org.braekpo1nt.mctmanager.games.gamestate.MCTTeamEntity;
@@ -57,5 +60,24 @@ public class EventState extends StorageUtilState {
         String uuid = playerUniqueId.toString();
         gameStateService.deleteParticipant(uuid);
         gameStateService.deleteEventParticipant(uuid, eventId);
+    }
+    
+    @Override
+    public void addAdmin(UUID adminUniqueId) throws SQLException {
+        gameState.addAdmin(adminUniqueId);
+        String uuid = adminUniqueId.toString();
+        gameStateService.addAdmin(new ActiveAdminEntity(uuid));
+        gameStateService.addAdmin(EventAdminEntity.builder()
+                .eventId(eventId)
+                .uuid(uuid)
+                .build());
+    }
+    
+    @Override
+    public void removeAdmin(UUID adminUniqueId) throws SQLException {
+        gameState.removeAdmin(adminUniqueId);
+        String uuid = adminUniqueId.toString();
+        gameStateService.deleteActiveAdmin(uuid);
+        gameStateService.deletePracticeAdmin(uuid);
     }
 }
