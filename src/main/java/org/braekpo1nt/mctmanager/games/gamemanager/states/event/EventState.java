@@ -285,32 +285,10 @@ public abstract class EventState extends GameManagerState {
         super.onParticipantJoin(participant);
         sidebar.updateLine(participant.getUniqueId(), "currentGame", getCurrentGameLine());
     }
+    // leave/join stop
     
     // team/participants management start
     // team/participants management stop
-    
-    /**
-     * Adds the participant to the event_participants table, then
-     * joins them to the active teams list if the running event matches
-     * the given eventInfo
-     * @param offlinePlayer the player to join
-     * @param ign their ign
-     * @param teamId the teamId to join them to
-     * @param eventInfo the event to join them to
-     * @return the result of the command
-     * @deprecated in favor of overrides of joinParticipantToTeam
-     */
-    @Deprecated
-    @Override
-    public CommandResult joinParticipantToTeamEvent(@NotNull OfflinePlayer offlinePlayer, @NotNull String ign, @NotNull String teamId, @NotNull EventInfo eventInfo) {
-        if (eventData.getEventInfo().getEventId().equals(eventInfo.getEventId())) {
-            MCTTeam team = teams.get(teamId);
-            return joinParticipantToTeam(offlinePlayer, ign, team);
-        }
-        return super.joinParticipantToTeamEvent(offlinePlayer, ign, teamId, eventInfo);
-    }
-    
-    // leave/join stop
     
     // event handlers start
     @Override

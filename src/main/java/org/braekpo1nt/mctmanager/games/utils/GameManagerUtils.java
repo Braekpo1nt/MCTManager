@@ -257,21 +257,6 @@ public class GameManagerUtils {
         return joinParticipant(plugin, gameManager, ign, team);
     }
     
-    /**
-     * Add the participant to the event_participants table
-     * @param plugin the plugin
-     * @param gameManager the game manager
-     * @param ign the player's name
-     * @param teamId the teamId to join to (must be a valid teamId associated with the event)
-     * @param eventInfo the event to join
-     * @return the
-     */
-    @Deprecated
-    public static CommandResult joinParticipantEvent(Main plugin, @NotNull GameManager gameManager, @NotNull String ign, @NotNull String teamId, @NotNull EventInfo eventInfo) {
-        OfflinePlayer playerToJoin = plugin.getServer().getOfflinePlayer(ign);
-        return gameManager.joinParticipantToTeamEvent(playerToJoin, ign, teamId, eventInfo);
-    }
-    
     public static CommandResult joinParticipant(Main plugin, @NotNull GameManager gameManager, @NotNull String ign, @NotNull Team team) {
         OfflinePlayer playerToJoin = plugin.getServer().getOfflinePlayer(ign);
         return gameManager.joinParticipantToTeam(playerToJoin, ign, team.getTeamId());

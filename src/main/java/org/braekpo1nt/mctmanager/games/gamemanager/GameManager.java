@@ -840,20 +840,6 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Join the participant to the event team
-     * @param offlinePlayer The participant to join to the given team
-     * @param ign The name of the participant to join to the given team
-     * @param teamId The teamId of the team to join the participant to.
-     * @param eventInfo the event to join the participant to
-     * @return the result
-     * @deprecated in favor of joinParticipantToTeam overrides
-     */
-    @Deprecated
-    public CommandResult joinParticipantToTeamEvent(@NotNull OfflinePlayer offlinePlayer, @NotNull String ign, @NotNull String teamId, @NotNull EventInfo eventInfo) {
-        return state.joinParticipantToTeamEvent(offlinePlayer, ign, teamId, eventInfo);
-    }
-    
-    /**
      * @param teamId the teamId of the team to get the {@link OfflineParticipant}s from
      * @return a collection of {@link OfflineParticipant}s who are on the given team
      */

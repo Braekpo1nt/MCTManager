@@ -1498,37 +1498,6 @@ public abstract class GameManagerState {
     }
     
     /**
-     * Join the participant to the event team
-     * @param offlinePlayer The participant to join to the given team
-     * @param ign The name of the participant to join to the given team
-     * @param teamId The teamId of the team to join the participant to.
-     * @param eventInfo the event to join the participant to
-     * @return the result
-     * @deprecated in favor of overrides of joinParticipantToTeam
-     */
-    @Deprecated
-    public CommandResult joinParticipantToTeamEvent(@NotNull OfflinePlayer offlinePlayer, @NotNull String ign, @NotNull String teamId, @NotNull EventInfo eventInfo) {
-        try {
-            context.getGameStateService().addParticipant(
-                    EventParticipantEntity.builder()
-                            .eventId(eventInfo.getEventId())
-                            .participantUUID(offlinePlayer.getUniqueId().toString())
-                            .teamId(teamId)
-                            .substitute(false)
-                            .build(),
-                    ign
-            );
-        } catch (SQLException e) {
-            return CommandResult.sqlException("join participant to event team", e);
-        }
-        return CommandResult.success(Component.empty()
-                .append(Component.text("Added "))
-                .append(Component.text(ign))
-                .append(Component.text())
-        );
-    }
-    
-    /**
      * Leaves the player from the team and removes them from the game state.
      * If a game is running, and the player is online, removes that player from the game as well.
      * @param offlineParticipant The participant to remove from their team

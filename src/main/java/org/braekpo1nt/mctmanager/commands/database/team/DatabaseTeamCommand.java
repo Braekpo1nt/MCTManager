@@ -199,6 +199,6 @@ public class DatabaseTeamCommand implements BrigadierSubCommand {
         }
         String teamId = ctx.getArgument("teamId", String.class);
         String member = ctx.getArgument("member", String.class);
-        return GameManagerUtils.joinParticipantEvent(plugin, gameManager, member, teamId, eventInfo);
+        return CommandResult.success(Component.text("Not yet implemented"));
     }
 }
