@@ -45,5 +45,6 @@ public class EventParticipantEntity {
      * stats and leaderboards.
      */
     @DatabaseField(canBeNull = false, columnName = "substitute")
-    private @NotNull Boolean substitute;
+    @Builder.Default
+    private boolean substitute = false;
 }
