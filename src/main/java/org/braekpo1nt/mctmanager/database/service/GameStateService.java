@@ -11,6 +11,9 @@ import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
 import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
 import org.braekpo1nt.mctmanager.database.entities.SystemState;
 import org.braekpo1nt.mctmanager.database.entities.admin.ActiveAdminEntity;
+import org.braekpo1nt.mctmanager.database.entities.admin.EventAdminEntity;
+import org.braekpo1nt.mctmanager.database.entities.admin.MaintenanceAdminEntity;
+import org.braekpo1nt.mctmanager.database.entities.admin.PracticeAdminEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipant;
 import org.braekpo1nt.mctmanager.database.entities.participants.EventParticipantEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.InGameParticipant;
@@ -42,7 +45,10 @@ public class GameStateService {
     
     private final @NotNull Dao<ActiveTeam, String> activeTeamsDao;
     private final @NotNull Dao<ActiveParticipant, String> activeParticipantsDao;
-    private final @NotNull Dao<ActiveAdminEntity, String> adminDao;
+    private final @NotNull Dao<ActiveAdminEntity, String> activeAdminDao;
+    private final @NotNull Dao<MaintenanceAdminEntity, String> maintenanceAdminDao;
+    private final @NotNull Dao<PracticeAdminEntity, String> practiceAdminDao;
+    private final @NotNull Dao<EventAdminEntity, String> eventAdminDao;
     
     private final @NotNull Dao<InGameTeam, String> inGameteamsDao;
     private final @NotNull Dao<InGameParticipant, String> inGameParticipantsDao;
@@ -62,7 +68,10 @@ public class GameStateService {
         
         this.activeTeamsDao = database.getActiveTeamsDao();
         this.activeParticipantsDao = database.getActiveParticipantsDao();
-        this.adminDao = database.getActiveAdminDao();
+        this.activeAdminDao = database.getActiveAdminDao();
+        this.maintenanceAdminDao = database.getMaintenanceAdminDao();
+        this.practiceAdminDao = database.getPracticeAdminDao();
+        this.eventAdminDao = database.getEventAdminDao();
         
         this.inGameteamsDao = database.getInGameTeamsDao();
         this.inGameParticipantsDao = database.getInGameParticipantsDao();
@@ -364,7 +373,7 @@ public class GameStateService {
                 FROM all_players ap
                 """;
         try (GenericRawResults<String[]> raw =
-                     adminDao.queryRaw(sql)) {
+                     activeAdminDao.queryRaw(sql)) {
             List<String[]> rawResults = raw.getResults();
             List<String> result = new ArrayList<>(rawResults.size());
             for (String[] row : rawResults) {
@@ -389,7 +398,7 @@ public class GameStateService {
                 WHERE ap.ign LIKE CONCAT(?, '%')
                 """;
         try (GenericRawResults<String[]> raw =
-                     adminDao.queryRaw(sql, partial)) {
+                     activeAdminDao.queryRaw(sql, partial)) {
             List<String[]> rawResults = raw.getResults();
             List<String> result = new ArrayList<>(rawResults.size());
             for (String[] row : rawResults) {
@@ -489,15 +498,15 @@ public class GameStateService {
     // Admins
     
     public void addAdmin(@NotNull ActiveAdminEntity admin) throws SQLException {
-        adminDao.create(admin);
+        activeAdminDao.create(admin);
     }
     
     public void deleteAdmin(@NotNull String uuid) throws SQLException {
-        adminDao.deleteById(uuid);
+        activeAdminDao.deleteById(uuid);
     }
     
     public List<ActiveAdminEntity> getAdmins() throws SQLException {
-        return adminDao.queryForAll();
+        return activeAdminDao.queryForAll();
     }
     
     /**
@@ -515,7 +524,7 @@ public class GameStateService {
                 """;
         Map<UUID, String> result = new HashMap<>();
         try (GenericRawResults<String[]> raw =
-                     adminDao.queryRaw(sql)) {
+                     activeAdminDao.queryRaw(sql)) {
             for (String[] row : raw.getResults()) {
                 UUID uuid = UUID.fromString(row[0]);
                 String ign = row[1];
