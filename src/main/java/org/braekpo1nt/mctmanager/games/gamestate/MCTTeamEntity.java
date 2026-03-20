@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import org.braekpo1nt.mctmanager.database.entities.teams.MaintenanceTeam;
+import org.braekpo1nt.mctmanager.database.entities.teams.PracticeTeam;
 
 import java.util.Date;
 
@@ -18,6 +19,15 @@ public class MCTTeamEntity {
     
     public MaintenanceTeam toMaintenance() {
         return MaintenanceTeam.builder()
+                .teamId(name)
+                .displayName(displayName)
+                .color(color)
+                .modifiedAt(new Date())
+                .build();
+    }
+    
+    public PracticeTeam toPractice() {
+        return PracticeTeam.builder()
                 .teamId(name)
                 .displayName(displayName)
                 .color(color)

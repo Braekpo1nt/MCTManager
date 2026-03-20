@@ -134,7 +134,7 @@ public class GameStateService {
      * @return true if the id was deleted successfully, false if the id doesn't exist
      * @throws SQLException if there's a database error
      */
-    public boolean removePracticeTeam(@NotNull String teamId) throws SQLException {
+    public boolean deletePracticeTeam(@NotNull String teamId) throws SQLException {
         return TransactionManager.callInTransaction(practiceTeamsDao.getConnectionSource(), () -> {
             if (!practiceTeamsDao.idExists(teamId)) {
                 return false;

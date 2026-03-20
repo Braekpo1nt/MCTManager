@@ -279,7 +279,7 @@ public class PracticeState extends GameManagerState {
     @Override
     public CommandResult removeTeam(String teamId) {
         try {
-            context.getGameStateService().removePracticeTeam(teamId);
+            context.getGameStateService().deletePracticeTeam(teamId);
         } catch (SQLException e) {
             context.reportGameStateException("removing team from practice database", e);
         }
