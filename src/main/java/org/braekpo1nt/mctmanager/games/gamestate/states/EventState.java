@@ -77,6 +77,6 @@ public class EventState extends StorageUtilState {
         context.getGameState().removeAdmin(adminUniqueId);
         String uuid = adminUniqueId.toString();
         context.getGameStateService().deleteActiveAdmin(uuid);
-        context.getGameStateService().deletePracticeAdmin(uuid);
+        context.getGameStateService().deleteEventAdmin(uuid, eventId);
     }
 }

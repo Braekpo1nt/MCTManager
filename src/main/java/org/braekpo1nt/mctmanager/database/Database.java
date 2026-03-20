@@ -51,7 +51,7 @@ public class Database {
     private final @NotNull Dao<ActiveAdminEntity, String> activeAdminDao;
     private final @NotNull Dao<MaintenanceAdminEntity, String> maintenanceAdminDao;
     private final @NotNull Dao<PracticeAdminEntity, String> practiceAdminDao;
-    private final @NotNull Dao<EventAdminEntity, String> eventAdminDao;
+    private final @NotNull Dao<EventAdminEntity, Integer> eventAdminDao;
     private final @NotNull Dao<GameSession, Integer> gameSessionDao;
     private final @NotNull Dao<ScoreEventEntity, Integer> scoreEventsDao;
     private final @NotNull Dao<PlayerMetadata, String> playerMetadataDao;

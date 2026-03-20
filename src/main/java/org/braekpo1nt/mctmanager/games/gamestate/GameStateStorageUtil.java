@@ -122,7 +122,7 @@ public class GameStateStorageUtil {
             ;
         }
         
-        builder.append(Component.text("Participants: "))
+        builder.append(Component.text("Admins: "))
                 .append(Component.newline());
         for (UUID admin : gameState.getAdmins()) {
             builder

@@ -48,7 +48,7 @@ public class GameStateService {
     private final @NotNull Dao<ActiveAdminEntity, String> activeAdminDao;
     private final @NotNull Dao<MaintenanceAdminEntity, String> maintenanceAdminDao;
     private final @NotNull Dao<PracticeAdminEntity, String> practiceAdminDao;
-    private final @NotNull Dao<EventAdminEntity, String> eventAdminDao;
+    private final @NotNull Dao<EventAdminEntity, Integer> eventAdminDao;
     
     private final @NotNull Dao<InGameTeam, String> inGameteamsDao;
     private final @NotNull Dao<InGameParticipant, String> inGameParticipantsDao;
@@ -528,8 +528,14 @@ public class GameStateService {
         practiceAdminDao.deleteById(uuid);
     }
     
-    public void deleteEventAdmin(@NotNull String uuid) throws SQLException {
-        eventAdminDao.deleteById(uuid);
+    public void deleteEventAdmin(@NotNull String uuid, @NotNull String eventId) throws SQLException {
+        DeleteBuilder<EventAdminEntity, Integer> builder = eventAdminDao.deleteBuilder();
+        builder.where()
+                .eq("uuid", uuid)
+                .and()
+                .eq("event_id", eventId)
+        ;
+        builder.delete();
     }
     
     public List<ActiveAdminEntity> getActiveAdmins() throws SQLException {
