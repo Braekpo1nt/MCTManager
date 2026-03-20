@@ -213,32 +213,27 @@ public abstract class GameManagerState {
         for (MCTParticipant participant : new ArrayList<>(onlineParticipants.values())) {
             onParticipantQuit(participant);
         }
-        return CommandResult.async(
-                plugin,
-                Component.text("Loading game state..."),
-                rebuildAndReload(),
-                this::loadGameStateSync
-        );
+        CommandResult rebuildResult = rebuildAndReload();
+        CommandResult loadResult = loadGameStateSync();
+        return rebuildResult.and(loadResult);
     }
     
-    protected @NotNull CompletableFuture<CommandResult> rebuildAndReload() {
-        return CompletableFuture.supplyAsync(() -> {
-            List<CommandResult> results = new ArrayList<>();
-            try {
-                results.add(rebuildFromScores());
-            } catch (SQLException e) {
-                context.reportGameStateException("rebuilding from scores", e);
-                results.add(CommandResult.sqlException("rebuilding from scores", e));
-            }
-            try {
-                gameStateStorageUtil.loadGameState();
-                results.add(CommandResult.success(Component.text("Loaded from database")));
-            } catch (SQLException e) {
-                context.reportGameStateException("loading game state", e);
-                results.add(CommandResult.sqlException("loading game state", e));
-            }
-            return new CompositeCommandResult(results);
-        });
+    protected @NotNull CommandResult rebuildAndReload() {
+        List<CommandResult> results = new ArrayList<>();
+        try {
+            results.add(rebuildFromScores());
+        } catch (SQLException e) {
+            context.reportGameStateException("rebuilding from scores", e);
+            results.add(CommandResult.sqlException("rebuilding from scores", e));
+        }
+        try {
+            gameStateStorageUtil.loadGameState();
+            results.add(CommandResult.success(Component.text("Loaded from database")));
+        } catch (SQLException e) {
+            context.reportGameStateException("loading game state", e);
+            results.add(CommandResult.sqlException("loading game state", e));
+        }
+        return new CompositeCommandResult(results);
     }
     
     protected @NotNull CommandResult loadGameStateSync() {
