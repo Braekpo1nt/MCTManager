@@ -28,6 +28,6 @@ public class EventAdminEntity {
     /**
      * The UUID of the admin
      */
-    @DatabaseField(id = true, columnName = "uuid")
+    @DatabaseField(canBeNull = false, columnName = "uuid")
     private @NotNull String uuid;
 }

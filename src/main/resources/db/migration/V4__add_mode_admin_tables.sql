@@ -21,5 +21,5 @@ CREATE TABLE event_admins (
     UNIQUE (event_id, uuid),
     
     FOREIGN KEY (uuid) REFERENCES all_players(uuid), -- makes sure this is a real player
-    FOREIGN KEY (event_id) REFERENCES event_info(id), -- makes sure this is a real event
+    FOREIGN KEY (event_id) REFERENCES event_info(id) -- makes sure this is a real event
 );
