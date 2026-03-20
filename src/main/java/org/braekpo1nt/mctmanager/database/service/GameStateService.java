@@ -201,6 +201,7 @@ public class GameStateService {
             QueryBuilder<EventTeam, Integer> queryBuilder = eventTeamsDao.queryBuilder();
             queryBuilder.where()
                     .eq("team_id", teamId)
+                    .and()
                     .eq("event_id", eventId)
             ;
             List<EventTeam> queryResult = queryBuilder.query();
@@ -211,6 +212,7 @@ public class GameStateService {
             DeleteBuilder<EventParticipantEntity, Integer> participantDeleteBuilder = eventParticipantsDao.deleteBuilder();
             participantDeleteBuilder.where()
                     .eq("team_id", teamId)
+                    .and()
                     .eq("event_id", eventId)
             ;
             participantDeleteBuilder.delete();
@@ -241,6 +243,7 @@ public class GameStateService {
         DeleteBuilder<EventParticipantEntity, Integer> builder = eventParticipantsDao.deleteBuilder();
         builder.where()
                 .eq("participant_uuid", uuid)
+                .and()
                 .eq("event_id", eventId)
         ;
         builder.delete();
