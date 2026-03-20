@@ -18,7 +18,6 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.ColorAttributes;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.Contract;
@@ -36,7 +35,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.Function;
 import java.util.logging.Logger;
@@ -170,30 +168,16 @@ public class GameStateStorageUtil {
      * @param color The color of the team
      * @throws ConfigIOException If there is an error saving the game state while adding a new team.
      */
-    public CompletableFuture<?> addTeam(String teamId, String teamDisplayName, String color) throws ConfigIOException, SQLException {
+    public void addTeam(String teamId, String teamDisplayName, String color) throws ConfigIOException, SQLException {
         MCTTeamEntity team = gameState.addTeam(teamId, teamDisplayName, color);
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                gameStateService.addTeam(fromTeam(team));
-            } catch (SQLException e) {
-                throw new CompletionException("error adding team", e);
-            }
-            return null;
-        });
+        gameStateService.addTeam(fromTeam(team));
     }
     
-    public CompletableFuture<?> removeTeam(String teamId) throws ConfigIOException, SQLException {
+    public void removeTeam(String teamId) throws ConfigIOException, SQLException {
         List<UUID> uuidsOnTeam = this.getParticipantUUIDsOnTeam(teamId);
         gameState.removePlayers(uuidsOnTeam);
         gameState.removeTeam(teamId);
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                gameStateService.deleteTeam(teamId);
-            } catch (SQLException e) {
-                throw new CompletionException("error adding team", e);
-            }
-            return null;
-        });
+        gameStateService.deleteTeam(teamId);
     }
     
     /**
@@ -253,16 +237,9 @@ public class GameStateStorageUtil {
      * @param teamId the teamId to join it to
      * @throws ConfigIOException if there is an IO error saving the game state
      */
-    public CompletableFuture<?> addNewPlayer(@NotNull UUID playerToJoin, @NotNull String name, @NotNull String teamId) throws ConfigIOException, SQLException {
+    public void addNewPlayer(@NotNull UUID playerToJoin, @NotNull String name, @NotNull String teamId) throws ConfigIOException, SQLException {
         MCTPlayerEntity player = gameState.addPlayer(playerToJoin, name, teamId);
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                gameStateService.addParticipant(fromPlayer(player));
-            } catch (SQLException e) {
-                throw new CompletionException("error joining player to team", e);
-            }
-            return null;
-        });
+        gameStateService.addParticipant(fromPlayer(player));
     }
     
     /**
@@ -311,7 +288,7 @@ public class GameStateStorageUtil {
      * @param participants the participants to update
      * @throws Exception if there is an issue communicating with the database
      */
-    public CompletableFuture<?> persistScores(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams, Collection<OfflineParticipant> participants) throws Exception {
+    public void persistScores(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams, Collection<OfflineParticipant> participants) throws Exception {
         List<ActiveTeam> activeTeams = teams.stream()
                 .map(team -> {
                     MCTTeamEntity mctTeamEntity = gameState.getTeam(team.getTeamId());
@@ -326,7 +303,7 @@ public class GameStateStorageUtil {
                 })
                 .filter(Objects::nonNull)
                 .toList();
-        return persistScores(activeParticipants, activeTeams);
+        persistScores(activeParticipants, activeTeams);
     }
     
     /**
@@ -334,16 +311,9 @@ public class GameStateStorageUtil {
      * @param activeTeams the teams to commit to the database
      * @throws Exception if there is an issue communicating with the database
      */
-    protected CompletableFuture<?> persistScores(List<ActiveParticipant> activeParticipants, List<ActiveTeam> activeTeams) throws Exception {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                gameStateService.updateActiveParticipants(activeParticipants);
-                gameStateService.updateActiveTeams(activeTeams);
-            } catch (Exception e) {
-                throw new CompletionException("error persisting scores", e);
-            }
-            return null;
-        });
+    protected void persistScores(List<ActiveParticipant> activeParticipants, List<ActiveTeam> activeTeams) throws Exception {
+        gameStateService.updateActiveParticipants(activeParticipants);
+        gameStateService.updateActiveTeams(activeTeams);
     }
     
     /**
@@ -365,17 +335,10 @@ public class GameStateStorageUtil {
      * @param participant the participant to update the score of
      * @throws SQLException if there's an issue communicating with the database
      */
-    public CompletableFuture<?> persistScore(OfflineParticipant participant) throws SQLException {
+    public void persistScore(OfflineParticipant participant) throws SQLException {
         MCTPlayerEntity player = Objects.requireNonNull(gameState.getPlayer(participant.getUniqueId()),
                 "attempted to persist score of non-existent participant");
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                gameStateService.updateActiveParticipant(fromPlayer(player));
-            } catch (Exception e) {
-                throw new CompletionException("error persisting score for player", e);
-            }
-            return null;
-        });
+        gameStateService.updateActiveParticipant(fromPlayer(player));
     }
     
     /**
@@ -396,16 +359,9 @@ public class GameStateStorageUtil {
      * @param mctTeam the team to update the score of
      * @throws SQLException if there's an issue communicating with the database
      */
-    public CompletableFuture<?> persistScore(org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam mctTeam) throws SQLException {
+    public void persistScore(org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam mctTeam) throws SQLException {
         MCTTeamEntity team = gameState.getTeam(mctTeam.getTeamId());
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                gameStateService.updateActiveTeam(fromTeam(team));
-            } catch (Exception e) {
-                throw new CompletionException("error persisting score for team", e);
-            }
-            return null;
-        });
+        gameStateService.updateActiveTeam(fromTeam(team));
     }
     
     /**
@@ -429,16 +385,9 @@ public class GameStateStorageUtil {
      * @param playerUniqueId The UUID for the player
      * @throws ConfigIOException if there is an IO error saving the game state
      */
-    public CompletableFuture<?> leavePlayer(UUID playerUniqueId) throws ConfigIOException, SQLException {
+    public void leavePlayer(UUID playerUniqueId) throws ConfigIOException, SQLException {
         gameState.removePlayer(playerUniqueId);
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                gameStateService.deleteParticipant(playerUniqueId.toString());
-            } catch (Exception e) {
-                throw new CompletionException("error leaving player", e);
-            }
-            return null;
-        });
+        gameStateService.deleteParticipant(playerUniqueId.toString());
     }
     
     public @NotNull NamedTextColor getTeamColor(@NotNull String teamId) {
@@ -496,16 +445,9 @@ public class GameStateStorageUtil {
      * @param adminUniqueId the unique id of the admin
      * @throws ConfigIOException If there is an issue saving the game state
      */
-    public CompletableFuture<?> addAdmin(UUID adminUniqueId) throws ConfigIOException, SQLException {
+    public void addAdmin(UUID adminUniqueId) throws ConfigIOException, SQLException {
         gameState.addAdmin(adminUniqueId);
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                gameStateService.addAdmin(new AdminEntity(adminUniqueId.toString()));
-            } catch (Exception e) {
-                throw new CompletionException("error adding admin", e);
-            }
-            return null;
-        });
+        gameStateService.addAdmin(new AdminEntity(adminUniqueId.toString()));
     }
     
     /**
@@ -513,16 +455,9 @@ public class GameStateStorageUtil {
      * @param adminUniqueId the unique id of the admin
      * @throws ConfigIOException If there is an issue saving the game state
      */
-    public CompletableFuture<?> removeAdmin(UUID adminUniqueId) throws ConfigIOException, SQLException {
+    public void removeAdmin(UUID adminUniqueId) throws ConfigIOException, SQLException {
         gameState.removeAdmin(adminUniqueId);
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                gameStateService.deleteAdmin(adminUniqueId.toString());
-            } catch (Exception e) {
-                throw new CompletionException("error removing admin", e);
-            }
-            return null;
-        });
+        gameStateService.deleteAdmin(adminUniqueId.toString());
     }
     
 }
