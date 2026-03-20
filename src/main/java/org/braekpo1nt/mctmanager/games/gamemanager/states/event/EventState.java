@@ -315,6 +315,7 @@ public abstract class EventState extends GameManagerState {
     
     @Override
     public CommandResult joinParticipantToTeam(@NotNull OfflinePlayer offlinePlayer, @NotNull String ign, @NotNull MCTTeam team) {
+        CommandResult result = super.joinParticipantToTeam(offlinePlayer, ign, team);
         try {
             context.getGameStateService().addParticipant(
                     EventParticipantEntity.builder()
@@ -327,7 +328,7 @@ public abstract class EventState extends GameManagerState {
         } catch (SQLException e) {
             context.reportGameStateException("joining participant to event database", e);
         }
-        return super.joinParticipantToTeam(offlinePlayer, ign, team);
+        return result;
     }
     
     @Override

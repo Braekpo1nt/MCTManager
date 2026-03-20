@@ -289,6 +289,7 @@ public class PracticeState extends GameManagerState {
     
     @Override
     public CommandResult joinParticipantToTeam(@NotNull OfflinePlayer offlinePlayer, @NotNull String ign, @NotNull MCTTeam team) {
+        CommandResult result = super.joinParticipantToTeam(offlinePlayer, ign, team);
         try {
             context.getGameStateService().addParticipant(
                     PracticeParticipantEntity.builder()
@@ -300,7 +301,7 @@ public class PracticeState extends GameManagerState {
         } catch (SQLException e) {
             context.reportGameStateException("joining participant to practice database", e);
         }
-        return super.joinParticipantToTeam(offlinePlayer, ign, team);
+        return result;
     }
     
     @Override

@@ -38,7 +38,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -64,6 +63,7 @@ public class GameManagerUtils {
      */
     public final static List<InventoryAction> INV_REMOVE_ACTIONS = List.of(InventoryAction.DROP_ALL_CURSOR, InventoryAction.DROP_ALL_SLOT, InventoryAction.DROP_ONE_CURSOR, InventoryAction.DROP_ONE_SLOT, InventoryAction.MOVE_TO_OTHER_INVENTORY);
     public static final NamespacedKey IGNORE_TEAM_COLOR = NamespacedKey.minecraft("ignoreteamcolor");
+    
     
     /**
      * returns a list that contains the first place, or first place ties.
@@ -266,6 +266,7 @@ public class GameManagerUtils {
      * @param eventInfo the event to join
      * @return the
      */
+    @Deprecated
     public static CommandResult joinParticipantEvent(Main plugin, @NotNull GameManager gameManager, @NotNull String ign, @NotNull String teamId, @NotNull EventInfo eventInfo) {
         OfflinePlayer playerToJoin = plugin.getServer().getOfflinePlayer(ign);
         return gameManager.joinParticipantToTeamEvent(playerToJoin, ign, teamId, eventInfo);

@@ -136,6 +136,7 @@ public class MaintenanceState extends GameManagerState {
      */
     @Override
     public CommandResult joinParticipantToTeam(@NotNull OfflinePlayer offlinePlayer, @NotNull String ign, @NotNull MCTTeam team) {
+        CommandResult result = super.joinParticipantToTeam(offlinePlayer, ign, team);
         try {
             context.getGameStateService().addParticipant(
                     MaintenanceParticipantEntity.builder()
@@ -147,7 +148,7 @@ public class MaintenanceState extends GameManagerState {
         } catch (SQLException e) {
             context.reportGameStateException("adding participant to maintenance database", e);
         }
-        return super.joinParticipantToTeam(offlinePlayer, ign, team);
+        return result;
     }
     
     @Override

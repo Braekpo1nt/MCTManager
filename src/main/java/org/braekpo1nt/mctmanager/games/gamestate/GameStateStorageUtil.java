@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.gamestate;
 
+import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
@@ -11,6 +12,8 @@ import org.braekpo1nt.mctmanager.database.entities.teams.ActiveTeam;
 import org.braekpo1nt.mctmanager.database.service.GameStateService;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
+import org.braekpo1nt.mctmanager.games.gamestate.states.MaintenanceState;
+import org.braekpo1nt.mctmanager.games.gamestate.states.StorageUtilState;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.ColorAttributes;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
@@ -46,13 +49,24 @@ import java.util.stream.Collectors;
 public class GameStateStorageUtil {
     
     private final Logger LOGGER;
+    @Getter
     private final GameStateService gameStateService;
+    
     protected GameState gameState = new GameState(new HashMap<>(), new HashMap<>(), new ArrayList<>());
+    protected @NotNull StorageUtilState state;
     
     public GameStateStorageUtil(@NotNull Main plugin, @NotNull GameStateService gameStateService) {
         this.LOGGER = plugin.getLogger();
         // Pro Tip: The plugin.getGameManager() is null at this point
         this.gameStateService = gameStateService;
+        this.state = new MaintenanceState(this);
+        state.enter();
+    }
+    
+    public void setState(@NotNull StorageUtilState state) {
+        this.state.exit();
+        this.state = state;
+        this.state.enter();
     }
     
     /**
