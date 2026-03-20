@@ -6,6 +6,7 @@ import com.j256.ormlite.misc.TransactionManager;
 import com.j256.ormlite.stmt.ColumnArg;
 import com.j256.ormlite.stmt.DeleteBuilder;
 import com.j256.ormlite.stmt.QueryBuilder;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
 import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
@@ -133,6 +134,7 @@ public class GameStateService {
     // Practice
     
     public PracticeTeam addTeam(PracticeTeam team) throws SQLException {
+        Main.logf("adding practice team %s", team.getTeamId());
         practiceTeamsDao.create(team);
         return team;
     }
@@ -153,6 +155,7 @@ public class GameStateService {
                     .eq("team_id", teamId);
             deleteBuilder.delete();
             practiceTeamsDao.deleteById(teamId);
+            Main.logf("deleting practice team %s", teamId);
             return true;
         });
     }

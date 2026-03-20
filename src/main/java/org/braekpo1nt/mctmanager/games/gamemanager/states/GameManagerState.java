@@ -103,8 +103,10 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -1388,6 +1390,7 @@ public abstract class GameManagerState {
     public CommandResult removeTeam(String teamId) {
         MCTTeam team = teams.get(teamId);
         if (team == null) {
+            Main.logf("team is null %s", teamId);
             return CommandResult.failure(Component.text("Team ")
                     .append(Component.text(teamId))
                     .append(Component.text(" does not exist.")));
@@ -1399,6 +1402,7 @@ public abstract class GameManagerState {
                 .collect(Collectors.toSet());
         Set<MCTParticipant> onlineMembers = team.getMemberUUIDs().stream()
                 .map(onlineParticipants::get)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
         for (MCTParticipant participant : onlineMembers) {
             onParticipantQuit(participant);
@@ -1438,19 +1442,17 @@ public abstract class GameManagerState {
             Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (removeTeam)", teamId));
         }
         
-        return CommandResult.async(plugin, Component.text("Removing team ")
-                .append(team.getFormattedDisplayName())
-                .append(Component.text("...")), () -> {
-            try {
-                gameStateStorageUtil.removeTeam(teamId);
-                results.add(CommandResult.success(Component.text("Removed team ")
-                        .append(team.getFormattedDisplayName())));
-            } catch (ConfigIOException | SQLException e) {
-                context.reportGameStateException("removing team", e);
-                results.add(CommandResult.failure(Component.text("error occurred removing team, see console for details.")));
-            }
-            return CompositeCommandResult.all(results);
-        });
+        Main.logf("about to return remove team async result %s", teamId);
+        try {
+            Main.logf("actually removing the team in the async result %s", teamId);
+            gameStateStorageUtil.removeTeam(teamId);
+            results.add(CommandResult.success(Component.text("Removed team ")
+                    .append(team.getFormattedDisplayName())));
+        } catch (ConfigIOException | SQLException e) {
+            context.reportGameStateException("removing team", e);
+            results.add(CommandResult.failure(Component.text("error occurred removing team, see console for details.")));
+        }
+        return CompositeCommandResult.all(results);
     }
     // team stop
     
@@ -1490,8 +1492,8 @@ public abstract class GameManagerState {
             Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (joinParticipantToTeam)", team.getTeamId()));
         }
         
-        Component displayName = team.getFormattedDisplayName();
-        OfflineParticipant offlineParticipant = new OfflineParticipant(offlinePlayer.getUniqueId(), ign, displayName, team.getTeamId(), 0);
+        Component participantDisplayName = GameManagerUtils.createDisplayName(ign, team.getColor());
+        OfflineParticipant offlineParticipant = new OfflineParticipant(offlinePlayer.getUniqueId(), ign, participantDisplayName, team.getTeamId(), 0);
         allParticipants.put(offlineParticipant.getUniqueId(), offlineParticipant);
         team.joinMember(offlineParticipant.getUniqueId());
         tabList.joinParticipant(

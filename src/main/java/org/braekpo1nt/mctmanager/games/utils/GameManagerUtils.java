@@ -231,6 +231,7 @@ public class GameManagerUtils {
     public static CommandResult removeTeam(@NotNull GameManager gameManager, @NotNull String teamId) {
         Team existingTeam = gameManager.getTeam(teamId);
         if (existingTeam == null) {
+            Main.logf("Team with ID %s doesn't exist in game manager", teamId);
             return CommandResult.failure(Component.text("Team ")
                     .append(Component.text(teamId)
                             .decorate(TextDecoration.BOLD))
@@ -556,11 +557,13 @@ public class GameManagerUtils {
         
         // check if they want to overwrite or merge the game state
         if (override) {
+            Main.logf("Overriding with preset");
             // remove all existing teams and leave all existing players
             int oldParticipantCount = offlineParticipants.size();
             Set<String> teamIds = gameManager.getTeamIds();
             int oldTeamCount = teamIds.size();
             for (String teamId : teamIds) {
+                Main.logf("attempting to remove team %s", teamId);
                 results.add(removeTeam(gameManager, teamId));
             }
             results.add(CommandResult.success(Component.empty()
