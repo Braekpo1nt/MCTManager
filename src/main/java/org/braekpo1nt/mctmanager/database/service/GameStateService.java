@@ -62,7 +62,7 @@ public class GameStateService {
         
         this.activeTeamsDao = database.getActiveTeamsDao();
         this.activeParticipantsDao = database.getActiveParticipantsDao();
-        this.adminDao = database.getAdminDao();
+        this.adminDao = database.getActiveAdminDao();
         
         this.inGameteamsDao = database.getInGameTeamsDao();
         this.inGameParticipantsDao = database.getInGameParticipantsDao();
