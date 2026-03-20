@@ -12,7 +12,9 @@ import org.braekpo1nt.mctmanager.database.entities.teams.ActiveTeam;
 import org.braekpo1nt.mctmanager.database.service.GameStateService;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
+import org.braekpo1nt.mctmanager.games.gamestate.states.EventState;
 import org.braekpo1nt.mctmanager.games.gamestate.states.MaintenanceState;
+import org.braekpo1nt.mctmanager.games.gamestate.states.PracticeState;
 import org.braekpo1nt.mctmanager.games.gamestate.states.StorageUtilState;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.ColorAttributes;
@@ -64,6 +66,18 @@ public class GameStateStorageUtil {
         this.state.exit();
         this.state = state;
         this.state.enter();
+    }
+    
+    public void maintenanceMode() {
+        setState(new MaintenanceState(this));
+    }
+    
+    public void practiceMode() {
+        setState(new PracticeState(this));
+    }
+    
+    public void eventMode(@NotNull String eventId) {
+        setState(new EventState(this, eventId));
     }
     
     /**
