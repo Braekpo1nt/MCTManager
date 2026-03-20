@@ -60,6 +60,7 @@ public class PracticeState extends GameManagerState {
     @Override
     public void enter() {
         setupSidebar();
+        contextReference.getGameStateStorageUtil().practiceMode();
         PresetConfig presetConfig = config.getPractice().getPreset();
         if (presetConfig != null) {
             CommandResult commandResult = GameManagerUtils.applyPreset(

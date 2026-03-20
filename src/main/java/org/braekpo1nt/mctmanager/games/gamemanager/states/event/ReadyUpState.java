@@ -72,6 +72,7 @@ public class ReadyUpState extends EventState {
     
     @Override
     public void enter() {
+        contextReference.getGameStateStorageUtil().eventMode(eventData.getEventInfo().getEventId());
         context.stopAllGames();
         for (MCTParticipant participant : onlineParticipants.values()) {
             returnParticipantToHub(participant);

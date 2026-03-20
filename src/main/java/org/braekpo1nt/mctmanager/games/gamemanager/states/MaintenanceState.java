@@ -36,6 +36,7 @@ public class MaintenanceState extends GameManagerState {
     @Override
     public void enter() {
         setupSidebar();
+        contextReference.getGameStateStorageUtil().maintenanceMode();
     }
     
     @Override
