@@ -53,6 +53,9 @@ public class MCTDebugCommand implements BrigadierCommand, Listener {
                 .then(Permissioned.literal("futureTest")
                         .executes(BrigadierAdapters.wraps(this::executeFutureTest))
                 )
+                .then(Permissioned.literal("printGameState")
+                        .executes(BrigadierAdapters.wraps(this::executePrintGameState))
+                )
                 .then(Commands.literal("rebuild")
                         .then(Commands.literal("event")
                                 .then(Commands.argument("eventId", new EventInfoArgumentType(gameManager.getEventService()))
@@ -73,6 +76,12 @@ public class MCTDebugCommand implements BrigadierCommand, Listener {
                 )
                 .permissionRoot("mctmanager")
                 .build(plugin.getServer().getPluginManager());
+    }
+    
+    private @NotNull CommandResult executePrintGameState(CommandContext<CommandSourceStack> ctx) {
+        Component gameState = gameManager.printGameState();
+        plugin.getServer().getConsoleSender().sendMessage(gameState);
+        return CommandResult.success(gameState);
     }
     
     private @NotNull CommandResult executeFutureTest(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {

@@ -1,7 +1,5 @@
 package org.braekpo1nt.mctmanager.games.gamestate.states;
 
-import org.braekpo1nt.mctmanager.database.service.GameStateService;
-import org.braekpo1nt.mctmanager.games.gamestate.GameState;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,13 +9,9 @@ import java.util.UUID;
 public abstract class StorageUtilState {
     
     protected final @NotNull GameStateStorageUtil context;
-    protected final @NotNull GameState gameState;
-    protected final @NotNull GameStateService gameStateService;
     
     public StorageUtilState(@NotNull GameStateStorageUtil context) {
         this.context = context;
-        this.gameStateService = context.getGameStateService();
-        this.gameState = context.getGameState();
     }
     
     public abstract void enter();

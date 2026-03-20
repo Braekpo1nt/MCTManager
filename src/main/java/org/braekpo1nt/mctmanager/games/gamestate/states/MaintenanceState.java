@@ -30,48 +30,48 @@ public class MaintenanceState extends StorageUtilState {
     
     @Override
     public void addTeam(String teamId, String teamDisplayName, String color) throws SQLException {
-        MCTTeamEntity team = gameState.addTeam(teamId, teamDisplayName, color);
-        gameStateService.addTeam(GameStateStorageUtil.fromTeam(team));
-        gameStateService.addTeam(team.toMaintenance());
+        MCTTeamEntity team = context.getGameState().addTeam(teamId, teamDisplayName, color);
+        context.getGameStateService().addTeam(GameStateStorageUtil.fromTeam(team));
+        context.getGameStateService().addTeam(team.toMaintenance());
     }
     
     @Override
     public void removeTeam(String teamId) throws SQLException {
         List<UUID> uuidsOnTeam = context.getParticipantUUIDsOnTeam(teamId);
-        gameState.removePlayers(uuidsOnTeam);
-        gameState.removeTeam(teamId);
-        gameStateService.deleteTeam(teamId);
-        gameStateService.deleteMaintenanceTeam(teamId);
+        context.getGameState().removePlayers(uuidsOnTeam);
+        context.getGameState().removeTeam(teamId);
+        context.getGameStateService().deleteTeam(teamId);
+        context.getGameStateService().deleteMaintenanceTeam(teamId);
     }
     
     @Override
     public void addNewPlayer(@NotNull UUID playerToJoin, @NotNull String name, @NotNull String teamId) throws ConfigIOException, SQLException {
-        MCTPlayerEntity player = gameState.addPlayer(playerToJoin, name, teamId);
-        gameStateService.addParticipant(GameStateStorageUtil.fromPlayer(player));
-        gameStateService.addParticipant(player.toMaintenance(), player.getName());
+        MCTPlayerEntity player = context.getGameState().addPlayer(playerToJoin, name, teamId);
+        context.getGameStateService().addParticipant(GameStateStorageUtil.fromPlayer(player));
+        context.getGameStateService().addParticipant(player.toMaintenance(), player.getName());
     }
     
     @Override
     public void leavePlayer(UUID playerUniqueId) throws SQLException {
-        gameState.removePlayer(playerUniqueId);
+        context.getGameState().removePlayer(playerUniqueId);
         String uuid = playerUniqueId.toString();
-        gameStateService.deleteParticipant(uuid);
-        gameStateService.deleteMaintenanceParticipant(uuid);
+        context.getGameStateService().deleteParticipant(uuid);
+        context.getGameStateService().deleteMaintenanceParticipant(uuid);
     }
     
     @Override
     public void addAdmin(UUID adminUniqueId) throws SQLException {
-        gameState.addAdmin(adminUniqueId);
+        context.getGameState().addAdmin(adminUniqueId);
         String uuid = adminUniqueId.toString();
-        gameStateService.addAdmin(new ActiveAdminEntity(uuid));
-        gameStateService.addAdmin(new MaintenanceAdminEntity(uuid));
+        context.getGameStateService().addAdmin(new ActiveAdminEntity(uuid));
+        context.getGameStateService().addAdmin(new MaintenanceAdminEntity(uuid));
     }
     
     @Override
     public void removeAdmin(UUID adminUniqueId) throws SQLException {
-        gameState.removeAdmin(adminUniqueId);
+        context.getGameState().removeAdmin(adminUniqueId);
         String uuid = adminUniqueId.toString();
-        gameStateService.deleteActiveAdmin(uuid);
-        gameStateService.deleteMaintenanceAdmin(uuid);
+        context.getGameStateService().deleteActiveAdmin(uuid);
+        context.getGameStateService().deleteMaintenanceAdmin(uuid);
     }
 }

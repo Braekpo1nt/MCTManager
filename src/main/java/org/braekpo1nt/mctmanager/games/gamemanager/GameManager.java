@@ -1287,6 +1287,10 @@ public class GameManager implements Listener {
     }
     // event end
     
+    public Component printGameState() {
+        return gameStateStorageUtil.printGameState();
+    }
+    
     // Test methods
     public void reportGameStateException(String attemptedOperation, Exception e) {
         Main.logger().severe(String.format("error while %s. See console log for error message.", attemptedOperation));

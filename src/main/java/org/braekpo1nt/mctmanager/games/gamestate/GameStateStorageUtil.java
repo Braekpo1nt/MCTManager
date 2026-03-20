@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.gamestate;
 
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
@@ -91,6 +92,46 @@ public class GameStateStorageUtil {
     public void loadGameState() throws SQLException {
         this.gameState = constructGameStateFromDatabase();
         LOGGER.info("Constructed game state from database");
+    }
+    
+    public Component printGameState() {
+        TextComponent.Builder builder = Component.text();
+        builder.append(Component.text("Teams: "))
+                .append(Component.newline());
+        for (MCTTeamEntity team : gameState.getTeams().values()) {
+            builder
+                    .append(Component.text("--"))
+                    .append(Component.text(team.getName()))
+                    .append(Component.text(", "))
+                    .append(Component.text(team.getScore()))
+                    .append(Component.newline())
+            ;
+            
+        }
+        builder.append(Component.text("Participants: "))
+                .append(Component.newline());
+        for (MCTPlayerEntity player : gameState.getPlayers().values()) {
+            builder
+                    .append(Component.text("-----"))
+                    .append(Component.text(player.getName()))
+                    .append(Component.text(", "))
+                    .append(Component.text(player.getTeamId()))
+                    .append(Component.text(", "))
+                    .append(Component.text(player.getScore()))
+                    .append(Component.newline())
+            ;
+        }
+        
+        builder.append(Component.text("Participants: "))
+                .append(Component.newline());
+        for (UUID admin : gameState.getAdmins()) {
+            builder
+                    .append(Component.text("--"))
+                    .append(Component.text(admin.toString()))
+                    .append(Component.newline())
+            ;
+        }
+        return builder.build();
     }
     
     private @NotNull GameState constructGameStateFromDatabase() throws SQLException {
