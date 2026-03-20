@@ -182,11 +182,18 @@ public class GameStateStorageUtil {
         });
     }
     
-    public void removeTeam(String teamId) throws ConfigIOException, SQLException {
+    public CompletableFuture<?> removeTeam(String teamId) throws ConfigIOException, SQLException {
         List<UUID> uuidsOnTeam = this.getParticipantUUIDsOnTeam(teamId);
         gameState.removePlayers(uuidsOnTeam);
         gameState.removeTeam(teamId);
-        gameStateService.deleteTeam(teamId);
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                gameStateService.deleteTeam(teamId);
+            } catch (SQLException e) {
+                throw new CompletionException("error adding team", e);
+            }
+            return null;
+        });
     }
     
     /**
