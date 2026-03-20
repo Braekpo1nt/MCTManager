@@ -7,13 +7,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-@DatabaseTable(tableName = "admins")
+@DatabaseTable(tableName = "maintenance_admins")
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class AdminEntity {
+public class MaintenanceAdminEntity {
     /**
-     * The UUID of the participant
+     * The UUID of the admin
      */
     @DatabaseField(id = true, columnName = "uuid")
     private @NotNull String uuid;

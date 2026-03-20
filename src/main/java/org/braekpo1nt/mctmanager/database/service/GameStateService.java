@@ -10,7 +10,7 @@ import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
 import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
 import org.braekpo1nt.mctmanager.database.entities.SystemState;
-import org.braekpo1nt.mctmanager.database.entities.admin.AdminEntity;
+import org.braekpo1nt.mctmanager.database.entities.admin.ActiveAdminEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipant;
 import org.braekpo1nt.mctmanager.database.entities.participants.EventParticipantEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.InGameParticipant;
@@ -42,7 +42,7 @@ public class GameStateService {
     
     private final @NotNull Dao<ActiveTeam, String> activeTeamsDao;
     private final @NotNull Dao<ActiveParticipant, String> activeParticipantsDao;
-    private final @NotNull Dao<AdminEntity, String> adminDao;
+    private final @NotNull Dao<ActiveAdminEntity, String> adminDao;
     
     private final @NotNull Dao<InGameTeam, String> inGameteamsDao;
     private final @NotNull Dao<InGameParticipant, String> inGameParticipantsDao;
@@ -488,7 +488,7 @@ public class GameStateService {
     
     // Admins
     
-    public void addAdmin(@NotNull AdminEntity admin) throws SQLException {
+    public void addAdmin(@NotNull ActiveAdminEntity admin) throws SQLException {
         adminDao.create(admin);
     }
     
@@ -496,7 +496,7 @@ public class GameStateService {
         adminDao.deleteById(uuid);
     }
     
-    public List<AdminEntity> getAdmins() throws SQLException {
+    public List<ActiveAdminEntity> getAdmins() throws SQLException {
         return adminDao.queryForAll();
     }
     

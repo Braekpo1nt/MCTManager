@@ -12,7 +12,7 @@ import org.braekpo1nt.mctmanager.database.entities.GameSession;
 import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEventEntity;
 import org.braekpo1nt.mctmanager.database.entities.SystemState;
-import org.braekpo1nt.mctmanager.database.entities.admin.AdminEntity;
+import org.braekpo1nt.mctmanager.database.entities.admin.ActiveAdminEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipant;
 import org.braekpo1nt.mctmanager.database.entities.participants.InGameParticipant;
 import org.braekpo1nt.mctmanager.database.entities.participants.EventParticipantEntity;
@@ -45,7 +45,7 @@ public class Database {
     private final @NotNull Dao<EventParticipantEntity, Integer> eventParticipantsDao;
     private final @NotNull Dao<ActiveParticipant, String> activeParticipantsDao;
     private final @NotNull Dao<InGameParticipant, String> inGameParticipantsDao;
-    private final @NotNull Dao<AdminEntity, String> adminDao;
+    private final @NotNull Dao<ActiveAdminEntity, String> adminDao;
     private final @NotNull Dao<GameSession, Integer> gameSessionDao;
     private final @NotNull Dao<ScoreEventEntity, Integer> scoreEventsDao;
     private final @NotNull Dao<PlayerMetadata, String> playerMetadataDao;
@@ -68,7 +68,7 @@ public class Database {
         this.eventParticipantsDao = DaoManager.createDao(connectionSource, EventParticipantEntity.class);
         this.activeParticipantsDao = DaoManager.createDao(connectionSource, ActiveParticipant.class);
         this.inGameParticipantsDao = DaoManager.createDao(connectionSource, InGameParticipant.class);
-        this.adminDao = DaoManager.createDao(connectionSource, AdminEntity.class);
+        this.adminDao = DaoManager.createDao(connectionSource, ActiveAdminEntity.class);
         this.gameSessionDao = DaoManager.createDao(connectionSource, GameSession.class);
         this.scoreEventsDao = DaoManager.createDao(connectionSource, ScoreEventEntity.class);
         this.playerMetadataDao = DaoManager.createDao(connectionSource, PlayerMetadata.class);

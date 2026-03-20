@@ -6,7 +6,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
-import org.braekpo1nt.mctmanager.database.entities.admin.AdminEntity;
+import org.braekpo1nt.mctmanager.database.entities.admin.ActiveAdminEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipant;
 import org.braekpo1nt.mctmanager.database.entities.teams.ActiveTeam;
 import org.braekpo1nt.mctmanager.database.service.GameStateService;
@@ -96,7 +96,7 @@ public class GameStateStorageUtil {
     private @NotNull GameState constructGameStateFromDatabase() throws SQLException {
         List<ActiveTeam> activeTeams = gameStateService.getActiveTeams();
         List<ActiveParticipant> activeParticipants = gameStateService.getActiveParticipants();
-        List<AdminEntity> adminEntities = gameStateService.getAdmins();
+        List<ActiveAdminEntity> adminEntities = gameStateService.getAdmins();
         return new GameState(toPlayers(activeParticipants), toTeams(activeTeams), toAdmins(adminEntities));
     }
     
@@ -106,7 +106,7 @@ public class GameStateStorageUtil {
                 .collect(Collectors.toMap(MCTTeamEntity::getName, Function.identity()));
     }
     
-    public static List<UUID> toAdmins(List<AdminEntity> adminEntities) {
+    public static List<UUID> toAdmins(List<ActiveAdminEntity> adminEntities) {
         return adminEntities.stream()
                 .map(admin -> UUID.fromString(admin.getUuid()))
                 .collect(Collectors.toCollection(ArrayList::new));
@@ -454,7 +454,7 @@ public class GameStateStorageUtil {
      */
     public void addAdmin(UUID adminUniqueId) throws ConfigIOException, SQLException {
         gameState.addAdmin(adminUniqueId);
-        gameStateService.addAdmin(new AdminEntity(adminUniqueId.toString()));
+        gameStateService.addAdmin(new ActiveAdminEntity(adminUniqueId.toString()));
     }
     
     /**
