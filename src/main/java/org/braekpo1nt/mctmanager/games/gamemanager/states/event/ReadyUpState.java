@@ -68,6 +68,7 @@ public class ReadyUpState extends EventState {
         super(context, contextReference, eventInfo, eventConfig, startingGameNumber, maxGames);
         this.readyUpManager = new ReadyUpManager();
         this.topbar = new ReadyUpTopbar();
+        context.loadGameState();
     }
     
     @Override

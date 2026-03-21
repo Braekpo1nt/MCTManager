@@ -23,21 +23,21 @@ public class ModeCommand implements BrigadierSubCommand {
     public @NotNull Permissioned<CommandSourceStack> create() {
         return Permissioned.literal("mode")
                 .then(Permissioned.argument("mode", new EnumArgumentType<>(Mode.class, Mode.values()))
-                        .executes(BrigadierAdapters.wraps(this::executeMode))
-                        .then(Permissioned.literal("load")
-                                .executes(BrigadierAdapters.wraps(this::executeModeLoad))
-                        )
+                                .executes(BrigadierAdapters.wraps(this::executeMode))
+//                        .then(Permissioned.literal("load")
+//                                .executes(BrigadierAdapters.wraps(this::executeModeLoad))
+//                        )
                 )
                 ;
     }
     
     private @NotNull CommandResult executeMode(@NotNull CommandContext<CommandSourceStack> ctx) {
         Mode mode = ctx.getArgument("mode", Mode.class);
-        return gameManager.switchMode(mode, false);
+        return gameManager.switchMode(mode);
     }
-    
-    private @NotNull CommandResult executeModeLoad(@NotNull CommandContext<CommandSourceStack> ctx) {
-        Mode mode = ctx.getArgument("mode", Mode.class);
-        return gameManager.switchMode(mode, true);
-    }
+
+//    private @NotNull CommandResult executeModeLoad(@NotNull CommandContext<CommandSourceStack> ctx) {
+//        Mode mode = ctx.getArgument("mode", Mode.class);
+//        return gameManager.switchMode(mode, true);
+//    }
 }

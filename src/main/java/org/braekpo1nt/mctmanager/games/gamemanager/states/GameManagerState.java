@@ -106,7 +106,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -183,7 +182,7 @@ public abstract class GameManagerState {
      */
     public abstract void exit();
     
-    public abstract CommandResult switchMode(@NotNull Mode mode, boolean load);
+    public abstract CommandResult switchMode(@NotNull Mode mode);
     
     public abstract @NotNull Mode getMode();
     

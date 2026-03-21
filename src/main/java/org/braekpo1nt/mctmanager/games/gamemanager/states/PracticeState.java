@@ -71,6 +71,7 @@ public class PracticeState extends GameManagerState {
                     presetConfig.isKickUnWhitelisted());
             context.messageAdmins(commandResult.getMessageOrEmpty());
         }
+        context.loadGameState();
     }
     
     @Override
@@ -123,16 +124,11 @@ public class PracticeState extends GameManagerState {
     }
     
     @Override
-    public CommandResult switchMode(@NotNull Mode mode, boolean load) {
+    public CommandResult switchMode(@NotNull Mode mode) {
         switch (mode) {
             case MAINTENANCE -> {
                 practiceManager.cleanup();
                 context.setState(new MaintenanceState(context, contextReference));
-                if (load) {
-                    CommandResult loadResult = context.loadGameState();
-                    return loadResult
-                            .and(CommandResult.success(Component.text("Switched to maintenance mode")));
-                }
                 return CommandResult.success(Component.text("Switched to maintenance mode"));
             }
             case PRACTICE -> {
@@ -204,8 +200,7 @@ public class PracticeState extends GameManagerState {
             EventConfig eventConfig = new EventConfigController(plugin.getDataFolder()).getConfig();
             practiceManager.cleanup();
             context.setState(new ReadyUpState(context, contextReference, eventInfo, eventConfig, maxGames, currentGameNumber));
-            return context.loadGameState()
-                    .and(CommandResult.success(Component.text("Switched to event mode")));
+            return CommandResult.success(Component.text("Switched to event mode"));
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, e.getMessage(), e);
             return CommandResult.failure(Component.text("Can't switch to event mode. Error loading config file. See console for details:\n")

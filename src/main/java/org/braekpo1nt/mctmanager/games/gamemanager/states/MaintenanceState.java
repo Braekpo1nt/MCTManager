@@ -6,23 +6,16 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
-import org.braekpo1nt.mctmanager.database.entities.participants.MaintenanceParticipantEntity;
-import org.braekpo1nt.mctmanager.database.entities.teams.MaintenanceTeam;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
-import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamemanager.Mode;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfigController;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.event.ReadyUpState;
-import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
-import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
-import java.util.Date;
 import java.util.logging.Level;
 
 public class MaintenanceState extends GameManagerState {
@@ -37,6 +30,7 @@ public class MaintenanceState extends GameManagerState {
     public void enter() {
         setupSidebar();
         contextReference.getGameStateStorageUtil().maintenanceMode();
+        context.loadGameState();
     }
     
     @Override
@@ -71,18 +65,13 @@ public class MaintenanceState extends GameManagerState {
     }
     
     @Override
-    public CommandResult switchMode(@NotNull Mode mode, boolean load) {
+    public CommandResult switchMode(@NotNull Mode mode) {
         switch (mode) {
             case MAINTENANCE -> {
                 return CommandResult.success(Component.text("Already in maintenance mode"));
             }
             case PRACTICE -> {
                 context.setState(new PracticeState(context, contextReference));
-                if (load) {
-                    CommandResult loadResult = context.loadGameState();
-                    return loadResult
-                            .and(CommandResult.success(Component.text("Switched to practice mode")));
-                }
                 return CommandResult.success(Component.text("Switched to practice mode"));
             }
             case EVENT -> {
@@ -124,8 +113,7 @@ public class MaintenanceState extends GameManagerState {
         try {
             EventConfig eventConfig = new EventConfigController(plugin.getDataFolder()).getConfig();
             context.setState(new ReadyUpState(context, contextReference, eventInfo, eventConfig, maxGames, currentGameNumber));
-            return context.loadGameState()
-                    .and(CommandResult.success(Component.text("Switched to event mode")));
+            return CommandResult.success(Component.text("Switched to event mode"));
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, e.getMessage(), e);
             return CommandResult.failure(Component.text("Can't switch to event mode. Error loading config file. See console for details:\n")

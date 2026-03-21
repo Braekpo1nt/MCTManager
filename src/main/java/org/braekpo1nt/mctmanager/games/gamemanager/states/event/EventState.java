@@ -7,13 +7,10 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
-import org.braekpo1nt.mctmanager.database.entities.participants.EventParticipantEntity;
-import org.braekpo1nt.mctmanager.database.entities.teams.EventTeam;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
-import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamemanager.Mode;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.EventData;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfig;
@@ -23,7 +20,6 @@ import org.braekpo1nt.mctmanager.games.gamemanager.states.MaintenanceState;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.PracticeState;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
-import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -33,7 +29,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -61,24 +56,14 @@ public abstract class EventState extends GameManagerState {
     }
     
     @Override
-    public CommandResult switchMode(@NotNull Mode mode, boolean load) {
+    public CommandResult switchMode(@NotNull Mode mode) {
         switch (mode) {
             case MAINTENANCE -> {
                 context.setState(new MaintenanceState(context, contextReference));
-                if (load) {
-                    CommandResult loadResult = context.loadGameState();
-                    return loadResult
-                            .and(CommandResult.success(Component.text("Switched to maintenance mode")));
-                }
                 return CommandResult.success(Component.text("Switched to maintenance mode"));
             }
             case PRACTICE -> {
                 context.setState(new PracticeState(context, contextReference));
-                if (load) {
-                    CommandResult loadResult = context.loadGameState();
-                    return loadResult
-                            .and(CommandResult.success(Component.text("Switched to practice mode")));
-                }
                 return CommandResult.success(Component.text("Switched to practice mode"));
             }
             case EVENT -> {
@@ -127,7 +112,7 @@ public abstract class EventState extends GameManagerState {
         } else {
             unsetActiveEventId();
         }
-        return switchMode(Mode.MAINTENANCE, false);
+        return switchMode(Mode.MAINTENANCE);
     }
     
     private void unsetActiveEventId() {

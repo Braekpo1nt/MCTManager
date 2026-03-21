@@ -66,7 +66,7 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
     ));
     
     private final DynamicCommandExceptionType ERROR_MULTIPLE_PLAYERS_WITH_NAME = new DynamicCommandExceptionType(ign -> MessageComponentSerializer.message().serialize(Component.empty()
-            .append(Component.text("A multiple players with the name "))
+            .append(Component.text("Multiple players with the name "))
             .append(Component.text(ign.toString())
                     .decorate(TextDecoration.BOLD))
             .append(Component.text(" exist in the all_players database. Can't use IGN for preset"))
