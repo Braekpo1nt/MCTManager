@@ -270,19 +270,120 @@ public class GameStateService {
      * @throws SQLException if there is an exception
      */
     private void registerParticipantIfNot(@NotNull String uuid, @NotNull String ign) throws SQLException {
+        AllPlayersEntity existingPlayer = allPlayersDao.queryForId(uuid);
+        if (existingPlayer != null) {
+            // correct the ign for the UUID
+            allPlayersDao.createOrUpdate(AllPlayersEntity.builder()
+                    .uuid(uuid)
+                    .ign(ign)
+                    .firstSeenAt(new Date())
+                    .build());
+            playerMetadataDao.createIfNotExists(PlayerMetadata.builder()
+                    .participantUUID(uuid)
+                    .ign(ign)
+                    .discordUsername(null)
+                    .currentTokens(0)
+                    .lifetimeTokens(0)
+                    .percentRank(0.0)
+                    .build());
+            return;
+        }
+        // check if there's a player with the name
+        List<AllPlayersEntity> playersWithName = allPlayersDao.queryForEq("ign", ign);
+        if (playersWithName.isEmpty()) {
+            // if there's no player with that name, create them
+            allPlayersDao.createOrUpdate(AllPlayersEntity.builder()
+                    .uuid(uuid)
+                    .ign(ign)
+                    .firstSeenAt(new Date())
+                    .build());
+            playerMetadataDao.createIfNotExists(PlayerMetadata.builder()
+                    .participantUUID(uuid)
+                    .ign(ign)
+                    .discordUsername(null)
+                    .currentTokens(0)
+                    .lifetimeTokens(0)
+                    .percentRank(0.0)
+                    .build());
+            return;
+        }
+        AllPlayersEntity player = playersWithName.getFirst();
+        String wrongUUID = player.getUuid();
+        if (wrongUUID.equals(uuid)) {
+            return;
+        }
+        // if there's a player with that name but not the right UUID
+        // replace with new uuid in all these tables:
         allPlayersDao.createOrUpdate(AllPlayersEntity.builder()
                 .uuid(uuid)
                 .ign(ign)
                 .firstSeenAt(new Date())
                 .build());
-        playerMetadataDao.createIfNotExists(PlayerMetadata.builder()
-                .participantUUID(uuid)
-                .ign(ign)
-                .discordUsername(null)
-                .currentTokens(0)
-                .lifetimeTokens(0)
-                .percentRank(0.0)
-                .build());
+        migrateFromUUIDToUUID(wrongUUID, uuid);
+        allPlayersDao.deleteById(wrongUUID);
+    }
+    
+    private void migrateFromUUIDToUUID(String from, String to) throws SQLException {
+        // active_admins
+        allPlayersDao.executeRaw("""
+                UPDATE active_admins
+                SET uuid = ?
+                WHERE uuid = ?
+                """, to, from);
+        // maintenance_admins
+        allPlayersDao.executeRaw("""
+                UPDATE maintenance_admins
+                SET uuid = ?
+                WHERE uuid = ?
+                """, to, from);
+        // practice_admins
+        allPlayersDao.executeRaw("""
+                UPDATE practice_admins
+                SET uuid = ?
+                WHERE uuid = ?
+                """, to, from);
+        // event_admins
+        allPlayersDao.executeRaw("""
+                UPDATE event_admins
+                SET uuid = ?
+                WHERE uuid = ?
+                """, to, from);
+        // maintenance_participants
+        allPlayersDao.executeRaw("""
+                UPDATE maintenance_participants
+                SET participant_uuid = ?
+                WHERE participant_uuid = ?
+                """, to, from);
+        // practice_participants
+        allPlayersDao.executeRaw("""
+                UPDATE practice_participants
+                SET participant_uuid = ?
+                WHERE participant_uuid = ?
+                """, to, from);
+        // event_participants
+        allPlayersDao.executeRaw("""
+                UPDATE event_participants
+                SET participant_uuid = ?
+                WHERE participant_uuid = ?
+                """, to, from);
+        // score_events
+        allPlayersDao.executeRaw("""
+                UPDATE score_events
+                SET participant_uuid = ?
+                WHERE participant_uuid = ?
+                """, to, from);
+        // active_participants
+        allPlayersDao.executeRaw("""
+                UPDATE active_participants
+                SET participant_uuid = ?
+                WHERE participant_uuid = ?
+                """, to, from);
+        // player_metadata
+        allPlayersDao.executeRaw("""
+                UPDATE player_metadata
+                SET participant_uuid = ?
+                WHERE participant_uuid = ?
+                """, to, from);
     }
     
     public void registerParticipantIfNotRegistered(@NotNull AllPlayersEntity allPlayersEntity, @NotNull PlayerMetadata playerMetadata) throws SQLException {
