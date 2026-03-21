@@ -270,59 +270,68 @@ public class GameStateService {
      * @throws SQLException if there is an exception
      */
     private void registerParticipantIfNot(@NotNull String uuid, @NotNull String ign) throws SQLException {
-        AllPlayersEntity existingPlayer = allPlayersDao.queryForId(uuid);
-        if (existingPlayer != null) {
-            // correct the ign for the UUID
+        TransactionManager.callInTransaction(activeParticipantsDao.getConnectionSource(), () -> {
+            AllPlayersEntity existingPlayer = allPlayersDao.queryForId(uuid);
+            if (existingPlayer != null) {
+                // correct the ign for the UUID
+                allPlayersDao.createOrUpdate(AllPlayersEntity.builder()
+                        .uuid(uuid)
+                        .ign(ign)
+                        .firstSeenAt(new Date())
+                        .build());
+                playerMetadataDao.createIfNotExists(PlayerMetadata.builder()
+                        .participantUUID(uuid)
+                        .ign(ign)
+                        .discordUsername(null)
+                        .currentTokens(0)
+                        .lifetimeTokens(0)
+                        .percentRank(0.0)
+                        .build());
+                return null;
+            }
+            // check if there's a player with the name
+            List<AllPlayersEntity> playersWithName = allPlayersDao.queryForEq("ign", ign);
+            if (playersWithName.isEmpty()) {
+                // if there's no player with that name, create them
+                allPlayersDao.createOrUpdate(AllPlayersEntity.builder()
+                        .uuid(uuid)
+                        .ign(ign)
+                        .firstSeenAt(new Date())
+                        .build());
+                playerMetadataDao.createIfNotExists(PlayerMetadata.builder()
+                        .participantUUID(uuid)
+                        .ign(ign)
+                        .discordUsername(null)
+                        .currentTokens(0)
+                        .lifetimeTokens(0)
+                        .percentRank(0.0)
+                        .build());
+                return null;
+            }
+            AllPlayersEntity player = playersWithName.getFirst();
+            String wrongUUID = player.getUuid();
+            if (wrongUUID.equals(uuid)) {
+                return null;
+            }
+            // if there's a player with that name but not the right UUID
+            // replace with new uuid in all these tables:
             allPlayersDao.createOrUpdate(AllPlayersEntity.builder()
                     .uuid(uuid)
                     .ign(ign)
                     .firstSeenAt(new Date())
                     .build());
-            playerMetadataDao.createIfNotExists(PlayerMetadata.builder()
-                    .participantUUID(uuid)
-                    .ign(ign)
-                    .discordUsername(null)
-                    .currentTokens(0)
-                    .lifetimeTokens(0)
-                    .percentRank(0.0)
-                    .build());
-            return;
-        }
-        // check if there's a player with the name
-        List<AllPlayersEntity> playersWithName = allPlayersDao.queryForEq("ign", ign);
-        if (playersWithName.isEmpty()) {
-            // if there's no player with that name, create them
-            allPlayersDao.createOrUpdate(AllPlayersEntity.builder()
-                    .uuid(uuid)
-                    .ign(ign)
-                    .firstSeenAt(new Date())
-                    .build());
-            playerMetadataDao.createIfNotExists(PlayerMetadata.builder()
-                    .participantUUID(uuid)
-                    .ign(ign)
-                    .discordUsername(null)
-                    .currentTokens(0)
-                    .lifetimeTokens(0)
-                    .percentRank(0.0)
-                    .build());
-            return;
-        }
-        AllPlayersEntity player = playersWithName.getFirst();
-        String wrongUUID = player.getUuid();
-        if (wrongUUID.equals(uuid)) {
-            return;
-        }
-        // if there's a player with that name but not the right UUID
-        // replace with new uuid in all these tables:
-        allPlayersDao.createOrUpdate(AllPlayersEntity.builder()
-                .uuid(uuid)
-                .ign(ign)
-                .firstSeenAt(new Date())
-                .build());
-        migrateFromUUIDToUUID(wrongUUID, uuid);
-        allPlayersDao.deleteById(wrongUUID);
+            migrateFromUUIDToUUID(wrongUUID, uuid);
+            allPlayersDao.deleteById(wrongUUID);
+            return null;
+        });
     }
     
+    /**
+     * Make all references to the wrong uuid reference the correct uuid
+     * @param from the wrong uuid
+     * @param to the correct uuid
+     * @throws SQLException if there's a database error
+     */
     private void migrateFromUUIDToUUID(String from, String to) throws SQLException {
         // active_admins
         allPlayersDao.executeRaw("""
