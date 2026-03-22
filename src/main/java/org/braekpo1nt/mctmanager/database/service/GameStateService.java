@@ -6,6 +6,7 @@ import com.j256.ormlite.misc.TransactionManager;
 import com.j256.ormlite.stmt.ColumnArg;
 import com.j256.ormlite.stmt.DeleteBuilder;
 import com.j256.ormlite.stmt.QueryBuilder;
+import com.j256.ormlite.stmt.UpdateBuilder;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
@@ -337,6 +338,11 @@ public class GameStateService {
      */
     private void _migrateFromUUIDToUUID(String from, String to, String ign) throws SQLException {
         // create a new row with the correct uuid (or update the existing row to reflect the correct IGN)
+        UpdateBuilder<AllPlayersEntity, String> updateBuilder = allPlayersDao.updateBuilder();
+        updateBuilder.where()
+                .idEq(from);
+        updateBuilder.updateColumnValue("ign", "****invalid****//");
+        updateBuilder.update();
         allPlayersDao.createOrUpdate(AllPlayersEntity.builder()
                 .uuid(to)
                 .ign(ign)
@@ -393,6 +399,12 @@ public class GameStateService {
         // active_participants
         allPlayersDao.executeRaw("""
                 UPDATE active_participants
+                SET participant_uuid = ?
+                WHERE participant_uuid = ?
+                """, to, from);
+        // in_game_participants
+        allPlayersDao.executeRaw("""
+                UPDATE in_game_participants
                 SET participant_uuid = ?
                 WHERE participant_uuid = ?
                 """, to, from);
