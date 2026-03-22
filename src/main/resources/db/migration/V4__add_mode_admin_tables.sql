@@ -1,5 +1,5 @@
 -- add mode admin tables
-RENAME TABLE admins TO active_admins;
+ALTER TABLE admins RENAME TO active_admins;
 
 CREATE TABLE maintenance_admins (
     uuid    CHAR(36) PRIMARY KEY,
