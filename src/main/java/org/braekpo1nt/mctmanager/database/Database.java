@@ -55,10 +55,12 @@ public class Database {
     private final @NotNull Dao<GameSession, Integer> gameSessionDao;
     private final @NotNull Dao<ScoreEventEntity, Integer> scoreEventsDao;
     private final @NotNull Dao<PlayerMetadata, String> playerMetadataDao;
+    private final @NotNull ConnectionSource connectionSource;
     
     private Database(@NotNull ConnectionSource connectionSource) throws SQLException {
         // flyway creates the tables, no need for TableUtils:
 //        TableUtils.createTableIfNotExists(connectionSource, EventInfo.class);
+        this.connectionSource = connectionSource;
         
         // Create the DAOs
         this.allPlayersDao = DaoManager.createDao(connectionSource, AllPlayersEntity.class);
@@ -112,6 +114,14 @@ public class Database {
     
     public Database(String sqlitePath) throws SQLException {
         this(new JdbcConnectionSource("jdbc:sqlite:" + sqlitePath));
+    }
+    
+    public static Database createInMemorySQLite() throws SQLException {
+        return new Database(new JdbcConnectionSource("jdbc:sqlite::memory:"));
+    }
+    
+    public void close() throws Exception {
+        connectionSource.close();
     }
     
     /**

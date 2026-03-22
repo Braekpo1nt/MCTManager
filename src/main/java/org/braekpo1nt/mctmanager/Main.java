@@ -210,13 +210,17 @@ public class Main extends JavaPlugin {
     
     protected void flywayMigration(String jdbcUrl, String user, String password, String engine, String autoincrement) throws SQLException {
         String mode = getConfig().getString("database.mode", "prod");
+        Main.flywayMigration(jdbcUrl, user, password, engine, autoincrement, mode, getLogger(), getClass().getClassLoader());
+    }
+    
+    public static void flywayMigration(String jdbcUrl, String user, String password, String engine, String autoincrement, String mode, Logger logger, ClassLoader classLoader) throws SQLException {
         try {
             switch (mode) {
                 case "test" -> {
-                    getLogger().info("Initiating flyway migration for test environments");
+                    logger.info("Initiating flyway migration for test environments");
                     // include getClass().getClassLoader() for the love of all that's good and holy, 
                     // or flyway won't find your migrations
-                    Flyway flyway = Flyway.configure(getClass().getClassLoader())
+                    Flyway flyway = Flyway.configure(classLoader)
                             .dataSource(jdbcUrl, user, password)
                             .locations("classpath:db/migration") // migration folder
                             .validateOnMigrate(false) // don't block if scripts change
@@ -228,16 +232,16 @@ public class Main extends JavaPlugin {
                             .load();
                     ValidateResult validateResult = flyway.validateWithResult();
                     if (!validateResult.validationSuccessful) {
-                        getLogger().warning("Flyway validation failed in test environment. Cleaning the database.");
+                        logger.warning("Flyway validation failed in test environment. Cleaning the database.");
                         flyway.clean();
                     }
                     flyway.migrate();
                 }
                 case "prod" -> {
-                    getLogger().info("Initiating flyway migration for production (prod) environments");
+                    logger.info("Initiating flyway migration for production (prod) environments");
                     // include getClass().getClassLoader() for the love of all that's good and holy, 
                     // or flyway won't find your migrations
-                    Flyway flyway = Flyway.configure(getClass().getClassLoader())
+                    Flyway flyway = Flyway.configure(classLoader)
                             .dataSource(jdbcUrl, user, password)
                             .locations("classpath:db/migration") // migration folder
                             .validateOnMigrate(true)
@@ -250,7 +254,7 @@ public class Main extends JavaPlugin {
                     flyway.migrate();
                 }
                 default -> {
-                    getLogger().severe("database.mode not set in config.yml. Should be one of \"test\" or \"prod\". Unclear how to proceed");
+                    logger.severe("database.mode not set in config.yml. Should be one of \"test\" or \"prod\". Unclear how to proceed");
                     throw new SQLException("Mis-configured database.mode in config.yml. Should be one of \"test\" or \"prod\".");
                 }
             }
@@ -258,7 +262,7 @@ public class Main extends JavaPlugin {
         } catch (FlywayException e) {
             throw new SQLException("An error occurred applying the flyway migration", e);
         }
-        getLogger().info("Flyway migrations applied successfully");
+        logger.info("Flyway migrations applied successfully");
     }
     
     protected void registerCommands(@NotNull BlockEffectsListener blockEffectsListener) {
