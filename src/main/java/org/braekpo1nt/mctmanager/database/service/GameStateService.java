@@ -317,13 +317,14 @@ public class GameStateService {
             }
             // if there's a player with the right name but the wrong UUID,
             // replace with new UUID in all these tables:
-            allPlayersDao.createOrUpdate(AllPlayersEntity.builder()
-                    .uuid(uuid)
-                    .ign(ign)
-                    .firstSeenAt(new Date())
-                    .build());
-            migrateFromUUIDToUUID(wrongUUID, uuid);
-            allPlayersDao.deleteById(wrongUUID);
+            _migrateFromUUIDToUUID(wrongUUID, uuid, ign);
+            return null;
+        });
+    }
+    
+    public void migrateFromUUIDToUUID(String from, String to, String ign) throws SQLException {
+        TransactionManager.callInTransaction(allPlayersDao.getConnectionSource(), () -> {
+            _migrateFromUUIDToUUID(from, to, ign);
             return null;
         });
     }
@@ -334,7 +335,13 @@ public class GameStateService {
      * @param to the correct uuid
      * @throws SQLException if there's a database error
      */
-    private void migrateFromUUIDToUUID(String from, String to) throws SQLException {
+    private void _migrateFromUUIDToUUID(String from, String to, String ign) throws SQLException {
+        // create a new row with the correct uuid (or update the existing row to reflect the correct IGN)
+        allPlayersDao.createOrUpdate(AllPlayersEntity.builder()
+                .uuid(to)
+                .ign(ign)
+                .firstSeenAt(new Date())
+                .build());
         // active_admins
         allPlayersDao.executeRaw("""
                 UPDATE active_admins
@@ -395,6 +402,8 @@ public class GameStateService {
                 SET participant_uuid = ?
                 WHERE participant_uuid = ?
                 """, to, from);
+        // now that all references to the old UUID are removed, delete the old entry
+        allPlayersDao.deleteById(from);
     }
     
     public void registerParticipantIfNotRegistered(@NotNull AllPlayersEntity allPlayersEntity, @NotNull PlayerMetadata playerMetadata) throws SQLException {

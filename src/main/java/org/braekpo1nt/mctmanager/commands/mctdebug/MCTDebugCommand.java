@@ -48,10 +48,21 @@ public class MCTDebugCommand implements BrigadierCommand, Listener {
     public LiteralCommandNode<CommandSourceStack> build() {
         return Permissioned.literal("mctdebug")
                 .executes(BrigadierAdapters.wraps(this::executeDebug))
-                .then(Permissioned.literal("add")
-                        .then(Permissioned.argument("uuid", StringArgumentType.word())
-                                .then(Permissioned.argument("ign", StringArgumentType.word())
-                                        .executes(BrigadierAdapters.wraps(this::executeAddUUIDAndIGN))
+                .then(Permissioned.literal("all_players")
+                        .then(Permissioned.literal("add")
+                                .then(Permissioned.argument("uuid", StringArgumentType.word())
+                                        .then(Permissioned.argument("ign", StringArgumentType.word())
+                                                .executes(BrigadierAdapters.wraps(this::executeAddUUIDAndIGN))
+                                        )
+                                )
+                        )
+                        .then(Permissioned.literal("migrate")
+                                .then(Permissioned.argument("fromUUID", StringArgumentType.word())
+                                        .then(Permissioned.argument("toUUID", StringArgumentType.word())
+                                                .then(Permissioned.argument("ign", StringArgumentType.word())
+                                                        .executes(BrigadierAdapters.wraps(this::executeMigrate))
+                                                )
+                                        )
                                 )
                         )
                 )
@@ -78,6 +89,18 @@ public class MCTDebugCommand implements BrigadierCommand, Listener {
                 )
                 .permissionRoot("mctmanager")
                 .build(plugin.getServer().getPluginManager());
+    }
+    
+    private @NotNull CommandResult executeMigrate(CommandContext<CommandSourceStack> ctx) {
+        String fromUuid = ctx.getArgument("fromUUID", String.class);
+        String toUuid = ctx.getArgument("toUUID", String.class);
+        String ign = ctx.getArgument("ign", String.class);
+        try {
+            gameManager.getGameStateService().migrateFromUUIDToUUID(fromUuid, toUuid, ign);
+        } catch (SQLException e) {
+            return CommandResult.sqlException("migrate player uuid", e);
+        }
+        return CommandResult.success(Component.text("Migration successful"));
     }
     
     private @NotNull CommandResult executePrintGameState(CommandContext<CommandSourceStack> ctx) {
