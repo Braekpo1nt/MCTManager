@@ -370,38 +370,21 @@ public class GameManager implements Listener {
     
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        if (isAdmin(player.getUniqueId())) {
-            state.onAdminJoin(event, player);
-            return;
-        }
-        OfflineParticipant offlineParticipant = allParticipants.get(player.getUniqueId());
-        if (offlineParticipant != null) {
-            MCTParticipant participant = new MCTParticipant(offlineParticipant, player);
-            state.onParticipantJoin(event, participant);
-            return;
-        }
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            String uuidStr = player.getUniqueId().toString();
-            try {
-                gameStateService.registerParticipantIfNotRegistered(
-                        AllPlayersEntity.builder()
-                                .uuid(uuidStr)
-                                .ign(player.getName())
-                                .firstSeenAt(new Date())
-                                .build(),
-                        PlayerMetadata.builder()
-                                .participantUUID(uuidStr)
-                                .ign(player.getName())
-                                .discordUsername(null)
-                                .currentTokens(0)
-                                .lifetimeTokens(0)
-                                .percentRank(0.0)
-                                .build()
-                );
-            } catch (SQLException e) {
-                reportGameStateException("trying to create a new player in the database", e);
-            }
+            // make sure this player is in the all_players database with the appropriate UUID/ign pairing
+            // once that's resolved, actually load the player in
+            plugin.getServer().getScheduler().runTask(plugin, () -> {
+                Player player = event.getPlayer();
+                if (isAdmin(player.getUniqueId())) {
+                    state.onAdminJoin(event, player);
+                    return;
+                }
+                OfflineParticipant offlineParticipant = allParticipants.get(player.getUniqueId());
+                if (offlineParticipant != null) {
+                    MCTParticipant participant = new MCTParticipant(offlineParticipant, player);
+                    state.onParticipantJoin(event, participant);
+                }
+            });
         });
     }
     

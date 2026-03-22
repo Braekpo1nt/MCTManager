@@ -70,7 +70,6 @@ public class GameState {
      */
     public MCTPlayerEntity addPlayer(@NotNull UUID playerUniqueId, @NotNull String name, @NotNull String teamId) {
         MCTPlayerEntity newPlayer = new MCTPlayerEntity(playerUniqueId, name, 0, teamId);
-        Main.logf("GameState.addPlayer(%s)", name);
         players.put(playerUniqueId, newPlayer);
         return newPlayer;
     }
