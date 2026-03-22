@@ -277,7 +277,7 @@ public class GameStateService {
                 allPlayersDao.createOrUpdate(AllPlayersEntity.builder()
                         .uuid(uuid)
                         .ign(ign)
-                        .firstSeenAt(new Date())
+                        .firstSeenAt(existingPlayer.getFirstSeenAt())
                         .build());
                 playerMetadataDao.createIfNotExists(PlayerMetadata.builder()
                         .participantUUID(uuid)
@@ -289,7 +289,8 @@ public class GameStateService {
                         .build());
                 return null;
             }
-            // check if there's a player with the name
+            // if there's no player with that uuid,
+            // check if there's a player with that name
             List<AllPlayersEntity> playersWithName = allPlayersDao.queryForEq("ign", ign);
             if (playersWithName.isEmpty()) {
                 // if there's no player with that name, create them
@@ -311,10 +312,11 @@ public class GameStateService {
             AllPlayersEntity player = playersWithName.getFirst();
             String wrongUUID = player.getUuid();
             if (wrongUUID.equals(uuid)) {
+                // if the UUID is correct, we're good
                 return null;
             }
-            // if there's a player with that name but not the right UUID
-            // replace with new uuid in all these tables:
+            // if there's a player with the right name but the wrong UUID,
+            // replace with new UUID in all these tables:
             allPlayersDao.createOrUpdate(AllPlayersEntity.builder()
                     .uuid(uuid)
                     .ign(ign)
