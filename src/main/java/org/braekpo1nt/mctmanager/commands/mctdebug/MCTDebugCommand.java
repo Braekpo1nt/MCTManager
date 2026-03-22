@@ -1,35 +1,33 @@
 package org.braekpo1nt.mctmanager.commands.mctdebug;
 
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
-import io.papermc.paper.command.brigadier.MessageComponentSerializer;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.commands.argumenttypes.EnumArgumentType;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoArgumentType;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoResolver;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
+import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
 import org.braekpo1nt.mctmanager.database.service.ScoreService;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
-import org.braekpo1nt.mctmanager.games.gamemanager.Mode;
-import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 /**
@@ -50,8 +48,12 @@ public class MCTDebugCommand implements BrigadierCommand, Listener {
     public LiteralCommandNode<CommandSourceStack> build() {
         return Permissioned.literal("mctdebug")
                 .executes(BrigadierAdapters.wraps(this::executeDebug))
-                .then(Permissioned.literal("futureTest")
-                        .executes(BrigadierAdapters.wraps(this::executeFutureTest))
+                .then(Permissioned.literal("add")
+                        .then(Permissioned.argument("uuid", StringArgumentType.word())
+                                .then(Permissioned.argument("ign", StringArgumentType.word())
+                                        .executes(BrigadierAdapters.wraps(this::executeAddUUIDAndIGN))
+                                )
+                        )
                 )
                 .then(Permissioned.literal("printGameState")
                         .executes(BrigadierAdapters.wraps(this::executePrintGameState))
@@ -84,40 +86,31 @@ public class MCTDebugCommand implements BrigadierCommand, Listener {
         return CommandResult.success(gameState);
     }
     
-    private @NotNull CommandResult executeFutureTest(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-        return CommandResult.async(plugin, asyncOperation(), this::syncOperation);
+    private @NotNull CommandResult executeAddUUIDAndIGN(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        String uuid = ctx.getArgument("uuid", String.class);
+        String ign = ctx.getArgument("ign", String.class);
+        try {
+            gameManager.getGameStateService().registerParticipantIfNotRegistered(
+                    AllPlayersEntity.builder()
+                            .uuid(uuid)
+                            .ign(ign)
+                            .firstSeenAt(new Date())
+                            .build(),
+                    PlayerMetadata.builder()
+                            .participantUUID(uuid)
+                            .ign(ign)
+                            .discordUsername(null)
+                            .currentTokens(0)
+                            .lifetimeTokens(0)
+                            .percentRank(0.0)
+                            .build()
+            );
+        } catch (SQLException e) {
+            return CommandResult.sqlException("registering uuid and ign", e);
+        }
+        return CommandResult.success(Component.text("Done"));
     }
     
-    private CompletableFuture<CommandResult> asyncOperation() {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                callDatabaseTask();
-            } catch (SQLException e) {
-                return CommandResult.sqlException("call db task", e);
-            }
-            return CommandResult.success(Component.text("async op success"));
-        });
-    }
-    
-    private CommandResult syncOperation() {
-        callTaskThatUsesBukkitAPIButMustHappenAfterDatabaseTaskCompletes();
-        return CommandResult.success(Component.text("sync op success"));
-    }
-    
-    private void callDatabaseTask() throws SQLException {
-        gameManager.getGameStateService().getAllPracticeTeams().forEach(practiceTeam -> {
-            Main.logger().info("TeamId: " + practiceTeam.getTeamId());
-        });
-    }
-    
-    private void callTaskThatUsesBukkitAPIButMustHappenAfterDatabaseTaskCompletes() {
-        gameManager.getOnlineParticipants().forEach(participant -> participant.teleport(new Location(
-                participant.getLocation().getWorld(),
-                participant.getLocation().getX(),
-                participant.getLocation().getY() + 5,
-                participant.getLocation().getZ()
-        )));
-    }
     
     private @NotNull CommandResult executeTotals(CommandContext<CommandSourceStack> ctx) {
         int sessionId = ctx.getArgument("sessionId", Integer.class);
