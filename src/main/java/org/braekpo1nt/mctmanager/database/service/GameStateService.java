@@ -348,7 +348,22 @@ public class GameStateService {
                 .ign(ign)
                 .firstSeenAt(new Date())
                 .build());
+        
+        /*
+        The delete statements are so that if the new IGN already exists, we just
+        delete the incorrect old IGN and leave the correct new one
+         */
+        
         // active_admins
+        allPlayersDao.executeRaw("""
+                DELETE FROM active_admins
+                WHERE uuid = ?
+                AND EXISTS (
+                    SELECT 1
+                    FROM active_admins
+                    WHERE uuid = ?
+                )
+                """, from, to);
         allPlayersDao.executeRaw("""
                 UPDATE active_admins
                 SET uuid = ?
@@ -356,11 +371,29 @@ public class GameStateService {
                 """, to, from);
         // maintenance_admins
         allPlayersDao.executeRaw("""
+                DELETE FROM maintenance_admins
+                WHERE uuid = ?
+                AND EXISTS (
+                    SELECT 1
+                    FROM maintenance_admins
+                    WHERE uuid = ?
+                )
+                """, from, to);
+        allPlayersDao.executeRaw("""
                 UPDATE maintenance_admins
                 SET uuid = ?
                 WHERE uuid = ?
                 """, to, from);
         // practice_admins
+        allPlayersDao.executeRaw("""
+                DELETE FROM practice_admins
+                WHERE uuid = ?
+                AND EXISTS (
+                    SELECT 1
+                    FROM practice_admins
+                    WHERE uuid = ?
+                )
+                """, from, to);
         allPlayersDao.executeRaw("""
                 UPDATE practice_admins
                 SET uuid = ?
@@ -368,11 +401,29 @@ public class GameStateService {
                 """, to, from);
         // event_admins
         allPlayersDao.executeRaw("""
+                DELETE FROM event_admins
+                WHERE uuid = ?
+                AND EXISTS (
+                    SELECT 1
+                    FROM event_admins
+                    WHERE uuid = ?
+                )
+                """, from, to);
+        allPlayersDao.executeRaw("""
                 UPDATE event_admins
                 SET uuid = ?
                 WHERE uuid = ?
                 """, to, from);
         // maintenance_participants
+        allPlayersDao.executeRaw("""
+                DELETE FROM maintenance_participants
+                WHERE participant_uuid = ?
+                AND EXISTS (
+                    SELECT 1
+                    FROM maintenance_participants
+                    WHERE participant_uuid = ?
+                )
+                """, from, to);
         allPlayersDao.executeRaw("""
                 UPDATE maintenance_participants
                 SET participant_uuid = ?
@@ -380,17 +431,36 @@ public class GameStateService {
                 """, to, from);
         // practice_participants
         allPlayersDao.executeRaw("""
+                DELETE FROM practice_participants
+                WHERE participant_uuid = ?
+                AND EXISTS (
+                    SELECT 1
+                    FROM practice_participants
+                    WHERE participant_uuid = ?
+                )
+                """, from, to);
+        allPlayersDao.executeRaw("""
                 UPDATE practice_participants
                 SET participant_uuid = ?
                 WHERE participant_uuid = ?
                 """, to, from);
         // event_participants
         allPlayersDao.executeRaw("""
+                DELETE FROM event_participants
+                WHERE participant_uuid = ?
+                AND EXISTS (
+                    SELECT 1
+                    FROM event_participants
+                    WHERE participant_uuid = ?
+                )
+                """, from, to);
+        allPlayersDao.executeRaw("""
                 UPDATE event_participants
                 SET participant_uuid = ?
                 WHERE participant_uuid = ?
                 """, to, from);
         // score_events
+        // primary key is not participant_uuid, so there can be duplicates, so simply migrate
         allPlayersDao.executeRaw("""
                 UPDATE score_events
                 SET participant_uuid = ?
@@ -398,17 +468,44 @@ public class GameStateService {
                 """, to, from);
         // active_participants
         allPlayersDao.executeRaw("""
+                DELETE FROM active_participants
+                WHERE participant_uuid = ?
+                AND EXISTS (
+                    SELECT 1
+                    FROM active_participants
+                    WHERE participant_uuid = ?
+                )
+                """, from, to);
+        allPlayersDao.executeRaw("""
                 UPDATE active_participants
                 SET participant_uuid = ?
                 WHERE participant_uuid = ?
                 """, to, from);
         // in_game_participants
         allPlayersDao.executeRaw("""
+                DELETE FROM in_game_participants
+                WHERE participant_uuid = ?
+                AND EXISTS (
+                    SELECT 1
+                    FROM in_game_participants
+                    WHERE participant_uuid = ?
+                )
+                """, from, to);
+        allPlayersDao.executeRaw("""
                 UPDATE in_game_participants
                 SET participant_uuid = ?
                 WHERE participant_uuid = ?
                 """, to, from);
         // player_metadata
+        allPlayersDao.executeRaw("""
+                DELETE FROM player_metadata
+                WHERE participant_uuid = ?
+                AND EXISTS (
+                    SELECT 1
+                    FROM player_metadata
+                    WHERE participant_uuid = ?
+                )
+                """, from, to);
         allPlayersDao.executeRaw("""
                 UPDATE player_metadata
                 SET participant_uuid = ?
