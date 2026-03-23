@@ -35,6 +35,7 @@ record EventConfigDTO(
         Component title,
         double[] multipliers,
         boolean shouldDisplayGameNumber,
+        boolean weightedVoting,
         @Nullable Map<GameType, String> gameConfigs,
         @SerializedName(value = "finaleConfig", alternate = {"colossalCombatConfig"}) @Nullable String finaleConfig,
         Tips tips,
@@ -91,6 +92,7 @@ record EventConfigDTO(
                 .votingDuration(this.durations.voting)
                 .startingGameDuration(this.durations.startingGame)
                 .backToHubDuration(this.durations.backToHub)
+                .weightedVoting(this.weightedVoting)
                 .multipliers(this.multipliers)
                 .tips(TipDTO.toTips(this.tips.getTips()))
                 .tipsDisplayTime(this.tips.getDisplayTime())

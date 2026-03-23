@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
+import org.braekpo1nt.mctmanager.games.gamemanager.event.EventData;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
@@ -35,7 +36,6 @@ import java.util.function.BiConsumer;
 public class VoteManager implements Listener {
     
     private final Component NETHER_STAR_NAME = Component.text("Vote");
-    
     private final Map<UUID, GameType> votes = new HashMap<>();
     private final Map<UUID, Participant> voters = new HashMap<>();
     private final Map<UUID, ChestGui> guis;
@@ -308,25 +308,71 @@ public class VoteManager implements Listener {
     }
     
     public void executeVote() {
-        HandlerList.unregisterAll(this);
-        paused = false;
-        GameType gameType = getVotedForGame();
-        Audience.audience(
-                voters.values()
-        ).showTitle(UIUtils.defaultTitle(
-                Component.empty()
-                        .append(Component.text(gameType.getTitle()))
-                        .color(NamedTextColor.BLUE),
-                Component.empty()
-        ));
-        for (Participant voter : voters.values()) {
-            resetParticipant(voter);
+        if(true) {
+            HandlerList.unregisterAll(this);
+            paused = false;
+            
+            Random random = new Random();
+            ArrayList<UUID> votesKeys = new ArrayList<>(votes.keySet());
+            int votesKeysLength = votesKeys.size();
+            int randomVoteIter;
+            int randomSelection;
+            for (randomVoteIter = 0; randomVoteIter < votesKeysLength; ++randomVoteIter) {
+                if (randomVoteIter < votesKeysLength - 5) {
+                    randomSelection = random.nextInt(votesKeys.size());
+                    // Leaving space to do fun displays
+                    votesKeys.remove(randomSelection);
+                } else if (randomVoteIter < votesKeysLength - 1) {
+                    // When displaying, can slow down time between display starting here
+                    randomSelection = random.nextInt(votesKeys.size());
+                    // Leaving space to do fun displays
+                    votesKeys.remove(randomSelection);
+                } else {
+                    GameType gameType = votes.get(votesKeys.getFirst());
+                    Audience.audience(
+                            voters.values()
+                    ).showTitle(UIUtils.defaultTitle(
+                            Component.empty()
+                                    .append(Component.text(gameType.getTitle()))
+                                    .color(NamedTextColor.BLUE),
+                            Component.empty()
+                    ));
+                    for (Participant voter : voters.values()) {
+                        resetParticipant(voter);
+                    }
+                    votes.clear();
+                    voters.clear();
+                    guis.clear();
+                    guiItems.clear();
+                    executeMethod.accept(gameType, "default.json");
+                    votesKeys.removeFirst();
+                }
+            }
         }
-        votes.clear();
-        voters.clear();
-        guis.clear();
-        guiItems.clear();
-        executeMethod.accept(gameType, "default.json");
+        
+        else {
+            
+            
+            HandlerList.unregisterAll(this);
+            paused = false;
+            GameType gameType = getVotedForGame();
+            Audience.audience(
+                    voters.values()
+            ).showTitle(UIUtils.defaultTitle(
+                    Component.empty()
+                            .append(Component.text(gameType.getTitle()))
+                            .color(NamedTextColor.BLUE),
+                    Component.empty()
+            ));
+            for (Participant voter : voters.values()) {
+                resetParticipant(voter);
+            }
+            votes.clear();
+            voters.clear();
+            guis.clear();
+            guiItems.clear();
+            executeMethod.accept(gameType, "default.json");
+        }
     }
     
     @EventHandler
