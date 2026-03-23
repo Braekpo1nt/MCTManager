@@ -211,7 +211,24 @@ class GameStateServiceTest {
                 .gameSessionId(gameSessionId)
                 .participantUUID(fromUUID)
                 .build());
+        
         gameStateService.migrateFromUUIDToUUID(fromUUID, toUUID, ign);
+        toExistsFromDoesnt(database.getActiveAdminDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getMaintenanceAdminDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getPracticeAdminDao(), fromUUID, toUUID);
+        // eventAdmins
+        toExistsFromDoesnt(database.getMaintenanceParticipantsDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getPracticeParticipantsDao(), fromUUID, toUUID);
+        // eventParticipants
+        // score events
+        toExistsFromDoesnt(database.getActiveParticipantsDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getInGameParticipantsDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getPlayerMetadataDao(), fromUUID, toUUID);
+    }
+    
+    <T> void toExistsFromDoesnt(Dao<?, T> dao, T from, T to) throws SQLException {
+        assertThat(dao.idExists(to)).isTrue();
+        assertThat(dao.idExists(from)).isFalse();
     }
     
 }

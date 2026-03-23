@@ -400,6 +400,7 @@ public class GameStateService {
                 WHERE uuid = ?
                 """, to, from);
         // event_admins
+        // TODO: this has to be different
         allPlayersDao.executeRaw("""
                 DELETE FROM event_admins
                 WHERE uuid = ?
@@ -445,6 +446,7 @@ public class GameStateService {
                 WHERE participant_uuid = ?
                 """, to, from);
         // event_participants
+        // TODO: this has to be different
         allPlayersDao.executeRaw("""
                 DELETE FROM event_participants
                 WHERE participant_uuid = ?
