@@ -27,7 +27,7 @@ public class VotingState extends EventState {
     public VotingState(@NotNull GameManager context, @NotNull ContextReference contextReference, @NotNull EventData eventData) {
         super(context, contextReference, eventData);
         List<GameType> votingPool = getVotingPool();
-        this.voteManager = new VoteManager(plugin, this::onVoteExecuted, votingPool, new HashSet<>(onlineParticipants.values()));
+        this.voteManager = new VoteManager(plugin, this::onVoteExecuted, votingPool, new HashSet<>(onlineParticipants.values()), eventData.getConfig().isWeightedVoting());
         this.timer = Timer.builder()
                 .duration(eventData.getConfig().getVotingDuration())
                 .withSidebar(sidebar, "timer")
@@ -57,6 +57,7 @@ public class VotingState extends EventState {
     protected void onVoteExecuted(GameType gameType, String configFile) {
         timer.cancel();
         String chosenConfigFile = eventData.getConfig().getGameConfigs().getOrDefault(gameType, configFile);
+        eventData.getConfig().isWeightedVoting();
         context.setState(new StartingGameDelayState(
                 context, contextReference, eventData,
                 gameType, chosenConfigFile));

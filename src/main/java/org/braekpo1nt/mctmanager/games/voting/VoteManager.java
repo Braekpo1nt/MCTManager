@@ -11,7 +11,6 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
-import org.braekpo1nt.mctmanager.games.gamemanager.event.EventData;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
@@ -43,6 +42,7 @@ public class VoteManager implements Listener {
     private final List<GameType> votingPool;
     private final Collection<GuiItem> guiItems;
     private final BiConsumer<GameType, String> executeMethod;
+    private final boolean weightedVoting;
     
     private boolean paused;
     
@@ -53,12 +53,13 @@ public class VoteManager implements Listener {
      * GameType.
      * @param votingPool The games to vote between
      * @param newParticipants The participants who should vote
+     * @param weightedVoting Should we do random voting with weight
      */
     public VoteManager(
             Main plugin,
             BiConsumer<GameType, String> executeMethod,
             List<GameType> votingPool,
-            Collection<Participant> newParticipants) {
+            Collection<Participant> newParticipants, boolean weightedVoting) {
         this.NETHER_STAR = new ItemStack(Material.NETHER_STAR);
         ItemMeta netherStarMeta = this.NETHER_STAR.getItemMeta();
         netherStarMeta.displayName(NETHER_STAR_NAME);
@@ -70,6 +71,7 @@ public class VoteManager implements Listener {
         this.votingPool = votingPool;
         this.guiItems = createGuiItems();
         this.guis = new HashMap<>(newParticipants.size());
+        this.weightedVoting = weightedVoting;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Participant participant : newParticipants) {
             initializeParticipant(participant);
@@ -308,16 +310,15 @@ public class VoteManager implements Listener {
     }
     
     public void executeVote() {
-        if(true) {
+        if(weightedVoting) {
             HandlerList.unregisterAll(this);
             paused = false;
-            
             Random random = new Random();
-            ArrayList<UUID> votesKeys = new ArrayList<>(votes.keySet());
+            ArrayList<UUID> votesKeys = new ArrayList<>(votes.keySet()); // Use votes.values()
             int votesKeysLength = votesKeys.size();
             int randomVoteIter;
             int randomSelection;
-            for (randomVoteIter = 0; randomVoteIter < votesKeysLength; ++randomVoteIter) {
+            for (randomVoteIter = 0; randomVoteIter < votesKeysLength; ++randomVoteIter) { // Bukkit Runable
                 if (randomVoteIter < votesKeysLength - 5) {
                     randomSelection = random.nextInt(votesKeys.size());
                     // Leaving space to do fun displays
@@ -329,7 +330,7 @@ public class VoteManager implements Listener {
                     votesKeys.remove(randomSelection);
                 } else {
                     GameType gameType = votes.get(votesKeys.getFirst());
-                    Audience.audience(
+                    Audience.audience( // Use this for display, modify color
                             voters.values()
                     ).showTitle(UIUtils.defaultTitle(
                             Component.empty()
