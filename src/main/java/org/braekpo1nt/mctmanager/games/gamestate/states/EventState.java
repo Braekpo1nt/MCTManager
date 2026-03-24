@@ -2,6 +2,8 @@ package org.braekpo1nt.mctmanager.games.gamestate.states;
 
 import org.braekpo1nt.mctmanager.database.entities.admin.ActiveAdminEntity;
 import org.braekpo1nt.mctmanager.database.entities.admin.EventAdminEntity;
+import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipant;
+import org.braekpo1nt.mctmanager.database.entities.teams.ActiveTeam;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.gamestate.MCTPlayerEntity;
 import org.braekpo1nt.mctmanager.games.gamestate.MCTTeamEntity;
@@ -33,7 +35,7 @@ public class EventState extends StorageUtilState {
     @Override
     public void addTeam(String teamId, String teamDisplayName, String color) throws SQLException {
         MCTTeamEntity team = context.getGameState().addTeam(teamId, teamDisplayName, color);
-        context.getGameStateService().addTeam(GameStateStorageUtil.fromTeam(team));
+        context.getGameStateService().addTeam(ActiveTeam.fromTeam(team));
         context.getGameStateService().addTeam(team.toEvent(eventId));
     }
     
@@ -49,7 +51,7 @@ public class EventState extends StorageUtilState {
     @Override
     public void addNewPlayer(@NotNull UUID playerToJoin, @NotNull String name, @NotNull String teamId) throws SQLException {
         MCTPlayerEntity player = context.getGameState().addPlayer(playerToJoin, name, teamId);
-        context.getGameStateService().addParticipant(GameStateStorageUtil.fromPlayer(player));
+        context.getGameStateService().addParticipant(ActiveParticipant.fromPlayer(player));
         context.getGameStateService().addParticipant(player.toEvent(eventId), player.getName());
     }
     

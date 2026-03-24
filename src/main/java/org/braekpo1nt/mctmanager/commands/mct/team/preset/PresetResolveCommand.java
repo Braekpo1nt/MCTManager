@@ -16,7 +16,6 @@ import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permiss
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
-import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
 import org.braekpo1nt.mctmanager.database.service.GameStateService;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.Preset;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
@@ -26,8 +25,9 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PresetResolveCommand implements BrigadierSubCommand {
     
@@ -65,27 +65,14 @@ public class PresetResolveCommand implements BrigadierSubCommand {
                 () -> {
                     Preset preset = storageUtil.loadPreset(presetFile);
                     List<CommandResult> results = new ArrayList<>();
-                    List<AllPlayersEntity> allPlayersEntities = new ArrayList<>();
-                    List<PlayerMetadata> playerMetadatas = new ArrayList<>();
+                    Map<String, String> uuidsToIGNs = new HashMap<>();
                     for (String ign : preset.getMembers()) {
                         try {
                             AllPlayersEntity player = gameStateService.getPlayer(ign);
                             if (player == null) {
                                 OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(ign);
                                 String uuidStr = offlinePlayer.getUniqueId().toString();
-                                allPlayersEntities.add(AllPlayersEntity.builder()
-                                        .uuid(uuidStr)
-                                        .ign(ign)
-                                        .firstSeenAt(new Date())
-                                        .build());
-                                playerMetadatas.add(PlayerMetadata.builder()
-                                        .participantUUID(uuidStr)
-                                        .ign(ign)
-                                        .discordUsername(null)
-                                        .currentTokens(0)
-                                        .lifetimeTokens(0)
-                                        .percentRank(0.0)
-                                        .build());
+                                uuidsToIGNs.put(uuidStr, ign);
                                 results.add(CommandResult.success(Component.empty()
                                         .append(Component.text("New player: "))
                                         .append(Component.text(ign)
@@ -109,7 +96,14 @@ public class PresetResolveCommand implements BrigadierSubCommand {
                         }
                     }
                     try {
-                        gameStateService.registerParticipantsIfNotRegistered(allPlayersEntities, playerMetadatas);
+                        boolean shouldReloadGameState = gameStateService.registerPlayers(uuidsToIGNs);
+                        if (shouldReloadGameState) {
+                            // TODO: automatically reload game state
+                            results.add(CommandResult.success(Component.empty()
+                                    .append(Component.text("One or more UUIDs were corrected in the database. You should reload the game state."))
+                                    .color(NamedTextColor.RED)
+                            ));
+                        }
                     } catch (SQLException e) {
                         return CommandResult.sqlException("commit resolved players to the database", e);
                     }

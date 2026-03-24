@@ -113,21 +113,7 @@ public class MCTDebugCommand implements BrigadierCommand, Listener {
         String uuid = ctx.getArgument("uuid", String.class);
         String ign = ctx.getArgument("ign", String.class);
         try {
-            gameManager.getGameStateService().registerParticipantIfNotRegistered(
-                    AllPlayersEntity.builder()
-                            .uuid(uuid)
-                            .ign(ign)
-                            .firstSeenAt(new Date())
-                            .build(),
-                    PlayerMetadata.builder()
-                            .participantUUID(uuid)
-                            .ign(ign)
-                            .discordUsername(null)
-                            .currentTokens(0)
-                            .lifetimeTokens(0)
-                            .percentRank(0.0)
-                            .build()
-            );
+            gameManager.getGameStateService().registerPlayer(uuid, ign);
         } catch (SQLException e) {
             return CommandResult.sqlException("registering uuid and ign", e);
         }

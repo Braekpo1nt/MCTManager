@@ -120,11 +120,11 @@ public class GameStateService {
         return maintenanceTeamsDao.queryForAll();
     }
     
-    public void addParticipant(@NotNull MaintenanceParticipantEntity participant, String ign) throws SQLException {
-        TransactionManager.callInTransaction(maintenanceParticipantsDao.getConnectionSource(), () -> {
-            registerParticipantIfNot(participant.getParticipantUUID(), ign);
+    public boolean addParticipant(@NotNull MaintenanceParticipantEntity participant, String ign) throws SQLException {
+        return TransactionManager.callInTransaction(maintenanceParticipantsDao.getConnectionSource(), () -> {
+            boolean reloadGameState = registerPlayer(participant.getParticipantUUID(), ign);
             maintenanceParticipantsDao.create(participant);
-            return null;
+            return reloadGameState;
         });
     }
     
@@ -170,11 +170,11 @@ public class GameStateService {
         return practiceTeamsDao.queryForAll();
     }
     
-    public void addParticipant(@NotNull PracticeParticipantEntity participant, @NotNull String ign) throws SQLException {
-        TransactionManager.callInTransaction(practiceParticipantsDao.getConnectionSource(), () -> {
-            registerParticipantIfNot(participant.getParticipantUUID(), ign);
+    public boolean addParticipant(@NotNull PracticeParticipantEntity participant, @NotNull String ign) throws SQLException {
+        return TransactionManager.callInTransaction(practiceParticipantsDao.getConnectionSource(), () -> {
+            boolean reloadGameState = registerPlayer(participant.getParticipantUUID(), ign);
             practiceParticipantsDao.create(participant);
-            return null;
+            return reloadGameState;
         });
     }
     
@@ -225,21 +225,11 @@ public class GameStateService {
         });
     }
     
-    /**
-     * @param eventId the eventId to get all the teams for.
-     * @return the {@link EventTeam}s associated with the given ID.
-     * If the eventId doesn't exist, list will be empty.
-     * @throws SQLException if there is a problem communicating with the database.
-     */
-    public List<EventTeam> getAllEventTeams(@NotNull String eventId) throws SQLException {
-        return eventTeamsDao.queryForEq("event_id", eventId);
-    }
-    
-    public void addParticipant(@NotNull EventParticipantEntity participant, @NotNull String ign) throws SQLException {
-        TransactionManager.callInTransaction(activeParticipantsDao.getConnectionSource(), () -> {
-            registerParticipantIfNot(participant.getParticipantUUID(), ign);
+    public boolean addParticipant(@NotNull EventParticipantEntity participant, @NotNull String ign) throws SQLException {
+        return TransactionManager.callInTransaction(activeParticipantsDao.getConnectionSource(), () -> {
+            boolean reloadGameState = registerPlayer(participant.getParticipantUUID(), ign);
             eventParticipantsDao.create(participant);
-            return null;
+            return reloadGameState;
         });
     }
     
@@ -253,73 +243,211 @@ public class GameStateService {
         builder.delete();
     }
     
-    /**
-     * @param eventId the eventId to get all the participants for
-     * @return a list of all {@link EventParticipantEntity}s which share the given eventId,
-     * or empty list of none exist
-     * @throws SQLException if there's a problem communicating with the database.
-     */
-    public List<EventParticipantEntity> getAllEventParticipants(@NotNull String eventId) throws SQLException {
-        return eventParticipantsDao.queryForEq("event_id", eventId);
+    private static class InvalidDatabaseStateException extends SQLException {
+        public InvalidDatabaseStateException(String ign) {
+            super(String.format("Somehow, multiple instances of the ign \"%s\" exist in the all_players database. This shouldn't be possible, since there is a uniqueness constraint on the ign column. Can't continue.", ign));
+        }
     }
     
     /**
-     * Using the given info, register a new participant with the all_players and player_metadata databases
-     * Not implemented in a transaction for internal careful use only.
-     * @param uuid the uuid of the player
-     * @param ign the ign of the player
-     * @throws SQLException if there is an exception
+     * Register the given player in the database. Create their entry in the all_players and player_metadata tables.<br>
+     * If a player with the given UUID exists in both, updates the IGN to the given IGN. <br>
+     * If a player with the given IGN exists, but isn't associated with the given UUID, then this migrates
+     * the UUID to reflect the correct state.
+     * @param uuid the UUID of the player to add
+     * @param ign the IGN of the player to add
+     * @return true if you need to reload the game state, false if no game state changes were made
+     * @throws SQLException if there's a database error
      */
-    private void registerParticipantIfNot(@NotNull String uuid, @NotNull String ign) throws SQLException {
-        TransactionManager.callInTransaction(activeParticipantsDao.getConnectionSource(), () -> {
-            AllPlayersEntity existingPlayer = allPlayersDao.queryForId(uuid);
-            if (existingPlayer != null) {
-                // correct the ign for the UUID
-                allPlayersDao.createOrUpdate(AllPlayersEntity.builder()
-                        .uuid(uuid)
-                        .ign(ign)
-                        .firstSeenAt(existingPlayer.getFirstSeenAt())
-                        .build());
-                playerMetadataDao.createIfNotExists(PlayerMetadata.builder()
-                        .participantUUID(uuid)
-                        .ign(ign)
-                        .discordUsername(null)
-                        .currentTokens(0)
-                        .lifetimeTokens(0)
-                        .percentRank(0.0)
-                        .build());
-                return null;
+    public boolean registerPlayer(@NotNull String uuid, @NotNull String ign) throws SQLException {
+        return TransactionManager.callInTransaction(allPlayersDao.getConnectionSource(),
+                () -> _registerPlayer(uuid, ign)
+        );
+    }
+    
+    public boolean _registerPlayer(@NotNull String uuid, @NotNull String ign) throws SQLException {
+        // check if the user exists
+        AllPlayersEntity existingPlayer = allPlayersDao.queryForId(uuid);
+        if (existingPlayer != null) {
+            // check if the ign is right
+            if (existingPlayer.getIgn().equals(ign)) {
+                // everything is correct, we are done
+                return false;
             }
-            // if there's no player with that uuid,
-            // check if there's a player with that name
-            List<AllPlayersEntity> playersWithName = allPlayersDao.queryForEq("ign", ign);
-            if (playersWithName.isEmpty()) {
-                // if there's no player with that name, create them
-                allPlayersDao.createOrUpdate(AllPlayersEntity.builder()
-                        .uuid(uuid)
-                        .ign(ign)
-                        .firstSeenAt(new Date())
-                        .build());
-                playerMetadataDao.createIfNotExists(PlayerMetadata.builder()
-                        .participantUUID(uuid)
-                        .ign(ign)
-                        .discordUsername(null)
-                        .currentTokens(0)
-                        .lifetimeTokens(0)
-                        .percentRank(0.0)
-                        .build());
-                return null;
+            // if the uuid exists but the ign is wrong, we need to change the ign
+            List<AllPlayersEntity> playersWithIgn = allPlayersDao.queryForEq("ign", ign);
+            if (playersWithIgn.isEmpty()) {
+                // there are no existing players with the ign, so just update the ign
+                _migrateIgn(uuid, ign);
+                return true;
             }
-            AllPlayersEntity player = playersWithName.getFirst();
-            String wrongUUID = player.getUuid();
-            if (wrongUUID.equals(uuid)) {
-                // if the UUID is correct, we're good
-                return null;
+            if (playersWithIgn.size() > 1) {
+                // Should never happen with properly configured database
+                throw new InvalidDatabaseStateException(ign);
             }
-            // if there's a player with the right name but the wrong UUID,
-            // replace with new UUID in all these tables:
-            _migrateFromUUIDToUUID(wrongUUID, uuid, ign);
-            return null;
+            // there is a player with the ign, so we need to migrate the UUID and keep the ign 
+            // instead of creating a new entry in all_players
+            _migrateFromUUIDToUUID(playersWithIgn.getFirst().getUuid(), uuid, ign);
+            return true;
+        }
+        // a player with the UUID does not exist in the database
+        List<AllPlayersEntity> playersWithIgn = allPlayersDao.queryForEq("ign", ign);
+        if (playersWithIgn.isEmpty()) {
+            // no players with the ign exist, create a new entry
+            allPlayersDao.create(AllPlayersEntity.builder()
+                    .uuid(uuid)
+                    .ign(ign)
+                    .firstSeenAt(new Date())
+                    .build());
+            playerMetadataDao.create(PlayerMetadata.builder()
+                    .participantUUID(uuid)
+                    .ign(ign)
+                    .lifetimeTokens(0)
+                    .currentTokens(0)
+                    .percentRank(0.0)
+                    .discordUsername(null)
+                    .build());
+            return false;
+        }
+        if (playersWithIgn.size() > 1) {
+            // Should never happen with properly configured database
+            throw new InvalidDatabaseStateException(ign);
+        }
+        // a player with the wrong UUID but the right ign exists in the database
+        // we must migrate the UUID and keep the correct ign
+        _migrateFromUUIDToUUID(playersWithIgn.getFirst().getUuid(), uuid, ign);
+        return true;
+    }
+    
+    /**
+     * @return the player who was replaced with the given player, or the given player if no replacement was needed
+     */
+    @Deprecated
+    public AllPlayersEntity registerPlayer2(@NotNull String uuid, @NotNull String ign) throws SQLException {
+        return TransactionManager.callInTransaction(allPlayersDao.getConnectionSource(),
+                () -> _registerPlayer2(uuid, ign)
+        );
+    }
+    
+    /**
+     * @return the player who was replaced with the given player, or the given player if no replacement was needed
+     */
+    @Deprecated
+    public AllPlayersEntity _registerPlayer2(@NotNull String uuid, @NotNull String ign) throws SQLException {
+        // check if the user exists
+        AllPlayersEntity existingPlayer = allPlayersDao.queryForId(uuid);
+        if (existingPlayer != null) {
+            // check if the ign is right
+            if (existingPlayer.getIgn().equals(ign)) {
+                // everything is correct, we are done
+                return existingPlayer;
+            }
+            // if the uuid exists but the ign is wrong, we need to change the ign
+            List<AllPlayersEntity> playersWithIgn = allPlayersDao.queryForEq("ign", ign);
+            if (playersWithIgn.isEmpty()) {
+                _migrateIgn(uuid, ign);
+                return existingPlayer;
+            }
+            if (playersWithIgn.size() > 1) {
+                // Should never happen with properly configured database
+                throw new InvalidDatabaseStateException(ign);
+            }
+            // there is a player with the ign, so we need to migrate the UUID and keep the ign 
+            // instead of creating a new entry in all_players
+            _migrateFromUUIDToUUID(playersWithIgn.getFirst().getUuid(), uuid, ign);
+            return existingPlayer;
+        }
+        // a player with the UUID does not exist in the database
+        List<AllPlayersEntity> playersWithIgn = allPlayersDao.queryForEq("ign", ign);
+        if (playersWithIgn.isEmpty()) {
+            // no players with the ign exist, create a new entry
+            AllPlayersEntity newPlayer = AllPlayersEntity.builder()
+                    .uuid(uuid)
+                    .ign(ign)
+                    .firstSeenAt(new Date())
+                    .build();
+            allPlayersDao.create(newPlayer);
+            playerMetadataDao.create(PlayerMetadata.builder()
+                    .participantUUID(uuid)
+                    .ign(ign)
+                    .lifetimeTokens(0)
+                    .currentTokens(0)
+                    .percentRank(0.0)
+                    .discordUsername(null)
+                    .build());
+            return newPlayer;
+        }
+        if (playersWithIgn.size() > 1) {
+            // Should never happen with properly configured database
+            throw new InvalidDatabaseStateException(ign);
+        }
+        // a player with the wrong UUID but the right ign exists in the database
+        // we must migrate the UUID and keep the correct ign
+        AllPlayersEntity playerWithIGN = playersWithIgn.getFirst();
+        _migrateFromUUIDToUUID(playerWithIGN.getUuid(), uuid, ign);
+        return playerWithIGN;
+    }
+    
+    /**
+     * Change the ign to the given value for every row associated with the given UUID in every table
+     * private so that you can call in transaction without nested transaction
+     * @param uuid the UUID to update the IGN for
+     * @param ign the ign to set everything to
+     * @throws SQLException if there's a database error
+     */
+    private void _migrateIgn(String uuid, String ign) throws SQLException {
+        // no conflicts, simply change the value
+        // all_players
+        allPlayersDao.executeRaw("""
+                UPDATE all_players
+                SET ign = ?
+                WHERE uuid = ?
+                """, ign, uuid);
+        // active_participants
+        allPlayersDao.executeRaw("""
+                UPDATE active_participants
+                SET ign = ?
+                WHERE participant_uuid = ?
+                """, ign, uuid);
+        // player_metadata
+        allPlayersDao.executeRaw("""
+                UPDATE player_metadata
+                SET ign = ?
+                WHERE participant_uuid = ?
+                """, ign, uuid);
+    }
+    
+    /**
+     * Change the ign to the given value for every row associated with the given UUID in every table
+     * @param uuid the UUID to update the IGN for
+     * @param ign the ign to set everything to
+     * @return true if the ign was successfully changed, false if nothing happened.
+     * Nothing will happen if a player with the given uuid doesn't exist, if a player with the given IGN already exists,
+     * or if the uuid has the correct name already.
+     * @throws SQLException if there's a database error
+     */
+    public boolean migrateIgn(@NotNull String uuid, @NotNull String ign) throws SQLException {
+        return TransactionManager.callInTransaction(allPlayersDao.getConnectionSource(), () -> {
+            AllPlayersEntity playerWithUUID = allPlayersDao.queryForId(uuid);
+            if (playerWithUUID == null) {
+                // no player to migrate the ign of
+                return false;
+            }
+            if (playerWithUUID.getIgn().equals(ign)) {
+                // the name is correct already
+                return false;
+            }
+            List<AllPlayersEntity> playersWithIgn = allPlayersDao.queryForEq("ign", ign);
+            if (playersWithIgn.isEmpty()) {
+                // we can safely change the IGN of the player
+                _migrateIgn(uuid, ign);
+                return true;
+            }
+            if (playersWithIgn.size() > 1) {
+                throw new InvalidDatabaseStateException(ign);
+            }
+            // a player with the ign exists already, can't continue
+            return false;
         });
     }
     
@@ -399,22 +527,6 @@ public class GameStateService {
                 SET uuid = ?
                 WHERE uuid = ?
                 """, to, from);
-        // event_admins
-        // TODO: this has to be different
-        allPlayersDao.executeRaw("""
-                DELETE FROM event_admins
-                WHERE uuid = ?
-                AND EXISTS (
-                    SELECT 1
-                    FROM event_admins
-                    WHERE uuid = ?
-                )
-                """, from, to);
-        allPlayersDao.executeRaw("""
-                UPDATE event_admins
-                SET uuid = ?
-                WHERE uuid = ?
-                """, to, from);
         // maintenance_participants
         allPlayersDao.executeRaw("""
                 DELETE FROM maintenance_participants
@@ -445,29 +557,6 @@ public class GameStateService {
                 SET participant_uuid = ?
                 WHERE participant_uuid = ?
                 """, to, from);
-        // event_participants
-        // TODO: this has to be different
-        allPlayersDao.executeRaw("""
-                DELETE FROM event_participants
-                WHERE participant_uuid = ?
-                AND EXISTS (
-                    SELECT 1
-                    FROM event_participants
-                    WHERE participant_uuid = ?
-                )
-                """, from, to);
-        allPlayersDao.executeRaw("""
-                UPDATE event_participants
-                SET participant_uuid = ?
-                WHERE participant_uuid = ?
-                """, to, from);
-        // score_events
-        // primary key is not participant_uuid, so there can be duplicates, so simply migrate
-        allPlayersDao.executeRaw("""
-                UPDATE score_events
-                SET participant_uuid = ?
-                WHERE participant_uuid = ?
-                """, to, from);
         // active_participants
         allPlayersDao.executeRaw("""
                 DELETE FROM active_participants
@@ -483,6 +572,12 @@ public class GameStateService {
                 SET participant_uuid = ?
                 WHERE participant_uuid = ?
                 """, to, from);
+        // Correct the name
+        allPlayersDao.executeRaw("""
+                UPDATE active_participants
+                SET ign = ?
+                WHERE participant_uuid = ?
+                """, ign, to);
         // in_game_participants
         allPlayersDao.executeRaw("""
                 DELETE FROM in_game_participants
@@ -513,34 +608,71 @@ public class GameStateService {
                 SET participant_uuid = ?
                 WHERE participant_uuid = ?
                 """, to, from);
+        // Correct the ign
+        allPlayersDao.executeRaw("""
+                UPDATE player_metadata
+                SET ign = ?
+                WHERE participant_uuid = ?
+                """, ign, to);
+        
+        // event_admins
+        allPlayersDao.executeRaw("""
+                DELETE FROM event_admins
+                WHERE uuid = ?
+                AND EXISTS (
+                    SELECT 1
+                    FROM event_admins
+                    WHERE uuid = ?
+                )
+                """, from, to);
+        allPlayersDao.executeRaw("""
+                UPDATE event_admins
+                SET uuid = ?
+                WHERE uuid = ?
+                """, to, from);
+        // event_participants
+        allPlayersDao.executeRaw("""
+                DELETE FROM event_participants
+                WHERE participant_uuid = ?
+                AND EXISTS (
+                    SELECT 1
+                    FROM event_participants
+                    WHERE participant_uuid = ?
+                )
+                """, from, to);
+        allPlayersDao.executeRaw("""
+                UPDATE event_participants
+                SET participant_uuid = ?
+                WHERE participant_uuid = ?
+                """, to, from);
+        // score_events
+        // primary key is not participant_uuid, so there can be duplicates, so simply migrate
+        allPlayersDao.executeRaw("""
+                UPDATE score_events
+                SET participant_uuid = ?
+                WHERE participant_uuid = ?
+                """, to, from);
+        
         // now that all references to the old UUID are removed, delete the old entry
         allPlayersDao.deleteById(from);
-    }
-    
-    public void registerParticipantIfNotRegistered(@NotNull AllPlayersEntity allPlayersEntity, @NotNull PlayerMetadata playerMetadata) throws SQLException {
-        TransactionManager.callInTransaction(allPlayersDao.getConnectionSource(), () -> {
-            allPlayersDao.createOrUpdate(allPlayersEntity);
-            playerMetadataDao.createIfNotExists(playerMetadata);
-            return null;
-        });
     }
     
     /**
      * Register all the given players at once. Handled in a transaction so if something goes wrong,
      * nothing is committed.
-     * @param allPlayersEntities all the players
-     * @param playerMetadatas all the metadatas
+     * @param uuidsToIGNs all the players
+     * @return true if you need to reload the game state, false if no game state changes were made
      * @throws SQLException if there's a database error
      */
-    public void registerParticipantsIfNotRegistered(@NotNull List<AllPlayersEntity> allPlayersEntities, @NotNull List<PlayerMetadata> playerMetadatas) throws SQLException {
-        TransactionManager.callInTransaction(allPlayersDao.getConnectionSource(), () -> {
-            for (AllPlayersEntity allPlayersEntity : allPlayersEntities) {
-                allPlayersDao.createOrUpdate(allPlayersEntity);
+    public boolean registerPlayers(@NotNull Map<String, String> uuidsToIGNs) throws SQLException {
+        return TransactionManager.callInTransaction(allPlayersDao.getConnectionSource(), () -> {
+            boolean shouldReloadGameState = false;
+            for (Map.Entry<String, String> entry : uuidsToIGNs.entrySet()) {
+                String uuid = entry.getKey();
+                String ign = entry.getValue();
+                shouldReloadGameState = shouldReloadGameState || registerPlayer(uuid, ign);
             }
-            for (PlayerMetadata playerMetadata : playerMetadatas) {
-                playerMetadataDao.createIfNotExists(playerMetadata);
-            }
-            return null;
+            return shouldReloadGameState;
         });
     }
     
@@ -655,7 +787,7 @@ public class GameStateService {
     
     public void addParticipant(@NotNull ActiveParticipant participant) throws SQLException {
         TransactionManager.callInTransaction(activeParticipantsDao.getConnectionSource(), () -> {
-            registerParticipantIfNot(participant.getParticipantUUID(), participant.getIgn());
+            registerPlayer(participant.getParticipantUUID(), participant.getIgn());
             activeParticipantsDao.create(participant);
             return null;
         });

@@ -1,19 +1,17 @@
 package org.braekpo1nt.mctmanager.games.gamestate;
 
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.database.service.GameStateService;
+
+import java.util.logging.Logger;
 
 public class MockGameStateStorageUtil extends GameStateStorageUtil {
     
-    public MockGameStateStorageUtil(Main plugin, GameStateService gameStateService) {
-        super(plugin, gameStateService);
+    public MockGameStateStorageUtil(Logger logger, GameStateService gameStateService) {
+        super(logger, gameStateService);
     }
     
     @Override
     public void loadGameState() {
         this.gameState = new GameState();
-    }
-    
-    public void saveGameState() {
     }
 }

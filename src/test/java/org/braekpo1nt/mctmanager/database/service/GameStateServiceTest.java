@@ -93,45 +93,348 @@ class GameStateServiceTest {
         assertThat(newPlayer.getIgn()).isEqualTo(ign);
     }
     
+    /**
+     * if the to-uuid exists already and from-uuid does not,
+     * running migrate doesn't change anything or give errors
+     */
+    @Test
+    void testMigrationIdempotent() throws SQLException {
+        String fromUUID = "from-uuid";
+        String toUUID = "to-uuid";
+        String ign = "Player1";
+        Dao<AllPlayersEntity, String> allPlayersDao = database.getAllPlayersDao();
+        allPlayersDao.create(AllPlayersEntity.builder()
+                .uuid(toUUID)
+                .ign(ign)
+                .firstSeenAt(new Date())
+                .build());
+        gameStateService.migrateFromUUIDToUUID(fromUUID, toUUID, ign);
+        AllPlayersEntity old = allPlayersDao.queryForId(fromUUID);
+        assertThat(old).isNull();
+        AllPlayersEntity newPlayer = allPlayersDao.queryForId(toUUID);
+        assertThat(newPlayer).isNotNull();
+        assertThat(newPlayer.getIgn()).isEqualTo(ign);
+    }
+    
     @Test
     void testMigrationEveryTable() throws SQLException {
         String fromUUID = "from-uuid";
         String toUUID = "to-uuid";
         String ign = "Player1";
+        String teamId = "purple";
+        String eventId = "test";
         Date now = new Date();
+        addTeamToEveryTable(teamId, eventId, now);
+        addPlayerToEveryTable(fromUUID, ign, teamId, eventId, now);
+        
+        gameStateService.migrateFromUUIDToUUID(fromUUID, toUUID, ign);
+        toExistsFromDoesnt(database.getAllPlayersDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getActiveAdminDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getMaintenanceAdminDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getPracticeAdminDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getMaintenanceParticipantsDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getPracticeParticipantsDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getActiveParticipantsDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getInGameParticipantsDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getPlayerMetadataDao(), fromUUID, toUUID);
+        // eventAdmins
+        assertThat(database.getEventAdminDao().queryForEq("uuid", toUUID)).isNotEmpty();
+        assertThat(database.getEventAdminDao().queryForEq("uuid", fromUUID)).isEmpty();
+        // eventParticipants
+        assertThat(database.getEventParticipantsDao().queryForEq("participant_uuid", toUUID)).isNotEmpty();
+        assertThat(database.getEventParticipantsDao().queryForEq("participant_uuid", fromUUID)).isEmpty();
+        // score events
+        assertThat(database.getScoreEventsDao().queryForEq("participant_uuid", toUUID)).isNotEmpty();
+        assertThat(database.getScoreEventsDao().queryForEq("participant_uuid", fromUUID)).isEmpty();
+    }
+    
+    @Test
+    void testMigrationEveryTableIdempotent() throws SQLException {
+        String fromUUID = "from-uuid";
+        String toUUID = "to-uuid";
+        String ign = "Player1";
+        String teamId = "purple";
+        String eventId = "test";
+        Date now = new Date();
+        addTeamToEveryTable(teamId, eventId, now);
+        addPlayerToEveryTable(fromUUID, ign, teamId, eventId, now);
+        
+        // can we run the operation twice without errors and with the same end result as once
+        gameStateService.migrateFromUUIDToUUID(fromUUID, toUUID, ign);
+        gameStateService.migrateFromUUIDToUUID(fromUUID, toUUID, ign);
+        
+        toExistsFromDoesnt(database.getAllPlayersDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getActiveAdminDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getMaintenanceAdminDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getPracticeAdminDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getMaintenanceParticipantsDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getPracticeParticipantsDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getActiveParticipantsDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getInGameParticipantsDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getPlayerMetadataDao(), fromUUID, toUUID);
+        // eventAdmins
+        assertThat(database.getEventAdminDao().queryForEq("uuid", toUUID)).isNotEmpty();
+        assertThat(database.getEventAdminDao().queryForEq("uuid", fromUUID)).isEmpty();
+        // eventParticipants
+        assertThat(database.getEventParticipantsDao().queryForEq("participant_uuid", toUUID)).isNotEmpty();
+        assertThat(database.getEventParticipantsDao().queryForEq("participant_uuid", fromUUID)).isEmpty();
+        // score events
+        assertThat(database.getScoreEventsDao().queryForEq("participant_uuid", toUUID)).isNotEmpty();
+        assertThat(database.getScoreEventsDao().queryForEq("participant_uuid", fromUUID)).isEmpty();
+    }
+    
+    @Test
+    void testMigrationEveryTable_ToExists() throws SQLException {
+        String fromUUID = "from-uuid";
+        String toUUID = "to-uuid";
+        String ign1 = "Player1";
+        String ign2 = "Player2";
+        String teamId = "purple";
+        String eventId = "test";
+        Date now = new Date();
+        addTeamToEveryTable(teamId, eventId, now);
+        addPlayerToEveryTable(fromUUID, ign1, teamId, eventId, now);
+        addPlayerToEveryTable(toUUID, ign2, teamId, eventId, now);
+        
+        gameStateService.migrateFromUUIDToUUID(fromUUID, toUUID, ign1);
+        toExistsFromDoesnt(database.getAllPlayersDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getActiveAdminDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getMaintenanceAdminDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getPracticeAdminDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getMaintenanceParticipantsDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getPracticeParticipantsDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getActiveParticipantsDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getInGameParticipantsDao(), fromUUID, toUUID);
+        toExistsFromDoesnt(database.getPlayerMetadataDao(), fromUUID, toUUID);
+        // eventAdmins
+        assertThat(database.getEventAdminDao().queryForEq("uuid", toUUID)).isNotEmpty();
+        assertThat(database.getEventAdminDao().queryForEq("uuid", fromUUID)).isEmpty();
+        // eventParticipants
+        assertThat(database.getEventParticipantsDao().queryForEq("participant_uuid", toUUID)).isNotEmpty();
+        assertThat(database.getEventParticipantsDao().queryForEq("participant_uuid", fromUUID)).isEmpty();
+        // score events
+        assertThat(database.getScoreEventsDao().queryForEq("participant_uuid", toUUID)).isNotEmpty();
+        assertThat(database.getScoreEventsDao().queryForEq("participant_uuid", fromUUID)).isEmpty();
+        assertThat(database.getAllPlayersDao().queryForId(toUUID).getIgn()).describedAs("the correct ign is in place").isEqualTo(ign1);
+        // active_participants
+        assertThat(database.getActiveParticipantsDao().queryForId(toUUID).getIgn()).describedAs("the correct ign is in place").isEqualTo(ign1);
+        // player_metadata
+        assertThat(database.getPlayerMetadataDao().queryForId(toUUID).getIgn()).describedAs("the correct ign is in place").isEqualTo(ign1);
+    }
+    
+    @Test
+    void testMigrationOnNoOne() throws SQLException {
+        String fromUUID = "from-uuid";
+        String toUUID = "to-uuid";
+        String ign = "Player1";
+        
+        gameStateService.migrateFromUUIDToUUID(fromUUID, toUUID, ign);
+        assertThat(database.getAllPlayersDao().queryForId(toUUID)).describedAs("creates the all_players entry for the toUUID").isNotNull();
+        assertThat(database.getActiveAdminDao().queryForId(toUUID)).isNull();
+        assertThat(database.getMaintenanceAdminDao().queryForId(toUUID)).isNull();
+        assertThat(database.getPracticeAdminDao().queryForId(toUUID)).isNull();
+        assertThat(database.getMaintenanceParticipantsDao().queryForId(toUUID)).isNull();
+        assertThat(database.getPracticeParticipantsDao().queryForId(toUUID)).isNull();
+        assertThat(database.getActiveParticipantsDao().queryForId(toUUID)).isNull();
+        assertThat(database.getInGameParticipantsDao().queryForId(toUUID)).isNull();
+        assertThat(database.getPlayerMetadataDao().queryForId(toUUID)).isNull();
+        // eventAdmins
+        assertThat(database.getEventAdminDao().queryForEq("uuid", toUUID)).isEmpty();
+        // eventParticipants
+        assertThat(database.getEventParticipantsDao().queryForEq("participant_uuid", toUUID)).isEmpty();
+        // score events
+        assertThat(database.getScoreEventsDao().queryForEq("participant_uuid", toUUID)).isEmpty();
+    }
+    
+    @Test
+    void testMigrateIgn() throws SQLException {
+        String oldIGN = "Player1";
+        String teamId = "test";
+        String uuid = "uuid";
+        Date now = new Date();
+        gameStateService.addTeam(ActiveTeam.builder()
+                .teamId(teamId)
+                .displayName("purple")
+                .color("dark_purple")
+                .score(10)
+                .build());
         database.getAllPlayersDao().create(AllPlayersEntity.builder()
-                .uuid(fromUUID)
-                .ign(ign)
+                .uuid(uuid)
+                .ign(oldIGN)
                 .firstSeenAt(now)
                 .build());
+        gameStateService.addParticipant(ActiveParticipant.builder()
+                .participantUUID(uuid)
+                .teamId(teamId)
+                .ign(oldIGN)
+                .score(10)
+                .build());
         database.getPlayerMetadataDao().create(PlayerMetadata.builder()
-                .participantUUID(fromUUID)
-                .ign(ign)
+                .participantUUID(uuid)
+                .ign(oldIGN)
                 .discordUsername(null)
                 .currentTokens(0)
                 .lifetimeTokens(0)
                 .percentRank(0.0)
                 .build());
-        String eventId = "test";
-        eventService.addEventInfo(EventInfo.builder()
-                .eventId(eventId)
-                .plainTextName("Test")
-                .componentName(Component.text("Test"))
-                .eventDate(now)
-                .createdAt(now)
-                .canonical(true)
-                .modifiedAt(now)
+        
+        assertThat(database.getAllPlayersDao().queryForId(uuid).getIgn()).isEqualTo(oldIGN);
+        assertThat(database.getActiveParticipantsDao().queryForId(uuid).getIgn()).isEqualTo(oldIGN);
+        assertThat(database.getPlayerMetadataDao().queryForId(uuid).getIgn()).isEqualTo(oldIGN);
+        String newIGN = "Player2";
+        boolean result = gameStateService.migrateIgn(uuid, newIGN);
+        
+        assertThat(result).isTrue();
+        assertThat(database.getAllPlayersDao().queryForId(uuid).getIgn()).isEqualTo(newIGN);
+        assertThat(database.getActiveParticipantsDao().queryForId(uuid).getIgn()).isEqualTo(newIGN);
+        assertThat(database.getPlayerMetadataDao().queryForId(uuid).getIgn()).isEqualTo(newIGN);
+    }
+    
+    @Test
+    void testMigrateIgnUUIDDoesNotExist() throws SQLException {
+        String uuid = "uuid";
+        String newIGN = "Player2";
+        boolean result = gameStateService.migrateIgn(uuid, newIGN);
+        
+        assertThat(result).describedAs("nothing should happen, the uuid doesn't exist").isFalse();
+        assertThat(database.getAllPlayersDao().queryForId(uuid)).isNull();
+        assertThat(database.getActiveParticipantsDao().queryForId(uuid)).isNull();
+        assertThat(database.getPlayerMetadataDao().queryForId(uuid)).isNull();
+    }
+    
+    @Test
+    void testMigrateIgnNameExists() throws SQLException {
+        String oldIGN = "Player1";
+        String teamId = "test";
+        String uuid1 = "uuid1";
+        String uuid2 = "uuid2";
+        Date now = new Date();
+        gameStateService.addTeam(ActiveTeam.builder()
+                .teamId(teamId)
+                .displayName("purple")
+                .color("dark_purple")
+                .score(10)
                 .build());
-        int gameSessionId = Objects.requireNonNull(scoreService.createGameSession(GameSession.builder()
-                .multiplier(1.0)
-                .gameType(GameType.FOOT_RACE)
-                .startTime(now)
-                .configFile("nonexistent.json")
-                .eventId(null)
-                .mode(Mode.MAINTENANCE)
-                .sessionUndone(false)
-                .build()), "could not create game session").getId();
-        String teamId = "purple";
+        database.getAllPlayersDao().create(AllPlayersEntity.builder()
+                .uuid(uuid1)
+                .ign(oldIGN)
+                .firstSeenAt(now)
+                .build());
+        gameStateService.addParticipant(ActiveParticipant.builder()
+                .participantUUID(uuid1)
+                .teamId(teamId)
+                .ign(oldIGN)
+                .score(10)
+                .build());
+        database.getPlayerMetadataDao().create(PlayerMetadata.builder()
+                .participantUUID(uuid1)
+                .ign(oldIGN)
+                .discordUsername(null)
+                .currentTokens(0)
+                .lifetimeTokens(0)
+                .percentRank(0.0)
+                .build());
+        
+        String newIGN = "Player2";
+        database.getAllPlayersDao().create(AllPlayersEntity.builder()
+                .uuid(uuid2)
+                .ign(newIGN)
+                .firstSeenAt(now)
+                .build());
+        gameStateService.addParticipant(ActiveParticipant.builder()
+                .participantUUID(uuid2)
+                .teamId(teamId)
+                .ign(newIGN)
+                .score(10)
+                .build());
+        database.getPlayerMetadataDao().create(PlayerMetadata.builder()
+                .participantUUID(uuid2)
+                .ign(newIGN)
+                .discordUsername(null)
+                .currentTokens(0)
+                .lifetimeTokens(0)
+                .percentRank(0.0)
+                .build());
+        
+        boolean result = gameStateService.migrateIgn(uuid1, newIGN);
+        assertThat(result).isFalse();
+        assertThat(database.getAllPlayersDao().queryForId(uuid1).getIgn()).isEqualTo(oldIGN);
+        assertThat(database.getActiveParticipantsDao().queryForId(uuid1).getIgn()).isEqualTo(oldIGN);
+        assertThat(database.getPlayerMetadataDao().queryForId(uuid1).getIgn()).isEqualTo(oldIGN);
+        assertThat(database.getAllPlayersDao().queryForId(uuid2).getIgn()).isEqualTo(newIGN);
+        assertThat(database.getActiveParticipantsDao().queryForId(uuid2).getIgn()).isEqualTo(newIGN);
+        assertThat(database.getPlayerMetadataDao().queryForId(uuid2).getIgn()).isEqualTo(newIGN);
+    }
+    
+    // registerPlayer tests start
+    @Test
+    void testRegisterNewPlayer() throws SQLException {
+        // the player doesn't exist in the database and there are no conflicts
+        String uuid = "uuid";
+        String ign = "Player1";
+        assertThat(gameStateService.registerPlayer(uuid, ign)).isFalse();
+        AllPlayersEntity actual = database.getAllPlayersDao().queryForId(uuid);
+        assertThat(actual).isNotNull();
+        assertThat(actual.getIgn()).isEqualTo(ign);
+    }
+    
+    @Test
+    void testRegisterNewPlayerIdempotent() throws SQLException {
+        String uuid = "uuid";
+        String ign = "Player1";
+        assertThat(gameStateService.registerPlayer(uuid, ign)).isFalse();
+        // the player exists in the database with the correct ign
+        assertThat(gameStateService.registerPlayer(uuid, ign)).isFalse();
+        AllPlayersEntity actual = database.getAllPlayersDao().queryForId(uuid);
+        assertThat(actual).isNotNull();
+        assertThat(actual.getIgn()).isEqualTo(ign);
+    }
+    
+    @Test
+    void testRegisterNewPlayerWrongIgn() throws SQLException {
+        String uuid = "uuid";
+        String wrongIGN = "WrongIGN";
+        assertThat(gameStateService.registerPlayer(uuid, wrongIGN)).isFalse();
+        String correctIGN = "Player1";
+        assertThat(gameStateService.registerPlayer(uuid, correctIGN)).isTrue();
+        
+        AllPlayersEntity actual = database.getAllPlayersDao().queryForId(uuid);
+        assertThat(actual).isNotNull();
+        assertThat(actual.getIgn()).isEqualTo(correctIGN);
+    }
+    
+    @Test
+    void testRegisterPlayerAutomaticMigration() throws SQLException {
+        String wrongUUID = "wrong-uuid";
+        String rightUUID = "right-uuid";
+        String ign = "Player1";
+        assertThat(gameStateService.registerPlayer(wrongUUID, ign)).isFalse();
+        assertThat(gameStateService.registerPlayer(rightUUID, ign)).isTrue();
+        
+        AllPlayersEntity actual = database.getAllPlayersDao().queryForId(rightUUID);
+        assertThat(actual).isNotNull();
+        assertThat(actual.getIgn()).isEqualTo(ign);
+    }
+    
+    @Test
+    void testRegisterPlayerIgnExists() throws SQLException {
+        String wrongUUID = "wrong-uuid";
+        String rightUUID = "uuid";
+        String wrongIGN = "wrongIGN";
+        String rightIGN = "Player1";
+        assertThat(gameStateService.registerPlayer(rightUUID, wrongIGN)).isFalse();
+        assertThat(gameStateService.registerPlayer(wrongUUID, rightIGN)).isFalse();
+        assertThat(gameStateService.registerPlayer(rightUUID, rightIGN)).isTrue();
+        
+        AllPlayersEntity actual = database.getAllPlayersDao().queryForId(rightUUID);
+        assertThat(actual).isNotNull();
+        assertThat(actual.getIgn()).isEqualTo(rightIGN);
+    }
+    // registerPlayer tests end
+    
+    // HELPER METHODS 
+    
+    void addTeamToEveryTable(String teamId, String eventId, Date now) throws SQLException {
         gameStateService.addTeam(MaintenanceTeam.builder()
                 .teamId(teamId)
                 .displayName("purple")
@@ -157,21 +460,66 @@ class GameStateServiceTest {
                 .color("dark_purple")
                 .score(10)
                 .build());
-        gameStateService.addAdmin(new ActiveAdminEntity(fromUUID));
-        gameStateService.addAdmin(new MaintenanceAdminEntity(fromUUID));
-        gameStateService.addAdmin(new PracticeAdminEntity(fromUUID));
-        gameStateService.addAdmin(new EventAdminEntity(0, eventId, fromUUID));
+    }
+    
+    /**
+     * Adds a player to the database such that they are present in every table
+     * Note that they are an admin and a participant in all three modes, this is not a valid
+     * game state
+     * @param uuid the uuid of the player
+     * @param ign the name of the player
+     * @param teamId the teamId of the player
+     * @param now an arbitrary date
+     * @throws SQLException if there's a sql error
+     */
+    void addPlayerToEveryTable(String uuid, String ign, String teamId, String eventId, Date now) throws SQLException {
+        database.getAllPlayersDao().create(AllPlayersEntity.builder()
+                .uuid(uuid)
+                .ign(ign)
+                .firstSeenAt(now)
+                .build());
+        database.getPlayerMetadataDao().create(PlayerMetadata.builder()
+                .participantUUID(uuid)
+                .ign(ign)
+                .discordUsername(null)
+                .currentTokens(0)
+                .lifetimeTokens(0)
+                .percentRank(0.0)
+                .build());
+        eventService.addEventInfo(EventInfo.builder()
+                .eventId(eventId)
+                .plainTextName("Test")
+                .componentName(Component.text("Test"))
+                .eventDate(now)
+                .createdAt(now)
+                .canonical(true)
+                .modifiedAt(now)
+                .build());
+        int gameSessionId = Objects.requireNonNull(scoreService.createGameSession(GameSession.builder()
+                .multiplier(1.0)
+                .gameType(GameType.FOOT_RACE)
+                .startTime(now)
+                .configFile("nonexistent.json")
+                .eventId(null)
+                .mode(Mode.MAINTENANCE)
+                .sessionUndone(false)
+                .build()), "could not create game session").getId();
+        
+        gameStateService.addAdmin(new ActiveAdminEntity(uuid));
+        gameStateService.addAdmin(new MaintenanceAdminEntity(uuid));
+        gameStateService.addAdmin(new PracticeAdminEntity(uuid));
+        gameStateService.addAdmin(new EventAdminEntity(0, eventId, uuid));
         gameStateService.addParticipant(MaintenanceParticipantEntity.builder()
-                .participantUUID(fromUUID)
+                .participantUUID(uuid)
                 .teamId(teamId)
                 .build(), ign);
         gameStateService.addParticipant(PracticeParticipantEntity.builder()
-                .participantUUID(fromUUID)
+                .participantUUID(uuid)
                 .teamId(teamId)
                 .build(), ign);
         gameStateService.addParticipant(EventParticipantEntity.builder()
                 .eventId(eventId)
-                .participantUUID(fromUUID)
+                .participantUUID(uuid)
                 .teamId(teamId)
                 .build(), ign);
         scoreService.logScoreEvents(List.of(
@@ -179,7 +527,7 @@ class GameStateServiceTest {
                         .sourceType(ScoreEvent.SourceType.GAME)
                         .gameSessionId(gameSessionId)
                         .mode(Mode.MAINTENANCE)
-                        .participantUUID(fromUUID)
+                        .participantUUID(uuid)
                         .teamId(teamId)
                         .pointsBase(10)
                         .description("description")
@@ -188,7 +536,7 @@ class GameStateServiceTest {
                 ScoreEventEntity.builder()
                         .sourceType(ScoreEvent.SourceType.ADMIN)
                         .mode(Mode.PRACTICE)
-                        .participantUUID(fromUUID)
+                        .participantUUID(uuid)
                         .teamId(teamId)
                         .pointsBase(10)
                         .description("description")
@@ -196,7 +544,7 @@ class GameStateServiceTest {
                         .build()
         ));
         gameStateService.addParticipant(ActiveParticipant.builder()
-                .participantUUID(fromUUID)
+                .participantUUID(uuid)
                 .teamId(teamId)
                 .ign(ign)
                 .score(10)
@@ -209,21 +557,8 @@ class GameStateServiceTest {
         gameStateService.createOrUpdate(InGameParticipant.builder()
                 .gameScore(10)
                 .gameSessionId(gameSessionId)
-                .participantUUID(fromUUID)
+                .participantUUID(uuid)
                 .build());
-        
-        gameStateService.migrateFromUUIDToUUID(fromUUID, toUUID, ign);
-        toExistsFromDoesnt(database.getActiveAdminDao(), fromUUID, toUUID);
-        toExistsFromDoesnt(database.getMaintenanceAdminDao(), fromUUID, toUUID);
-        toExistsFromDoesnt(database.getPracticeAdminDao(), fromUUID, toUUID);
-        // eventAdmins
-        toExistsFromDoesnt(database.getMaintenanceParticipantsDao(), fromUUID, toUUID);
-        toExistsFromDoesnt(database.getPracticeParticipantsDao(), fromUUID, toUUID);
-        // eventParticipants
-        // score events
-        toExistsFromDoesnt(database.getActiveParticipantsDao(), fromUUID, toUUID);
-        toExistsFromDoesnt(database.getInGameParticipantsDao(), fromUUID, toUUID);
-        toExistsFromDoesnt(database.getPlayerMetadataDao(), fromUUID, toUUID);
     }
     
     <T> void toExistsFromDoesnt(Dao<?, T> dao, T from, T to) throws SQLException {

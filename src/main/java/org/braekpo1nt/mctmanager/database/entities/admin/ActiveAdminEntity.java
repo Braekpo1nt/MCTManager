@@ -7,6 +7,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 @DatabaseTable(tableName = "active_admins")
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,4 +22,10 @@ public class ActiveAdminEntity {
      */
     @DatabaseField(id = true, columnName = "uuid")
     private @NotNull String uuid;
+    
+    public static List<UUID> toAdmins(List<ActiveAdminEntity> adminEntities) {
+        return adminEntities.stream()
+                .map(admin -> UUID.fromString(admin.getUuid()))
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
 }

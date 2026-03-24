@@ -41,7 +41,7 @@ public class MockMain extends Main {
         return new MockGameManager(
                 this,
                 mctScoreboard,
-                new MockGameStateStorageUtil(this, gameStateService),
+                new MockGameStateStorageUtil(getLogger(), gameStateService),
                 new MockSidebarFactory(),
                 config,
                 database,

@@ -84,7 +84,7 @@ public class Main extends JavaPlugin {
         return new GameManager(
                 this,
                 mctScoreboard,
-                new GameStateStorageUtil(this, gameStateService),
+                new GameStateStorageUtil(getLogger(), gameStateService),
                 new SidebarFactory(),
                 config,
                 database,

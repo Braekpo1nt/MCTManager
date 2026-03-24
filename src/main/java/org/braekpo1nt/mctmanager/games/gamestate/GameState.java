@@ -84,6 +84,17 @@ public class GameState {
     }
     
     /**
+     * @param ign the IGN of the player to find
+     * @return the player with that IGN, or null if no player with that IGN exists
+     */
+    public @Nullable MCTPlayerEntity getPlayer(@NotNull String ign) {
+        return players.values().stream()
+                .filter(player -> player.getName().equals(ign))
+                .findFirst()
+                .orElse(null);
+    }
+    
+    /**
      * Removes the player with the given UUID from the game state, if it exists.
      * If the player did not exist, nothing happens.
      * @param playerUniqueId The UUID for the player

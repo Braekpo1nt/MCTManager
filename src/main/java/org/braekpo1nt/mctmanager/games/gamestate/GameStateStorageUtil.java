@@ -4,9 +4,9 @@ import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
+import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
 import org.braekpo1nt.mctmanager.database.entities.admin.ActiveAdminEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipant;
 import org.braekpo1nt.mctmanager.database.entities.teams.ActiveTeam;
@@ -23,7 +23,6 @@ import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,9 +37,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * Handles the CRUD operations for storing GameState objects
@@ -55,8 +52,8 @@ public class GameStateStorageUtil {
     protected GameState gameState = new GameState(new HashMap<>(), new HashMap<>(), new ArrayList<>());
     protected @NotNull StorageUtilState state;
     
-    public GameStateStorageUtil(@NotNull Main plugin, @NotNull GameStateService gameStateService) {
-        this.LOGGER = plugin.getLogger();
+    public GameStateStorageUtil(@NotNull Logger logger, @NotNull GameStateService gameStateService) {
+        this.LOGGER = logger;
         // Pro Tip: The plugin.getGameManager() is null at this point
         this.gameStateService = gameStateService;
         this.state = new MaintenanceState(this);
@@ -138,81 +135,7 @@ public class GameStateStorageUtil {
         List<ActiveTeam> activeTeams = gameStateService.getActiveTeams();
         List<ActiveParticipant> activeParticipants = gameStateService.getActiveParticipants();
         List<ActiveAdminEntity> adminEntities = gameStateService.getActiveAdmins();
-        return new GameState(toPlayers(activeParticipants), toTeams(activeTeams), toAdmins(adminEntities));
-    }
-    
-    public static Map<String, MCTTeamEntity> toTeams(List<ActiveTeam> activeTeams) {
-        return activeTeams.stream()
-                .map(GameStateStorageUtil::toTeam)
-                .collect(Collectors.toMap(MCTTeamEntity::getName, Function.identity()));
-    }
-    
-    public static List<UUID> toAdmins(List<ActiveAdminEntity> adminEntities) {
-        return adminEntities.stream()
-                .map(admin -> UUID.fromString(admin.getUuid()))
-                .collect(Collectors.toCollection(ArrayList::new));
-    }
-    
-    public static MCTTeamEntity toTeam(ActiveTeam activeTeam) {
-        return MCTTeamEntity.builder()
-                .name(activeTeam.getTeamId())
-                .displayName(activeTeam.getDisplayName())
-                .score(activeTeam.getScore())
-                .color(activeTeam.getColor())
-                .build();
-    }
-    
-    public static Map<UUID, MCTPlayerEntity> toPlayers(List<ActiveParticipant> activeParticipants) {
-        return activeParticipants.stream()
-                .map(GameStateStorageUtil::toPlayer)
-                .collect(Collectors.toMap(MCTPlayerEntity::getUniqueId, Function.identity()));
-    }
-    
-    public static MCTPlayerEntity toPlayer(ActiveParticipant activeParticipant) {
-        return MCTPlayerEntity.builder()
-                .uniqueId(UUID.fromString(activeParticipant.getParticipantUUID()))
-                .name(activeParticipant.getIgn())
-                .score(activeParticipant.getScore())
-                .teamId(activeParticipant.getTeamId())
-                .build();
-    }
-    
-    public static List<ActiveTeam> fromTeams(Collection<MCTTeamEntity> entities) {
-        return entities.stream()
-                .map(GameStateStorageUtil::fromTeam)
-                .toList();
-    }
-    
-    @Contract("null -> null")
-    public static ActiveTeam fromTeam(MCTTeamEntity team) {
-        if (team == null) {
-            return null;
-        }
-        return ActiveTeam.builder()
-                .teamId(team.getName())
-                .displayName(team.getDisplayName())
-                .color(team.getColor())
-                .score(team.getScore())
-                .build();
-    }
-    
-    public static List<ActiveParticipant> fromPlayers(Collection<MCTPlayerEntity> entities) {
-        return entities.stream()
-                .map(GameStateStorageUtil::fromPlayer)
-                .toList();
-    }
-    
-    @Contract("null -> null")
-    public static ActiveParticipant fromPlayer(MCTPlayerEntity player) {
-        if (player == null) {
-            return null;
-        }
-        return ActiveParticipant.builder()
-                .participantUUID(player.getUniqueId().toString())
-                .teamId(player.getTeamId())
-                .ign(player.getName())
-                .score(player.getScore())
-                .build();
+        return new GameState(ActiveParticipant.toPlayers(activeParticipants), ActiveTeam.toTeams(activeTeams), ActiveAdminEntity.toAdmins(adminEntities));
     }
     
     /**
@@ -280,6 +203,48 @@ public class GameStateStorageUtil {
         return new HashSet<>(gameState.getTeams().keySet());
     }
     
+    public boolean registerPlayer(@NotNull UUID uuid, @NotNull String ign) throws SQLException {
+        resolveConflicts(uuid, ign);
+        return gameStateService.registerPlayer(uuid.toString(), ign);
+    }
+    
+    private boolean resolveConflicts(@NotNull UUID uuid, @NotNull String ign) {
+        MCTPlayerEntity existingPlayer = gameState.getPlayer(uuid);
+        if (existingPlayer != null) {
+            // check if the ign is right
+            if (existingPlayer.getName().equals(ign)) {
+                // everything is correct, we are done
+                return false;
+            }
+            // if the UUID exists but the ign is wrong, we need to change the ign
+            MCTPlayerEntity playerWithIgn = gameState.getPlayer(ign);
+            if (playerWithIgn == null) {
+                // there are no existing participants with the ign, so just update the ign
+                existingPlayer.setName(ign);
+                return true;
+            }
+            // there is a participant with the ign, so we need to migrate the UUID and keep the ign
+            migrateFromUUIDToUUID(playerWithIgn.getUniqueId(), playerWithIgn.getTeamId(), playerWithIgn.getScore(), uuid, ign);
+            return true;
+        }
+        // a participant with the UUID does not exist in the participants list
+        MCTPlayerEntity playerWithIgn = gameState.getPlayer(ign);
+        if (playerWithIgn == null) {
+            // no players with the ign exist
+            return false;
+        }
+        // a participant with the wrong UUID but the right IGN exists in the participants list
+        // we must migrate the UUID and keep the correct IGN
+        migrateFromUUIDToUUID(playerWithIgn.getUniqueId(), playerWithIgn.getTeamId(), playerWithIgn.getScore(), uuid, ign);
+        return true;
+    }
+    
+    private void migrateFromUUIDToUUID(UUID fromUUID, String teamId, int score, UUID toUUID, String ign) {
+        gameState.removePlayer(fromUUID);
+        MCTPlayerEntity correctedPlayer = gameState.addPlayer(toUUID, ign, teamId);
+        correctedPlayer.setScore(score);
+    }
+    
     /**
      * Adds the given player to the game state, joined to the given team
      * @param playerToJoin the UUID of the player
@@ -341,14 +306,14 @@ public class GameStateStorageUtil {
         List<ActiveTeam> activeTeams = teams.stream()
                 .map(team -> {
                     MCTTeamEntity mctTeamEntity = gameState.getTeam(team.getTeamId());
-                    return fromTeam(mctTeamEntity);
+                    return ActiveTeam.fromTeam(mctTeamEntity);
                 })
                 .filter(Objects::nonNull)
                 .toList();
         List<ActiveParticipant> activeParticipants = participants.stream()
                 .map(participant -> {
                     MCTPlayerEntity mctPlayerEntity = gameState.getPlayer(participant.getUniqueId());
-                    return fromPlayer(mctPlayerEntity);
+                    return ActiveParticipant.fromPlayer(mctPlayerEntity);
                 })
                 .filter(Objects::nonNull)
                 .toList();
@@ -387,7 +352,7 @@ public class GameStateStorageUtil {
     public void persistScore(OfflineParticipant participant) throws SQLException {
         MCTPlayerEntity player = Objects.requireNonNull(gameState.getPlayer(participant.getUniqueId()),
                 "attempted to persist score of non-existent participant");
-        gameStateService.updateActiveParticipant(fromPlayer(player));
+        gameStateService.updateActiveParticipant(ActiveParticipant.fromPlayer(player));
     }
     
     /**
@@ -410,7 +375,7 @@ public class GameStateStorageUtil {
      */
     public void persistScore(org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam mctTeam) throws SQLException {
         MCTTeamEntity team = gameState.getTeam(mctTeam.getTeamId());
-        gameStateService.updateActiveTeam(fromTeam(team));
+        gameStateService.updateActiveTeam(ActiveTeam.fromTeam(team));
     }
     
     /**
