@@ -21,6 +21,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -309,27 +310,83 @@ public class VoteManager implements Listener {
         voter.getInventory().remove(NETHER_STAR);
     }
     
-    public void executeVote() {
-        if(weightedVoting) {
-            HandlerList.unregisterAll(this);
-            paused = false;
-            Random random = new Random();
-            ArrayList<UUID> votesKeys = new ArrayList<>(votes.keySet()); // Use votes.values()
-            int votesKeysLength = votesKeys.size();
-            int randomVoteIter;
-            int randomSelection;
-            for (randomVoteIter = 0; randomVoteIter < votesKeysLength; ++randomVoteIter) { // Bukkit Runable
-                if (randomVoteIter < votesKeysLength - 5) {
-                    randomSelection = random.nextInt(votesKeys.size());
-                    // Leaving space to do fun displays
-                    votesKeys.remove(randomSelection);
-                } else if (randomVoteIter < votesKeysLength - 1) {
-                    // When displaying, can slow down time between display starting here
-                    randomSelection = random.nextInt(votesKeys.size());
-                    // Leaving space to do fun displays
-                    votesKeys.remove(randomSelection);
-                } else {
-                    GameType gameType = votes.get(votesKeys.getFirst());
+    public void scheduleNextDisplay(List<GameType> votes, final long numberOfTicks, Random random, final boolean displayIsRed) {
+        
+        BukkitRunnable display = new BukkitRunnable() {
+            @Override
+            public void run() {
+                boolean redTitle;
+                int selectedInt;
+                GameType gameType;
+                long nextNumberOfTicks;
+                if(votes.size() > 5) {
+                    selectedInt = random.nextInt(votes.size());
+                    gameType = votes.get(selectedInt);
+                    votes.remove(selectedInt);
+                    nextNumberOfTicks = 5L;
+                    if (displayIsRed) {
+                        Audience.audience( // Use this for display, modify color
+                                voters.values()
+                        ).showTitle(UIUtils.defaultTitle(
+                                Component.empty()
+                                        .append(Component.text(gameType.getTitle()))
+                                        .color(NamedTextColor.RED),
+                                Component.empty()
+                        ));
+                        redTitle = false;
+                    } else {
+                        Audience.audience( // Use this for display, modify color
+                                voters.values()
+                        ).showTitle(UIUtils.defaultTitle(
+                                Component.empty()
+                                        .append(Component.text(gameType.getTitle()))
+                                        .color(NamedTextColor.YELLOW),
+                                Component.empty()
+                        ));
+                        redTitle = true;
+                    }
+                }
+                else if(votes.size() > 1) {
+                    selectedInt = random.nextInt(votes.size());
+                    gameType = votes.get(selectedInt);
+                    votes.remove(selectedInt);
+                    if(votes.size() == 5) {
+                        nextNumberOfTicks = 6L;
+                    }
+                    else if(votes.size() == 4) {
+                        nextNumberOfTicks = 7L;
+                    }
+                    else if(votes.size() == 3) {
+                        nextNumberOfTicks = 9L;
+                    }
+                    else {
+                        nextNumberOfTicks = 12L;
+                    }
+                    if (displayIsRed) {
+                        Audience.audience( // Use this for display, modify color
+                                voters.values()
+                        ).showTitle(UIUtils.defaultTitle(
+                                Component.empty()
+                                        .append(Component.text(gameType.getTitle()))
+                                        .color(NamedTextColor.RED),
+                                Component.empty()
+                        ));
+                        redTitle = false;
+                    } 
+                    else {
+                        Audience.audience( // Use this for display, modify color
+                                voters.values()
+                        ).showTitle(UIUtils.defaultTitle(
+                                Component.empty()
+                                        .append(Component.text(gameType.getTitle()))
+                                        .color(NamedTextColor.YELLOW),
+                                Component.empty()
+                        ));
+                        redTitle = true;
+                    }
+                }
+                else {
+                    gameType = votes.getFirst();
                     Audience.audience( // Use this for display, modify color
                             voters.values()
                     ).showTitle(UIUtils.defaultTitle(
@@ -338,18 +395,34 @@ public class VoteManager implements Listener {
                                     .color(NamedTextColor.BLUE),
                             Component.empty()
                     ));
+                    votes.clear();
                     for (Participant voter : voters.values()) {
                         resetParticipant(voter);
                     }
-                    votes.clear();
                     voters.clear();
                     guis.clear();
                     guiItems.clear();
                     executeMethod.accept(gameType, "default.json");
-                    votesKeys.removeFirst();
+                    redTitle = true;
+                    nextNumberOfTicks = 0L;
+                }
+                if (!votes.isEmpty()) {
+                    scheduleNextDisplay(votes, nextNumberOfTicks, random, redTitle);
                 }
             }
-        }
+        }.runTaskLater(this, numberOfTicks);
+        return;
+    }
+    
+    public void executeVote() {
+        if(weightedVoting) {
+            HandlerList.unregisterAll(this);
+            paused = false;
+            Random random = new Random();
+            ArrayList<GameType> collectedVotes = new ArrayList<>(votes.values()); // Use votes.values()
+            scheduleNextDisplay(collectedVotes, 5L, random, true);
+            
+                }
         
         else {
             
