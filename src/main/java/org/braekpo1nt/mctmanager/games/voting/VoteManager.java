@@ -420,12 +420,8 @@ public class VoteManager implements Listener {
             Random random = new Random();
             ArrayList<GameType> collectedVotes = new ArrayList<>(votes.values()); // Use votes.values()
             scheduleNextDisplay(collectedVotes, 5L, random, true);
-            
-                }
-        
+        }
         else {
-            
-            
             HandlerList.unregisterAll(this);
             paused = false;
             GameType gameType = getVotedForGame();
