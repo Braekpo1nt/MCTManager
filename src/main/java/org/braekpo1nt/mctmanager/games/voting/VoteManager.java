@@ -22,6 +22,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,6 +45,7 @@ public class VoteManager implements Listener {
     private final Collection<GuiItem> guiItems;
     private final BiConsumer<GameType, String> executeMethod;
     private final boolean weightedVoting;
+    private final Main plugin;
     
     private boolean paused;
     
@@ -62,6 +64,7 @@ public class VoteManager implements Listener {
             List<GameType> votingPool,
             Collection<Participant> newParticipants, boolean weightedVoting) {
         this.NETHER_STAR = new ItemStack(Material.NETHER_STAR);
+        this.plugin = plugin;
         ItemMeta netherStarMeta = this.NETHER_STAR.getItemMeta();
         netherStarMeta.displayName(NETHER_STAR_NAME);
         this.NETHER_STAR.setItemMeta(netherStarMeta);
@@ -312,7 +315,7 @@ public class VoteManager implements Listener {
     
     public void scheduleNextDisplay(List<GameType> votes, final long numberOfTicks, Random random, final boolean displayIsRed) {
         
-        BukkitRunnable display = new BukkitRunnable() {
+        BukkitTask display = new BukkitRunnable() {
             @Override
             public void run() {
                 boolean redTitle;
@@ -410,7 +413,7 @@ public class VoteManager implements Listener {
                     scheduleNextDisplay(votes, nextNumberOfTicks, random, redTitle);
                 }
             }
-        }.runTaskLater(this, numberOfTicks);
+        }.runTaskLater(plugin, numberOfTicks);
     }
     
     public void executeVote() {
