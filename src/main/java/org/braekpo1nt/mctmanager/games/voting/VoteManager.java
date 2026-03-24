@@ -326,7 +326,7 @@ public class VoteManager implements Listener {
                     selectedInt = random.nextInt(votes.size());
                     gameType = votes.get(selectedInt);
                     votes.remove(selectedInt);
-                    nextNumberOfTicks = 5L;
+                    nextNumberOfTicks = 5;
                     if (displayIsRed) {
                         Audience.audience( // Use this for display, modify color
                                 voters.values()
@@ -354,16 +354,16 @@ public class VoteManager implements Listener {
                     gameType = votes.get(selectedInt);
                     votes.remove(selectedInt);
                     if(votes.size() == 5) {
-                        nextNumberOfTicks = 6L;
+                        nextNumberOfTicks = 6;
                     }
                     else if(votes.size() == 4) {
-                        nextNumberOfTicks = 7L;
+                        nextNumberOfTicks = 7;
                     }
                     else if(votes.size() == 3) {
-                        nextNumberOfTicks = 9L;
+                        nextNumberOfTicks = 9;
                     }
                     else {
-                        nextNumberOfTicks = 12L;
+                        nextNumberOfTicks = 12;
                     }
                     if (displayIsRed) {
                         Audience.audience( // Use this for display, modify color
@@ -422,7 +422,7 @@ public class VoteManager implements Listener {
             paused = false;
             Random random = new Random();
             ArrayList<GameType> collectedVotes = new ArrayList<>(votes.values()); // Use votes.values()
-            scheduleNextDisplay(collectedVotes, 5L, random, true);
+            scheduleNextDisplay(collectedVotes, 5, random, true);
         }
         else {
             HandlerList.unregisterAll(this);
