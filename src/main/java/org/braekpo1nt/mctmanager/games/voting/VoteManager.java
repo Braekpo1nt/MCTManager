@@ -411,7 +411,6 @@ public class VoteManager implements Listener {
                 }
             }
         }.runTaskLater(this, numberOfTicks);
-        return;
     }
     
     public void executeVote() {
