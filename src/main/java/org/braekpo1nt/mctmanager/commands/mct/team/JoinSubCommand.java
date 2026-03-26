@@ -50,6 +50,9 @@ public class JoinSubCommand implements BrigadierSubCommand {
                         .then(Permissioned.argument("member", StringArgumentType.word())
                                 .suggests((source, builder) -> suggestPlayerNames(builder))
                                 .executes(BrigadierAdapters.wraps(this::executeJoin))
+                                .then(Permissioned.argument("uuid", StringArgumentType.word())
+                                        .executes(BrigadierAdapters.wraps(this::executeJoinUUID))
+                                )
                         )
                 )
                 ;
@@ -77,5 +80,12 @@ public class JoinSubCommand implements BrigadierSubCommand {
         Team team = ctx.getArgument("teamId", Team.class);
         String member = ctx.getArgument("member", String.class);
         return GameManagerUtils.joinParticipant(plugin, gameManager, member, team);
+    }
+    
+    private @NotNull CommandResult executeJoinUUID(CommandContext<CommandSourceStack> ctx) {
+        Team team = ctx.getArgument("teamId", Team.class);
+        String member = ctx.getArgument("member", String.class);
+        String uuid = ctx.getArgument("uuid", String.class);
+        return GameManagerUtils.joinParticipant(plugin, gameManager, member, team, uuid);
     }
 }
