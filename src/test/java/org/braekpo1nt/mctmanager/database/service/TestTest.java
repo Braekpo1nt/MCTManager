@@ -1,5 +1,13 @@
+package org.braekpo1nt.mctmanager.database.service;
+
+import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.database.Database;
 import org.junit.jupiter.api.*;
 import org.testcontainers.containers.MariaDBContainer;
+
+import java.util.logging.Logger;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 class TestTest {
     
@@ -39,5 +47,10 @@ class TestTest {
         
         database = new Database(jdbcUrl);
         service = new GameStateService("prod", database);
+    }
+    
+    @Test
+    void test() {
+        assertThat(database).isNotNull();
     }
 }
