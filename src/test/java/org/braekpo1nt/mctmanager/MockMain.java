@@ -50,6 +50,11 @@ public class MockMain extends Main {
     }
     
     @Override
+    protected String getMigrationLocation() {
+        return "classpath:db/migration/test";
+    }
+    
+    @Override
     protected Database setupDatabase() throws SQLException {
         String sqlitePath = new File(getDataFolder(), "mctmanager.db").getAbsolutePath();
         String user = getConfig().getString("database.user", "root");

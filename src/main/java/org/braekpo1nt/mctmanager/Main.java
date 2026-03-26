@@ -161,7 +161,7 @@ public class Main extends JavaPlugin {
         } catch (SQLException e) {
             getLogger().log(Level.SEVERE, "An error occurred connecting to or setting up the database. Is your config.yml set up properly? Disabling the plugin.", e);
             this.getServer().getPluginManager().disablePlugin(this);
-            return;
+            throw new RuntimeException(e);
         }
         
         HubConfig config;
@@ -208,9 +208,13 @@ public class Main extends JavaPlugin {
         );
     }
     
+    protected String getMigrationLocation() {
+        return "classpath:db/migration";
+    }
+    
     protected void flywayMigration(String jdbcUrl, String user, String password, String engine, String autoincrement) throws SQLException {
         String mode = getConfig().getString("database.mode", "prod");
-        Main.flywayMigration(jdbcUrl, user, password, engine, autoincrement, mode, getLogger(), getClass().getClassLoader(), "classpath:db/migration");
+        Main.flywayMigration(jdbcUrl, user, password, engine, autoincrement, mode, getLogger(), getClass().getClassLoader(), getMigrationLocation());
     }
     
     public static void flywayMigration(String jdbcUrl, String user, String password, String engine, String autoincrement, String mode, Logger logger, ClassLoader classLoader, String locations) throws SQLException {

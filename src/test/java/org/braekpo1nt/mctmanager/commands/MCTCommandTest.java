@@ -34,13 +34,12 @@ class MCTCommandTest {
         server.getLogger().setLevel(Level.OFF);
         try {
             plugin = MockBukkit.load(MockMain.class);
-            gameManager = plugin.getGameManager();
         } catch (UnimplementedOperationException ex) {
             System.out.println("UnimplementedOperationException while setting up " + this.getClass() + ". MockBukkit must not support the functionality/operation you are trying to test. Check the stack trace below for the exact method that threw the exception. Message from exception:" + ex.getMessage());
             ex.printStackTrace();
             System.exit(1);
         }
-        
+        gameManager = plugin.getGameManager();
         command = plugin.getCommand("mct");
     }
     
