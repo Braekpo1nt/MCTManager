@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.gamestate;
 
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.MockMain;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
 import org.braekpo1nt.mctmanager.database.service.GameStateService;
@@ -40,7 +41,17 @@ public class GameStateStorageUtilTest {
         String password = "";
         String jdbcUrl = "jdbc:sqlite:" + sqlitePath;
         String mode = "prod";
-        Main.flywayMigration(jdbcUrl, user, password, "", "", mode, logger, Main.class.getClassLoader());
+        Main.flywayMigration(
+                jdbcUrl,
+                user,
+                password,
+                "",
+                "",
+                mode,
+                logger,
+                MockMain.class.getClassLoader(),
+                "classpath:db/migration/test"
+        );
         gameStateService = new GameStateService(mode, database);
         gameStateStorageUtil = new GameStateStorageUtil(logger, gameStateService);
         teamId = "purple";

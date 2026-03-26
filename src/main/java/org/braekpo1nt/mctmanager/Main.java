@@ -210,10 +210,10 @@ public class Main extends JavaPlugin {
     
     protected void flywayMigration(String jdbcUrl, String user, String password, String engine, String autoincrement) throws SQLException {
         String mode = getConfig().getString("database.mode", "prod");
-        Main.flywayMigration(jdbcUrl, user, password, engine, autoincrement, mode, getLogger(), getClass().getClassLoader());
+        Main.flywayMigration(jdbcUrl, user, password, engine, autoincrement, mode, getLogger(), getClass().getClassLoader(), "classpath:db/migration");
     }
     
-    public static void flywayMigration(String jdbcUrl, String user, String password, String engine, String autoincrement, String mode, Logger logger, ClassLoader classLoader) throws SQLException {
+    public static void flywayMigration(String jdbcUrl, String user, String password, String engine, String autoincrement, String mode, Logger logger, ClassLoader classLoader, String locations) throws SQLException {
         try {
             switch (mode) {
                 case "test" -> {
@@ -222,7 +222,7 @@ public class Main extends JavaPlugin {
                     // or flyway won't find your migrations
                     Flyway flyway = Flyway.configure(classLoader)
                             .dataSource(jdbcUrl, user, password)
-                            .locations("classpath:db/migration") // migration folder
+                            .locations(locations) // migration folder
                             .validateOnMigrate(false) // don't block if scripts change
                             .cleanDisabled(false) // allow wiping DB
                             .placeholders(Map.of(
@@ -243,7 +243,7 @@ public class Main extends JavaPlugin {
                     // or flyway won't find your migrations
                     Flyway flyway = Flyway.configure(classLoader)
                             .dataSource(jdbcUrl, user, password)
-                            .locations("classpath:db/migration") // migration folder
+                            .locations(locations) // migration folder
                             .validateOnMigrate(true)
                             .cleanDisabled(true)
                             .placeholders(Map.of(
