@@ -24,7 +24,7 @@ class TimerManagerTest {
     
     private TimerManager timerManager;
     private GameManager gameManager;
-    private Main plugin;
+    private MockMain plugin;
     private ServerMock server;
     
     @BeforeEach

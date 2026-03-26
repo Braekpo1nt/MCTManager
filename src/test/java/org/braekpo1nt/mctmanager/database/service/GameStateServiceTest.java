@@ -372,7 +372,7 @@ class GameStateServiceTest {
         // the player doesn't exist in the database and there are no conflicts
         String uuid = "uuid";
         String ign = "Player1";
-        assertThat(gameStateService.registerPlayer(uuid, ign)).isFalse();
+        assertThat(gameStateService.registerPlayer(uuid, ign)).isEqualTo(RegisterConflictType.NONE);
         AllPlayersEntity actual = database.getAllPlayersDao().queryForId(uuid);
         assertThat(actual).isNotNull();
         assertThat(actual.getIgn()).isEqualTo(ign);
@@ -382,9 +382,9 @@ class GameStateServiceTest {
     void testRegisterNewPlayerIdempotent() throws SQLException {
         String uuid = "uuid";
         String ign = "Player1";
-        assertThat(gameStateService.registerPlayer(uuid, ign)).isFalse();
+        assertThat(gameStateService.registerPlayer(uuid, ign)).isEqualTo(RegisterConflictType.NONE);
         // the player exists in the database with the correct ign
-        assertThat(gameStateService.registerPlayer(uuid, ign)).isFalse();
+        assertThat(gameStateService.registerPlayer(uuid, ign)).isEqualTo(RegisterConflictType.NONE);
         AllPlayersEntity actual = database.getAllPlayersDao().queryForId(uuid);
         assertThat(actual).isNotNull();
         assertThat(actual.getIgn()).isEqualTo(ign);
@@ -394,9 +394,9 @@ class GameStateServiceTest {
     void testRegisterNewPlayerWrongIgn() throws SQLException {
         String uuid = "uuid";
         String wrongIGN = "WrongIGN";
-        assertThat(gameStateService.registerPlayer(uuid, wrongIGN)).isFalse();
+        assertThat(gameStateService.registerPlayer(uuid, wrongIGN)).isEqualTo(RegisterConflictType.NONE);
         String correctIGN = "Player1";
-        assertThat(gameStateService.registerPlayer(uuid, correctIGN)).isTrue();
+        assertThat(gameStateService.registerPlayer(uuid, correctIGN)).isEqualTo(RegisterConflictType.MIGRATE_IGN);
         
         AllPlayersEntity actual = database.getAllPlayersDao().queryForId(uuid);
         assertThat(actual).isNotNull();
@@ -408,8 +408,8 @@ class GameStateServiceTest {
         String wrongUUID = "wrong-uuid";
         String rightUUID = "right-uuid";
         String ign = "Player1";
-        assertThat(gameStateService.registerPlayer(wrongUUID, ign)).isFalse();
-        assertThat(gameStateService.registerPlayer(rightUUID, ign)).isTrue();
+        assertThat(gameStateService.registerPlayer(wrongUUID, ign)).isEqualTo(RegisterConflictType.NONE);
+        assertThat(gameStateService.registerPlayer(rightUUID, ign)).isEqualTo(RegisterConflictType.MIGRATE_UUID);
         
         AllPlayersEntity actual = database.getAllPlayersDao().queryForId(rightUUID);
         assertThat(actual).isNotNull();
@@ -422,13 +422,15 @@ class GameStateServiceTest {
         String rightUUID = "uuid";
         String wrongIGN = "wrongIGN";
         String rightIGN = "Player1";
-        assertThat(gameStateService.registerPlayer(rightUUID, wrongIGN)).isFalse();
-        assertThat(gameStateService.registerPlayer(wrongUUID, rightIGN)).isFalse();
-        assertThat(gameStateService.registerPlayer(rightUUID, rightIGN)).isTrue();
+        assertThat(gameStateService.registerPlayer(rightUUID, wrongIGN)).isEqualTo(RegisterConflictType.NONE);
+        assertThat(gameStateService.registerPlayer(wrongUUID, rightIGN)).isEqualTo(RegisterConflictType.NONE);
+        assertThat(gameStateService.registerPlayer(rightUUID, rightIGN)).isEqualTo(RegisterConflictType.MIGRATE_UUID);
         
         AllPlayersEntity actual = database.getAllPlayersDao().queryForId(rightUUID);
         assertThat(actual).isNotNull();
         assertThat(actual.getIgn()).isEqualTo(rightIGN);
+        AllPlayersEntity shouldNotExist = database.getAllPlayersDao().queryForId(wrongUUID);
+        assertThat(shouldNotExist).isNull();
     }
     // registerPlayer tests end
     
@@ -549,12 +551,12 @@ class GameStateServiceTest {
                 .ign(ign)
                 .score(10)
                 .build());
-        gameStateService.createOrUpdate(InGameTeam.builder()
+        gameStateService.addOrUpdateTeam(InGameTeam.builder()
                 .teamId(teamId)
                 .gameScore(10)
                 .gameSessionId(gameSessionId)
                 .build());
-        gameStateService.createOrUpdate(InGameParticipant.builder()
+        gameStateService.addOrUpdateParticipant(InGameParticipant.builder()
                 .gameScore(10)
                 .gameSessionId(gameSessionId)
                 .participantUUID(uuid)

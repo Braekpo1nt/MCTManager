@@ -6,11 +6,11 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
-import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
 import org.braekpo1nt.mctmanager.database.entities.admin.ActiveAdminEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipant;
 import org.braekpo1nt.mctmanager.database.entities.teams.ActiveTeam;
 import org.braekpo1nt.mctmanager.database.service.GameStateService;
+import org.braekpo1nt.mctmanager.database.service.RegisterConflictType;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamestate.states.EventState;
@@ -203,9 +203,40 @@ public class GameStateStorageUtil {
         return new HashSet<>(gameState.getTeams().keySet());
     }
     
-    public boolean registerPlayer(@NotNull UUID uuid, @NotNull String ign) throws SQLException {
-        resolveConflicts(uuid, ign);
-        return gameStateService.registerPlayer(uuid.toString(), ign);
+    public RegisterConflictType registerPlayer(@NotNull UUID uuid, @NotNull String ign) throws SQLException {
+        RegisterConflictType type = gameStateService.registerPlayer(uuid.toString(), ign);
+        
+        // TODO: handle admins
+        return switch (type) {
+            case MIGRATE_IGN -> {
+                // a player with the UUID exists but the IGN is wrong
+                MCTPlayerEntity participantWithWrongIGN = gameState.getPlayer(uuid);
+                if (participantWithWrongIGN == null) {
+                    // they're not in the game state, no changes needed
+                    yield RegisterConflictType.NONE;
+                }
+                // the player is a participant in the game state, so we need to migrate the ign
+                participantWithWrongIGN.setName(ign);
+                yield RegisterConflictType.MIGRATE_IGN;
+            }
+            case MIGRATE_UUID -> {
+                // a player with the ign exists, but the UUID is wrong
+                MCTPlayerEntity participantWithIgn = gameState.getPlayer(ign);
+                if (participantWithIgn == null) {
+                    // they're not in the game state, no changes needed
+                    yield RegisterConflictType.NONE;
+                }
+                migrateFromUUIDToUUID(
+                        participantWithIgn.getUniqueId(),
+                        participantWithIgn.getTeamId(),
+                        participantWithIgn.getScore(),
+                        uuid,
+                        ign
+                );
+                yield RegisterConflictType.MIGRATE_UUID;
+            }
+            default -> RegisterConflictType.NONE;
+        };
     }
     
     private boolean resolveConflicts(@NotNull UUID uuid, @NotNull String ign) {
@@ -471,4 +502,13 @@ public class GameStateStorageUtil {
         state.removeAdmin(adminUniqueId);
     }
     
+    public void setIGN(UUID uuid, String ign) throws SQLException {
+        MCTPlayerEntity player = gameState.getPlayer(uuid);
+        if (player == null) {
+            return;
+        }
+        player.setName(ign);
+        // TODO: should we update the name in the database here, or separately outside?
+        gameStateService.migrateIgn(uuid.toString(), ign);
+    }
 }

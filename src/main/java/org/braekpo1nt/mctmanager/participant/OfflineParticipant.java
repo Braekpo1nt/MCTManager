@@ -75,8 +75,18 @@ public class OfflineParticipant implements AudienceDelegate {
      * @param offlineParticipant the offline participant to copy everything but the score from
      * @param newScore the score to use
      */
-    public OfflineParticipant(OfflineParticipant offlineParticipant, int newScore) {
+    public OfflineParticipant(@NotNull OfflineParticipant offlineParticipant, int newScore) {
         this(offlineParticipant.getUniqueId(), offlineParticipant.getName(), offlineParticipant.displayName(), offlineParticipant.getTeamId(), newScore);
+    }
+    
+    /**
+     * Copy everything about the given offline participant, but use the new name and display name
+     * @param offlineParticipant the offline participant to copy everything but the score from
+     * @param newName the name to use
+     * @param displayName the display name to use
+     */
+    public OfflineParticipant(@NotNull OfflineParticipant offlineParticipant, @NotNull String newName, @NotNull Component displayName) {
+        this(offlineParticipant.getUniqueId(), newName, displayName, offlineParticipant.getTeamId(), offlineParticipant.getScore());
     }
     
     /**

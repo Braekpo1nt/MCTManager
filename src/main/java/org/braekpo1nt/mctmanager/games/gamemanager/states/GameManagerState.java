@@ -1466,6 +1466,22 @@ public abstract class GameManagerState {
      * @param team The internal teamId of the team to join the player to.
      */
     public CommandResult joinParticipantToTeam(@NotNull OfflinePlayer offlinePlayer, @NotNull String ign, @NotNull MCTTeam team) {
+        return joinParticipantToTeam(offlinePlayer, ign, team, true);
+    }
+    
+    
+    /**
+     * Joins the given player to the team with the given teamId. If the player was on a team already (not teamId) they
+     * will be removed from that team and added to the other team.
+     * Note, this will not join a player to a team if that player is an admin.
+     * @param offlinePlayer The player to join to the given team
+     * @param ign The name of the participant to join to the given team
+     * @param team The internal teamId of the team to join the player to.
+     * @param allowOnlineJoining true if you want to join the participant when they are online, false if you want to
+     * ignore the fact that they are online and just join them to the team
+     * // TODO: instead just have two overloads, one which takes in a Player and one for OfflinePlayer
+     */
+    public CommandResult joinParticipantToTeam(@NotNull OfflinePlayer offlinePlayer, @NotNull String ign, @NotNull MCTTeam team, boolean allowOnlineJoining) {
         // TODO: handle any async operations for this in a separate thread, keep all uses and overrides in mind
         List<CommandResult> results = new ArrayList<>();
         if (context.isAdmin(offlinePlayer.getUniqueId())) {
@@ -1512,13 +1528,15 @@ public abstract class GameManagerState {
                 .append(Component.text(" to "))
                 .append(team.getFormattedDisplayName())));
         
-        // if they are online
-        Player player = offlinePlayer.getPlayer();
-        if (player != null) {
-            MCTParticipant participant = new MCTParticipant(offlineParticipant, player);
-            participant.sendMessage(Component.text("You've been joined to team ")
-                    .append(team.getFormattedDisplayName()));
-            onParticipantJoin(participant);
+        if (allowOnlineJoining) {
+            // if they are online
+            Player player = offlinePlayer.getPlayer();
+            if (player != null) {
+                MCTParticipant participant = new MCTParticipant(offlineParticipant, player);
+                participant.sendMessage(Component.text("You've been joined to team ")
+                        .append(team.getFormattedDisplayName()));
+                onParticipantJoin(participant);
+            }
         }
         
         return CompositeCommandResult.all(results);

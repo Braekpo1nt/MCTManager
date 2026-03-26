@@ -9,6 +9,8 @@ import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.hub.config.HubConfig;
 import org.braekpo1nt.mctmanager.hub.leaderboard.LeaderboardManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
+import org.braekpo1nt.mctmanager.ui.tablist.MockTabList;
+import org.braekpo1nt.mctmanager.ui.tablist.TabList;
 import org.bukkit.scoreboard.Scoreboard;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,6 +34,11 @@ public class MockGameManager extends GameManager {
                 config,
                 database,
                 gameStateService);
+    }
+    
+    @Override
+    public @NotNull TabList createTabList(Main plugin) {
+        return new MockTabList(plugin);
     }
     
     @Override

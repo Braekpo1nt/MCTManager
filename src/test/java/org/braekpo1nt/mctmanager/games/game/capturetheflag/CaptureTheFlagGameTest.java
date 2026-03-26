@@ -27,7 +27,7 @@ import java.util.logging.Level;
 public class CaptureTheFlagGameTest {
     
     private ServerMock server;
-    private Main plugin;
+    private MockMain plugin;
     private GameManager gameManager;
     
     @BeforeEach

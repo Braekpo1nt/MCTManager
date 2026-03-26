@@ -61,7 +61,20 @@ public class MockMain extends Main {
     }
     
     @Override
+    protected void alwaysGiveNightVision() {
+        // do nothing
+    }
+    
+    @Override
     protected void registerCommands(@NotNull BlockEffectsListener blockEffectsListener) {
         // do nothing
+    }
+    
+    public GameManager getGameManager() {
+        return gameManager;
+    }
+    
+    public Database getDatabase() {
+        return database;
     }
 }

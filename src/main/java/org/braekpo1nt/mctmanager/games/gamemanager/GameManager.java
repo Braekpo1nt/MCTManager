@@ -10,19 +10,19 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.database.Database;
-import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
-import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEventEntity;
 import org.braekpo1nt.mctmanager.database.exceptions.EventStillInUseException;
 import org.braekpo1nt.mctmanager.database.service.EventService;
 import org.braekpo1nt.mctmanager.database.service.GameStateService;
+import org.braekpo1nt.mctmanager.database.service.RegisterConflictType;
 import org.braekpo1nt.mctmanager.database.service.ScoreService;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
@@ -170,7 +170,7 @@ public class GameManager implements Listener {
         this.gameStateService = gameStateService;
         this.sidebarFactory = sidebarFactory;
         this.config = config;
-        this.tabList = new TabList(plugin);
+        this.tabList = createTabList(plugin);
         this.leaderboardManagers = createLeaderboardManagers();
         this.sidebar = sidebarFactory.createSidebar();
         ContextReference contextReference = ContextReference.builder()
@@ -192,6 +192,10 @@ public class GameManager implements Listener {
                 .build();
         this.state = new MaintenanceState(this, contextReference);
         this.state.enter();
+    }
+    
+    public @NotNull TabList createTabList(Main plugin) {
+        return new TabList(plugin);
     }
     
     /**
@@ -368,24 +372,96 @@ public class GameManager implements Listener {
         }
     }
     
+    private void resolveUUIDandIGNerrors(Player player) {
+        /*
+        - check if the player's UUID is in the game state
+          - if their uuid IS in the game state
+            - check to see if their IGN is correct
+              - if it IS, there is nothing to do
+              - if it is NOT, we must correct the IGN
+                - correct the IGN in allParticipants
+                - correct the IGN in onlineParticipants
+                - correct the IGN in the gameStateStorageUtil
+                - correct the IGN in the database
+          - if their uuid is NOT in the game state
+            - check if the player's ign is in the game state
+              - if it is NOT, then they are a new non-participant entity
+                - resolve them in the database alone
+              - if it IS, there is a UUID mismatch
+                - remove the incorrect UUID with the correct IGN from their team
+                - resolve the database clash
+                - join the participant with the correct UUID and correct IGN to the same team
+         */
+        UUID correctUUID = player.getUniqueId();
+        String correctIGN = player.getName();
+        OfflineParticipant existingParticipant = allParticipants.get(correctUUID);
+        if (existingParticipant != null) {
+            // if the UUID IS in the game state
+            String incorrectIGN = existingParticipant.getName();
+            if (incorrectIGN.equals(correctIGN)) {
+                // their name is correct, nothing to do
+                return;
+            }
+            // if their name is incorrect
+            // update the ign in allParticipants
+            TextColor color = teams.get(existingParticipant.getTeamId()).getColor();
+            Component displayName = GameManagerUtils.createDisplayName(correctIGN, color);
+            allParticipants.put(correctUUID, new OfflineParticipant(existingParticipant, correctIGN, displayName));
+            MCTParticipant onlineParticipant = onlineParticipants.get(existingParticipant.getUniqueId());
+            if (onlineParticipant != null) {
+                // they're online
+                // update the ign in onlineParticipants
+                onlineParticipants.put(correctUUID, new MCTParticipant(onlineParticipant, correctIGN, displayName));
+            }
+            // they're not online
+            try {
+                // update the ign in gameStateStorageUtil and database
+                gameStateStorageUtil.setIGN(correctUUID, correctIGN);
+            } catch (SQLException e) {
+                reportGameStateException(String.format("migrate the ign of the player with uuid \"%s\" from \"%s\" to the correct ign \"%s\"", correctUUID, incorrectIGN, correctIGN), e);
+            }
+            return;
+        }
+        // if the UUID is NOT in the game state
+        OfflineParticipant offlineParticipantWithIGN = getOfflineParticipant(correctIGN);
+        if (offlineParticipantWithIGN == null) {
+            // neither the UUID nor the IGN of the given participant is in the gameState
+            try {
+                // register the new player in the database
+                gameStateService.registerPlayer(correctUUID.toString(), correctIGN);
+            } catch (SQLException e) {
+                reportGameStateException(String.format("register new player with name \"%s\" and UUID \"%s\" in the database", correctIGN, correctUUID), e);
+            }
+            return;
+        }
+        // the participant with the wrong UUID but the correct IGN is in the game state
+        // we need to migrate the uuid
+        UUID incorrectUUID = offlineParticipantWithIGN.getUniqueId();
+        leaveParticipant(offlineParticipantWithIGN);
+        // resolve them in the database
+        try {
+            gameStateService.migrateFromUUIDToUUID(incorrectUUID.toString(), correctUUID.toString(), correctIGN);
+        } catch (SQLException e) {
+            reportGameStateException(String.format("migrate player \"%s\" from UUID \"%s\" to the correct uuid \"%s\" in the database", correctIGN, incorrectUUID, correctUUID), e);
+        }
+        MCTTeam team = teams.get(offlineParticipantWithIGN.getTeamId());
+        state.joinParticipantToTeam(player, correctIGN, team, false);
+    }
+    
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            // make sure this player is in the all_players database with the appropriate UUID/ign pairing
-            // once that's resolved, actually load the player in
-            plugin.getServer().getScheduler().runTask(plugin, () -> {
-                Player player = event.getPlayer();
-                if (isAdmin(player.getUniqueId())) {
-                    state.onAdminJoin(event, player);
-                    return;
-                }
-                OfflineParticipant offlineParticipant = allParticipants.get(player.getUniqueId());
-                if (offlineParticipant != null) {
-                    MCTParticipant participant = new MCTParticipant(offlineParticipant, player);
-                    state.onParticipantJoin(event, participant);
-                }
-            });
-        });
+        Player player = event.getPlayer();
+        resolveUUIDandIGNerrors(player);
+        
+        if (isAdmin(player.getUniqueId())) {
+            state.onAdminJoin(event, player);
+            return;
+        }
+        OfflineParticipant offlineParticipant = allParticipants.get(player.getUniqueId());
+        if (offlineParticipant != null) {
+            MCTParticipant participant = new MCTParticipant(offlineParticipant, player);
+            state.onParticipantJoin(event, participant);
+        }
     }
     
     @EventHandler

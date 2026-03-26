@@ -4,6 +4,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
 import org.braekpo1nt.mctmanager.database.service.GameStateService;
+import org.braekpo1nt.mctmanager.database.service.RegisterConflictType;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,7 +58,25 @@ public class GameStateStorageUtilTest {
         UUID uuid = UUID.randomUUID();
         String ign = "Player1";
         
+        assertThat(gameStateStorageUtil.registerPlayer(uuid, ign)).isEqualTo(RegisterConflictType.NONE);
         gameStateStorageUtil.addNewPlayer(uuid, ign, teamId);
+        
+        AllPlayersEntity actual = database.getAllPlayersDao().queryForId(uuid.toString());
+        assertThat(actual).isNotNull();
+        assertThat(actual.getIgn()).isEqualTo(ign);
+        OfflineParticipant offlineParticipant = gameStateStorageUtil.getOfflineParticipant(uuid);
+        assertThat(offlineParticipant).isNotNull();
+        assertThat(offlineParticipant.getName()).isEqualTo(ign);
+    }
+    
+    @Test
+    void addPlayerIdempotence() throws SQLException {
+        UUID uuid = UUID.randomUUID();
+        String ign = "Player1";
+        
+        assertThat(gameStateStorageUtil.registerPlayer(uuid, ign)).isEqualTo(RegisterConflictType.NONE);
+        gameStateStorageUtil.addNewPlayer(uuid, ign, teamId);
+        assertThat(gameStateStorageUtil.registerPlayer(uuid, ign)).isEqualTo(RegisterConflictType.NONE);
         
         AllPlayersEntity actual = database.getAllPlayersDao().queryForId(uuid.toString());
         assertThat(actual).isNotNull();
@@ -109,8 +128,7 @@ public class GameStateStorageUtilTest {
         gameStateStorageUtil.addNewPlayer(uuid, wrongIGN, teamId);
         
         // player with that uuid and a different ign logs in
-        boolean reload = gameStateStorageUtil.registerPlayer(uuid, correctIGN);
-        assertThat(reload).isTrue();
+        assertThat(gameStateStorageUtil.registerPlayer(uuid, correctIGN)).isEqualTo(RegisterConflictType.MIGRATE_IGN);
         
         AllPlayersEntity actual = database.getAllPlayersDao().queryForId(uuid.toString());
         assertThat(actual).isNotNull();
@@ -132,8 +150,7 @@ public class GameStateStorageUtilTest {
         gameStateStorageUtil.addNewPlayer(wrongUUID, ign, teamId);
         
         // player with that username but a different uuid logs in
-        boolean reload = gameStateStorageUtil.registerPlayer(rightUUID, ign);
-        assertThat(reload).isTrue();
+        assertThat(gameStateStorageUtil.registerPlayer(rightUUID, ign)).isEqualTo(RegisterConflictType.MIGRATE_UUID);
         
         AllPlayersEntity actual = database.getAllPlayersDao().queryForId(rightUUID.toString());
         assertThat(actual).isNotNull();
@@ -158,8 +175,7 @@ public class GameStateStorageUtilTest {
         gameStateStorageUtil.addNewPlayer(wrongUUID, rightIGN, teamId);
         
         // player with the right uuid and ign combo logs in
-        boolean reload = gameStateStorageUtil.registerPlayer(rightUUID, rightIGN);
-        assertThat(reload).isTrue();
+        assertThat(gameStateStorageUtil.registerPlayer(rightUUID, rightIGN)).isEqualTo(RegisterConflictType.MIGRATE_UUID);
         
         AllPlayersEntity actual = database.getAllPlayersDao().queryForId(rightUUID.toString());
         assertThat(actual).isNotNull();

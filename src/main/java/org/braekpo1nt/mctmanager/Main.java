@@ -65,7 +65,8 @@ public class Main extends JavaPlugin {
      * A pretty printing Gson instance for general use
      */
     public static final Gson GSON_PRETTY = new GsonBuilder().setPrettyPrinting().create();
-    private GameManager gameManager;
+    protected GameManager gameManager;
+    protected Database database;
     public final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
     /**
      * This should be the application-wide logger used to print logs to the console or standard out.
@@ -155,7 +156,6 @@ public class Main extends JavaPlugin {
         
         PacketEvents.getAPI().init();
         
-        Database database;
         try {
             database = setupDatabase();
         } catch (SQLException e) {
@@ -281,7 +281,7 @@ public class Main extends JavaPlugin {
         });
     }
     
-    private void alwaysGiveNightVision() {
+    protected void alwaysGiveNightVision() {
         Main.logger().info("[MCTManager] Night vision activated");
         new BukkitRunnable() {
             @Override
@@ -314,11 +314,10 @@ public class Main extends JavaPlugin {
             utilsDebugCommand.cleanup();
         }
         logTypeActive.clear();
-    }
-    
-    // Testing methods for mocking components
-    
-    public GameManager getGameManager() {
-        return gameManager;
+        try {
+//            database.close();
+        } catch (Exception e) {
+            getLogger().log(Level.SEVERE, "Error closing the database on plugin disable", e);
+        }
     }
 }

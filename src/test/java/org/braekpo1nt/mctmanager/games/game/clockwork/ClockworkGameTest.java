@@ -26,7 +26,7 @@ import java.util.logging.Level;
 public class ClockworkGameTest {
     
     private ServerMock server;
-    private Main plugin;
+    private MockMain plugin;
     private GameManager gameManager;
     private CommandSender sender;
     

@@ -238,15 +238,31 @@ public class TabList implements UIManager {
     }
     
     /**
+     * This is so that tests can skip the scheduling and just perform the action
+     * @param runnable the action to perform
+     */
+    protected void scheduleAsync(Runnable runnable) {
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, runnable);
+    }
+    
+    /**
+     * This is so that tests can skip the scheduling and just perform the action
+     * @param runnable the action to perform
+     */
+    protected void scheduleSync(Runnable runnable) {
+        plugin.getServer().getScheduler().runTask(plugin, runnable);
+    }
+    
+    /**
      * Updates all views to reflect the current state of the data.
      */
     private void update() {
         if (!plugin.isEnabled()) {
             return;
         }
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+        scheduleAsync(() -> {
             Component tabList = toTabList();
-            plugin.getServer().getScheduler().runTask(plugin, () -> {
+            scheduleSync(() -> {
                 for (PlayerData playerData : playerDatas.values()) {
                     playerData.getPlayer().sendPlayerListHeader(tabList);
                 }
@@ -264,9 +280,9 @@ public class TabList implements UIManager {
             return;
         }
         if (playerData.isVisible()) {
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            scheduleAsync(() -> {
                 Component tabList = toTabList();
-                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                scheduleSync(() -> {
                     playerData.getPlayer().sendPlayerListHeader(tabList);
                 });
             });

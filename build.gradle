@@ -83,6 +83,8 @@ dependencies {
     shade 'org.mariadb.jdbc:mariadb-java-client:3.5.6'
     // https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc
     testImplementation 'org.xerial:sqlite-jdbc:3.50.3.0'
+    // Source: https://mvnrepository.com/artifact/org.testcontainers/mariadb
+    testImplementation 'org.testcontainers:mariadb:1.21.4'
 
     // lombok
     compileOnly 'org.projectlombok:lombok:1.18.36'

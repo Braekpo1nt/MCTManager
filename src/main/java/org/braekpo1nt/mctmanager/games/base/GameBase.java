@@ -127,7 +127,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         this.gameManager = gameManager;
         this.sidebar = gameManager.createSidebar();
         this.adminSidebar = gameManager.createSidebar();
-        this.tabList = new TabList(plugin);
+        this.tabList = gameManager.createTabList(plugin);
         this.participants = new HashMap<>();
         this.quitDatas = new HashMap<>();
         this.teams = new HashMap<>();
@@ -546,7 +546,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                gameManager.getGameStateService().createOrUpdate(InGameTeam.builder()
+                gameManager.getGameStateService().addOrUpdateTeam(InGameTeam.builder()
                         .teamId(team.getTeamId())
                         .gameSessionId(gameSessionId)
                         .gameScore(team.getScore())
@@ -578,7 +578,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                gameManager.getGameStateService().createOrUpdate(InGameParticipant.builder()
+                gameManager.getGameStateService().addOrUpdateParticipant(InGameParticipant.builder()
                         .participantUUID(participant.getUniqueId().toString())
                         .gameSessionId(gameSessionId)
                         .gameScore(participant.getScore())
@@ -617,7 +617,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                gameManager.getGameStateService().deleteParticipantInGame(participantUUID.toString());
+                gameManager.getGameStateService().deleteInGameParticipant(participantUUID.toString());
             } catch (SQLException e) {
                 reportSQLException("quitting participant from game and removing from the in-game table", e);
             }
@@ -640,7 +640,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         // no more members on the team
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                gameManager.getGameStateService().deleteTeamInGame(teamId);
+                gameManager.getGameStateService().deleteInGameTeam(teamId);
             } catch (SQLException e) {
                 reportSQLException("quitting team from game and removing from the in-game table", e);
             }

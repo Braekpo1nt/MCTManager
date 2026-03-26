@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.commands;
 
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MockMain;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.commands.mct.MCTCommand;
@@ -24,7 +23,7 @@ import static org.mockito.Mockito.mock;
 class MCTCommandTest {
     
     private ServerMock server;
-    private Main plugin;
+    private MockMain plugin;
     private GameManager gameManager;
     private PluginCommand command;
     

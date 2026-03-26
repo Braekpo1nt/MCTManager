@@ -22,7 +22,7 @@ CREATE TABLE player_metadata_new (
     lifetime_tokens     INT NOT NULL DEFAULT 0,
 
     percent_rank        INT NOT NULL DEFAULT 0,
-    ign                 ign CHAR(36),
+    ign                 CHAR(36) NOT NULL,
     
     FOREIGN KEY (participant_uuid) REFERENCES all_players(uuid) -- wallets without players should never exist
 );
