@@ -326,21 +326,24 @@ public class VoteManager implements Listener {
                     selectedInt = random.nextInt(votes.size());
                     gameType = votes.get(selectedInt);
                     votes.remove(selectedInt);
-                    if(votes.size() > 5) {
+                    if(votes.size() > 6) {
                         nextNumberOfTicks = 5;
                     }
                     else {
-                        if(votes.size() == 5) {
-                            nextNumberOfTicks = 6;
-                        }
-                        else if(votes.size() == 4) {
+                        if(votes.size() == 6) {
                             nextNumberOfTicks = 7;
                         }
-                        else if(votes.size() == 3) {
+                        else if(votes.size() == 5) {
                             nextNumberOfTicks = 9;
                         }
+                        else if(votes.size() == 4) {
+                            nextNumberOfTicks = 13;
+                        }
+                        else if(votes.size() == 3) {
+                            nextNumberOfTicks = 16;
+                        }
                         else {
-                            nextNumberOfTicks = 12;
+                            nextNumberOfTicks = 20;
                         }
                     }
                     if (displayIsRed) {
