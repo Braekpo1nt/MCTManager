@@ -322,48 +322,26 @@ public class VoteManager implements Listener {
                 int selectedInt;
                 GameType gameType;
                 long nextNumberOfTicks;
-                if(votes.size() > 5) {
+                if(votes.size() > 1) {
                     selectedInt = random.nextInt(votes.size());
                     gameType = votes.get(selectedInt);
                     votes.remove(selectedInt);
-                    nextNumberOfTicks = 5;
-                    if (displayIsRed) {
-                        Audience.audience( // Use this for display, modify color
-                                voters.values()
-                        ).showTitle(UIUtils.defaultTitle(
-                                Component.empty()
-                                        .append(Component.text(gameType.getTitle()))
-                                        .color(NamedTextColor.RED),
-                                Component.empty()
-                        ));
-                        redTitle = false;
-                    } else {
-                        Audience.audience( // Use this for display, modify color
-                                voters.values()
-                        ).showTitle(UIUtils.defaultTitle(
-                                Component.empty()
-                                        .append(Component.text(gameType.getTitle()))
-                                        .color(NamedTextColor.YELLOW),
-                                Component.empty()
-                        ));
-                        redTitle = true;
-                    }
-                }
-                else if(votes.size() > 1) {
-                    selectedInt = random.nextInt(votes.size());
-                    gameType = votes.get(selectedInt);
-                    votes.remove(selectedInt);
-                    if(votes.size() == 5) {
-                        nextNumberOfTicks = 6;
-                    }
-                    else if(votes.size() == 4) {
-                        nextNumberOfTicks = 7;
-                    }
-                    else if(votes.size() == 3) {
-                        nextNumberOfTicks = 9;
+                    if(votes.size() > 5) {
+                        nextNumberOfTicks = 5;
                     }
                     else {
-                        nextNumberOfTicks = 12;
+                        if(votes.size() == 5) {
+                            nextNumberOfTicks = 6;
+                        }
+                        else if(votes.size() == 4) {
+                            nextNumberOfTicks = 7;
+                        }
+                        else if(votes.size() == 3) {
+                            nextNumberOfTicks = 9;
+                        }
+                        else {
+                            nextNumberOfTicks = 12;
+                        }
                     }
                     if (displayIsRed) {
                         Audience.audience( // Use this for display, modify color
