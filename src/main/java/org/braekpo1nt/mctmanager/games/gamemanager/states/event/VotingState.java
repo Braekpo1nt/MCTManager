@@ -75,17 +75,21 @@ public class VotingState extends EventState {
         timer.cancel();
         if (eventData.getConfig().isWeightedVoting()) {
             Random random = new Random();
-            scheduleNextDisplay(gameTypes, 5, random, true);
+            scheduleNextDisplay(gameTypes, configFile, 5, random, true);
         } else {
             GameType gameType = gameTypes.getFirst();
-            String chosenConfigFile = eventData.getConfig().getGameConfigs().getOrDefault(gameType, configFile);
-            context.setState(new StartingGameDelayState(
-                    context, contextReference, eventData,
-                    gameType, chosenConfigFile));
+            acceptVote(configFile, gameType);
         }
     }
     
-    public void scheduleNextDisplay(List<GameType> votes, final long numberOfTicks, Random random, final boolean displayIsRed) {
+    private void acceptVote(String configFile, GameType gameType) {
+        String chosenConfigFile = eventData.getConfig().getGameConfigs().getOrDefault(gameType, configFile);
+        context.setState(new StartingGameDelayState(
+                context, contextReference, eventData,
+                gameType, chosenConfigFile));
+    }
+    
+    public void scheduleNextDisplay(List<GameType> votes, String configFile, final long numberOfTicks, Random random, final boolean displayIsRed) {
         
         this.display = new BukkitRunnable() {
             @Override
@@ -143,11 +147,12 @@ public class VotingState extends EventState {
                                     .color(NamedTextColor.BLUE),
                             Component.empty()
                     ));
-                    redTitle = true;
-                    nextNumberOfTicks = 0L;
+                    this.cancel();
+                    acceptVote(configFile, gameType);
+                    return;
                 }
                 if (!votes.isEmpty()) {
-                    scheduleNextDisplay(votes, nextNumberOfTicks, random, redTitle);
+                    scheduleNextDisplay(votes, configFile, nextNumberOfTicks, random, redTitle);
                 }
             }
         }.runTaskLater(plugin, numberOfTicks);
