@@ -23,6 +23,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,6 +47,7 @@ public class VoteManager implements Listener {
     private final BiConsumer<GameType, String> executeMethod;
     private final boolean weightedVoting;
     private final Main plugin;
+    private @Nullable BukkitTask display;
     
     private boolean paused;
     
@@ -298,6 +300,9 @@ public class VoteManager implements Listener {
         for (Participant voter : voters.values()) {
             resetParticipant(voter);
         }
+        if (display != null) {
+            display.cancel();
+        }
         messageAllVoters(Component.text("Cancelling vote"));
         votes.clear();
         voters.clear();
@@ -315,7 +320,7 @@ public class VoteManager implements Listener {
     
     public void scheduleNextDisplay(List<GameType> votes, final long numberOfTicks, Random random, final boolean displayIsRed) {
         
-        BukkitTask display = new BukkitRunnable() {
+        this.display = new BukkitRunnable() {
             @Override
             public void run() {
                 boolean redTitle;
