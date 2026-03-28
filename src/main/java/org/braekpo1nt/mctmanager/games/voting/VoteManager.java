@@ -44,7 +44,6 @@ public class VoteManager implements Listener {
     private final Collection<GuiItem> guiItems;
     private final BiConsumer<List<GameType>, String> executeMethod;
     private final boolean weightedVoting;
-    private final Main plugin;
     
     private boolean paused;
     
@@ -63,7 +62,6 @@ public class VoteManager implements Listener {
             List<GameType> votingPool,
             Collection<Participant> newParticipants, boolean weightedVoting) {
         this.NETHER_STAR = new ItemStack(Material.NETHER_STAR);
-        this.plugin = plugin;
         ItemMeta netherStarMeta = this.NETHER_STAR.getItemMeta();
         netherStarMeta.displayName(NETHER_STAR_NAME);
         this.NETHER_STAR.setItemMeta(netherStarMeta);
