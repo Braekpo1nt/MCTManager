@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.event.EventData;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.event.delay.StartingGameDelayState;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.entity.Player;
@@ -87,6 +88,16 @@ public class VotingState extends EventState {
                 gameType, chosenConfigFile));
     }
     
+    private void playVotingSound() {
+        for(Participant participant: context.getOnlineParticipants()) {
+            participant.playSound(participant.getLocation(), "BLOCK_NOTE_BLOCK_BIT", 50, 30);
+        }
+        for(Player admin : onlineAdmins) {
+            admin.playSound(admin.getLocation(), "BLOCK_NOTE_BLOCK_BIT", 50, 30);
+            
+        }
+    }
+    
     public void scheduleNextDisplay(List<GameType> votes, String configFile, final long numberOfTicks, Random random, final boolean displayIsRed) {
         
         this.display = new BukkitRunnable() {
@@ -121,6 +132,7 @@ public class VotingState extends EventState {
                                         .color(NamedTextColor.RED),
                                 Component.empty()
                         ));
+                        playVotingSound();
                         redTitle = false;
                     } else {
                         Audience.audience( // Use this for display, modify color
@@ -132,6 +144,7 @@ public class VotingState extends EventState {
                                         .color(NamedTextColor.YELLOW),
                                 Component.empty()
                         ));
+                        playVotingSound();
                         redTitle = true;
                     }
                 } else {
@@ -145,6 +158,7 @@ public class VotingState extends EventState {
                                     .color(NamedTextColor.BLUE),
                             Component.empty()
                     ));
+                    playVotingSound();
                     this.cancel();
                     acceptVote(configFile, gameType);
                     return;
