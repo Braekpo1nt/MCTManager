@@ -24,6 +24,7 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,14 +36,14 @@ import java.util.function.BiConsumer;
 public class VoteManager implements Listener {
     
     private final Component NETHER_STAR_NAME = Component.text("Vote");
-    
     private final Map<UUID, GameType> votes = new HashMap<>();
     private final Map<UUID, Participant> voters = new HashMap<>();
     private final Map<UUID, ChestGui> guis;
     private final ItemStack NETHER_STAR;
     private final List<GameType> votingPool;
     private final Collection<GuiItem> guiItems;
-    private final BiConsumer<GameType, String> executeMethod;
+    private final BiConsumer<List<GameType>, String> executeMethod;
+    private final boolean weightedVoting;
     
     private boolean paused;
     
@@ -53,12 +54,13 @@ public class VoteManager implements Listener {
      * GameType.
      * @param votingPool The games to vote between
      * @param newParticipants The participants who should vote
+     * @param weightedVoting Should we do random voting with weight
      */
     public VoteManager(
             Main plugin,
-            BiConsumer<GameType, String> executeMethod,
+            BiConsumer<List<GameType>, String> executeMethod,
             List<GameType> votingPool,
-            Collection<Participant> newParticipants) {
+            Collection<Participant> newParticipants, boolean weightedVoting) {
         this.NETHER_STAR = new ItemStack(Material.NETHER_STAR);
         ItemMeta netherStarMeta = this.NETHER_STAR.getItemMeta();
         netherStarMeta.displayName(NETHER_STAR_NAME);
@@ -70,6 +72,7 @@ public class VoteManager implements Listener {
         this.votingPool = votingPool;
         this.guiItems = createGuiItems();
         this.guis = new HashMap<>(newParticipants.size());
+        this.weightedVoting = weightedVoting;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Participant participant : newParticipants) {
             initializeParticipant(participant);
@@ -310,23 +313,28 @@ public class VoteManager implements Listener {
     public void executeVote() {
         HandlerList.unregisterAll(this);
         paused = false;
-        GameType gameType = getVotedForGame();
-        Audience.audience(
-                voters.values()
-        ).showTitle(UIUtils.defaultTitle(
-                Component.empty()
-                        .append(Component.text(gameType.getTitle()))
-                        .color(NamedTextColor.BLUE),
-                Component.empty()
-        ));
         for (Participant voter : voters.values()) {
             resetParticipant(voter);
+        }
+        if (weightedVoting) {
+            ArrayList<GameType> collectedVotes = new ArrayList<>(votes.values()); // Use votes.values()
+            executeMethod.accept(collectedVotes, "default.json");
+        } else {
+            GameType gameType = getVotedForGame();
+            Audience.audience(
+                    voters.values()
+            ).showTitle(UIUtils.defaultTitle(
+                    Component.empty()
+                            .append(Component.text(gameType.getTitle()))
+                            .color(NamedTextColor.BLUE),
+                    Component.empty()
+            ));
+            executeMethod.accept(Collections.singletonList(gameType), "default.json");
         }
         votes.clear();
         voters.clear();
         guis.clear();
         guiItems.clear();
-        executeMethod.accept(gameType, "default.json");
     }
     
     @EventHandler
