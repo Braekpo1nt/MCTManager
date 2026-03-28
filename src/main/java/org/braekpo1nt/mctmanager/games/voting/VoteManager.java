@@ -318,6 +318,9 @@ public class VoteManager implements Listener {
     public void executeVote() {
         HandlerList.unregisterAll(this);
         paused = false;
+        for (Participant voter : voters.values()) {
+            resetParticipant(voter);
+        }
         if (weightedVoting) {
             ArrayList<GameType> collectedVotes = new ArrayList<>(votes.values()); // Use votes.values()
             executeMethod.accept(collectedVotes, "default.json");
@@ -331,9 +334,6 @@ public class VoteManager implements Listener {
                             .color(NamedTextColor.BLUE),
                     Component.empty()
             ));
-            for (Participant voter : voters.values()) {
-                resetParticipant(voter);
-            }
             executeMethod.accept(Collections.singletonList(gameType), "default.json");
         }
         votes.clear();
