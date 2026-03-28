@@ -330,21 +330,13 @@ public class VoteManager implements Listener {
                         nextNumberOfTicks = 5;
                     }
                     else {
-                        if(votes.size() == 6) {
-                            nextNumberOfTicks = 7;
-                        }
-                        else if(votes.size() == 5) {
-                            nextNumberOfTicks = 9;
-                        }
-                        else if(votes.size() == 4) {
-                            nextNumberOfTicks = 13;
-                        }
-                        else if(votes.size() == 3) {
-                            nextNumberOfTicks = 16;
-                        }
-                        else {
-                            nextNumberOfTicks = 20;
-                        }
+                        nextNumberOfTicks = switch (votes.size()) {
+                            case 6 -> 7;
+                            case 5 -> 9;
+                            case 4 -> 13;
+                            case 3 -> 16;
+                            default -> 20;
+                        };
                     }
                     if (displayIsRed) {
                         Audience.audience( // Use this for display, modify color
