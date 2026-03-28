@@ -1469,6 +1469,50 @@ public abstract class GameManagerState {
         return joinParticipantToTeam(offlinePlayer, ign, team, true);
     }
     
+    public CommandResult joinParticipantToTeam(@NotNull UUID uuid, @NotNull String ign, @NotNull MCTTeam team) {
+        List<CommandResult> results = new ArrayList<>();
+        if (context.isAdmin(uuid)) {
+            results.add(removeAdmin(uuid, ign));
+        }
+        OfflineParticipant existingParticipant = allParticipants.get(uuid);
+        if (existingParticipant != null) {
+            if (existingParticipant.isOnTeam(team)) {
+                results.add(CommandResult.success(Component.empty()
+                        .append(existingParticipant.displayName())
+                        .append(Component.text(" is already a member of "))
+                        .append(team.getFormattedDisplayName())
+                        .append(Component.text(". Nothing happened."))));
+                return CompositeCommandResult.all(results);
+            }
+            results.add(leaveParticipant(existingParticipant));
+        }
+        
+        // TODO: add them to the scoreboard when they log in
+        
+        Component participantDisplayName = GameManagerUtils.createDisplayName(ign, team.getColor());
+        OfflineParticipant offlineParticipant = new OfflineParticipant(uuid, ign, participantDisplayName, team.getTeamId(), 0);
+        allParticipants.put(offlineParticipant.getUniqueId(), offlineParticipant);
+        team.joinMember(offlineParticipant.getUniqueId());
+        tabList.joinParticipant(
+                offlineParticipant.getParticipantID(),
+                offlineParticipant.getName(),
+                offlineParticipant.getTeamId(),
+                true);
+        try {
+            gameStateStorageUtil.addNewPlayer(offlineParticipant.getUniqueId(), offlineParticipant.getName(), offlineParticipant.getTeamId());
+        } catch (ConfigIOException | SQLException e) {
+            context.reportGameStateException("adding new player", e);
+            results.add(CommandResult.failure(Component.text("error occurred adding new player, see console for details.")));
+        }
+        context.updateLeaderboards();
+        results.add(CommandResult.success(Component.text("Joined ")
+                .append(offlineParticipant.displayName())
+                .append(Component.text(" to "))
+                .append(team.getFormattedDisplayName())));
+        
+        return CompositeCommandResult.all(results);
+    }
+    
     
     /**
      * Joins the given player to the team with the given teamId. If the player was on a team already (not teamId) they
@@ -1785,6 +1829,28 @@ public abstract class GameManagerState {
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text(" as an admin"))));
         return CompositeCommandResult.all(results);
+    }
+    
+    public @NotNull CommandResult removeAdmin(@NotNull UUID uuid, @NotNull String ign) {
+        if (!context.isAdmin(uuid)) {
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text(ign)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" is not an admin. Nothing happened.")));
+        }
+        try {
+            gameStateStorageUtil.removeAdmin(uuid);
+        } catch (ConfigIOException | SQLException e) {
+            context.reportGameStateException("removing admin", e);
+            return CommandResult.failure(Component.text("error occurred removing admin, see console for details."));
+        }
+        
+        // TODO: remove them from the scoreboard in a different context
+        
+        return CommandResult.success(Component.empty()
+                .append(Component.text(ign)
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text(" is no longer an admin")));
     }
     
     /**
