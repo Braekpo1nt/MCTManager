@@ -266,6 +266,7 @@ public class VoteManager implements Listener {
                 .color(NamedTextColor.YELLOW));
     }
     // Comment here
+    
     /**
      * Resumes a paused vote. If the vote is not currently paused, nothing happens. Gives the UI
      * back to players who have not yet voted, resumes the timer, and retains any votes that
@@ -282,7 +283,8 @@ public class VoteManager implements Listener {
             }
         }
     }
-    // Comment here
+    // Comment here Braekpo1nt says hi
+    
     /**
      * Cancel the vote if a vote is in progress
      */
