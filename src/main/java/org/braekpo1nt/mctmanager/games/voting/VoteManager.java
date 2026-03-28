@@ -21,8 +21,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,6 +35,7 @@ import java.util.function.BiConsumer;
 public class VoteManager implements Listener {
     
     private final Component NETHER_STAR_NAME = Component.text("Vote");
+    
     private final Map<UUID, GameType> votes = new HashMap<>();
     private final Map<UUID, Participant> voters = new HashMap<>();
     private final Map<UUID, ChestGui> guis;
@@ -44,8 +43,6 @@ public class VoteManager implements Listener {
     private final List<GameType> votingPool;
     private final Collection<GuiItem> guiItems;
     private final BiConsumer<GameType, String> executeMethod;
-    private final boolean weightedVoting;
-    private final Main plugin;
     
     private boolean paused;
     
@@ -56,15 +53,13 @@ public class VoteManager implements Listener {
      * GameType.
      * @param votingPool The games to vote between
      * @param newParticipants The participants who should vote
-     * @param weightedVoting Should we do random voting with weight
      */
     public VoteManager(
             Main plugin,
             BiConsumer<GameType, String> executeMethod,
             List<GameType> votingPool,
-            Collection<Participant> newParticipants, boolean weightedVoting) {
+            Collection<Participant> newParticipants) {
         this.NETHER_STAR = new ItemStack(Material.NETHER_STAR);
-        this.plugin = plugin;
         ItemMeta netherStarMeta = this.NETHER_STAR.getItemMeta();
         netherStarMeta.displayName(NETHER_STAR_NAME);
         this.NETHER_STAR.setItemMeta(netherStarMeta);
@@ -75,7 +70,6 @@ public class VoteManager implements Listener {
         this.votingPool = votingPool;
         this.guiItems = createGuiItems();
         this.guis = new HashMap<>(newParticipants.size());
-        this.weightedVoting = weightedVoting;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Participant participant : newParticipants) {
             initializeParticipant(participant);
@@ -271,7 +265,7 @@ public class VoteManager implements Listener {
         messageAllVoters(Component.text("Voting is paused.")
                 .color(NamedTextColor.YELLOW));
     }
-    
+    // Comment here
     /**
      * Resumes a paused vote. If the vote is not currently paused, nothing happens. Gives the UI
      * back to players who have not yet voted, resumes the timer, and retains any votes that
@@ -288,7 +282,7 @@ public class VoteManager implements Listener {
             }
         }
     }
-    
+    // Comment here
     /**
      * Cancel the vote if a vote is in progress
      */
@@ -313,111 +307,26 @@ public class VoteManager implements Listener {
         voter.getInventory().remove(NETHER_STAR);
     }
     
-    public void scheduleNextDisplay(List<GameType> votes, final long numberOfTicks, Random random, final boolean displayIsRed) {
-        
-        BukkitTask display = new BukkitRunnable() {
-            @Override
-            public void run() {
-                boolean redTitle;
-                int selectedInt;
-                GameType gameType;
-                long nextNumberOfTicks;
-                if(votes.size() > 1) {
-                    selectedInt = random.nextInt(votes.size());
-                    gameType = votes.get(selectedInt);
-                    votes.remove(selectedInt);
-                    if(votes.size() > 6) {
-                        nextNumberOfTicks = 5;
-                    }
-                    else {
-                        nextNumberOfTicks = switch (votes.size()) {
-                            case 6 -> 7;
-                            case 5 -> 9;
-                            case 4 -> 13;
-                            case 3 -> 16;
-                            default -> 20;
-                        };
-                    }
-                    if (displayIsRed) {
-                        Audience.audience( // Use this for display, modify color
-                                voters.values()
-                        ).showTitle(UIUtils.defaultTitle(
-                                Component.empty()
-                                        .append(Component.text(gameType.getTitle()))
-                                        .color(NamedTextColor.RED),
-                                Component.empty()
-                        ));
-                        redTitle = false;
-                    } 
-                    else {
-                        Audience.audience( // Use this for display, modify color
-                                voters.values()
-                        ).showTitle(UIUtils.defaultTitle(
-                                Component.empty()
-                                        .append(Component.text(gameType.getTitle()))
-                                        .color(NamedTextColor.YELLOW),
-                                Component.empty()
-                        ));
-                        redTitle = true;
-                    }
-                }
-                else {
-                    gameType = votes.getFirst();
-                    Audience.audience( // Use this for display, modify color
-                            voters.values()
-                    ).showTitle(UIUtils.defaultTitle(
-                            Component.empty()
-                                    .append(Component.text(gameType.getTitle()))
-                                    .color(NamedTextColor.BLUE),
-                            Component.empty()
-                    ));
-                    votes.clear();
-                    for (Participant voter : voters.values()) {
-                        resetParticipant(voter);
-                    }
-                    voters.clear();
-                    guis.clear();
-                    guiItems.clear();
-                    executeMethod.accept(gameType, "default.json");
-                    redTitle = true;
-                    nextNumberOfTicks = 0L;
-                }
-                if (!votes.isEmpty()) {
-                    scheduleNextDisplay(votes, nextNumberOfTicks, random, redTitle);
-                }
-            }
-        }.runTaskLater(plugin, numberOfTicks);
-    }
-    
     public void executeVote() {
-        if(weightedVoting) {
-            HandlerList.unregisterAll(this);
-            paused = false;
-            Random random = new Random();
-            ArrayList<GameType> collectedVotes = new ArrayList<>(votes.values()); // Use votes.values()
-            scheduleNextDisplay(collectedVotes, 5, random, true);
+        HandlerList.unregisterAll(this);
+        paused = false;
+        GameType gameType = getVotedForGame();
+        Audience.audience(
+                voters.values()
+        ).showTitle(UIUtils.defaultTitle(
+                Component.empty()
+                        .append(Component.text(gameType.getTitle()))
+                        .color(NamedTextColor.BLUE),
+                Component.empty()
+        ));
+        for (Participant voter : voters.values()) {
+            resetParticipant(voter);
         }
-        else {
-            HandlerList.unregisterAll(this);
-            paused = false;
-            GameType gameType = getVotedForGame();
-            Audience.audience(
-                    voters.values()
-            ).showTitle(UIUtils.defaultTitle(
-                    Component.empty()
-                            .append(Component.text(gameType.getTitle()))
-                            .color(NamedTextColor.BLUE),
-                    Component.empty()
-            ));
-            for (Participant voter : voters.values()) {
-                resetParticipant(voter);
-            }
-            votes.clear();
-            voters.clear();
-            guis.clear();
-            guiItems.clear();
-            executeMethod.accept(gameType, "default.json");
-        }
+        votes.clear();
+        voters.clear();
+        guis.clear();
+        guiItems.clear();
+        executeMethod.accept(gameType, "default.json");
     }
     
     @EventHandler
