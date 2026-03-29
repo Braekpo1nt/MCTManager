@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.commands.mct.team;
 
-import com.destroystokyo.paper.profile.PlayerProfile;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -10,7 +9,6 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.MessageComponentSerializer;
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
-import io.papermc.paper.command.brigadier.argument.resolvers.PlayerProfileListResolver;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.TeamArgumentType;
@@ -25,9 +23,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
@@ -61,7 +57,7 @@ public class JoinSubCommand implements BrigadierSubCommand {
                             }
                             return GameManagerUtils.joinParticipant(gameManager, player, team);
                         }))
-                        .then(Permissioned.argument("member", StringArgumentType.word())
+                        .then(Permissioned.argument("ign", StringArgumentType.word())
                                 .suggests((source, builder) -> suggestPlayerNames(builder))
                                 .executes(BrigadierAdapters.wraps(this::executeJoin))
                                 .then(Permissioned.argument("uuid", ArgumentTypes.uuid())
@@ -92,28 +88,19 @@ public class JoinSubCommand implements BrigadierSubCommand {
     
     private @NotNull CommandResult executeJoin(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         Team team = ctx.getArgument("teamId", Team.class);
-        final PlayerProfileListResolver profilesResolver = ctx.getArgument("member", PlayerProfileListResolver.class);
-        final List<PlayerProfile> foundProfiles = new ArrayList<>(profilesResolver.resolve(ctx.getSource()));
-        if (foundProfiles.isEmpty()) {
-            throw ERROR_PLAYER_NOT_FOUND.create();
+        String ign = ctx.getArgument("ign", String.class);
+        OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(ign);
+        Player player = offlinePlayer.getPlayer();
+        if (player == null) {
+            return GameManagerUtils.joinParticipant(gameManager, ign, offlinePlayer.getUniqueId(), team);
         }
-        if (foundProfiles.size() != 1) {
-            throw ERROR_TOO_MANY_PLAYERS.create();
-        }
-        PlayerProfile profile = foundProfiles.getFirst();
-        if (profile.getName() == null) {
-            throw ERROR_PLAYER_NOT_FOUND.create();
-        }
-        if (profile.getId() == null) {
-            throw ERROR_PLAYER_NOT_FOUND.create();
-        }
-        return GameManagerUtils.joinParticipant(gameManager, profile.getName(), profile.getId(), team);
+        return GameManagerUtils.joinParticipant(gameManager, player, team);
     }
     
     private @NotNull CommandResult executeJoinUUID(CommandContext<CommandSourceStack> ctx) {
         Team team = ctx.getArgument("teamId", Team.class);
-        String member = ctx.getArgument("member", String.class);
+        String ign = ctx.getArgument("ign", String.class);
         UUID uuid = ctx.getArgument("uuid", UUID.class);
-        return GameManagerUtils.joinParticipant(gameManager, member, uuid, team);
+        return GameManagerUtils.joinParticipant(gameManager, ign, uuid, team);
     }
 }
