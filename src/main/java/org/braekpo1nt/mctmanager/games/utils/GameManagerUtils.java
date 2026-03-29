@@ -46,6 +46,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
 
 public class GameManagerUtils {
@@ -240,7 +241,7 @@ public class GameManagerUtils {
         return gameManager.removeTeam(teamId);
     }
     
-    public static CommandResult joinParticipant(Main plugin, @NotNull GameManager gameManager, @NotNull String ign, @NotNull String teamId) {
+    public static CommandResult joinParticipant(@NotNull GameManager gameManager, @NotNull String ign, @NotNull UUID uuid, @NotNull String teamId) {
         if (teamId.isEmpty()) {
             return CommandResult.failure("teamId must not be blank");
         }
@@ -255,12 +256,15 @@ public class GameManagerUtils {
                     .append(Component.text(" does not exist.")));
         }
         
-        return joinParticipant(plugin, gameManager, ign, team);
+        return joinParticipant(gameManager, ign, uuid, team);
     }
     
-    public static CommandResult joinParticipant(Main plugin, @NotNull GameManager gameManager, @NotNull String ign, @NotNull Team team) {
-        OfflinePlayer playerToJoin = plugin.getServer().getOfflinePlayer(ign);
-        return gameManager.joinParticipantToTeam(playerToJoin, ign, team.getTeamId());
+    public static CommandResult joinParticipant(@NotNull GameManager gameManager, @NotNull String ign, @NotNull UUID uuid, @NotNull Team team) {
+        return gameManager.joinParticipantToTeam(uuid, ign, team.getTeamId());
+    }
+    
+    public static CommandResult joinParticipant(@NotNull GameManager gameManager, @NotNull Player player, @NotNull Team team) {
+        return gameManager.joinParticipantToTeam(player, team.getTeamId());
     }
     
     /**

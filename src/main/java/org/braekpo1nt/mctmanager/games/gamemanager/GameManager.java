@@ -445,7 +445,7 @@ public class GameManager implements Listener {
             reportGameStateException(String.format("migrate player \"%s\" from UUID \"%s\" to the correct uuid \"%s\" in the database", correctIGN, incorrectUUID, correctUUID), e);
         }
         MCTTeam team = teams.get(offlineParticipantWithIGN.getTeamId());
-        state.joinParticipantToTeam(player, correctIGN, team, false);
+        state.joinParticipantToTeam(player, team);
     }
     
     @EventHandler
@@ -883,13 +883,18 @@ public class GameManager implements Listener {
      * Joins the given player to the team with the given teamId. If the player was on a team already (not teamId) they
      * will be removed from that team and added to the other team.
      * Note, this will not join a player to a team if that player is an admin.
-     * @param offlinePlayer The participant to join to the given team
+     * @param uuid The UUID of the participant to join to the given team
      * @param ign The name of the participant to join to the given team
      * @param teamId The teamId of the team to join the participant to.
      */
-    public CommandResult joinParticipantToTeam(@NotNull OfflinePlayer offlinePlayer, @NotNull String ign, @NotNull String teamId) {
+    public CommandResult joinParticipantToTeam(@NotNull UUID uuid, @NotNull String ign, @NotNull String teamId) {
         MCTTeam team = teams.get(teamId);
-        return state.joinParticipantToTeam(offlinePlayer, ign, team);
+        return state.joinParticipantToTeam(uuid, ign, team);
+    }
+    
+    public CommandResult joinParticipantToTeam(@NotNull Player player, @NotNull String teamId) {
+        MCTTeam team = teams.get(teamId);
+        return state.joinParticipantToTeam(player, team);
     }
     
     /**

@@ -76,7 +76,7 @@ class GameManagerTest {
         UUID uuid = UUID.randomUUID();
         PlayerMock player = new MyPlayerMock(server, ign, uuid);
         
-        gameManager.joinParticipantToTeam(player, ign, teamId);
+        gameManager.joinParticipantToTeam(player, teamId);
         // a player who is in the game state joins
         server.addPlayer(player);
         // this line makes it so that the async schedules the sync task in onPlayerJoin
@@ -96,7 +96,7 @@ class GameManagerTest {
         UUID uuid = UUID.randomUUID();
         PlayerMock player = new MyPlayerMock(server, ign, uuid);
         
-        gameManager.joinParticipantToTeam(player, ign, teamId);
+        gameManager.joinParticipantToTeam(player, teamId);
         // a player who is in the game state joins
         server.addPlayer(player);
         // this line makes it so that the async schedules the sync task in onPlayerJoin
@@ -124,7 +124,7 @@ class GameManagerTest {
         PlayerMock rightPlayer = new MyPlayerMock(server, rightIGN, rightUUID);
         
         // add the wrong uuid but the right ign to the game state
-        gameManager.joinParticipantToTeam(wrongPlayer, wrongIGN, teamId);
+        gameManager.joinParticipantToTeam(wrongPlayer, teamId);
         // allow TabList to finish scheduled job
         server.getScheduler().waitAsyncTasksFinished();
         
@@ -151,7 +151,7 @@ class GameManagerTest {
         PlayerMock rightPlayer = new MyPlayerMock(server, rightIGN, rightUUID);
         
         // add the wrong uuid but the right ign to the game state
-        gameManager.joinParticipantToTeam(wrongPlayer, rightIGN, teamId);
+        gameManager.joinParticipantToTeam(wrongPlayer, teamId);
         // allow TabList to finish scheduled job
         server.getScheduler().waitAsyncTasksFinished();
         

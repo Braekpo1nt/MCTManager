@@ -152,29 +152,7 @@ public class DatabaseTeamCommand implements BrigadierSubCommand {
     private @NotNull CommandResult executeJoinMaintenance(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         String teamId = ctx.getArgument("teamId", String.class);
         String member = ctx.getArgument("member", String.class);
-        if (gameManager.getMode().equals(Mode.MAINTENANCE)) {
-            return GameManagerUtils.joinParticipant(plugin, gameManager, member, teamId);
-        }
-        OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(member);
-        return CommandResult.async(plugin, "Adding participant", () -> {
-            try {
-                gameManager.getGameStateService().addParticipant(
-                        MaintenanceParticipantEntity.builder()
-                                .teamId(teamId)
-                                .participantUUID(offlinePlayer.getUniqueId().toString())
-                                .build(),
-                        member
-                );
-                return CommandResult.success(Component.empty()
-                        .append(Component.text("Added "))
-                        .append(Component.text(member))
-                        .append(Component.text(" to "))
-                        .append(Component.text(teamId))
-                );
-            } catch (SQLException e) {
-                return CommandResult.sqlException("add a participant to maintenance database", e);
-            }
-        });
+        return CommandResult.success();
     }
     
     private @NotNull CommandResult executeAddPractice(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {

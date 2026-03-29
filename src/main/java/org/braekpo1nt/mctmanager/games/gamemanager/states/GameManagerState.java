@@ -1461,14 +1461,10 @@ public abstract class GameManagerState {
      * Joins the given player to the team with the given teamId. If the player was on a team already (not teamId) they
      * will be removed from that team and added to the other team.
      * Note, this will not join a player to a team if that player is an admin.
-     * @param offlinePlayer The player to join to the given team
-     * @param ign The name of the participant to join to the given team
+     * @param uuid The uuid of the participant to join to the given team
+     * @param ign The ign of the participant to join to the given team
      * @param team The internal teamId of the team to join the player to.
      */
-    public CommandResult joinParticipantToTeam(@NotNull OfflinePlayer offlinePlayer, @NotNull String ign, @NotNull MCTTeam team) {
-        return joinParticipantToTeam(offlinePlayer, ign, team, true);
-    }
-    
     public CommandResult joinParticipantToTeam(@NotNull UUID uuid, @NotNull String ign, @NotNull MCTTeam team) {
         List<CommandResult> results = new ArrayList<>();
         if (context.isAdmin(uuid)) {
@@ -1486,8 +1482,6 @@ public abstract class GameManagerState {
             }
             results.add(leaveParticipant(existingParticipant));
         }
-        
-        // TODO: add them to the scoreboard when they log in
         
         Component participantDisplayName = GameManagerUtils.createDisplayName(ign, team.getColor());
         OfflineParticipant offlineParticipant = new OfflineParticipant(uuid, ign, participantDisplayName, team.getTeamId(), 0);
@@ -1509,29 +1503,18 @@ public abstract class GameManagerState {
                 .append(offlineParticipant.displayName())
                 .append(Component.text(" to "))
                 .append(team.getFormattedDisplayName())));
-        
+        // TODO: this is identical to below method except for these lines
         return CompositeCommandResult.all(results);
     }
     
-    
-    /**
-     * Joins the given player to the team with the given teamId. If the player was on a team already (not teamId) they
-     * will be removed from that team and added to the other team.
-     * Note, this will not join a player to a team if that player is an admin.
-     * @param offlinePlayer The player to join to the given team
-     * @param ign The name of the participant to join to the given team
-     * @param team The internal teamId of the team to join the player to.
-     * @param allowOnlineJoining true if you want to join the participant when they are online, false if you want to
-     * ignore the fact that they are online and just join them to the team
-     * // TODO: instead just have two overloads, one which takes in a Player and one for OfflinePlayer
-     */
-    public CommandResult joinParticipantToTeam(@NotNull OfflinePlayer offlinePlayer, @NotNull String ign, @NotNull MCTTeam team, boolean allowOnlineJoining) {
-        // TODO: handle any async operations for this in a separate thread, keep all uses and overrides in mind
+    public CommandResult joinParticipantToTeam(@NotNull Player player, @NotNull MCTTeam team) {
+        UUID uuid = player.getUniqueId();
+        String ign = player.getName();
         List<CommandResult> results = new ArrayList<>();
-        if (context.isAdmin(offlinePlayer.getUniqueId())) {
-            results.add(removeAdmin(offlinePlayer, ign));
+        if (context.isAdmin(uuid)) {
+            results.add(removeAdmin(uuid, ign));
         }
-        OfflineParticipant existingParticipant = allParticipants.get(offlinePlayer.getUniqueId());
+        OfflineParticipant existingParticipant = allParticipants.get(uuid);
         if (existingParticipant != null) {
             if (existingParticipant.isOnTeam(team)) {
                 results.add(CommandResult.success(Component.empty()
@@ -1544,15 +1527,8 @@ public abstract class GameManagerState {
             results.add(leaveParticipant(existingParticipant));
         }
         
-        org.bukkit.scoreboard.Team scoreboardTeam = mctScoreboard.getTeam(team.getTeamId());
-        if (scoreboardTeam != null) {
-            scoreboardTeam.addPlayer(offlinePlayer);
-        } else {
-            Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (joinParticipantToTeam)", team.getTeamId()));
-        }
-        
         Component participantDisplayName = GameManagerUtils.createDisplayName(ign, team.getColor());
-        OfflineParticipant offlineParticipant = new OfflineParticipant(offlinePlayer.getUniqueId(), ign, participantDisplayName, team.getTeamId(), 0);
+        OfflineParticipant offlineParticipant = new OfflineParticipant(uuid, ign, participantDisplayName, team.getTeamId(), 0);
         allParticipants.put(offlineParticipant.getUniqueId(), offlineParticipant);
         team.joinMember(offlineParticipant.getUniqueId());
         tabList.joinParticipant(
@@ -1571,17 +1547,11 @@ public abstract class GameManagerState {
                 .append(offlineParticipant.displayName())
                 .append(Component.text(" to "))
                 .append(team.getFormattedDisplayName())));
-        
-        if (allowOnlineJoining) {
-            // if they are online
-            Player player = offlinePlayer.getPlayer();
-            if (player != null) {
-                MCTParticipant participant = new MCTParticipant(offlineParticipant, player);
-                participant.sendMessage(Component.text("You've been joined to team ")
-                        .append(team.getFormattedDisplayName()));
-                onParticipantJoin(participant);
-            }
-        }
+        // TODO: this is identical to the above method except for this line
+        MCTParticipant participant = new MCTParticipant(offlineParticipant, player);
+        participant.sendMessage(Component.text("You've been joined to team ")
+                .append(team.getFormattedDisplayName()));
+        onParticipantJoin(participant);
         
         return CompositeCommandResult.all(results);
     }
