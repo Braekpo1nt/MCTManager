@@ -28,6 +28,10 @@ import java.util.Set;
 
 public class VotingState extends EventState {
     
+    private static final String VOTING_SOUND = "block.note_block.bit";
+    private static final int VOTING_VOLUME = 50;
+    private static final int VOTING_PITCH = 30;
+    
     private final VoteManager voteManager;
     private final Timer timer;
     private @Nullable BukkitTask display;
@@ -89,11 +93,11 @@ public class VotingState extends EventState {
     }
     
     private void playVotingSound() {
-        for(Participant participant: context.getOnlineParticipants()) {
-            participant.playSound(participant.getLocation(), "BLOCK_NOTE_BLOCK_BIT", 50, 30);
+        for (Participant participant : context.getOnlineParticipants()) {
+            participant.playSound(participant.getLocation(), VOTING_SOUND, VOTING_VOLUME, VOTING_PITCH);
         }
-        for(Player admin : onlineAdmins) {
-            admin.playSound(admin.getLocation(), "BLOCK_NOTE_BLOCK_BIT", 50, 30);
+        for (Player admin : onlineAdmins) {
+            admin.playSound(admin.getLocation(), VOTING_SOUND, VOTING_VOLUME, VOTING_PITCH);
             
         }
     }
