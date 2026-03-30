@@ -26,7 +26,10 @@ public class BorderStage {
      * the border will take this many seconds to transition from the previous stage's size to this stage's size
      */
     private int duration;
-    
+    /**
+     * chests refill on this border stage
+     */
+    private boolean refillChests;
     /**
      * You need to pass the center of the border to this method because BorderStage objects
      * don't store the center of the border in them.

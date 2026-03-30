@@ -23,6 +23,10 @@ class BorderStageDTO implements Validatable {
      * the border will take this many seconds to transition from the previous stage's size to this stage's size
      */
     private int duration;
+    /**
+     * chests refill on this border stage
+     */
+    private boolean refillChests;
     
     @Override
     public void validate(@NotNull Validator validator) {
@@ -32,6 +36,8 @@ class BorderStageDTO implements Validatable {
                 "delay (%S) can't be negative", this.delay);
         validator.validate(this.duration >= 0,
                 "duration (%S) can't be negative", this.duration);
+        validator.validate(!this.refillChests || this.refillChests,
+                "refillChests (%S) must be true or false", this.refillChests);
     }
     
     public BorderStage toBorderStage() {
@@ -39,6 +45,7 @@ class BorderStageDTO implements Validatable {
                 .size(this.size)
                 .delay(this.delay)
                 .duration(this.duration)
+                .refillChests(this.refillChests)
                 .build();
     }
     
