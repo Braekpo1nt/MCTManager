@@ -593,7 +593,7 @@ public class PracticeManager {
         if (participant == null) {
             return CommandResult.failure("You are not a participant");
         }
-        return gameManager.joinParticipantToTeam(participant.getPlayer(), teamId);
+        return gameManager.joinOnlineParticipant(participant.getPlayer(), teamId);
     }
     
     public void onParticipantInteract(PlayerInteractEvent event) {

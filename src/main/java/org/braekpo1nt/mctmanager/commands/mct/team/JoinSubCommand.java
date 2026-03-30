@@ -23,7 +23,6 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
@@ -36,6 +35,10 @@ public class JoinSubCommand implements BrigadierSubCommand {
     
     private static final SimpleCommandExceptionType ERROR_TOO_MANY_PLAYERS = new SimpleCommandExceptionType(MessageComponentSerializer.message().serialize(Component.empty()
             .append(Component.text("Too many players, please only select 1"))
+    ));
+    
+    private static final SimpleCommandExceptionType ERROR_NAME_DOES_NOT_MATCH = new SimpleCommandExceptionType(MessageComponentSerializer.message().serialize(Component.empty()
+            .append(Component.text("The given ign does not match that of the given UUID for the online player"))
     ));
     
     private final @NotNull Main plugin;
@@ -55,7 +58,7 @@ public class JoinSubCommand implements BrigadierSubCommand {
                             if (!(ctx.getSource().getSender() instanceof Player player)) {
                                 return CommandResult.failure("Must be a player to use the no-argument option");
                             }
-                            return GameManagerUtils.joinParticipant(gameManager, player, team);
+                            return gameManager.joinOnlineParticipant(player, team.getTeamId());
                         }))
                         .then(Permissioned.argument("ign", StringArgumentType.word())
                                 .suggests((source, builder) -> suggestPlayerNames(builder))
@@ -75,8 +78,8 @@ public class JoinSubCommand implements BrigadierSubCommand {
     private @NotNull CompletableFuture<Suggestions> suggestPlayerNames(SuggestionsBuilder builder) {
         return CompletableFuture.supplyAsync(() -> {
             Stream.concat(
-                            Arrays.stream(plugin.getServer().getOfflinePlayers())
-                                    .map(OfflinePlayer::getName),
+                            plugin.getServer().getOnlinePlayers().stream()
+                                    .map(Player::getName),
                             gameManager.getAllParticipantNames().stream()
                     )
                     .distinct()
@@ -92,15 +95,22 @@ public class JoinSubCommand implements BrigadierSubCommand {
         OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(ign);
         Player player = offlinePlayer.getPlayer();
         if (player == null) {
-            return GameManagerUtils.joinParticipant(gameManager, ign, offlinePlayer.getUniqueId(), team);
+            return gameManager.joinOfflineParticipant(offlinePlayer.getUniqueId(), ign, team.getTeamId());
         }
-        return GameManagerUtils.joinParticipant(gameManager, player, team);
+        return gameManager.joinOnlineParticipant(player, team.getTeamId());
     }
     
-    private @NotNull CommandResult executeJoinUUID(CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CommandResult executeJoinUUID(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         Team team = ctx.getArgument("teamId", Team.class);
         String ign = ctx.getArgument("ign", String.class);
         UUID uuid = ctx.getArgument("uuid", UUID.class);
-        return GameManagerUtils.joinParticipant(gameManager, ign, uuid, team);
+        Player player = plugin.getServer().getPlayer(uuid);
+        if (player == null) {
+            return gameManager.joinOfflineParticipant(uuid, ign, team.getTeamId());
+        }
+        if (!player.getName().equals(ign)) {
+            throw ERROR_NAME_DOES_NOT_MATCH.create();
+        }
+        return gameManager.joinOnlineParticipant(player, team.getTeamId());
     }
 }

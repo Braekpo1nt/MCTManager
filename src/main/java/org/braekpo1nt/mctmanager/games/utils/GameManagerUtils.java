@@ -11,7 +11,6 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
-import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.Preset;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
@@ -232,39 +231,12 @@ public class GameManagerUtils {
     public static CommandResult removeTeam(@NotNull GameManager gameManager, @NotNull String teamId) {
         Team existingTeam = gameManager.getTeam(teamId);
         if (existingTeam == null) {
-            Main.logf("Team with ID %s doesn't exist in game manager", teamId);
             return CommandResult.failure(Component.text("Team ")
                     .append(Component.text(teamId)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" does not exist")));
         }
         return gameManager.removeTeam(teamId);
-    }
-    
-    public static CommandResult joinParticipant(@NotNull GameManager gameManager, @NotNull String ign, @NotNull UUID uuid, @NotNull String teamId) {
-        if (teamId.isEmpty()) {
-            return CommandResult.failure("teamId must not be blank");
-        }
-        if (ign.isEmpty()) {
-            return CommandResult.failure("player name must not be blank");
-        }
-        Team team = gameManager.getTeam(teamId);
-        if (team == null) {
-            return CommandResult.failure(Component.text("Team ")
-                    .append(Component.text(teamId)
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" does not exist.")));
-        }
-        
-        return joinParticipant(gameManager, ign, uuid, team);
-    }
-    
-    public static CommandResult joinParticipant(@NotNull GameManager gameManager, @NotNull String ign, @NotNull UUID uuid, @NotNull Team team) {
-        return gameManager.joinParticipantToTeam(uuid, ign, team.getTeamId());
-    }
-    
-    public static CommandResult joinParticipant(@NotNull GameManager gameManager, @NotNull Player player, @NotNull Team team) {
-        return gameManager.joinParticipantToTeam(player, team.getTeamId());
     }
     
     /**
@@ -597,7 +569,7 @@ public class GameManagerUtils {
         // join all the participants
         for (Preset.PresetTeam team : preset.getTeams()) {
             for (String ign : team.getMembers()) {
-                results.add(joinParticipant(plugin, gameManager, ign, team.getTeamId()));
+                results.add(gameManager.joinOfflineParticipant(uuid, ign, team.getTeamId()));
             }
         }
         

@@ -22,7 +22,6 @@ import org.braekpo1nt.mctmanager.database.entities.ScoreEventEntity;
 import org.braekpo1nt.mctmanager.database.exceptions.EventStillInUseException;
 import org.braekpo1nt.mctmanager.database.service.EventService;
 import org.braekpo1nt.mctmanager.database.service.GameStateService;
-import org.braekpo1nt.mctmanager.database.service.RegisterConflictType;
 import org.braekpo1nt.mctmanager.database.service.ScoreService;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
@@ -887,12 +886,12 @@ public class GameManager implements Listener {
      * @param ign The name of the participant to join to the given team
      * @param teamId The teamId of the team to join the participant to.
      */
-    public CommandResult joinParticipantToTeam(@NotNull UUID uuid, @NotNull String ign, @NotNull String teamId) {
+    public CommandResult joinOfflineParticipant(@NotNull UUID uuid, @NotNull String ign, @NotNull String teamId) {
         MCTTeam team = teams.get(teamId);
         return state.joinParticipantToTeam(uuid, ign, team);
     }
     
-    public CommandResult joinParticipantToTeam(@NotNull Player player, @NotNull String teamId) {
+    public CommandResult joinOnlineParticipant(@NotNull Player player, @NotNull String teamId) {
         MCTTeam team = teams.get(teamId);
         return state.joinParticipantToTeam(player, team);
     }
