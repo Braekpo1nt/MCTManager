@@ -318,37 +318,6 @@ public class VoteManager implements Listener {
         }
         if (weightedVoting) {
             ArrayList<GameType> collectedVotes = new ArrayList<>(votes.values()); // Use votes.values()
-            collectedVotes.addAll(List.of(
-                    GameType.FOOT_RACE,
-                    GameType.FOOT_RACE,
-                    GameType.FOOT_RACE,
-                    GameType.FOOT_RACE,
-                    GameType.FOOT_RACE,
-                    GameType.FOOT_RACE,
-                    GameType.SURVIVAL_GAMES,
-                    GameType.SURVIVAL_GAMES,
-                    GameType.SURVIVAL_GAMES,
-                    GameType.SURVIVAL_GAMES,
-                    GameType.SURVIVAL_GAMES,
-                    GameType.SURVIVAL_GAMES,
-                    GameType.SURVIVAL_GAMES,
-                    GameType.SURVIVAL_GAMES,
-                    GameType.SURVIVAL_GAMES,
-                    GameType.SURVIVAL_GAMES,
-                    GameType.SURVIVAL_GAMES,
-                    GameType.SURVIVAL_GAMES,
-                    GameType.CAPTURE_THE_FLAG,
-                    GameType.CAPTURE_THE_FLAG,
-                    GameType.CAPTURE_THE_FLAG,
-                    GameType.CAPTURE_THE_FLAG,
-                    GameType.CAPTURE_THE_FLAG,
-                    GameType.CAPTURE_THE_FLAG,
-                    GameType.CAPTURE_THE_FLAG,
-                    GameType.CAPTURE_THE_FLAG,
-                    GameType.CAPTURE_THE_FLAG,
-                    GameType.CAPTURE_THE_FLAG,
-                    GameType.CAPTURE_THE_FLAG
-            ));
             executeMethod.accept(collectedVotes, "default.json");
         } else {
             GameType gameType = getVotedForGame();
