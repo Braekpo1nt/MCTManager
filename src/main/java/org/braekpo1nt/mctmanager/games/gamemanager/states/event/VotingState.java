@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.event.EventData;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.event.delay.StartingGameDelayState;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.entity.Player;
@@ -26,6 +27,10 @@ import java.util.Random;
 import java.util.Set;
 
 public class VotingState extends EventState {
+    
+    private static final String VOTING_SOUND = "block.note_block.bit";
+    private static final int VOTING_VOLUME = 50;
+    private static final int VOTING_PITCH = 30;
     
     private final VoteManager voteManager;
     private final Timer timer;
@@ -87,6 +92,16 @@ public class VotingState extends EventState {
                 gameType, chosenConfigFile));
     }
     
+    private void playVotingSound() {
+        for (Participant participant : context.getOnlineParticipants()) {
+            participant.playSound(participant.getLocation(), VOTING_SOUND, VOTING_VOLUME, VOTING_PITCH);
+        }
+        for (Player admin : onlineAdmins) {
+            admin.playSound(admin.getLocation(), VOTING_SOUND, VOTING_VOLUME, VOTING_PITCH);
+            
+        }
+    }
+    
     public void scheduleNextDisplay(List<GameType> votes, String configFile, final long numberOfTicks, Random random, final boolean displayIsRed) {
         
         this.display = new BukkitRunnable() {
@@ -121,6 +136,7 @@ public class VotingState extends EventState {
                                         .color(NamedTextColor.RED),
                                 Component.empty()
                         ));
+                        playVotingSound();
                         redTitle = false;
                     } else {
                         Audience.audience( // Use this for display, modify color
@@ -132,6 +148,7 @@ public class VotingState extends EventState {
                                         .color(NamedTextColor.YELLOW),
                                 Component.empty()
                         ));
+                        playVotingSound();
                         redTitle = true;
                     }
                 } else {
@@ -145,6 +162,7 @@ public class VotingState extends EventState {
                                     .color(NamedTextColor.BLUE),
                             Component.empty()
                     ));
+                    playVotingSound();
                     this.cancel();
                     acceptVote(configFile, gameType);
                     return;
