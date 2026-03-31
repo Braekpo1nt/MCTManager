@@ -1,15 +1,23 @@
 package org.braekpo1nt.mctmanager.games.game.survivalgames.states;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.BorderStage;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class BorderShrinkingState extends RoundActiveState {
+    
+    private static final String CHEST_REFILL_SOUND = "block.note_block.bit"; //Change all 3 to match chest open sound
+    private static final int REFILL_VOLUME = 50;
+    private static final int REFILL_PITCH = 30;
     
     protected @Nullable Timer borderShrinking;
     
@@ -33,6 +41,26 @@ public class BorderShrinkingState extends RoundActiveState {
                         .color(NamedTextColor.RED))
                 .timerColor(NamedTextColor.RED)
                 .onCompletion(() -> {
+                    if(borderStage.isRefillChests()) {
+                        context.clearAllChests();
+                        context.fillAllChests();
+                        Audience.audience( // Use this for display, modify color
+                                Audience.audience(context.getParticipants().values()),
+                                Audience.audience(context.getAdmins())
+                        ).showTitle(UIUtils.defaultTitle(
+                                Component.empty()
+                                        .append(Component.text("Chests Refilled"))
+                                        .color(NamedTextColor.RED),
+                                Component.empty()
+                        ));
+                        for(Participant participant : context.getParticipants().values()) {
+                            participant.playSound(participant.getLocation(), CHEST_REFILL_SOUND, REFILL_VOLUME, REFILL_PITCH);
+                        }
+                        for(Player admin : context.getAdmins()) {
+                            admin.playSound(admin.getLocation(), CHEST_REFILL_SOUND, REFILL_VOLUME, REFILL_PITCH);
+                        }
+                    }
+                    
                     context.setBorderStageIndex(context.getBorderStageIndex() + 1);
                     if (context.getBorderStageIndex() >= config.getBorderStages().size()) {
                         // continue to reference the final one
