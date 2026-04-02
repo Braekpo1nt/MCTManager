@@ -44,10 +44,7 @@ public class BorderShrinkingState extends RoundActiveState {
                     if (borderStage.isRefillChests()) {
                         context.clearAllChests();
                         context.fillAllChests();
-                        Audience.audience( // Use this for display, modify color
-                                Audience.audience(context.getParticipants().values()),
-                                Audience.audience(context.getAdmins())
-                        ).showTitle(UIUtils.defaultSubtitle(
+                        context.titleAllParticipants(UIUtils.defaultSubtitle(
                                 Component.empty()
                                         .append(Component.text("Chests Refilled"))
                                         .color(NamedTextColor.RED)
