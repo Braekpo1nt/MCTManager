@@ -41,22 +41,21 @@ public class BorderShrinkingState extends RoundActiveState {
                         .color(NamedTextColor.RED))
                 .timerColor(NamedTextColor.RED)
                 .onCompletion(() -> {
-                    if(borderStage.isRefillChests()) {
+                    if (borderStage.isRefillChests()) {
                         context.clearAllChests();
                         context.fillAllChests();
                         Audience.audience( // Use this for display, modify color
                                 Audience.audience(context.getParticipants().values()),
                                 Audience.audience(context.getAdmins())
-                        ).showTitle(UIUtils.defaultTitle(
+                        ).showTitle(UIUtils.defaultSubtitle(
                                 Component.empty()
                                         .append(Component.text("Chests Refilled"))
-                                        .color(NamedTextColor.RED),
-                                Component.empty()
+                                        .color(NamedTextColor.RED)
                         ));
-                        for(Participant participant : context.getParticipants().values()) {
+                        for (Participant participant : context.getParticipants().values()) {
                             participant.playSound(participant.getLocation(), CHEST_REFILL_SOUND, REFILL_VOLUME, REFILL_PITCH);
                         }
-                        for(Player admin : context.getAdmins()) {
+                        for (Player admin : context.getAdmins()) {
                             admin.playSound(admin.getLocation(), CHEST_REFILL_SOUND, REFILL_VOLUME, REFILL_PITCH);
                         }
                     }
