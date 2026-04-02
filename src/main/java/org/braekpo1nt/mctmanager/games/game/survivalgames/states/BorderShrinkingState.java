@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.games.game.survivalgames.states;
 
-import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.BorderStage;
