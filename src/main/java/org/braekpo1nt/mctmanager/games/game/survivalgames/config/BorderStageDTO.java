@@ -25,7 +25,9 @@ class BorderStageDTO implements Validatable {
      */
     private int duration;
     /**
-     * chests refill on this border stage
+     * If true, chests will refill at the end of this border stage,
+     * after the "border shrinking" countdown is complete.
+     * If false, nothing happens.
      * Defaults to false if not included
      */
     private @Nullable Boolean refillChests;
