@@ -5,6 +5,7 @@ import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.BorderStage;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -25,8 +26,9 @@ class BorderStageDTO implements Validatable {
     private int duration;
     /**
      * chests refill on this border stage
+     * Defaults to false if not included
      */
-    private boolean refillChests;
+    private @Nullable Boolean refillChests;
     
     @Override
     public void validate(@NotNull Validator validator) {
@@ -36,8 +38,6 @@ class BorderStageDTO implements Validatable {
                 "delay (%s) can't be negative", this.delay);
         validator.validate(this.duration >= 0,
                 "duration (%s) can't be negative", this.duration);
-        validator.validate(!this.refillChests || this.refillChests,
-                "refillChests (%s) must be true or false", this.refillChests);
     }
     
     public BorderStage toBorderStage() {
@@ -45,7 +45,7 @@ class BorderStageDTO implements Validatable {
                 .size(this.size)
                 .delay(this.delay)
                 .duration(this.duration)
-                .refillChests(this.refillChests)
+                .refillChests(this.refillChests != null ? this.refillChests : false)
                 .build();
     }
     
