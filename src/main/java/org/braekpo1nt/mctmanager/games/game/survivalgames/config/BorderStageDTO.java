@@ -33,11 +33,11 @@ class BorderStageDTO implements Validatable {
         validator.validate(this.size >= 1.0,
                 "size (%s) can't be less than 1.0", this.size);
         validator.validate(this.delay >= 0,
-                "delay (%S) can't be negative", this.delay);
+                "delay (%s) can't be negative", this.delay);
         validator.validate(this.duration >= 0,
-                "duration (%S) can't be negative", this.duration);
+                "duration (%s) can't be negative", this.duration);
         validator.validate(!this.refillChests || this.refillChests,
-                "refillChests (%S) must be true or false", this.refillChests);
+                "refillChests (%s) must be true or false", this.refillChests);
     }
     
     public BorderStage toBorderStage() {
