@@ -33,11 +33,7 @@ public class TeamIdsListArgumentType implements CustomArgumentType.Converted<Str
     
     private final @NotNull GameManager gameManager;
     
-    public static TeamIdsListArgumentType teamIds(@NotNull GameManager gameManager) {
-        return new TeamIdsListArgumentType(gameManager);
-    }
-    
-    private TeamIdsListArgumentType(@NotNull GameManager gameManager) {
+    public TeamIdsListArgumentType(@NotNull GameManager gameManager) {
         this.gameManager = gameManager;
     }
     

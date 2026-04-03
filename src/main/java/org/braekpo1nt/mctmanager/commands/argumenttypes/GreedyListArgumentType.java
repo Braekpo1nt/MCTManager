@@ -12,9 +12,12 @@ import io.papermc.paper.command.brigadier.argument.CustomArgumentType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -26,6 +29,32 @@ public class GreedyListArgumentType implements CustomArgumentType.Converted<Stri
             .append(Component.text(value.toString())
                     .decorate(TextDecoration.BOLD))
     ));
+    
+    /**
+     * @param gameManager the gameManager to get the teamIds from
+     * @return a specialized version of {@link GreedyListArgumentType} designed
+     * to suggest teamIds in the GameManager
+     */
+    public static TeamIdsListArgumentType teamIds(@NotNull GameManager gameManager) {
+        return new TeamIdsListArgumentType(gameManager);
+    }
+    
+    /**
+     * @param values the values that the returned argument type will suggest
+     * @return the argument type with the given valid values
+     */
+    public static GreedyListArgumentType of(Set<String> values) {
+        return new GreedyListArgumentType(values);
+    }
+    
+    /**
+     * @param values the collection of values to be converted to a set,
+     * the values that the returned argument type will suggest
+     * @return the argument type with the given valid values
+     */
+    public static GreedyListArgumentType of(Collection<String> values) {
+        return new GreedyListArgumentType(new HashSet<>(values));
+    }
     
     private final @NotNull Set<String> validValues;
     

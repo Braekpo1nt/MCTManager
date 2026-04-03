@@ -2,10 +2,10 @@ package org.braekpo1nt.mctmanager.commands.mct.game;
 
 import com.mojang.brigadier.context.CommandContext;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.GreedyListArgumentType;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.ConfigFileArgumentType;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.GameIdArgumentType;
-import org.braekpo1nt.mctmanager.commands.argumenttypes.TeamIdsListArgumentType;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
@@ -34,7 +34,7 @@ public class StartSubCommand implements BrigadierSubCommand {
                         .executes(BrigadierAdapters.wraps(this::executeStartDefault))
                         .then(Permissioned.argument("configFile", new ConfigFileArgumentType(gameManager, false, GAME_ID_ARG))
                                 .executes(BrigadierAdapters.wraps(this::executeStartConfig))
-                                .then(Permissioned.argument("teamIds", TeamIdsListArgumentType.teamIds(gameManager))
+                                .then(Permissioned.argument("teamIds", GreedyListArgumentType.teamIds(gameManager))
                                         .executes(BrigadierAdapters.wraps(this::executeStartTeamIds))
                                 )
                         )
