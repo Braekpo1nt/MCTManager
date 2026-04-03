@@ -243,39 +243,42 @@ public class CommandUtils {
     }
     
     /**
-     * @param remainingTeamIds the full command remaining partially completed (or completed) greedy string of teamIds
-     * (e.g. "purple red oran")
-     * @param validTeamIds the list of teamIds to suggest from
-     * @return a list of suggestions for brigadier commands using the given greedy string of teamIds and the full list
-     * of valid teamIds
+     * @param remainingValues a string containing space-separated partially/fully completed
+     * string of values (such as teamIds)
+     * (e.g. "purple red oran" or "purple red orange")
+     * @param validValues the list of valid values to suggest from
+     * (e.g. ["purple", "red", "orange", "yellow"])
+     * @return a list of suggestions for brigadier commands which include all fully
+     * completed valid entries, and the partially complete last entry and all
+     * possible partial matches.
      */
-    public static List<String> suggestTeamIds(String remainingTeamIds, Collection<String> validTeamIds) {
+    public static List<String> suggestGreedyList(String remainingValues, Collection<String> validValues) {
         // ["red", "purple", "ye"] for `/...red purple ye`
         // ["red", "purple", "yell"] for `/...red purple yell`
-        List<String> alreadyTyped = Arrays.stream(remainingTeamIds.split("\\s+"))
+        List<String> alreadyTyped = Arrays.stream(remainingValues.split("\\s+"))
                 .filter(s -> !s.isBlank())
                 .collect(Collectors.toCollection(ArrayList::new));
-        if (remainingTeamIds.endsWith(" ")) {
+        if (remainingValues.endsWith(" ")) {
             alreadyTyped.add("");
         }
         List<String> result = new ArrayList<>();
         if (!alreadyTyped.isEmpty()) {
             // "yell" for `/...red purple yell`
             String trueRemaining = alreadyTyped.getLast();
-            // instead of the remainingTeamIds, remove the partially typed teamId and add back the fully typed one as a suggestion
-            String alreadyFullyTyped = remainingTeamIds.substring(0, remainingTeamIds.length() - trueRemaining.length());
-            // if trueRemaining is a partial teamId
-            validTeamIds.stream()
-                    .filter(teamId -> !alreadyTyped.contains(teamId))
-                    .filter(teamId -> teamId.startsWith(trueRemaining))
-                    .forEach(teamId -> result.add(alreadyFullyTyped + teamId));
-            if (validTeamIds.contains(trueRemaining)) {
+            // instead of the remainingValues, remove the partially typed value and add back the fully typed one as a suggestion
+            String alreadyFullyTyped = remainingValues.substring(0, remainingValues.length() - trueRemaining.length());
+            // if trueRemaining is a partial value
+            validValues.stream()
+                    .filter(value -> !alreadyTyped.contains(value))
+                    .filter(value -> value.startsWith(trueRemaining))
+                    .forEach(value -> result.add(alreadyFullyTyped + value));
+            if (validValues.contains(trueRemaining)) {
                 // instead of adding just trueRemaining, suggest the whole string as valid
-                result.add(remainingTeamIds);
+                result.add(remainingValues);
             }
         } else {
-            validTeamIds
-                    .forEach(teamId -> result.add(remainingTeamIds + teamId));
+            validValues
+                    .forEach(value -> result.add(remainingValues + value));
         }
         return result;
     }

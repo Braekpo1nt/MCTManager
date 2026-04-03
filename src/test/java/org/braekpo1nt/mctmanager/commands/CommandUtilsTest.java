@@ -32,20 +32,20 @@ class CommandUtilsTest {
                 "red",
                 "yellow"
         );
-        Assertions.assertEquals(List.of("red purple yellow"), CommandUtils.suggestTeamIds("red purple yellow", teamIds));
-        Assertions.assertEquals(List.of(), CommandUtils.suggestTeamIds("red purple pur", teamIds));
-        Assertions.assertEquals(List.of("red purple yellow"), CommandUtils.suggestTeamIds("red purple ", teamIds));
-        Assertions.assertEquals(List.of("red purple"), CommandUtils.suggestTeamIds("red purple", teamIds));
-        Assertions.assertEquals(List.of("purple", "red", "yellow"), CommandUtils.suggestTeamIds("", teamIds));
-        Assertions.assertEquals(List.of("red purple yellow"), CommandUtils.suggestTeamIds("red purple yello", teamIds));
-        Assertions.assertEquals(List.of("red yellow purple"), CommandUtils.suggestTeamIds("red yellow pur", teamIds));
-        Assertions.assertEquals(List.of("red purple yellow"), CommandUtils.suggestTeamIds("red purple yello", teamIds));
-        Assertions.assertEquals(List.of("red purple", "red yellow"), CommandUtils.suggestTeamIds("red ", teamIds));
-        Assertions.assertEquals(List.of("red"), CommandUtils.suggestTeamIds("red", teamIds));
+        Assertions.assertEquals(List.of("red purple yellow"), CommandUtils.suggestGreedyList("red purple yellow", teamIds));
+        Assertions.assertEquals(List.of(), CommandUtils.suggestGreedyList("red purple pur", teamIds));
+        Assertions.assertEquals(List.of("red purple yellow"), CommandUtils.suggestGreedyList("red purple ", teamIds));
+        Assertions.assertEquals(List.of("red purple"), CommandUtils.suggestGreedyList("red purple", teamIds));
+        Assertions.assertEquals(List.of("purple", "red", "yellow"), CommandUtils.suggestGreedyList("", teamIds));
+        Assertions.assertEquals(List.of("red purple yellow"), CommandUtils.suggestGreedyList("red purple yello", teamIds));
+        Assertions.assertEquals(List.of("red yellow purple"), CommandUtils.suggestGreedyList("red yellow pur", teamIds));
+        Assertions.assertEquals(List.of("red purple yellow"), CommandUtils.suggestGreedyList("red purple yello", teamIds));
+        Assertions.assertEquals(List.of("red purple", "red yellow"), CommandUtils.suggestGreedyList("red ", teamIds));
+        Assertions.assertEquals(List.of("red"), CommandUtils.suggestGreedyList("red", teamIds));
         
-        Assertions.assertEquals(List.of(), CommandUtils.suggestTeamIds("red o", teamIds));
-        Assertions.assertEquals(List.of(), CommandUtils.suggestTeamIds("o", teamIds));
-        Assertions.assertEquals(List.of("o red"), CommandUtils.suggestTeamIds("o r", teamIds));
+        Assertions.assertEquals(List.of(), CommandUtils.suggestGreedyList("red o", teamIds));
+        Assertions.assertEquals(List.of(), CommandUtils.suggestGreedyList("o", teamIds));
+        Assertions.assertEquals(List.of("o red"), CommandUtils.suggestGreedyList("o r", teamIds));
     }
     
     
