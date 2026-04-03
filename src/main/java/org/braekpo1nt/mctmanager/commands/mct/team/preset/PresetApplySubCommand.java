@@ -5,6 +5,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.FileResolver;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.GreedyListArgumentType;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
@@ -16,6 +17,9 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class PresetApplySubCommand implements BrigadierSubCommand {
     
@@ -32,16 +36,15 @@ public class PresetApplySubCommand implements BrigadierSubCommand {
     @Override
     public @NotNull Permissioned<CommandSourceStack> create() {
         return Permissioned.literal("apply")
-                .then(Permissioned.argument("override", BoolArgumentType.bool())
-                        .then(Permissioned.argument("resetScores", BoolArgumentType.bool())
-                                .then(Permissioned.argument("whiteList", BoolArgumentType.bool())
-                                        .then(Permissioned.argument("unWhitelist", BoolArgumentType.bool())
-                                                .then(Permissioned.argument("kickUnWhitelisted", BoolArgumentType.bool())
-                                                        .executes(BrigadierAdapters.wraps(this::executeApply))
-                                                )
-                                        )
-                                )
-                        )
+                .then(Permissioned.argument("options", GreedyListArgumentType.of(
+                                Set.of(
+                                        "override",
+                                        "resetScores",
+                                        "whiteList",
+                                        "unWhitelist",
+                                        "kickUnWhitelisted"
+                                )))
+                        .executes(BrigadierAdapters.wraps(this::executeApply))
                 )
                 ;
     }
@@ -49,11 +52,14 @@ public class PresetApplySubCommand implements BrigadierSubCommand {
     private @NotNull CommandResult executeApply(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         FileResolver resolver = ctx.getArgument(PresetCommand.PRESET_FILE_ARG, FileResolver.class);
         File presetFile = resolver.resolve();
-        boolean override = ctx.getArgument("override", Boolean.class);
-        boolean resetScores = ctx.getArgument("resetScores", Boolean.class);
-        boolean whiteList = ctx.getArgument("whiteList", Boolean.class);
-        boolean unWhitelist = ctx.getArgument("unWhitelist", Boolean.class);
-        boolean kickUnWhitelisted = ctx.getArgument("kickUnWhitelisted", Boolean.class);
+        String[] optionsArray = ctx.getArgument("options", String[].class);
+        Set<String> options = Arrays.stream(optionsArray)
+                .collect(Collectors.toSet());
+        boolean override = options.contains("override");
+        boolean resetScores = options.contains("resetScores");
+        boolean whiteList = options.contains("whiteList");
+        boolean unWhitelist = options.contains("unWhitelist");
+        boolean kickUnWhitelisted = options.contains("kickUnWhitelisted");
         return GameManagerUtils.applyPreset(
                 plugin,
                 gameManager,

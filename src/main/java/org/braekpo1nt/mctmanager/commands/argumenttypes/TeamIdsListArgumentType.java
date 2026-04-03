@@ -23,6 +23,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Allows the last argument of a command to be an arbitrary length string of space-separated teams
  */
+// TODO: convert this into an implementation of GreedyListArgumentType
 public class TeamIdsListArgumentType implements CustomArgumentType.Converted<String[], String> {
     
     private static final DynamicCommandExceptionType ERROR_TEAM_DOES_NOT_EXISTS = new DynamicCommandExceptionType(teamId -> MessageComponentSerializer.message().serialize(Component.empty()
