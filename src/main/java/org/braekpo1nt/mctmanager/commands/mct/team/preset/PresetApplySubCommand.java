@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.commands.mct.team.preset;
 
-import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
