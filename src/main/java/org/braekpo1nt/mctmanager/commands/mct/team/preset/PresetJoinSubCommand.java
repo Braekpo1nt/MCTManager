@@ -4,6 +4,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.FileResolver;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import net.kyori.adventure.text.Component;
@@ -19,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class PresetJoinSubCommand implements BrigadierSubCommand {
     
@@ -35,9 +37,12 @@ public class PresetJoinSubCommand implements BrigadierSubCommand {
         return Permissioned.literal("join")
                 .then(Permissioned.argument("teamId", StringArgumentType.word())
                         .suggests((source, builder) -> PresetCommand.suggestPresetTeams(source, builder, storageUtil))
-                        .then(Permissioned.argument("member", StringArgumentType.word())
+                        .then(Permissioned.argument(PresetCommand.PRESET_MEMBER_IGN_ARG, StringArgumentType.word())
                                 .suggests((ctx, builder) -> PresetCommand.suggestPresetCandidates(ctx, builder, storageUtil, plugin))
-                                .executes(BrigadierAdapters.wraps(this::executeJoin))
+                                .then(Permissioned.argument("uuid", ArgumentTypes.uuid())
+                                        .suggests((ctx, builder) -> PresetCommand.suggestPresetUUIDs(ctx, builder, plugin))
+                                        .executes(BrigadierAdapters.wraps(this::executeJoin))
+                                )
                         )
                 )
                 ;
@@ -47,11 +52,12 @@ public class PresetJoinSubCommand implements BrigadierSubCommand {
         FileResolver resolver = ctx.getArgument(PresetCommand.PRESET_FILE_ARG, FileResolver.class);
         File presetFile = resolver.resolve();
         String teamId = ctx.getArgument("teamId", String.class);
-        String ign = ctx.getArgument("member", String.class);
-        return joinParticipant(presetFile, ign, teamId);
+        String ign = ctx.getArgument(PresetCommand.PRESET_MEMBER_IGN_ARG, String.class);
+        UUID uuid = ctx.getArgument("uuid", UUID.class);
+        return joinParticipant(presetFile, ign, uuid, teamId);
     }
     
-    private @NotNull CommandResult joinParticipant(@NotNull File presetFile, @NotNull String ign, @NotNull String teamId) {
+    private @NotNull CommandResult joinParticipant(@NotNull File presetFile, @NotNull String ign, @NotNull UUID uuid, @NotNull String teamId) {
         if (ign.isEmpty()) {
             return CommandResult.failure("player name must not be blank");
         }
@@ -93,7 +99,7 @@ public class PresetJoinSubCommand implements BrigadierSubCommand {
                 }
             }
             
-            preset.joinMember(ign, teamId);
+            preset.joinMember(ign, uuid, teamId);
             
             results.add(CommandResult.success(Component.empty()
                     .append(Component.text("Joined "))

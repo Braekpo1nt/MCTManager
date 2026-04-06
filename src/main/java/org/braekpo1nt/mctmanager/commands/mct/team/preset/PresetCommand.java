@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 public class PresetCommand implements BrigadierSubCommand {
     
     public static final String PRESET_FILE_ARG = "presetFile";
+    public static final String PRESET_MEMBER_IGN_ARG = "ign";
     private final @NotNull Main plugin;
     private final @NotNull GameManager gameManager;
     
@@ -91,6 +92,21 @@ public class PresetCommand implements BrigadierSubCommand {
                     .distinct()
                     .filter(name -> name.toLowerCase().startsWith(builder.getRemainingLowerCase()))
                     .forEach(builder::suggest);
+            return builder.build();
+        });
+    }
+    
+    /**
+     * Searches the plugin's server for the offline player's UUID by their given IGN
+     * @param ctx the context
+     * @param builder the builder
+     * @param plugin the plugin to search using
+     * @return the UUID of the given IGN, according to {@link org.bukkit.Server#getOfflinePlayer(String)}, could be incorrect
+     */
+    public static CompletableFuture<Suggestions> suggestPresetUUIDs(CommandContext<CommandSourceStack> ctx, SuggestionsBuilder builder, Main plugin) {
+        return CompletableFuture.supplyAsync(() -> {
+            String ign = ctx.getArgument(PRESET_MEMBER_IGN_ARG, String.class);
+            plugin.getServer().getOfflinePlayer(ign);
             return builder.build();
         });
     }

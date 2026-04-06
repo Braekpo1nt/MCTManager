@@ -27,7 +27,7 @@ public class PresetLeaveSubCommand implements BrigadierSubCommand {
     @Override
     public @NotNull Permissioned<CommandSourceStack> create() {
         return Permissioned.literal("leave")
-                .then(Permissioned.argument("member", StringArgumentType.word())
+                .then(Permissioned.argument(PresetCommand.PRESET_MEMBER_IGN_ARG, StringArgumentType.word())
                         .suggests((ctx, builder) -> PresetCommand.suggestPresetParticipants(ctx, builder, storageUtil))
                         .executes(BrigadierAdapters.wraps(this::executeLeave))
                 )
@@ -37,7 +37,7 @@ public class PresetLeaveSubCommand implements BrigadierSubCommand {
     private @NotNull CommandResult executeLeave(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         FileResolver resolver = ctx.getArgument(PresetCommand.PRESET_FILE_ARG, FileResolver.class);
         File presetFile = resolver.resolve();
-        String ign = ctx.getArgument("member", String.class);
+        String ign = ctx.getArgument(PresetCommand.PRESET_MEMBER_IGN_ARG, String.class);
         return leavePlayer(presetFile, ign);
     }
     
