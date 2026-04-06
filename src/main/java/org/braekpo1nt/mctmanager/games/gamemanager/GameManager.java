@@ -593,7 +593,7 @@ public class GameManager implements Listener {
         return eventService.getEventIds();
     }
     
-    public CommandResult createEvent(String eventId, Date eventDate, String plainTextName, Component componentName) {
+    public CommandResult createEvent(String eventId, Date eventDate, String plainTextName, Component componentName, boolean canonical) {
         Date now = new Date();
         try {
             boolean uniqueKey = eventService.addEventInfo(EventInfo.builder()
@@ -606,6 +606,7 @@ public class GameManager implements Listener {
                     .startedAt(null)
                     .endedAt(null)
                     .winnerTeamId(null)
+                    .canonical(canonical)
                     .standingsVersion(0)
                     .build());
             if (!uniqueKey) {

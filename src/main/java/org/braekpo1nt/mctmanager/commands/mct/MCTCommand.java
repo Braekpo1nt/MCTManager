@@ -2,17 +2,14 @@ package org.braekpo1nt.mctmanager.commands.mct;
 
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
-import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierCommand;
-import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
-import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.mct.admin.AdminCommand;
 import org.braekpo1nt.mctmanager.commands.mct.debug.DebugCommand;
 import org.braekpo1nt.mctmanager.commands.mct.edit.EditCommand;
-import org.braekpo1nt.mctmanager.commands.mct.event.EventSubCommand;
+import org.braekpo1nt.mctmanager.commands.mct.event.EventCommand;
 import org.braekpo1nt.mctmanager.commands.mct.game.GameCommand;
 import org.braekpo1nt.mctmanager.commands.mct.hub.HubCommand;
 import org.braekpo1nt.mctmanager.commands.mct.mode.ModeCommand;
@@ -41,7 +38,7 @@ public class MCTCommand implements BrigadierCommand {
     @Override
     public LiteralCommandNode<CommandSourceStack> build() {
         return Permissioned.literal("mct")
-                .then(new EventSubCommand(gameManager, plugin).create())
+                .then(new EventCommand(gameManager, plugin).create())
                 .then(new TeamCommand(plugin, gameManager).create())
                 .then(new AdminCommand(gameManager).create())
                 .then(new DebugCommand().create())

@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.commands.mct.event;
 
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -23,12 +24,12 @@ import java.sql.SQLException;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
 
-public class EventSubCommand implements BrigadierSubCommand {
+public class EventCommand implements BrigadierSubCommand {
     
     private final @NotNull GameManager gameManager;
     private final @NotNull Main plugin;
     
-    public EventSubCommand(@NotNull GameManager gameManager, @NotNull Main plugin) {
+    public EventCommand(@NotNull GameManager gameManager, @NotNull Main plugin) {
         this.gameManager = gameManager;
         this.plugin = plugin;
     }
@@ -106,6 +107,9 @@ public class EventSubCommand implements BrigadierSubCommand {
                                 .then(Permissioned.argument("plainTextName", StringArgumentType.string())
                                         .then(Permissioned.argument("componentName", gameManager.getComponentArgumentType())
                                                 .executes(BrigadierAdapters.wraps(this::executeCreate))
+                                                .then(Permissioned.argument("canonical", BoolArgumentType.bool())
+                                                        .executes(BrigadierAdapters.wraps(this::executeCreateCanonical))
+                                                )
                                         )
                                 )
                         )
@@ -113,6 +117,15 @@ public class EventSubCommand implements BrigadierSubCommand {
     }
     
     private @NotNull CommandResult executeCreate(CommandContext<CommandSourceStack> ctx) {
+        return createEvent(ctx, true);
+    }
+    
+    private @NotNull CommandResult executeCreateCanonical(CommandContext<CommandSourceStack> ctx) {
+        boolean canonical = ctx.getArgument("canonical", Boolean.class);
+        return createEvent(ctx, canonical);
+    }
+    
+    private CommandResult createEvent(CommandContext<CommandSourceStack> ctx, boolean canonical) {
         String eventId = ctx.getArgument("eventId", String.class);
         String eventDateString = ctx.getArgument("eventDate", String.class);
         Date eventDate;
@@ -126,7 +139,7 @@ public class EventSubCommand implements BrigadierSubCommand {
         }
         String plainTextName = ctx.getArgument("plainTextName", String.class);
         Component componentName = ctx.getArgument("componentName", Component.class);
-        return gameManager.createEvent(eventId, eventDate, plainTextName, componentName);
+        return gameManager.createEvent(eventId, eventDate, plainTextName, componentName, canonical);
     }
     
     private Permissioned<CommandSourceStack> buildDelete() {
