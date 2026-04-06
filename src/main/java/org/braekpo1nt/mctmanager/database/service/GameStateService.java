@@ -568,28 +568,6 @@ public class GameStateService {
         allPlayersDao.deleteById(from);
     }
     
-    /**
-     * Register all the given players at once. Handled in a transaction so if something goes wrong,
-     * nothing is committed.
-     * @param uuidsToIGNs all the players
-     * @return true if you need to reload the game state, false if no game state changes were made
-     * @throws SQLException if there's a database error
-     * @deprecated not used anymore
-     */
-    @Deprecated
-    public boolean registerPlayers(@NotNull Map<String, String> uuidsToIGNs) throws SQLException {
-        return TransactionManager.callInTransaction(allPlayersDao.getConnectionSource(), () -> {
-            boolean shouldReloadGameState = false;
-            for (Map.Entry<String, String> entry : uuidsToIGNs.entrySet()) {
-                String uuid = entry.getKey();
-                String ign = entry.getValue();
-                RegisterConflictType type = _registerPlayer(uuid, ign);
-                shouldReloadGameState = shouldReloadGameState || !type.equals(RegisterConflictType.NONE);
-            }
-            return shouldReloadGameState;
-        });
-    }
-    
     public static class MultiplePlayersWithNameException extends Exception {
         public MultiplePlayersWithNameException(String ign) {
             super(String.format("Multiple players with the ign \"%s\" exist", ign));
