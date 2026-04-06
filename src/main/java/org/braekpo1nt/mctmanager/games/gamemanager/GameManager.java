@@ -385,7 +385,7 @@ public class GameManager implements Listener {
           - if their uuid is NOT in the game state
             - check if the player's ign is in the game state
               - if it is NOT, then they are a new non-participant entity
-                - resolve them in the database alone
+                - add the new player to the database alone
               - if it IS, there is a UUID mismatch
                 - remove the incorrect UUID with the correct IGN from their team
                 - resolve the database clash
@@ -408,13 +408,15 @@ public class GameManager implements Listener {
             allParticipants.put(correctUUID, new OfflineParticipant(existingParticipant, correctIGN, displayName));
             MCTParticipant onlineParticipant = onlineParticipants.get(existingParticipant.getUniqueId());
             if (onlineParticipant != null) {
+                // this should not happen when logging in, but may happen with debug commands to correct live errors
                 // they're online
                 // update the ign in onlineParticipants
                 onlineParticipants.put(correctUUID, new MCTParticipant(onlineParticipant, correctIGN, displayName));
             }
             // they're not online
             try {
-                // update the ign in gameStateStorageUtil and database
+                // update the ign in gameStateStorageUtil AND database
+                // also updates the database
                 gameStateStorageUtil.setIGN(correctUUID, correctIGN);
             } catch (SQLException e) {
                 reportGameStateException(String.format("migrate the ign of the player with uuid \"%s\" from \"%s\" to the correct ign \"%s\"", correctUUID, incorrectIGN, correctIGN), e);

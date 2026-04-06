@@ -508,7 +508,7 @@ public class GameStateStorageUtil {
             return;
         }
         player.setName(ign);
-        // TODO: should we update the name in the database here, or separately outside?
+        // TODO: should we update the name in the database here, or separately outside? Last decision was to keep it here
         gameStateService.migrateIgn(uuid.toString(), ign);
     }
 }
