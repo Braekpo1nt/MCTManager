@@ -19,7 +19,6 @@ import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
 import org.braekpo1nt.mctmanager.database.service.GameStateService;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.Preset;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
-import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -29,6 +28,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @deprecated not set up properly, left in for posterity, delete if found again
+ */
+@Deprecated
 public class PresetResolveCommand implements BrigadierSubCommand {
     
     private final @NotNull Main plugin;
@@ -66,12 +69,12 @@ public class PresetResolveCommand implements BrigadierSubCommand {
                     Preset preset = storageUtil.loadPreset(presetFile);
                     List<CommandResult> results = new ArrayList<>();
                     Map<String, String> uuidsToIGNs = new HashMap<>();
-                    for (String ign : preset.getMembers()) {
+                    for (Preset.PresetParticipant member : preset.getMembers()) {
+                        String ign = member.getIgn();
+                        String uuidStr = member.getUuid().toString();
                         try {
-                            AllPlayersEntity player = gameStateService.getPlayer(ign);
+                            AllPlayersEntity player = gameStateService.getPlayer(uuidStr);
                             if (player == null) {
-                                OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(ign);
-                                String uuidStr = offlinePlayer.getUniqueId().toString();
                                 uuidsToIGNs.put(uuidStr, ign);
                                 results.add(CommandResult.success(Component.empty()
                                         .append(Component.text("New player: "))
@@ -86,13 +89,6 @@ public class PresetResolveCommand implements BrigadierSubCommand {
                             }
                         } catch (SQLException e) {
                             return CommandResult.sqlException("find a player by name while resolve the preset file", e);
-                        } catch (GameStateService.MultiplePlayersWithNameException e) {
-                            results.add(CommandResult.success(Component.empty()
-                                    .append(Component.text("Warning: multiple players with the name "))
-                                    .append(Component.text(ign)
-                                            .decorate(TextDecoration.BOLD))
-                                    .append(Component.text(" exist in the all_players database"))
-                                    .color(NamedTextColor.YELLOW)));
                         }
                     }
                     try {

@@ -38,13 +38,12 @@ public class PresetCommand implements BrigadierSubCommand {
                 .then(Permissioned.argument(PRESET_FILE_ARG,
                                 new FileArgumentType(new File(plugin.getDataFolder(), "presets"), ".json"))
                         .then(new PresetApplySubCommand(plugin, gameManager, storageUtil).create())
-                        .then(new PresetWhitelistSubCommand(storageUtil).create())
+                        .then(new PresetWhitelistSubCommand(storageUtil, plugin).create())
                         // editor:
                         .then(new PresetAddSubCommand(storageUtil).create())
                         .then(new PresetRemoveSubCommand(storageUtil).create())
                         .then(new PresetJoinSubCommand(plugin, storageUtil).create())
                         .then(new PresetLeaveSubCommand(storageUtil).create())
-                        .then(new PresetResolveCommand(plugin, storageUtil, gameManager.getGameStateService()).create())
                 )
                 ;
     }
@@ -87,6 +86,7 @@ public class PresetCommand implements BrigadierSubCommand {
                             Arrays.stream(plugin.getServer().getOfflinePlayers())
                                     .map(OfflinePlayer::getName),
                             preset.getMembers().stream()
+                                    .map(Preset.PresetParticipant::getIgn)
                     )
                     .distinct()
                     .filter(name -> name.toLowerCase().startsWith(builder.getRemainingLowerCase()))
@@ -111,6 +111,7 @@ public class PresetCommand implements BrigadierSubCommand {
                 return builder.build();
             }
             preset.getMembers().stream()
+                    .map(Preset.PresetParticipant::getIgn)
                     .distinct()
                     .filter(name -> name.toLowerCase().startsWith(builder.getRemainingLowerCase()))
                     .forEach(builder::suggest);

@@ -574,7 +574,9 @@ public class GameStateService {
      * @param uuidsToIGNs all the players
      * @return true if you need to reload the game state, false if no game state changes were made
      * @throws SQLException if there's a database error
+     * @deprecated not used anymore
      */
+    @Deprecated
     public boolean registerPlayers(@NotNull Map<String, String> uuidsToIGNs) throws SQLException {
         return TransactionManager.callInTransaction(allPlayersDao.getConnectionSource(), () -> {
             boolean shouldReloadGameState = false;
@@ -594,7 +596,19 @@ public class GameStateService {
         }
     }
     
-    public @Nullable AllPlayersEntity getPlayer(String ign) throws SQLException, MultiplePlayersWithNameException {
+    public @Nullable AllPlayersEntity getPlayer(String uuid) throws SQLException {
+        return allPlayersDao.queryForId(uuid);
+    }
+    
+    /**
+     * @param ign the ign to look up
+     * @return the {@link AllPlayersEntity} with the given ign, or null if
+     * no such player exists
+     * @throws SQLException if there's a database error
+     * @throws MultiplePlayersWithNameException if multiple players exist in the database with the same IGN (should not
+     * happen because unique IGNs should be enforced by the database)
+     */
+    public @Nullable AllPlayersEntity getPlayerByIgn(String ign) throws SQLException, MultiplePlayersWithNameException {
         List<AllPlayersEntity> options = allPlayersDao.queryForEq("ign", ign);
         if (options.isEmpty()) {
             return null;

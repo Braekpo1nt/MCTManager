@@ -18,7 +18,6 @@ import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
-import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
@@ -45,7 +44,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.logging.Level;
 
 public class GameManagerUtils {
@@ -396,6 +394,10 @@ public class GameManagerUtils {
                 .color(color);
     }
     
+    /**
+     * @deprecated because {@link PlayerArmorChangeEvent.SlotType} is deprecated
+     */
+    @Deprecated
     public static @Nullable EquipmentSlot toEquipmentSlot(@Nullable PlayerArmorChangeEvent.SlotType slotType) {
         switch (slotType) {
             case HEAD -> {
@@ -568,8 +570,8 @@ public class GameManagerUtils {
         
         // join all the participants
         for (Preset.PresetTeam team : preset.getTeams()) {
-            for (String ign : team.getMembers()) {
-                results.add(gameManager.joinOfflineParticipant(uuid, ign, team.getTeamId()));
+            for (Preset.PresetParticipant member : team.getMembers()) {
+                results.add(gameManager.joinOfflineParticipant(member.getUuid(), member.getIgn(), team.getTeamId()));
             }
         }
         
@@ -588,8 +590,8 @@ public class GameManagerUtils {
         
         if (whiteList) {
             for (Preset.PresetTeam team : preset.getTeams()) {
-                for (String ign : team.getMembers()) {
-                    OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(ign);
+                for (Preset.PresetParticipant member : team.getMembers()) {
+                    OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(member.getUuid());
                     if (!offlinePlayer.isWhitelisted()) {
                         offlinePlayer.setWhitelisted(true);
                     }

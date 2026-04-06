@@ -25,9 +25,11 @@ import java.util.logging.Level;
 public class PresetWhitelistSubCommand implements BrigadierSubCommand {
     
     private final @NotNull PresetStorageUtil storageUtil;
+    private final @NotNull Main plugin;
     
-    public PresetWhitelistSubCommand(@NotNull PresetStorageUtil storageUtil) {
+    public PresetWhitelistSubCommand(@NotNull PresetStorageUtil storageUtil, @NotNull Main plugin) {
         this.storageUtil = storageUtil;
+        this.plugin = plugin;
     }
     
     @Override
@@ -59,8 +61,8 @@ public class PresetWhitelistSubCommand implements BrigadierSubCommand {
         if (shouldWhitelist) {
             
             for (Preset.PresetTeam team : preset.getTeams()) {
-                for (String ign : team.getMembers()) {
-                    OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(ign);
+                for (Preset.PresetParticipant member : team.getMembers()) {
+                    OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(member.getUuid());
                     if (!offlinePlayer.isWhitelisted()) {
                         offlinePlayer.setWhitelisted(true);
                         changedCount++;
@@ -83,8 +85,8 @@ public class PresetWhitelistSubCommand implements BrigadierSubCommand {
         } else {
             
             for (Preset.PresetTeam team : preset.getTeams()) {
-                for (String ign : team.getMembers()) {
-                    OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(ign);
+                for (Preset.PresetParticipant member : team.getMembers()) {
+                    OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(member.getUuid());
                     if (offlinePlayer.isWhitelisted()) {
                         offlinePlayer.setWhitelisted(false);
                         changedCount++;

@@ -2,10 +2,12 @@ package org.braekpo1nt.mctmanager.commands.mct.event;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.Dynamic2CommandExceptionType;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.MessageComponentSerializer;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
@@ -31,11 +33,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -51,17 +49,27 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
             .append(Component.text(" already exists for this event."))
     ));
     
-    private final DynamicCommandExceptionType ERROR_PARTICIPANT_EXISTS = new DynamicCommandExceptionType(ign -> MessageComponentSerializer.message().serialize(Component.empty()
-            .append(Component.text("A participant "))
+    private final Dynamic2CommandExceptionType ERROR_PARTICIPANT_EXISTS = new Dynamic2CommandExceptionType((ign, uuid) -> MessageComponentSerializer.message().serialize(Component.empty()
+            .append(Component.text("A participant with the name "))
             .append(Component.text(ign.toString())
-                    .decorate(TextDecoration.BOLD))
+                    .decorate(TextDecoration.BOLD)
+                    .clickEvent(ClickEvent.copyToClipboard(ign.toString())))
+            .append(Component.text(" and UUID "))
+            .append(Component.text(uuid.toString())
+                    .decorate(TextDecoration.BOLD)
+                    .clickEvent(ClickEvent.copyToClipboard(uuid.toString())))
             .append(Component.text(" already exists for this event."))
     ));
     
-    private final DynamicCommandExceptionType ERROR_PLAYER_DOES_NOT_EXIST = new DynamicCommandExceptionType(ign -> MessageComponentSerializer.message().serialize(Component.empty()
+    private final Dynamic2CommandExceptionType ERROR_PLAYER_DOES_NOT_EXIST = new Dynamic2CommandExceptionType((ign, uuid) -> MessageComponentSerializer.message().serialize(Component.empty()
             .append(Component.text("A player with the name "))
             .append(Component.text(ign.toString())
-                    .decorate(TextDecoration.BOLD))
+                    .decorate(TextDecoration.BOLD)
+                    .clickEvent(ClickEvent.copyToClipboard(ign.toString())))
+            .append(Component.text(" and UUID "))
+            .append(Component.text(uuid.toString())
+                    .decorate(TextDecoration.BOLD)
+                    .clickEvent(ClickEvent.copyToClipboard(uuid.toString())))
             .append(Component.text(" could not be found in the all_players database. Have they logged in yet? Resolve players in the preset with the \"/mct team preset <preset.json> resolve\" command"))
     ));
     
@@ -104,6 +112,7 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
     
     /**
      * Resolves the command arguments and applies the preset to the eventId
+     *
      * @param ctx the context
      * @return the result
      * @throws CommandSyntaxException if there's a syntax error
@@ -129,8 +138,9 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
     /**
      * Applies the given preset to the given event. This is a replacement operation, it removes all participants and
      * teams that were previously associated with the event and adds all those from the given preset
+     *
      * @param eventInfo the event to apply the preset to
-     * @param preset the preset to apply
+     * @param preset    the preset to apply
      * @return a result detailing the operation's success
      */
     private @NotNull CommandResult applyPreset(@NotNull EventInfo eventInfo, @NotNull Preset preset) {
@@ -157,7 +167,7 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
     
     /**
      * @param eventInfo the event with the eventId to give to the created {@link EventTeam}s
-     * @param preset the preset to get the teams from
+     * @param preset    the preset to get the teams from
      * @return the preset teams as {@link EventTeam} objects
      */
     private List<EventTeam> getTeams(EventInfo eventInfo, Preset preset) {
@@ -178,21 +188,18 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
     
     /**
      * @param eventInfo the event with the eventId to give to the created {@link EventParticipantEntity}s
-     * @param preset the preset to get the participants from
+     * @param preset    the preset to get the participants from
      * @return the preset participants as {@link EventParticipantEntity} objects
      */
     private List<EventParticipantEntity> getParticipants(EventInfo eventInfo, Preset preset) throws CommandSyntaxException, SQLException {
         List<EventParticipantEntity> newParticipants = new ArrayList<>();
         for (Preset.PresetTeam team : preset.getTeams()) {
-            for (String ign : team.getMembers()) {
-                AllPlayersEntity player;
-                try {
-                    player = gameStateService.getPlayer(ign);
-                } catch (GameStateService.MultiplePlayersWithNameException e) {
-                    throw ERROR_MULTIPLE_PLAYERS_WITH_NAME.create(ign);
-                }
+            for (Preset.PresetParticipant participant : team.getMembers()) {
+                String ign = participant.getIgn();
+                UUID uuid = participant.getUuid();
+                AllPlayersEntity player = gameStateService.getPlayer(uuid.toString());
                 if (player == null) {
-                    throw ERROR_PLAYER_DOES_NOT_EXIST.create(ign);
+                    throw ERROR_PLAYER_DOES_NOT_EXIST.create(ign, uuid);
                 }
                 String playerUUID = player.getUuid();
                 EventParticipantEntity newParticipant = EventParticipantEntity.builder()
@@ -209,14 +216,15 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
     
     /**
      * @param eventInfo the event with the eventId to give to the created {@link EventParticipantEntity}s
-     * @param preset the preset to get the participants from
+     * @param preset    the preset to get the participants from
      * @return the preset participants as {@link EventParticipantEntity} objects
      */
     private List<EventParticipantEntity> getParticipantsBukkit(EventInfo eventInfo, Preset preset) {
         List<EventParticipantEntity> newParticipants = new ArrayList<>();
         for (Preset.PresetTeam team : preset.getTeams()) {
-            for (String ign : team.getMembers()) {
-                OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(ign);
+            for (Preset.PresetParticipant member : team.getMembers()) {
+                OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(member.getUuid());
+                // TODO: verify that the ign matches the member.getIgn()
                 EventParticipantEntity newParticipant = EventParticipantEntity.builder()
                         .eventId(eventInfo.getEventId())
                         .participantUUID(offlinePlayer.getUniqueId().toString())
@@ -259,10 +267,10 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
                 .collect(Collectors.toMap(EventParticipantEntity::getParticipantUUID, Function.identity()));
         List<EventParticipantEntity> newParticipants = new ArrayList<>();
         for (Preset.PresetTeam team : preset.getTeams()) {
-            for (String ign : team.getMembers()) {
-                OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(ign);
+            for (Preset.PresetParticipant member : team.getMembers()) {
+                OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(member.getUuid());
                 if (oldParticipants.containsKey(offlinePlayer.getUniqueId().toString())) {
-                    throw ERROR_PARTICIPANT_EXISTS.create(ign);
+                    throw ERROR_PARTICIPANT_EXISTS.create(member.getIgn(), member.getUuid());
                 }
                 EventParticipantEntity newParticipant = EventParticipantEntity.builder()
                         .eventId(eventInfo.getEventId())
