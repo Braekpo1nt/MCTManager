@@ -96,7 +96,7 @@ class GameStateServiceTest {
                 .ign(ign)
                 .firstSeenAt(new Date())
                 .build());
-        gameStateService.migrateFromUUIDToUUID(fromUUID, toUUID, ign);
+        gameStateService.migrateUUID(fromUUID, toUUID, ign);
         AllPlayersEntity old = allPlayersDao.queryForId(fromUUID);
         assertThat(old).isNull();
         AllPlayersEntity newPlayer = allPlayersDao.queryForId(toUUID);
@@ -119,7 +119,7 @@ class GameStateServiceTest {
                 .ign(ign)
                 .firstSeenAt(new Date())
                 .build());
-        gameStateService.migrateFromUUIDToUUID(fromUUID, toUUID, ign);
+        gameStateService.migrateUUID(fromUUID, toUUID, ign);
         AllPlayersEntity old = allPlayersDao.queryForId(fromUUID);
         assertThat(old).isNull();
         AllPlayersEntity newPlayer = allPlayersDao.queryForId(toUUID);
@@ -138,7 +138,7 @@ class GameStateServiceTest {
         addTeamToEveryTable(teamId, eventId, now);
         addPlayerToEveryTable(fromUUID, ign, teamId, eventId, now);
         
-        gameStateService.migrateFromUUIDToUUID(fromUUID, toUUID, ign);
+        gameStateService.migrateUUID(fromUUID, toUUID, ign);
         toExistsFromDoesnt(database.getAllPlayersDao(), fromUUID, toUUID);
         toExistsFromDoesnt(database.getActiveAdminDao(), fromUUID, toUUID);
         toExistsFromDoesnt(database.getMaintenanceAdminDao(), fromUUID, toUUID);
@@ -171,8 +171,8 @@ class GameStateServiceTest {
         addPlayerToEveryTable(fromUUID, ign, teamId, eventId, now);
         
         // can we run the operation twice without errors and with the same end result as once
-        gameStateService.migrateFromUUIDToUUID(fromUUID, toUUID, ign);
-        gameStateService.migrateFromUUIDToUUID(fromUUID, toUUID, ign);
+        gameStateService.migrateUUID(fromUUID, toUUID, ign);
+        gameStateService.migrateUUID(fromUUID, toUUID, ign);
         
         toExistsFromDoesnt(database.getAllPlayersDao(), fromUUID, toUUID);
         toExistsFromDoesnt(database.getActiveAdminDao(), fromUUID, toUUID);
@@ -207,7 +207,7 @@ class GameStateServiceTest {
         addPlayerToEveryTable(fromUUID, ign1, teamId, eventId, now);
         addPlayerToEveryTable(toUUID, ign2, teamId, eventId, now);
         
-        gameStateService.migrateFromUUIDToUUID(fromUUID, toUUID, ign1);
+        gameStateService.migrateUUID(fromUUID, toUUID, ign1);
         toExistsFromDoesnt(database.getAllPlayersDao(), fromUUID, toUUID);
         toExistsFromDoesnt(database.getActiveAdminDao(), fromUUID, toUUID);
         toExistsFromDoesnt(database.getMaintenanceAdminDao(), fromUUID, toUUID);
@@ -239,7 +239,7 @@ class GameStateServiceTest {
         String toUUID = "to-uuid";
         String ign = "Player1";
         
-        gameStateService.migrateFromUUIDToUUID(fromUUID, toUUID, ign);
+        gameStateService.migrateUUID(fromUUID, toUUID, ign);
         assertThat(database.getAllPlayersDao().queryForId(toUUID)).describedAs("creates the all_players entry for the toUUID").isNotNull();
         assertThat(database.getActiveAdminDao().queryForId(toUUID)).isNull();
         assertThat(database.getMaintenanceAdminDao().queryForId(toUUID)).isNull();

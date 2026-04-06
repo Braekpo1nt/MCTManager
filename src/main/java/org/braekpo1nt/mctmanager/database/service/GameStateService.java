@@ -265,7 +265,7 @@ public class GameStateService {
             }
             // there is a player with the ign, so we need to migrate the UUID and keep the ign 
             // instead of creating a new entry in all_players
-            _migrateFromUUIDToUUID(playersWithIgn.getFirst().getUuid(), uuid, ign);
+            _migrateUUID(playersWithIgn.getFirst().getUuid(), uuid, ign);
             return RegisterConflictType.MIGRATE_UUID;
         }
         // a player with the UUID does not exist in the database
@@ -295,7 +295,7 @@ public class GameStateService {
         // a player with the wrong UUID but the right ign exists in the database
         // we must migrate the UUID and keep the correct ign
         AllPlayersEntity playerWithIGN = playersWithIgn.getFirst();
-        _migrateFromUUIDToUUID(playerWithIGN.getUuid(), uuid, ign);
+        _migrateUUID(playerWithIGN.getUuid(), uuid, ign);
         return RegisterConflictType.MIGRATE_UUID;
     }
     
@@ -362,9 +362,15 @@ public class GameStateService {
         });
     }
     
-    public void migrateFromUUIDToUUID(String from, String to, String ign) throws SQLException {
+    /**
+     * Make all references to the wrong uuid reference the correct uuid
+     * @param from the wrong uuid
+     * @param to the correct uuid
+     * @throws SQLException if there's a database error
+     */
+    public void migrateUUID(String from, String to, String ign) throws SQLException {
         TransactionManager.callInTransaction(allPlayersDao.getConnectionSource(), () -> {
-            _migrateFromUUIDToUUID(from, to, ign);
+            _migrateUUID(from, to, ign);
             return null;
         });
     }
@@ -375,7 +381,7 @@ public class GameStateService {
      * @param to the correct uuid
      * @throws SQLException if there's a database error
      */
-    private void _migrateFromUUIDToUUID(String from, String to, String ign) throws SQLException {
+    private void _migrateUUID(String from, String to, String ign) throws SQLException {
         // create a new row with the correct uuid (or update the existing row to reflect the correct IGN)
         UpdateBuilder<AllPlayersEntity, String> updateBuilder = allPlayersDao.updateBuilder();
         updateBuilder.where()

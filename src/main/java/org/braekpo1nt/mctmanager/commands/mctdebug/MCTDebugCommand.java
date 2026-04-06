@@ -7,6 +7,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
+import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoArgumentType;
@@ -15,9 +16,7 @@ import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
-import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
 import org.braekpo1nt.mctmanager.database.service.ScoreService;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.bukkit.command.CommandSender;
@@ -25,7 +24,6 @@ import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
-import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -50,17 +48,26 @@ public class MCTDebugCommand implements BrigadierCommand, Listener {
                 .executes(BrigadierAdapters.wraps(this::executeDebug))
                 .then(Permissioned.literal("all_players")
                         .then(Permissioned.literal("add")
-                                .then(Permissioned.argument("uuid", StringArgumentType.word())
+                                .then(Permissioned.argument("uuid", ArgumentTypes.uuid())
                                         .then(Permissioned.argument("ign", StringArgumentType.word())
                                                 .executes(BrigadierAdapters.wraps(this::executeAddUUIDAndIGN))
                                         )
                                 )
                         )
                         .then(Permissioned.literal("migrate")
-                                .then(Permissioned.argument("fromUUID", StringArgumentType.word())
-                                        .then(Permissioned.argument("toUUID", StringArgumentType.word())
-                                                .then(Permissioned.argument("ign", StringArgumentType.word())
-                                                        .executes(BrigadierAdapters.wraps(this::executeMigrate))
+                                .then(Permissioned.literal("uuid")
+                                        .then(Permissioned.argument("fromUUID", ArgumentTypes.uuid())
+                                                .then(Permissioned.argument("toUUID", ArgumentTypes.uuid())
+                                                        .then(Permissioned.argument("ign", StringArgumentType.word())
+                                                                .executes(BrigadierAdapters.wraps(this::executeMigrateUUID))
+                                                        )
+                                                )
+                                        )
+                                )
+                                .then(Permissioned.literal("ign")
+                                        .then(Permissioned.argument("uuid", ArgumentTypes.uuid())
+                                                .then(Permissioned.argument("newIGN", StringArgumentType.word())
+                                                        .executes(BrigadierAdapters.wraps(this::executeMigrateIGN))
                                                 )
                                         )
                                 )
@@ -91,12 +98,23 @@ public class MCTDebugCommand implements BrigadierCommand, Listener {
                 .build(plugin.getServer().getPluginManager());
     }
     
-    private @NotNull CommandResult executeMigrate(CommandContext<CommandSourceStack> ctx) {
-        String fromUuid = ctx.getArgument("fromUUID", String.class);
-        String toUuid = ctx.getArgument("toUUID", String.class);
+    private @NotNull CommandResult executeMigrateUUID(CommandContext<CommandSourceStack> ctx) {
+        String fromUuid = ctx.getArgument("fromUUID", UUID.class).toString();
+        String toUuid = ctx.getArgument("toUUID", UUID.class).toString();
         String ign = ctx.getArgument("ign", String.class);
         try {
-            gameManager.getGameStateService().migrateFromUUIDToUUID(fromUuid, toUuid, ign);
+            gameManager.getGameStateService().migrateUUID(fromUuid, toUuid, ign);
+        } catch (SQLException e) {
+            return CommandResult.sqlException("migrate player uuid", e);
+        }
+        return CommandResult.success(Component.text("Migration successful"));
+    }
+    
+    private @NotNull CommandResult executeMigrateIGN(CommandContext<CommandSourceStack> ctx) {
+        String uuid = ctx.getArgument("uuid", UUID.class).toString();
+        String toIGN = ctx.getArgument("newIGN", String.class);
+        try {
+            gameManager.getGameStateService().migrateIgn(uuid, toIGN);
         } catch (SQLException e) {
             return CommandResult.sqlException("migrate player uuid", e);
         }
@@ -110,7 +128,7 @@ public class MCTDebugCommand implements BrigadierCommand, Listener {
     }
     
     private @NotNull CommandResult executeAddUUIDAndIGN(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-        String uuid = ctx.getArgument("uuid", String.class);
+        String uuid = ctx.getArgument("uuid", UUID.class).toString();
         String ign = ctx.getArgument("ign", String.class);
         try {
             gameManager.getGameStateService().registerPlayer(uuid, ign);

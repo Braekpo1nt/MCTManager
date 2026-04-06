@@ -439,7 +439,7 @@ public class GameManager implements Listener {
         leaveParticipant(offlineParticipantWithIGN);
         // resolve them in the database
         try {
-            gameStateService.migrateFromUUIDToUUID(incorrectUUID.toString(), correctUUID.toString(), correctIGN);
+            gameStateService.migrateUUID(incorrectUUID.toString(), correctUUID.toString(), correctIGN);
         } catch (SQLException e) {
             reportGameStateException(String.format("migrate player \"%s\" from UUID \"%s\" to the correct uuid \"%s\" in the database", correctIGN, incorrectUUID, correctUUID), e);
         }
