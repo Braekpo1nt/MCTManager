@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.games.gamemanager.states.event;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.SuccessCommandResult;
@@ -110,12 +109,7 @@ public class PlayingGameState extends EventState {
     
     @Override
     public CommandResult undoGame(int gameSessionId) {
-        if (activeGameId.equals(gameSessionId)) {
-            return CommandResult.failure(Component.text("Can't undo ")
-                    .append(Component.text(gameSessionId.getTitle())
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" because it is in progress")));
-        }
-        return super.undoGame(gameSessionId);
+        // TODO: implement this operation differently
+        return CommandResult.failure(Component.text("This operation is not yet implemented. Speak to the developers for more details."));
     }
 }
