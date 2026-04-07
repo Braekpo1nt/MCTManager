@@ -39,6 +39,7 @@ public class UndoCommand implements BrigadierSubCommand {
         GameType gameType = ctx.getArgument("game", GameType.class);
         String configFile = ctx.getArgument("configFile", String.class);
         int iterationNumber = ctx.getArgument("iteration", Integer.class);
-        return gameManager.undoGame(new GameInstanceId(gameType, configFile), iterationNumber - 1);
+        int gameSessionId = gameManager.getGameSessionId(new GameInstanceId(gameType, configFile), iterationNumber - 1);
+        return gameManager.undoGame(gameSessionId);
     }
 }

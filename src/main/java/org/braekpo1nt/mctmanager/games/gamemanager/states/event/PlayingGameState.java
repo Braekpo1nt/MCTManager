@@ -3,7 +3,6 @@ package org.braekpo1nt.mctmanager.games.gamemanager.states.event;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.SuccessCommandResult;
@@ -17,13 +16,11 @@ import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Level;
 
 public class PlayingGameState extends EventState {
     
@@ -112,13 +109,13 @@ public class PlayingGameState extends EventState {
     }
     
     @Override
-    public CommandResult undoGame(@NotNull GameInstanceId id, int iterationIndex) {
-        if (activeGameId.equals(id)) {
+    public CommandResult undoGame(int gameSessionId) {
+        if (activeGameId.equals(gameSessionId)) {
             return CommandResult.failure(Component.text("Can't undo ")
-                    .append(Component.text(id.getTitle())
+                    .append(Component.text(gameSessionId.getTitle())
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" because it is in progress")));
         }
-        return super.undoGame(id, iterationIndex);
+        return super.undoGame(gameSessionId);
     }
 }

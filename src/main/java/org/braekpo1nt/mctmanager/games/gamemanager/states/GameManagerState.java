@@ -1321,7 +1321,7 @@ public abstract class GameManagerState {
         return CommandResult.failure("Can't open the hub menu at this time");
     }
     
-    public CommandResult undoGame(@NotNull GameInstanceId id, int iterationIndex) {
+    public CommandResult undoGame(int gameSessionId) {
         return CommandResult.failure("Can't undo games in this state");
     }
     

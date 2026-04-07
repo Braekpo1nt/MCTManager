@@ -128,7 +128,7 @@ public abstract class EventState extends GameManagerState {
     }
     
     @Override
-    public CommandResult undoGame(@NotNull GameInstanceId id, int iterationIndex) {
+    public CommandResult undoGame(int gameSessionId) {
         // TODO: implement this operation
         return CommandResult.failure(Component.text("This operation is not yet implemented. Speak to the developers for more details."));
     }

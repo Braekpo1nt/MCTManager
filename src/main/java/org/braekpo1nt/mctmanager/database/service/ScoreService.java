@@ -11,9 +11,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -70,6 +72,24 @@ public class ScoreService {
         gameSession.setEndTime(endTime);
         gameSessionDao.update(gameSession);
         return gameSession;
+    }
+    
+    public @NotNull List<Integer> getGameSessionId() throws SQLException {
+        String sql = """
+                
+                """;
+        try (GenericRawResults<String[]> raw =
+                     gameSessionDao.queryRaw(sql)) {
+            List<String[]> rawResults = raw.getResults();
+            List<Integer> results = new ArrayList<>(rawResults.size());
+            for (String[] row : rawResults) {
+                
+            }
+            return results;
+            
+        } catch (Exception e) {
+            throw new SQLException("Exception thrown while getting GameSessionId", e);
+        }
     }
     
     /**

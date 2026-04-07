@@ -1311,8 +1311,12 @@ public class GameManager implements Listener {
         return state.openHubMenu(participant);
     }
     
-    public CommandResult undoGame(@NotNull GameInstanceId id, int iterationIndex) {
-        return state.undoGame(id, iterationIndex);
+    public int getGameSessionId() {
+        return scoreService.getGameSessionId();
+    }
+    
+    public CommandResult undoGame(int gameSessionId) {
+        return state.undoGame(gameSessionId);
     }
     
     public CommandResult modifyMaxGames(int newMaxGames) {
