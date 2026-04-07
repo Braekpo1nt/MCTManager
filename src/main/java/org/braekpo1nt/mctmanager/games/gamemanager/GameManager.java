@@ -1311,8 +1311,18 @@ public class GameManager implements Listener {
         return state.openHubMenu(participant);
     }
     
-    public int getGameSessionId() {
-        return scoreService.getGameSessionId();
+    public List<Integer> getGameSessionId(
+            @Nullable String eventId,
+            @NotNull GameType gameType,
+            @NotNull String configFile,
+            @NotNull Mode gameMode
+    ) throws SQLException {
+        return scoreService.getGameSessionIds(
+                eventId,
+                gameType,
+                configFile,
+                gameMode
+        );
     }
     
     public CommandResult undoGame(int gameSessionId) {
