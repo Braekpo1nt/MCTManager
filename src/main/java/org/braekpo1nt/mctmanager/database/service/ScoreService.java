@@ -7,6 +7,8 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.GameSession;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEventEntity;
+import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.gamemanager.Mode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -74,19 +76,35 @@ public class ScoreService {
         return gameSession;
     }
     
-    public @NotNull List<Integer> getGameSessionId() throws SQLException {
+    public @NotNull List<Integer> getGameSessionIds(
+            @Nullable String eventId,
+            @NotNull GameType gameType,
+            @NotNull String configFile,
+            @NotNull Mode gameMode
+    ) throws SQLException {
         String sql = """
-                
+                SELECT gs.id
+                FROM game_sessions gs
+                WHERE event_id = ?
+                  AND gs.game_type = ?
+                  AND gs.config_file = ?
+                  AND gs.mode = ?
                 """;
         try (GenericRawResults<String[]> raw =
-                     gameSessionDao.queryRaw(sql)) {
+                     gameSessionDao.queryRaw(
+                             sql,
+                             eventId,
+                             gameType.toString(),
+                             configFile,
+                             gameMode.toString()
+                     )) {
             List<String[]> rawResults = raw.getResults();
             List<Integer> results = new ArrayList<>(rawResults.size());
             for (String[] row : rawResults) {
-                
+                int id = row[0] == null ? 0 : Integer.parseInt(row[0]);
+                results.add(id);
             }
             return results;
-            
         } catch (Exception e) {
             throw new SQLException("Exception thrown while getting GameSessionId", e);
         }
