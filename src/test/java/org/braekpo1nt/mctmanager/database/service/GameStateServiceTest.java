@@ -619,7 +619,7 @@ class GameStateServiceTest {
                 .multiplier(multiplier)
                 .eventId(eventId)
                 .gameType(GameType.FOOT_RACE)
-                .configFile("default.json")
+                .configFile("first.json")
                 .mode(Mode.EVENT)
                 .startTime(now)
                 .endTime(now)
@@ -629,7 +629,7 @@ class GameStateServiceTest {
                 .multiplier(multiplier)
                 .eventId(eventId)
                 .gameType(GameType.FOOT_RACE)
-                .configFile("default.json")
+                .configFile("second.json")
                 .mode(Mode.EVENT)
                 .startTime(now)
                 .endTime(now)
@@ -639,7 +639,7 @@ class GameStateServiceTest {
                 .multiplier(multiplier)
                 .eventId(eventId)
                 .gameType(GameType.PARKOUR_PATHWAY)
-                .configFile("default.json")
+                .configFile("second.json")
                 .mode(Mode.EVENT)
                 .startTime(now)
                 .endTime(now)
@@ -675,6 +675,45 @@ class GameStateServiceTest {
                 wrongEventId
         ))
                 .describedAs("lists all entries for a given event id")
+                .hasSize(1);
+        assertThat(scoreService.getGameSessions(
+                eventId,
+                GameType.FOOT_RACE
+        ))
+                .describedAs("list both foot race games for the eventId")
+                .hasSize(2);
+        assertThat(scoreService.getGameSessions(
+                eventId,
+                GameType.PARKOUR_PATHWAY
+        ))
+                .describedAs("list the only parkour game for the eventId")
+                .hasSize(1);
+        assertThat(scoreService.getGameSessions(
+                wrongEventId,
+                GameType.FOOT_RACE
+        ))
+                .describedAs("list no foot race games for the wrong eventId")
+                .isEmpty();
+        assertThat(scoreService.getGameSessions(
+                eventId,
+                GameType.FOOT_RACE,
+                "first.json"
+        ))
+                .describedAs("list the only entry that matches all three")
+                .hasSize(1);
+        assertThat(scoreService.getGameSessions(
+                eventId,
+                GameType.FOOT_RACE,
+                "second.json"
+        ))
+                .describedAs("list the only entry that matches all three")
+                .hasSize(1);
+        assertThat(scoreService.getGameSessions(
+                eventId,
+                GameType.PARKOUR_PATHWAY,
+                "second.json"
+        ))
+                .describedAs("list the only entry that matches all three")
                 .hasSize(1);
     }
     // game_sessions tests end

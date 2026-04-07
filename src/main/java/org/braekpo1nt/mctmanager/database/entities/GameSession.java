@@ -56,7 +56,8 @@ public class GameSession {
             @NotNull Mode mode,
             @Nullable Boolean sessionUndone,
             @NotNull Double multiplier,
-            @NotNull Date startTime
+            @NotNull Date startTime,
+            @Nullable Date endTime
     ) {
         this.gameType = gameType;
         this.eventId = eventId;
@@ -65,5 +66,6 @@ public class GameSession {
         this.sessionUndone = sessionUndone != null ? sessionUndone : false;
         this.multiplier = multiplier;
         this.startTime = startTime;
+        this.endTime = endTime;
     }
 }

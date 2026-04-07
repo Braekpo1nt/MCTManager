@@ -109,6 +109,92 @@ public class ScoreService {
                 .toList();
     }
     
+    public @NotNull List<Integer> getEventGameSessionIds(
+            @NotNull String eventId,
+            @NotNull GameType gameType,
+            @NotNull String configFile
+    ) throws SQLException {
+        QueryBuilder<GameSession, Integer> builder = gameSessionDao.queryBuilder();
+        Where<GameSession, Integer> where = builder.where();
+        
+        where.eq("event_id", eventId)
+                .and()
+                .eq("game_type", gameType)
+                .and()
+                .eq("config_file", configFile)
+                .and()
+                .eq("mode", Mode.EVENT);
+        
+        // only populate the id column
+        builder.selectColumns("id");
+        
+        return builder.query().stream()
+                .map(GameSession::getId)
+                .toList();
+    }
+    
+    public @NotNull List<GameSession> getGameSessions(
+            @NotNull String eventId,
+            @NotNull GameType gameType,
+            @NotNull String configFile
+    ) throws SQLException {
+        QueryBuilder<GameSession, Integer> builder = gameSessionDao.queryBuilder();
+        Where<GameSession, Integer> where = builder.where();
+        
+        where.eq("event_id", eventId)
+                .and()
+                .eq("game_type", gameType)
+                .and()
+                .eq("config_file", configFile)
+                .and()
+                .eq("mode", Mode.EVENT);
+        
+        return builder.query();
+    }
+    
+    public @NotNull List<GameSession> getGameSessions(
+            @NotNull String eventId
+    ) throws SQLException {
+        QueryBuilder<GameSession, Integer> builder = gameSessionDao.queryBuilder();
+        Where<GameSession, Integer> where = builder.where();
+        
+        where.eq("event_id", eventId)
+                .and()
+                .eq("mode", Mode.EVENT);
+        
+        return builder.query();
+    }
+    
+    public @NotNull List<GameSession> getGameSessions(
+            @NotNull String eventId,
+            @NotNull GameType gameType
+    ) throws SQLException {
+        QueryBuilder<GameSession, Integer> builder = gameSessionDao.queryBuilder();
+        Where<GameSession, Integer> where = builder.where();
+        
+        where.eq("event_id", eventId)
+                .and()
+                .eq("game_type", gameType)
+                .and()
+                .eq("mode", Mode.EVENT);
+        
+        return builder.query();
+    }
+    
+    public @Nullable GameSession getGameSession(int gameSessionId) throws SQLException {
+        return gameSessionDao.queryForId(gameSessionId);
+    }
+    
+    public void undoGameSession(int sessionId) throws SQLException {
+        UpdateBuilder<GameSession, Integer> updateBuilder = gameSessionDao.updateBuilder();
+        updateBuilder
+                .where()
+                .idEq(sessionId);
+        updateBuilder
+                .updateColumnValue("session_undone", true);
+        updateBuilder.update();
+    }
+    
     /**
      * Deletes all entries in the ScoreService databases
      * @throws SQLException if there is an error clearing the databases
@@ -120,16 +206,6 @@ public class ScoreService {
         gameSessionDao.deleteBuilder().delete();
         scoreEventsDao.deleteBuilder().delete();
         return true;
-    }
-    
-    public void undoGameSession(int sessionId) throws SQLException {
-        UpdateBuilder<GameSession, Integer> updateBuilder = gameSessionDao.updateBuilder();
-        updateBuilder
-                .where()
-                .idEq(sessionId);
-        updateBuilder
-                .updateColumnValue("session_undone", true);
-        updateBuilder.update();
     }
     
     public record PointTotal(UUID participantUUID, String teamId, int totalPoints) {
