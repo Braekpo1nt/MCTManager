@@ -474,8 +474,28 @@ class GameStateServiceTest {
                 .multiplier(multiplier)
                 .eventId(null)
                 .gameType(GameType.FOOT_RACE)
+                .configFile("nonexistent.json")
+                .mode(Mode.MAINTENANCE)
+                .startTime(now)
+                .endTime(now)
+                .sessionUndone(false)
+                .build());
+        scoreService.createGameSession(GameSession.builder()
+                .multiplier(multiplier)
+                .eventId(null)
+                .gameType(GameType.FOOT_RACE)
                 .configFile("default.json")
                 .mode(Mode.MAINTENANCE)
+                .startTime(now)
+                .endTime(now)
+                .sessionUndone(false)
+                .build());
+        scoreService.createGameSession(GameSession.builder()
+                .multiplier(multiplier)
+                .eventId(null)
+                .gameType(GameType.FOOT_RACE)
+                .configFile("default.json")
+                .mode(Mode.PRACTICE)
                 .startTime(now)
                 .endTime(now)
                 .sessionUndone(false)
@@ -485,19 +505,177 @@ class GameStateServiceTest {
                 GameType.FOOT_RACE,
                 "default.json",
                 Mode.EVENT
-        )).isEmpty();
+        ))
+                .describedAs("searching for sessions that don't exist return empty list")
+                .isEmpty();
         assertThat(scoreService.getGameSessionIds(
                 eventId,
                 GameType.FOOT_RACE,
                 "default.json",
                 Mode.MAINTENANCE
-        )).isEmpty();
+        ))
+                .describedAs("searching for sessions that don't exist return empty list")
+                .isEmpty();
         assertThat(scoreService.getGameSessionIds(
                 null,
                 GameType.FOOT_RACE,
                 "default.json",
                 Mode.MAINTENANCE
-        )).hasSize(1);
+        ))
+                .describedAs("when there's one match, returns 1 entry")
+                .hasSize(1);
+        assertThat(scoreService.getGameSessionIds(
+                null,
+                GameType.FOOT_RACE,
+                "nonexistent.json",
+                Mode.MAINTENANCE
+        ))
+                .describedAs("when there are two matches, return both entries")
+                .hasSize(2);
+    }
+    
+    @Test
+    void listEventGameSessionIds() throws SQLException {
+        Date now = new Date();
+        double multiplier = 1.0;
+        String eventId = "TestEvent";
+        eventService.addEventInfo(EventInfo.builder()
+                .eventId(eventId)
+                .plainTextName("Test")
+                .componentName(Component.text("Test"))
+                .eventDate(now)
+                .createdAt(now)
+                .canonical(true)
+                .modifiedAt(now)
+                .build());
+        scoreService.createGameSession(GameSession.builder()
+                .multiplier(multiplier)
+                .eventId(eventId)
+                .gameType(GameType.FOOT_RACE)
+                .configFile("default.json")
+                .mode(Mode.EVENT)
+                .startTime(now)
+                .endTime(now)
+                .sessionUndone(false)
+                .build());
+        scoreService.createGameSession(GameSession.builder()
+                .multiplier(multiplier)
+                .eventId(eventId)
+                .gameType(GameType.FOOT_RACE)
+                .configFile("default.json")
+                .mode(Mode.EVENT)
+                .startTime(now)
+                .endTime(now)
+                .sessionUndone(false)
+                .build());
+        scoreService.createGameSession(GameSession.builder()
+                .multiplier(multiplier)
+                .eventId(eventId)
+                .gameType(GameType.PARKOUR_PATHWAY)
+                .configFile("default.json")
+                .mode(Mode.EVENT)
+                .startTime(now)
+                .endTime(now)
+                .sessionUndone(false)
+                .build());
+        assertThat(scoreService.getEventGameSessionIds(
+                eventId,
+                GameType.CAPTURE_THE_FLAG,
+                "default.json"
+        ))
+                .describedAs("return no entries for no matches")
+                .isEmpty();
+        assertThat(scoreService.getEventGameSessionIds(
+                eventId,
+                GameType.FOOT_RACE,
+                "default.json"
+        ))
+                .describedAs("when there are two matches, return both entries")
+                .hasSize(2);
+        assertThat(scoreService.getEventGameSessionIds(
+                eventId,
+                GameType.PARKOUR_PATHWAY,
+                "default.json"
+        ))
+                .describedAs("when there is one match, return the one")
+                .hasSize(1);
+    }
+    
+    @Test
+    void listPartialMatches() throws SQLException {
+        Date now = new Date();
+        double multiplier = 1.0;
+        String eventId = "TestEvent";
+        eventService.addEventInfo(EventInfo.builder()
+                .eventId(eventId)
+                .plainTextName("Test")
+                .componentName(Component.text("Test"))
+                .eventDate(now)
+                .createdAt(now)
+                .canonical(true)
+                .modifiedAt(now)
+                .build());
+        scoreService.createGameSession(GameSession.builder()
+                .multiplier(multiplier)
+                .eventId(eventId)
+                .gameType(GameType.FOOT_RACE)
+                .configFile("default.json")
+                .mode(Mode.EVENT)
+                .startTime(now)
+                .endTime(now)
+                .sessionUndone(false)
+                .build());
+        scoreService.createGameSession(GameSession.builder()
+                .multiplier(multiplier)
+                .eventId(eventId)
+                .gameType(GameType.FOOT_RACE)
+                .configFile("default.json")
+                .mode(Mode.EVENT)
+                .startTime(now)
+                .endTime(now)
+                .sessionUndone(false)
+                .build());
+        scoreService.createGameSession(GameSession.builder()
+                .multiplier(multiplier)
+                .eventId(eventId)
+                .gameType(GameType.PARKOUR_PATHWAY)
+                .configFile("default.json")
+                .mode(Mode.EVENT)
+                .startTime(now)
+                .endTime(now)
+                .sessionUndone(false)
+                .build());
+        
+        String wrongEventId = "WrongEvent";
+        eventService.addEventInfo(EventInfo.builder()
+                .eventId(wrongEventId)
+                .plainTextName("Test")
+                .componentName(Component.text("Test"))
+                .eventDate(now)
+                .createdAt(now)
+                .canonical(true)
+                .modifiedAt(now)
+                .build());
+        scoreService.createGameSession(GameSession.builder()
+                .multiplier(multiplier)
+                .eventId(wrongEventId)
+                .gameType(GameType.PARKOUR_PATHWAY)
+                .configFile("default.json")
+                .mode(Mode.EVENT)
+                .startTime(now)
+                .endTime(now)
+                .sessionUndone(false)
+                .build());
+        assertThat(scoreService.getGameSessions(
+                eventId
+        ))
+                .describedAs("lists all entries for a given event id")
+                .hasSize(3);
+        assertThat(scoreService.getGameSessions(
+                wrongEventId
+        ))
+                .describedAs("lists all entries for a given event id")
+                .hasSize(1);
     }
     // game_sessions tests end
     

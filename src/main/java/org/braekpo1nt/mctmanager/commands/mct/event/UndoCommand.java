@@ -25,21 +25,22 @@ public class UndoCommand implements BrigadierSubCommand {
     @Override
     public @NotNull Permissioned<CommandSourceStack> create() {
         return Permissioned.literal("undo")
-                .then(Permissioned.argument("game", new EnumArgumentType<>(GameType.class, GameType.values()))
-                        .then(Permissioned.argument("configFile", StringArgumentType.word())
-                                .then(Permissioned.argument("iteration", IntegerArgumentType.integer())
-                                        .executes(BrigadierAdapters.wraps(this::executeUndo))
-                                )
-                        )
-                )
+//                .then(Permissioned.argument("gameType", new EnumArgumentType<>(GameType.class, GameType.values()))
+//                        .then(Permissioned.argument("configFile", StringArgumentType.word())
+//                                .then(Permissioned.argument("iteration", IntegerArgumentType.integer())
+//                                        .executes(BrigadierAdapters.wraps(this::executeUndo))
+//                                )
+//                        )
+//                )
                 ;
     }
-    
-    private @NotNull CommandResult executeUndo(CommandContext<CommandSourceStack> ctx) {
-        GameType gameType = ctx.getArgument("game", GameType.class);
-        String configFile = ctx.getArgument("configFile", String.class);
-        int iterationNumber = ctx.getArgument("iteration", Integer.class);
-        int gameSessionId = gameManager.getGameSessionId(new GameInstanceId(gameType, configFile), iterationNumber - 1);
-        return gameManager.undoGame(gameSessionId);
-    }
+
+//    private @NotNull CommandResult executeUndo(CommandContext<CommandSourceStack> ctx) {
+//        GameType gameType = ctx.getArgument("gameType", GameType.class);
+//        String configFile = ctx.getArgument("configFile", String.class);
+//        int iterationNumber = ctx.getArgument("iteration", Integer.class);
+//        int gameSessionId = gameManager.getGameSessionId(
+//                new GameInstanceId(gameType, configFile), iterationNumber - 1);
+//        return gameManager.undoGame(gameSessionId);
+//    }
 }
