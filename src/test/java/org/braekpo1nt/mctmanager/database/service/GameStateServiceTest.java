@@ -445,6 +445,62 @@ class GameStateServiceTest {
     }
     // registerPlayer tests end
     
+    // game_sessions tests start
+    @Test
+    void listGameSessionIds() throws SQLException {
+        Date now = new Date();
+        double multiplier = 1.0;
+        String eventId = "TestEvent";
+        eventService.addEventInfo(EventInfo.builder()
+                .eventId(eventId)
+                .plainTextName("Test")
+                .componentName(Component.text("Test"))
+                .eventDate(now)
+                .createdAt(now)
+                .canonical(true)
+                .modifiedAt(now)
+                .build());
+        scoreService.createGameSession(GameSession.builder()
+                .multiplier(multiplier)
+                .eventId(null)
+                .gameType(GameType.FOOT_RACE)
+                .configFile("nonexistent.json")
+                .mode(Mode.MAINTENANCE)
+                .startTime(now)
+                .endTime(now)
+                .sessionUndone(false)
+                .build());
+        scoreService.createGameSession(GameSession.builder()
+                .multiplier(multiplier)
+                .eventId(null)
+                .gameType(GameType.FOOT_RACE)
+                .configFile("default.json")
+                .mode(Mode.MAINTENANCE)
+                .startTime(now)
+                .endTime(now)
+                .sessionUndone(false)
+                .build());
+        assertThat(scoreService.getGameSessionIds(
+                eventId,
+                GameType.FOOT_RACE,
+                "default.json",
+                Mode.EVENT
+        )).isEmpty();
+        assertThat(scoreService.getGameSessionIds(
+                eventId,
+                GameType.FOOT_RACE,
+                "default.json",
+                Mode.MAINTENANCE
+        )).isEmpty();
+        assertThat(scoreService.getGameSessionIds(
+                null,
+                GameType.FOOT_RACE,
+                "default.json",
+                Mode.MAINTENANCE
+        )).hasSize(1);
+    }
+    // game_sessions tests end
+    
     // HELPER METHODS 
     
     void addTeamToEveryTable(String teamId, String eventId, Date now) throws SQLException {

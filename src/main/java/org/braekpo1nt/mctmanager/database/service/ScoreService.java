@@ -2,7 +2,9 @@ package org.braekpo1nt.mctmanager.database.service;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.GenericRawResults;
+import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.UpdateBuilder;
+import com.j256.ormlite.stmt.Where;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.GameSession;
@@ -59,6 +61,7 @@ public class ScoreService {
         }
     }
     
+    // TODO: make these methods throw their exceptions for later handling by callers
     public @Nullable GameSession createGameSession(@NotNull GameSession gameSession) {
         try {
             gameSessionDao.create(gameSession);
@@ -82,32 +85,28 @@ public class ScoreService {
             @NotNull String configFile,
             @NotNull Mode gameMode
     ) throws SQLException {
-        String sql = """
-                SELECT gs.id
-                FROM game_sessions gs
-                WHERE event_id = ?
-                  AND gs.game_type = ?
-                  AND gs.config_file = ?
-                  AND gs.mode = ?
-                """;
-        try (GenericRawResults<String[]> raw =
-                     gameSessionDao.queryRaw(
-                             sql,
-                             eventId,
-                             gameType.toString(),
-                             configFile,
-                             gameMode.toString()
-                     )) {
-            List<String[]> rawResults = raw.getResults();
-            List<Integer> results = new ArrayList<>(rawResults.size());
-            for (String[] row : rawResults) {
-                int id = row[0] == null ? 0 : Integer.parseInt(row[0]);
-                results.add(id);
-            }
-            return results;
-        } catch (Exception e) {
-            throw new SQLException("Exception thrown while getting GameSessionId", e);
+        QueryBuilder<GameSession, Integer> builder = gameSessionDao.queryBuilder();
+        Where<GameSession, Integer> where = builder.where();
+        
+        if (eventId == null) {
+            where.isNull("event_id");
+        } else {
+            where.eq("event_id", eventId);
         }
+        
+        where.and()
+                .eq("game_type", gameType)
+                .and()
+                .eq("config_file", configFile)
+                .and()
+                .eq("mode", gameMode);
+        
+        // only populate the id column
+        builder.selectColumns("id");
+        
+        return builder.query().stream()
+                .map(GameSession::getId)
+                .toList();
     }
     
     /**
