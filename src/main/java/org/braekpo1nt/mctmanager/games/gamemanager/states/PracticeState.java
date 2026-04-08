@@ -71,7 +71,8 @@ public class PracticeState extends GameManagerState {
                     presetConfig.isKickUnWhitelisted());
             context.messageAdmins(commandResult.getMessageOrEmpty());
         }
-        context.loadGameState();
+        CommandResult result = context.loadGameState();
+        CommandResult.showResult(contextReference.getPlugin().getServer().getConsoleSender(), result);
     }
     
     @Override

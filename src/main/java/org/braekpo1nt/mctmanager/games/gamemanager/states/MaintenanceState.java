@@ -30,7 +30,8 @@ public class MaintenanceState extends GameManagerState {
     public void enter() {
         setupSidebar();
         contextReference.getGameStateStorageUtil().maintenanceMode();
-        context.loadGameState();
+        CommandResult result = context.loadGameState();
+        CommandResult.showResult(contextReference.getPlugin().getServer().getConsoleSender(), result);
     }
     
     @Override

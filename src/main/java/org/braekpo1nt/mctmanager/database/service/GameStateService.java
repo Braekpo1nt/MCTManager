@@ -939,6 +939,8 @@ public class GameStateService {
     public void rebuildPracticeMode() throws SQLException {
         TransactionManager.callInTransaction(activeTeamsDao.getConnectionSource(), () -> {
             // clear
+            activeTeamsDao.executeRaw("DELETE FROM in_game_participants");
+            activeTeamsDao.executeRaw("DELETE FROM in_game_teams");
             activeTeamsDao.executeRaw("DELETE FROM active_participants");
             activeTeamsDao.executeRaw("DELETE FROM active_teams");
             activeTeamsDao.executeRaw("DELETE FROM active_admins");
@@ -1060,6 +1062,8 @@ SELECT
     public void rebuildMaintenanceMode() throws SQLException {
         TransactionManager.callInTransaction(activeTeamsDao.getConnectionSource(), () -> {
             // clear
+            activeTeamsDao.executeRaw("DELETE FROM in_game_participants");
+            activeTeamsDao.executeRaw("DELETE FROM in_game_teams");
             activeTeamsDao.executeRaw("DELETE FROM active_participants");
             activeTeamsDao.executeRaw("DELETE FROM active_teams");
             activeTeamsDao.executeRaw("DELETE FROM active_admins");
@@ -1135,6 +1139,8 @@ SELECT
     public void rebuildEventMode(@NotNull String eventId) throws SQLException {
         TransactionManager.callInTransaction(activeTeamsDao.getConnectionSource(), () -> {
             // clear
+            activeTeamsDao.executeRaw("DELETE FROM in_game_participants");
+            activeTeamsDao.executeRaw("DELETE FROM in_game_teams");
             activeTeamsDao.executeRaw("DELETE FROM active_participants");
             activeTeamsDao.executeRaw("DELETE FROM active_teams");
             activeTeamsDao.executeRaw("DELETE FROM active_admins");

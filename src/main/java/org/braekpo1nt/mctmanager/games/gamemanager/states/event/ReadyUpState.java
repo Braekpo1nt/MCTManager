@@ -68,7 +68,6 @@ public class ReadyUpState extends EventState {
         super(context, contextReference, eventInfo, eventConfig, startingGameNumber, maxGames);
         this.readyUpManager = new ReadyUpManager();
         this.topbar = new ReadyUpTopbar();
-        context.loadGameState();
     }
     
     @Override
@@ -123,20 +122,8 @@ public class ReadyUpState extends EventState {
             }
         }.runTaskTimer(plugin, 0L, 2 * 20L).getTaskId();
         
-        PresetConfig presetConfig = eventData.getConfig().getPreset();
-        if (presetConfig != null) {
-            CommandResult commandResult = GameManagerUtils.applyPreset(
-                    plugin,
-                    context,
-                    new PresetStorageUtil(plugin.getDataFolder()),
-                    presetConfig.getFile(),
-                    presetConfig.isOverride(),
-                    presetConfig.isResetScores(),
-                    presetConfig.isWhitelist(),
-                    presetConfig.isUnWhitelist(),
-                    presetConfig.isKickUnWhitelisted());
-            context.messageAdmins(commandResult.getMessageOrEmpty());
-        }
+        CommandResult result = context.loadGameState();
+        CommandResult.showResult(contextReference.getPlugin().getServer().getConsoleSender(), result);
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
                 context.getEventService().updateActiveEvent(

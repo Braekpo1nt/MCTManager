@@ -199,12 +199,9 @@ public abstract class GameManagerState {
     protected abstract @NotNull CommandResult rebuildFromScores() throws SQLException;
     
     public @NotNull CommandResult loadGameState() {
-        if (!activeGames.isEmpty()) {
-            return CommandResult.failure("Can't load the game state while a game is running");
-        }
-        if (context.getActiveEditor() != null) {
-            return CommandResult.failure("Can't load the game state while an editor is running");
-        }
+        List<CommandResult> results = new ArrayList<>();
+        results.add(stopAllGames());
+        results.add(stopEditor());
         // a given participant or admin may not be re-added when loading the new state
         for (Player admin : new ArrayList<>(onlineAdmins)) {
             onAdminQuit(admin);
@@ -213,8 +210,10 @@ public abstract class GameManagerState {
             onParticipantQuit(participant);
         }
         CommandResult rebuildResult = rebuildAndReload();
+        results.add(rebuildResult);
         CommandResult loadResult = loadGameStateSync();
-        return rebuildResult.and(loadResult);
+        results.add(loadResult);
+        return new CompositeCommandResult(results);
     }
     // TODO: return this to async operation after 3/21/2026 event
 //        return CommandResult.async(

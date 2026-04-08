@@ -399,6 +399,7 @@ public class GameManager implements Listener {
             String incorrectIGN = existingParticipant.getName();
             if (incorrectIGN.equals(correctIGN)) {
                 // their name is correct, nothing to do
+                Main.logf("resolveUUIDandIGNerrors return 1, %s, %s", player.getName(), player.getUniqueId());
                 return;
             }
             // if their name is incorrect
@@ -421,6 +422,7 @@ public class GameManager implements Listener {
             } catch (SQLException e) {
                 reportGameStateException(String.format("migrate the ign of the player with uuid \"%s\" from \"%s\" to the correct ign \"%s\"", correctUUID, incorrectIGN, correctIGN), e);
             }
+            Main.logf("resolveUUIDandIGNerrors return 2, %s, %s", player.getName(), player.getUniqueId());
             return;
         }
         // if the UUID is NOT in the game state
@@ -433,6 +435,7 @@ public class GameManager implements Listener {
             } catch (SQLException e) {
                 reportGameStateException(String.format("register new player with name \"%s\" and UUID \"%s\" in the database", correctIGN, correctUUID), e);
             }
+            Main.logf("resolveUUIDandIGNerrors return 3, %s, %s", player.getName(), player.getUniqueId());
             return;
         }
         // the participant with the wrong UUID but the correct IGN is in the game state
@@ -446,7 +449,8 @@ public class GameManager implements Listener {
             reportGameStateException(String.format("migrate player \"%s\" from UUID \"%s\" to the correct uuid \"%s\" in the database", correctIGN, incorrectUUID, correctUUID), e);
         }
         MCTTeam team = teams.get(offlineParticipantWithIGN.getTeamId());
-        state.joinParticipantToTeam(player, team);
+        state.joinParticipantToTeam(correctUUID, correctIGN, team);
+        Main.logf("resolveUUIDandIGNerrors return 4, %s, %s", player.getName(), player.getUniqueId());
     }
     
     @EventHandler
