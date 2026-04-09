@@ -28,9 +28,12 @@ import java.util.Set;
 
 public class VotingState extends EventState {
     
-    private static final String VOTING_SOUND = "block.note_block.bit";
-    private static final int VOTING_VOLUME = 50;
-    private static final int VOTING_PITCH = 30;
+    private static final String DISPLAY_VOTING_SOUND = "block.note_block.bit";
+    private static final int DISPLAY_VOTING_VOLUME = 50;
+    private static final int DISPLAY_VOTING_PITCH = 30;
+    private static final String FINAL_VOTING_SOUND = "entity.zombie_villager.cure";
+    private static final int FINAL_VOTING_VOLUME = 50;
+    private static final int FINAL_VOTING_PITCH = 1;
     
     private final VoteManager voteManager;
     private final Timer timer;
@@ -92,7 +95,7 @@ public class VotingState extends EventState {
                 gameType, chosenConfigFile));
     }
     
-    private void playVotingSound() {
+    private void playVotingSound(String VOTING_SOUND, int VOTING_VOLUME, int VOTING_PITCH) {
         for (Participant participant : context.getOnlineParticipants()) {
             participant.playSound(participant.getLocation(), VOTING_SOUND, VOTING_VOLUME, VOTING_PITCH);
         }
@@ -136,7 +139,7 @@ public class VotingState extends EventState {
                                         .color(NamedTextColor.RED),
                                 Component.empty()
                         ));
-                        playVotingSound();
+                        playVotingSound(DISPLAY_VOTING_SOUND, DISPLAY_VOTING_VOLUME, DISPLAY_VOTING_PITCH);
                         redTitle = false;
                     } else {
                         Audience.audience( // Use this for display, modify color
@@ -148,7 +151,7 @@ public class VotingState extends EventState {
                                         .color(NamedTextColor.YELLOW),
                                 Component.empty()
                         ));
-                        playVotingSound();
+                        playVotingSound(DISPLAY_VOTING_SOUND, DISPLAY_VOTING_VOLUME, DISPLAY_VOTING_PITCH);
                         redTitle = true;
                     }
                 } else {
@@ -162,7 +165,7 @@ public class VotingState extends EventState {
                                     .color(NamedTextColor.BLUE),
                             Component.empty()
                     ));
-                    playVotingSound();
+                    playVotingSound(FINAL_VOTING_SOUND, FINAL_VOTING_VOLUME, FINAL_VOTING_PITCH);
                     this.cancel();
                     acceptVote(configFile, gameType);
                     return;
