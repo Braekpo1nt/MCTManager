@@ -26,6 +26,13 @@ public class BorderStage {
      * the border will take this many seconds to transition from the previous stage's size to this stage's size
      */
     private int duration;
+    /**
+     * If true, chests will refill at the end of this border stage,
+     * after the "border shrinking" countdown is complete.
+     * If false, nothing happens.
+     * Defaults to false if not included
+     */
+    private boolean refillChests;
     
     /**
      * You need to pass the center of the border to this method because BorderStage objects
