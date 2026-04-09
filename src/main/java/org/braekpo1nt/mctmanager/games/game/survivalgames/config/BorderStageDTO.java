@@ -5,6 +5,7 @@ import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.BorderStage;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -23,15 +24,22 @@ class BorderStageDTO implements Validatable {
      * the border will take this many seconds to transition from the previous stage's size to this stage's size
      */
     private int duration;
+    /**
+     * If true, chests will refill at the end of this border stage,
+     * after the "border shrinking" countdown is complete.
+     * If false, nothing happens.
+     * Defaults to false if not included
+     */
+    private @Nullable Boolean refillChests;
     
     @Override
     public void validate(@NotNull Validator validator) {
         validator.validate(this.size >= 1.0,
                 "size (%s) can't be less than 1.0", this.size);
         validator.validate(this.delay >= 0,
-                "delay (%S) can't be negative", this.delay);
+                "delay (%s) can't be negative", this.delay);
         validator.validate(this.duration >= 0,
-                "duration (%S) can't be negative", this.duration);
+                "duration (%s) can't be negative", this.duration);
     }
     
     public BorderStage toBorderStage() {
@@ -39,6 +47,7 @@ class BorderStageDTO implements Validatable {
                 .size(this.size)
                 .delay(this.delay)
                 .duration(this.duration)
+                .refillChests(this.refillChests != null ? this.refillChests : false)
                 .build();
     }
     
