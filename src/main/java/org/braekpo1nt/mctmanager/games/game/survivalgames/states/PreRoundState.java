@@ -33,6 +33,8 @@ public abstract class PreRoundState extends OnPlatformsState {
         context.createPlatformsAndTeleportTeams();
         ItemStack[] starterLoadout = context.getConfig().getStarterLoadout();
         for (SurvivalGamesParticipant participant : context.getParticipants().values()) {
+            ParticipantInitializer.resetHealthAndHunger(participant);
+            ParticipantInitializer.clearStatusEffects(participant);
             ParticipantInitializer.clearInventory(participant);
             participant.setGameMode(GameMode.ADVENTURE);
             participant.setAlive(true);

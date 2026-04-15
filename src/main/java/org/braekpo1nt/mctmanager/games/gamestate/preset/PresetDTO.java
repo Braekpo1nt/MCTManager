@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.gamestate.preset;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
@@ -55,7 +56,8 @@ public class PresetDTO implements Validatable {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    static class PresetParticipantDTO implements Validatable {
+    @Builder
+    public static class PresetParticipantDTO implements Validatable {
         /**
          * The in-game-name (ign) of this participant
          */
@@ -86,20 +88,21 @@ public class PresetDTO implements Validatable {
         static List<Preset.PresetParticipant> toPresetParticipants(List<PresetParticipantDTO> dtos) {
             return dtos.stream()
                     .map(PresetParticipantDTO::toPresetParticipant)
-                    .toList();
+                    .collect(Collectors.toCollection(ArrayList::new));
         }
         
         static List<PresetParticipantDTO> fromPresetParticipants(List<Preset.PresetParticipant> entities) {
             return entities.stream()
                     .map(PresetParticipantDTO::fromPresetParticipant)
-                    .toList();
+                    .collect(Collectors.toCollection(ArrayList::new));
         }
     }
     
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    static class PresetTeamDTO implements Validatable {
+    @Builder
+    public static class PresetTeamDTO implements Validatable {
         
         private String teamId;
         private String displayName;

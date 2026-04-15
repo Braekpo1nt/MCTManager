@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.gamestate.preset;
+package org.braekpo1nt.mctmanager.games.gamestate.preset.legacy;
 
 import com.google.gson.Gson;
 import org.braekpo1nt.mctmanager.Main;
@@ -12,11 +12,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
-public class PresetController extends ConfigController<PresetDTO> {
+public class LegacyPresetController extends ConfigController<LegacyPresetDTO> {
     
     private final @NotNull File presetDirectory;
     
-    public PresetController(@NotNull File presetDirectory) {
+    public LegacyPresetController(@NotNull File presetDirectory) {
         this.presetDirectory = presetDirectory;
     }
     
@@ -30,35 +30,19 @@ public class PresetController extends ConfigController<PresetDTO> {
      * @throws ConfigInvalidException if there is a problem parsing the JSON into a configDTO
      * @throws ConfigIOException if there is an IO problem getting the configDTO
      */
-    public @NotNull Preset getPreset(@NotNull File presetFile) throws ConfigException {
-        PresetDTO presetDTO = loadConfigDTO(presetFile, PresetDTO.class);
+    public @NotNull LegacyPresetDTO getPreset(@NotNull File presetFile) throws ConfigException {
+        LegacyPresetDTO presetDTO = loadConfigDTO(presetFile, LegacyPresetDTO.class);
         presetDTO.validate(new Validator("preset"));
-        return presetDTO.toPreset(presetFile.getName());
+        return presetDTO;
     }
     
     /**
-     * @param presetFile the file referencing the preset to load
-     * @return the parsed config from the given json file without validation
+     * @param presetFile the name of the preset file in the {@link #presetDirectory}
      * @throws ConfigInvalidException if there is a problem parsing the JSON into a configDTO
      * @throws ConfigIOException if there is an IO problem getting the configDTO
      */
-    public PresetDTO getPresetDTOWithoutValidation(File presetFile) throws ConfigException {
-        return loadConfigDTO(presetFile, PresetDTO.class);
-    }
-    
-    /**
-     * @throws ConfigIOException if there is an IO error saving the config to the file system
-     */
-    public void savePreset(@NotNull Preset preset, @NotNull File presetFile) {
-        PresetDTO presetDTO = PresetDTO.fromPreset(preset);
-        saveConfigDTO(presetDTO, presetFile);
-    }
-    
-    /**
-     * @throws ConfigIOException if there is an IO error saving the config to the file system
-     */
-    public void savePreset(@NotNull PresetDTO presetDTO, @NotNull File presetFile) {
-        saveConfigDTO(presetDTO, presetFile);
+    public @NotNull LegacyPresetDTO getPreset(@NotNull String presetFile) throws ConfigException {
+        return getPreset(new File(presetDirectory, presetFile));
     }
     
     /**
@@ -66,7 +50,7 @@ public class PresetController extends ConfigController<PresetDTO> {
      * @throws ConfigIOException if there is an IO problem getting the configDTO
      */
     @Override
-    public @NotNull PresetDTO loadConfigDTO(@NotNull File configFile, @NotNull Class<PresetDTO> configType) throws ConfigInvalidException, ConfigIOException {
+    public @NotNull LegacyPresetDTO loadConfigDTO(@NotNull File configFile, @NotNull Class<LegacyPresetDTO> configType) throws ConfigInvalidException, ConfigIOException {
         if (!configFile.exists()) {
             throw new ConfigNotFoundException(configFile);
         }

@@ -35,6 +35,7 @@ public class PresetApplySubCommand implements BrigadierSubCommand {
     @Override
     public @NotNull Permissioned<CommandSourceStack> create() {
         return Permissioned.literal("apply")
+                .executes(BrigadierAdapters.wraps(this::executeApplyNoOpts))
                 .then(Permissioned.argument("options", GreedyListArgumentType.of(
                                 Set.of(
                                         "override",
@@ -48,9 +49,23 @@ public class PresetApplySubCommand implements BrigadierSubCommand {
                 ;
     }
     
-    private @NotNull CommandResult executeApply(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+    private @NotNull CommandResult executeApplyNoOpts(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         FileResolver resolver = ctx.getArgument(PresetCommand.PRESET_FILE_ARG, FileResolver.class);
         File presetFile = resolver.resolve();
+        return GameManagerUtils.applyPreset(
+                plugin,
+                gameManager,
+                storageUtil,
+                presetFile,
+                false,
+                false,
+                false,
+                false,
+                false
+        );
+    }
+    
+    private @NotNull CommandResult executeApply(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         String[] optionsArray = ctx.getArgument("options", String[].class);
         Set<String> options = Arrays.stream(optionsArray)
                 .collect(Collectors.toSet());
@@ -59,6 +74,8 @@ public class PresetApplySubCommand implements BrigadierSubCommand {
         boolean whiteList = options.contains("whiteList");
         boolean unWhitelist = options.contains("unWhitelist");
         boolean kickUnWhitelisted = options.contains("kickUnWhitelisted");
+        FileResolver resolver = ctx.getArgument(PresetCommand.PRESET_FILE_ARG, FileResolver.class);
+        File presetFile = resolver.resolve();
         return GameManagerUtils.applyPreset(
                 plugin,
                 gameManager,

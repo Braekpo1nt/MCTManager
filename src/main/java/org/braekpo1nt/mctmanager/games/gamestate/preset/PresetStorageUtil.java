@@ -20,10 +20,9 @@ import java.util.logging.Level;
 public class PresetStorageUtil {
     
     private final PresetController controller;
-    private final File presetDirectory;
     
     public PresetStorageUtil(File pluginDataFolder) {
-        presetDirectory = new File(pluginDataFolder, "presets");
+        File presetDirectory = new File(pluginDataFolder, "presets");
         this.controller = new PresetController(presetDirectory);
     }
     
@@ -39,20 +38,6 @@ public class PresetStorageUtil {
      */
     public @NotNull Preset loadPreset(@NotNull File presetFile) throws ConfigException {
         return controller.getPreset(presetFile);
-    }
-    
-    /**
-     * Load the preset from its file
-     * @return the loaded preset
-     * @throws ConfigInvalidException if there is a problem parsing the JSON into a configDTO
-     * @throws ConfigIOException if there is an IO problem getting the configDTO
-     */
-    public @NotNull Preset loadPreset(@NotNull String presetFile) throws ConfigException {
-        return controller.getPreset(presetFile);
-    }
-    
-    public CommandResult modifyPreset(@NotNull String presetFile, Function<Preset, CommandResult> modify) {
-        return modifyPreset(new File(presetDirectory, presetFile), modify);
     }
     
     /**

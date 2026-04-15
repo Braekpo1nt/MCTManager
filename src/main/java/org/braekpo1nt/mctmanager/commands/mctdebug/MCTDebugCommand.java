@@ -7,22 +7,32 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
-import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoArgumentType;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoResolver;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.FileArgumentType;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.FileResolver;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.service.ScoreService;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetController;
+import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetDTO;
+import org.braekpo1nt.mctmanager.games.gamestate.preset.legacy.LegacyPresetController;
+import org.braekpo1nt.mctmanager.games.gamestate.preset.legacy.LegacyPresetDTO;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.UUID;
@@ -33,12 +43,16 @@ import java.util.logging.Level;
  */
 public class MCTDebugCommand implements BrigadierCommand, Listener {
     
+    public static final String PRESET_FILE_ARG = "presetFile";
+    
     private final Main plugin;
     private final GameManager gameManager;
+    private final File presetDirectory;
     
     public MCTDebugCommand(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
+        this.presetDirectory = new File(plugin.getDataFolder(), "presets");
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     
@@ -46,33 +60,21 @@ public class MCTDebugCommand implements BrigadierCommand, Listener {
     public LiteralCommandNode<CommandSourceStack> build() {
         return Permissioned.literal("mctdebug")
                 .executes(BrigadierAdapters.wraps(this::executeDebug))
-                .then(Permissioned.literal("all_players")
-                        .then(Permissioned.literal("add")
-                                .then(Permissioned.argument("uuid", ArgumentTypes.uuid())
-                                        .then(Permissioned.argument("ign", StringArgumentType.word())
-                                                .executes(BrigadierAdapters.wraps(this::executeAddUUIDAndIGN))
-                                        )
-                                )
-                        )
-                        .then(Permissioned.literal("migrate")
-                                .then(Permissioned.literal("uuid")
-                                        .then(Permissioned.argument("fromUUID", ArgumentTypes.uuid())
-                                                .then(Permissioned.argument("toUUID", ArgumentTypes.uuid())
-                                                        .then(Permissioned.argument("ign", StringArgumentType.word())
-                                                                .executes(BrigadierAdapters.wraps(this::executeMigrateUUID))
-                                                        )
-                                                )
-                                        )
-                                )
-                                .then(Permissioned.literal("ign")
-                                        .then(Permissioned.argument("uuid", ArgumentTypes.uuid())
-                                                .then(Permissioned.argument("newIGN", StringArgumentType.word())
-                                                        .executes(BrigadierAdapters.wraps(this::executeMigrateIGN))
-                                                )
-                                        )
+                .then(Permissioned.literal("preset")
+                        .then(Permissioned.literal("convertLegacy")
+                                .then(Permissioned.argument(PRESET_FILE_ARG,
+                                                new FileArgumentType(presetDirectory, ".json"))
+                                        .executes(BrigadierAdapters.wraps(this::executeConvertLegacy))
                                 )
                         )
                 )
+                .then(new AllPlayersDebugCommand(gameManager, plugin).create())
+                .then(Permissioned.literal("playerinfo")
+                        .then(Permissioned.argument("ign", StringArgumentType.word())
+                                .executes(BrigadierAdapters.wraps(this::executePlayerInfo))
+                        )
+                )
+                .then(new MigrateDebugCommand(gameManager, plugin).create())
                 .then(Permissioned.literal("printGameState")
                         .executes(BrigadierAdapters.wraps(this::executePrintGameState))
                 )
@@ -98,27 +100,21 @@ public class MCTDebugCommand implements BrigadierCommand, Listener {
                 .build(plugin.getServer().getPluginManager());
     }
     
-    private @NotNull CommandResult executeMigrateUUID(CommandContext<CommandSourceStack> ctx) {
-        String fromUuid = ctx.getArgument("fromUUID", UUID.class).toString();
-        String toUuid = ctx.getArgument("toUUID", UUID.class).toString();
+    private @NotNull CommandResult executePlayerInfo(CommandContext<CommandSourceStack> ctx) {
         String ign = ctx.getArgument("ign", String.class);
-        try {
-            gameManager.getGameStateService().migrateUUID(fromUuid, toUuid, ign);
-        } catch (SQLException e) {
-            return CommandResult.sqlException("migrate player uuid", e);
+        UUID uuid = plugin.getServer().getPlayerUniqueId(ign);
+        if (uuid == null) {
+            return CommandResult.failure("Could not find player");
         }
-        return CommandResult.success(Component.text("Migration successful"));
-    }
-    
-    private @NotNull CommandResult executeMigrateIGN(CommandContext<CommandSourceStack> ctx) {
-        String uuid = ctx.getArgument("uuid", UUID.class).toString();
-        String toIGN = ctx.getArgument("newIGN", String.class);
-        try {
-            gameManager.getGameStateService().migrateIgn(uuid, toIGN);
-        } catch (SQLException e) {
-            return CommandResult.sqlException("migrate player uuid", e);
-        }
-        return CommandResult.success(Component.text("Migration successful"));
+        return CommandResult.success(Component.empty()
+                .append(Component.text("The server says "))
+                .append(Component.text(ign))
+                .append(Component.text("'s UUID is "))
+                .append(Component.text(uuid.toString())
+                        .decorate(TextDecoration.UNDERLINED)
+                        .clickEvent(ClickEvent.copyToClipboard(uuid.toString()))
+                        .hoverEvent(HoverEvent.showText(Component.text("Copy"))))
+        );
     }
     
     private @NotNull CommandResult executePrintGameState(CommandContext<CommandSourceStack> ctx) {
@@ -127,17 +123,25 @@ public class MCTDebugCommand implements BrigadierCommand, Listener {
         return CommandResult.success(gameState);
     }
     
-    private @NotNull CommandResult executeAddUUIDAndIGN(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-        String uuid = ctx.getArgument("uuid", UUID.class).toString();
-        String ign = ctx.getArgument("ign", String.class);
+    private @NotNull CommandResult executeConvertLegacy(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        FileResolver fileResolver = ctx.getArgument(PRESET_FILE_ARG, FileResolver.class);
+        File presetFile = fileResolver.resolve();
         try {
-            gameManager.getGameStateService().registerPlayer(uuid, ign);
-        } catch (SQLException e) {
-            return CommandResult.sqlException("registering uuid and ign", e);
+            LegacyPresetController legacyPresetController = new LegacyPresetController(presetDirectory);
+            LegacyPresetDTO legacyPresetDTO = legacyPresetController.getPreset(presetFile);
+            PresetDTO updatedPreset = legacyPresetDTO.convert(plugin.getServer());
+            PresetController presetController = new PresetController(presetDirectory);
+            presetController.saveConfigDTO(updatedPreset, presetFile);
+            return CommandResult.success(Component.text("Converted legacy preset to UUID-version"));
+        } catch (ConfigException e) {
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text("An error occurred converting the legacy preset to the new version. See console for details."))
+                    .append(Component.newline())
+                    .append(Component.text(e.getMessage()))
+            );
         }
-        return CommandResult.success(Component.text("Done"));
+        
     }
-    
     
     private @NotNull CommandResult executeTotals(CommandContext<CommandSourceStack> ctx) {
         int sessionId = ctx.getArgument("sessionId", Integer.class);

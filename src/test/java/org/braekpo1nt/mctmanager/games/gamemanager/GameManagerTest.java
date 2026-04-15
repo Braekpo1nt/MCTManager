@@ -76,7 +76,7 @@ class GameManagerTest {
         UUID uuid = UUID.randomUUID();
         PlayerMock player = new MyPlayerMock(server, ign, uuid);
         
-        gameManager.joinOnlineParticipant(player, teamId);
+        gameManager.joinOfflineParticipant(uuid, ign, teamId);
         // a player who is in the game state joins
         server.addPlayer(player);
         // this line makes it so that the async schedules the sync task in onPlayerJoin
@@ -96,7 +96,7 @@ class GameManagerTest {
         UUID uuid = UUID.randomUUID();
         PlayerMock player = new MyPlayerMock(server, ign, uuid);
         
-        gameManager.joinOnlineParticipant(player, teamId);
+        gameManager.joinOfflineParticipant(uuid, ign, teamId);
         // a player who is in the game state joins
         server.addPlayer(player);
         // this line makes it so that the async schedules the sync task in onPlayerJoin
@@ -120,11 +120,10 @@ class GameManagerTest {
         String rightIGN = "Player1";
         String wrongIGN = "WrongIGN";
         UUID rightUUID = UUID.fromString("f5bc554e-3496-4a7b-b2e2-b7ea444e1d6a");
-        PlayerMock wrongPlayer = new MyPlayerMock(server, wrongIGN, rightUUID);
         PlayerMock rightPlayer = new MyPlayerMock(server, rightIGN, rightUUID);
         
         // add the wrong uuid but the right ign to the game state
-        gameManager.joinOnlineParticipant(wrongPlayer, teamId);
+        gameManager.joinOfflineParticipant(rightUUID, wrongIGN, teamId);
         // allow TabList to finish scheduled job
         server.getScheduler().waitAsyncTasksFinished();
         

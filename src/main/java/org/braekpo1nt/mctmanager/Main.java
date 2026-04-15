@@ -3,16 +3,16 @@ package org.braekpo1nt.mctmanager;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import lombok.extern.java.Log;
 import org.braekpo1nt.mctmanager.commands.bugreport.BugReportCommand;
 import org.braekpo1nt.mctmanager.commands.database.DatabaseCommand;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
-import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.commands.manager.commandresult.FailureCommandResult;
 import org.braekpo1nt.mctmanager.commands.mct.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.mctdebug.MCTDebugCommand;
 import org.braekpo1nt.mctmanager.commands.notready.NotReadyCommand;
@@ -195,9 +195,10 @@ public class Main extends JavaPlugin {
         String port = getConfig().getString("database.port", "3306");
         String user = getConfig().getString("database.user", "root");
         String password = getConfig().getString("database.password", "");
+        boolean baselineOnMigrate = getConfig().getBoolean("database.baselineOnMigrate", false);
         String databaseName = getConfig().getString("database.database_name", "challenger_trials");
         String jdbcUrl = String.format("jdbc:mysql://%s:%s/%s", host, port, databaseName);
-        flywayMigration(jdbcUrl, user, password, "ENGINE=InnoDB", "AUTO_INCREMENT");
+        flywayMigration(jdbcUrl, user, password, "ENGINE=InnoDB", "AUTO_INCREMENT", baselineOnMigrate);
         
         return new Database(
                 host,
@@ -212,12 +213,34 @@ public class Main extends JavaPlugin {
         return "classpath:db/migration";
     }
     
-    protected void flywayMigration(String jdbcUrl, String user, String password, String engine, String autoincrement) throws SQLException {
+    protected void flywayMigration(String jdbcUrl, String user, String password, String engine, String autoincrement, boolean baselineOnMigrate) throws SQLException {
         String mode = getConfig().getString("database.mode", "prod");
-        Main.flywayMigration(jdbcUrl, user, password, engine, autoincrement, mode, getLogger(), getClass().getClassLoader(), getMigrationLocation());
+        Main.flywayMigration(jdbcUrl, user, password, engine, autoincrement, mode, getLogger(), getClass().getClassLoader(), getMigrationLocation(), baselineOnMigrate);
     }
     
-    public static void flywayMigration(String jdbcUrl, String user, String password, String engine, String autoincrement, String mode, Logger logger, ClassLoader classLoader, String locations) throws SQLException {
+    public static void flywayMigration(String jdbcUrl, String user, String password, String engine, String autoincrement, String mode, Logger logger, ClassLoader classLoader, String locations, boolean baselineOnMigrate) throws SQLException {
+        /*
+        If you get the error "Cannot load from mysql.proc. The table is probably corrupted", it's a permissions
+        issue, not a corruption issue.  
+        try adding the flyway_schema_history
+        table manually to the empty database:
+        
+        CREATE TABLE `flyway_schema_history` (
+          `installed_rank` int(11) NOT NULL,
+          `version` varchar(50) DEFAULT NULL,
+          `description` varchar(200) NOT NULL,
+          `type` varchar(20) NOT NULL,
+          `script` varchar(1000) NOT NULL,
+          `checksum` int(11) DEFAULT NULL,
+          `installed_by` varchar(100) NOT NULL,
+          `installed_on` timestamp NOT NULL DEFAULT current_timestamp(),
+          `execution_time` int(11) NOT NULL,
+          `success` tinyint(1) NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+        
+        If that doesn't work on its own, also set baselineOnMigrate to true. After that it can be set to false.
+        That's how I solved it last time. 
+         */
         try {
             switch (mode) {
                 case "test" -> {
@@ -227,6 +250,7 @@ public class Main extends JavaPlugin {
                     Flyway flyway = Flyway.configure(classLoader)
                             .dataSource(jdbcUrl, user, password)
                             .locations(locations) // migration folder
+                            .baselineOnMigrate(baselineOnMigrate)
                             .validateOnMigrate(false) // don't block if scripts change
                             .cleanDisabled(false) // allow wiping DB
                             .placeholders(Map.of(
@@ -249,6 +273,7 @@ public class Main extends JavaPlugin {
                             .dataSource(jdbcUrl, user, password)
                             .locations(locations) // migration folder
                             .validateOnMigrate(true)
+                            .baselineOnMigrate(baselineOnMigrate)
                             .cleanDisabled(true)
                             .placeholders(Map.of(
                                     "engine", engine,
@@ -323,5 +348,9 @@ public class Main extends JavaPlugin {
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Error closing the database on plugin disable", e);
         }
+    }
+    
+    public ArgumentType<?> getUUIDArgumentType() {
+        return ArgumentTypes.uuid();
     }
 }

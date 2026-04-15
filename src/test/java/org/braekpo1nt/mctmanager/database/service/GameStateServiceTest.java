@@ -72,7 +72,8 @@ class GameStateServiceTest {
                 mode,
                 logger,
                 MockMain.class.getClassLoader(),
-                "classpath:db/migration/test"
+                "classpath:db/migration/test",
+                false
         );
         gameStateService = new GameStateService(mode, database);
         eventService = new EventService(mode, database);

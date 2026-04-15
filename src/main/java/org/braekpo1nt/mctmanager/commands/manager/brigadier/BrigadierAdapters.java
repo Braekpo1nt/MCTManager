@@ -46,10 +46,11 @@ public class BrigadierAdapters {
             } catch (CommandSyntaxException e) {
                 throw e;
             } catch (Exception e) {
+                String message = e.getMessage();
                 sender.sendMessage(Component.empty()
                         .append(Component.text("An internal error occurred. See console for details."))
                         .append(Component.newline())
-                        .append(Component.text(e.getMessage()))
+                        .append(Component.text(message != null ? message : "unknown"))
                         .color(NamedTextColor.RED)
                 );
                 Main.logger().log(Level.SEVERE, "An error occurred executing this command.", e);

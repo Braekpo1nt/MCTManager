@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -25,10 +26,6 @@ public class Preset {
     
     public int getTeamCount() {
         return teams.size();
-    }
-    
-    public Preset() {
-        this.fileName = "unknown";
     }
     
     /**
@@ -87,7 +84,12 @@ public class Preset {
      * @param ign the in-game-name of the member to remove
      */
     public void leaveMember(@NotNull String ign) {
-        teams.stream().filter(t -> t.getMembers().contains(ign)).findFirst().ifPresent(presetTeam -> presetTeam.getMembers().remove(ign));
+        teams.stream()
+                .filter(t -> t.getMembers().stream()
+                        .anyMatch(member -> member.getIgn().equals(ign))
+                )
+                .findFirst()
+                .ifPresent(presetTeam -> presetTeam.removeMember(ign));
     }
     
     /**
@@ -126,19 +128,23 @@ public class Preset {
     }
     
     @Data
-    @AllArgsConstructor
     public static class PresetTeam {
         
         public PresetTeam(@NotNull String teamId, @NotNull String displayName, @NotNull String color) {
+            this(teamId, displayName, color, new ArrayList<>());
+        }
+        
+        public PresetTeam(@NotNull String teamId, @NotNull String displayName, @NotNull String color, @NotNull Collection<PresetParticipant> members) {
             this.teamId = teamId;
             this.displayName = displayName;
             this.color = color;
+            this.members = new ArrayList<>(members);
         }
         
         private @NotNull String teamId;
         private @NotNull String displayName;
         private @NotNull String color;
-        private @NotNull List<PresetParticipant> members = new ArrayList<>();
+        private @NotNull List<PresetParticipant> members;
         
         public boolean hasMember(@NotNull String ign) {
             return members.stream()
@@ -148,6 +154,13 @@ public class Preset {
         public boolean hasMember(@NotNull UUID uuid) {
             return members.stream()
                     .anyMatch(member -> member.getUuid().equals(uuid));
+        }
+        
+        public void removeMember(@NotNull String ign) {
+            members = members.stream()
+                    // keep members whose ign is not the given ign
+                    .filter(member -> !member.getIgn().equals(ign))
+                    .collect(Collectors.toCollection(ArrayList::new));
         }
     }
 }

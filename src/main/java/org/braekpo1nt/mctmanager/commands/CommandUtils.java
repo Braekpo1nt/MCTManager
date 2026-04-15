@@ -7,6 +7,9 @@ import com.mojang.brigadier.tree.CommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
@@ -281,5 +284,13 @@ public class CommandUtils {
                     .forEach(value -> result.add(remainingValues + value));
         }
         return result;
+    }
+    
+    public static Component copiable(String text) {
+        return Component.text(text)
+                .decorate(TextDecoration.UNDERLINED)
+                .clickEvent(ClickEvent.copyToClipboard(text))
+                .hoverEvent(HoverEvent.showText(Component.text("Copy")))
+                ;
     }
 }

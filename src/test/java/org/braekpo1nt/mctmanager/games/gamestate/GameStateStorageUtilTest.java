@@ -50,7 +50,8 @@ public class GameStateStorageUtilTest {
                 mode,
                 logger,
                 MockMain.class.getClassLoader(),
-                "classpath:db/migration/test"
+                "classpath:db/migration/test",
+                false
         );
         gameStateService = new GameStateService(mode, database);
         gameStateStorageUtil = new GameStateStorageUtil(logger, gameStateService);

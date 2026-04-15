@@ -399,7 +399,6 @@ public class GameManager implements Listener {
             String incorrectIGN = existingParticipant.getName();
             if (incorrectIGN.equals(correctIGN)) {
                 // their name is correct, nothing to do
-                Main.logf("resolveUUIDandIGNerrors return 1, %s, %s", player.getName(), player.getUniqueId());
                 return;
             }
             // if their name is incorrect
@@ -422,7 +421,6 @@ public class GameManager implements Listener {
             } catch (SQLException e) {
                 reportGameStateException(String.format("migrate the ign of the player with uuid \"%s\" from \"%s\" to the correct ign \"%s\"", correctUUID, incorrectIGN, correctIGN), e);
             }
-            Main.logf("resolveUUIDandIGNerrors return 2, %s, %s", player.getName(), player.getUniqueId());
             return;
         }
         // if the UUID is NOT in the game state
@@ -435,7 +433,6 @@ public class GameManager implements Listener {
             } catch (SQLException e) {
                 reportGameStateException(String.format("register new player with name \"%s\" and UUID \"%s\" in the database", correctIGN, correctUUID), e);
             }
-            Main.logf("resolveUUIDandIGNerrors return 3, %s, %s", player.getName(), player.getUniqueId());
             return;
         }
         // the participant with the wrong UUID but the correct IGN is in the game state
@@ -450,7 +447,136 @@ public class GameManager implements Listener {
         }
         MCTTeam team = teams.get(offlineParticipantWithIGN.getTeamId());
         state.joinParticipantToTeam(correctUUID, correctIGN, team);
-        Main.logf("resolveUUIDandIGNerrors return 4, %s, %s", player.getName(), player.getUniqueId());
+    }
+    
+    /**
+     * Take a player and change their UUID, but keep the IGN and presence in the game state.
+     * Change this in the game state if they are present, and in the database if they are present.
+     * @param incorrectUUID the UUID to change from. Must not be an online player, or a participant in the game state
+     * @param correctUUID the UUID to change to. Must not be an online player, or a participant in the game state
+     * nothing happens.
+     * @param correctIGN The IGN of the player to change the UUID of.
+     * happens.
+     * @return the result of the change.
+     */
+    public CommandResult migrateUUID(UUID incorrectUUID, UUID correctUUID, String correctIGN) {
+        OfflineParticipant incorrectParticipant = allParticipants.get(incorrectUUID);
+        if (incorrectParticipant != null) {
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text("A participant with the \"from\" uuid "))
+                    .append(CommandUtils.copiable(incorrectUUID.toString()))
+                    .append(Component.text(" is in the game state ("))
+                    .append(CommandUtils.copiable(incorrectParticipant.getName()))
+                    .append(Component.text("). Remove them to complete the migration."))
+            );
+        }
+        OfflineParticipant correctParticipant = allParticipants.get(correctUUID);
+        if (correctParticipant != null) {
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text("A participant with the \"to\" uuid "))
+                    .append(CommandUtils.copiable(correctUUID.toString()))
+                    .append(Component.text(" is in the game state ("))
+                    .append(CommandUtils.copiable(correctParticipant.getName()))
+                    .append(Component.text("). Remove them to complete the migration."))
+            );
+        }
+        Player incorrectUUIDPlayer = plugin.getServer().getPlayer(incorrectUUID);
+        if (incorrectUUIDPlayer != null) {
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text("A participant with the \"from\" uuid "))
+                    .append(CommandUtils.copiable(incorrectUUID.toString()))
+                    .append(Component.text(" is online ("))
+                    .append(CommandUtils.copiable(incorrectUUIDPlayer.getName()))
+                    .append(Component.text("). They must disconnect from the server before this migration."))
+            );
+        }
+        Player correctUUIDPlayer = plugin.getServer().getPlayer(correctUUID);
+        if (correctUUIDPlayer != null) {
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text("A participant with the \"to\" uuid "))
+                    .append(CommandUtils.copiable(correctUUID.toString()))
+                    .append(Component.text(" is online ("))
+                    .append(CommandUtils.copiable(correctUUIDPlayer.getName()))
+                    .append(Component.text("). They must disconnect from the server before this migration."))
+            );
+        }
+        try {
+            gameStateService.migrateUUID(incorrectUUID.toString(), correctUUID.toString(), correctIGN);
+        } catch (SQLException e) {
+            return CommandResult.sqlException("migrate player UUID", e);
+        }
+        return CommandResult.success(Component.empty()
+                .append(Component.text("Migrated player UUID from "))
+                .append(Component.text(incorrectUUID.toString())
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text(" to "))
+                .append(Component.text(correctUUID.toString())
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text(" for IGN "))
+                .append(Component.text(correctIGN)
+                        .decorate(TextDecoration.BOLD))
+        );
+    }
+    
+    /**
+     * @param correctUUID the UUID of the player to set the IGN of
+     * @param correctIGN the IGN to set to
+     * @return the result of the operation
+     */
+    public CommandResult migrateIGN(UUID correctUUID, String correctIGN) {
+        OfflineParticipant correctParticipant = allParticipants.get(correctUUID);
+        if (correctParticipant != null) {
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text("The participant with the uuid "))
+                    .append(CommandUtils.copiable(correctUUID.toString()))
+                    .append(Component.text(" is in the game state ("))
+                    .append(CommandUtils.copiable(correctParticipant.getName()))
+                    .append(Component.text("). Remove them to complete the migration."))
+            );
+        }
+        OfflineParticipant participantWithIGN = getOfflineParticipant(correctIGN);
+        if (participantWithIGN != null) {
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text("The participant with the IGN "))
+                    .append(CommandUtils.copiable(correctIGN))
+                    .append(Component.text(" is in the game state ("))
+                    .append(CommandUtils.copiable(participantWithIGN.getUniqueId().toString()))
+                    .append(Component.text("). Remove them to complete the migration."))
+            );
+        }
+        Player correctUUIDPlayer = plugin.getServer().getPlayer(correctUUID);
+        if (correctUUIDPlayer != null) {
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text("The participant with the uuid "))
+                    .append(CommandUtils.copiable(correctUUID.toString()))
+                    .append(Component.text(" is online ("))
+                    .append(CommandUtils.copiable(correctUUIDPlayer.getName()))
+                    .append(Component.text("). They must disconnect from the server before this migration."))
+            );
+        }
+        Player correctIGNPlayer = plugin.getServer().getPlayer(correctIGN);
+        if (correctIGNPlayer != null) {
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text("The participant with the IGN "))
+                    .append(CommandUtils.copiable(correctIGNPlayer.getName()))
+                    .append(Component.text(" is online ("))
+                    .append(CommandUtils.copiable(correctIGNPlayer.getUniqueId().toString()))
+                    .append(Component.text("). They must disconnect from the server before this migration."))
+            );
+        }
+        try {
+            gameStateService.migrateIgn(correctUUID.toString(), correctIGN);
+        } catch (SQLException e) {
+            return CommandResult.sqlException("migrate player IGN", e);
+        }
+        return CommandResult.success(Component.empty()
+                .append(Component.text("Migrated IGN of player with UUID "))
+                .append(Component.text(correctUUID.toString())
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text(" to "))
+                .append(Component.text(correctIGN)
+                        .decorate(TextDecoration.BOLD))
+        );
     }
     
     @EventHandler

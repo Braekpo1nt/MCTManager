@@ -4,19 +4,19 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
-import org.braekpo1nt.mctmanager.commands.argumenttypes.FileResolver;
-import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.FileArgumentType;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.FileResolver;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.Preset;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.Arrays;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
@@ -45,6 +45,7 @@ public class PresetCommand implements BrigadierSubCommand {
                         .then(new PresetRemoveSubCommand(storageUtil).create())
                         .then(new PresetJoinSubCommand(plugin, storageUtil).create())
                         .then(new PresetLeaveSubCommand(storageUtil).create())
+                        .then(new PresetAddMissingUUIDsCommand(plugin).create())
                 )
                 ;
     }
@@ -78,14 +79,20 @@ public class PresetCommand implements BrigadierSubCommand {
         return CompletableFuture.supplyAsync(() -> {
             Preset preset;
             try {
-                File presetFile = ctx.getArgument(PRESET_FILE_ARG, File.class);
+                FileResolver resolver = ctx.getArgument(PresetCommand.PRESET_FILE_ARG, FileResolver.class);
+                File presetFile = resolver.resolve();
                 preset = storageUtil.loadPreset(presetFile);
             } catch (Exception e) {
+                plugin.getServer().getOnlinePlayers().stream()
+                        .map(Player::getName)
+                        .distinct()
+                        .filter(name -> name.toLowerCase().startsWith(builder.getRemainingLowerCase()))
+                        .forEach(builder::suggest);
                 return builder.build();
             }
             Stream.concat(
-                            Arrays.stream(plugin.getServer().getOfflinePlayers())
-                                    .map(OfflinePlayer::getName),
+                            plugin.getServer().getOnlinePlayers().stream()
+                                    .map(Player::getName),
                             preset.getMembers().stream()
                                     .map(Preset.PresetParticipant::getIgn)
                     )
@@ -106,7 +113,10 @@ public class PresetCommand implements BrigadierSubCommand {
     public static CompletableFuture<Suggestions> suggestPresetUUIDs(CommandContext<CommandSourceStack> ctx, SuggestionsBuilder builder, Main plugin) {
         return CompletableFuture.supplyAsync(() -> {
             String ign = ctx.getArgument(PRESET_MEMBER_IGN_ARG, String.class);
-            plugin.getServer().getOfflinePlayer(ign);
+            UUID uuid = plugin.getServer().getPlayerUniqueId(ign);
+            if (uuid != null) {
+                builder.suggest(uuid.toString());
+            }
             return builder.build();
         });
     }
@@ -121,7 +131,8 @@ public class PresetCommand implements BrigadierSubCommand {
         return CompletableFuture.supplyAsync(() -> {
             Preset preset;
             try {
-                File presetFile = ctx.getArgument(PRESET_FILE_ARG, File.class);
+                FileResolver resolver = ctx.getArgument(PresetCommand.PRESET_FILE_ARG, FileResolver.class);
+                File presetFile = resolver.resolve();
                 preset = storageUtil.loadPreset(presetFile);
             } catch (Exception e) {
                 return builder.build();

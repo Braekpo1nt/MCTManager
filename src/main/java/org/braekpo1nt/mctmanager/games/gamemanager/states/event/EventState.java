@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -108,14 +109,16 @@ public abstract class EventState extends GameManagerState {
     @Override
     public @NotNull CommandResult stopEvent() {
         if (plugin.isEnabled()) {
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, this::unsetActiveEventId);
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin,
+                    this::markEventAsStoppedInDatabase
+            );
         } else {
-            unsetActiveEventId();
+            markEventAsStoppedInDatabase();
         }
         return switchMode(Mode.MAINTENANCE);
     }
     
-    private void unsetActiveEventId() {
+    private void markEventAsStoppedInDatabase() {
         try {
             context.getEventService().updateActiveEvent(
                     null,
@@ -123,7 +126,15 @@ public abstract class EventState extends GameManagerState {
                     7
             );
         } catch (SQLException e) {
-            Main.logger().log(Level.SEVERE, "Could not update active event ID in system_state table", e);
+            Main.logger().log(Level.WARNING, "Could not update active event ID in system_state table", e);
+        }
+        try {
+            context.getEventService().setEventEndTime(
+                    eventData.getEventInfo().getEventId(),
+                    new Date()
+            );
+        } catch (SQLException e) {
+            Main.logger().log(Level.WARNING, "Could set event end time", e);
         }
     }
     

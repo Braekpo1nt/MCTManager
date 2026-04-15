@@ -205,7 +205,7 @@ public class GameStateService {
     }
     
     public RegisterConflictType addParticipant(@NotNull EventParticipantEntity participant, @NotNull String ign) throws SQLException {
-        return TransactionManager.callInTransaction(activeParticipantsDao.getConnectionSource(), () -> {
+        return TransactionManager.callInTransaction(eventParticipantsDao.getConnectionSource(), () -> {
             RegisterConflictType type = _registerPlayer(participant.getParticipantUUID(), ign);
             eventParticipantsDao.create(participant);
             return type;
@@ -574,12 +574,6 @@ public class GameStateService {
         allPlayersDao.deleteById(from);
     }
     
-    public static class MultiplePlayersWithNameException extends Exception {
-        public MultiplePlayersWithNameException(String ign) {
-            super(String.format("Multiple players with the ign \"%s\" exist", ign));
-        }
-    }
-    
     public @Nullable AllPlayersEntity getPlayer(String uuid) throws SQLException {
         return allPlayersDao.queryForId(uuid);
     }
@@ -589,16 +583,14 @@ public class GameStateService {
      * @return the {@link AllPlayersEntity} with the given ign, or null if
      * no such player exists
      * @throws SQLException if there's a database error
-     * @throws MultiplePlayersWithNameException if multiple players exist in the database with the same IGN (should not
-     * happen because unique IGNs should be enforced by the database)
      */
-    public @Nullable AllPlayersEntity getPlayerByIgn(String ign) throws SQLException, MultiplePlayersWithNameException {
+    public @Nullable AllPlayersEntity getPlayerByIgn(String ign) throws SQLException {
         List<AllPlayersEntity> options = allPlayersDao.queryForEq("ign", ign);
         if (options.isEmpty()) {
             return null;
         }
         if (options.size() != 1) {
-            throw new MultiplePlayersWithNameException(ign);
+            throw new IllegalStateException(String.format("multiple players exist with the ign \"%s\", this should be impossible", ign));
         }
         return options.getFirst();
     }
@@ -643,12 +635,32 @@ public class GameStateService {
         try (GenericRawResults<String[]> raw =
                      allPlayersDao.queryRaw(sql)) {
             List<String[]> rawResults = raw.getResults();
-            List<String> result = new ArrayList<>(rawResults.size());
+            List<String> results = new ArrayList<>(rawResults.size());
             for (String[] row : rawResults) {
                 String ign = row[0];
-                result.add(ign);
+                results.add(ign);
             }
-            return result;
+            return results;
+        } catch (Exception e) {
+            throw new SQLException("Exception thrown while getting player names", e);
+        }
+    }
+    
+    public @NotNull List<String> getPlayerUUIDs() throws SQLException {
+        String sql = """
+                SELECT
+                    ap.uuid
+                FROM all_players ap
+                """;
+        try (GenericRawResults<String[]> raw =
+                     allPlayersDao.queryRaw(sql)) {
+            List<String[]> rawResults = raw.getResults();
+            List<String> results = new ArrayList<>(rawResults.size());
+            for (String[] row : rawResults) {
+                String uuid = row[0];
+                results.add(uuid);
+            }
+            return results;
         } catch (Exception e) {
             throw new SQLException("Exception thrown while getting player names", e);
         }
@@ -681,14 +693,33 @@ public class GameStateService {
     
     public void addTeam(@NotNull ActiveTeam team) throws SQLException {
         activeTeamsDao.create(team);
+        incrementActiveVersion();
     }
     
     public void addParticipant(@NotNull ActiveParticipant participant) throws SQLException {
         TransactionManager.callInTransaction(activeParticipantsDao.getConnectionSource(), () -> {
             _registerPlayer(participant.getParticipantUUID(), participant.getIgn());
             activeParticipantsDao.create(participant);
+            incrementActiveVersion();
             return null;
         });
+    }
+    
+    /**
+     * Used when the active_participants, active_teams, in_game_participants, or in_game_teams tables are updated and
+     * any clients reading the data need to refresh their view.
+     * @throws SQLException if there's an error
+     */
+    private void incrementActiveVersion() throws SQLException {
+        UpdateBuilder<SystemState, Integer> stateUpdateBuilder = systemStateDao.updateBuilder();
+        stateUpdateBuilder.updateColumnExpression("active_version", "active_version + 1");
+        stateUpdateBuilder.update();
+    }
+    
+    public void setActiveVersion(int activeVersion) throws SQLException {
+        UpdateBuilder<SystemState, Integer> stateUpdateBuilder = systemStateDao.updateBuilder();
+        stateUpdateBuilder.updateColumnValue("active_version", activeVersion);
+        stateUpdateBuilder.update();
     }
     
     public List<ActiveTeam> getActiveTeams() throws SQLException {
@@ -701,10 +732,12 @@ public class GameStateService {
     
     public void updateActiveParticipant(@NotNull ActiveParticipant activeParticipant) throws SQLException {
         activeParticipantsDao.update(activeParticipant);
+        incrementActiveVersion();
     }
     
     public void updateActiveTeam(@NotNull ActiveTeam activeTeam) throws SQLException {
         activeTeamsDao.update(activeTeam);
+        incrementActiveVersion();
     }
     
     public void updateActiveParticipants(@NotNull List<ActiveParticipant> activeParticipants) throws Exception {
@@ -717,6 +750,7 @@ public class GameStateService {
             }
             return null;
         });
+        incrementActiveVersion();
     }
     
     public void updateActiveTeams(@NotNull List<ActiveTeam> activeTeams) throws Exception {
@@ -729,6 +763,7 @@ public class GameStateService {
             }
             return null;
         });
+        incrementActiveVersion();
     }
     
     /**
@@ -749,18 +784,35 @@ public class GameStateService {
      */
     public void deleteTeam(@NotNull String teamId) throws SQLException {
         TransactionManager.callInTransaction(activeTeamsDao.getConnectionSource(), () -> {
-            DeleteBuilder<ActiveParticipant, String> deleteBuilder = activeParticipantsDao.deleteBuilder();
-            deleteBuilder
+            // delete all participants on that team
+            // first delete from in_game_participants because of foreign keys
+            DeleteBuilder<InGameParticipant, String> inGameDeleteBuilder = inGameParticipantsDao.deleteBuilder();
+            inGameDeleteBuilder
                     .where()
                     .eq("team_id", teamId);
-            deleteBuilder.delete();
+            inGameDeleteBuilder.delete();
+            // then delete from active
+            DeleteBuilder<ActiveParticipant, String> activeDeleteBuilder = activeParticipantsDao.deleteBuilder();
+            activeDeleteBuilder
+                    .where()
+                    .eq("team_id", teamId);
+            activeDeleteBuilder.delete();
+            
+            // delete the team
+            inGameteamsDao.deleteById(teamId);
             activeTeamsDao.deleteById(teamId);
+            incrementActiveVersion();
             return null;
         });
     }
     
     public void deleteParticipant(@NotNull String participantUUID) throws SQLException {
-        activeParticipantsDao.deleteById(participantUUID);
+        TransactionManager.callInTransaction(activeParticipantsDao.getConnectionSource(), () -> {
+            inGameParticipantsDao.deleteById(participantUUID);
+            activeParticipantsDao.deleteById(participantUUID);
+            incrementActiveVersion();
+            return null;
+        });
     }
     
     // Admins
@@ -838,19 +890,23 @@ public class GameStateService {
     
     public void addOrUpdateTeam(@NotNull InGameTeam team) throws SQLException {
         inGameteamsDao.createOrUpdate(team);
+        incrementActiveVersion();
     }
     
     public void addOrUpdateParticipant(@NotNull InGameParticipant participant) throws SQLException {
         inGameParticipantsDao.createOrUpdate(participant);
+        incrementActiveVersion();
     }
     
     public void deleteInGameTeam(@NotNull String teamId) throws SQLException {
         // safe if row with id doesn't exist
         inGameteamsDao.deleteById(teamId);
+        incrementActiveVersion();
     }
     
     public void deleteInGameParticipant(@NotNull String participantUUID) throws SQLException {
         inGameParticipantsDao.deleteById(participantUUID);
+        incrementActiveVersion();
     }
     
     /**
@@ -875,6 +931,7 @@ public class GameStateService {
                     }
                     return null;
                 });
+                incrementActiveVersion();
             } catch (Exception e) {
                 throw new SQLException("Error occurred creating participants and teams in-game", e);
             }
@@ -900,28 +957,32 @@ public class GameStateService {
                     .where()
                     .eq("session_id", gameSessionId);
             participantDeleteBuilder.delete();
+            incrementActiveVersion();
             return null;
         });
     }
     
     public void update(@NotNull InGameParticipant participant) throws SQLException {
         inGameParticipantsDao.update(participant);
+        incrementActiveVersion();
     }
     
     public void update(@NotNull InGameTeam team) throws SQLException {
         inGameteamsDao.update(team);
+        incrementActiveVersion();
     }
     
     public void updateInGameParticipants(@NotNull List<InGameParticipant> participants) throws Exception {
         if (participants.isEmpty()) {
             return;
         }
-        activeParticipantsDao.callBatchTasks(() -> {
+        inGameParticipantsDao.callBatchTasks(() -> {
             for (InGameParticipant participant : participants) {
                 inGameParticipantsDao.update(participant);
             }
             return null;
         });
+        incrementActiveVersion();
     }
     
     public void updateInGameTeams(@NotNull List<InGameTeam> teams) throws Exception {
@@ -934,6 +995,7 @@ public class GameStateService {
             }
             return null;
         });
+        incrementActiveVersion();
     }
     
     public void rebuildPracticeMode() throws SQLException {
@@ -1009,6 +1071,7 @@ public class GameStateService {
                         FROM practice_admins pa
                     """);
             
+            incrementActiveVersion();
             return null;
         });
     }
@@ -1132,6 +1195,7 @@ SELECT
                         FROM maintenance_admins ma
                     """);
             
+            incrementActiveVersion();
             return null;
         });
     }
@@ -1222,6 +1286,7 @@ SELECT
                     eventId
             );
             
+            incrementActiveVersion();
             return null;
         });
     }

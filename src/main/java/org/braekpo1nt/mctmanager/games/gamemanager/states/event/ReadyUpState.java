@@ -35,6 +35,7 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -130,6 +131,10 @@ public class ReadyUpState extends EventState {
                         eventData.getEventInfo().getEventId(),
                         eventData.getCurrentGameNumber(),
                         eventData.getMaxGames()
+                );
+                context.getEventService().setEventStartTime(
+                        eventData.getEventInfo().getEventId(),
+                        new Date()
                 );
             } catch (SQLException e) {
                 Main.logger().log(Level.SEVERE, "Could not update active event ID in system_state table", e);

@@ -207,4 +207,31 @@ public class EventService {
         updateBuilder.update();
     }
     
+    public void setEventStartTime(@NotNull String eventId, @Nullable Date startedAt) throws SQLException {
+        UpdateBuilder<EventInfoDto, String> updateBuilder = eventInfoDao.updateBuilder();
+        updateBuilder.where()
+                .idEq(eventId);
+        updateBuilder
+                .updateColumnValue("started_at", startedAt);
+        updateBuilder.update();
+    }
+    
+    public void setEventEndTime(@NotNull String eventId, @Nullable Date endedAt) throws SQLException {
+        UpdateBuilder<EventInfoDto, String> updateBuilder = eventInfoDao.updateBuilder();
+        updateBuilder.where()
+                .idEq(eventId);
+        updateBuilder
+                .updateColumnValue("ended_at", endedAt);
+        updateBuilder.update();
+    }
+    
+    public void setEventWinner(@NotNull String eventId, @Nullable String winnerTeamId) throws SQLException {
+        UpdateBuilder<EventInfoDto, String> updateBuilder = eventInfoDao.updateBuilder();
+        updateBuilder.where()
+                .idEq(eventId);
+        updateBuilder
+                .updateColumnValue("winner_team_id", winnerTeamId);
+        updateBuilder.update();
+    }
+    
 }

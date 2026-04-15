@@ -1456,6 +1456,23 @@ public abstract class GameManagerState {
     
     // participant start
     
+    private void validateUUIDAndIGN(@NotNull UUID uuid, @NotNull String ign) throws IllegalArgumentException {
+        /*
+        - check if the player's UUID is in the game state already
+            - if their UUID IS in the game state
+                - check to see if their IGN matches the given one
+                    - if the IGN does not match, return an error (IGN does not match UUID)
+                    - if the IGN matches, continue join operation
+            - if their UUID is NOT in the game state
+                - check to see if the given IGN is in the game state
+                    - if the IGN is in the game state
+                        - then the UUID input is wrong, throw an error (UUID does not match IGN)
+                    - if the IGN is NOT in the game state
+                        - then it's a new player with a new IGN and UUID, continue join operation
+         */
+        
+    }
+    
     /**
      * Joins the given player to the team with the given teamId. If the player was on a team already (not teamId) they
      * will be removed from that team and added to the other team.
@@ -1465,11 +1482,32 @@ public abstract class GameManagerState {
      * @param team The internal teamId of the team to join the player to.
      */
     public CommandResult joinParticipantToTeam(@NotNull UUID uuid, @NotNull String ign, @NotNull MCTTeam team) {
+        // warn about UUID and IGN mismatches
+        OfflineParticipant existingParticipant = allParticipants.get(uuid);
+        if (existingParticipant != null) {
+            // the UUID is in the game state
+            if (!existingParticipant.getName().equals(ign)) {
+                // the name doesn't match
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text("The given IGN does not match the UUID in the game state"))
+                );
+            }
+            // the name matches, proceed
+        } else {
+            // the UUID is not in the game state
+            OfflineParticipant offlineParticipantWithIGN = context.getOfflineParticipant(ign);
+            if (offlineParticipantWithIGN != null) {
+                // someone with that IGN but a different UUID exists
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text("The given UUID does not match the IGN in the game state"))
+                );
+            }
+        }
+        
         List<CommandResult> results = new ArrayList<>();
         if (context.isAdmin(uuid)) {
             results.add(removeAdmin(uuid, ign));
         }
-        OfflineParticipant existingParticipant = allParticipants.get(uuid);
         if (existingParticipant != null) {
             if (existingParticipant.isOnTeam(team)) {
                 results.add(CommandResult.success(Component.empty()

@@ -1,6 +1,8 @@
 package org.braekpo1nt.mctmanager;
 
 import com.github.retrooper.packetevents.PacketEvents;
+import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.service.GameStateService;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
@@ -59,8 +61,9 @@ public class MockMain extends Main {
         String sqlitePath = new File(getDataFolder(), "mctmanager.db").getAbsolutePath();
         String user = getConfig().getString("database.user", "root");
         String password = getConfig().getString("database.password", "");
+        boolean baselineOnMigrate = getConfig().getBoolean("database.baselineOnMigrate", false);
         String jdbcUrl = "jdbc:sqlite:" + sqlitePath;
-        flywayMigration(jdbcUrl, user, password, "", "");
+        flywayMigration(jdbcUrl, user, password, "", "", baselineOnMigrate);
         
         return new Database(sqlitePath);
     }
@@ -81,5 +84,10 @@ public class MockMain extends Main {
     
     public Database getDatabase() {
         return database;
+    }
+    
+    @Override
+    public ArgumentType<?> getUUIDArgumentType() {
+        return StringArgumentType.word();
     }
 }

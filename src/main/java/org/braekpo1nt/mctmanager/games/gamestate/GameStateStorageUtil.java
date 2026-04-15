@@ -88,6 +88,7 @@ public class GameStateStorageUtil {
      */
     public void loadGameState() throws SQLException {
         this.gameState = constructGameStateFromDatabase();
+        gameStateService.setActiveVersion(0);
         LOGGER.info("Constructed game state from database");
     }
     
