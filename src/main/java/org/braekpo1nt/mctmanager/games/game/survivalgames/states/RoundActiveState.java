@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesParticipant;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesTeam;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfig;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -431,8 +432,9 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
                 .append(deadTeam.getFormattedDisplayName())
                 .append(Component.text(" has been eliminated.")));
         List<SurvivalGamesTeam> livingTeams = getLivingTeams();
-        for (SurvivalGamesTeam livingTeam : livingTeams) {
-            context.awardPoints(livingTeam, config.getSurviveTeamScore(), String.format("Team \"%s\" was eliminated", deadTeam.getTeamId()));
+        List<SurvivalGamesParticipant> livingParticipants = getLivingParticipants();
+        for (SurvivalGamesParticipant livingParticipant : livingParticipants) {
+            context.awardPoints(livingParticipant, config.getSurviveTeamScore(), String.format("Team \"%s\" was eliminated", deadTeam.getTeamId()));
         }
         if (!getRespawningTeams().isEmpty()) {
             // there is still battle to be had
@@ -465,6 +467,12 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
     private @NotNull List<SurvivalGamesTeam> getLivingTeams() {
         return context.getTeams().values().stream()
                 .filter(SurvivalGamesTeam::isAlive)
+                .toList();
+    }
+    
+    private @NotNull List<SurvivalGamesParticipant> getLivingParticipants() {
+        return context.getParticipants().values().stream()
+                .filter(SurvivalGamesParticipant::isAlive)
                 .toList();
     }
     
