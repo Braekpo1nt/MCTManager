@@ -384,6 +384,7 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
                 context.awardPoints(killer, config.getKillScore(), String.format("Killed \"%s\"", killed.getName()));
             }
             else {
+                // killer.getKills() should return the new kill count, so it should never be 0.
                 context.awardPoints(killer, config.getKillScore()/killer.getKills(), String.format("Killed \"%s\"", killed.getName()));
             }
         }
