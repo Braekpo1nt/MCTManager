@@ -14,9 +14,9 @@ import org.jetbrains.annotations.Nullable;
 
 public class BorderShrinkingState extends RoundActiveState {
     
-    private static final String CHEST_REFILL_SOUND = "block.note_block.bit"; //Change all 3 to match chest open sound
+    private static final String CHEST_REFILL_SOUND = "block.chest.open"; //Change all 3 to match chest open sound
     private static final int REFILL_VOLUME = 50;
-    private static final int REFILL_PITCH = 30;
+    private static final int REFILL_PITCH = 3;
     
     protected @Nullable Timer borderShrinking;
     
