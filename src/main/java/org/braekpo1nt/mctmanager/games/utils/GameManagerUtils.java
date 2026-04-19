@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.utils;
 
 import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
+import lombok.Data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
@@ -13,6 +14,7 @@ import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommand
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.Preset;
+import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetOpts;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
@@ -21,6 +23,7 @@ import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.Color;
 import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -44,6 +47,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
 
 public class GameManagerUtils {
@@ -61,6 +65,8 @@ public class GameManagerUtils {
      */
     public final static List<InventoryAction> INV_REMOVE_ACTIONS = List.of(InventoryAction.DROP_ALL_CURSOR, InventoryAction.DROP_ALL_SLOT, InventoryAction.DROP_ONE_CURSOR, InventoryAction.DROP_ONE_SLOT, InventoryAction.MOVE_TO_OTHER_INVENTORY);
     public static final NamespacedKey IGNORE_TEAM_COLOR = NamespacedKey.minecraft("ignoreteamcolor");
+    private static final int NUM_OF_PARTICIPANTS_PER_CYCLE = 5;
+    private static final long DELAY_BETWEEN_CYCLE_IN_SECONDS = 5L;
     
     
     /**
@@ -455,44 +461,15 @@ public class GameManagerUtils {
         return sortedTeams;
     }
     
-    public static @NotNull CommandResult applyPreset(
-            @NotNull Main plugin,
-            @NotNull GameManager gameManager,
-            @NotNull PresetStorageUtil storageUtil,
-            @NotNull String presetFile,
-            boolean override,
-            boolean resetScores,
-            boolean whiteList,
-            boolean unWhitelist,
-            boolean kickUnWhitelisted) {
-        return applyPreset(
-                plugin,
-                gameManager,
-                storageUtil,
-                new File(new File(plugin.getDataFolder(), "preset"), presetFile),
-                override,
-                resetScores,
-                whiteList,
-                unWhitelist,
-                kickUnWhitelisted
-        );
+    @Data
+    private static class ParticipantInfo {
+        private final UUID uuid;
+        private final String ign;
+        private final String teamId;
     }
     
     /**
-     * @param whiteList if true, all participants in the preset will be whitelisted.
-     * If false, no participants will be whitelisted by this process.
-     * @param override if true, all previous teams and participants will be cleared and the preset
-     * teams and participants will be added (thus replacing everything with the
-     * preset). If false, the previous GameSate will not be changed, and it will
-     * try to add all teams from the preset but not override existing teams,
-     * and participants will be joined to teams according to the preset but
-     * any participants not mentioned in preset will be ignored/unchanged.
-     * @param resetScores if true, all scores will be set to 0 for all teams mentioned in the preset,
-     * even if the teams already exist.
-     * @param unWhitelist if true, all participants will be un-whitelisted before the preset
-     * is applied. If false, no players will be un-whitelisted by this process.
-     * @param kickUnWhitelisted kick any players which are online but aren't whitelisted after
-     * the application of the given preset
+     * @param opts the options
      * @return a comprehensive {@link CompositeCommandResult} including every {@link CommandResult} of the (perhaps
      * many) operations performed here.
      */
@@ -501,11 +478,8 @@ public class GameManagerUtils {
             @NotNull GameManager gameManager,
             @NotNull PresetStorageUtil storageUtil,
             @NotNull File presetFile,
-            boolean override,
-            boolean resetScores,
-            boolean whiteList,
-            boolean unWhitelist,
-            boolean kickUnWhitelisted) {
+            @NotNull CommandSender sender,
+            @NotNull PresetOpts opts) {
         Preset preset;
         try {
             preset = storageUtil.loadPreset(presetFile);
@@ -520,7 +494,7 @@ public class GameManagerUtils {
         List<CommandResult> results = new LinkedList<>();
         
         Collection<OfflineParticipant> offlineParticipants = gameManager.getOfflineParticipants();
-        if (unWhitelist) {
+        if (opts.unWhitelist()) {
             int count = 0;
             for (OfflineParticipant offlineParticipant : offlineParticipants) {
                 OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(offlineParticipant.getUniqueId());
@@ -534,7 +508,7 @@ public class GameManagerUtils {
         }
         
         // check if they want to overwrite or merge the game state
-        if (override) {
+        if (opts.override()) {
             Main.logf("Overriding with preset");
             // remove all existing teams and leave all existing players
             int oldParticipantCount = offlineParticipants.size();
@@ -568,28 +542,148 @@ public class GameManagerUtils {
             }
         }
         
-        // join all the participants
+        List<ParticipantInfo> participantInfos = new ArrayList<>(participantCount);
         for (Preset.PresetTeam team : preset.getTeams()) {
             for (Preset.PresetParticipant member : team.getMembers()) {
-                results.add(gameManager.joinOfflineParticipant(member.getUuid(), member.getIgn(), team.getTeamId()));
+                participantInfos.add(new ParticipantInfo(
+                        member.getUuid(),
+                        member.getIgn(),
+                        team.getTeamId()
+                ));
             }
         }
         
         results.add(CommandResult.success(Component.empty()
                 .append(Component.text("Successfully added "))
                 .append(Component.text(teamCount))
+                .append(Component.text(" team(s)")))
+        );
+        
+        // join all the participants in a staggered formation to prevent crashes
+        results.add(CommandResult.success(Component.empty()
+                .append(Component.text(participantCount))
+                .append(Component.text(" participants to join. "))
+                .append(Component.text(DELAY_BETWEEN_CYCLE_IN_SECONDS))
+                .append(Component.text(" second delay before first wave of "))
+                .append(Component.text(Math.min(NUM_OF_PARTICIPANTS_PER_CYCLE, participantCount)))
+                .append(Component.text(" participants."))
+        ));
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            bulkJoinParticipants(
+                    participantInfos,
+                    plugin,
+                    gameManager,
+                    sender,
+                    opts,
+                    0,
+                    preset.getTeams()
+            );
+        }, 20 * DELAY_BETWEEN_CYCLE_IN_SECONDS);
+        
+        return CompositeCommandResult.all(results);
+    }
+    
+    /**
+     * A recursive operation with a delay
+     */
+    private static void bulkJoinParticipants(
+            List<ParticipantInfo> participantInfos,
+            @NotNull Main plugin,
+            @NotNull GameManager gameManager,
+            @NotNull CommandSender sender,
+            @NotNull PresetOpts opts,
+            int startIndex,
+            @NotNull List<Preset.PresetTeam> teams
+    ) {
+        if (startIndex >= participantInfos.size()) {
+            // termination condition
+            applyRestOfSettings(
+                    plugin,
+                    gameManager,
+                    sender,
+                    opts,
+                    teams,
+                    participantInfos.size()
+            );
+            return;
+        }
+        List<CommandResult> results = new ArrayList<>();
+        // join the first 5 participants
+        int maxIndex = Math.min(startIndex + NUM_OF_PARTICIPANTS_PER_CYCLE, participantInfos.size());
+        int left = participantInfos.size() - maxIndex;
+        for (int i = startIndex; i < maxIndex; i++) {
+            ParticipantInfo participantInfo = participantInfos.get(i);
+            Player player = plugin.getServer().getPlayer(participantInfo.getUuid());
+            if (player != null) {
+                // they are online
+                results.add(gameManager.joinOnlineParticipant(player, participantInfo.getTeamId()));
+            } else {
+                // they are not online
+                results.add(gameManager.joinOfflineParticipant(participantInfo.getUuid(), participantInfo.getIgn(), participantInfo.getTeamId()));
+            }
+        }
+        if (left > 0) {
+            results.add(CommandResult.success(Component.empty()
+                    .append(Component.text(left))
+                    .append(Component.text(" participants to go. "))
+                    .append(Component.text(DELAY_BETWEEN_CYCLE_IN_SECONDS))
+                    .append(Component.text(" second delay before next wave of "))
+                    .append(Component.text(Math.min(NUM_OF_PARTICIPANTS_PER_CYCLE, left)))
+                    .append(Component.text(" participants."))
+            ));
+        } else {
+            results.add(CommandResult.success(Component.empty()
+                    .append(Component.text("All "))
+                    .append(Component.text(participantInfos.size()))
+                    .append(Component.text(" participants joined. "))
+                    .append(Component.text(DELAY_BETWEEN_CYCLE_IN_SECONDS))
+                    .append(Component.text(" second delay before final preset options are applied."))
+            ));
+        }
+        CommandResult result = CompositeCommandResult.all(results);
+        CommandResult.showResult(sender, result);
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            bulkJoinParticipants(
+                    participantInfos,
+                    plugin,
+                    gameManager,
+                    sender,
+                    opts,
+                    maxIndex,
+                    teams
+            );
+        }, 20L * DELAY_BETWEEN_CYCLE_IN_SECONDS);
+    }
+    
+    /**
+     * These operations must be done after all the participants from the preset have
+     * been joined to their teams, which happens in
+     * {@link #bulkJoinParticipants(List, Main, GameManager, CommandSender, PresetOpts, int, List)}.
+     */
+    private static void applyRestOfSettings(
+            @NotNull Main plugin,
+            @NotNull GameManager gameManager,
+            @NotNull CommandSender sender,
+            @NotNull PresetOpts opts,
+            @NotNull List<Preset.PresetTeam> teams,
+            int participantCount
+    ) {
+        List<CommandResult> results = new ArrayList<>();
+        results.add(CommandResult.success(Component.empty()
+                .append(Component.text("Successfully added "))
+                .append(Component.text(teams.size()))
                 .append(Component.text(" team(s) and joined "))
                 .append(Component.text(participantCount))
-                .append(Component.text(" participant(s)."))));
-        
-        if (resetScores) {
+                .append(Component.text(" participant(s).")))
+        );
+        if (opts.resetScores()) {
             gameManager.setScoreAll(0, "apply preset reset scores command");
             results.add(CommandResult.success(Component.empty()
                     .append(Component.text("All team and player scores have been set to 0"))));
         }
         
-        if (whiteList) {
-            for (Preset.PresetTeam team : preset.getTeams()) {
+        if (opts.whiteList()) {
+            for (Preset.PresetTeam team : teams) {
                 for (Preset.PresetParticipant member : team.getMembers()) {
                     OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(member.getUuid());
                     if (!offlinePlayer.isWhitelisted()) {
@@ -603,7 +697,7 @@ public class GameManagerUtils {
                     .append(Component.text(" participant(s)"))));
         }
         
-        if (kickUnWhitelisted) {
+        if (opts.kickUnWhitelisted()) {
             int kickCount = 0;
             for (Player onlinePlayer : plugin.getServer().getOnlinePlayers()) {
                 if (!onlinePlayer.isWhitelisted() && !onlinePlayer.isOp()) {
@@ -617,7 +711,7 @@ public class GameManagerUtils {
                     .append(Component.text(kickCount))
                     .append(Component.text(" un-whitelisted player(s)"))));
         }
-        
-        return CompositeCommandResult.all(results);
+        CommandResult result = CompositeCommandResult.all(results);
+        CommandResult.showResult(sender, result);
     }
 }

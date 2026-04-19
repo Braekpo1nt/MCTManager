@@ -722,6 +722,12 @@ public class GameStateService {
         stateUpdateBuilder.update();
     }
     
+    public void setSystemStateDescription(@NotNull String stateDescription) throws SQLException {
+        UpdateBuilder<SystemState, Integer> stateUpdateBuilder = systemStateDao.updateBuilder();
+        stateUpdateBuilder.updateColumnValue("state_description", stateDescription);
+        stateUpdateBuilder.update();
+    }
+    
     public List<ActiveTeam> getActiveTeams() throws SQLException {
         return activeTeamsDao.queryForAll();
     }
@@ -786,11 +792,19 @@ public class GameStateService {
         TransactionManager.callInTransaction(activeTeamsDao.getConnectionSource(), () -> {
             // delete all participants on that team
             // first delete from in_game_participants because of foreign keys
-            DeleteBuilder<InGameParticipant, String> inGameDeleteBuilder = inGameParticipantsDao.deleteBuilder();
-            inGameDeleteBuilder
-                    .where()
-                    .eq("team_id", teamId);
-            inGameDeleteBuilder.delete();
+            // TODO: replace the raw query with the builder once you add a flyway migration to add an in_game_participants.team_id column
+//            DeleteBuilder<InGameParticipant, String> inGameDeleteBuilder = inGameParticipantsDao.deleteBuilder();
+//            inGameDeleteBuilder
+//                    .where()
+//                    .eq("team_id", teamId);
+//            inGameDeleteBuilder.delete();
+            inGameParticipantsDao.executeRaw("""
+                    DELETE igp
+                    FROM in_game_participants igp
+                    JOIN active_participants ap
+                      ON igp.participant_uuid = ap.participant_uuid
+                    WHERE ap.team_id = ?;
+                    """, teamId);
             // then delete from active
             DeleteBuilder<ActiveParticipant, String> activeDeleteBuilder = activeParticipantsDao.deleteBuilder();
             activeDeleteBuilder

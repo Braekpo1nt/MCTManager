@@ -106,6 +106,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -263,6 +264,8 @@ public abstract class GameManagerState {
         return new CompositeCommandResult(results);
     }
     
+    public abstract @NotNull String getSystemStateDescription();
+    
     protected @NotNull CommandResult loadGameStateSync() {
         List<CommandResult> results = new ArrayList<>();
         try {
@@ -366,6 +369,10 @@ public abstract class GameManagerState {
     public final void onParticipantJoin(@NotNull PlayerJoinEvent event, @NotNull MCTParticipant participant) {
         onParticipantJoin(participant);
         event.joinMessage(GameManagerUtils.replaceWithDisplayName(participant, event.joinMessage()));
+    }
+    
+    public void onNonJoin(@NotNull Player player) {
+        // do nothing
     }
     
     /**

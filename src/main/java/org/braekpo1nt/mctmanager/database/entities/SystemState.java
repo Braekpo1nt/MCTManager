@@ -4,6 +4,7 @@ import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -42,4 +43,10 @@ public class SystemState {
      */
     @DatabaseField(canBeNull = false, columnName = "max_games")
     private int maxGames;
+    /**
+     * The description of the current state (e.g. Maintenance, Practice, WaitingInHub, In-Game, etc.)
+     * for use by the website to display different views.
+     */
+    @DatabaseField(canBeNull = false, columnName = "state_description")
+    private @NotNull String stateDescription;
 }

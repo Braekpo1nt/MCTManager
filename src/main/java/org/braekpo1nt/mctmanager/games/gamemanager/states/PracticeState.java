@@ -29,10 +29,12 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -57,22 +59,26 @@ public class PracticeState extends GameManagerState {
     public void enter() {
         setupSidebar();
         contextReference.getGameStateStorageUtil().practiceMode();
+        // TODO: remove this
         PresetConfig presetConfig = config.getPractice().getPreset();
         if (presetConfig != null) {
             CommandResult commandResult = GameManagerUtils.applyPreset(
                     plugin,
                     context,
                     new PresetStorageUtil(plugin.getDataFolder()),
-                    presetConfig.getFile(),
-                    presetConfig.isOverride(),
-                    presetConfig.isResetScores(),
-                    presetConfig.isWhitelist(),
-                    presetConfig.isUnWhitelist(),
-                    presetConfig.isKickUnWhitelisted());
+                    new File(new File(plugin.getDataFolder(), "preset"), presetConfig.getFile()),
+                    plugin.getServer().getConsoleSender(),
+                    presetConfig.toOpts()
+            );
             context.messageAdmins(commandResult.getMessageOrEmpty());
         }
         CommandResult result = context.loadGameState();
         CommandResult.showResult(contextReference.getPlugin().getServer().getConsoleSender(), result);
+    }
+    
+    @Override
+    public @NotNull String getSystemStateDescription() {
+        return "PRACTICE";
     }
     
     @Override
@@ -218,6 +224,16 @@ public class PracticeState extends GameManagerState {
             participant.teleport(config.getSpawn());
         }
         practiceManager.addParticipant(participant);
+    }
+    
+    @Override
+    public void onNonJoin(@NotNull Player player) {
+        Optional<MCTTeam> first = contextReference.getTeams().values().stream().findFirst();
+        if (first.isEmpty()) {
+            return;
+        }
+        MCTTeam team = first.get();
+        context.joinOnlineParticipant(player, team.getTeamId());
     }
     
     @Override

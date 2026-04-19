@@ -71,6 +71,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -191,6 +192,7 @@ public class GameManager implements Listener {
                 .build();
         this.state = new MaintenanceState(this, contextReference);
         this.state.enter();
+        setSystemStateDescription(this.state.getSystemStateDescription());
     }
     
     public @NotNull TabList createTabList(Main plugin) {
@@ -207,6 +209,17 @@ public class GameManager implements Listener {
         this.state.exit();
         this.state = state;
         this.state.enter();
+        setSystemStateDescription(this.state.getSystemStateDescription());
+    }
+    
+    public void setSystemStateDescription(@NotNull String stateDescription) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                gameStateService.setSystemStateDescription(stateDescription);
+            } catch (SQLException e) {
+                reportGameStateException("Assign the system_state description", e);
+            }
+        });
     }
     
     public CommandResult switchMode(@NotNull Mode mode) {
@@ -592,7 +605,9 @@ public class GameManager implements Listener {
         if (offlineParticipant != null) {
             MCTParticipant participant = new MCTParticipant(offlineParticipant, player);
             state.onParticipantJoin(event, participant);
+            return;
         }
+        state.onNonJoin(player);
     }
     
     @EventHandler

@@ -19,9 +19,6 @@ import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.ReadyUpManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
-import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetConfig;
-import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
-import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -143,6 +140,11 @@ public class ReadyUpState extends EventState {
     }
     
     @Override
+    public @NotNull String getSystemStateDescription() {
+        return "READY_UP";
+    }
+    
+    @Override
     public void exit() {
         topbar.cleanup();
         readyUpManager.cleanup();
@@ -173,6 +175,9 @@ public class ReadyUpState extends EventState {
     
     @Override
     public CommandResult startEvent(@NotNull EventInfo eventInfo, int maxGames, int currentGameNumber) {
+        if (contextReference.getOnlineParticipants().isEmpty()) {
+            return CommandResult.failure("There are no participants online. Can't start the event");
+        }
         topbar.cleanup();
         plugin.getServer().getScheduler().cancelTask(readyUpPromptTaskId);
         readyUpManager.cleanup();

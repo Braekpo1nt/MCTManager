@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.EventInfoDto;
 import org.braekpo1nt.mctmanager.database.entities.SystemState;
+import org.braekpo1nt.mctmanager.database.entities.admin.EventAdminEntity;
 import org.braekpo1nt.mctmanager.database.entities.participants.EventParticipantEntity;
 import org.braekpo1nt.mctmanager.database.entities.teams.EventTeam;
 import org.braekpo1nt.mctmanager.database.exceptions.EventStillInUseException;
@@ -26,6 +27,7 @@ public class EventService {
     
     private final @NotNull String mode;
     private final @NotNull Dao<EventInfoDto, String> eventInfoDao;
+    private final @NotNull Dao<EventAdminEntity, Integer> eventAdminDao;
     private final @NotNull Dao<EventTeam, Integer> eventTeamsDao;
     private final @NotNull Dao<EventParticipantEntity, Integer> eventParticipantsDao;
     
@@ -34,6 +36,7 @@ public class EventService {
     public EventService(@NotNull String mode, @NotNull Database database) {
         this.mode = mode;
         this.eventInfoDao = database.getEventInfoDao();
+        this.eventAdminDao = database.getEventAdminDao();
         this.eventTeamsDao = database.getEventTeamsDao();
         this.eventParticipantsDao = database.getEventParticipantsDao();
         this.systemStateDao = database.getSystemStateDao();
@@ -177,6 +180,7 @@ public class EventService {
         }
         TransactionManager.callInTransaction(eventTeamsDao.getConnectionSource(), () -> {
             // order matters because of foreign keys
+            // delete all the old participants and teams
             eventParticipantsDao.executeRaw("""
                             DELETE FROM event_participants
                             WHERE event_id = ?
@@ -189,8 +193,22 @@ public class EventService {
                             """,
                     eventId
             );
+            // create the new teams
             eventTeamsDao.create(teams);
+            // create the new participants
             eventParticipantsDao.create(participants);
+            // remove admins who are now participants
+            eventAdminDao.executeRaw("""
+                            DELETE ea
+                            FROM event_admins ea
+                            JOIN event_participants ep
+                              ON ea.uuid = ep.participant_uuid
+                            WHERE ea.event_id = ?
+                              AND ep.event_id = ?
+                            """,
+                    eventId,
+                    eventId
+            );
             return null;
         });
     }

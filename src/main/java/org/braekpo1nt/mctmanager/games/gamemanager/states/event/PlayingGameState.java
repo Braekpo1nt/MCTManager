@@ -50,6 +50,11 @@ public class PlayingGameState extends EventState {
     }
     
     @Override
+    public @NotNull String getSystemStateDescription() {
+        return "PLAYING_GAME";
+    }
+    
+    @Override
     protected void onGameInstantiationFailure(@NotNull GameInstanceId gameInstanceId, Collection<Participant> newParticipants, List<Player> newAdmins, Exception e) {
         super.onGameInstantiationFailure(gameInstanceId, newParticipants, newAdmins, e);
         context.setState(new WaitingInHubState(context, contextReference, eventData));

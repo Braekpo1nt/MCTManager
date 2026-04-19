@@ -33,6 +33,11 @@ public class PlayingFinalGameState extends PlayingGameState {
     }
     
     @Override
+    public @NotNull String getSystemStateDescription() {
+        return "PLAYING_FINAL_GAME";
+    }
+    
+    @Override
     public void setWinner(@NotNull MCTTeam team) {
         eventData.setWinningTeam(team);
         try {

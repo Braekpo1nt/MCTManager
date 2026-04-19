@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetOpts;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.jetbrains.annotations.NotNull;
@@ -57,11 +58,8 @@ public class PresetApplySubCommand implements BrigadierSubCommand {
                 gameManager,
                 storageUtil,
                 presetFile,
-                false,
-                false,
-                false,
-                false,
-                false
+                ctx.getSource().getSender(),
+                PresetOpts.allFalse()
         );
     }
     
@@ -69,11 +67,13 @@ public class PresetApplySubCommand implements BrigadierSubCommand {
         String[] optionsArray = ctx.getArgument("options", String[].class);
         Set<String> options = Arrays.stream(optionsArray)
                 .collect(Collectors.toSet());
-        boolean override = options.contains("override");
-        boolean resetScores = options.contains("resetScores");
-        boolean whiteList = options.contains("whiteList");
-        boolean unWhitelist = options.contains("unWhitelist");
-        boolean kickUnWhitelisted = options.contains("kickUnWhitelisted");
+        PresetOpts opts = PresetOpts.builder()
+                .override(options.contains("override"))
+                .resetScores(options.contains("resetScores"))
+                .whiteList(options.contains("whiteList"))
+                .unWhitelist(options.contains("unWhitelist"))
+                .kickUnWhitelisted(options.contains("kickUnWhitelisted"))
+                .build();
         FileResolver resolver = ctx.getArgument(PresetCommand.PRESET_FILE_ARG, FileResolver.class);
         File presetFile = resolver.resolve();
         return GameManagerUtils.applyPreset(
@@ -81,11 +81,8 @@ public class PresetApplySubCommand implements BrigadierSubCommand {
                 gameManager,
                 storageUtil,
                 presetFile,
-                override,
-                resetScores,
-                whiteList,
-                unWhitelist,
-                kickUnWhitelisted
+                ctx.getSource().getSender(),
+                opts
         );
     }
 }

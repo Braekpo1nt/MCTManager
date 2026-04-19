@@ -89,10 +89,14 @@ public abstract class EventState extends GameManagerState {
         }
     }
     
-    
     @Override
     public @NotNull Mode getMode() {
         return Mode.EVENT;
+    }
+    
+    @Override
+    public @NotNull String getSystemStateDescription() {
+        return "EVENT";
     }
     
     @Override

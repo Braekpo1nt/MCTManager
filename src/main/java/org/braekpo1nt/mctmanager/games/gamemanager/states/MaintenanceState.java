@@ -35,6 +35,11 @@ public class MaintenanceState extends GameManagerState {
     }
     
     @Override
+    public @NotNull String getSystemStateDescription() {
+        return "MAINTENANCE";
+    }
+    
+    @Override
     public void exit() {
         // do nothing
     }

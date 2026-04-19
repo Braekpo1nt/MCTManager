@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 
-public class ApplyPresetCommand implements BrigadierSubCommand {
+public class EventApplyPresetCommand implements BrigadierSubCommand {
     
     private final Dynamic2CommandExceptionType ERROR_PLAYER_DOES_NOT_EXIST = new Dynamic2CommandExceptionType((ign, uuid) -> MessageComponentSerializer.message().serialize(Component.empty()
             .append(Component.text("A player with the name "))
@@ -61,7 +61,7 @@ public class ApplyPresetCommand implements BrigadierSubCommand {
     private final @NotNull Main plugin;
     private final @NotNull GameManager gameManager;
     
-    public ApplyPresetCommand(@NotNull GameManager gameManager, @NotNull Main plugin) {
+    public EventApplyPresetCommand(@NotNull GameManager gameManager, @NotNull Main plugin) {
         this.gameManager = gameManager;
         this.storageUtil = new PresetStorageUtil(plugin.getDataFolder());
         this.eventService = gameManager.getEventService();
