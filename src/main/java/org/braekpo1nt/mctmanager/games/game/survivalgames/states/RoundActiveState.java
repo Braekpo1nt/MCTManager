@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.survivalgames.states;
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.apache.maven.model.InputLocation;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.BorderStage;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
@@ -385,6 +386,10 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
                 // killer.getKills() should return the new kill count, so it should never be 0. This is a precaution.
                 if (!allowRespawn() || killer.getKills() == 0) {
                     context.awardPoints(killer, config.getKillScore(), String.format("Killed \"%s\"", killed.getName()));
+                    List<SurvivalGamesParticipant> livingParticipants = getLivingParticipants();
+                    for(SurvivalGamesParticipant livingParticipant : livingParticipants) {
+                        context.awardPoints(livingParticipant, config.getSurviveTeamScore()/8, String.format("Outlasted \"%s\"", killed.getName()));
+                    }
                 } else {
                     int killPoints = config.getKillScore() / killer.getKills();
                     context.awardPoints(killer, killPoints, String.format("Killed \"%s\"", killed.getName()));
