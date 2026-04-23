@@ -4,7 +4,8 @@
 CREATE TABLE all_players (
     uuid                CHAR(36) PRIMARY KEY,
     ign                 VARCHAR(36) NOT NULL,
-    first_seen_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    first_seen_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_ign UNIQUE (ign)
 );
 
 -- A tournament/day (e.g. "MCT 1B")
@@ -77,7 +78,7 @@ CREATE TABLE practice_teams (
 
 -- The teams which are in an event (each team is associated with a specific event)
 CREATE TABLE event_teams (
-    id              BIGINT ${autoincrement} PRIMARY KEY,
+    id              INTEGER PRIMARY KEY,
     event_id        VARCHAR(64) NOT NULL,
     team_id         VARCHAR(64) NOT NULL,
     display_name    VARCHAR(64) NOT NULL,
@@ -112,7 +113,7 @@ CREATE TABLE practice_participants (
 
 -- Roster membership, who is in each event and on what team
 CREATE TABLE event_participants (
-    id                  BIGINT ${autoincrement} PRIMARY KEY,
+    id                  INTEGER PRIMARY KEY,
     event_id            VARCHAR(64) NOT NULL,
     participant_uuid    CHAR(36) NOT NULL,
     team_id             VARCHAR(64) NOT NULL,
@@ -128,7 +129,7 @@ CREATE TABLE event_participants (
 -- holds a specific session of a specific game
 -- normalized to reference event_id
 CREATE TABLE game_sessions (
-    id              BIGINT ${autoincrement} PRIMARY KEY,
+    id              INTEGER PRIMARY KEY,
     event_id        VARCHAR(64) NULL,
     game_type       VARCHAR(64) NOT NULL,
     config_file     VARCHAR(128) NOT NULL,
@@ -143,7 +144,7 @@ CREATE TABLE game_sessions (
 
 -- stores a running list of changes to the scores, a journal used to rebuild the current standings on a restart
 CREATE TABLE score_events (
-    id                  BIGINT ${autoincrement} PRIMARY KEY,
+    id                  INTEGER PRIMARY KEY,
 
     source_type         VARCHAR(16) NOT NULL,
     

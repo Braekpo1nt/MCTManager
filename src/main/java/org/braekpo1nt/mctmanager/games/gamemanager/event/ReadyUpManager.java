@@ -1,12 +1,14 @@
 package org.braekpo1nt.mctmanager.games.gamemanager.event;
 
-import com.google.common.base.Preconditions;
 import lombok.Data;
+import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.ui.UIException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class ReadyUpManager {
     
@@ -33,16 +35,21 @@ public class ReadyUpManager {
         
     }
     
-    private @NotNull TeamStatus getTeamStatus(@NotNull String teamId) {
-        TeamStatus teamStatus = teamStatuses.get(teamId);
-        Preconditions.checkArgument(teamStatus != null, "teamId \"%s\" is not contained in this ReadyUpManager", teamId);
-        return teamStatus;
-    }
-    
+    /**
+     * @param participantUUID the participants UUID
+     * @param teamId the participant's team
+     * @return the participant's ready status, or false if the given team is not in this manager
+     * or false if the given participant is not in this manager under that teamId
+     */
     private boolean getParticipantStatus(@NotNull UUID participantUUID, @NotNull String teamId) {
-        TeamStatus teamStatus = getTeamStatus(teamId);
+        TeamStatus teamStatus = teamStatuses.get(teamId);
+        if (teamStatus == null) {
+            return false;
+        }
         Boolean status = teamStatus.getStatuses().get(participantUUID);
-        Preconditions.checkArgument(status != null, "participant with UUID \"%s\" & teamId \"%s\" is not contained in this ReadyUpManager", participantUUID, teamId);
+        if (status == null) {
+            return false;
+        }
         return status;
     }
     
@@ -51,10 +58,10 @@ public class ReadyUpManager {
     }
     
     /**
-     * @param participantUUID the UUID of a valid participant to check the status of.
-     * @param teamId must be a teamId in this manager
-     * @return true if the participant is ready, false otherwise.
-     * Returns false for UUIDs which are not stored in this manager.
+     * @param participantUUID the participants UUID
+     * @param teamId the participant's team
+     * @return the participant's ready status, or false if the given team is not in this manager
+     * or false if the given participant is not in this manager under that teamId
      */
     public boolean participantIsReady(@NotNull UUID participantUUID, @NotNull String teamId) {
         return getParticipantStatus(participantUUID, teamId);
@@ -66,7 +73,11 @@ public class ReadyUpManager {
      * @return the number of participants on that team who are ready
      */
     public long readyCount(@NotNull String teamId) {
-        TeamStatus teamStatus = getTeamStatus(teamId);
+        TeamStatus teamStatus = teamStatuses.get(teamId);
+        if (teamStatus == null) {
+            logUIError("teamId \"%s\" is not contained in this ReadyUpManager", teamId);
+            return 0;
+        }
         return teamStatus.readyCount();
     }
     
@@ -75,7 +86,10 @@ public class ReadyUpManager {
      * @param teamId the teamId to add. Must not already be tracked in this manager.
      */
     public void addTeam(@NotNull String teamId) {
-        Preconditions.checkArgument(!teamStatuses.containsKey(teamId), "teamId \"%s\" already exists in this ReadyUpManager");
+        if (teamStatuses.containsKey(teamId)) {
+            logUIError("teamId \"%s\" already exists in this ReadyUpManager");
+            return;
+        }
         teamStatuses.put(teamId, new TeamStatus());
     }
     
@@ -92,7 +106,11 @@ public class ReadyUpManager {
      * @return true if the team is ready (all members of the team are ready), false otherwise.
      */
     public boolean teamIsReady(@NotNull String teamId) {
-        TeamStatus teamStatus = getTeamStatus(teamId);
+        TeamStatus teamStatus = teamStatuses.get(teamId);
+        if (teamStatus == null) {
+            logUIError("teamId \"%s\" is not contained in this ReadyUpManager", teamId);
+            return false;
+        }
         return teamStatus.isReady();
     }
     
@@ -140,8 +158,23 @@ public class ReadyUpManager {
      * @param ready the ready status
      */
     private boolean setReadyStatus(@NotNull UUID participantUUID, @NotNull String teamId, boolean ready) {
-        TeamStatus teamStatus = getTeamStatus(teamId);
+        TeamStatus teamStatus = teamStatuses.get(teamId);
+        if (teamStatus == null) {
+            logUIError("teamId \"%s\" is not contained in this ReadyUpManager", teamId);
+            return false;
+        }
         Boolean previous = teamStatus.getStatuses().put(participantUUID, ready);
         return previous != null && previous;
+    }
+    
+    /**
+     * Log a UI error
+     * @param reason the reason for the error (a {@link String#format(String, Object...)} template
+     * @param args optional args for the reason format string
+     */
+    private void logUIError(@NotNull String reason, Object... args) {
+        Main.logger().log(Level.WARNING,
+                "An error occurred in the ReadyUpManager. Failing gracefully.",
+                new UIException(String.format(reason, args)));
     }
 }

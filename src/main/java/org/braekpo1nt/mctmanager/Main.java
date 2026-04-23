@@ -344,7 +344,7 @@ public class Main extends JavaPlugin {
         }
         logTypeActive.clear();
         try {
-//            database.close();
+            database.close();
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Error closing the database on plugin disable", e);
         }

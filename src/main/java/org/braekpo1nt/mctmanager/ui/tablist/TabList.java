@@ -522,7 +522,7 @@ public class TabList implements UIManager {
      * @param args optional args for the reason format string
      */
     private void logUIError(@NotNull String reason, Object... args) {
-        Main.logger().log(Level.SEVERE,
+        Main.logger().log(Level.WARNING,
                 "An error occurred in the TabList. Failing gracefully.",
                 new UIException(String.format(reason, args)));
     }

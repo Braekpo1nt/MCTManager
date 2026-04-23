@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.games.gamestate.states;
 
 import org.braekpo1nt.mctmanager.database.entities.admin.ActiveAdminEntity;
 import org.braekpo1nt.mctmanager.database.entities.admin.EventAdminEntity;
-import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipant;
 import org.braekpo1nt.mctmanager.database.entities.teams.ActiveTeam;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.gamestate.MCTPlayerEntity;
@@ -32,11 +31,16 @@ public class EventState extends StorageUtilState {
         
     }
     
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void addTeam(String teamId, String teamDisplayName, String color) throws SQLException {
+    public int addTeam(String teamId, String teamDisplayName, String color) throws SQLException {
         MCTTeamEntity team = context.getGameState().addTeam(teamId, teamDisplayName, color);
-        context.getGameStateService().addTeam(ActiveTeam.fromTeam(team));
         context.getGameStateService().addTeam(team.toEvent(eventId));
+        int score = context.getGameStateService().rebuildEventTeam(teamId, eventId, context.isMariaDB());
+        team.setScore(score);
+        return score;
     }
     
     @Override
@@ -48,11 +52,16 @@ public class EventState extends StorageUtilState {
         context.getGameStateService().deleteEventTeam(teamId, eventId);
     }
     
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void addNewPlayer(@NotNull UUID playerToJoin, @NotNull String name, @NotNull String teamId) throws SQLException {
-        MCTPlayerEntity player = context.getGameState().addPlayer(playerToJoin, name, teamId);
-        context.getGameStateService().addParticipant(ActiveParticipant.fromPlayer(player));
+    public int addNewPlayer(@NotNull UUID uuid, @NotNull String ign, @NotNull String teamId) throws SQLException {
+        MCTPlayerEntity player = context.getGameState().addPlayer(uuid, ign, teamId);
         context.getGameStateService().addParticipant(player.toEvent(eventId), player.getName());
+        int score = context.getGameStateService().rebuildEventParticipant(uuid.toString(), eventId);
+        player.setScore(score);
+        return score;
     }
     
     @Override

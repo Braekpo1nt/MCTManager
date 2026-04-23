@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockbukkit.mockbukkit.ServerMock;
 import org.mockbukkit.mockbukkit.inventory.InventoryMock;
+import org.mockbukkit.mockbukkit.plugin.PluginManagerMock;
 import org.mockbukkit.mockbukkit.world.WorldMock;
 
 import java.util.ArrayList;
@@ -88,5 +89,11 @@ public class MyCustomServerMock extends ServerMock {
         List<Audience> audiences = new ArrayList<>(this.getOnlinePlayers());
         audiences.add(this.getConsoleSender());
         return audiences;
+    }
+    
+    @Override
+    public @NotNull PluginManagerMock getPluginManager() {
+        // this is how you would mock the plugin manager
+        return super.getPluginManager();
     }
 }

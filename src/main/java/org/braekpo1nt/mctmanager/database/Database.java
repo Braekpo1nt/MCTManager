@@ -64,6 +64,7 @@ public class Database {
         
         // Create the DAOs
         this.allPlayersDao = DaoManager.createDao(connectionSource, AllPlayersEntity.class);
+//        this.allPlayersDao.executeRaw("PRAGMA foreign_keys = ON;");
         this.eventInfoDao = DaoManager.createDao(connectionSource, EventInfoDto.class);
         this.systemStateDao = DaoManager.createDao(connectionSource, SystemState.class);
         this.maintenanceTeamsDao = DaoManager.createDao(connectionSource, MaintenanceTeam.class);
@@ -113,7 +114,7 @@ public class Database {
     }
     
     public Database(String sqlitePath) throws SQLException {
-        this(new JdbcConnectionSource("jdbc:sqlite:" + sqlitePath));
+        this(new JdbcConnectionSource("jdbc:sqlite:" + sqlitePath + "?foreign_keys=on"));
     }
     
     public static Database createInMemorySQLite() throws SQLException {

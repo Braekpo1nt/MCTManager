@@ -10,6 +10,15 @@ import java.util.List;
 import java.util.UUID;
 
 class MockSidebar extends Sidebar {
+    
+    public MockSidebar() {
+        super();
+    }
+    
+    public MockSidebar(@NotNull Component title) {
+        super(title);
+    }
+    
     @Override
     public synchronized void addPlayer(@NotNull Player player) {
         if (boardsLines.containsKey(player.getUniqueId())) {

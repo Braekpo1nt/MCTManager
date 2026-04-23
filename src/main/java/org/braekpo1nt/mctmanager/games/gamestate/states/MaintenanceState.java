@@ -3,8 +3,6 @@ package org.braekpo1nt.mctmanager.games.gamestate.states;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.database.entities.admin.ActiveAdminEntity;
 import org.braekpo1nt.mctmanager.database.entities.admin.MaintenanceAdminEntity;
-import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipant;
-import org.braekpo1nt.mctmanager.database.entities.teams.ActiveTeam;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.gamestate.MCTPlayerEntity;
 import org.braekpo1nt.mctmanager.games.gamestate.MCTTeamEntity;
@@ -30,11 +28,16 @@ public class MaintenanceState extends StorageUtilState {
         
     }
     
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void addTeam(String teamId, String teamDisplayName, String color) throws SQLException {
+    public int addTeam(String teamId, String teamDisplayName, String color) throws SQLException {
         MCTTeamEntity team = context.getGameState().addTeam(teamId, teamDisplayName, color);
-        context.getGameStateService().addTeam(ActiveTeam.fromTeam(team));
         context.getGameStateService().addTeam(team.toMaintenance());
+        int score = context.getGameStateService().rebuildMaintenanceTeam(teamId, context.isMariaDB());
+        team.setScore(score);
+        return score;
     }
     
     @Override
@@ -46,11 +49,18 @@ public class MaintenanceState extends StorageUtilState {
         context.getGameStateService().deleteMaintenanceTeam(teamId);
     }
     
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void addNewPlayer(@NotNull UUID playerToJoin, @NotNull String name, @NotNull String teamId) throws ConfigIOException, SQLException {
-        MCTPlayerEntity player = context.getGameState().addPlayer(playerToJoin, name, teamId);
-        context.getGameStateService().addParticipant(ActiveParticipant.fromPlayer(player));
+    public int addNewPlayer(@NotNull UUID uuid, @NotNull String ign, @NotNull String teamId) throws ConfigIOException, SQLException {
+        MCTPlayerEntity player = context.getGameState().addPlayer(uuid, ign, teamId);
         context.getGameStateService().addParticipant(player.toMaintenance(), player.getName());
+        int score = context.getGameStateService().rebuildMaintenanceParticipant(uuid.toString());
+        player.setScore(score);
+        return score;
+        // TODO: write a test to make sure the ActiveParticipant row is added to the active_participants table every time, and you don't have to add the below line. Do so for all states
+//        context.getGameStateService().addParticipant(ActiveParticipant.fromPlayer(player));
     }
     
     @Override

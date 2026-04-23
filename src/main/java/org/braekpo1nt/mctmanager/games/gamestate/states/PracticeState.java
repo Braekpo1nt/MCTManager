@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.games.gamestate.states;
 
 import org.braekpo1nt.mctmanager.database.entities.admin.ActiveAdminEntity;
 import org.braekpo1nt.mctmanager.database.entities.admin.PracticeAdminEntity;
-import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipant;
 import org.braekpo1nt.mctmanager.database.entities.teams.ActiveTeam;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.gamestate.MCTPlayerEntity;
@@ -29,11 +28,16 @@ public class PracticeState extends StorageUtilState {
         
     }
     
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void addTeam(String teamId, String teamDisplayName, String color) throws SQLException {
+    public int addTeam(String teamId, String teamDisplayName, String color) throws SQLException {
         MCTTeamEntity team = context.getGameState().addTeam(teamId, teamDisplayName, color);
-        context.getGameStateService().addTeam(ActiveTeam.fromTeam(team));
         context.getGameStateService().addTeam(team.toPractice());
+        int score = context.getGameStateService().rebuildPracticeTeam(teamId, context.isMariaDB());
+        team.setScore(score);
+        return score;
     }
     
     @Override
@@ -45,11 +49,16 @@ public class PracticeState extends StorageUtilState {
         context.getGameStateService().deletePracticeTeam(teamId);
     }
     
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void addNewPlayer(@NotNull UUID playerToJoin, @NotNull String name, @NotNull String teamId) throws SQLException {
-        MCTPlayerEntity player = context.getGameState().addPlayer(playerToJoin, name, teamId);
-        context.getGameStateService().addParticipant(ActiveParticipant.fromPlayer(player));
+    public int addNewPlayer(@NotNull UUID uuid, @NotNull String ign, @NotNull String teamId) throws SQLException {
+        MCTPlayerEntity player = context.getGameState().addPlayer(uuid, ign, teamId);
         context.getGameStateService().addParticipant(player.toPractice(), player.getName());
+        int score = context.getGameStateService().rebuildPracticeParticipant(uuid.toString());
+        player.setScore(score);
+        return score;
     }
     
     @Override

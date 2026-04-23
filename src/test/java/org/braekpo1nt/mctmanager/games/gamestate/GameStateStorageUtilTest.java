@@ -54,7 +54,7 @@ public class GameStateStorageUtilTest {
                 false
         );
         gameStateService = new GameStateService(mode, database);
-        gameStateStorageUtil = new GameStateStorageUtil(logger, gameStateService);
+        gameStateStorageUtil = new MockGameStateStorageUtil(logger, gameStateService);
         teamId = "purple";
         gameStateStorageUtil.addTeam(teamId, "Purple", "dark_purple");
     }

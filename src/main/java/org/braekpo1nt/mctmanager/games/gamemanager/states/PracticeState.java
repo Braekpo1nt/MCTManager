@@ -244,32 +244,6 @@ public class PracticeState extends GameManagerState {
     
     // leave/join stop
     
-    /**
-     * Display the scores only, don't save them to the GameState
-     * @param newTeamScores map of teamId to score to add. Must be teamIds of real teams
-     * @param newParticipantScores map of UUID to score to add. Must be UUIDs of real participants
-     * @param gameSessionId the id of the {@link org.braekpo1nt.mctmanager.database.entities.GameSession} associated
-     * with this game
-     * @param id the {@link GameInstanceId}
-     * @param endDate the date the game ended
-     */
-    @Override
-    protected void addScores(
-            Map<String, Integer> newTeamScores,
-            Map<UUID, Integer> newParticipantScores,
-            int gameSessionId,
-            @NotNull GameInstanceId id,
-            @NotNull Date endDate) {
-        Map<String, Integer> teamScores = newTeamScores.entrySet().stream()
-                .filter(e -> teams.containsKey(e.getKey()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        Map<UUID, Integer> participantScores = newParticipantScores.entrySet().stream()
-                .filter(e -> allParticipants.containsKey(e.getKey()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        // TODO: save scores for practice to special practice log, so Shotgun can use stats
-        displayStats(teamScores, participantScores, id);
-    }
-    
     // team/participants management start
     @Override
     public Team addTeam(String teamId, String teamDisplayName, String colorString) {

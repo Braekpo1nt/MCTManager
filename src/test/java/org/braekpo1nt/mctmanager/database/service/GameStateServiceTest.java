@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.database.service;
 
 import com.j256.ormlite.dao.Dao;
 import net.kyori.adventure.text.Component;
+import org.assertj.core.api.AssertionsForClassTypes;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MockMain;
 import org.braekpo1nt.mctmanager.database.Database;
@@ -38,6 +39,7 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -136,6 +138,7 @@ class GameStateServiceTest {
         String teamId = "purple";
         String eventId = "test";
         Date now = new Date();
+        addEventInfo(eventId, now);
         addTeamToEveryTable(teamId, eventId, now);
         addPlayerToEveryTable(fromUUID, ign, teamId, eventId, now);
         
@@ -168,6 +171,7 @@ class GameStateServiceTest {
         String teamId = "purple";
         String eventId = "test";
         Date now = new Date();
+        addEventInfo(eventId, now);
         addTeamToEveryTable(teamId, eventId, now);
         addPlayerToEveryTable(fromUUID, ign, teamId, eventId, now);
         
@@ -204,6 +208,7 @@ class GameStateServiceTest {
         String teamId = "purple";
         String eventId = "test";
         Date now = new Date();
+        addEventInfo(eventId, now);
         addTeamToEveryTable(teamId, eventId, now);
         addPlayerToEveryTable(fromUUID, ign1, teamId, eventId, now);
         addPlayerToEveryTable(toUUID, ign2, teamId, eventId, now);
@@ -719,7 +724,115 @@ class GameStateServiceTest {
     }
     // game_sessions tests end
     
+    // rebuild tests start
+    @Test
+    void rebuildMaintenanceEmpty() throws SQLException {
+        gameStateService.rebuildMaintenanceMode();
+        assertThat(gameStateService.getActiveParticipants()).isEmpty();
+        assertThat(gameStateService.getActiveTeams()).isEmpty();
+        assertThat(gameStateService.getActiveAdmins()).isEmpty();
+    }
+    
+    @Test
+    void rebuildMaintenanceNoScores() throws SQLException {
+        String teamId = "red";
+        String uuid = UUID.randomUUID().toString();
+        String ign = "player1";
+        Date now = new Date();
+        gameStateService.addTeam(MaintenanceTeam.builder()
+                .teamId(teamId)
+                .displayName("purple")
+                .color("dark_purple")
+                .modifiedAt(now)
+                .build());
+        gameStateService.addParticipant(MaintenanceParticipantEntity.builder()
+                .participantUUID(uuid)
+                .teamId(teamId)
+                .build(), ign);
+        gameStateService.rebuildMaintenanceMode();
+        assertThat(gameStateService.getActiveParticipants()).hasSize(1);
+        assertThat(gameStateService.getActiveTeams()).hasSize(1);
+        assertThat(gameStateService.getActiveAdmins()).isEmpty();
+    }
+    
+    @Test
+    void rebuildMaintenance_multiplier_1() throws SQLException {
+        testMaintenanceRebuild(1, 1, 1, 1);
+    }
+    
+    @Test
+    void rebuildMaintenance_multiplier_2() throws SQLException {
+        testMaintenanceRebuild(2, 1, 1, 2);
+    }
+    
+    @Test
+    void rebuildMaintenance_multiplier_1_5() throws SQLException {
+        testMaintenanceRebuild(1.2, 1, 1, 1);
+    }
+    
+    private void testMaintenanceRebuild(double multiplier, int givenScore, int expectedParticipantScore, int expectedTeamScore) throws SQLException {
+        String teamId = "red";
+        String uuid = UUID.randomUUID().toString();
+        String ign = "player1";
+        Date now = new Date();
+        gameStateService.addTeam(MaintenanceTeam.builder()
+                .teamId(teamId)
+                .displayName("purple")
+                .color("dark_purple")
+                .modifiedAt(now)
+                .build());
+        gameStateService.addParticipant(MaintenanceParticipantEntity.builder()
+                .participantUUID(uuid)
+                .teamId(teamId)
+                .build(), ign);
+        GameSession gameSession = scoreService.createGameSession(GameSession.builder()
+                .gameType(GameType.FOOT_RACE)
+                .eventId(null)
+                .configFile("default.json")
+                .startTime(new Date())
+                .mode(Mode.MAINTENANCE)
+                .multiplier(multiplier)
+                .build());
+        AssertionsForClassTypes.assertThat(gameSession).isNotNull();
+        ScoreEventEntity scoreEventEntity = scoreService.logScoreEvent(ScoreEventEntity.builder()
+                .sourceType(ScoreEvent.SourceType.GAME)
+                .gameSessionId(gameSession.getId())
+                .eventId(null)
+                .mode(Mode.MAINTENANCE)
+                .participantUUID(uuid)
+                .teamId(teamId)
+                .pointsBase(givenScore)
+                .description("joined game")
+                .createdAt(new Date())
+                .build());
+        AssertionsForClassTypes.assertThat(scoreEventEntity).isNotNull();
+        gameStateService.rebuildMaintenanceMode();
+        List<ActiveParticipant> activeParticipants = gameStateService.getActiveParticipants();
+        assertThat(activeParticipants).hasSize(1);
+        assertThat(activeParticipants.getFirst().getScore())
+                .describedAs("participants don't reflect multiplier")
+                .isEqualTo(expectedParticipantScore);
+        List<ActiveTeam> activeTeams = gameStateService.getActiveTeams();
+        assertThat(activeTeams).hasSize(1);
+        assertThat(activeTeams.getFirst().getScore())
+                .describedAs("teams reflect multiplier with truncated value")
+                .isEqualTo(expectedTeamScore);
+    }
+    // rebuild tests end
+    
     // HELPER METHODS 
+    
+    void addEventInfo(String eventId, Date now) throws SQLException {
+        eventService.addEventInfo(EventInfo.builder()
+                .eventId(eventId)
+                .plainTextName("Test")
+                .componentName(Component.text("Test"))
+                .eventDate(now)
+                .createdAt(now)
+                .canonical(true)
+                .modifiedAt(now)
+                .build());
+    }
     
     void addTeamToEveryTable(String teamId, String eventId, Date now) throws SQLException {
         gameStateService.addTeam(MaintenanceTeam.builder()
@@ -772,15 +885,6 @@ class GameStateServiceTest {
                 .currentTokens(0)
                 .lifetimeTokens(0)
                 .percentRank(0.0)
-                .build());
-        eventService.addEventInfo(EventInfo.builder()
-                .eventId(eventId)
-                .plainTextName("Test")
-                .componentName(Component.text("Test"))
-                .eventDate(now)
-                .createdAt(now)
-                .canonical(true)
-                .modifiedAt(now)
                 .build());
         int gameSessionId = Objects.requireNonNull(scoreService.createGameSession(GameSession.builder()
                 .multiplier(1.0)

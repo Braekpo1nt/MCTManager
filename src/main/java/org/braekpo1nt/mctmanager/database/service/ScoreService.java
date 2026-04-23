@@ -60,7 +60,7 @@ public class ScoreService {
         }
     }
     
-    // TODO: make these methods throw their exceptions for later handling by callers
+    // TODO: make these methods throw their exceptions for later handling by callers and double check use of return values
     public @Nullable GameSession createGameSession(@NotNull GameSession gameSession) {
         try {
             gameSessionDao.create(gameSession);
@@ -71,11 +71,13 @@ public class ScoreService {
         }
     }
     
-    public @NotNull GameSession setGameSessionEndDate(int id, @NotNull Date endTime) throws SQLException {
+    public void setGameSessionEndDate(int id, @NotNull Date endTime) throws SQLException {
         GameSession gameSession = gameSessionDao.queryForId(id);
+        if (gameSession == null) {
+            return;
+        }
         gameSession.setEndTime(endTime);
         gameSessionDao.update(gameSession);
-        return gameSession;
     }
     
     public @NotNull List<Integer> getGameSessionIds(

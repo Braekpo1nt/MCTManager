@@ -106,7 +106,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -201,8 +200,12 @@ public abstract class GameManagerState {
     
     public @NotNull CommandResult loadGameState() {
         List<CommandResult> results = new ArrayList<>();
-        results.add(stopAllGames());
-        results.add(stopEditor());
+        if (!context.getActiveGameIds().isEmpty()) {
+            results.add(stopAllGames());
+        }
+        if (editorIsRunning()) {
+            results.add(stopEditor());
+        }
         // a given participant or admin may not be re-added when loading the new state
         for (Player admin : new ArrayList<>(onlineAdmins)) {
             onAdminQuit(admin);
@@ -1109,6 +1112,7 @@ public abstract class GameManagerState {
             }
         }
         
+        // TODO: should this make the game instantiation fail, or just report the error?
         GameSession gameSession = context.getScoreService().createGameSession(GameSession.builder()
                 .gameType(gameType)
                 .eventId(getEventId())
@@ -1369,15 +1373,17 @@ public abstract class GameManagerState {
         if (teams.containsKey(teamId)) {
             return null;
         }
+        int score;
         try {
-            gameStateStorageUtil.addTeam(teamId, teamDisplayName, colorString);
+            score = gameStateStorageUtil.addTeam(teamId, teamDisplayName, colorString);
         } catch (ConfigIOException | SQLException e) {
             context.reportGameStateException("adding a team", e);
+            score = 0;
         }
         
         NamedTextColor color = ColorMap.getNamedTextColor(colorString);
         ColorAttributes colorAttributes = ColorMap.getColorAttributes(colorString);
-        MCTTeam team = new MCTTeam(teamId, teamDisplayName, color, colorAttributes, 0);
+        MCTTeam team = new MCTTeam(teamId, teamDisplayName, color, colorAttributes, score);
         teams.put(teamId, team);
         
         org.bukkit.scoreboard.Team newTeam = mctScoreboard.registerNewTeam(teamId);
@@ -1527,8 +1533,16 @@ public abstract class GameManagerState {
             results.add(leaveParticipant(existingParticipant));
         }
         
+        int score;
+        try {
+            score = gameStateStorageUtil.addNewPlayer(uuid, ign, team.getTeamId());
+        } catch (ConfigIOException | SQLException e) {
+            score = 0;
+            context.reportGameStateException("adding new player", e);
+            results.add(CommandResult.failure(Component.text("error occurred adding new player, see console for details.")));
+        }
         Component participantDisplayName = GameManagerUtils.createDisplayName(ign, team.getColor());
-        OfflineParticipant offlineParticipant = new OfflineParticipant(uuid, ign, participantDisplayName, team.getTeamId(), 0);
+        OfflineParticipant offlineParticipant = new OfflineParticipant(uuid, ign, participantDisplayName, team.getTeamId(), score);
         allParticipants.put(offlineParticipant.getUniqueId(), offlineParticipant);
         team.joinMember(offlineParticipant.getUniqueId());
         tabList.joinParticipant(
@@ -1536,12 +1550,7 @@ public abstract class GameManagerState {
                 offlineParticipant.getName(),
                 offlineParticipant.getTeamId(),
                 true);
-        try {
-            gameStateStorageUtil.addNewPlayer(offlineParticipant.getUniqueId(), offlineParticipant.getName(), offlineParticipant.getTeamId());
-        } catch (ConfigIOException | SQLException e) {
-            context.reportGameStateException("adding new player", e);
-            results.add(CommandResult.failure(Component.text("error occurred adding new player, see console for details.")));
-        }
+        
         context.updateLeaderboards();
         results.add(CommandResult.success(Component.text("Joined ")
                 .append(offlineParticipant.displayName())
@@ -1571,8 +1580,16 @@ public abstract class GameManagerState {
             results.add(leaveParticipant(existingParticipant));
         }
         
+        int score;
+        try {
+            score = gameStateStorageUtil.addNewPlayer(uuid, ign, team.getTeamId());
+        } catch (ConfigIOException | SQLException e) {
+            score = 0;
+            context.reportGameStateException("adding new player", e);
+            results.add(CommandResult.failure(Component.text("error occurred adding new player, see console for details.")));
+        }
         Component participantDisplayName = GameManagerUtils.createDisplayName(ign, team.getColor());
-        OfflineParticipant offlineParticipant = new OfflineParticipant(uuid, ign, participantDisplayName, team.getTeamId(), 0);
+        OfflineParticipant offlineParticipant = new OfflineParticipant(uuid, ign, participantDisplayName, team.getTeamId(), score);
         allParticipants.put(offlineParticipant.getUniqueId(), offlineParticipant);
         team.joinMember(offlineParticipant.getUniqueId());
         tabList.joinParticipant(
@@ -1580,12 +1597,7 @@ public abstract class GameManagerState {
                 offlineParticipant.getName(),
                 offlineParticipant.getTeamId(),
                 true);
-        try {
-            gameStateStorageUtil.addNewPlayer(offlineParticipant.getUniqueId(), offlineParticipant.getName(), offlineParticipant.getTeamId());
-        } catch (ConfigIOException | SQLException e) {
-            context.reportGameStateException("adding new player", e);
-            results.add(CommandResult.failure(Component.text("error occurred adding new player, see console for details.")));
-        }
+        
         context.updateLeaderboards();
         results.add(CommandResult.success(Component.text("Joined ")
                 .append(offlineParticipant.displayName())
@@ -1852,6 +1864,9 @@ public abstract class GameManagerState {
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" is not an admin. Nothing happened.")));
         }
+        context.getOnlineAdmins().stream()
+                .filter(admin -> admin.getUniqueId().equals(uuid))
+                .findFirst().ifPresent(this::onAdminQuit);
         try {
             gameStateStorageUtil.removeAdmin(uuid);
         } catch (ConfigIOException | SQLException e) {

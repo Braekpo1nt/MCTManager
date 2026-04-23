@@ -7,7 +7,6 @@ import com.j256.ormlite.stmt.ColumnArg;
 import com.j256.ormlite.stmt.DeleteBuilder;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.UpdateBuilder;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
 import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
@@ -127,7 +126,6 @@ public class GameStateService {
     // Practice
     
     public PracticeTeam addTeam(PracticeTeam team) throws SQLException {
-        Main.logf("adding practice team %s", team.getTeamId());
         practiceTeamsDao.create(team);
         return team;
     }
@@ -148,7 +146,6 @@ public class GameStateService {
                     .eq("team_id", teamId);
             deleteBuilder.delete();
             practiceTeamsDao.deleteById(teamId);
-            Main.logf("deleting practice team %s", teamId);
             return true;
         });
     }
@@ -369,10 +366,10 @@ public class GameStateService {
      * @throws SQLException if there's a database error
      */
     public void migrateUUID(String from, String to, String ign) throws SQLException {
-        TransactionManager.callInTransaction(allPlayersDao.getConnectionSource(), () -> {
-            _migrateUUID(from, to, ign);
-            return null;
-        });
+        _migrateUUID(from, to, ign);
+//        TransactionManager.callInTransaction(allPlayersDao.getConnectionSource(), () -> {
+//            return null;
+//        });
     }
     
     /**
@@ -474,6 +471,18 @@ public class GameStateService {
                 SET participant_uuid = ?
                 WHERE participant_uuid = ?
                 """, to, from);
+        
+        /*
+        need to get the old in_game_participant, 
+        delete it from the table, 
+        update the active_participant, 
+        then insert the in_game_participant with the new "to" uuid
+         */
+        // start in_game_participants and active_participants
+        InGameParticipant inGameParticipant = inGameParticipantsDao.queryForId(from);
+        if (inGameParticipant != null) {
+            inGameParticipantsDao.deleteById(from);
+        }
         // active_participants
         allPlayersDao.executeRaw("""
                 DELETE FROM active_participants
@@ -495,21 +504,12 @@ public class GameStateService {
                 SET ign = ?
                 WHERE participant_uuid = ?
                 """, ign, to);
-        // in_game_participants
-        allPlayersDao.executeRaw("""
-                DELETE FROM in_game_participants
-                WHERE participant_uuid = ?
-                AND EXISTS (
-                    SELECT 1
-                    FROM in_game_participants
-                    WHERE participant_uuid = ?
-                )
-                """, from, to);
-        allPlayersDao.executeRaw("""
-                UPDATE in_game_participants
-                SET participant_uuid = ?
-                WHERE participant_uuid = ?
-                """, to, from);
+        if (inGameParticipant != null) {
+            inGameParticipant.setParticipantUUID(to);
+            inGameParticipantsDao.createIfNotExists(inGameParticipant);
+        }
+        // end in_game_participants and active_participants
+        
         // player_metadata
         allPlayersDao.executeRaw("""
                 DELETE FROM player_metadata
@@ -750,12 +750,9 @@ public class GameStateService {
         if (activeParticipants.isEmpty()) {
             return;
         }
-        activeParticipantsDao.callBatchTasks(() -> {
-            for (ActiveParticipant activeParticipant : activeParticipants) {
-                activeParticipantsDao.update(activeParticipant);
-            }
-            return null;
-        });
+        for (ActiveParticipant activeParticipant : activeParticipants) {
+            activeParticipantsDao.update(activeParticipant);
+        }
         incrementActiveVersion();
     }
     
@@ -763,12 +760,9 @@ public class GameStateService {
         if (activeTeams.isEmpty()) {
             return;
         }
-        activeTeamsDao.callBatchTasks(() -> {
-            for (ActiveTeam activeTeam : activeTeams) {
-                activeTeamsDao.update(activeTeam);
-            }
-            return null;
-        });
+        for (ActiveTeam activeTeam : activeTeams) {
+            activeTeamsDao.update(activeTeam);
+        }
         incrementActiveVersion();
     }
     
@@ -1012,84 +1006,6 @@ public class GameStateService {
         incrementActiveVersion();
     }
     
-    public void rebuildPracticeMode() throws SQLException {
-        TransactionManager.callInTransaction(activeTeamsDao.getConnectionSource(), () -> {
-            // clear
-            activeTeamsDao.executeRaw("DELETE FROM in_game_participants");
-            activeTeamsDao.executeRaw("DELETE FROM in_game_teams");
-            activeTeamsDao.executeRaw("DELETE FROM active_participants");
-            activeTeamsDao.executeRaw("DELETE FROM active_teams");
-            activeTeamsDao.executeRaw("DELETE FROM active_admins");
-            
-            // rebuild teams
-            activeTeamsDao.executeRaw("""
-                    INSERT INTO active_teams (team_id, display_name, color, score)
-                    SELECT
-                        pt.team_id,
-                        pt.display_name,
-                        pt.color,
-                        COALESCE(se.total, 0) AS total
-                    FROM practice_teams pt
-                    LEFT JOIN (
-                        SELECT
-                            se.team_id,
-                            SUM(
-                                CASE
-                                    WHEN se.session_id IS NULL THEN se.points_base
-                                    WHEN gs.session_undone = FALSE THEN se.points_base * gs.multiplier
-                                    ELSE 0
-                                END
-                            ) AS total
-                        FROM score_events se
-                        LEFT JOIN game_sessions gs
-                            ON gs.id = se.session_id
-                        WHERE se.mode = 'practice'
-                        GROUP BY se.team_id
-                    ) se
-                        ON se.team_id = pt.team_id
-                    """);
-            
-            // rebuild participants
-            activeTeamsDao.executeRaw("""
-                        INSERT INTO active_participants (participant_uuid, team_id, ign, score)
-                        SELECT
-                            pp.participant_uuid,
-                            pp.team_id,
-                            ap.ign,
-                            COALESCE(se.total, 0) AS total
-                        FROM practice_participants pp
-                        JOIN all_players ap
-                          ON ap.uuid = pp.participant_uuid
-                        LEFT JOIN (
-                            SELECT se.participant_uuid,
-                                   SUM(se.points_base) AS total
-                            FROM score_events se
-                            LEFT JOIN game_sessions gs
-                              ON gs.id = se.session_id
-                            WHERE se.mode = 'practice'
-                              AND se.participant_uuid IS NOT NULL
-                              AND (
-                                    se.session_id IS NULL
-                                 OR gs.session_undone = FALSE
-                              )
-                            GROUP BY se.participant_uuid
-                        ) se
-                          ON se.participant_uuid = pp.participant_uuid
-                    """);
-            
-            // rebuild admins
-            activeTeamsDao.executeRaw("""
-                        INSERT INTO active_admins (uuid)
-                        SELECT
-                        	pa.uuid
-                        FROM practice_admins pa
-                    """);
-            
-            incrementActiveVersion();
-            return null;
-        });
-    }
-    
     /*
     to see what is essentially happening, take a look at the result of this command:
 
@@ -1108,7 +1024,7 @@ SELECT
   FROM maintenance_teams mt
   LEFT JOIN score_events se
         ON se.team_id = mt.team_id
-        AND se.mode = 'maintenance'
+        AND se.mode = 'MAINTENANCE'
   LEFT JOIN game_sessions gs
       ON gs.id = se.session_id
       AND gs.session_undone = FALSE;
@@ -1160,14 +1076,14 @@ SELECT
                             SUM(
                                 CASE
                                     WHEN se.session_id IS NULL THEN se.points_base
-                                    WHEN gs.session_undone = FALSE THEN se.points_base * gs.multiplier
+                                    WHEN gs.session_undone = FALSE THEN FLOOR(se.points_base * gs.multiplier)
                                     ELSE 0
                                 END
                             ) AS total
                         FROM score_events se
                         LEFT JOIN game_sessions gs
                             ON gs.id = se.session_id
-                        WHERE se.mode = 'maintenance'
+                        WHERE se.mode = 'MAINTENANCE'
                         GROUP BY se.team_id
                     ) se
                         ON se.team_id = mt.team_id
@@ -1175,30 +1091,30 @@ SELECT
             
             // rebuild participants
             activeTeamsDao.executeRaw("""
-                        INSERT INTO active_participants (participant_uuid, team_id, ign, score)
-                        SELECT
-                            mp.participant_uuid,
-                            mp.team_id,
-                            ap.ign,
-                            COALESCE(se.total, 0) AS total
-                        FROM maintenance_participants mp
-                        JOIN all_players ap
-                          ON ap.uuid = mp.participant_uuid
-                        LEFT JOIN (
-                            SELECT se.participant_uuid,
-                                   SUM(se.points_base) AS total
-                            FROM score_events se
-                            LEFT JOIN game_sessions gs
-                              ON gs.id = se.session_id
-                            WHERE se.mode = 'maintenance'
-                              AND se.participant_uuid IS NOT NULL
-                              AND (
-                                    se.session_id IS NULL
-                                 OR gs.session_undone = FALSE
-                              )
-                            GROUP BY se.participant_uuid
-                        ) se
-                          ON se.participant_uuid = mp.participant_uuid
+                    INSERT INTO active_participants (participant_uuid, team_id, ign, score)
+                    SELECT
+                        mp.participant_uuid,
+                        mp.team_id,
+                        ap.ign,
+                        COALESCE(se.total, 0) AS total
+                    FROM maintenance_participants mp
+                    JOIN all_players ap
+                      ON ap.uuid = mp.participant_uuid
+                    LEFT JOIN (
+                        SELECT se.participant_uuid,
+                               SUM(se.points_base) AS total
+                        FROM score_events se
+                        LEFT JOIN game_sessions gs
+                          ON gs.id = se.session_id
+                        WHERE se.mode = 'MAINTENANCE'
+                          AND se.participant_uuid IS NOT NULL
+                          AND (
+                                se.session_id IS NULL
+                             OR gs.session_undone = FALSE
+                          )
+                        GROUP BY se.participant_uuid
+                    ) se
+                      ON se.participant_uuid = mp.participant_uuid
                     """);
             
             // rebuild admins
@@ -1207,6 +1123,84 @@ SELECT
                         SELECT
                         	ma.uuid
                         FROM maintenance_admins ma
+                    """);
+            
+            incrementActiveVersion();
+            return null;
+        });
+    }
+    
+    public void rebuildPracticeMode() throws SQLException {
+        TransactionManager.callInTransaction(activeTeamsDao.getConnectionSource(), () -> {
+            // clear
+            activeTeamsDao.executeRaw("DELETE FROM in_game_participants");
+            activeTeamsDao.executeRaw("DELETE FROM in_game_teams");
+            activeTeamsDao.executeRaw("DELETE FROM active_participants");
+            activeTeamsDao.executeRaw("DELETE FROM active_teams");
+            activeTeamsDao.executeRaw("DELETE FROM active_admins");
+            
+            // rebuild teams
+            activeTeamsDao.executeRaw("""
+                    INSERT INTO active_teams (team_id, display_name, color, score)
+                    SELECT
+                        pt.team_id,
+                        pt.display_name,
+                        pt.color,
+                        COALESCE(se.total, 0) AS total
+                    FROM practice_teams pt
+                    LEFT JOIN (
+                        SELECT
+                            se.team_id,
+                            SUM(
+                                CASE
+                                    WHEN se.session_id IS NULL THEN se.points_base
+                                    WHEN gs.session_undone = FALSE THEN FLOOR(se.points_base * gs.multiplier)
+                                    ELSE 0
+                                END
+                            ) AS total
+                        FROM score_events se
+                        LEFT JOIN game_sessions gs
+                            ON gs.id = se.session_id
+                        WHERE se.mode = 'PRACTICE'
+                        GROUP BY se.team_id
+                    ) se
+                        ON se.team_id = pt.team_id
+                    """);
+            
+            // rebuild participants
+            activeTeamsDao.executeRaw("""
+                        INSERT INTO active_participants (participant_uuid, team_id, ign, score)
+                        SELECT
+                            pp.participant_uuid,
+                            pp.team_id,
+                            ap.ign,
+                            COALESCE(se.total, 0) AS total
+                        FROM practice_participants pp
+                        JOIN all_players ap
+                          ON ap.uuid = pp.participant_uuid
+                        LEFT JOIN (
+                            SELECT se.participant_uuid,
+                                   SUM(se.points_base) AS total
+                            FROM score_events se
+                            LEFT JOIN game_sessions gs
+                              ON gs.id = se.session_id
+                            WHERE se.mode = 'PRACTICE'
+                              AND se.participant_uuid IS NOT NULL
+                              AND (
+                                    se.session_id IS NULL
+                                 OR gs.session_undone = FALSE
+                              )
+                            GROUP BY se.participant_uuid
+                        ) se
+                          ON se.participant_uuid = pp.participant_uuid
+                    """);
+            
+            // rebuild admins
+            activeTeamsDao.executeRaw("""
+                        INSERT INTO active_admins (uuid)
+                        SELECT
+                        	pa.uuid
+                        FROM practice_admins pa
                     """);
             
             incrementActiveVersion();
@@ -1238,7 +1232,7 @@ SELECT
                                     SUM(
                                         CASE
                                             WHEN se.session_id IS NULL THEN se.points_base
-                                            WHEN gs.session_undone = FALSE THEN se.points_base * gs.multiplier
+                                            WHEN gs.session_undone = FALSE THEN FLOOR(se.points_base * gs.multiplier)
                                             ELSE 0
                                         END
                                     ) AS total
@@ -1302,6 +1296,299 @@ SELECT
             
             incrementActiveVersion();
             return null;
+        });
+    }
+    
+    /**
+     * Updates or creates an entry in the active_participants table for the participant with the given UUID such that
+     * their score column reflects the sum of all score_events entries with their UUID where the game_session was not
+     * undone (or no game_session is associated with the score_event).
+     * If a participant with the given UUID does not exist in maintenance_participants, nothing happens.
+     * Also increments the active version.
+     * @param uuid the uuid of the participant to rebuild the score of
+     * @return the rebuilt score for the given participant, or 0 if they did not exist in maintenance_participants
+     * @throws SQLException if there's a database error
+     */
+    public int rebuildMaintenanceParticipant(@NotNull String uuid) throws SQLException {
+        /*
+        When you come searching to find if the CASE statement is dropping valid rows, potentially this will work better:
+        CASE
+            WHEN se.session_id IS NULL THEN se.points_base
+            WHEN gs.id IS NOT NULL AND gs.session_undone = 0 THEN se.points_base
+            ELSE 0
+        END
+         */
+        return TransactionManager.callInTransaction(activeTeamsDao.getConnectionSource(), () -> {
+            activeParticipantsDao.deleteById(uuid);
+            activeParticipantsDao.executeRaw("""
+                            INSERT INTO active_participants (participant_uuid, team_id, ign, score)
+                            SELECT
+                                mp.participant_uuid,
+                                mp.team_id,
+                                ap.ign,
+                                COALESCE(SUM(
+                                    CASE
+                                        WHEN se.session_id IS NULL THEN se.points_base
+                                        WHEN gs.session_undone = FALSE THEN se.points_base
+                                        ELSE 0
+                                    END
+                                ), 0) AS total
+                            FROM maintenance_participants mp
+                            JOIN all_players ap
+                              ON ap.uuid = mp.participant_uuid
+                            LEFT JOIN score_events se
+                              ON se.participant_uuid = mp.participant_uuid
+                             AND se.mode = 'MAINTENANCE'
+                            LEFT JOIN game_sessions gs
+                              ON gs.id = se.session_id
+                            WHERE mp.participant_uuid = ?
+                            GROUP BY mp.participant_uuid;
+                            """,
+                    uuid);
+            incrementActiveVersion();
+            ActiveParticipant activeParticipant = activeParticipantsDao.queryForId(uuid);
+            if (activeParticipant == null) {
+                return 0;
+            }
+            return activeParticipant.getScore();
+        });
+    }
+    
+    /**
+     * Updates or creates an entry in the active_participants table for the participant with the given UUID such that
+     * their score column reflects the sum of all score_events entries with their UUID where the game_session was not
+     * undone (or no game_session is associated with the score_event).
+     * If a participant with the given UUID does not exist in practice_participants, nothing happens.
+     * Also increments the active version.
+     * @param uuid the uuid of the participant to rebuild the score of
+     * @throws SQLException if there's a database error
+     */
+    public int rebuildPracticeParticipant(@NotNull String uuid) throws SQLException {
+        /*
+        When you come searching to find if the CASE statement is dropping valid rows, potentially this will work better:
+        CASE
+            WHEN se.session_id IS NULL THEN se.points_base
+            WHEN gs.id IS NOT NULL AND gs.session_undone = 0 THEN se.points_base
+            ELSE 0
+        END
+         */
+        return TransactionManager.callInTransaction(activeTeamsDao.getConnectionSource(), () -> {
+            activeParticipantsDao.deleteById(uuid);
+            activeParticipantsDao.executeRaw("""
+                            INSERT INTO active_participants (participant_uuid, team_id, ign, score)
+                            SELECT
+                                pp.participant_uuid,
+                                pp.team_id,
+                                ap.ign,
+                                COALESCE(SUM(
+                                    CASE
+                                        WHEN se.session_id IS NULL THEN se.points_base
+                                        WHEN gs.session_undone = FALSE THEN se.points_base
+                                        ELSE 0
+                                    END
+                                ), 0) AS total
+                            FROM practice_participants pp
+                            JOIN all_players ap
+                              ON ap.uuid = pp.participant_uuid
+                            LEFT JOIN score_events se
+                              ON se.participant_uuid = pp.participant_uuid
+                             AND se.mode = 'PRACTICE'
+                            LEFT JOIN game_sessions gs
+                              ON gs.id = se.session_id
+                            WHERE pp.participant_uuid = ?
+                            GROUP BY pp.participant_uuid;
+                            """,
+                    uuid);
+            incrementActiveVersion();
+            ActiveParticipant activeParticipant = activeParticipantsDao.queryForId(uuid);
+            if (activeParticipant == null) {
+                return 0;
+            }
+            return activeParticipant.getScore();
+        });
+    }
+    
+    public int rebuildEventParticipant(@NotNull String uuid, @NotNull String eventId) throws SQLException {
+        
+        /*
+        When you come searching to find if the CASE statement is dropping valid rows, potentially this will work better:
+        CASE
+            WHEN se.session_id IS NULL THEN se.points_base
+            WHEN gs.id IS NOT NULL AND gs.session_undone = 0 THEN se.points_base
+            ELSE 0
+        END
+         */
+        return TransactionManager.callInTransaction(activeTeamsDao.getConnectionSource(), () -> {
+            activeParticipantsDao.deleteById(uuid);
+            activeParticipantsDao.executeRaw("""
+                            INSERT INTO active_participants (participant_uuid, team_id, ign, score)
+                            SELECT
+                                ep.participant_uuid,
+                                ep.team_id,
+                                ap.ign,
+                                COALESCE(SUM(
+                                    CASE
+                                        WHEN se.session_id IS NULL THEN se.points_base
+                                        WHEN gs.session_undone = FALSE THEN se.points_base
+                                        ELSE 0
+                                    END
+                                ), 0) AS total
+                            FROM event_participants ep
+                            JOIN all_players ap
+                              ON ap.uuid = ep.participant_uuid
+                            LEFT JOIN score_events se
+                              ON se.participant_uuid = ep.participant_uuid
+                              AND se.event_id = ?
+                            LEFT JOIN game_sessions gs
+                              ON gs.id = se.session_id
+                            WHERE ep.event_id = ?
+                              AND ep.participant_uuid = ?
+                            GROUP BY ep.participant_uuid;
+                            """,
+                    eventId,
+                    eventId,
+                    uuid);
+            incrementActiveVersion();
+            ActiveParticipant activeParticipant = activeParticipantsDao.queryForId(uuid);
+            if (activeParticipant == null) {
+                return 0;
+            }
+            return activeParticipant.getScore();
+        });
+    }
+    
+    public int rebuildMaintenanceTeam(@NotNull String teamId, boolean mariaDB) throws SQLException {
+        return TransactionManager.callInTransaction(activeTeamsDao.getConnectionSource(), () -> {
+            String duplicateSql = chooseDuplicateSql(mariaDB);
+            activeTeamsDao.executeRaw("""
+                            INSERT INTO active_teams (team_id, display_name, color, score)
+                            SELECT
+                                mt.team_id,
+                                mt.display_name,
+                                mt.color,
+                                COALESCE(SUM(
+                                    CASE
+                                        WHEN se.session_id IS NULL THEN se.points_base
+                                        WHEN gs.session_undone = FALSE THEN FLOOR(se.points_base * gs.multiplier)
+                                        ELSE 0
+                                    END
+                                ), 0) AS total
+                            FROM maintenance_teams mt
+                            LEFT JOIN score_events se
+                              ON se.team_id = mt.team_id
+                              AND se.mode = 'MAINTENANCE'
+                            LEFT JOIN game_sessions gs
+                              ON gs.id = se.session_id
+                            WHERE mt.team_id = ?
+                            GROUP BY mt.team_id
+                            """ + duplicateSql,
+                    teamId);
+            incrementActiveVersion();
+            ActiveTeam activeTeam = activeTeamsDao.queryForId(teamId);
+            if (activeTeam == null) {
+                return 0;
+            }
+            return activeTeam.getScore();
+        });
+    }
+    
+    /**
+     * MariaDB and SQLite have different syntax for handling conflicts/duplicates.
+     * This allows me to toggle between the two for both automated tests and production.
+     * @param mariaDB if true, mariaDB syntax will be returned. If false, sqlite
+     * syntax will be returned.
+     * @return mariaDB syntax if the given boolean is true, sqlite syntax if false.
+     */
+    private static @NotNull String chooseDuplicateSql(boolean mariaDB) {
+        String duplicateSql;
+        if (mariaDB) {
+            duplicateSql = """
+                    ON DUPLICATE KEY UPDATE
+                        display_name     = VALUES(display_name),
+                        color            = VALUES(color),
+                        score            = VALUES(score);
+                    """;
+        } else {
+            duplicateSql = """
+                    ON CONFLICT(team_id) DO UPDATE SET
+                        display_name     = excluded.display_name,
+                        color            = excluded.color,
+                        score            = excluded.score;
+                    """;
+        }
+        return duplicateSql;
+    }
+    
+    public int rebuildPracticeTeam(@NotNull String teamId, boolean mariaDB) throws SQLException {
+        return TransactionManager.callInTransaction(activeTeamsDao.getConnectionSource(), () -> {
+            String duplicateSql = chooseDuplicateSql(mariaDB);
+            activeTeamsDao.executeRaw("""
+                            INSERT INTO active_teams (team_id, display_name, color, score)
+                            SELECT
+                                pt.team_id,
+                                pt.display_name,
+                                pt.color,
+                                COALESCE(SUM(
+                                    CASE
+                                        WHEN se.session_id IS NULL THEN se.points_base
+                                        WHEN gs.session_undone = FALSE THEN FLOOR(se.points_base * gs.multiplier)
+                                        ELSE 0
+                                    END
+                                ), 0) AS total
+                            FROM practice_teams pt
+                            LEFT JOIN score_events se
+                              ON se.team_id = pt.team_id
+                              AND se.mode = 'PRACTICE'
+                            LEFT JOIN game_sessions gs
+                              ON gs.id = se.session_id
+                            WHERE pt.team_id = ?
+                            GROUP BY pt.team_id
+                            """ + duplicateSql,
+                    teamId);
+            incrementActiveVersion();
+            ActiveTeam activeTeam = activeTeamsDao.queryForId(teamId);
+            if (activeTeam == null) {
+                return 0;
+            }
+            return activeTeam.getScore();
+        });
+    }
+    
+    public int rebuildEventTeam(@NotNull String teamId, @NotNull String eventId, boolean mariaDB) throws SQLException {
+        return TransactionManager.callInTransaction(activeTeamsDao.getConnectionSource(), () -> {
+            String duplicateSql = chooseDuplicateSql(mariaDB);
+            activeTeamsDao.executeRaw("""
+                            INSERT INTO active_teams (team_id, display_name, color, score)
+                            SELECT
+                                et.team_id,
+                                et.display_name,
+                                et.color,
+                                COALESCE(SUM(
+                                    CASE
+                                        WHEN se.session_id IS NULL THEN se.points_base
+                                        WHEN gs.session_undone = FALSE THEN FLOOR(se.points_base * gs.multiplier)
+                                        ELSE 0
+                                    END
+                                ), 0) AS total
+                            FROM event_teams et
+                            LEFT JOIN score_events se
+                              ON se.team_id = et.team_id
+                              AND se.event_id = ?
+                            LEFT JOIN game_sessions gs
+                              ON gs.id = se.session_id
+                            WHERE et.event_id = ?
+                              AND et.team_id = ?
+                            GROUP BY et.team_id
+                            """ + duplicateSql,
+                    eventId,
+                    eventId,
+                    teamId);
+            incrementActiveVersion();
+            ActiveTeam activeTeam = activeTeamsDao.queryForId(teamId);
+            if (activeTeam == null) {
+                return 0;
+            }
+            return activeTeam.getScore();
         });
     }
 }

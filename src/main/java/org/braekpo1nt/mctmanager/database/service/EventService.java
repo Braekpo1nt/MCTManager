@@ -199,12 +199,14 @@ public class EventService {
             eventParticipantsDao.create(participants);
             // remove admins who are now participants
             eventAdminDao.executeRaw("""
-                            DELETE ea
-                            FROM event_admins ea
-                            JOIN event_participants ep
-                              ON ea.uuid = ep.participant_uuid
-                            WHERE ea.event_id = ?
-                              AND ep.event_id = ?
+                            DELETE FROM event_admins
+                            WHERE event_id = ?
+                              AND EXISTS (
+                                SELECT 1
+                                FROM event_participants ep
+                                WHERE ep.participant_uuid = event_admins.uuid
+                                  AND ep.event_id = ?
+                            );
                             """,
                     eventId,
                     eventId

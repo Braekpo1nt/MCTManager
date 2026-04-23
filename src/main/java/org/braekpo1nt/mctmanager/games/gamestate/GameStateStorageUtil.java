@@ -45,17 +45,28 @@ import java.util.logging.Logger;
  */
 public class GameStateStorageUtil {
     
-    private final Logger LOGGER;
+    protected final Logger LOGGER;
     @Getter
-    private final GameStateService gameStateService;
+    protected final GameStateService gameStateService;
+    /**
+     * A flag that is only needed because the tests use sqlite, and production uses mariaDB.
+     * Specifically regarding the portability miss-match in conflict resolution during upsert operations.
+     */
+    @Getter
+    protected final boolean mariaDB;
     @Getter
     protected GameState gameState = new GameState(new HashMap<>(), new HashMap<>(), new ArrayList<>());
     protected @NotNull StorageUtilState state;
     
     public GameStateStorageUtil(@NotNull Logger logger, @NotNull GameStateService gameStateService) {
+        this(logger, gameStateService, true);
+    }
+    
+    public GameStateStorageUtil(@NotNull Logger logger, @NotNull GameStateService gameStateService, boolean mariaDB) {
         this.LOGGER = logger;
         // Pro Tip: The plugin.getGameManager() is null at this point
         this.gameStateService = gameStateService;
+        this.mariaDB = mariaDB;
         this.state = new MaintenanceState(this);
         state.enter();
     }
@@ -144,10 +155,11 @@ public class GameStateStorageUtil {
      * @param teamId The internal name of the team.
      * @param teamDisplayName The display name of the team.
      * @param color The color of the team
+     * @return the score of the team (based on historical data)
      * @throws ConfigIOException If there is an error saving the game state while adding a new team.
      */
-    public void addTeam(String teamId, String teamDisplayName, String color) throws SQLException {
-        state.addTeam(teamId, teamDisplayName, color);
+    public int addTeam(String teamId, String teamDisplayName, String color) throws SQLException {
+        return state.addTeam(teamId, teamDisplayName, color);
     }
     
     public void removeTeam(String teamId) throws SQLException {
@@ -280,12 +292,12 @@ public class GameStateStorageUtil {
     /**
      * Adds the given player to the game state, joined to the given team
      * @param playerToJoin the UUID of the player
-     * @param name the name of the player
+     * @param ign the ign of the player
      * @param teamId the teamId to join it to
      * @throws ConfigIOException if there is an IO error saving the game state
      */
-    public void addNewPlayer(@NotNull UUID playerToJoin, @NotNull String name, @NotNull String teamId) throws SQLException {
-        state.addNewPlayer(playerToJoin, name, teamId);
+    public int addNewPlayer(@NotNull UUID playerToJoin, @NotNull String ign, @NotNull String teamId) throws SQLException {
+        return state.addNewPlayer(playerToJoin, ign, teamId);
     }
     
     /**

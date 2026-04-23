@@ -14,7 +14,7 @@ CREATE TABLE practice_admins (
 );
 
 CREATE TABLE event_admins (
-    id          BIGINT ${autoincrement} PRIMARY KEY,
+    id          INTEGER PRIMARY KEY,
     uuid        CHAR(36) NOT NULL,
     event_id    VARCHAR(64) NOT NULL,
     
