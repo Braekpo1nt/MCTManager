@@ -37,6 +37,15 @@ public class FootRaceParticipant extends ParticipantData {
      * 0 when they haven't finished.
      */
     private int placement;
+    /**
+     * The last time the "Wrong Way!" title was shown to the participant.
+     */
+    private long lastWrongWayTitleTime;
+    private long wrongWayCounterStart = -1L;
+    private long rightWayCounterStart = -1L;
+    private boolean showingWrongWayAlert = false;
+    private double lastDistToNext = Double.MAX_VALUE;
+    private double lastDistToPrev = Double.MAX_VALUE;
     
     /**
      * Used for rejoining, saved when quitting,
@@ -51,7 +60,7 @@ public class FootRaceParticipant extends ParticipantData {
         this.currentCheckpoint = currentCheckpoint;
         this.finished = false;
         this.placement = 0;
-        this.lastPosition = null;
+        this.lastWrongWayTitleTime = 0L;
     }
     
     public FootRaceParticipant(Participant participant, QuitData quitData) {
@@ -61,7 +70,7 @@ public class FootRaceParticipant extends ParticipantData {
         this.currentCheckpoint = quitData.getCurrentCheckpoint();
         this.finished = quitData.isFinished();
         this.placement = quitData.getPlacement();
-        this.lastPosition = quitData.getLastPosition();
+        this.lastWrongWayTitleTime = quitData.getLastWrongWayTitleTime();
     }
     
     /**
@@ -88,9 +97,9 @@ public class FootRaceParticipant extends ParticipantData {
          */
         private final int placement;
         /**
-         * the last position they were at before they quit
+         * The last time the "Wrong Way!" title was shown to the participant.
          */
-        private @NotNull Location lastPosition;
+        private final long lastWrongWayTitleTime;
     }
     
     public QuitData getQuitData(@NotNull Location lastPosition) {
@@ -100,7 +109,7 @@ public class FootRaceParticipant extends ParticipantData {
                 currentCheckpoint,
                 finished,
                 placement,
-                lastPosition
+                lastWrongWayTitleTime
         );
     }
 }
