@@ -8,8 +8,10 @@ import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
+import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
@@ -17,9 +19,6 @@ import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.ReadyUpManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
-import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetConfig;
-import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
-import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -29,11 +28,14 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.sql.SQLException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 
 public class ReadyUpState extends EventState {
     
@@ -57,16 +59,18 @@ public class ReadyUpState extends EventState {
     public ReadyUpState(
             @NotNull GameManager context,
             @NotNull ContextReference contextReference,
+            @NotNull EventInfo eventInfo,
             @NotNull EventConfig eventConfig,
             int maxGames,
             int startingGameNumber) {
-        super(context, contextReference, eventConfig, startingGameNumber, maxGames);
+        super(context, contextReference, eventInfo, eventConfig, startingGameNumber, maxGames);
         this.readyUpManager = new ReadyUpManager();
         this.topbar = new ReadyUpTopbar();
     }
     
     @Override
     public void enter() {
+        contextReference.getGameStateStorageUtil().eventMode(eventData.getEventInfo().getEventId());
         context.stopAllGames();
         for (MCTParticipant participant : onlineParticipants.values()) {
             returnParticipantToHub(participant);
@@ -116,20 +120,28 @@ public class ReadyUpState extends EventState {
             }
         }.runTaskTimer(plugin, 0L, 2 * 20L).getTaskId();
         
-        PresetConfig presetConfig = eventData.getConfig().getPreset();
-        if (presetConfig != null) {
-            CommandResult commandResult = GameManagerUtils.applyPreset(
-                    plugin,
-                    context,
-                    new PresetStorageUtil(plugin.getDataFolder()),
-                    presetConfig.getFile(),
-                    presetConfig.isOverride(),
-                    presetConfig.isResetScores(),
-                    presetConfig.isWhitelist(),
-                    presetConfig.isUnWhitelist(),
-                    presetConfig.isKickUnWhitelisted());
-            context.messageAdmins(commandResult.getMessageOrEmpty());
-        }
+        CommandResult result = context.loadGameState();
+        CommandResult.showResult(contextReference.getPlugin().getServer().getConsoleSender(), result);
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                context.getEventService().updateActiveEvent(
+                        eventData.getEventInfo().getEventId(),
+                        eventData.getCurrentGameNumber(),
+                        eventData.getMaxGames()
+                );
+                context.getEventService().setEventStartTime(
+                        eventData.getEventInfo().getEventId(),
+                        new Date()
+                );
+            } catch (SQLException e) {
+                Main.logger().log(Level.SEVERE, "Could not update active event ID in system_state table", e);
+            }
+        });
+    }
+    
+    @Override
+    public @NotNull String getSystemStateDescription() {
+        return "READY_UP";
     }
     
     @Override
@@ -162,7 +174,10 @@ public class ReadyUpState extends EventState {
     }
     
     @Override
-    public CommandResult startEvent(int maxGames, int currentGameNumber) {
+    public CommandResult startEvent(@NotNull EventInfo eventInfo, int maxGames, int currentGameNumber) {
+        if (contextReference.getOnlineParticipants().isEmpty()) {
+            return CommandResult.failure("There are no participants online. Can't start the event");
+        }
         topbar.cleanup();
         plugin.getServer().getScheduler().cancelTask(readyUpPromptTaskId);
         readyUpManager.cleanup();

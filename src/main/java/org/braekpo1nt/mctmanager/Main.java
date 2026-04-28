@@ -3,29 +3,16 @@ package org.braekpo1nt.mctmanager;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.mojang.brigadier.Command;
-import com.mojang.brigadier.arguments.BoolArgumentType;
-import com.mojang.brigadier.arguments.FloatArgumentType;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
-import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
-import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
-import io.papermc.paper.command.brigadier.argument.resolvers.BlockPositionResolver;
-import io.papermc.paper.command.brigadier.argument.resolvers.FinePositionResolver;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import lombok.extern.java.Log;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import org.braekpo1nt.mctmanager.commands.argumenttypes.EnumResolver;
 import org.braekpo1nt.mctmanager.commands.bugreport.BugReportCommand;
+import org.braekpo1nt.mctmanager.commands.database.DatabaseCommand;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
-import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.commands.manager.commandresult.FailureCommandResult;
 import org.braekpo1nt.mctmanager.commands.mct.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.mctdebug.MCTDebugCommand;
 import org.braekpo1nt.mctmanager.commands.notready.NotReadyCommand;
@@ -33,13 +20,10 @@ import org.braekpo1nt.mctmanager.commands.readyup.ReadyUpCommand;
 import org.braekpo1nt.mctmanager.commands.readyup.UnReadyCommand;
 import org.braekpo1nt.mctmanager.commands.teammsg.TeamMsgCommand;
 import org.braekpo1nt.mctmanager.commands.utils.UtilsCommand;
+import org.braekpo1nt.mctmanager.commands.utils.UtilsDebugCommand;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.database.Database;
-import org.braekpo1nt.mctmanager.display.EdgeRenderer;
-import org.braekpo1nt.mctmanager.display.RectangleRenderer;
-import org.braekpo1nt.mctmanager.display.boundingbox.BoundingBoxRendererImpl;
-import org.braekpo1nt.mctmanager.display.geometry.Edge;
-import org.braekpo1nt.mctmanager.display.geometry.rectangle.Rectangle;
+import org.braekpo1nt.mctmanager.database.service.GameStateService;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
@@ -49,21 +33,12 @@ import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
-import org.bukkit.block.BlockFace;
-import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.util.BoundingBox;
-import org.bukkit.util.Vector;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.api.output.ValidateResult;
@@ -71,7 +46,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,26 +65,31 @@ public class Main extends JavaPlugin {
      * A pretty printing Gson instance for general use
      */
     public static final Gson GSON_PRETTY = new GsonBuilder().setPrettyPrinting().create();
-    private GameManager gameManager;
-    private boolean saveGameStateOnDisable = true;
+    protected GameManager gameManager;
+    protected Database database;
     public final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
-    private MCTCommand mctCommand;
     /**
      * This should be the application-wide logger used to print logs to the console or standard out.
      * Initialized to Lombok log value so that tests don't trigger NullPointerExceptions
      */
     private static Logger logger = log;
     private static final Map<LogType, @NotNull Boolean> logTypeActive = new HashMap<>();
-    private Database database;
+    private @Nullable UtilsDebugCommand utilsDebugCommand;
     
     protected GameManager initialGameManager(Scoreboard mctScoreboard, @NotNull HubConfig config, Database database) {
+        String databaseMode = getConfig().getString("database.mode", "prod");
+        GameStateService gameStateService = new GameStateService(
+                databaseMode,
+                database
+        );
         return new GameManager(
                 this,
                 mctScoreboard,
-                new GameStateStorageUtil(this),
+                new GameStateStorageUtil(getLogger(), gameStateService),
                 new SidebarFactory(),
                 config,
-                database);
+                database,
+                gameStateService);
     }
     
     /**
@@ -178,12 +157,11 @@ public class Main extends JavaPlugin {
         PacketEvents.getAPI().init();
         
         try {
-            this.database = setupDatabase();
+            database = setupDatabase();
         } catch (SQLException e) {
             getLogger().log(Level.SEVERE, "An error occurred connecting to or setting up the database. Is your config.yml set up properly? Disabling the plugin.", e);
-            saveGameStateOnDisable = false;
             this.getServer().getPluginManager().disablePlugin(this);
-            return;
+            throw new RuntimeException(e);
         }
         
         HubConfig config;
@@ -194,21 +172,11 @@ public class Main extends JavaPlugin {
             config = new HubConfigController(getDataFolder()).getDefaultConfig();
         }
         gameManager = initialGameManager(mctScoreboard, config, database);
-        CommandResult result = gameManager.loadGameState();
-        if (result instanceof FailureCommandResult) {
-            getServer().getConsoleSender().sendMessage(result.getMessageOrEmpty());
-            Main.logger().severe("[MCTManager] Could not load game state from memory. Disabling plugin.");
-            saveGameStateOnDisable = false;
-            this.getServer().getPluginManager().disablePlugin(this);
-            return;
-        }
         
         // Listeners
         BlockEffectsListener blockEffectsListener = new BlockEffectsListener(this);
         
         // Commands
-        new MCTDebugCommand(this, gameManager);
-        mctCommand = new MCTCommand(this, gameManager, blockEffectsListener);
         new UtilsCommand(this);
         new ReadyUpCommand(this, gameManager);
         new UnReadyCommand(this, gameManager);
@@ -217,7 +185,7 @@ public class Main extends JavaPlugin {
         new BugReportCommand(this, gameManager);
         new NotReadyCommand(this, gameManager);
         
-        registerCommands();
+        registerCommands(blockEffectsListener);
         
         alwaysGiveNightVision();
     }
@@ -227,50 +195,10 @@ public class Main extends JavaPlugin {
         String port = getConfig().getString("database.port", "3306");
         String user = getConfig().getString("database.user", "root");
         String password = getConfig().getString("database.password", "");
+        boolean baselineOnMigrate = getConfig().getBoolean("database.baselineOnMigrate", false);
         String databaseName = getConfig().getString("database.database_name", "challenger_trials");
         String jdbcUrl = String.format("jdbc:mysql://%s:%s/%s", host, port, databaseName);
-        String mode = getConfig().getString("database.mode", "prod");
-        try {
-            switch (mode) {
-                case "test" -> {
-                    getLogger().info("Initiating flyway migration for test environments");
-                    // include getClass().getClassLoader() for the love of all that's good and holy, 
-                    // or flyway won't find your migrations
-                    Flyway flyway = Flyway.configure(getClass().getClassLoader())
-                            .dataSource(jdbcUrl, user, password)
-                            .locations("classpath:db/migration") // migration folder
-                            .validateOnMigrate(false) // don't block if scripts change
-                            .cleanDisabled(false) // allow wiping DB
-                            .load();
-                    ValidateResult validateResult = flyway.validateWithResult();
-                    if (!validateResult.validationSuccessful) {
-                        getLogger().warning("Flyway validation failed in test environment. Cleaning the database.");
-                        flyway.clean();
-                    }
-                    flyway.migrate();
-                }
-                case "prod" -> {
-                    getLogger().info("Initiating flyway migration for production (prod) environments");
-                    // include getClass().getClassLoader() for the love of all that's good and holy, 
-                    // or flyway won't find your migrations
-                    Flyway flyway = Flyway.configure(getClass().getClassLoader())
-                            .dataSource(jdbcUrl, user, password)
-                            .locations("classpath:db/migration") // migration folder
-                            .validateOnMigrate(true)
-                            .cleanDisabled(true)
-                            .load();
-                    flyway.migrate();
-                }
-                default -> {
-                    getLogger().severe("database.mode not set in config.yml. Should be one of \"test\" or \"prod\". Unclear how to proceed");
-                    throw new SQLException("Mis-configured database.mode in config.yml. Should be one of \"test\" or \"prod\".");
-                }
-            }
-            
-        } catch (FlywayException e) {
-            throw new SQLException("An error occurred applying the flyway migration", e);
-        }
-        getLogger().info("Flyway migrations applied successfully");
+        flywayMigration(jdbcUrl, user, password, "ENGINE=InnoDB", "AUTO_INCREMENT", baselineOnMigrate);
         
         return new Database(
                 host,
@@ -281,275 +209,108 @@ public class Main extends JavaPlugin {
         );
     }
     
-    protected void registerCommands() {
-        LiteralCommandNode<CommandSourceStack> ctDebugCommand = Commands.literal("ctdebug")
-                .requires(sender -> sender.getSender().isOp())
-                .then(Commands.literal("custommodel")
-                        .executes(ctx -> {
-                            if (!(ctx.getSource().getExecutor() instanceof Player player)) {
-                                ctx.getSource().getSender().sendMessage("Must be a player to run this command");
-                                return Command.SINGLE_SUCCESS;
-                            }
-                            givePlayerCustomModelItem(player, new ItemStack(Material.SNOWBALL), "playerswapball");
-                            return Command.SINGLE_SUCCESS;
-                        })
-                        .then(Commands.argument("item", ArgumentTypes.itemStack())
-                                .then(Commands.argument("modelstring", StringArgumentType.word())
-                                        .executes(ctx -> {
-                                            if (!(ctx.getSource().getExecutor() instanceof Player player)) {
-                                                ctx.getSource().getSender().sendMessage("Must be a player to run this command");
-                                                return Command.SINGLE_SUCCESS;
-                                            }
-                                            ItemStack itemStack = ctx.getArgument("item", ItemStack.class);
-                                            String modelstring = ctx.getArgument("modelstring", String.class);
-                                            givePlayerCustomModelItem(player, itemStack, modelstring);
-                                            return Command.SINGLE_SUCCESS;
-                                        }))))
-                .then(Commands.literal("elytra")
-                        .then(Commands.argument("location", ArgumentTypes.blockPosition())
-                                .executes(ctx -> {
-                                    Location location = ctx.getArgument("location", BlockPositionResolver.class)
-                                            .resolve(ctx.getSource())
-                                            .toLocation(ctx.getSource().getLocation().getWorld());
-                                    if (!(ctx.getSource().getExecutor() instanceof Player player)) {
-                                        ctx.getSource().getSender().sendMessage("Must be a player to run this command");
-                                        return Command.SINGLE_SUCCESS;
-                                    }
-                                    player.teleport(location);
-                                    player.getInventory().setChestplate(new ItemStack(Material.ELYTRA));
-                                    this.getServer().getScheduler().runTaskLater(this, () -> {
-                                        player.setGliding(true);
-                                        player.sendMessage("You are flying");
-                                    }, 10L);
-                                    return Command.SINGLE_SUCCESS;
-                                })))
-                .then(Commands.literal("freeRect")
-                        .then(Commands.argument("edge1", ArgumentTypes.finePosition())
-                                .then(Commands.argument("edge2", ArgumentTypes.finePosition())
-                                        .executes(ctx -> {
-                                            Location location = ctx.getSource().getExecutor().getLocation();
-                                            final Vector edge1 = ctx.getArgument("edge1", FinePositionResolver.class).resolve(ctx.getSource()).toVector();
-                                            
-                                            final Vector edge2 = ctx.getArgument("edge2", FinePositionResolver.class).resolve(ctx.getSource()).toVector();
-                                            
-                                            RectangleRenderer renderer = RectangleRenderer.builder()
-                                                    .rectangle(Rectangle.of(location.toVector(), edge1, edge2))
-                                                    .blockData(Material.LIME_STAINED_GLASS.createBlockData())
-                                                    .build();
-                                            renderer.show();
-                                            this.getServer().getScheduler().runTaskLater(this, renderer::hide, 5 * 20L);
-                                            return Command.SINGLE_SUCCESS;
-                                        })
-                                )
-                        )
-                )
-                .then(Commands.literal("rect")
-                        .then(Commands.literal("reset")
-                                .executes(ctx -> {
-                                    if (rectangleRenderer != null) {
-                                        rectangleRenderer.hide();
-                                        rectangleRenderer = null;
-                                    }
-                                    return Command.SINGLE_SUCCESS;
-                                }))
-                        .then(Commands.argument("corner1", ArgumentTypes.blockPosition())
-                                .then(Commands.argument("corner2", ArgumentTypes.blockPosition())
-                                        .executes(this::rect))))
-                .then(Commands.literal("rectbox")
-                        .then(Commands.literal("reset")
-                                .executes(ctx -> {
-                                    if (boxRenderer != null) {
-                                        boxRenderer.hide();
-                                        boxRenderer = null;
-                                    }
-                                    return Command.SINGLE_SUCCESS;
-                                }))
-                        .then(Commands.literal("settype")
-                                .then(Commands.argument("type", new EnumResolver<>(BoundingBoxRendererImpl.Type.class, BoundingBoxRendererImpl.Type.values()))
-                                        .executes(ctx -> {
-                                            if (boxRenderer != null) {
-                                                BoundingBoxRendererImpl.Type type = ctx.getArgument("type", BoundingBoxRendererImpl.Type.class);
-                                                boxRenderer.setType(type);
-                                            }
-                                            return Command.SINGLE_SUCCESS;
-                                        })))
-                        .then(Commands.literal("glowing")
-                                .then(Commands.argument("glowing", BoolArgumentType.bool())
-                                        .executes(ctx -> {
-                                            boolean glowing = BoolArgumentType.getBool(ctx, "glowing");
-                                            if (boxRenderer != null) {
-                                                boxRenderer.setGlowing(glowing);
-                                            }
-                                            return Command.SINGLE_SUCCESS;
-                                        })))
-                        .then(Commands.argument("corner1", ArgumentTypes.blockPosition())
-                                .then(Commands.argument("corner2", ArgumentTypes.blockPosition())
-                                        .executes(ctx -> rectBox(ctx, null))
-                                        .then(Commands.argument("blockLight", IntegerArgumentType.integer(0, 15))
-                                                .then(Commands.argument("skyLight", IntegerArgumentType.integer(0, 15))
-                                                        .executes(ctx -> {
-                                                            final int blockLight = IntegerArgumentType.getInteger(ctx, "blockLight");
-                                                            final int skyLight = IntegerArgumentType.getInteger(ctx, "skyLight");
-                                                            Display.Brightness brightness = new Display.Brightness(blockLight, skyLight);
-                                                            return rectBox(ctx, brightness);
-                                                        }))))))
-                .then(Commands.literal("edge")
-                        .then(Commands.literal("reset")
-                                .executes(ctx -> {
-                                    if (edgeRenderer != null) {
-                                        edgeRenderer.hide();
-                                        edgeRenderer = null;
-                                    }
-                                    return Command.SINGLE_SUCCESS;
-                                }))
-                        .then(Commands.argument("from", ArgumentTypes.blockPosition())
-                                .then(Commands.argument("to", ArgumentTypes.blockPosition())
-                                        .executes(ctx -> {
-                                            Vector from = ctx.getArgument("from", BlockPositionResolver.class).resolve(ctx.getSource()).toVector();
-                                            Vector to = ctx.getArgument("to", BlockPositionResolver.class).resolve(ctx.getSource()).toVector();
-                                            edge(ctx.getSource().getLocation().getWorld(), new Edge(from, to), 0.05f);
-                                            return Command.SINGLE_SUCCESS;
-                                        })
-                                        .then(Commands.argument("stroke", FloatArgumentType.floatArg())
-                                                .executes(ctx -> {
-                                                    Vector from = ctx.getArgument("from", BlockPositionResolver.class).resolve(ctx.getSource()).toVector();
-                                                    Vector to = ctx.getArgument("to", BlockPositionResolver.class).resolve(ctx.getSource()).toVector();
-                                                    float stroke = FloatArgumentType.getFloat(ctx, "stroke");
-                                                    edge(ctx.getSource().getLocation().getWorld(), new Edge(from, to), stroke);
-                                                    return Command.SINGLE_SUCCESS;
-                                                })))))
-                .then(Commands.literal("enumtest")
-                        .then(Commands.argument("value", new EnumResolver<>(BlockFace.class, BlockFace.values()))
-                                .executes(ctx -> {
-                                    BlockFace value = ctx.getArgument("value", BlockFace.class);
-                                    ctx.getSource().getSender().sendMessage(Component.empty()
-                                            .append(Component.text("You chose "))
-                                            .append(Component.text(value.toString())));
-                                    return Command.SINGLE_SUCCESS;
-                                })))
-                .build();
+    protected String getMigrationLocation() {
+        return "classpath:db/migration";
+    }
+    
+    protected void flywayMigration(String jdbcUrl, String user, String password, String engine, String autoincrement, boolean baselineOnMigrate) throws SQLException {
+        String mode = getConfig().getString("database.mode", "prod");
+        Main.flywayMigration(jdbcUrl, user, password, engine, autoincrement, mode, getLogger(), getClass().getClassLoader(), getMigrationLocation(), baselineOnMigrate);
+    }
+    
+    public static void flywayMigration(String jdbcUrl, String user, String password, String engine, String autoincrement, String mode, Logger logger, ClassLoader classLoader, String locations, boolean baselineOnMigrate) throws SQLException {
+        /*
+        If you get the error "Cannot load from mysql.proc. The table is probably corrupted", it's a permissions
+        issue, not a corruption issue.  
+        try adding the flyway_schema_history
+        table manually to the empty database:
         
-        LiteralCommandNode<CommandSourceStack> databaseCommand = Commands.literal("database")
-                .then(Commands.literal("clear")
-                        .executes(ctx -> {
-                            if (!getConfig().getString("database.mode", "prod").equals("test")) {
-                                ctx.getSource().getSender().sendMessage(Component.empty()
-                                        .append(Component.text("You can't clear the database unless you are in "))
-                                        .append(Component.text("\"test\""))
-                                        .append(Component.text(" mode. Check your config.yml file's database.mode value"))
-                                        .color(NamedTextColor.RED)
-                                );
-                                return Command.SINGLE_SUCCESS;
-                            }
-                            try {
-                                gameManager.getScoreService().clearDatabase();
-                                ctx.getSource().getSender().sendMessage(Component.empty()
-                                        .append(Component.text("Clearing the database")));
-                                getLogger().info("Clearing the database");
-                            } catch (SQLException e) {
-                                getLogger().log(Level.SEVERE, "Error clearing database", e);
-                                ctx.getSource().getSender().sendMessage(Component.empty()
-                                        .append(Component.text("Error clearing database. See console for details"))
-                                        .color(NamedTextColor.RED));
-                            }
-                            return Command.SINGLE_SUCCESS;
-                        }))
-                .build();
+        CREATE TABLE `flyway_schema_history` (
+          `installed_rank` int(11) NOT NULL,
+          `version` varchar(50) DEFAULT NULL,
+          `description` varchar(200) NOT NULL,
+          `type` varchar(20) NOT NULL,
+          `script` varchar(1000) NOT NULL,
+          `checksum` int(11) DEFAULT NULL,
+          `installed_by` varchar(100) NOT NULL,
+          `installed_on` timestamp NOT NULL DEFAULT current_timestamp(),
+          `execution_time` int(11) NOT NULL,
+          `success` tinyint(1) NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+        
+        If that doesn't work on its own, also set baselineOnMigrate to true. After that it can be set to false.
+        That's how I solved it last time. 
+         */
+        try {
+            switch (mode) {
+                case "test" -> {
+                    logger.info("Initiating flyway migration for test environments");
+                    // include getClass().getClassLoader() for the love of all that's good and holy, 
+                    // or flyway won't find your migrations
+                    Flyway flyway = Flyway.configure(classLoader)
+                            .dataSource(jdbcUrl, user, password)
+                            .locations(locations) // migration folder
+                            .baselineOnMigrate(baselineOnMigrate)
+                            .validateOnMigrate(false) // don't block if scripts change
+                            .cleanDisabled(false) // allow wiping DB
+                            .placeholders(Map.of(
+                                    "engine", engine,
+                                    "autoincrement", autoincrement
+                            ))
+                            .load();
+                    ValidateResult validateResult = flyway.validateWithResult();
+                    if (!validateResult.validationSuccessful) {
+                        logger.warning("Flyway validation failed in test environment. Cleaning the database.");
+                        flyway.clean();
+                    }
+                    flyway.migrate();
+                }
+                case "prod" -> {
+                    logger.info("Initiating flyway migration for production (prod) environments");
+                    // include getClass().getClassLoader() for the love of all that's good and holy, 
+                    // or flyway won't find your migrations
+                    Flyway flyway = Flyway.configure(classLoader)
+                            .dataSource(jdbcUrl, user, password)
+                            .locations(locations) // migration folder
+                            .validateOnMigrate(true)
+                            .baselineOnMigrate(baselineOnMigrate)
+                            .cleanDisabled(true)
+                            .placeholders(Map.of(
+                                    "engine", engine,
+                                    "autoincrement", autoincrement
+                            ))
+                            .load();
+                    flyway.migrate();
+                }
+                default -> {
+                    logger.severe("database.mode not set in config.yml. Should be one of \"test\" or \"prod\". Unclear how to proceed");
+                    throw new SQLException("Mis-configured database.mode in config.yml. Should be one of \"test\" or \"prod\".");
+                }
+            }
+            
+        } catch (FlywayException e) {
+            throw new SQLException("An error occurred applying the flyway migration", e);
+        }
+        logger.info("Flyway migrations applied successfully");
+    }
+    
+    protected void registerCommands(@NotNull BlockEffectsListener blockEffectsListener) {
+        utilsDebugCommand = new UtilsDebugCommand(this);
+        LiteralCommandNode<CommandSourceStack> utilsDebugCommandNode = utilsDebugCommand.build();
+        LiteralCommandNode<CommandSourceStack> databaseCommand = new DatabaseCommand(this, gameManager).build();
+        LiteralCommandNode<CommandSourceStack> mctDebugCommand = new MCTDebugCommand(this, gameManager).build();
+        LiteralCommandNode<CommandSourceStack> mctCommand = new MCTCommand(this, gameManager, blockEffectsListener).build();
         
         // Brigadier commands
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> {
-            commands.registrar().register(ctDebugCommand);
+            commands.registrar().register(utilsDebugCommandNode);
             commands.registrar().register(databaseCommand);
+            commands.registrar().register(mctDebugCommand);
+            commands.registrar().register(mctCommand);
         });
     }
     
-    private static void givePlayerCustomModelItem(Player player, ItemStack itemStack, String customModelString) {
-        itemStack.editMeta(meta -> {
-            CustomModelDataComponent customModelDataComponent = meta.getCustomModelDataComponent();
-            List<String> newStrings = new ArrayList<>(customModelDataComponent.getStrings());
-            newStrings.add(customModelString);
-            customModelDataComponent.setStrings(newStrings);
-            meta.setCustomModelDataComponent(customModelDataComponent);
-        });
-        player.getInventory().addItem(itemStack);
-    }
-    
-    private @Nullable BoundingBoxRendererImpl boxRenderer;
-    private @Nullable RectangleRenderer rectangleRenderer;
-    private @Nullable EdgeRenderer edgeRenderer;
-    
-    public void edge(@NotNull World world, @NotNull Edge edge, float strokeWidth) {
-        if (edgeRenderer == null) {
-            edgeRenderer = EdgeRenderer.builder()
-                    .world(world)
-                    .edge(edge)
-                    .strokeWidth(strokeWidth)
-                    .blockData(Material.LIGHT_BLUE_STAINED_GLASS.createBlockData())
-                    .build();
-            edgeRenderer.show();
-        } else {
-            edgeRenderer.setEdge(edge);
-            edgeRenderer.setStrokeWidth(strokeWidth);
-        }
-    }
-    
-    public int rect(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-        final Vector corner1 = ctx.getArgument("corner1", BlockPositionResolver.class).resolve(ctx.getSource()).toVector();
-        final Vector corner2 = ctx.getArgument("corner2", BlockPositionResolver.class).resolve(ctx.getSource()).toVector();
-        Rectangle rectangle = Rectangle.of(
-                corner1.getX(),
-                corner1.getY(),
-                corner1.getZ(),
-                corner2.getX(),
-                corner2.getY(),
-                corner2.getZ()
-        );
-        if (rectangleRenderer == null) {
-            rectangleRenderer = RectangleRenderer.builder()
-                    .world(ctx.getSource().getLocation().getWorld())
-                    .rectangle(rectangle)
-                    .blockData(Material.LIGHT_BLUE_STAINED_GLASS.createBlockData())
-                    .build();
-            rectangleRenderer.show();
-        } else {
-            rectangleRenderer.setRectangle(rectangle);
-        }
-        return Command.SINGLE_SUCCESS;
-    }
-    
-    public int rectBox(CommandContext<CommandSourceStack> ctx, @Nullable Display.Brightness brightness) throws CommandSyntaxException {
-        final Vector corner1 = ctx.getArgument("corner1", BlockPositionResolver.class).resolve(ctx.getSource()).toVector();
-        final Vector corner2 = ctx.getArgument("corner2", BlockPositionResolver.class).resolve(ctx.getSource()).toVector();
-        BoundingBox boundingBox = new BoundingBox(
-                corner1.getX(),
-                corner1.getY(),
-                corner1.getZ(),
-                corner2.getX(),
-                corner2.getY(),
-                corner2.getZ()
-        );
-        if (boxRenderer == null) {
-            boxRenderer = BoundingBoxRendererImpl.builder()
-                    .world(ctx.getSource().getLocation().getWorld())
-                    .boundingBox(boundingBox)
-                    .blockData(Material.LIME_STAINED_GLASS.createBlockData())
-                    .brightness(brightness)
-                    .customName(Component.text("rectbox"))
-                    .customNameVisible(true)
-                    .build();
-            boxRenderer.show();
-        } else {
-            boxRenderer.setBoundingBox(boundingBox);
-            boxRenderer.setBrightness(brightness);
-        }
-        return Command.SINGLE_SUCCESS;
-    }
-    
-    public MCTCommand getMctCommand() {
-        return mctCommand;
-    }
-    
-    private void alwaysGiveNightVision() {
+    protected void alwaysGiveNightVision() {
         Main.logger().info("[MCTManager] Night vision activated");
         new BukkitRunnable() {
             @Override
@@ -573,33 +334,23 @@ public class Main extends JavaPlugin {
             if (gameManager.editorIsRunning()) {
                 gameManager.stopEditor();
             }
-            if (saveGameStateOnDisable) {
-                gameManager.saveGameState();
-            }
             gameManager.cleanup();
         } else {
             Main.logger().info("[MCTManager] Skipping save game state.");
         }
         gameManager = null;
-        mctCommand = null;
-        if (boxRenderer != null) {
-            boxRenderer.hide();
-            boxRenderer = null;
-        }
-        if (rectangleRenderer != null) {
-            rectangleRenderer.hide();
-            rectangleRenderer = null;
-        }
-        if (edgeRenderer != null) {
-            edgeRenderer.hide();
-            edgeRenderer = null;
+        if (utilsDebugCommand != null) {
+            utilsDebugCommand.cleanup();
         }
         logTypeActive.clear();
+        try {
+            database.close();
+        } catch (Exception e) {
+            getLogger().log(Level.SEVERE, "Error closing the database on plugin disable", e);
+        }
     }
     
-    // Testing methods for mocking components
-    
-    public GameManager getGameManager() {
-        return gameManager;
+    public ArgumentType<?> getUUIDArgumentType() {
+        return ArgumentTypes.uuid();
     }
 }

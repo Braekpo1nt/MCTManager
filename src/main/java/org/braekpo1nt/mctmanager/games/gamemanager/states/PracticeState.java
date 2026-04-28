@@ -5,11 +5,13 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
+import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
+import org.braekpo1nt.mctmanager.games.gamemanager.Mode;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfigController;
 import org.braekpo1nt.mctmanager.games.gamemanager.practice.PracticeManager;
@@ -27,10 +29,12 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -54,20 +58,27 @@ public class PracticeState extends GameManagerState {
     @Override
     public void enter() {
         setupSidebar();
+        contextReference.getGameStateStorageUtil().practiceMode();
+        // TODO: remove this
         PresetConfig presetConfig = config.getPractice().getPreset();
         if (presetConfig != null) {
             CommandResult commandResult = GameManagerUtils.applyPreset(
                     plugin,
                     context,
                     new PresetStorageUtil(plugin.getDataFolder()),
-                    presetConfig.getFile(),
-                    presetConfig.isOverride(),
-                    presetConfig.isResetScores(),
-                    presetConfig.isWhitelist(),
-                    presetConfig.isUnWhitelist(),
-                    presetConfig.isKickUnWhitelisted());
+                    new File(new File(plugin.getDataFolder(), "preset"), presetConfig.getFile()),
+                    plugin.getServer().getConsoleSender(),
+                    presetConfig.toOpts()
+            );
             context.messageAdmins(commandResult.getMessageOrEmpty());
         }
+        CommandResult result = context.loadGameState();
+        CommandResult.showResult(contextReference.getPlugin().getServer().getConsoleSender(), result);
+    }
+    
+    @Override
+    public @NotNull String getSystemStateDescription() {
+        return "PRACTICE";
     }
     
     @Override
@@ -76,7 +87,17 @@ public class PracticeState extends GameManagerState {
     }
     
     @Override
-    public void onLoadGameState() {
+    protected @NotNull CommandResult rebuildFromScores() throws SQLException {
+        try {
+            context.getGameStateService().rebuildPracticeMode();
+            return CommandResult.success(Component.text("Rebuilt game state from practice mode"));
+        } catch (SQLException e) {
+            throw new SQLException("Unable to rebuild practice mode", e);
+        }
+    }
+    
+    @Override
+    public void postLoadGameState() {
         practiceManager.setConfig(config.getPractice());
         for (MCTParticipant participant : onlineParticipants.values()) {
             participant.getInventory().close();
@@ -91,7 +112,7 @@ public class PracticeState extends GameManagerState {
         this.sidebar.updateTitle(Component.empty()
                 .append(Sidebar.DEFAULT_TITLE)
                 .append(Component.text(" - "))
-                .append(Component.text("Practice")));
+                .append(Mode.PRACTICE.getTitle()));
         sidebar.addLines(
                 new KeyLine("team0", Component.empty()),
                 new KeyLine("team1", Component.empty()),
@@ -110,23 +131,27 @@ public class PracticeState extends GameManagerState {
     }
     
     @Override
-    public CommandResult switchMode(@NotNull String mode) {
+    public CommandResult switchMode(@NotNull Mode mode) {
         switch (mode) {
-            case "maintenance" -> {
+            case MAINTENANCE -> {
                 practiceManager.cleanup();
                 context.setState(new MaintenanceState(context, contextReference));
                 return CommandResult.success(Component.text("Switched to maintenance mode"));
             }
-            case "practice" -> {
+            case PRACTICE -> {
                 return CommandResult.success(Component.text("Already in practice mode"));
             }
-            case "event" -> {
-                practiceManager.cleanup();
-                return startEvent(7, 0);
+            case EVENT -> {
+//                practiceManager.cleanup();
+                // TODO: use the active event from SystemState
+                return CommandResult.success(Component.empty()
+                        .append(Component.text("At this time, you must switch to event mode using the \"/mct event start\" command"))
+                );
+//                return startEvent(EventInfo.getDebugEvent(), 7, 0);
             }
             default -> {
                 return CommandResult.failure(Component.empty()
-                        .append(Component.text(mode)
+                        .append(mode.getTitle()
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(" is not a valid mode")));
             }
@@ -134,8 +159,8 @@ public class PracticeState extends GameManagerState {
     }
     
     @Override
-    public @NotNull String getMode() {
-        return "practice";
+    public @NotNull Mode getMode() {
+        return Mode.PRACTICE;
     }
     
     @Override
@@ -177,11 +202,11 @@ public class PracticeState extends GameManagerState {
     }
     
     @Override
-    public CommandResult startEvent(int maxGames, int currentGameNumber) {
+    public CommandResult startEvent(@NotNull EventInfo eventInfo, int maxGames, int currentGameNumber) {
         try {
             EventConfig eventConfig = new EventConfigController(plugin.getDataFolder()).getConfig();
             practiceManager.cleanup();
-            context.setState(new ReadyUpState(context, contextReference, eventConfig, maxGames, currentGameNumber));
+            context.setState(new ReadyUpState(context, contextReference, eventInfo, eventConfig, maxGames, currentGameNumber));
             return CommandResult.success(Component.text("Switched to event mode"));
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, e.getMessage(), e);
@@ -202,6 +227,16 @@ public class PracticeState extends GameManagerState {
     }
     
     @Override
+    public void onNonJoin(@NotNull Player player) {
+        Optional<MCTTeam> first = contextReference.getTeams().values().stream().findFirst();
+        if (first.isEmpty()) {
+            return;
+        }
+        MCTTeam team = first.get();
+        context.joinOnlineParticipant(player, team.getTeamId());
+    }
+    
+    @Override
     public void onParticipantQuit(@NotNull MCTParticipant participant) {
         practiceManager.removeParticipant(participant.getUniqueId());
         super.onParticipantQuit(participant);
@@ -209,39 +244,7 @@ public class PracticeState extends GameManagerState {
     
     // leave/join stop
     
-    
-    @Override
-    protected void persistDatabaseScores(Map<String, Integer> newTeamScores, Map<UUID, Integer> newParticipantScores, int gameSessionId, GameInstanceId id, Date endDate, double multiplier) throws SQLException {
-        super.persistDatabaseScores(newTeamScores, newParticipantScores, gameSessionId, id, endDate, multiplier);
-        context.getScoreService().addParticipantCurrencies(newParticipantScores);
-    }
-    
-    /**
-     * Display the scores only, don't save them to the GameState
-     * @param newTeamScores map of teamId to score to add. Must be teamIds of real teams
-     * @param newParticipantScores map of UUID to score to add. Must be UUIDs of real participants
-     * @param gameSessionId the id of the {@link org.braekpo1nt.mctmanager.database.entities.GameSession} associated
-     * with this game
-     * @param id the {@link GameInstanceId}
-     * @param endDate the date the game ended
-     */
-    @Override
-    protected void addScores(
-            Map<String, Integer> newTeamScores,
-            Map<UUID, Integer> newParticipantScores,
-            int gameSessionId,
-            @NotNull GameInstanceId id,
-            @NotNull Date endDate) {
-        Map<String, Integer> teamScores = newTeamScores.entrySet().stream()
-                .filter(e -> teams.containsKey(e.getKey()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        Map<UUID, Integer> participantScores = newParticipantScores.entrySet().stream()
-                .filter(e -> allParticipants.containsKey(e.getKey()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        // TODO: save scores for practice to special practice log, so Shotgun can use stats
-        displayStats(teamScores, participantScores, id);
-    }
-    
+    // team/participants management start
     @Override
     public Team addTeam(String teamId, String teamDisplayName, String colorString) {
         Team team = super.addTeam(teamId, teamDisplayName, colorString);
@@ -257,6 +260,8 @@ public class PracticeState extends GameManagerState {
         practiceManager.removeTeam(teamId);
         return super.removeTeam(teamId);
     }
+    
+    // team/participants management stop
     
     @Override
     protected void onParticipantJoinGame(@NotNull GameInstanceId id, Participant participant) {

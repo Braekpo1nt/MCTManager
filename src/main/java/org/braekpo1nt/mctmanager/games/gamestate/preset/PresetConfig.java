@@ -25,4 +25,14 @@ public class PresetConfig {
      * will be kicked (this kicking happens after the application of the preset)
      */
     private boolean kickUnWhitelisted;
+    
+    public PresetOpts toOpts() {
+        return PresetOpts.builder()
+                .override(isOverride())
+                .resetScores(isResetScores())
+                .whiteList(isWhitelist())
+                .unWhitelist(isUnWhitelist())
+                .kickUnWhitelisted(isKickUnWhitelisted())
+                .build();
+    }
 }

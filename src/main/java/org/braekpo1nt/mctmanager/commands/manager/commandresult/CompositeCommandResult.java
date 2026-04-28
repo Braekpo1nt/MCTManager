@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.commands.manager.commandresult;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -9,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class CompositeCommandResult implements CommandResult {
+public class CompositeCommandResult implements AsynchronousCommandResult {
     
     protected final List<CommandResult> commandResults;
     
@@ -54,5 +55,14 @@ public class CompositeCommandResult implements CommandResult {
     
     public static @NotNull CommandResult all(List<CommandResult> commandResults) {
         return new CompositeCommandResult(commandResults);
+    }
+    
+    @Override
+    public void executeAsync(@NotNull CommandSender sender) {
+        for (CommandResult commandResult : commandResults) {
+            if (commandResult instanceof AsynchronousCommandResult asyncCommandResult) {
+                asyncCommandResult.executeAsync(sender);
+            }
+        }
     }
 }

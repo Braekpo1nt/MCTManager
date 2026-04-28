@@ -65,7 +65,17 @@ public class VotingState extends EventState {
     
     @Override
     public void enter() {
+        if (contextReference.getOnlineParticipants().isEmpty()) {
+            context.messageAdmins(Component.text("There are no online participants. Can't start the vote."));
+            context.setState(new WaitingInHubState(context, contextReference, eventData));
+            return;
+        }
         context.getTimerManager().start(timer);
+    }
+    
+    @Override
+    public @NotNull String getSystemStateDescription() {
+        return "VOTING";
     }
     
     @Override

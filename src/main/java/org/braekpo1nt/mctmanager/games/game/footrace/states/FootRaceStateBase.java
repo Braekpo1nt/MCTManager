@@ -41,9 +41,14 @@ public abstract class FootRaceStateBase implements FootRaceState {
     @Override
     public void onParticipantRejoin(FootRaceParticipant participant, FootRaceTeam team) {
         context.getStandings().add(participant);
+        if (participant.getLastPosition() != null) {
+            participant.teleport(participant.getLastPosition());
+        } else {
+            participant.teleport(context.getConfig().getStartingLocation());
+        }
+        participant.setRespawnLocation(context.getConfig().getStartingLocation(), true);
         context.giveBoots(participant);
         participant.addPotionEffect(context.getINVISIBILITY());
-        participant.setRespawnLocation(context.getConfig().getStartingLocation(), true);
         context.updateStandings();
         context.displayStandings();
         context.getSidebar().updateLine(participant.getUniqueId(), "lap",

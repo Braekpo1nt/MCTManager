@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.gamemanager.states.event;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
@@ -12,7 +13,6 @@ import org.braekpo1nt.mctmanager.games.gamemanager.event.Tip;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.event.delay.StartingGameDelayState;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.event.delay.ToFinalGameDelayState;
-import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
@@ -20,12 +20,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class WaitingInHubState extends EventState {
@@ -51,6 +52,22 @@ public class WaitingInHubState extends EventState {
         sidebar.updateLine("currentGame", getCurrentGameLine());
         context.getTimerManager().start(waitingInHubTimer);
         startActionBarTips();
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                context.getEventService().updateActiveEvent(
+                        eventData.getEventInfo().getEventId(),
+                        eventData.getCurrentGameNumber(),
+                        eventData.getMaxGames()
+                );
+            } catch (SQLException e) {
+                Main.logger().log(Level.SEVERE, "Could not update active currentGameNumber", e);
+            }
+        });
+    }
+    
+    @Override
+    public @NotNull String getSystemStateDescription() {
+        return "WAITING_IN_HUB";
     }
     
     @Override

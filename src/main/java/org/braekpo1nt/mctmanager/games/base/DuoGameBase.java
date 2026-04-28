@@ -88,7 +88,7 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
     }
     
     @Override
-    public void onTeamJoin(Team newTeam) {
+    public void onJoin(@NotNull Team newTeam, @NotNull Participant participant) {
         if (teams.containsKey(newTeam.getTeamId())) {
             return;
         }
@@ -105,7 +105,7 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
                 state.onTeamRejoin(southTeam);
             }
             case SPECTATOR -> {
-                super.onTeamJoin(newTeam);
+                super.onJoin(newTeam, participant);
             }
         }
     }

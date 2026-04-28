@@ -1,16 +1,27 @@
 package org.braekpo1nt.mctmanager.commands.mct.game;
 
-import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.jetbrains.annotations.NotNull;
 
-public class GameCommand extends CommandManager {
+
+public class GameCommand implements BrigadierSubCommand {
     
-    public GameCommand(Main plugin, GameManager gameManager) {
-        super("game");
-        addSubCommand(new StartSubCommand(plugin, gameManager, "start"));
-        addSubCommand(new StopSubCommand(gameManager, "stop"));
-        addSubCommand(new JoinSubCommand(gameManager, "join"));
-        addSubCommand(new StatusSubCommand(plugin, gameManager, "status"));
+    private final @NotNull GameManager gameManager;
+    
+    public GameCommand(@NotNull GameManager gameManager) {
+        this.gameManager = gameManager;
+    }
+    
+    @Override
+    public @NotNull Permissioned<CommandSourceStack> create() {
+        return Permissioned.literal("game")
+                .then(new StartSubCommand(gameManager).create())
+                .then(new StopSubCommand(gameManager).create())
+                .then(new JoinSubCommand(gameManager).create())
+                .then(new StatusSubCommand(gameManager).create())
+                ;
     }
 }

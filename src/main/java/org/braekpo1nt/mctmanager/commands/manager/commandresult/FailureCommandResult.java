@@ -15,8 +15,4 @@ public class FailureCommandResult implements CommandResult {
         return message.color(NamedTextColor.RED);
     }
     
-    @Override
-    public @NotNull CommandResult and(CommandResult other) {
-        return new CompositeCommandResult(this, other);
-    }
 }

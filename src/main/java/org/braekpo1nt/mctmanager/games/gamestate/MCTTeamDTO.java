@@ -34,8 +34,8 @@ class MCTTeamDTO implements Validatable {
         validator.validate(ColorMap.hasNamedTextColor(color), "color is not a recognized color. It should be one of %s", ColorMap.getNamedTextColors());
     }
     
-    MCTTeam toTeam() {
-        return MCTTeam.builder()
+    MCTTeamEntity toTeam() {
+        return MCTTeamEntity.builder()
                 .name(this.name)
                 .displayName(this.displayName)
                 .score(this.score)
@@ -43,15 +43,15 @@ class MCTTeamDTO implements Validatable {
                 .build();
     }
     
-    static Map<String, MCTTeam> toTeams(Map<String, MCTTeamDTO> teams) {
-        Map<String, MCTTeam> mctTeams = new HashMap<>(teams.size());
+    static Map<String, MCTTeamEntity> toTeams(Map<String, MCTTeamDTO> teams) {
+        Map<String, MCTTeamEntity> mctTeams = new HashMap<>(teams.size());
         for (Map.Entry<String, MCTTeamDTO> entry : teams.entrySet()) {
             mctTeams.put(entry.getKey(), entry.getValue().toTeam());
         }
         return mctTeams;
     }
     
-    static MCTTeamDTO fromTeam(MCTTeam mctTeam) {
+    static MCTTeamDTO fromTeam(MCTTeamEntity mctTeam) {
         return MCTTeamDTO.builder()
                 .name(mctTeam.getName())
                 .displayName(mctTeam.getDisplayName())
@@ -60,9 +60,9 @@ class MCTTeamDTO implements Validatable {
                 .build();
     }
     
-    static Map<String, MCTTeamDTO> fromTeams(Map<String, MCTTeam> teams) {
+    static Map<String, MCTTeamDTO> fromTeams(Map<String, MCTTeamEntity> teams) {
         Map<String, MCTTeamDTO> mctTeamDTOs = new HashMap<>(teams.size());
-        for (Map.Entry<String, MCTTeam> entry : teams.entrySet()) {
+        for (Map.Entry<String, MCTTeamEntity> entry : teams.entrySet()) {
             mctTeamDTOs.put(entry.getKey(), MCTTeamDTO.fromTeam(entry.getValue()));
         }
         return mctTeamDTOs;

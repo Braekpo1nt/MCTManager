@@ -13,9 +13,4 @@ public class SuccessCommandResult implements CommandResult {
     public @Nullable Component getMessage() {
         return message;
     }
-    
-    @Override
-    public @NotNull CommandResult and(CommandResult other) {
-        return new CompositeCommandResult(this, other);
-    }
 }

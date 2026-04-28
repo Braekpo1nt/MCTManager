@@ -75,8 +75,18 @@ public class OfflineParticipant implements AudienceDelegate {
      * @param offlineParticipant the offline participant to copy everything but the score from
      * @param newScore the score to use
      */
-    public OfflineParticipant(OfflineParticipant offlineParticipant, int newScore) {
+    public OfflineParticipant(@NotNull OfflineParticipant offlineParticipant, int newScore) {
         this(offlineParticipant.getUniqueId(), offlineParticipant.getName(), offlineParticipant.displayName(), offlineParticipant.getTeamId(), newScore);
+    }
+    
+    /**
+     * Copy everything about the given offline participant, but use the new name and display name
+     * @param offlineParticipant the offline participant to copy everything but the score from
+     * @param newName the name to use
+     * @param displayName the display name to use
+     */
+    public OfflineParticipant(@NotNull OfflineParticipant offlineParticipant, @NotNull String newName, @NotNull Component displayName) {
+        this(offlineParticipant.getUniqueId(), newName, displayName, offlineParticipant.getTeamId(), offlineParticipant.getScore());
     }
     
     /**
@@ -130,8 +140,16 @@ public class OfflineParticipant implements AudienceDelegate {
      * @param offlineParticipant the participant to check if they are on the same team or not
      * @return true if the {@link #getTeamId()} of this participant matches that of the given participant
      */
-    public boolean sameTeam(OfflineParticipant offlineParticipant) {
+    public boolean sameTeam(@NotNull OfflineParticipant offlineParticipant) {
         return getTeamId().equals(offlineParticipant.getTeamId());
+    }
+    
+    /**
+     * @param team the team to check if this participant is a member of
+     * @return true if the given team's {@link Team#getTeamId()} matches this participant's {@link #getTeamId()}
+     */
+    public boolean isOnTeam(@NotNull Team team) {
+        return getTeamId().equals(team.getTeamId());
     }
     
 }

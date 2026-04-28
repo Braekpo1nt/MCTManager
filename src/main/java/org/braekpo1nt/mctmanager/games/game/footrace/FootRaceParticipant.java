@@ -7,7 +7,9 @@ import lombok.ToString;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.ParticipantData;
 import org.braekpo1nt.mctmanager.participant.QuitDataBase;
+import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @ToString(callSuper = true)
 @Getter
@@ -44,6 +46,12 @@ public class FootRaceParticipant extends ParticipantData {
     private boolean showingWrongWayAlert = false;
     private double lastDistToNext = Double.MAX_VALUE;
     private double lastDistToPrev = Double.MAX_VALUE;
+    
+    /**
+     * Used for rejoining, saved when quitting,
+     * teleported to this pos when rejoining and set to null
+     */
+    private @Nullable Location lastPosition;
     
     public FootRaceParticipant(@NotNull Participant participant, int currentCheckpoint, int score) {
         super(participant, score);
@@ -94,7 +102,7 @@ public class FootRaceParticipant extends ParticipantData {
         private final long lastWrongWayTitleTime;
     }
     
-    public QuitData getQuitData() {
+    public QuitData getQuitData(@NotNull Location lastPosition) {
         return new QuitData(
                 getScore(),
                 lap,

@@ -122,3 +122,5 @@ bin/
 
 # Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
 !gradle-wrapper.jar
+
+src/main/resources/db/deleteme

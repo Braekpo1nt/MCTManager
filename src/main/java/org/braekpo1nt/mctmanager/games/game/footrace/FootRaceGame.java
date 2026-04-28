@@ -252,7 +252,7 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
     
     @Override
     protected @NotNull FootRaceParticipant.QuitData getQuitData(FootRaceParticipant participant) {
-        return participant.getQuitData();
+        return participant.getQuitData(participant.getLocation());
     }
     
     @Override
