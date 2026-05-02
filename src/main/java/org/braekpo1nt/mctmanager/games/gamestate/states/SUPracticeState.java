@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.games.gamestate.states;
 
 import org.braekpo1nt.mctmanager.database.entities.admin.ActiveAdminEntity;
 import org.braekpo1nt.mctmanager.database.entities.admin.PracticeAdminEntity;
-import org.braekpo1nt.mctmanager.database.entities.teams.ActiveTeam;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.gamestate.MCTPlayerEntity;
 import org.braekpo1nt.mctmanager.games.gamestate.MCTTeamEntity;
@@ -12,9 +11,9 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
-public class PracticeState extends StorageUtilState {
+public class SUPracticeState extends StorageUtilState {
     
-    public PracticeState(@NotNull GameStateStorageUtil context) {
+    public SUPracticeState(@NotNull GameStateStorageUtil context) {
         super(context);
     }
     

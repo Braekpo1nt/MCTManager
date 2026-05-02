@@ -13,9 +13,9 @@ import org.braekpo1nt.mctmanager.database.service.GameStateService;
 import org.braekpo1nt.mctmanager.database.service.RegisterConflictType;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
-import org.braekpo1nt.mctmanager.games.gamestate.states.EventState;
-import org.braekpo1nt.mctmanager.games.gamestate.states.MaintenanceState;
-import org.braekpo1nt.mctmanager.games.gamestate.states.PracticeState;
+import org.braekpo1nt.mctmanager.games.gamestate.states.SUEventState;
+import org.braekpo1nt.mctmanager.games.gamestate.states.SUMaintenanceState;
+import org.braekpo1nt.mctmanager.games.gamestate.states.SUPracticeState;
 import org.braekpo1nt.mctmanager.games.gamestate.states.StorageUtilState;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.ColorAttributes;
@@ -67,7 +67,7 @@ public class GameStateStorageUtil {
         // Pro Tip: The plugin.getGameManager() is null at this point
         this.gameStateService = gameStateService;
         this.mariaDB = mariaDB;
-        this.state = new MaintenanceState(this);
+        this.state = new SUMaintenanceState(this);
         state.enter();
     }
     
@@ -78,15 +78,15 @@ public class GameStateStorageUtil {
     }
     
     public void maintenanceMode() {
-        setState(new MaintenanceState(this));
+        setState(new SUMaintenanceState(this));
     }
     
     public void practiceMode() {
-        setState(new PracticeState(this));
+        setState(new SUPracticeState(this));
     }
     
     public void eventMode(@NotNull String eventId) {
-        setState(new EventState(this, eventId));
+        setState(new SUEventState(this, eventId));
     }
     
     /**
