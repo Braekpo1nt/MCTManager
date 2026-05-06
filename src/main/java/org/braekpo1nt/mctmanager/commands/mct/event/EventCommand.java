@@ -44,7 +44,8 @@ public class EventCommand implements BrigadierSubCommand {
                 .then(new VoteCommand(gameManager).create())
                 .then(new UndoCommand(gameManager).create())
                 .then(new ModifyCommand(gameManager).create())
-                .then(new EventApplyPresetCommand(gameManager, plugin).create())
+                // TODO: fix this command
+//                .then(new EventApplyPresetCommand(gameManager, plugin).create())
                 .then(buildMaxGames())
                 .then(buildWhitelist())
                 ;
