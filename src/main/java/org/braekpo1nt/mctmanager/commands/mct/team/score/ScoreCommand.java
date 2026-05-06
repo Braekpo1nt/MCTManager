@@ -1,18 +1,25 @@
 package org.braekpo1nt.mctmanager.commands.mct.team.score;
 
-import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
-import org.braekpo1nt.mctmanager.commands.mct.team.score.add.ScoreAddCommand;
-import org.braekpo1nt.mctmanager.commands.mct.team.score.set.ScoreSetCommand;
-import org.braekpo1nt.mctmanager.commands.mct.team.score.subtract.ScoreSubtractCommand;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.jetbrains.annotations.NotNull;
 
-public class ScoreCommand extends CommandManager {
+public class ScoreCommand implements BrigadierSubCommand {
     
-    public ScoreCommand(GameManager gameManager, @NotNull String name) {
-        super(name);
-        addSubCommand(new ScoreAddCommand(gameManager, "add"));
-        addSubCommand(new ScoreSubtractCommand(gameManager, "subtract"));
-        addSubCommand(new ScoreSetCommand(gameManager, "set"));
+    private final @NotNull GameManager gameManager;
+    
+    public ScoreCommand(@NotNull GameManager gameManager) {
+        this.gameManager = gameManager;
+    }
+    
+    @Override
+    public @NotNull Permissioned<CommandSourceStack> create() {
+        return Permissioned.literal("score")
+                .then(new ScoreAddCommand(gameManager, false).create())
+                .then(new ScoreAddCommand(gameManager, true).create())
+                .then(new ScoreSetCommand(gameManager).create())
+                ;
     }
 }

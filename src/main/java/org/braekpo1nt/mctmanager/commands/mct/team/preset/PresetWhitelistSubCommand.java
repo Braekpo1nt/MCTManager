@@ -1,51 +1,50 @@
 package org.braekpo1nt.mctmanager.commands.mct.team.preset;
 
+import com.mojang.brigadier.arguments.BoolArgumentType;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.FileResolver;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.commands.CommandUtils;
-import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.Preset;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.io.File;
 import java.util.logging.Level;
 
-public class PresetWhitelistSubCommand extends TabSubCommand {
+public class PresetWhitelistSubCommand implements BrigadierSubCommand {
     
-    private final PresetStorageUtil storageUtil;
+    private final @NotNull PresetStorageUtil storageUtil;
+    private final @NotNull Main plugin;
     
-    public PresetWhitelistSubCommand(PresetStorageUtil storageUtil, @NotNull String name) {
-        super(name);
+    public PresetWhitelistSubCommand(@NotNull PresetStorageUtil storageUtil, @NotNull Main plugin) {
         this.storageUtil = storageUtil;
+        this.plugin = plugin;
     }
     
     @Override
-    public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length != 2) {
-            return CommandResult.failure(getUsage().of("<true|false>"));
-        }
-        String presetFile = args[0];
-        
-        String shouldWhitelistString = args[1];
-        Boolean shouldWhitelist = CommandUtils.toBoolean(shouldWhitelistString);
-        if (shouldWhitelist == null) {
-            return CommandResult.failure(Component.empty()
-                    .append(Component.text(shouldWhitelistString)
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" is not a valid boolean"))
-            );
-        }
-        
+    public @NotNull Permissioned<CommandSourceStack> create() {
+        return Permissioned.literal("whitelist")
+                .then(Permissioned.argument("whitelist", BoolArgumentType.bool())
+                        .executes(BrigadierAdapters.wraps(this::executeWhitelist))
+                )
+                ;
+    }
+    
+    private @NotNull CommandResult executeWhitelist(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        FileResolver resolver = ctx.getArgument(PresetCommand.PRESET_FILE_ARG, FileResolver.class);
+        File presetFile = resolver.resolve();
+        boolean shouldWhitelist = ctx.getArgument("whitelist", Boolean.class);
         Preset preset;
         try {
             preset = storageUtil.loadPreset(presetFile);
@@ -62,8 +61,8 @@ public class PresetWhitelistSubCommand extends TabSubCommand {
         if (shouldWhitelist) {
             
             for (Preset.PresetTeam team : preset.getTeams()) {
-                for (String ign : team.getMembers()) {
-                    OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(ign);
+                for (Preset.PresetParticipant member : team.getMembers()) {
+                    OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(member.getUuid());
                     if (!offlinePlayer.isWhitelisted()) {
                         offlinePlayer.setWhitelisted(true);
                         changedCount++;
@@ -86,8 +85,8 @@ public class PresetWhitelistSubCommand extends TabSubCommand {
         } else {
             
             for (Preset.PresetTeam team : preset.getTeams()) {
-                for (String ign : team.getMembers()) {
-                    OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(ign);
+                for (Preset.PresetParticipant member : team.getMembers()) {
+                    OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(member.getUuid());
                     if (offlinePlayer.isWhitelisted()) {
                         offlinePlayer.setWhitelisted(false);
                         changedCount++;
@@ -109,10 +108,5 @@ public class PresetWhitelistSubCommand extends TabSubCommand {
             }
         }
         return CommandResult.success(builder.asComponent());
-    }
-    
-    @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        return List.of("true", "false");
     }
 }

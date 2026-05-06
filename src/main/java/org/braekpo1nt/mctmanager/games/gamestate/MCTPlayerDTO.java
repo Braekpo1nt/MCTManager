@@ -30,15 +30,15 @@ class MCTPlayerDTO implements Validatable {
         validator.notNull(teamId, "teamId");
     }
     
-    public static Map<UUID, MCTPlayerDTO> fromMCTPlayers(Map<UUID, MCTPlayer> players) {
+    public static Map<UUID, MCTPlayerDTO> fromMCTPlayers(Map<UUID, MCTPlayerEntity> players) {
         Map<UUID, MCTPlayerDTO> playerDTOs = new HashMap<>();
-        for (Map.Entry<UUID, MCTPlayer> entry : players.entrySet()) {
+        for (Map.Entry<UUID, MCTPlayerEntity> entry : players.entrySet()) {
             playerDTOs.put(entry.getKey(), MCTPlayerDTO.fromMCTPlayer(entry.getValue()));
         }
         return playerDTOs;
     }
     
-    static MCTPlayerDTO fromMCTPlayer(MCTPlayer mctPlayer) {
+    static MCTPlayerDTO fromMCTPlayer(MCTPlayerEntity mctPlayer) {
         return new MCTPlayerDTO(
                 mctPlayer.getUniqueId(),
                 mctPlayer.getName(),
@@ -46,8 +46,8 @@ class MCTPlayerDTO implements Validatable {
                 mctPlayer.getTeamId());
     }
     
-    MCTPlayer toMCTPlayer() {
-        return MCTPlayer.builder()
+    MCTPlayerEntity toMCTPlayer() {
+        return MCTPlayerEntity.builder()
                 .uniqueId(this.uniqueId)
                 .name(this.name)
                 .score(this.score)
@@ -55,8 +55,8 @@ class MCTPlayerDTO implements Validatable {
                 .build();
     }
     
-    public static Map<UUID, MCTPlayer> toMCTPlayers(Map<UUID, MCTPlayerDTO> playerDTOs) {
-        Map<UUID, MCTPlayer> players = new HashMap<>();
+    public static Map<UUID, MCTPlayerEntity> toMCTPlayers(Map<UUID, MCTPlayerDTO> playerDTOs) {
+        Map<UUID, MCTPlayerEntity> players = new HashMap<>();
         for (Map.Entry<UUID, MCTPlayerDTO> entry : playerDTOs.entrySet()) {
             players.put(entry.getKey(), entry.getValue().toMCTPlayer());
         }

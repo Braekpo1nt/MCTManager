@@ -1,59 +1,213 @@
 package org.braekpo1nt.mctmanager.commands.mctdebug;
 
+import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.tree.LiteralCommandNode;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import io.papermc.paper.command.brigadier.Commands;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoArgumentType;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoResolver;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.FileArgumentType;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.FileResolver;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierCommand;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
+import org.braekpo1nt.mctmanager.database.entities.EventInfo;
+import org.braekpo1nt.mctmanager.database.service.ScoreService;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
-import org.bukkit.Material;
-import org.bukkit.command.Command;
+import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetController;
+import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetDTO;
+import org.braekpo1nt.mctmanager.games.gamestate.preset.legacy.LegacyPresetController;
+import org.braekpo1nt.mctmanager.games.gamestate.preset.legacy.LegacyPresetDTO;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.io.File;
+import java.sql.SQLException;
+import java.util.Map;
+import java.util.UUID;
+import java.util.logging.Level;
 
 /**
  * A utility command for testing various things, so I don't have to create a new command.
  */
-public class MCTDebugCommand implements TabExecutor, Listener {
+public class MCTDebugCommand implements BrigadierCommand, Listener {
+    
+    public static final String PRESET_FILE_ARG = "presetFile";
     
     private final Main plugin;
     private final GameManager gameManager;
+    private final File presetDirectory;
     
     public MCTDebugCommand(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        Objects.requireNonNull(this.plugin.getCommand("mctdebug")).setExecutor(this);
+        this.presetDirectory = new File(plugin.getDataFolder(), "presets");
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     
-    
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage(Component.text("Must be a player to run this command")
-                    .color(NamedTextColor.RED));
-            return true;
-        }
-        
-        if (args.length != 0) {
-            sender.sendMessage(Component.text("Usage: /mctdebug <arg> [options]")
-                    .color(NamedTextColor.RED));
-            return true;
-        }
-        
-        return true;
+    public LiteralCommandNode<CommandSourceStack> build() {
+        return Permissioned.literal("mctdebug")
+                .executes(BrigadierAdapters.wraps(this::executeDebug))
+                .then(Permissioned.literal("preset")
+                        .then(Permissioned.literal("convertLegacy")
+                                .then(Permissioned.argument(PRESET_FILE_ARG,
+                                                new FileArgumentType(presetDirectory, ".json"))
+                                        .executes(BrigadierAdapters.wraps(this::executeConvertLegacy))
+                                )
+                        )
+                )
+                .then(new AllPlayersDebugCommand(gameManager, plugin).create())
+                .then(Permissioned.literal("playerinfo")
+                        .then(Permissioned.argument("ign", StringArgumentType.word())
+                                .executes(BrigadierAdapters.wraps(this::executePlayerInfo))
+                        )
+                )
+                .then(new MigrateDebugCommand(gameManager, plugin).create())
+                .then(Permissioned.literal("printGameState")
+                        .executes(BrigadierAdapters.wraps(this::executePrintGameState))
+                )
+                .then(Commands.literal("rebuild")
+                        .then(Commands.literal("event")
+                                .then(Commands.argument("eventId", new EventInfoArgumentType(gameManager.getEventService()))
+                                        .executes(BrigadierAdapters.wraps(this::executeRebuildEvent))
+                                )
+                        )
+                        .then(Commands.literal("maintenance")
+                                .executes(BrigadierAdapters.wraps(this::executeRebuildMaintenance))
+                        )
+                        .then(Commands.literal("practice")
+                                .executes(BrigadierAdapters.wraps(this::executeRebuildPractice))
+                        )
+                )
+                .then(Commands.literal("totals")
+                        .then(Commands.argument("sessionId", IntegerArgumentType.integer())
+                                .executes(BrigadierAdapters.wraps(this::executeTotals))
+                        )
+                )
+                .permissionRoot("mctmanager")
+                .build(plugin.getServer().getPluginManager());
     }
     
-    @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        return Collections.emptyList();
+    private @NotNull CommandResult executePlayerInfo(CommandContext<CommandSourceStack> ctx) {
+        String ign = ctx.getArgument("ign", String.class);
+        UUID uuid = plugin.getServer().getPlayerUniqueId(ign);
+        if (uuid == null) {
+            return CommandResult.failure("Could not find player");
+        }
+        return CommandResult.success(Component.empty()
+                .append(Component.text("The server says "))
+                .append(Component.text(ign))
+                .append(Component.text("'s UUID is "))
+                .append(Component.text(uuid.toString())
+                        .decorate(TextDecoration.UNDERLINED)
+                        .clickEvent(ClickEvent.copyToClipboard(uuid.toString()))
+                        .hoverEvent(HoverEvent.showText(Component.text("Copy"))))
+        );
+    }
+    
+    private @NotNull CommandResult executePrintGameState(CommandContext<CommandSourceStack> ctx) {
+        Component gameState = gameManager.printGameState();
+        plugin.getServer().getConsoleSender().sendMessage(gameState);
+        return CommandResult.success(gameState);
+    }
+    
+    private @NotNull CommandResult executeConvertLegacy(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        FileResolver fileResolver = ctx.getArgument(PRESET_FILE_ARG, FileResolver.class);
+        File presetFile = fileResolver.resolve();
+        try {
+            LegacyPresetController legacyPresetController = new LegacyPresetController(presetDirectory);
+            LegacyPresetDTO legacyPresetDTO = legacyPresetController.getPreset(presetFile);
+            PresetDTO updatedPreset = legacyPresetDTO.convert(plugin.getServer());
+            PresetController presetController = new PresetController(presetDirectory);
+            presetController.saveConfigDTO(updatedPreset, presetFile);
+            return CommandResult.success(Component.text("Converted legacy preset to UUID-version"));
+        } catch (ConfigException e) {
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text("An error occurred converting the legacy preset to the new version. See console for details."))
+                    .append(Component.newline())
+                    .append(Component.text(e.getMessage()))
+            );
+        }
+        
+    }
+    
+    private @NotNull CommandResult executeTotals(CommandContext<CommandSourceStack> ctx) {
+        int sessionId = ctx.getArgument("sessionId", Integer.class);
+        CommandSender sender = ctx.getSource().getSender();
+        try {
+            Map<UUID, ScoreService.PointTotal> participantSessionTotals = gameManager.getScoreService().getParticipantSessionTotals(sessionId);
+            sender.sendMessage(Component.empty()
+                    .append(Component.text("Score totals for "))
+                    .append(Component.text(sessionId))
+                    .append(Component.text(":")));
+            for (ScoreService.PointTotal pointTotal : participantSessionTotals.values()) {
+                sender.sendMessage(Component.empty()
+                        .append(Component.text(pointTotal.participantUUID().toString()))
+                        .append(Component.text(", "))
+                        .append(Component.text(pointTotal.teamId()))
+                        .append(Component.text(" -> "))
+                        .append(Component.text(pointTotal.totalPoints())));
+            }
+            
+            Map<String, Integer> teamSessionTotals = gameManager.getScoreService().getTeamSessionTotals(sessionId);
+            for (Map.Entry<String, Integer> entry : teamSessionTotals.entrySet()) {
+                sender.sendMessage(Component.empty()
+                        .append(Component.text(entry.getKey()))
+                        .append(Component.text(" -> "))
+                        .append(Component.text(entry.getValue()))
+                );
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return CommandResult.success();
+    }
+    
+    private @NotNull CommandResult executeRebuildEvent(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        EventInfoResolver resolver = ctx.getArgument("eventId", EventInfoResolver.class);
+        try {
+            EventInfo eventInfo = resolver.resolve();
+            gameManager.getGameStateService().rebuildEventMode(eventInfo.getEventId());
+            return CommandResult.success(Component.text("Loaded event mode"));
+        } catch (SQLException e) {
+            Main.logger().log(Level.SEVERE, "An error occurred trying to rebuild practice mode", e);
+            return CommandResult.failure("An error occurred, see the console for more");
+        }
+    }
+    
+    private @NotNull CommandResult executeRebuildMaintenance(CommandContext<CommandSourceStack> ctx) {
+        try {
+            gameManager.getGameStateService().rebuildMaintenanceMode();
+            return CommandResult.success(Component.text("Loaded maintenance mode"));
+        } catch (SQLException e) {
+            Main.logger().log(Level.SEVERE, "An error occurred trying to rebuild practice mode", e);
+            return CommandResult.failure("An error occurred, see the console for more");
+        }
+    }
+    
+    private @NotNull CommandResult executeRebuildPractice(CommandContext<CommandSourceStack> ctx) {
+        try {
+            gameManager.getGameStateService().rebuildPracticeMode();
+            return CommandResult.success(Component.text("Loaded practice mode"));
+        } catch (SQLException e) {
+            Main.logger().log(Level.SEVERE, "An error occurred trying to rebuild practice mode", e);
+            return CommandResult.failure("An error occurred, see the console for more");
+        }
+    }
+    
+    private @NotNull CommandResult executeDebug(CommandContext<CommandSourceStack> ctx) {
+        return CommandResult.success(Component.text("No implementation at this time"));
     }
 }

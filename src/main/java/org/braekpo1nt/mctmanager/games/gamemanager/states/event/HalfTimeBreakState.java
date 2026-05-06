@@ -39,4 +39,9 @@ public class HalfTimeBreakState extends WaitingInHubState {
                 })
                 .build());
     }
+    
+    @Override
+    public @NotNull String getSystemStateDescription() {
+        return "HALF_TIME";
+    }
 }

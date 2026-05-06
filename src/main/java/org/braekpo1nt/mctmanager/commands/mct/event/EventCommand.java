@@ -1,104 +1,182 @@
 package org.braekpo1nt.mctmanager.commands.mct.event;
 
+import com.mojang.brigadier.arguments.BoolArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.context.CommandContext;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.braekpo1nt.mctmanager.commands.CommandUtils;
-import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
-import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
-import org.braekpo1nt.mctmanager.commands.manager.Usage;
+import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoArgumentType;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoResolver;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.commands.mct.event.vote.VoteCommand;
+import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.permissions.Permissible;
+import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.List;
+import java.sql.SQLException;
+import java.time.format.DateTimeParseException;
+import java.util.Date;
 
-public class EventCommand extends CommandManager {
+public class EventCommand implements BrigadierSubCommand {
     
-    public EventCommand(GameManager gameManager, @NotNull String name) {
-        super(name);
-        addSubCommand(new TabSubCommand("start") {
-            @Override
-            public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                if (args.length < 1 || 2 < args.length) {
-                    return CommandResult.failure(getUsage().of("<numberOfGames>").of("[currentGameNumber]"));
-                }
-                String maxGamesString = args[0];
-                if (!CommandUtils.isInteger(maxGamesString)) {
-                    return CommandResult.failure(Component.empty()
-                            .append(Component.text(maxGamesString)
-                                    .decorate(TextDecoration.BOLD))
-                            .append(Component.text(" is not an integer")));
-                }
-                int maxGames = Integer.parseInt(maxGamesString);
-                
-                int currentGameNumber;
-                if (args.length == 2) {
-                    String currentGameNumberString = args[1];
-                    if (!CommandUtils.isInteger(currentGameNumberString)) {
-                        return CommandResult.failure(Component.empty()
-                                .append(Component.text(currentGameNumberString)
-                                        .decorate(TextDecoration.BOLD))
-                                .append(Component.text(" is not an integer")));
-                    }
-                    currentGameNumber = Integer.parseInt(currentGameNumberString);
-                    if (currentGameNumber < 1) {
-                        return CommandResult.failure(Component.text("Current game number must be at least 1"));
-                    }
-                } else {
-                    currentGameNumber = 1;
-                }
-                
-                return gameManager.startEvent(maxGames, currentGameNumber);
-            }
-            
-            @Override
-            public @NotNull List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                return Collections.emptyList();
-            }
-        });
-        addSubCommand(new TabSubCommand("stop") {
-            @Override
-            public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                if (!gameManager.eventIsActive()) {
-                    return CommandResult.failure(Component.text("There is no event running."));
-                }
-                if (args.length != 1) {
-                    return CommandResult.success(Component.text("Are you sure? Type ")
-                            .append(Component.empty()
-                                    .append(Component.text("/mct event stop "))
-                                    .append(Component.text("confirm")
-                                            .decorate(TextDecoration.BOLD))
-                                    .decorate(TextDecoration.ITALIC))
-                            .append(Component.text(" to confirm."))
-                            .color(NamedTextColor.YELLOW));
-                }
-                String confirmString = args[0];
-                if (!confirmString.equals("confirm")) {
-                    return CommandResult.failure(Component.empty()
-                            .append(Component.text(confirmString))
-                            .append(Component.text(" is not a recognized option.")));
-                }
-                return gameManager.stopEvent();
-            }
-            
-            @Override
-            public @NotNull List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                return Collections.emptyList();
-            }
-        });
-        addSubCommand(new EventUndoSubCommand(gameManager, "undo"));
-        addSubCommand(new VoteCommand(gameManager, "vote"));
-        addSubCommand(new ModifyCommand(gameManager, "modify"));
+    private final @NotNull GameManager gameManager;
+    private final @NotNull Main plugin;
+    
+    public EventCommand(@NotNull GameManager gameManager, @NotNull Main plugin) {
+        this.gameManager = gameManager;
+        this.plugin = plugin;
     }
     
     @Override
-    protected @NotNull Usage getSubCommandUsageArg(Permissible permissible) {
-        return new Usage("<options>");
+    public @NotNull Permissioned<CommandSourceStack> create() {
+        return Permissioned.literal("event")
+                .then(buildStart())
+                .then(buildStop())
+                .then(buildCreate())
+                .then(buildDelete())
+                .then(new VoteCommand(gameManager).create())
+                .then(new UndoCommand(gameManager).create())
+                .then(new ModifyCommand(gameManager).create())
+                .then(new EventApplyPresetCommand(gameManager, plugin).create())
+                .then(buildMaxGames())
+                .then(buildWhitelist())
+                ;
     }
+    
+    private Permissioned<CommandSourceStack> buildStart() {
+        return Permissioned.literal("start")
+                .then(Permissioned.argument("eventId", new EventInfoArgumentType(gameManager.getEventService()))
+                        .then(Permissioned.argument("numberOfGames", IntegerArgumentType.integer())
+                                .executes(BrigadierAdapters.wraps(ctx -> {
+                                    try {
+                                        EventInfoResolver eventInfoResolver = ctx.getArgument("eventId", EventInfoResolver.class);
+                                        EventInfo eventInfo = eventInfoResolver.resolve();
+                                        int maxGames = ctx.getArgument("numberOfGames", Integer.class);
+                                        return gameManager.startEvent(eventInfo, maxGames, 1);
+                                    } catch (SQLException e) {
+                                        return CommandResult.sqlException("get EventInfo", e);
+                                    }
+                                }))
+                                .then(Permissioned.argument("currentGameNumber", IntegerArgumentType.integer())
+                                        .executes(BrigadierAdapters.wraps(ctx -> {
+                                            try {
+                                                EventInfoResolver eventInfoResolver = ctx.getArgument("eventId", EventInfoResolver.class);
+                                                EventInfo eventInfo = eventInfoResolver.resolve();
+                                                int maxGames = ctx.getArgument("numberOfGames", Integer.class);
+                                                int currentGameNumber = ctx.getArgument("currentGameNumber", Integer.class);
+                                                return gameManager.startEvent(eventInfo, maxGames, currentGameNumber);
+                                            } catch (SQLException e) {
+                                                return CommandResult.sqlException("get EventInfo", e);
+                                            }
+                                        }))
+                                )
+                        )
+                );
+    }
+    
+    private Permissioned<CommandSourceStack> buildStop() {
+        return Permissioned.literal("stop")
+                .executes(BrigadierAdapters.wraps(ctx ->
+                        CommandResult.success(Component.text("Are you sure? Type ")
+                                .append(Component.empty()
+                                        .append(Component.text("/mct event stop "))
+                                        .append(Component.text("confirm")
+                                                .decorate(TextDecoration.BOLD))
+                                        .decorate(TextDecoration.ITALIC))
+                                .append(Component.text(" to confirm."))
+                                .color(NamedTextColor.YELLOW))
+                ))
+                .then(Permissioned.literal("confirm")
+                        .executes(BrigadierAdapters.wraps(ctx -> gameManager.stopEvent()))
+                )
+                ;
+    }
+    
+    private Permissioned<CommandSourceStack> buildCreate() {
+        return Permissioned.literal("create")
+                .then(Permissioned.argument("eventId", StringArgumentType.word())
+                        .then(Permissioned.argument("eventDate", StringArgumentType.word())
+                                .suggests(TimeStringUtils::suggestDate)
+                                .then(Permissioned.argument("plainTextName", StringArgumentType.string())
+                                        .then(Permissioned.argument("componentName", gameManager.getComponentArgumentType())
+                                                .executes(BrigadierAdapters.wraps(this::executeCreate))
+                                                .then(Permissioned.argument("canonical", BoolArgumentType.bool())
+                                                        .executes(BrigadierAdapters.wraps(this::executeCreateCanonical))
+                                                )
+                                        )
+                                )
+                        )
+                );
+    }
+    
+    private @NotNull CommandResult executeCreate(CommandContext<CommandSourceStack> ctx) {
+        return createEvent(ctx, true);
+    }
+    
+    private @NotNull CommandResult executeCreateCanonical(CommandContext<CommandSourceStack> ctx) {
+        boolean canonical = ctx.getArgument("canonical", Boolean.class);
+        return createEvent(ctx, canonical);
+    }
+    
+    private CommandResult createEvent(CommandContext<CommandSourceStack> ctx, boolean canonical) {
+        String eventId = ctx.getArgument("eventId", String.class);
+        String eventDateString = ctx.getArgument("eventDate", String.class);
+        Date eventDate;
+        try {
+            eventDate = TimeStringUtils.parseDate(eventDateString);
+        } catch (DateTimeParseException e) {
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text("Could not parse date string "))
+                    .append(Component.text(eventDateString)
+                            .decorate(TextDecoration.BOLD)));
+        }
+        String plainTextName = ctx.getArgument("plainTextName", String.class);
+        Component componentName = ctx.getArgument("componentName", Component.class);
+        return gameManager.createEvent(eventId, eventDate, plainTextName, componentName, canonical);
+    }
+    
+    private Permissioned<CommandSourceStack> buildDelete() {
+        return Permissioned.literal("delete")
+                .then(Permissioned.argument("eventId", new EventInfoArgumentType(gameManager.getEventService()))
+                        .executes(BrigadierAdapters.wraps(ctx -> {
+                            EventInfoResolver eventInfoResolver = ctx.getArgument("eventId", EventInfoResolver.class);
+                            EventInfo eventInfo;
+                            try {
+                                eventInfo = eventInfoResolver.resolve();
+                            } catch (SQLException e) {
+                                return CommandResult.sqlException("Get EventInfo", e);
+                            }
+                            return gameManager.deleteEvent(eventInfo.getEventId());
+                        }))
+                );
+    }
+    
+    private Permissioned<CommandSourceStack> buildMaxGames() {
+        return Permissioned.literal("setMaxGames")
+                .then(Permissioned.argument("newCount", IntegerArgumentType.integer())
+                        .executes(BrigadierAdapters.wraps(ctx -> {
+                            int newCount = ctx.getArgument("newCount", Integer.class);
+                            return gameManager.modifyMaxGames(newCount);
+                        }))
+                );
+    }
+    
+    private Permissioned<CommandSourceStack> buildWhitelist() {
+        return Permissioned.literal("whitelist")
+                .then(Permissioned.literal("addAll")
+                        .executes(BrigadierAdapters.wraps(ctx -> gameManager.whitelist(true)))
+                )
+                .then(Permissioned.literal("removeAll")
+                        .executes(BrigadierAdapters.wraps(ctx -> gameManager.whitelist(false)))
+                )
+                ;
+    }
+    
 }

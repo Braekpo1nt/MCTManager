@@ -5,6 +5,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class SidebarFactory {
     
+    // be careful when creating new methods, make sure they're overridden properly by MockSidebarFactory
+    
     public synchronized Sidebar createSidebar() {
         return new Sidebar();
     }

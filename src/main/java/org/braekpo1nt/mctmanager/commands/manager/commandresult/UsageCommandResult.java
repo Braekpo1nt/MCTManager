@@ -19,9 +19,4 @@ public class UsageCommandResult implements CommandResult {
     public Component getMessage() {
         return usage.toComponent().color(NamedTextColor.RED);
     }
-    
-    @Override
-    public @NotNull CommandResult and(CommandResult other) {
-        return new CompositeCommandResult(this, other);
-    }
 }

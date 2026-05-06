@@ -24,7 +24,7 @@ class TimerManagerTest {
     
     private TimerManager timerManager;
     private GameManager gameManager;
-    private Main plugin;
+    private MockMain plugin;
     private ServerMock server;
     
     @BeforeEach
@@ -62,7 +62,7 @@ class TimerManagerTest {
     void footRace() {
         PlayerMock playerMock = server.addPlayer();
         gameManager.addTeam("test", "Test", "white");
-        gameManager.joinParticipantToTeam(playerMock, playerMock.getName(), "test");
+        gameManager.joinOnlineParticipant(playerMock, "test");
         gameManager.startGame(GameType.FOOT_RACE, "footRaceConfig.json");
         Assertions.assertDoesNotThrow(timerManager::skip);
     }
