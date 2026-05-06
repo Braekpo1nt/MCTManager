@@ -13,6 +13,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class FootRaceStateBase implements FootRaceState {
     
@@ -40,9 +41,14 @@ public abstract class FootRaceStateBase implements FootRaceState {
     @Override
     public void onParticipantRejoin(FootRaceParticipant participant, FootRaceTeam team) {
         context.getStandings().add(participant);
+        if (participant.getLastPosition() != null) {
+            participant.teleport(participant.getLastPosition());
+        } else {
+            participant.teleport(context.getConfig().getStartingLocation());
+        }
+        participant.setRespawnLocation(context.getConfig().getStartingLocation(), true);
         context.giveBoots(participant);
         participant.addPotionEffect(context.getINVISIBILITY());
-        participant.setRespawnLocation(context.getConfig().getStartingLocation(), true);
         context.updateStandings();
         context.displayStandings();
         context.getSidebar().updateLine(participant.getUniqueId(), "lap",
@@ -106,12 +112,12 @@ public abstract class FootRaceStateBase implements FootRaceState {
     }
     
     @Override
-    public void onParticipantRespawn(PlayerRespawnEvent event, FootRaceParticipant participant) {
-        
+    public void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull FootRaceParticipant participant) {
+        event.setRespawnLocation(context.getConfig().getStartingLocation());
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, FootRaceParticipant participant) {
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull FootRaceParticipant participant) {
         
     }
     

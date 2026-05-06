@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.gamestate.preset;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -41,8 +43,8 @@ public class PresetDTO implements Validatable {
         }
     }
     
-    Preset toPreset() {
-        return new Preset(PresetTeamDTO.toPresetTeams(teams));
+    Preset toPreset(@NotNull String fileName) {
+        return new Preset(fileName, PresetTeamDTO.toPresetTeams(teams));
     }
     
     static PresetDTO fromPreset(@NotNull Preset preset) {
@@ -54,15 +56,61 @@ public class PresetDTO implements Validatable {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    static class PresetTeamDTO implements Validatable {
+    @Builder
+    public static class PresetParticipantDTO implements Validatable {
+        /**
+         * The in-game-name (ign) of this participant
+         */
+        private String ign;
+        /**
+         * The UUID of this participant
+         */
+        private UUID uuid;
+        
+        @Override
+        public void validate(@NotNull Validator validator) {
+            validator.notNull(ign, "ign");
+            validator.validate(!ign.isEmpty(), "ign can't be empty");
+            validator.notNull(uuid, "uuid for %s", ign);
+        }
+        
+        Preset.PresetParticipant toPresetParticipant() {
+            return new Preset.PresetParticipant(ign, uuid);
+        }
+        
+        static PresetParticipantDTO fromPresetParticipant(Preset.PresetParticipant presetParticipant) {
+            return new PresetParticipantDTO(
+                    presetParticipant.getIgn(),
+                    presetParticipant.getUuid()
+            );
+        }
+        
+        static List<Preset.PresetParticipant> toPresetParticipants(List<PresetParticipantDTO> dtos) {
+            return dtos.stream()
+                    .map(PresetParticipantDTO::toPresetParticipant)
+                    .collect(Collectors.toCollection(ArrayList::new));
+        }
+        
+        static List<PresetParticipantDTO> fromPresetParticipants(List<Preset.PresetParticipant> entities) {
+            return entities.stream()
+                    .map(PresetParticipantDTO::fromPresetParticipant)
+                    .collect(Collectors.toCollection(ArrayList::new));
+        }
+    }
+    
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class PresetTeamDTO implements Validatable {
         
         private String teamId;
         private String displayName;
         private String color;
         /**
-         * the IGN (in-game-names) of this team's members
+         * this team's members
          */
-        private List<String> members;
+        private List<PresetParticipantDTO> members;
         
         @Override
         public void validate(@NotNull Validator validator) {
@@ -75,12 +123,18 @@ public class PresetDTO implements Validatable {
             validator.validate(ColorMap.hasNamedTextColor(color), "color is not a recognized color. It should be one of %s", ColorMap.getNamedTextColors());
             validator.notNull(members, "members");
             validator.validate(!members.contains(null), "members can't contain null entries");
-            Set<String> uniqueMembers = new HashSet<>(members.size());
+            Set<String> uniqueIGNs = new HashSet<>(members.size());
+            Set<UUID> uniqueUUIDs = new HashSet<>(members.size());
             for (int i = 0; i < members.size(); i++) {
-                String member = members.get(i);
-                validator.validate(!member.isEmpty(), "members[%d] can't be blank");
-                validator.validate(!uniqueMembers.contains(member), "members[%d] is a duplicate of \"%s\"", i, member);
-                uniqueMembers.add(member);
+                PresetParticipantDTO member = members.get(i);
+                validator.notNull(member, "members[%d]");
+                member.validate(validator.path("members[%s]"));
+                validator.validate(!uniqueIGNs.contains(member.getIgn()),
+                        "members[%d].ign is a duplicate: \"%s\"", i, member.getIgn());
+                validator.validate(!uniqueUUIDs.contains(member.getUuid()),
+                        "members[%d].uuid is a duplicate: \"%s\"", i, member.getUuid());
+                uniqueIGNs.add(member.getIgn());
+                uniqueUUIDs.add(member.getUuid());
             }
             
         }
@@ -90,7 +144,7 @@ public class PresetDTO implements Validatable {
                     teamId,
                     displayName,
                     color,
-                    members
+                    PresetParticipantDTO.toPresetParticipants(members)
             );
         }
         
@@ -103,7 +157,7 @@ public class PresetDTO implements Validatable {
                     presetTeam.getTeamId(),
                     presetTeam.getDisplayName(),
                     presetTeam.getColor(),
-                    presetTeam.getMembers()
+                    PresetParticipantDTO.fromPresetParticipants(presetTeam.getMembers())
             );
         }
         

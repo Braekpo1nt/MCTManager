@@ -49,6 +49,7 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
             @NotNull Component title,
+            int gameSessionId,
             @NotNull ColossalCombatConfig config,
             @NotNull String configFile,
             @NotNull Team newNorth,
@@ -57,6 +58,7 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
             @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
         super(
+                gameSessionId,
                 new GameInstanceId(GameType.FINAL, configFile),
                 plugin,
                 gameManager,
@@ -214,16 +216,6 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
     @Override
     protected void resetAdmin(Player admin) {
         
-    }
-    
-    public void updateRoundSidebar(@NotNull Player admin) {
-        adminSidebar.updateLines(admin.getUniqueId(),
-                new KeyLine("northWinCount", toWinCountLine(northTeam)),
-                new KeyLine("southWinCount", toWinCountLine(southTeam)),
-                new KeyLine("round", Component.empty()
-                        .append(Component.text("Round: "))
-                        .append(Component.text(currentRound)))
-        );
     }
     
     public void updateRoundSidebar(@NotNull ColossalParticipant participant) {

@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.survivalgames.config;
 import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.config.Config;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.Border;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.BorderStage;
@@ -20,7 +21,7 @@ import java.util.Map;
 
 @Data
 @Builder
-public class SurvivalGamesConfig {
+public class SurvivalGamesConfig implements Config {
     private World world;
     private @Nullable SpectatorBoundary spectatorBoundary;
     private List<Vector> spawnChestCoords;

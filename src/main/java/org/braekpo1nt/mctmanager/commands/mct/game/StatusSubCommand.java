@@ -1,47 +1,55 @@
 package org.braekpo1nt.mctmanager.commands.mct.game;
 
+import com.mojang.brigadier.context.CommandContext;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceParticipant;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
+import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Handles showing status of participants in active games, particularly who hasn't completed the footrace
  */
-public class StatusSubCommand extends TabSubCommand {
+public class StatusSubCommand implements BrigadierSubCommand {
     
-    private final GameManager gameManager;
+    private final @NotNull GameManager gameManager;
     
-    public StatusSubCommand(Main plugin, GameManager gameManager, String name) {
-        super(name);
+    public StatusSubCommand(@NotNull GameManager gameManager) {
         this.gameManager = gameManager;
     }
     
     @Override
-    public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!(sender instanceof Player player)) {
-            return CommandResult.failure(Component.text("Only players can use this command").color(NamedTextColor.RED));
+    public @NotNull Permissioned<CommandSourceStack> create() {
+        return Permissioned.literal("status")
+                .executes(BrigadierAdapters.wraps(this::executeStatus))
+                ;
+    }
+    
+    private @NotNull CommandResult executeStatus(@NotNull CommandContext<CommandSourceStack> ctx) {
+        if (!(ctx.getSource().getSender() instanceof Player player)) {
+            return CommandResult.failure(Component.text("Only players can use this command"));
         }
         if (!gameManager.isAdmin(player.getUniqueId())) {
-            return CommandResult.failure(Component.text("Only admins can use this command").color(NamedTextColor.RED));
+            return CommandResult.failure(Component.text("Only admins can use this command"));
         }
         List<GameInstanceId> activeGameIds = gameManager.getActiveGameIds();
         if (activeGameIds.isEmpty()) {
-            return CommandResult.failure(Component.text("No games are currently active").color(NamedTextColor.RED));
+            return CommandResult.failure(Component.text("No games are currently active"));
         }
         List<GameInstanceId> footraceGames = activeGameIds.stream()
                 .filter(id -> id.getGameType() == GameType.FOOT_RACE)
@@ -90,8 +98,7 @@ public class StatusSubCommand extends TabSubCommand {
                 resultBuilder.append(Component.text("  Players Still Racing:").color(NamedTextColor.RED))
                         .append(Component.newline());
                 for (FootRaceParticipant participant : incompleteParticipants) {
-                    String teamName = participant.getTeamId() != null ? 
-                            participant.getTeamId() : "No Team";
+                    String teamName = participant.getTeamId();
                     resultBuilder.append(Component.text("    - ").color(NamedTextColor.GRAY))
                             .append(Component.text(participant.getPlayer().getName()).color(NamedTextColor.WHITE))
                             .append(Component.text(" (").color(NamedTextColor.GRAY))
@@ -106,9 +113,5 @@ public class StatusSubCommand extends TabSubCommand {
             resultBuilder.append(Component.newline());
         }
         return CommandResult.success(resultBuilder.build());
-    }
-    @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        return Collections.emptyList();
     }
 }

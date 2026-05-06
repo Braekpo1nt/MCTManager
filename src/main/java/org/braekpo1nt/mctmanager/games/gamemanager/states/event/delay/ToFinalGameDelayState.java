@@ -27,6 +27,11 @@ public class ToFinalGameDelayState extends DelayState {
     }
     
     @Override
+    public @NotNull String getSystemStateDescription() {
+        return "STARTING_FINAL_GAME";
+    }
+    
+    @Override
     public void exit() {
         timer.cancel();
     }

@@ -23,7 +23,20 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
     protected final @NotNull T northTeam;
     protected final @NotNull T southTeam;
     
+    /**
+     * @param gameInstanceId the {@link GameInstanceId} associated with this game
+     * @param plugin the plugin
+     * @param gameManager the GameManager
+     * @param title the game's initial title, displayed in the sidebar
+     * @param initialState the initialization state, should not contain any game functionality.
+     * The state must never be null, so this is what the state should be
+     * as the game is being initialized to prevent null-pointer
+     * exceptions.
+     * @param northTeam the north team
+     * @param southTeam the south team
+     */
     public DuoGameBase(
+            int gameSessionId,
             @NotNull GameInstanceId gameInstanceId,
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
@@ -31,7 +44,7 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
             @NotNull S initialState,
             @NotNull T northTeam,
             @NotNull T southTeam) {
-        super(gameInstanceId, plugin, gameManager, title, initialState);
+        super(gameSessionId, gameInstanceId, plugin, gameManager, title, initialState);
         if (northTeam.getAffiliation() != Affiliation.NORTH) {
             throw new IllegalArgumentException("northTeam.getAffiliation() must be NORTH");
         }
@@ -75,7 +88,7 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
     }
     
     @Override
-    public void onTeamJoin(Team newTeam) {
+    public void onJoin(@NotNull Team newTeam, @NotNull Participant participant) {
         if (teams.containsKey(newTeam.getTeamId())) {
             return;
         }
@@ -92,7 +105,7 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
                 state.onTeamRejoin(southTeam);
             }
             case SPECTATOR -> {
-                super.onTeamJoin(newTeam);
+                super.onJoin(newTeam, participant);
             }
         }
     }

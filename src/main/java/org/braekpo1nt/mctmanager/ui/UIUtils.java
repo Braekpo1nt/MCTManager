@@ -58,6 +58,22 @@ public class UIUtils {
         return Title.title(title, subtitle, DEFAULT_TIMES);
     }
     
+    /**
+     * @param subtitle the subtitle component
+     * @return the default title
+     */
+    public static Title defaultSubtitle(@NotNull Component subtitle) {
+        return defaultTitle(Component.empty(), subtitle);
+    }
+    
+    /**
+     * @param title the large title component
+     * @return the default title with only the given large component, and an empty subtitle component
+     */
+    public static Title defaultTitle(@NotNull Component title) {
+        return defaultTitle(title, Component.empty());
+    }
+    
     private UIUtils() {
         // do not instantiate
     }

@@ -23,6 +23,7 @@ public class PreRoundState extends ColossalCombatStateBase {
     @Override
     public void enter() {
         context.closeGates();
+        context.getTabList().setParticipantGreys(context.getParticipants().values(), false);
         for (ColossalParticipant participant : context.getParticipants().values()) {
             switch (participant.getAffiliation()) {
                 case NORTH -> {
@@ -30,7 +31,6 @@ public class PreRoundState extends ColossalCombatStateBase {
                     context.giveLoadout(participant);
                     ParticipantInitializer.clearStatusEffects(participant);
                     ParticipantInitializer.resetHealthAndHunger(participant);
-                    participant.setArrowsInBody(0);
                     participant.setGameMode(GameMode.ADVENTURE);
                 }
                 case SOUTH -> {
@@ -38,7 +38,6 @@ public class PreRoundState extends ColossalCombatStateBase {
                     context.giveLoadout(participant);
                     ParticipantInitializer.clearStatusEffects(participant);
                     ParticipantInitializer.resetHealthAndHunger(participant);
-                    participant.setArrowsInBody(0);
                     participant.setGameMode(GameMode.ADVENTURE);
                 }
                 case SPECTATOR -> {

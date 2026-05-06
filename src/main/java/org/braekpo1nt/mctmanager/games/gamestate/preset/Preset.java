@@ -2,18 +2,26 @@ package org.braekpo1nt.mctmanager.games.gamestate.preset;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
+@RequiredArgsConstructor
 public class Preset {
+    /**
+     * Purely for debug output and command output convenience, not a reliable
+     * source of usable file information
+     */
+    private final @NotNull String fileName;
+    
     private List<PresetTeam> teams = new ArrayList<>();
     
     public int getTeamCount() {
@@ -56,7 +64,7 @@ public class Preset {
      * @return true if the given ign is contained in any of the team members
      */
     public boolean hasMember(@NotNull String ign) {
-        return teams.stream().anyMatch(t -> t.getMembers().contains(ign));
+        return teams.stream().anyMatch(t -> t.hasMember(ign));
     }
     
     /**
@@ -64,7 +72,11 @@ public class Preset {
      * @return The teamId that the given ign is a member of. null if the ign isn't on any team
      */
     public @Nullable String getMemberTeamId(@NotNull String ign) {
-        return teams.stream().filter(t -> t.getMembers().contains(ign)).findFirst().orElse(new PresetTeam()).getTeamId();
+        PresetTeam presetTeam = teams.stream().filter(team -> team.hasMember(ign)).findFirst().orElse(null);
+        if (presetTeam == null) {
+            return null;
+        }
+        return presetTeam.getTeamId();
     }
     
     /**
@@ -72,15 +84,26 @@ public class Preset {
      * @param ign the in-game-name of the member to remove
      */
     public void leaveMember(@NotNull String ign) {
-        teams.stream().filter(t -> t.getMembers().contains(ign)).findFirst().ifPresent(presetTeam -> presetTeam.getMembers().remove(ign));
+        teams.stream()
+                .filter(t -> t.getMembers().stream()
+                        .anyMatch(member -> member.getIgn().equals(ign))
+                )
+                .findFirst()
+                .ifPresent(presetTeam -> presetTeam.removeMember(ign));
     }
     
     /**
      * @param ign the in-game-name of the member to join
      * @param teamId the teamId of the team to join the member to
      */
-    public void joinMember(@NotNull String ign, @NotNull String teamId) {
-        teams.stream().filter(t -> t.getTeamId().equals(teamId)).findFirst().ifPresent(presetTeam -> presetTeam.getMembers().add(ign));
+    public void joinMember(@NotNull String ign, @NotNull UUID uuid, @NotNull String teamId) {
+        teams.stream()
+                .filter(t -> t.getTeamId().equals(teamId))
+                .findFirst()
+                .ifPresent(
+                        presetTeam -> presetTeam.getMembers()
+                                .add(new PresetParticipant(ign, uuid))
+                );
     }
     
     /**
@@ -93,27 +116,51 @@ public class Preset {
     /**
      * @return a list of all the members in-game-names that are in the preset
      */
-    public @NotNull List<String> getMembers() {
+    public @NotNull List<PresetParticipant> getMembers() {
         return teams.stream().flatMap(t -> t.getMembers().stream()).toList();
     }
     
     @Data
     @AllArgsConstructor
-    @NoArgsConstructor
+    public static class PresetParticipant {
+        private @NotNull String ign;
+        private @NotNull UUID uuid;
+    }
+    
+    @Data
     public static class PresetTeam {
         
         public PresetTeam(@NotNull String teamId, @NotNull String displayName, @NotNull String color) {
+            this(teamId, displayName, color, new ArrayList<>());
+        }
+        
+        public PresetTeam(@NotNull String teamId, @NotNull String displayName, @NotNull String color, @NotNull Collection<PresetParticipant> members) {
             this.teamId = teamId;
             this.displayName = displayName;
             this.color = color;
+            this.members = new ArrayList<>(members);
         }
         
-        private String teamId;
-        private String displayName;
-        private String color;
-        /**
-         * the IGN (in-game-names) of this team's members
-         */
-        private List<String> members = new ArrayList<>();
+        private @NotNull String teamId;
+        private @NotNull String displayName;
+        private @NotNull String color;
+        private @NotNull List<PresetParticipant> members;
+        
+        public boolean hasMember(@NotNull String ign) {
+            return members.stream()
+                    .anyMatch(member -> member.getIgn().equals(ign));
+        }
+        
+        public boolean hasMember(@NotNull UUID uuid) {
+            return members.stream()
+                    .anyMatch(member -> member.getUuid().equals(uuid));
+        }
+        
+        public void removeMember(@NotNull String ign) {
+            members = members.stream()
+                    // keep members whose ign is not the given ign
+                    .filter(member -> !member.getIgn().equals(ign))
+                    .collect(Collectors.toCollection(ArrayList::new));
+        }
     }
 }

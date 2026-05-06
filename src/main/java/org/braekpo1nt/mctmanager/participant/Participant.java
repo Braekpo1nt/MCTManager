@@ -87,6 +87,11 @@ public class Participant extends OfflineParticipant implements AudienceDelegate 
         this.player = participant.getPlayer();
     }
     
+    public Participant(@NotNull Participant participant, @NotNull String name, @NotNull Component displayName) {
+        super(participant, name, displayName);
+        this.player = participant.getPlayer();
+    }
+    
     public Participant(@NotNull Participant participant) {
         this(participant, participant.getScore());
     }

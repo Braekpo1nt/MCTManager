@@ -1,77 +1,63 @@
 package org.braekpo1nt.mctmanager.commands.mct.game;
 
-import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.commands.CommandUtils;
-import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
+import com.mojang.brigadier.context.CommandContext;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.GreedyListArgumentType;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.ConfigFileArgumentType;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.GameIdArgumentType;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
-/**
- * Handles starting games
- */
-public class StartSubCommand extends TabSubCommand {
+public class StartSubCommand implements BrigadierSubCommand {
     
-    private final GameManager gameManager;
-    private final Main plugin;
+    private final static String GAME_ID_ARG = "gameId";
     
-    public StartSubCommand(Main plugin, GameManager gameManager, String name) {
-        super(name);
-        this.plugin = plugin;
+    private final @NotNull GameManager gameManager;
+    
+    public StartSubCommand(@NotNull GameManager gameManager) {
         this.gameManager = gameManager;
     }
     
     @Override
-    public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length < 1) {
-            return CommandResult.failure(getUsage().of("<game>").of("[configFile]").of("[teams...]"));
-        }
-        String gameID = args[0];
-        GameType gameType = GameType.fromID(gameID);
-        if (gameType == null) {
-            return CommandResult.failure(Component.text(gameID)
-                    .append(Component.text(" is not a valid game")));
-        }
-        
-        String configFile;
-        if (args.length >= 2) {
-            configFile = args[1];
-        } else {
-            configFile = "default.json";
-        }
-        CommandUtils.refreshGameConfigs(plugin);
-        
-        if (args.length > 2) {
-            Set<String> teamIds = new HashSet<>(Arrays.asList(args).subList(2, args.length));
-            return gameManager.startGame(teamIds, Collections.emptyList(), gameType, configFile);
-        } else {
-            return gameManager.startGame(gameType, configFile);
-        }
-        
+    public @NotNull Permissioned<CommandSourceStack> create() {
+        return Permissioned.literal("start")
+                .then(Permissioned.argument(GAME_ID_ARG, new GameIdArgumentType(gameManager, false))
+                        .executes(BrigadierAdapters.wraps(this::executeStartDefault))
+                        .then(Permissioned.argument("configFile", new ConfigFileArgumentType(gameManager, false, GAME_ID_ARG))
+                                .executes(BrigadierAdapters.wraps(this::executeStartConfig))
+                                .then(Permissioned.argument("teamIds", GreedyListArgumentType.teamIds(gameManager))
+                                        .executes(BrigadierAdapters.wraps(this::executeStartTeamIds))
+                                )
+                        )
+                )
+                ;
     }
     
-    @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length == 1) {
-            return GameType.GAME_IDS.keySet().stream().sorted().toList();
-        }
-        if (args.length == 2) {
-            String gameID = args[0];
-            return CommandUtils.partialMatchTabList(
-                    CommandUtils.getGameConfigs(gameID),
-                    args[1]
-            );
-        }
-        if (args.length > 2) {
-            return CommandUtils.partialMatchTabList(gameManager.getTeamIds(), args[args.length - 1]);
-        }
-        return Collections.emptyList();
+    private CommandResult executeStartDefault(CommandContext<CommandSourceStack> ctx) {
+        GameType gameType = ctx.getArgument(GAME_ID_ARG, GameType.class);
+        return gameManager.startGame(gameType, "default.json");
     }
+    
+    private CommandResult executeStartConfig(CommandContext<CommandSourceStack> ctx) {
+        GameType gameType = ctx.getArgument(GAME_ID_ARG, GameType.class);
+        String configFile = ctx.getArgument("configFile", String.class);
+        return gameManager.startGame(gameType, configFile);
+    }
+    
+    private @NotNull CommandResult executeStartTeamIds(CommandContext<CommandSourceStack> ctx) {
+        GameType gameType = ctx.getArgument(GAME_ID_ARG, GameType.class);
+        String configFile = ctx.getArgument("configFile", String.class);
+        String[] teamIds = ctx.getArgument("teamIds", String[].class);
+        return gameManager.startGame(Arrays.stream(teamIds).collect(Collectors.toSet()), Collections.emptyList(), gameType, configFile);
+    }
+    
 }

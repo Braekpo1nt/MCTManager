@@ -1,33 +1,43 @@
 package org.braekpo1nt.mctmanager.commands.mct.mode;
 
-import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
-import org.braekpo1nt.mctmanager.commands.manager.SubCommand;
+import com.mojang.brigadier.context.CommandContext;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.EnumArgumentType;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
+import org.braekpo1nt.mctmanager.games.gamemanager.Mode;
 import org.jetbrains.annotations.NotNull;
 
-public class ModeCommand extends CommandManager {
-    public ModeCommand(@NotNull GameManager gameManager, @NotNull String name) {
-        super(name);
-        addSubCommand(new SubCommand("maintenance") {
-            @Override
-            public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                return gameManager.switchMode("maintenance");
-            }
-        });
-        addSubCommand(new SubCommand("practice") {
-            @Override
-            public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                return gameManager.switchMode("practice");
-            }
-        });
-        addSubCommand(new SubCommand("event") {
-            @Override
-            public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                return gameManager.switchMode("event");
-            }
-        });
+public class ModeCommand implements BrigadierSubCommand {
+    
+    private final @NotNull GameManager gameManager;
+    
+    public ModeCommand(@NotNull GameManager gameManager) {
+        this.gameManager = gameManager;
     }
+    
+    @Override
+    public @NotNull Permissioned<CommandSourceStack> create() {
+        return Permissioned.literal("mode")
+                .then(Permissioned.argument("mode", new EnumArgumentType<>(Mode.class, Mode.values()))
+                                .executes(BrigadierAdapters.wraps(this::executeMode))
+//                        .then(Permissioned.literal("load")
+//                                .executes(BrigadierAdapters.wraps(this::executeModeLoad))
+//                        )
+                )
+                ;
+    }
+    
+    private @NotNull CommandResult executeMode(@NotNull CommandContext<CommandSourceStack> ctx) {
+        Mode mode = ctx.getArgument("mode", Mode.class);
+        return gameManager.switchMode(mode);
+    }
+
+//    private @NotNull CommandResult executeModeLoad(@NotNull CommandContext<CommandSourceStack> ctx) {
+//        Mode mode = ctx.getArgument("mode", Mode.class);
+//        return gameManager.switchMode(mode, true);
+//    }
 }

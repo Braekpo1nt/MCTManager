@@ -114,7 +114,7 @@ public class StayOnWedgeState extends RoundActiveState {
                         .color(NamedTextColor.DARK_RED));
             }
         }
-        context.awardPoints(winner, config.getWinRoundScore());
+        context.awardPoints(winner, config.getWinRoundScore(), "Won the round");
         roundIsOver();
     }
     

@@ -1,0 +1,237 @@
+{
+  "version": "0.1.1",
+  "world": "TestWorld",
+  "sideOnlyMelee": true,
+  "spectatorArea": {
+    "minX": -64,
+    "minY": 70,
+    "minZ": -1050,
+    "maxX": 65,
+    "maxY": 121,
+    "maxZ": -948
+  },
+  "removeArea": {
+    "minX": -64,
+    "minY": 70,
+    "minZ": -1050,
+    "maxX": 65,
+    "maxY": 121,
+    "maxZ": -948
+  },
+  "replaceBlock": "WHITE_TERRACOTTA",
+  "spectatorSpawn": {
+    "x": 1,
+    "y": 85,
+    "z": -977.5,
+    "yaw": -180,
+    "pitch": 0
+  },
+  "arrowDamageModifier": 0.0,
+  "lava": {
+    "lavaArea": {
+      "minX": -33,
+      "minY": 75,
+      "minZ": -1023,
+      "maxX": 33,
+      "maxY": 78,
+      "maxZ": -977
+    },
+    "blocksPerRise": 1,
+    "riseSeconds": 25,
+    "riseDeaths": 2
+  },
+  "kits": {
+    "Archer": {
+      "name": "Archer",
+      "menuItemMaterial": "STONE",
+      "menuItemName": "Archer",
+      "menuItemLore": [
+        "Archer Description"
+      ],
+      "copies": 2,
+      "northSpawns": [
+        {
+          "x": -11.5,
+          "y": 80,
+          "z": -1008.5,
+          "yaw": 0,
+          "pitch": 0
+        },
+        {
+          "x": -14.5,
+          "y": 80,
+          "z": -1002.5,
+          "yaw": -90,
+          "pitch": 0
+        }
+      ],
+      "southSpawns": [
+        {
+          "x": 12.5,
+          "y": 80,
+          "z": -990.5,
+          "yaw": 135,
+          "pitch": 45
+        },
+        {
+          "x": 15.5,
+          "y": 80,
+          "z": -996.5,
+          "yaw": 90,
+          "pitch": 0
+        }
+      ],
+      "melee": true,
+      "loadout": {
+        "contents": {
+          "36": {
+            "type": "LEATHER_BOOTS"
+          },
+          "0": {
+            "type": "BOW",
+            "enchantments": [
+              {
+                "namespacedKey": "punch",
+                "level": 1
+              }
+            ]
+          }
+        }
+      },
+      "refills": [
+        {
+          "material": "ARROW",
+          "amount": 4,
+          "max": 16
+        }
+      ],
+      "refillSeconds": 7,
+      "hasBanner": true
+    },
+    "Skirmisher": {
+      "name": "Skirmisher",
+      "menuItemMaterial": "IRON_INGOT",
+      "menuItemName": "Skirmisher",
+      "menuItemLore": [
+        "Skirmisher Description"
+      ],
+      "copies": 2,
+      "northSpawns": [
+        {
+          "x": -2.5,
+          "y": 78,
+          "z": -999.5,
+          "yaw": -90,
+          "pitch": 0
+        },
+        {
+          "x": -2.5,
+          "y": 80,
+          "z": -993.5,
+          "yaw": -90,
+          "pitch": 0
+        }
+      ],
+      "southSpawns": [
+        {
+          "x": 3.5,
+          "y": 78,
+          "z": -999.5,
+          "yaw": 90,
+          "pitch": 0
+        },
+        {
+          "x": 3.5,
+          "y": 80,
+          "z": -1005.5,
+          "yaw": 90,
+          "pitch": 0
+        }
+      ],
+      "melee": false,
+      "loadout": {
+        "contents": {
+          "36": {
+            "type": "LEATHER_BOOTS"
+          }
+        }
+      },
+      "refills": [
+        {
+          "material": "WIND_CHARGE",
+          "amount": 2,
+          "max": 6
+        }
+      ],
+      "refillSeconds": 7,
+      "hasBanner": false
+    }
+  },
+  "northMap": {
+    "spawn": {
+      "x": -44.5,
+      "y": 96,
+      "z": -999.5,
+      "yaw": -180,
+      "pitch": 0
+    },
+    "replacementArea": {
+      "minX": -64,
+      "minY": 73,
+      "minZ": -1041,
+      "maxX": 0,
+      "maxY": 99,
+      "maxZ": -960
+    }
+  },
+  "southMap": {
+    "spawn": {
+      "x": 45.5,
+      "y": 96,
+      "z": -999.5,
+      "yaw": -180,
+      "pitch": 0
+    },
+    "replacementArea": {
+      "minX": 0,
+      "minY": 73,
+      "minZ": -1041,
+      "maxX": 64,
+      "maxY": 99,
+      "maxZ": -960
+    }
+  },
+  "requiredWins": 3,
+  "replacementType": "CONCRETE",
+  "durations": {
+    "description": 10,
+    "roundStarting": 10,
+    "classSelection": 30,
+    "roundOver": 10,
+    "gameOver": 10,
+    "protectionDuration": 5
+  },
+  "description": [
+    "",
+    {
+      "text": "--------------------------------------------",
+      color: "dark_red"
+    },
+    {
+      "text": "\n"
+    },
+    {
+      "text": "Colossal Combat",
+      "bold": true,
+      "color": "yellow"
+    },
+    {
+      "text": "\nKnock the opposing team off the platform.\nWin 3 Rounds.\nBe the ultimate winner.",
+      "color": "gray"
+    },
+    {
+      "text": "\n--------------------------------------------",
+      color: "dark_red"
+    }
+  ]
+}

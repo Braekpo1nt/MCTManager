@@ -1,119 +1,88 @@
 package org.braekpo1nt.mctmanager.commands.mct.team.preset;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextDecoration;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.FileResolver;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.GreedyListArgumentType;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetOpts;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.io.File;
+import java.util.Arrays;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * Retrieves the saved preset file and performs the equivalent
- * of executing the commands in order to achieve the specified GameState.
- */
-public class PresetApplySubCommand extends TabSubCommand {
+public class PresetApplySubCommand implements BrigadierSubCommand {
     
-    private final PresetStorageUtil storageUtil;
-    private final Main plugin;
-    private final GameManager gameManager;
+    private final @NotNull Main plugin;
+    private final @NotNull GameManager gameManager;
+    private final @NotNull PresetStorageUtil storageUtil;
     
-    public PresetApplySubCommand(Main plugin, GameManager gameManager, PresetStorageUtil storageUtil, @NotNull String name) {
-        super(name);
+    public PresetApplySubCommand(@NotNull Main plugin, @NotNull GameManager gameManager, @NotNull PresetStorageUtil storageUtil) {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.storageUtil = storageUtil;
     }
     
     @Override
-    public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        
-        if (args.length < 1) {
-            return CommandResult.failure(getUsage().of("[override|resetScores|whiteList|unWhitelist|kickUnWhitelisted]"));
-        }
-        
-        boolean override = false;
-        boolean resetScores = false;
-        boolean whiteList = false;
-        boolean unWhitelist = false;
-        boolean kickUnWhitelisted = false;
-        
-        String presetFile = args[0];
-        
-        Set<String> seenArguments = new HashSet<>();
-        for (int i = 1; i < args.length; i++) {
-            String arg = args[i];
-            if (seenArguments.contains(arg)) {
-                return CommandResult.failure(Component.empty()
-                        .append(Component.text("Duplicate argument: "))
-                        .append(Component.text(arg)
-                                .decorate(TextDecoration.BOLD))
-                );
-            }
-            switch (arg) {
-                case "override":
-                    override = true;
-                    break;
-                case "resetScores":
-                    resetScores = true;
-                    break;
-                case "whiteList":
-                    whiteList = true;
-                    break;
-                case "unWhitelist":
-                    unWhitelist = true;
-                    break;
-                case "kickUnWhitelisted":
-                    kickUnWhitelisted = true;
-                    break;
-                default:
-                    return CommandResult.failure(Component.empty()
-                            .append(Component.text(arg)
-                                    .decorate(TextDecoration.BOLD))
-                            .append(Component.text(" is not a recognized option")));
-            }
-            seenArguments.add(arg);
-        }
-        
+    public @NotNull Permissioned<CommandSourceStack> create() {
+        return Permissioned.literal("apply")
+                .executes(BrigadierAdapters.wraps(this::executeApplyNoOpts))
+                .then(Permissioned.argument("options", GreedyListArgumentType.of(
+                                Set.of(
+                                        "override",
+                                        "resetScores",
+                                        "whiteList",
+                                        "unWhitelist",
+                                        "kickUnWhitelisted"
+                                )))
+                        .executes(BrigadierAdapters.wraps(this::executeApply))
+                )
+                ;
+    }
+    
+    private @NotNull CommandResult executeApplyNoOpts(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        FileResolver resolver = ctx.getArgument(PresetCommand.PRESET_FILE_ARG, FileResolver.class);
+        File presetFile = resolver.resolve();
         return GameManagerUtils.applyPreset(
                 plugin,
                 gameManager,
                 storageUtil,
                 presetFile,
-                override,
-                resetScores,
-                whiteList,
-                unWhitelist,
-                kickUnWhitelisted
+                ctx.getSource().getSender(),
+                PresetOpts.allFalse()
         );
     }
     
-    private final List<String> validOptions = List.of(
-            "override",
-            "resetScores",
-            "whiteList",
-            "unWhitelist",
-            "kickUnWhitelisted");
-    
-    @Override
-    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args) {
-        if (args.length == 1) {
-            return Collections.emptyList();
-        }
-        Set<String> seenArguments = Arrays.stream(args).collect(Collectors.toSet());
-        List<String> suggestions = new ArrayList<>();
-        for (String option : validOptions) {
-            if (!seenArguments.contains(option)) {
-                suggestions.add(option);
-            }
-        }
-        return suggestions;
+    private @NotNull CommandResult executeApply(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        String[] optionsArray = ctx.getArgument("options", String[].class);
+        Set<String> options = Arrays.stream(optionsArray)
+                .collect(Collectors.toSet());
+        PresetOpts opts = PresetOpts.builder()
+                .override(options.contains("override"))
+                .resetScores(options.contains("resetScores"))
+                .whiteList(options.contains("whiteList"))
+                .unWhitelist(options.contains("unWhitelist"))
+                .kickUnWhitelisted(options.contains("kickUnWhitelisted"))
+                .build();
+        FileResolver resolver = ctx.getArgument(PresetCommand.PRESET_FILE_ARG, FileResolver.class);
+        File presetFile = resolver.resolve();
+        return GameManagerUtils.applyPreset(
+                plugin,
+                gameManager,
+                storageUtil,
+                presetFile,
+                ctx.getSource().getSender(),
+                opts
+        );
     }
 }

@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.games.gamemanager.states.event;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.SuccessCommandResult;
@@ -12,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.EventData;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.ContextReference;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,6 +37,8 @@ public class PlayingGameState extends EventState {
     
     @Override
     public void enter() {
+        // TODO: have command startGame throw an UnableToStartGameException
+        // use the commandResult.message(sender) pattern, perhaps?
         CommandResult commandResult = this.startGame(teams.keySet(), onlineAdmins, activeGameId.getGameType(), activeGameId.getConfigFile());
         if (!(commandResult instanceof SuccessCommandResult)) {
             context.messageAdmins(commandResult.getMessage());
@@ -45,6 +47,17 @@ public class PlayingGameState extends EventState {
                             .color(NamedTextColor.DARK_RED)));
             context.setState(new WaitingInHubState(context, contextReference, eventData));
         }
+    }
+    
+    @Override
+    public @NotNull String getSystemStateDescription() {
+        return "PLAYING_GAME";
+    }
+    
+    @Override
+    protected void onGameInstantiationFailure(@NotNull GameInstanceId gameInstanceId, Collection<Participant> newParticipants, List<Player> newAdmins, Exception e) {
+        super.onGameInstantiationFailure(gameInstanceId, newParticipants, newAdmins, e);
+        context.setState(new WaitingInHubState(context, contextReference, eventData));
     }
     
     @Override
@@ -84,8 +97,8 @@ public class PlayingGameState extends EventState {
     }
     
     @Override
-    public void gameIsOver(@NotNull GameInstanceId id, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants, @NotNull List<Player> gameAdmins) {
-        super.gameIsOver(id, teamScores, participantScores, gameParticipants, gameAdmins);
+    public void gameIsOver(int gameSessionId, @NotNull GameInstanceId id, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants, @NotNull List<Player> gameAdmins) {
+        super.gameIsOver(gameSessionId, id, teamScores, participantScores, gameParticipants, gameAdmins);
         postGame();
     }
     
@@ -100,13 +113,14 @@ public class PlayingGameState extends EventState {
     }
     
     @Override
-    public CommandResult undoGame(@NotNull GameInstanceId id, int iterationIndex) {
-        if (activeGameId.equals(id)) {
-            return CommandResult.failure(Component.text("Can't undo ")
-                    .append(Component.text(id.getTitle())
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" because it is in progress")));
-        }
-        return super.undoGame(id, iterationIndex);
+    public CommandResult undoGame(int gameSessionId) {
+        // TODO: implement this operation differently
+        return CommandResult.failure("Can't undo games while a game is running");
+    }
+    
+    @Override
+    public CommandResult redoGame(int gameSessionId) {
+        // TODO: implement this operation differently
+        return CommandResult.failure("Can't redo games while a game is running");
     }
 }

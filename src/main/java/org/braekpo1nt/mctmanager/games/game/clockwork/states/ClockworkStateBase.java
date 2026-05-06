@@ -13,6 +13,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class ClockworkStateBase implements ClockworkState {
     
@@ -95,12 +96,12 @@ public abstract class ClockworkStateBase implements ClockworkState {
     }
     
     @Override
-    public void onParticipantRespawn(PlayerRespawnEvent event, ClockworkParticipant participant) {
+    public void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull ClockworkParticipant participant) {
         event.setRespawnLocation(context.getConfig().getStartingLocation());
     }
     
     @Override
-    public void onParticipantPostRespawn(PlayerPostRespawnEvent event, ClockworkParticipant participant) {
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull ClockworkParticipant participant) {
         
     }
     

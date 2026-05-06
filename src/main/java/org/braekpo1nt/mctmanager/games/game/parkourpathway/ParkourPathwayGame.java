@@ -57,12 +57,13 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
             @NotNull Component title,
+            int gameSessionId,
             @NotNull ParkourPathwayConfig config,
             @NotNull String configFile,
             @NotNull Collection<Team> newTeams,
             @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
-        super(new GameInstanceId(GameType.PARKOUR_PATHWAY, configFile), plugin, gameManager, title, new InitialState());
+        super(gameSessionId, new GameInstanceId(GameType.PARKOUR_PATHWAY, configFile), plugin, gameManager, title, new InitialState());
         this.config = config;
         startStatusEffectsTask();
         addListener(new PreventHungerLoss<>(this));
@@ -193,13 +194,14 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
         if (config.getUnusedSkipScore() <= 0.0) {
             return;
         }
-        if (participant.getUnusedSkips() > 0) {
+        int unusedSkips = participant.getUnusedSkips();
+        if (unusedSkips > 0) {
             participant.sendMessage(Component.empty()
-                    .append(Component.text(participant.getUnusedSkips()))
+                    .append(Component.text(unusedSkips))
                     .append(Component.text(" unused skips"))
                     .color(NamedTextColor.GREEN));
             this.awardPoints(participant,
-                    participant.getUnusedSkips() * config.getUnusedSkipScore());
+                    unusedSkips * config.getUnusedSkipScore(), String.format("%s unused skips", unusedSkips));
         }
         participant.setUnusedSkips(0);
         ParticipantInitializer.clearInventory(participant);

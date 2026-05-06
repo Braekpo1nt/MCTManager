@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import io.papermc.paper.entity.LookAnchor;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -18,8 +19,6 @@ import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
-import org.bukkit.damage.DamageSource;
-import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
@@ -27,8 +26,8 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.Objects;
 
 public class MatchActiveState extends CaptureTheFlagMatchStateBase {
@@ -95,7 +94,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
                 .append(loser.getFormattedDisplayName())
                 .append(Component.text("'s flag!"))
                 .color(NamedTextColor.YELLOW));
-        context.awardPoints(winner, context.getConfig().getWinScore());
+        context.awardPoints(winner, context.getConfig().getWinScore(), String.format("Won match against \"%s\"", loser.getTeamId()));
         
         showWinLoseTitles(winner, loser);
         context.setState(new MatchOverState(context));
@@ -132,13 +131,14 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         }
         context.addKill(killer);
         UIUtils.showKillTitle(killer, killed);
-        context.awardPoints(killer, context.getConfig().getKillScore());
+        context.awardPoints(killer, context.getConfig().getKillScore(), String.format("Killed \"%s\"", killed.getName()));
     }
     
     @Override
     public void onParticipantRejoin(CTFMatchParticipant participant, CTFMatchTeam team) {
         super.onParticipantRejoin(participant, team);
         participant.setAlive(false);
+        context.getParentContext().getTabList().setParticipantGrey(participant, true);
         participant.teleport(context.getConfig().getSpawnObservatory());
         Location lookLocation;
         if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
@@ -153,6 +153,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     public void onNewParticipantJoin(CTFMatchParticipant participant, CTFMatchTeam team) {
         super.onNewParticipantJoin(participant, team);
         participant.setAlive(false);
+        context.getParentContext().getTabList().setParticipantGrey(participant, true);
         participant.teleport(context.getConfig().getSpawnObservatory());
         Location lookLocation;
         if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
@@ -173,9 +174,11 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
             Component deathMessage = Component.empty()
                     .append(participant.displayName())
                     .append(Component.text(" left early. Their life is forfeit."));
-            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant.getPlayer(),
-                    DamageSource.builder(DamageType.GENERIC).build(), Collections.emptyList(), 0, 0, 0, 0, deathMessage, true);
-            this.onParticipantDeath(fakeDeathEvent, participant);
+            context.simulateDeath(participant, deathMessage, Audience.audience(
+                    Audience.audience(context.getParticipants().values()),
+                    context.getOnDeckParticipants(),
+                    Audience.audience(context.getParentContext().getAdmins())
+            ));
         }
         super.onParticipantQuit(participant, team);
     }
@@ -199,7 +202,6 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     
     /**
      * Checks if all participants are dead.
-     *
      * @return True if all participants are dead, false if at least one participant is alive
      */
     private boolean allParticipantsAreDead() {
@@ -212,21 +214,10 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
             return;
         }
         
-        participant.setAlive(false);
         event.getDrops().clear();
         event.setDroppedExp(0);
         
         // Handle flag dropping based on affiliation
-        
-        if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
-            if (hasSouthFlag(participant)) {
-                dropSouthFlag(participant);
-            }
-        } else {
-            if (hasNorthFlag(participant)) {
-                dropNorthFlag(participant);
-            }
-        }
         
         context.updateAliveStatus(participant.getAffiliation());
         context.addDeath(participant);
@@ -249,6 +240,21 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         }
         // new code stop
         
+        if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
+            if (hasSouthFlag(participant)) {
+                dropSouthFlag(participant);
+            }
+        } else {
+            if (hasNorthFlag(participant)) {
+                dropNorthFlag(participant);
+            }
+        }
+    }
+    
+    @Override
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull CTFMatchParticipant participant) {
+        participant.setAlive(false);
+        context.getParentContext().getTabList().setParticipantGrey(participant, true);
         if (allParticipantsAreDead()) {
             onBothTeamsLose(Component.text("Both teams are dead."));
         }
@@ -333,8 +339,8 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     }
     
     /**
-     * Returns true if the south flag is dropped on the ground, and the given location's blockLocation is equal to {@link CaptureTheFlagMatch#getSouthFlagPosition()}}
-     *
+     * Returns true if the south flag is dropped on the ground, and the given location's blockLocation is equal to
+     * {@link CaptureTheFlagMatch#getSouthFlagPosition()}}
      * @param location The location to check
      * @return Whether the south flag is dropped and the location is on the south flag
      */
@@ -439,8 +445,8 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     }
     
     /**
-     * Returns true if the north flag is dropped on the ground, and the given location's blockLocation is equal to {@link CaptureTheFlagMatch#getNorthFlagPosition()}
-     *
+     * Returns true if the north flag is dropped on the ground, and the given location's blockLocation is equal to
+     * {@link CaptureTheFlagMatch#getNorthFlagPosition()}
      * @param location The location to check
      * @return Whether the north flag is dropped and the location is on the north flag
      */

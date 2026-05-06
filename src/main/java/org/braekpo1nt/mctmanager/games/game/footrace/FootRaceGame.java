@@ -64,12 +64,13 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
             @NotNull Component title,
+            int gameSessionId,
             @NotNull FootRaceConfig config,
             @NotNull String configFile,
             @NotNull Collection<Team> newTeams,
             @NotNull Collection<Participant> newParticipants,
             @NotNull List<Player> newAdmins) {
-        super(new GameInstanceId(GameType.FOOT_RACE, configFile), plugin, gameManager, title, new InitialState());
+        super(gameSessionId, new GameInstanceId(GameType.FOOT_RACE, configFile), plugin, gameManager, title, new InitialState());
         this.title = title;
         this.config = config;
         standings = new ArrayList<>(newParticipants.size());
@@ -251,7 +252,7 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
     
     @Override
     protected @NotNull FootRaceParticipant.QuitData getQuitData(FootRaceParticipant participant) {
-        return participant.getQuitData();
+        return participant.getQuitData(participant.getLocation());
     }
     
     @Override

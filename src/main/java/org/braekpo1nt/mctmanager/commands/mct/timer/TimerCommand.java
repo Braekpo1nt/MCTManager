@@ -1,36 +1,42 @@
 package org.braekpo1nt.mctmanager.commands.mct.timer;
 
-import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
-import org.braekpo1nt.mctmanager.commands.manager.SubCommand;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
-public class TimerCommand extends CommandManager {
-    public TimerCommand(@NotNull GameManager gameManager, @NotNull String name) {
-        super(name);
-        addSubCommand(new SubCommand("pause") {
-            @Override
-            public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                gameManager.getTimerManager().pause();
-                return CommandResult.success();
-            }
-        });
-        addSubCommand(new SubCommand("resume") {
-            @Override
-            public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                gameManager.getTimerManager().resume();
-                return CommandResult.success();
-            }
-        });
-        addSubCommand(new SubCommand("skip") {
-            @Override
-            public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                gameManager.getTimerManager().skip();
-                return CommandResult.success();
-            }
-        });
+public class TimerCommand implements BrigadierSubCommand {
+    
+    private final @NotNull GameManager gameManager;
+    
+    public TimerCommand(@NotNull GameManager gameManager) {
+        this.gameManager = gameManager;
+    }
+    
+    @Override
+    public @NotNull Permissioned<CommandSourceStack> create() {
+        return Permissioned.literal("timer")
+                .then(Permissioned.literal("pause")
+                        .executes(BrigadierAdapters.wraps(ctx -> {
+                            gameManager.getTimerManager().pause();
+                            return CommandResult.success();
+                        }))
+                )
+                .then(Permissioned.literal("resume")
+                        .executes(BrigadierAdapters.wraps(ctx -> {
+                            gameManager.getTimerManager().resume();
+                            return CommandResult.success();
+                        }))
+                )
+                .then(Permissioned.literal("skip")
+                        .executes(BrigadierAdapters.wraps(ctx -> {
+                            gameManager.getTimerManager().skip();
+                            return CommandResult.success();
+                        }))
+                )
+                ;
     }
 }

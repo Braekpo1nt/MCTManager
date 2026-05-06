@@ -1,15 +1,22 @@
 package org.braekpo1nt.mctmanager;
 
 import com.github.retrooper.packetevents.PacketEvents;
+import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import org.braekpo1nt.mctmanager.database.Database;
+import org.braekpo1nt.mctmanager.database.service.GameStateService;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.MockGameManager;
 import org.braekpo1nt.mctmanager.games.gamestate.MockGameStateStorageUtil;
 import org.braekpo1nt.mctmanager.hub.config.HubConfig;
+import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.braekpo1nt.mctmanager.packetevents.PacketEventsAPIMock;
 import org.braekpo1nt.mctmanager.ui.sidebar.MockSidebarFactory;
 import org.bukkit.scoreboard.Scoreboard;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.sql.SQLException;
 import java.util.logging.Level;
 
 public class MockMain extends Main {
@@ -27,17 +34,60 @@ public class MockMain extends Main {
     }
     
     @Override
-    protected GameManager initialGameManager(Scoreboard mctScoreboard, @NotNull HubConfig config) {
+    protected GameManager initialGameManager(Scoreboard mctScoreboard, @NotNull HubConfig config, Database database) {
+        String databaseMode = getConfig().getString("database.mode", "prod");
+        GameStateService gameStateService = new GameStateService(
+                databaseMode,
+                database
+        );
         return new MockGameManager(
                 this,
                 mctScoreboard,
-                new MockGameStateStorageUtil(this),
+                new MockGameStateStorageUtil(getLogger(), gameStateService),
                 new MockSidebarFactory(),
-                config);
+                config,
+                database,
+                gameStateService
+        );
     }
     
     @Override
-    protected void registerCommands() {
+    protected String getMigrationLocation() {
+        return "classpath:db/migration/test";
+    }
+    
+    @Override
+    protected Database setupDatabase() throws SQLException {
+        String sqlitePath = new File(getDataFolder(), "mctmanager.db").getAbsolutePath();
+        String user = getConfig().getString("database.user", "root");
+        String password = getConfig().getString("database.password", "");
+        boolean baselineOnMigrate = getConfig().getBoolean("database.baselineOnMigrate", false);
+        String jdbcUrl = "jdbc:sqlite:" + sqlitePath;
+        flywayMigration(jdbcUrl, user, password, "", "", baselineOnMigrate);
+        
+        return new Database(sqlitePath);
+    }
+    
+    @Override
+    protected void alwaysGiveNightVision() {
         // do nothing
+    }
+    
+    @Override
+    protected void registerCommands(@NotNull BlockEffectsListener blockEffectsListener) {
+        // do nothing
+    }
+    
+    public GameManager getGameManager() {
+        return gameManager;
+    }
+    
+    public Database getDatabase() {
+        return database;
+    }
+    
+    @Override
+    public ArgumentType<?> getUUIDArgumentType() {
+        return StringArgumentType.word();
     }
 }

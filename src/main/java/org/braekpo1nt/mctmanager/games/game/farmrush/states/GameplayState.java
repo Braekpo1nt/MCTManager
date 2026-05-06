@@ -158,7 +158,7 @@ public abstract class GameplayState extends FarmRushStateBase {
                 }
             }
             if (totalScore > 0) {
-                context.awardPoints(team, totalScore);
+                context.awardPoints(team, totalScore, String.format("Sell %s items", totalAmountSold));
                 team.addSellPoints(totalScore);
             }
         }

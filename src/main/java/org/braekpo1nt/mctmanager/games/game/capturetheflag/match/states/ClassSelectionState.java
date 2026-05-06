@@ -5,6 +5,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchPartici
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchTeam;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class ClassSelectionState extends CaptureTheFlagMatchStateBase {
     
@@ -86,7 +87,7 @@ public class ClassSelectionState extends CaptureTheFlagMatchStateBase {
     }
     
     @Override
-    public void onParticipantRespawn(PlayerRespawnEvent event, CTFMatchParticipant participant) {
+    public void onParticipantRespawn(@NotNull PlayerRespawnEvent event, @NotNull CTFMatchParticipant participant) {
         if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
             event.setRespawnLocation(context.getArena().northSpawn());
         } else {

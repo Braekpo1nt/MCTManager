@@ -1,59 +1,52 @@
 package org.braekpo1nt.mctmanager.commands.mct.game;
 
-import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
+import com.mojang.brigadier.context.CommandContext;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.ConfigFileArgumentType;
+import org.braekpo1nt.mctmanager.commands.argumenttypes.GameIdArgumentType;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
+import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
-/**
- * Handles stopping the current game
- */
-public class StopSubCommand extends TabSubCommand {
+public class StopSubCommand implements BrigadierSubCommand {
     
-    private final GameManager gameManager;
+    private final static String GAME_ID_ARG = "gameId";
     
-    public StopSubCommand(GameManager gameManager, String name) {
-        super(name);
+    private final @NotNull GameManager gameManager;
+    
+    public StopSubCommand(@NotNull GameManager gameManager) {
         this.gameManager = gameManager;
     }
     
     @Override
-    public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length == 0) {
-            return gameManager.stopAllGames();
-        }
-        if (args.length > 2) {
-            return CommandResult.failure(getUsage().of("<gameId|all>").of("[configFile.json]"));
-        }
-        
-        String gameID = args[0];
-        if (gameID.equals("all")) {
-            return gameManager.stopAllGames();
-        }
-        GameType gameType = GameType.fromID(gameID);
-        if (gameType == null) {
-            return CommandResult.failure(Component.text(gameID)
-                    .append(Component.text(" is not a valid game")));
-        }
-        
-        String configFile;
-        if (args.length == 2) {
-            configFile = args[1];
-        } else {
-            configFile = null;
-        }
-        return gameManager.stopGame(gameType, configFile);
+    public @NotNull Permissioned<CommandSourceStack> create() {
+        return Permissioned.literal("stop")
+                .executes(BrigadierAdapters.wraps(this::executeStopAll))
+                .then(Permissioned.argument(GAME_ID_ARG, new GameIdArgumentType(gameManager, true))
+                        .executes(BrigadierAdapters.wraps(this::executeStopGame))
+                        .then(Permissioned.argument("configFile", new ConfigFileArgumentType(gameManager, true, GAME_ID_ARG))
+                                .executes(BrigadierAdapters.wraps(this::executeStopGameConfig))
+                        )
+                )
+                ;
     }
     
-    @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        return gameManager.tabCompleteActiveGame(args);
+    private @NotNull CommandResult executeStopAll(@NotNull CommandContext<CommandSourceStack> ctx) {
+        return gameManager.stopAllGames();
+    }
+    
+    private @NotNull CommandResult executeStopGame(@NotNull CommandContext<CommandSourceStack> ctx) {
+        GameType gameType = ctx.getArgument(GAME_ID_ARG, GameType.class);
+        return gameManager.stopGame(gameType, null);
+    }
+    
+    private @NotNull CommandResult executeStopGameConfig(@NotNull CommandContext<CommandSourceStack> ctx) {
+        GameType gameType = ctx.getArgument(GAME_ID_ARG, GameType.class);
+        String configFile = ctx.getArgument("configFile", String.class);
+        return gameManager.stopGame(gameType, configFile);
     }
 }

@@ -24,6 +24,7 @@ public abstract class PreRoundState extends OnPlatformsState {
             context.updateAliveCount(team);
         }
         context.setBorderStageIndex(0);
+        context.getTabList().setParticipantGreys(context.getParticipants().values(), false);
         context.getAdminSidebar().updateLine("respawn", Component.empty());
         context.getSidebar().updateLine("respawn", Component.empty());
         initializeGlowManager();
@@ -32,6 +33,8 @@ public abstract class PreRoundState extends OnPlatformsState {
         context.createPlatformsAndTeleportTeams();
         ItemStack[] starterLoadout = context.getConfig().getStarterLoadout();
         for (SurvivalGamesParticipant participant : context.getParticipants().values()) {
+            ParticipantInitializer.resetHealthAndHunger(participant);
+            ParticipantInitializer.clearStatusEffects(participant);
             ParticipantInitializer.clearInventory(participant);
             participant.setGameMode(GameMode.ADVENTURE);
             participant.setAlive(true);

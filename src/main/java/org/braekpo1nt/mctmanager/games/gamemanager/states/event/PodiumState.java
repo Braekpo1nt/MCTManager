@@ -39,6 +39,11 @@ public class PodiumState extends EventState {
     }
     
     @Override
+    public @NotNull String getSystemStateDescription() {
+        return "PODIUM";
+    }
+    
+    @Override
     public void exit() {
         if (eventData.getWinningTeam() != null) {
             for (MCTParticipant participant : eventData.getWinningTeam().getOnlineMembers()) {

@@ -1,11 +1,22 @@
 package org.braekpo1nt.mctmanager.games.gamestate;
 
+import lombok.Getter;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
+import org.braekpo1nt.mctmanager.database.entities.admin.ActiveAdminEntity;
+import org.braekpo1nt.mctmanager.database.entities.participants.ActiveParticipant;
+import org.braekpo1nt.mctmanager.database.entities.teams.ActiveTeam;
+import org.braekpo1nt.mctmanager.database.service.GameStateService;
+import org.braekpo1nt.mctmanager.database.service.RegisterConflictType;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
+import org.braekpo1nt.mctmanager.games.gamestate.states.SUEventState;
+import org.braekpo1nt.mctmanager.games.gamestate.states.SUMaintenanceState;
+import org.braekpo1nt.mctmanager.games.gamestate.states.SUPracticeState;
+import org.braekpo1nt.mctmanager.games.gamestate.states.StorageUtilState;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.ColorAttributes;
 import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
@@ -15,6 +26,7 @@ import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -33,24 +45,48 @@ import java.util.logging.Logger;
  */
 public class GameStateStorageUtil {
     
-    private final Logger LOGGER;
-    private final GameStateController gameStateController;
+    protected final Logger LOGGER;
+    @Getter
+    protected final GameStateService gameStateService;
+    /**
+     * A flag that is only needed because the tests use sqlite, and production uses mariaDB.
+     * Specifically regarding the portability miss-match in conflict resolution during upsert operations.
+     */
+    @Getter
+    protected final boolean mariaDB;
+    @Getter
     protected GameState gameState = new GameState(new HashMap<>(), new HashMap<>(), new ArrayList<>());
+    protected @NotNull StorageUtilState state;
     
-    public GameStateStorageUtil(Main plugin) {
-        this.LOGGER = plugin.getLogger();
-        this.gameStateController = new GameStateController(plugin.getDataFolder());
+    public GameStateStorageUtil(@NotNull Logger logger, @NotNull GameStateService gameStateService) {
+        this(logger, gameStateService, true);
     }
     
-    /**
-     * Save the GameState to storage
-     * @throws ConfigIOException if there is a problem
-     * - creating a new game state file
-     * - writing to the game state file
-     * - converting the game state to json
-     */
-    public void saveGameState() throws ConfigIOException {
-        gameStateController.saveGameState(gameState);
+    public GameStateStorageUtil(@NotNull Logger logger, @NotNull GameStateService gameStateService, boolean mariaDB) {
+        this.LOGGER = logger;
+        // Pro Tip: The plugin.getGameManager() is null at this point
+        this.gameStateService = gameStateService;
+        this.mariaDB = mariaDB;
+        this.state = new SUMaintenanceState(this);
+        state.enter();
+    }
+    
+    public void setState(@NotNull StorageUtilState state) {
+        this.state.exit();
+        this.state = state;
+        this.state.enter();
+    }
+    
+    public void maintenanceMode() {
+        setState(new SUMaintenanceState(this));
+    }
+    
+    public void practiceMode() {
+        setState(new SUPracticeState(this));
+    }
+    
+    public void eventMode(@NotNull String eventId) {
+        setState(new SUEventState(this, eventId));
     }
     
     /**
@@ -61,18 +97,57 @@ public class GameStateStorageUtil {
      * - reading the existing game state file
      * - parsing the game state from json
      */
-    public void loadGameState() throws ConfigIOException, ConfigInvalidException {
-        this.gameState = gameStateController.getGameState();
-        LOGGER.info("Loaded gameState.json");
+    public void loadGameState() throws SQLException {
+        this.gameState = constructGameStateFromDatabase();
+        gameStateService.setActiveVersion(0);
+        LOGGER.info("Constructed game state from database");
     }
     
-    /**
-     * Checks if the game state contains a team with the given name
-     * @param teamId The internal name of the team to check for
-     * @return True if the team exists in the game state, false otherwise
-     */
-    public boolean containsTeam(String teamId) {
-        return gameState.containsTeam(teamId);
+    public Component printGameState() {
+        TextComponent.Builder builder = Component.text();
+        builder.append(Component.text("Teams: "))
+                .append(Component.newline());
+        for (MCTTeamEntity team : gameState.getTeams().values()) {
+            builder
+                    .append(Component.text("--"))
+                    .append(Component.text(team.getName()))
+                    .append(Component.text(", "))
+                    .append(Component.text(team.getScore()))
+                    .append(Component.newline())
+            ;
+            
+        }
+        builder.append(Component.text("Participants: "))
+                .append(Component.newline());
+        for (MCTPlayerEntity player : gameState.getPlayers().values()) {
+            builder
+                    .append(Component.text("-----"))
+                    .append(Component.text(player.getName()))
+                    .append(Component.text(", "))
+                    .append(Component.text(player.getTeamId()))
+                    .append(Component.text(", "))
+                    .append(Component.text(player.getScore()))
+                    .append(Component.newline())
+            ;
+        }
+        
+        builder.append(Component.text("Admins: "))
+                .append(Component.newline());
+        for (UUID admin : gameState.getAdmins()) {
+            builder
+                    .append(Component.text("--"))
+                    .append(Component.text(admin.toString()))
+                    .append(Component.newline())
+            ;
+        }
+        return builder.build();
+    }
+    
+    private @NotNull GameState constructGameStateFromDatabase() throws SQLException {
+        List<ActiveTeam> activeTeams = gameStateService.getActiveTeams();
+        List<ActiveParticipant> activeParticipants = gameStateService.getActiveParticipants();
+        List<ActiveAdminEntity> adminEntities = gameStateService.getActiveAdmins();
+        return new GameState(ActiveParticipant.toPlayers(activeParticipants), ActiveTeam.toTeams(activeTeams), ActiveAdminEntity.toAdmins(adminEntities));
     }
     
     /**
@@ -80,16 +155,15 @@ public class GameStateStorageUtil {
      * @param teamId The internal name of the team.
      * @param teamDisplayName The display name of the team.
      * @param color The color of the team
+     * @return the score of the team (based on historical data)
      * @throws ConfigIOException If there is an error saving the game state while adding a new team.
      */
-    public void addTeam(String teamId, String teamDisplayName, String color) throws ConfigIOException {
-        gameState.addTeam(teamId, teamDisplayName, color);
-        saveGameState();
+    public int addTeam(String teamId, String teamDisplayName, String color) throws SQLException {
+        return state.addTeam(teamId, teamDisplayName, color);
     }
     
-    public void removeTeam(String teamId) throws ConfigIOException {
-        gameState.removeTeam(teamId);
-        saveGameState();
+    public void removeTeam(String teamId) throws SQLException {
+        state.removeTeam(teamId);
     }
     
     /**
@@ -126,7 +200,7 @@ public class GameStateStorageUtil {
                 .append(Component.text("Admin")
                         .color(NamedTextColor.DARK_RED))
                 .append(Component.text("]")));
-        for (MCTTeam mctTeam : gameState.getTeams().values()) {
+        for (MCTTeamEntity mctTeam : gameState.getTeams().values()) {
             Team team = scoreboard.registerNewTeam(mctTeam.getName());
             team.displayName(Component.text(mctTeam.getDisplayName()));
             NamedTextColor namedTextColor = ColorMap.getNamedTextColor(mctTeam.getColor());
@@ -142,25 +216,88 @@ public class GameStateStorageUtil {
         return new HashSet<>(gameState.getTeams().keySet());
     }
     
-    /**
-     * Adds the given player to the game state, joined to the given team
-     * @param playerToJoin the UUID of the player
-     * @param name the name of the player
-     * @param teamId the teamId to join it to
-     * @throws ConfigIOException if there is an IO error saving the game state
-     */
-    public void addNewPlayer(@NotNull UUID playerToJoin, @NotNull String name, @NotNull String teamId) throws ConfigIOException {
-        gameState.addPlayer(playerToJoin, name, teamId);
-        saveGameState();
+    public RegisterConflictType registerPlayer(@NotNull UUID uuid, @NotNull String ign) throws SQLException {
+        RegisterConflictType type = gameStateService.registerPlayer(uuid.toString(), ign);
+        
+        // TODO: handle admins
+        return switch (type) {
+            case MIGRATE_IGN -> {
+                // a player with the UUID exists but the IGN is wrong
+                MCTPlayerEntity participantWithWrongIGN = gameState.getPlayer(uuid);
+                if (participantWithWrongIGN == null) {
+                    // they're not in the game state, no changes needed
+                    yield RegisterConflictType.NONE;
+                }
+                // the player is a participant in the game state, so we need to migrate the ign
+                participantWithWrongIGN.setName(ign);
+                yield RegisterConflictType.MIGRATE_IGN;
+            }
+            case MIGRATE_UUID -> {
+                // a player with the ign exists, but the UUID is wrong
+                MCTPlayerEntity participantWithIgn = gameState.getPlayer(ign);
+                if (participantWithIgn == null) {
+                    // they're not in the game state, no changes needed
+                    yield RegisterConflictType.NONE;
+                }
+                migrateFromUUIDToUUID(
+                        participantWithIgn.getUniqueId(),
+                        participantWithIgn.getTeamId(),
+                        participantWithIgn.getScore(),
+                        uuid,
+                        ign
+                );
+                yield RegisterConflictType.MIGRATE_UUID;
+            }
+            default -> RegisterConflictType.NONE;
+        };
+    }
+    
+    private boolean resolveConflicts(@NotNull UUID uuid, @NotNull String ign) {
+        MCTPlayerEntity existingPlayer = gameState.getPlayer(uuid);
+        if (existingPlayer != null) {
+            // check if the ign is right
+            if (existingPlayer.getName().equals(ign)) {
+                // everything is correct, we are done
+                return false;
+            }
+            // if the UUID exists but the ign is wrong, we need to change the ign
+            MCTPlayerEntity playerWithIgn = gameState.getPlayer(ign);
+            if (playerWithIgn == null) {
+                // there are no existing participants with the ign, so just update the ign
+                existingPlayer.setName(ign);
+                return true;
+            }
+            // there is a participant with the ign, so we need to migrate the UUID and keep the ign
+            migrateFromUUIDToUUID(playerWithIgn.getUniqueId(), playerWithIgn.getTeamId(), playerWithIgn.getScore(), uuid, ign);
+            return true;
+        }
+        // a participant with the UUID does not exist in the participants list
+        MCTPlayerEntity playerWithIgn = gameState.getPlayer(ign);
+        if (playerWithIgn == null) {
+            // no players with the ign exist
+            return false;
+        }
+        // a participant with the wrong UUID but the right IGN exists in the participants list
+        // we must migrate the UUID and keep the correct IGN
+        migrateFromUUIDToUUID(playerWithIgn.getUniqueId(), playerWithIgn.getTeamId(), playerWithIgn.getScore(), uuid, ign);
+        return true;
+    }
+    
+    private void migrateFromUUIDToUUID(UUID fromUUID, String teamId, int score, UUID toUUID, String ign) {
+        gameState.removePlayer(fromUUID);
+        MCTPlayerEntity correctedPlayer = gameState.addPlayer(toUUID, ign, teamId);
+        correctedPlayer.setScore(score);
     }
     
     /**
-     * Checks if the game state contains the given player
-     * @param playerUniqueId The UUID of the player to check for
-     * @return True if the player with the given UUID exists, false otherwise
+     * Adds the given player to the game state, joined to the given team
+     * @param playerToJoin the UUID of the player
+     * @param ign the ign of the player
+     * @param teamId the teamId to join it to
+     * @throws ConfigIOException if there is an IO error saving the game state
      */
-    public boolean containsPlayer(UUID playerUniqueId) {
-        return gameState.containsPlayer(playerUniqueId);
+    public int addNewPlayer(@NotNull UUID playerToJoin, @NotNull String ign, @NotNull String teamId) throws SQLException {
+        return state.addNewPlayer(playerToJoin, ign, teamId);
     }
     
     /**
@@ -168,7 +305,7 @@ public class GameStateStorageUtil {
      * @return the OfflineParticipant from the given UUID, or null if the UUID isn't in the game state
      */
     public @Nullable OfflineParticipant getOfflineParticipant(@NotNull UUID uuid) {
-        MCTPlayer player = gameState.getPlayer(uuid);
+        MCTPlayerEntity player = gameState.getPlayer(uuid);
         if (player == null) {
             return null;
         }
@@ -182,49 +319,107 @@ public class GameStateStorageUtil {
         );
     }
     
+    /**
+     * Update the scores in memory. Does not persist to the database unless you call
+     * {@link #persistScores(Collection, Collection)}.
+     * @param teams the teams to persist the scores for
+     * @param participants the participants to persist the scores for
+     */
     public void updateScores(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams, Collection<OfflineParticipant> participants) {
-        updateTeamScores(teams);
-        updateParticipantScores(participants);
-    }
-    
-    public void updateScore(OfflineParticipant participant) {
-        Objects.requireNonNull(gameState.getPlayer(participant.getUniqueId()),
-                        "attempted to update score of non-existent participant")
-                .setScore(participant.getScore());
-    }
-    
-    public void updateParticipantScores(Collection<OfflineParticipant> participants) {
+        for (org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam team : teams) {
+            MCTTeamEntity mctTeam = gameState.getTeam(team.getTeamId());
+            mctTeam.setScore(team.getScore());
+        }
+        
         for (OfflineParticipant participant : participants) {
-            MCTPlayer player = Objects.requireNonNull(
+            MCTPlayerEntity player = Objects.requireNonNull(
                     gameState.getPlayer(participant.getUniqueId()),
-                    "attempted to update the score of a participant who is not in the GameState");
+                    String.format("attempted to update the score of a participant who is not in the GameState \"%s\"", participant.getUniqueId()));
             player.setScore(participant.getScore());
         }
     }
     
-    public void updateScore(org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam team) {
-        gameState.getTeam(team.getTeamId()).setScore(team.getScore());
-    }
-    
-    public void updateTeamScores(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams) {
-        for (org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam team : teams) {
-            MCTTeam mctTeam = gameState.getTeam(team.getTeamId());
-            mctTeam.setScore(team.getScore());
-        }
+    /**
+     * Used to persist the current score values of the given teams and participants to the
+     * database. Meant to be called after {@link #updateScores(Collection, Collection)}
+     * @param teams the teams to update
+     * @param participants the participants to update
+     * @throws Exception if there is an issue communicating with the database
+     */
+    public void persistScores(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams, Collection<OfflineParticipant> participants) throws Exception {
+        List<ActiveTeam> activeTeams = teams.stream()
+                .map(team -> {
+                    MCTTeamEntity mctTeamEntity = gameState.getTeam(team.getTeamId());
+                    return ActiveTeam.fromTeam(mctTeamEntity);
+                })
+                .filter(Objects::nonNull)
+                .toList();
+        List<ActiveParticipant> activeParticipants = participants.stream()
+                .map(participant -> {
+                    MCTPlayerEntity mctPlayerEntity = gameState.getPlayer(participant.getUniqueId());
+                    return ActiveParticipant.fromPlayer(mctPlayerEntity);
+                })
+                .filter(Objects::nonNull)
+                .toList();
+        persistScores(activeParticipants, activeTeams);
     }
     
     /**
-     * Gets the internal team name of the player with the given UUID
-     * @param uuid The UUID of the player to find the team of
-     * @return The internal team name of the player with the given UUID, null if the game state doesn't contain the
-     * player's UUID
+     * @param activeParticipants the participants to commit to the database
+     * @param activeTeams the teams to commit to the database
+     * @throws Exception if there is an issue communicating with the database
      */
-    public @Nullable String getPlayerTeamId(@NotNull UUID uuid) {
-        MCTPlayer player = gameState.getPlayer(uuid);
-        if (player != null) {
-            return player.getTeamId();
-        }
-        return null;
+    protected void persistScores(List<ActiveParticipant> activeParticipants, List<ActiveTeam> activeTeams) throws Exception {
+        gameStateService.updateActiveParticipants(activeParticipants);
+        gameStateService.updateActiveTeams(activeTeams);
+    }
+    
+    /**
+     * Update the score of the given participant in-memory.
+     * Meant to be used in combination with {@link #persistScore(OfflineParticipant)}, or
+     * the score won't be persisted to the database.
+     * @param participant the participant to update the score of
+     */
+    public void updateScore(OfflineParticipant participant) {
+        MCTPlayerEntity player = Objects.requireNonNull(gameState.getPlayer(participant.getUniqueId()),
+                "attempted to update score of non-existent participant");
+        player.setScore(participant.getScore());
+    }
+    
+    /**
+     * Persist the score of the given participant in the database.
+     * Meant to be called after {@link #updateScore(OfflineParticipant)} in a different thread so
+     * that the persistence doesn't lag the game.
+     * @param participant the participant to update the score of
+     * @throws SQLException if there's an issue communicating with the database
+     */
+    public void persistScore(OfflineParticipant participant) throws SQLException {
+        MCTPlayerEntity player = Objects.requireNonNull(gameState.getPlayer(participant.getUniqueId()),
+                "attempted to persist score of non-existent participant");
+        gameStateService.updateActiveParticipant(ActiveParticipant.fromPlayer(player));
+    }
+    
+    /**
+     * Update the score of the given team in-memory.
+     * Meant to be used in combination with {@link #persistScore(MCTTeam)}, or
+     * the score won't be persisted to the database.
+     * @param mctTeam the team to update the score of
+     */
+    public void updateScore(org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam mctTeam) {
+        MCTTeamEntity team = gameState.getTeam(mctTeam.getTeamId());
+        team.setScore(mctTeam.getScore());
+    }
+    
+    /**
+     * Persist the score of the given team in the database.
+     * Meant to be called after {@link #updateScore(MCTTeam)} in a different thread so
+     * that the persistence doesn't lag the game.
+     * @param mctTeam the team to update the score of
+     * @throws SQLException if there's an issue communicating with the database
+     */
+    public void persistScore(org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam mctTeam) throws SQLException {
+        MCTTeamEntity team = gameState.getTeam(mctTeam.getTeamId());
+        gameStateService.updateActiveTeam(ActiveTeam.fromTeam(team));
     }
     
     /**
@@ -248,21 +443,8 @@ public class GameStateStorageUtil {
      * @param playerUniqueId The UUID for the player
      * @throws ConfigIOException if there is an IO error saving the game state
      */
-    public void leavePlayer(UUID playerUniqueId) throws ConfigIOException {
-        gameState.removePlayer(playerUniqueId);
-        saveGameState();
-    }
-    
-    /**
-     * @param playerUniqueId the UUID of the player to get the score of.
-     * @return the given participant's score. 0 if the UUID isn't a player, or if it is an offlinePlayer.
-     */
-    public int getParticipantScore(UUID playerUniqueId) {
-        MCTPlayer player = gameState.getPlayer(playerUniqueId);
-        if (player == null) {
-            return 0;
-        }
-        return player.getScore();
+    public void leavePlayer(UUID playerUniqueId) throws SQLException {
+        state.leavePlayer(playerUniqueId);
     }
     
     public @NotNull NamedTextColor getTeamColor(@NotNull String teamId) {
@@ -276,7 +458,7 @@ public class GameStateStorageUtil {
     }
     
     public String getTeamDisplayName(String teamId) {
-        MCTTeam team = gameState.getTeam(teamId);
+        MCTTeamEntity team = gameState.getTeam(teamId);
         return team.getDisplayName();
     }
     
@@ -292,16 +474,6 @@ public class GameStateStorageUtil {
     }
     
     /**
-     * Gets the color string of the given team
-     * @param teamId The teamId to get the color string of
-     * @return The color string of the given team
-     * @throws NullPointerException if the given teamId is not a valid team
-     */
-    public String getTeamColorString(@NotNull String teamId) {
-        return gameState.getTeam(teamId).getColor();
-    }
-    
-    /**
      * Checks if the given unique id is an admin
      * @param adminUniqueId The admin's unique id to check
      * @return True if the given unique id is an admin, false otherwise
@@ -311,13 +483,27 @@ public class GameStateStorageUtil {
     }
     
     /**
+     * @return a list of the UUIDs of the admins
+     */
+    public List<UUID> getAdminUUIDs() {
+        return gameState.getAdmins();
+    }
+    
+    /**
+     * @return a map from UUID to Admin Names
+     * @throws SQLException if there's a SQL error
+     */
+    public @NotNull Map<UUID, String> getAllAdminNames() throws SQLException {
+        return gameStateService.getAdminNames();
+    }
+    
+    /**
      * Add an admin to the game state
      * @param adminUniqueId the unique id of the admin
      * @throws ConfigIOException If there is an issue saving the game state
      */
-    public void addAdmin(UUID adminUniqueId) throws ConfigIOException {
-        gameState.addAdmin(adminUniqueId);
-        saveGameState();
+    public void addAdmin(UUID adminUniqueId) throws SQLException {
+        state.addAdmin(adminUniqueId);
     }
     
     /**
@@ -325,9 +511,17 @@ public class GameStateStorageUtil {
      * @param adminUniqueId the unique id of the admin
      * @throws ConfigIOException If there is an issue saving the game state
      */
-    public void removeAdmin(UUID adminUniqueId) throws ConfigIOException {
-        gameState.removeAdmin(adminUniqueId);
-        saveGameState();
+    public void removeAdmin(UUID adminUniqueId) throws SQLException {
+        state.removeAdmin(adminUniqueId);
     }
     
+    public void setIGN(UUID uuid, String ign) throws SQLException {
+        MCTPlayerEntity player = gameState.getPlayer(uuid);
+        if (player == null) {
+            return;
+        }
+        player.setName(ign);
+        // TODO: should we update the name in the database here, or separately outside? Last decision was to keep it here
+        gameStateService.migrateIgn(uuid.toString(), ign);
+    }
 }

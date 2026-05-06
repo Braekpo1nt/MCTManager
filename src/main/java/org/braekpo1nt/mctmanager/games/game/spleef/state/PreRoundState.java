@@ -20,6 +20,7 @@ public class PreRoundState extends SpleefStateBase {
     
     @Override
     public void enter() {
+        context.getTabList().setParticipantGreys(context.getParticipants().values(), false);
         for (SpleefParticipant participant : context.getParticipants().values()) {
             context.teleportToRandomStartingPosition(participant);
             ParticipantInitializer.clearInventory(participant);

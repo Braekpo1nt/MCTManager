@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.clockwork.config;
 import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.config.Config;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
 import org.braekpo1nt.mctmanager.games.game.clockwork.Chaos;
 import org.braekpo1nt.mctmanager.games.game.clockwork.Wedge;
@@ -16,7 +17,7 @@ import java.util.List;
 
 @Data
 @Builder
-public class ClockworkConfig {
+public class ClockworkConfig implements Config {
     
     private World world;
     private Location startingLocation;

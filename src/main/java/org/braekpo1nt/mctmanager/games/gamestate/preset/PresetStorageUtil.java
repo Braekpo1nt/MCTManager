@@ -22,16 +22,11 @@ public class PresetStorageUtil {
     private final PresetController controller;
     
     public PresetStorageUtil(File pluginDataFolder) {
-        this.controller = new PresetController(new File(pluginDataFolder, "presets"));
+        File presetDirectory = new File(pluginDataFolder, "presets");
+        this.controller = new PresetController(presetDirectory);
     }
     
-    /**
-     * Save the preset to its file
-     * @param preset the preset to save
-     * @param presetFile the file to save the preset to
-     * @throws ConfigIOException if there is an IO error saving the config to the file system
-     */
-    public void savePreset(@NotNull Preset preset, @NotNull String presetFile) throws ConfigIOException {
+    public void savePreset(@NotNull Preset preset, @NotNull File presetFile) throws ConfigIOException {
         controller.savePreset(preset, presetFile);
     }
     
@@ -41,7 +36,7 @@ public class PresetStorageUtil {
      * @throws ConfigInvalidException if there is a problem parsing the JSON into a configDTO
      * @throws ConfigIOException if there is an IO problem getting the configDTO
      */
-    public @NotNull Preset loadPreset(@NotNull String presetFile) throws ConfigException {
+    public @NotNull Preset loadPreset(@NotNull File presetFile) throws ConfigException {
         return controller.getPreset(presetFile);
     }
     
@@ -58,7 +53,7 @@ public class PresetStorageUtil {
      * @param modify the method to modify the preset with
      * @return the result of the modification.
      */
-    public CommandResult modifyPreset(@NotNull String presetFile, Function<Preset, CommandResult> modify) {
+    public CommandResult modifyPreset(@NotNull File presetFile, Function<Preset, CommandResult> modify) {
         Preset preset;
         try {
             preset = loadPreset(presetFile);

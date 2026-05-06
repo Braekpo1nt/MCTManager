@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.state;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
@@ -12,8 +13,6 @@ import org.braekpo1nt.mctmanager.games.game.spleef.powerup.PowerupManager;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
 import org.bukkit.block.Block;
-import org.bukkit.damage.DamageSource;
-import org.bukkit.damage.DamageType;
 import org.bukkit.event.Event;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -22,8 +21,8 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
 
 public class RoundActiveState extends SpleefStateBase implements SpleefInterface {
@@ -84,6 +83,7 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
     public void onParticipantRejoin(SpleefParticipant participant, SpleefTeam team) {
         super.onParticipantRejoin(participant, team);
         participant.setAlive(false);
+        context.getTabList().setParticipantGrey(participant, true);
         participant.setGameMode(GameMode.SPECTATOR);
         updateAliveCount(getAliveCount());
     }
@@ -104,10 +104,7 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
             Component deathMessage = Component.empty()
                     .append(participant.displayName())
                     .append(Component.text(" left early. Their life is forfeit."));
-            context.messageAllParticipants(deathMessage);
-            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant.getPlayer(),
-                    DamageSource.builder(DamageType.GENERIC).build(), Collections.emptyList(), 0, 0, 0, 0, deathMessage, true);
-            onParticipantDeath(fakeDeathEvent, participant);
+            context.simulateDeath(participant, deathMessage);
         }
     }
     
@@ -127,6 +124,11 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
             return;
         }
         event.getDrops().clear();
+    }
+    
+    @Override
+    public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull SpleefParticipant participant) {
+        super.onParticipantPostRespawn(event, participant);
         onParticipantDeath(participant);
         if (lessThanTwoParticipantsAreAlive() || exactlyOneTeamIsAlive()) {
             stop();
@@ -154,14 +156,14 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
         decayManager.setAlivePercent(aliveCount / (double) context.getParticipants().size());
     }
     
-    private void onParticipantDeath(SpleefParticipant killed) {
-        killed.setAlive(false);
-        powerupManager.removeParticipant(killed);
+    private void onParticipantDeath(SpleefParticipant participant) {
+        participant.setAlive(false);
+        context.getTabList().setParticipantGrey(participant, true);
+        powerupManager.removeParticipant(participant);
         List<SpleefParticipant> awardedParticipants = context.getParticipants().values().stream()
-                .filter(SpleefParticipant::isAlive)
-                .filter(participant -> !participant.getTeamId().equals(killed.getTeamId()))
+                .filter(p -> p.isAlive() && !p.sameTeam(participant))
                 .toList();
-        context.awardParticipantPoints(awardedParticipants, context.getConfig().getSurviveScore());
+        context.awardParticipantPoints(awardedParticipants, context.getConfig().getSurviveScore(), String.format("Participant \"%s\" was eliminated", participant.getName()));
         
         updateAliveCount(getAliveCount());
     }

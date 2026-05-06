@@ -29,13 +29,15 @@ public class EventConfig {
      */
     private int tipsDisplayTime;
     private boolean shouldDisplayGameNumber;
+    private boolean weightedVoting;
     /**
      * Contains which configs to use for which games.
      * Can't be null, but can be empty. If a config doesn't exist for a given
      * game, the default will be used.
      */
     private @NotNull Map<GameType, String> gameConfigs;
-    private @NotNull String colossalCombatConfig;
+    private @NotNull String finaleConfig;
+    private @NotNull GameType finaleGame;
     /**
      * The preset that should be applied when switching to event mode
      * If null, no preset is applied.

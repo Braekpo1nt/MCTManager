@@ -16,4 +16,8 @@ public class GameInstanceId {
     public String getTitle() {
         return gameType.getTitle();
     }
+    
+    public String getCombined() {
+        return String.format("%s:%s", gameType.getId(), configFile);
+    }
 }

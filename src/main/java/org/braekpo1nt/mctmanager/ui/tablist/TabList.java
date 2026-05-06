@@ -7,6 +7,7 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.ParticipantID;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIException;
@@ -185,7 +186,7 @@ public class TabList implements UIManager {
     }
     
     /**
-     * @param pid the UUID of the ParticipantData. Must be a valid key in {@link #participantDatas}
+     * @param pid the participant id of the ParticipantData. Must be a valid key in {@link #participantDatas}
      * @return the {@link TabList.ParticipantData} associated with this UUID
      */
     private @Nullable ParticipantData getParticipantData(@NotNull ParticipantID pid) {
@@ -237,15 +238,31 @@ public class TabList implements UIManager {
     }
     
     /**
+     * This is so that tests can skip the scheduling and just perform the action
+     * @param runnable the action to perform
+     */
+    protected void scheduleAsync(Runnable runnable) {
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, runnable);
+    }
+    
+    /**
+     * This is so that tests can skip the scheduling and just perform the action
+     * @param runnable the action to perform
+     */
+    protected void scheduleSync(Runnable runnable) {
+        plugin.getServer().getScheduler().runTask(plugin, runnable);
+    }
+    
+    /**
      * Updates all views to reflect the current state of the data.
      */
     private void update() {
         if (!plugin.isEnabled()) {
             return;
         }
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+        scheduleAsync(() -> {
             Component tabList = toTabList();
-            plugin.getServer().getScheduler().runTask(plugin, () -> {
+            scheduleSync(() -> {
                 for (PlayerData playerData : playerDatas.values()) {
                     playerData.getPlayer().sendPlayerListHeader(tabList);
                 }
@@ -263,9 +280,9 @@ public class TabList implements UIManager {
             return;
         }
         if (playerData.isVisible()) {
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            scheduleAsync(() -> {
                 Component tabList = toTabList();
-                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                scheduleSync(() -> {
                     playerData.getPlayer().sendPlayerListHeader(tabList);
                 });
             });
@@ -390,7 +407,16 @@ public class TabList implements UIManager {
     
     /**
      * Set the alive status of the {@link TabList.ParticipantData} associated with the given UUID
-     * @param pid the UUID of the {@link ParticipantData}
+     * @param participant the participant to set they grey for
+     * @param grey true makes the player name grey, false makes it their team color
+     */
+    public void setParticipantGrey(@NotNull Participant participant, boolean grey) {
+        setParticipantGrey(participant.getParticipantID(), grey);
+    }
+    
+    /**
+     * Set the alive status of the {@link TabList.ParticipantData} associated with the given UUID
+     * @param pid the participant id of the {@link ParticipantData}
      * @param grey true makes the player name grey, false makes it their team color
      */
     public void setParticipantGrey(@NotNull ParticipantID pid, boolean grey) {
@@ -399,6 +425,23 @@ public class TabList implements UIManager {
             return;
         }
         participantData.setGrey(grey);
+        update();
+    }
+    
+    /**
+     * A bulk operation equivalent of {@link #setParticipantGrey(ParticipantID, boolean)}. Use this
+     * instead of repeated calls to the single operation type.
+     * @param participants the participants to set the grey for. If any of these participants are not contained in this
+     * TabList they will be ignored.
+     * @param grey true makes the player names grey, false makes them their team colors
+     */
+    public void setParticipantGreys(@NotNull Collection<? extends Participant> participants, boolean grey) {
+        for (Participant participant : participants) {
+            ParticipantData participantData = getParticipantData(participant.getParticipantID());
+            if (participantData != null) {
+                participantData.setGrey(grey);
+            }
+        }
         update();
     }
     
@@ -479,7 +522,7 @@ public class TabList implements UIManager {
      * @param args optional args for the reason format string
      */
     private void logUIError(@NotNull String reason, Object... args) {
-        Main.logger().log(Level.SEVERE,
+        Main.logger().log(Level.WARNING,
                 "An error occurred in the TabList. Failing gracefully.",
                 new UIException(String.format(reason, args)));
     }

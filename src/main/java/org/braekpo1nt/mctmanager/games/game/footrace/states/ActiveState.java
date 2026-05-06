@@ -19,9 +19,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.UUID;
 
 public class ActiveState extends FootRaceStateBase {
@@ -125,12 +127,91 @@ public class ActiveState extends FootRaceStateBase {
         if (participant.isFinished()) {
             return;
         }
+        
+        Vector to = event.getTo().toVector();
         int currentCheckpointIndex = participant.getCurrentCheckpoint();
         int nextCheckpointIndex = MathUtils.wrapIndex(currentCheckpointIndex + 1, config.getCheckpoints().size());
-        BoundingBox nextCheckpoint = config.getCheckpoints().get(nextCheckpointIndex);
-        if (nextCheckpoint.contains(participant.getLocation().toVector())) {
+        List<BoundingBox> checkpoints = config.getCheckpoints();
+        
+        // 1. Check for reaching the next checkpoint
+        if (checkpoints.get(nextCheckpointIndex).contains(to)) {
             onParticipantReachCheckpoint(participant, nextCheckpointIndex);
+            resetWrongWayLogic(participant);
+            return;
         }
+        
+        // 2. Check for crossing any OTHER previous checkpoints
+        for (int i = 0; i < checkpoints.size(); i++) {
+            if (i == currentCheckpointIndex || i == nextCheckpointIndex) {
+                continue;
+            }
+            if (checkpoints.get(i).contains(to)) {
+                participant.setCurrentCheckpoint(i);
+                participant.setShowingWrongWayAlert(true);
+                showWrongWayTitle(participant);
+                return;
+            }
+        }
+        
+        // 3. Distance-based wrong way detection
+        handleWrongWayDistanceLogic(participant, to);
+    }
+    
+    private void handleWrongWayDistanceLogic(FootRaceParticipant participant, Vector to) {
+        long now = System.currentTimeMillis();
+        int currentCheckpointIndex = participant.getCurrentCheckpoint();
+        int nextCheckpointIndex = MathUtils.wrapIndex(currentCheckpointIndex + 1, config.getCheckpoints().size());
+        List<BoundingBox> checkpoints = config.getCheckpoints();
+        
+        double distToNext = MathUtils.getMinimumDistance(checkpoints.get(nextCheckpointIndex), to);
+        double distToPrev = MathUtils.getMinimumDistance(checkpoints.get(currentCheckpointIndex), to);
+        
+        // If moving closer to previous checkpoint
+        if (distToPrev < participant.getLastDistToPrev() - 0.01) {
+            if (participant.getWrongWayCounterStart() == -1) {
+                participant.setWrongWayCounterStart(now);
+            }
+            participant.setRightWayCounterStart(-1);
+            if (!participant.isShowingWrongWayAlert() && now - participant.getWrongWayCounterStart() > 2000) {
+                participant.setShowingWrongWayAlert(true);
+            }
+        } else if (distToNext < participant.getLastDistToNext() - 0.01) {
+            // If moving closer to next checkpoint
+            if (participant.getRightWayCounterStart() == -1) {
+                participant.setRightWayCounterStart(now);
+            }
+            participant.setWrongWayCounterStart(-1);
+            if (participant.isShowingWrongWayAlert() && now - participant.getRightWayCounterStart() > 1000) {
+                participant.setShowingWrongWayAlert(false);
+            }
+        }
+        
+        participant.setLastDistToNext(distToNext);
+        participant.setLastDistToPrev(distToPrev);
+        
+        if (participant.isShowingWrongWayAlert()) {
+            showWrongWayTitle(participant);
+        }
+    }
+    
+    private void resetWrongWayLogic(FootRaceParticipant participant) {
+        participant.setWrongWayCounterStart(-1);
+        participant.setRightWayCounterStart(-1);
+        participant.setShowingWrongWayAlert(false);
+        participant.setLastDistToNext(Double.MAX_VALUE);
+        participant.setLastDistToPrev(Double.MAX_VALUE);
+    }
+    
+    private void showWrongWayTitle(FootRaceParticipant participant) {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - participant.getLastWrongWayTitleTime() < 2000) {
+            return;
+        }
+        participant.setLastWrongWayTitleTime(currentTime);
+        participant.showTitle(UIUtils.defaultTitle(
+                Component.text("Wrong Way!")
+                        .color(NamedTextColor.RED)
+        ));
     }
     
     private void onParticipantReachCheckpoint(FootRaceParticipant participant, int reachedCheckpointIndex) {
@@ -170,7 +251,7 @@ public class ActiveState extends FootRaceStateBase {
                     .append(Component.text(currentLap))
                     .append(Component.text(" in "))
                     .append(TimeStringUtils.getTimeComponentMillis(elapsedTime)));
-            context.awardPoints(participant, config.getCompleteLapScore());
+            context.awardPoints(participant, config.getCompleteLapScore(), String.format("Finished lap %s", currentLap));
             return;
         }
         if (currentLap == context.getConfig().getLaps()) {
@@ -190,7 +271,7 @@ public class ActiveState extends FootRaceStateBase {
         participant.setPlacement(placement);
         showRaceCompleteFastBoard(participant);
         int points = calculatePointsForPlacement(placement);
-        context.awardPoints(participant, points);
+        context.awardPoints(participant, points, String.format("Finished race in %s place", placement));
         Component timeComponent = TimeStringUtils.getTimeComponentMillis(elapsedTime);
         Component endCountDown = TimeStringUtils.getTimeComponent(config.getRaceEndCountdownDuration());
         Component placementComponent = GameManagerUtils.getPlacementTitle(placement);
