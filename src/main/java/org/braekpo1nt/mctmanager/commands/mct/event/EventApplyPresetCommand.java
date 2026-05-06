@@ -40,6 +40,11 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 
+/**
+ * @deprecated This results in UUID mismatches between the in-memory state and the database.
+ * Is not used right now.
+ */
+@Deprecated
 public class EventApplyPresetCommand implements BrigadierSubCommand {
     
     private final Dynamic2CommandExceptionType ERROR_ONLINE_UUID_MISMATCH = new Dynamic2CommandExceptionType((ign, uuid) -> MessageComponentSerializer.message().serialize(Component.empty()
@@ -59,7 +64,7 @@ public class EventApplyPresetCommand implements BrigadierSubCommand {
             .append(Component.text(uuid.toString())
                     .decorate(TextDecoration.BOLD)
                     .clickEvent(ClickEvent.copyToClipboard(uuid.toString())))
-            .append(Component.text(" is online and does not have the IGN"))
+            .append(Component.text(" is online and does not have the IGN "))
             .append(Component.text(ign.toString())
                     .decorate(TextDecoration.BOLD)
                     .clickEvent(ClickEvent.copyToClipboard(ign.toString())))
