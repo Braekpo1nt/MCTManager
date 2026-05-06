@@ -24,6 +24,13 @@ public class ConfigFileArgumentType implements CustomArgumentType.Converted<Stri
     private final boolean activeOnly;
     private final @NotNull String gameIdArgumentName;
     
+    /**
+     * @param gameManager the game manager
+     * @param activeOnly true if you only want to suggest games that are currently active,
+     * false if you want to list all games
+     * @param gameIdArgumentName the string to use to get the gameId from the partially completed command
+     * (e.g. "gameId" or "gameType")
+     */
     public ConfigFileArgumentType(@NotNull GameManager gameManager, boolean activeOnly, @NotNull String gameIdArgumentName) {
         this.gameManager = gameManager;
         this.activeOnly = activeOnly;

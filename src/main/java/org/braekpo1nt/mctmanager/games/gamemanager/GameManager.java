@@ -1456,7 +1456,7 @@ public class GameManager implements Listener {
         return state.openHubMenu(participant);
     }
     
-    public List<Integer> getGameSessionId(
+    public List<Integer> getGameSessionIds(
             @Nullable String eventId,
             @NotNull GameType gameType,
             @NotNull String configFile,
@@ -1472,6 +1472,10 @@ public class GameManager implements Listener {
     
     public CommandResult undoGame(int gameSessionId) {
         return state.undoGame(gameSessionId);
+    }
+    
+    public CommandResult redoGame(int gameSessionId) {
+        return state.redoGame(gameSessionId);
     }
     
     public CommandResult modifyMaxGames(int newMaxGames) {

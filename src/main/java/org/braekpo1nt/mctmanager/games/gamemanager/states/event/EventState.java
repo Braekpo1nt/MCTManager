@@ -6,6 +6,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
+import org.braekpo1nt.mctmanager.database.entities.GameSession;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
@@ -144,8 +145,48 @@ public abstract class EventState extends GameManagerState {
     
     @Override
     public CommandResult undoGame(int gameSessionId) {
-        // TODO: implement this operation
-        return CommandResult.failure(Component.text("This operation is not yet implemented. Speak to the developers for more details."));
+        return setGameUndone(gameSessionId, true);
+    }
+    
+    @Override
+    public CommandResult redoGame(int gameSessionId) {
+        return setGameUndone(gameSessionId, false);
+    }
+    
+    private CommandResult setGameUndone(int gameSessionId, boolean undone) {
+        try {
+            GameSession gameSession = context.getScoreService().getGameSession(gameSessionId);
+            if (gameSession == null) {
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text("A game session with id "))
+                        .append(Component.text(gameSessionId)
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" does not exist"))
+                );
+            }
+            if (gameSession.isSessionUndone() == undone) {
+                return CommandResult.success(Component.empty()
+                        .append(Component.text("The undo tag for session "))
+                        .append(Component.text(gameSessionId)
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" is already "))
+                        .append(Component.text(undone)
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(". Nothing changed."))
+                );
+            }
+            context.getScoreService().setGameSessionUndone(gameSessionId, false);
+            return CommandResult.success(Component.empty()
+                    .append(Component.text("Undo tag for session "))
+                    .append(Component.text(gameSessionId)
+                            .decorate(TextDecoration.BOLD))
+                    // TODO: to automate this, create a method in ScoreService to get the scores associated with all participants and all teams (may be two different methods or a specialized return type) and update the scores to reflect the changes. Confirm with a test that this is reflected.
+                    .append(Component.text(" was set to "))
+                    .append(Component.text(". Reload game state to show the effects. You will need to manually resume the event."))
+            );
+        } catch (SQLException e) {
+            return CommandResult.sqlException(String.format("set undo tag for game session %s to %s", gameSessionId, undone), e);
+        }
     }
     
     /**
@@ -313,6 +354,16 @@ public abstract class EventState extends GameManagerState {
     public void onParticipantJoin(@NotNull MCTParticipant participant) {
         super.onParticipantJoin(participant);
         sidebar.updateLine(participant.getUniqueId(), "currentGame", getCurrentGameLine());
+        Date date = new Date();
+        context.logScoreEvent(ScoreEvent.builder()
+                .sourceType(ScoreEvent.SourceType.SYSTEM)
+                .gameSessionId(null)
+                .participantUUID(participant.getUniqueId().toString())
+                .teamId(participant.getTeamId())
+                .pointsBase(0)
+                .description("joined event")
+                .createdAt(date)
+                .build());
     }
     // leave/join stop
     

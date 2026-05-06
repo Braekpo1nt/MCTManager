@@ -1335,6 +1335,10 @@ public abstract class GameManagerState {
         return CommandResult.failure("Can't undo games in this state");
     }
     
+    public CommandResult redoGame(int gameSessionId) {
+        return CommandResult.failure("Can't redo games in this state");
+    }
+    
     public CommandResult modifyMaxGames(int newMaxGames) {
         return CommandResult.failure("No event is active");
     }

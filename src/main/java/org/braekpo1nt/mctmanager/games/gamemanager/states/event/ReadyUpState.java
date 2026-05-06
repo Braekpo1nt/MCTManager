@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
+import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.MCTParticipant;
@@ -122,6 +123,18 @@ public class ReadyUpState extends EventState {
         
         CommandResult result = context.loadGameState();
         CommandResult.showResult(contextReference.getPlugin().getServer().getConsoleSender(), result);
+        Date date = new Date();
+        context.logScoreEvents(allParticipants.values().stream()
+                .map(participant -> ScoreEvent.builder()
+                        .sourceType(ScoreEvent.SourceType.SYSTEM)
+                        .gameSessionId(null)
+                        .participantUUID(participant.getUniqueId().toString())
+                        .teamId(participant.getTeamId())
+                        .pointsBase(0)
+                        .description("joined event")
+                        .createdAt(date)
+                        .build())
+                .toList());
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
                 context.getEventService().updateActiveEvent(

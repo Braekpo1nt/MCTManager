@@ -421,6 +421,19 @@ class GameStateServiceTest {
     }
     
     @Test
+    void testRegisterNewPlayerWrongIgnCaseSensitive() throws SQLException {
+        String uuid = "uuid";
+        String wrongIGN = "player1";
+        assertThat(gameStateService.registerPlayer(uuid, wrongIGN)).isEqualTo(RegisterConflictType.NONE);
+        String correctIGN = "Player1";
+        assertThat(gameStateService.registerPlayer(uuid, correctIGN)).isEqualTo(RegisterConflictType.MIGRATE_IGN);
+        
+        AllPlayersEntity actual = database.getAllPlayersDao().queryForId(uuid);
+        assertThat(actual).isNotNull();
+        assertThat(actual.getIgn()).isEqualTo(correctIGN);
+    }
+    
+    @Test
     void testRegisterPlayerAutomaticMigration() throws SQLException {
         String wrongUUID = "wrong-uuid";
         String rightUUID = "right-uuid";

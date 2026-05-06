@@ -186,13 +186,13 @@ public class ScoreService {
         return gameSessionDao.queryForId(gameSessionId);
     }
     
-    public void undoGameSession(int sessionId) throws SQLException {
+    public void setGameSessionUndone(int sessionId, boolean undone) throws SQLException {
         UpdateBuilder<GameSession, Integer> updateBuilder = gameSessionDao.updateBuilder();
         updateBuilder
                 .where()
                 .idEq(sessionId);
         updateBuilder
-                .updateColumnValue("session_undone", true);
+                .updateColumnValue("session_undone", undone);
         updateBuilder.update();
     }
     
