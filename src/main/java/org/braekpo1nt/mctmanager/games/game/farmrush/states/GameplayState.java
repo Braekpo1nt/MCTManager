@@ -158,7 +158,13 @@ public abstract class GameplayState extends FarmRushStateBase {
                 }
             }
             if (totalScore > 0) {
-                context.awardPoints(team, totalScore, String.format("Sell %s items", totalAmountSold));
+                int personalTotal = (int) (totalScore * context.getConfig().getPersonalPercent());
+                int individualPoints = personalTotal / team.size();
+                int remainder = personalTotal - (team.size() * individualPoints);
+                int teamTotal = totalScore - personalTotal + remainder;
+                String description = String.format("Sell %s items", totalAmountSold);
+                context.awardParticipantPoints(team.getParticipants(), individualPoints, description);
+                context.awardPoints(team, teamTotal, description);
                 team.addSellPoints(totalScore);
             }
         }
