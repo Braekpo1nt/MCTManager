@@ -135,8 +135,8 @@ public class ActiveState extends FootRaceStateBase {
         
         // 1. Check for reaching the next checkpoint
         if (checkpoints.get(nextCheckpointIndex).contains(to)) {
-            onParticipantReachCheckpoint(participant, nextCheckpointIndex);
             resetWrongWayLogic(participant);
+            onParticipantReachCheckpoint(participant, nextCheckpointIndex);
             return;
         }
         
@@ -195,6 +195,7 @@ public class ActiveState extends FootRaceStateBase {
     }
     
     private void resetWrongWayLogic(FootRaceParticipant participant) {
+        participant.showTitle(UIUtils.EMPTY_TITLE);
         participant.setWrongWayCounterStart(-1);
         participant.setRightWayCounterStart(-1);
         participant.setShowingWrongWayAlert(false);
