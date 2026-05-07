@@ -163,7 +163,9 @@ public abstract class GameplayState extends FarmRushStateBase {
                 int remainder = personalTotal - (team.size() * individualPoints);
                 int teamTotal = totalScore - personalTotal + remainder;
                 String description = String.format("Sell %s items", totalAmountSold);
-                context.awardParticipantPoints(team.getParticipants(), individualPoints, description);
+                if (individualPoints > 0) {
+                    context.awardParticipantPoints(team.getParticipants(), individualPoints, description);
+                }
                 context.awardPoints(team, teamTotal, description);
                 team.addSellPoints(totalScore);
             }
