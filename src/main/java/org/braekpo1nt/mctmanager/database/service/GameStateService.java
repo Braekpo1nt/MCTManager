@@ -7,6 +7,7 @@ import com.j256.ormlite.stmt.ColumnArg;
 import com.j256.ormlite.stmt.DeleteBuilder;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.UpdateBuilder;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
 import org.braekpo1nt.mctmanager.database.entities.PlayerMetadata;
@@ -241,7 +242,17 @@ public class GameStateService {
         );
     }
     
+    /**
+     * @param ign the ign to check for
+     * @return the number of entries which the column ign equals the given ign
+     * @throws SQLException if there's a database error
+     */
+    public int getMatchesInAllPlayers(@NotNull String ign) throws SQLException {
+        return allPlayersDao.queryForEq("ign", ign).size();
+    }
+    
     private @NotNull RegisterConflictType _registerPlayer(@NotNull String uuid, @NotNull String ign) throws SQLException {
+        Main.logf("Registering player with uuid '%s' and ign '%s'", uuid, ign);
         // check if the user exists
         AllPlayersEntity existingPlayer = allPlayersDao.queryForId(uuid);
         if (existingPlayer != null) {
@@ -304,6 +315,7 @@ public class GameStateService {
      * @throws SQLException if there's a database error
      */
     private void _migrateIgn(String uuid, String ign) throws SQLException {
+        Main.logf("Migrating IGN for '%s' to '%s'", uuid, ign);
         // no conflicts, simply change the value
         // all_players
         allPlayersDao.executeRaw("""
@@ -366,10 +378,10 @@ public class GameStateService {
      * @throws SQLException if there's a database error
      */
     public void migrateUUID(String from, String to, String ign) throws SQLException {
-        _migrateUUID(from, to, ign);
-//        TransactionManager.callInTransaction(allPlayersDao.getConnectionSource(), () -> {
-//            return null;
-//        });
+        TransactionManager.callInTransaction(allPlayersDao.getConnectionSource(), () -> {
+            _migrateUUID(from, to, ign);
+            return null;
+        });
     }
     
     /**
@@ -379,6 +391,7 @@ public class GameStateService {
      * @throws SQLException if there's a database error
      */
     private void _migrateUUID(String from, String to, String ign) throws SQLException {
+        Main.logf("Migrating UUID from '%s' to '%s' for '%s'", from, to, ign);
         // create a new row with the correct uuid (or update the existing row to reflect the correct IGN)
         UpdateBuilder<AllPlayersEntity, String> updateBuilder = allPlayersDao.updateBuilder();
         updateBuilder.where()

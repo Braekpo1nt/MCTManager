@@ -115,6 +115,12 @@ public class PlayingGameState extends EventState {
     @Override
     public CommandResult undoGame(int gameSessionId) {
         // TODO: implement this operation differently
-        return CommandResult.failure(Component.text("This operation is not yet implemented. Speak to the developers for more details."));
+        return CommandResult.failure("Can't undo games while a game is running");
+    }
+    
+    @Override
+    public CommandResult redoGame(int gameSessionId) {
+        // TODO: implement this operation differently
+        return CommandResult.failure("Can't redo games while a game is running");
     }
 }

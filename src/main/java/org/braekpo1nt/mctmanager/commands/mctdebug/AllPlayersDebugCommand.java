@@ -36,6 +36,11 @@ public class AllPlayersDebugCommand implements BrigadierSubCommand {
     @Override
     public @NotNull Permissioned<CommandSourceStack> create() {
         return Permissioned.literal("all_players")
+                .then(Permissioned.literal("testEquals")
+                        .then(Permissioned.argument("ign", StringArgumentType.word())
+                                .executes(BrigadierAdapters.wraps(this::executeTestEquals))
+                        )
+                )
                 .then(Permissioned.literal("add")
                         .then(Permissioned.argument("uuid", plugin.getUUIDArgumentType())
                                 .then(Permissioned.argument("ign", StringArgumentType.word())
@@ -114,6 +119,23 @@ public class AllPlayersDebugCommand implements BrigadierSubCommand {
                         )
                 );
         
+    }
+    
+    private @NotNull CommandResult executeTestEquals(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        String ign = ctx.getArgument("ign", String.class);
+        try {
+            int n = gameStateService.getMatchesInAllPlayers(ign);
+            return CommandResult.success(Component.empty()
+                    .append(Component.text("There are "))
+                    .append(Component.text(n)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" entries in all_players with the ign "))
+                    .append(Component.text(ign)
+                            .decorate(TextDecoration.BOLD))
+            );
+        } catch (SQLException e) {
+            return CommandResult.sqlException("getting matches for the ign in all_players", e);
+        }
     }
     
     private @NotNull CommandResult executeAddUUIDAndIGN(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {

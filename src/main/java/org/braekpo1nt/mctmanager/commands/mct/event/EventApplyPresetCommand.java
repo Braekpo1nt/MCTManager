@@ -20,7 +20,6 @@ import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permiss
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.mct.team.preset.PresetCommand;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
-import org.braekpo1nt.mctmanager.database.entities.AllPlayersEntity;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.participants.EventParticipantEntity;
 import org.braekpo1nt.mctmanager.database.entities.teams.EventTeam;
@@ -30,6 +29,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.Mode;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.Preset;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -40,18 +40,35 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 
+/**
+ * @deprecated This results in UUID mismatches between the in-memory state and the database.
+ * Is not used right now.
+ */
+@Deprecated
 public class EventApplyPresetCommand implements BrigadierSubCommand {
     
-    private final Dynamic2CommandExceptionType ERROR_PLAYER_DOES_NOT_EXIST = new Dynamic2CommandExceptionType((ign, uuid) -> MessageComponentSerializer.message().serialize(Component.empty()
+    private final Dynamic2CommandExceptionType ERROR_ONLINE_UUID_MISMATCH = new Dynamic2CommandExceptionType((ign, uuid) -> MessageComponentSerializer.message().serialize(Component.empty()
             .append(Component.text("A player with the name "))
             .append(Component.text(ign.toString())
                     .decorate(TextDecoration.BOLD)
                     .clickEvent(ClickEvent.copyToClipboard(ign.toString())))
-            .append(Component.text(" and UUID "))
+            .append(Component.text(" is online and does not have the IGN "))
             .append(Component.text(uuid.toString())
                     .decorate(TextDecoration.BOLD)
                     .clickEvent(ClickEvent.copyToClipboard(uuid.toString())))
-            .append(Component.text(" could not be found in the all_players database. Have they logged in yet? Resolve players in the preset with the \"/mct team preset <preset.json> resolve\" command"))
+            .append(Component.text(", which means the preset UUID is wrong."))
+    ));
+    
+    private final Dynamic2CommandExceptionType ERROR_ONLINE_IGN_MISMATCH = new Dynamic2CommandExceptionType((ign, uuid) -> MessageComponentSerializer.message().serialize(Component.empty()
+            .append(Component.text("A player with the UUID "))
+            .append(Component.text(uuid.toString())
+                    .decorate(TextDecoration.BOLD)
+                    .clickEvent(ClickEvent.copyToClipboard(uuid.toString())))
+            .append(Component.text(" is online and does not have the IGN "))
+            .append(Component.text(ign.toString())
+                    .decorate(TextDecoration.BOLD)
+                    .clickEvent(ClickEvent.copyToClipboard(ign.toString())))
+            .append(Component.text(", which means the preset IGN is wrong."))
     ));
     
     
@@ -118,7 +135,7 @@ public class EventApplyPresetCommand implements BrigadierSubCommand {
      * @param preset the preset to apply
      * @return a result detailing the operation's success
      */
-    private @NotNull CommandResult applyPreset(@NotNull EventInfo eventInfo, @NotNull Preset preset) {
+    private @NotNull CommandResult applyPreset(@NotNull EventInfo eventInfo, @NotNull Preset preset) throws CommandSyntaxException {
         if (gameManager.getMode().equals(Mode.EVENT)) {
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Can't apply a preset to an event while in event mode. Switch to maintenance mode or practice mode, or use the "))
@@ -126,6 +143,15 @@ public class EventApplyPresetCommand implements BrigadierSubCommand {
                             .decorate(TextDecoration.UNDERLINED))
                     .append(Component.text(" command to apply the preset to the current context."))
             );
+        }
+        // check preset against all online players (as source of truth)
+        for (Preset.PresetTeam team : preset.getTeams()) {
+            for (Preset.PresetParticipant participant : team.getMembers()) {
+                String ign = participant.getIgn();
+                UUID uuid = participant.getUuid();
+                verifyOnlineIGN(uuid, ign);
+                verifyOnlineUUID(uuid, ign);
+            }
         }
         return CommandResult.async(plugin,
                 Component.empty()
@@ -174,20 +200,16 @@ public class EventApplyPresetCommand implements BrigadierSubCommand {
      * @param preset the preset to get the participants from
      * @return the preset participants as {@link EventParticipantEntity} objects
      */
-    private List<EventParticipantEntity> getParticipants(EventInfo eventInfo, Preset preset) throws CommandSyntaxException, SQLException {
+    private List<EventParticipantEntity> getParticipants(EventInfo eventInfo, Preset preset) throws SQLException {
         List<EventParticipantEntity> newParticipants = new ArrayList<>();
         for (Preset.PresetTeam team : preset.getTeams()) {
             for (Preset.PresetParticipant participant : team.getMembers()) {
                 String ign = participant.getIgn();
                 UUID uuid = participant.getUuid();
-                AllPlayersEntity player = gameStateService.getPlayer(uuid.toString());
-                if (player == null) {
-                    throw ERROR_PLAYER_DOES_NOT_EXIST.create(ign, uuid);
-                }
-                String playerUUID = player.getUuid();
+                gameStateService.registerPlayer(uuid.toString(), ign);
                 EventParticipantEntity newParticipant = EventParticipantEntity.builder()
                         .eventId(eventInfo.getEventId())
-                        .participantUUID(playerUUID)
+                        .participantUUID(uuid.toString())
                         .teamId(team.getTeamId())
                         .substitute(false)
                         .build();
@@ -195,5 +217,23 @@ public class EventApplyPresetCommand implements BrigadierSubCommand {
             }
         }
         return newParticipants;
+    }
+    
+    private void verifyOnlineIGN(UUID uuid, String ign) throws CommandSyntaxException {
+        Player player = plugin.getServer().getPlayer(uuid);
+        if (player != null) {
+            if (!player.getName().equals(ign)) {
+                throw ERROR_ONLINE_IGN_MISMATCH.create(ign, uuid);
+            }
+        }
+    }
+    
+    private void verifyOnlineUUID(UUID uuid, String ign) throws CommandSyntaxException {
+        Player player = plugin.getServer().getPlayer(ign);
+        if (player != null) {
+            if (!player.getUniqueId().equals(uuid)) {
+                throw ERROR_ONLINE_UUID_MISMATCH.create(ign, uuid);
+            }
+        }
     }
 }

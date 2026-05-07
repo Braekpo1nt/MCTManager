@@ -102,6 +102,13 @@ public class PracticeState extends GameManagerState {
         for (MCTParticipant participant : onlineParticipants.values()) {
             participant.getInventory().close();
         }
+        practiceManager.cleanup();
+        practiceManager.setTeamsAndParticipants(
+                teams.values(),
+                onlineParticipants.values().stream()
+                        .filter(participant -> !isParticipantInGame(participant.getUniqueId()))
+                        .toList()
+        );
     }
     
     /**

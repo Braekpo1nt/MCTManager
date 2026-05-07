@@ -71,6 +71,14 @@ public class FarmRushConfig implements Config {
      */
     private int maxScore;
     /**
+     * What percent of the sell score goes to participants as individual points
+     * (the other portion will go to the team as a whole)<br>
+     * So if set to 50% and there are 4 teams, and 400 points worth of items are sold,
+     * then 400*50%=200, each participant will get 200/4=50 points, and the team will
+     * get 200 points.
+     */
+    private double personalPercent;
+    /**
      * The sell cap, beyond which players are not allowed to gain points from selling items.
      * Note that if this is greater than 1 but less than {@link #maxScore}, then players
      * will be unable to reach the max score through selling items.

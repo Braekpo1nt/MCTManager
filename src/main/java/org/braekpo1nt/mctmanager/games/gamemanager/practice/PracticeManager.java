@@ -60,10 +60,15 @@ public class PracticeManager {
         this.config = config;
         this.activeInvites = new HashMap<>();
         this.teams = new HashMap<>(newTeams.size());
+        this.participants = new HashMap<>(newParticipants.size());
+        setTeamsAndParticipants(newTeams, newParticipants);
+    }
+    
+    public <P extends Participant, T extends Team> void setTeamsAndParticipants(Collection<T> newTeams, Collection<P> newParticipants) {
+        cleanup();
         for (Team team : newTeams) {
             teams.put(team.getTeamId(), team);
         }
-        participants = new HashMap<>(newParticipants.size());
         for (Participant newParticipant : newParticipants) {
             PracticeParticipant participant = new PracticeParticipant(newParticipant);
             participants.put(participant.getUniqueId(), participant);
