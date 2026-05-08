@@ -181,38 +181,20 @@ public class ActiveState extends FootRaceStateBase {
             if (participant.getRightWayCounterStart() == -1) {
                 participant.setRightWayCounterStart(now);
             }
-            participant.setWrongWayCounterStart(-1);
-            if (participant.isShowingWrongWayAlert() && now - participant.getRightWayCounterStart() > 500) {
+//            participant.setWrongWayCounterStart(-1);
+            if (participant.isShowingWrongWayAlert() && now - participant.getRightWayCounterStart() > 1000) {
                 participant.setShowingWrongWayAlert(false);
                 resetWrongWayLogic(participant);
+//                participant.showTitle(UIUtils.defaultTitle(Component.text("Right Way")
+//                        .color(NamedTextColor.GREEN)));
             }
-            participant.setShowingWrongWayAlert(false);
-            resetWrongWayLogic(participant);
-            participant.showTitle(UIUtils.defaultTitle(Component.text("Right Way")
-                    .color(NamedTextColor.GREEN)));
-        } else if (distToPrev < participant.getLastDistToPrev() - 0.0
-                && distToDoublePrev < participant.getLastDistToDoublePrev() - 0.0) {
-            // If moving closer to previous checkpoint AND double previous checkpoint
+        } else {
             if (participant.getWrongWayCounterStart() == -1) {
                 participant.setWrongWayCounterStart(now);
             }
-            participant.setRightWayCounterStart(-1);
-            // if the title is not showing and enough time has passed
             if (!participant.isShowingWrongWayAlert() && now - participant.getWrongWayCounterStart() > 2000) {
                 participant.setShowingWrongWayAlert(true);
             }
-            participant.setShowingWrongWayAlert(true);
-        } else if (distToDoublePrev < participant.getLastDistToDoublePrev() - 0.0) {
-            // If moving closer to double previous checkpoint
-            if (participant.getWrongWayCounterStart() == -1) {
-                participant.setWrongWayCounterStart(now);
-            }
-            participant.setRightWayCounterStart(-1);
-            // if the title is not showing and enough time has passed
-            if (!participant.isShowingWrongWayAlert() && now - participant.getWrongWayCounterStart() > 2000) {
-                participant.setShowingWrongWayAlert(true);
-            }
-            participant.setShowingWrongWayAlert(true);
         }
         
         participant.setLastDistToNext(distToNext);
