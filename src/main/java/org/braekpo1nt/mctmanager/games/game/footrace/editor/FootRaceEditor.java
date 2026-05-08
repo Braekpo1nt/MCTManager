@@ -399,6 +399,7 @@ public class FootRaceEditor extends EditorBase<FootRaceAdmin, FootRaceEditorStat
                     .interpolationDuration(1)
                     .teleportDuration(1)
                     .titleBillboard(Display.Billboard.CENTER)
+                    .title(Component.text(i))
                     .build());
         }
         results.getFirst().setTitle(Component.text("Start Line"));

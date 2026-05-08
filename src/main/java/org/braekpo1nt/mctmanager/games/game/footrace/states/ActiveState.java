@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.footrace.states;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceParticipant;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceTeam;
@@ -140,17 +141,18 @@ public class ActiveState extends FootRaceStateBase {
             return;
         }
         
-        // 2. Check for crossing any OTHER previous checkpoints
-        for (int i = 0; i < checkpoints.size(); i++) {
-            if (i == currentCheckpointIndex || i == nextCheckpointIndex) {
-                continue;
-            }
-            if (checkpoints.get(i).contains(to)) {
-                participant.setCurrentCheckpoint(i);
-                participant.setShowingWrongWayAlert(true);
-                showWrongWayTitle(participant);
-                return;
-            }
+        // 2. Check for crossing the previous checkpoint (current is physical previous)
+//        int previousCheckpoint = participant.getCurrentCheckpoint();
+        int previousCheckpoint = MathUtils.wrapIndex(
+                participant.getCurrentCheckpoint() - 1,
+                checkpoints.size()
+        );
+        if (checkpoints.get(previousCheckpoint).contains(to)) {
+            // they've reached the previous checkpoint
+            participant.setCurrentCheckpoint(previousCheckpoint);
+            participant.setShowingWrongWayAlert(true);
+            showWrongWayTitle(participant);
+            return;
         }
         
         // 3. Distance-based wrong way detection
@@ -159,35 +161,63 @@ public class ActiveState extends FootRaceStateBase {
     
     private void handleWrongWayDistanceLogic(FootRaceParticipant participant, Vector to) {
         long now = System.currentTimeMillis();
-        int currentCheckpointIndex = participant.getCurrentCheckpoint();
-        int nextCheckpointIndex = MathUtils.wrapIndex(currentCheckpointIndex + 1, config.getCheckpoints().size());
         List<BoundingBox> checkpoints = config.getCheckpoints();
+        int currentCheckpointIndex = participant.getCurrentCheckpoint();
+        int nextCheckpointIndex = MathUtils.wrapIndex(currentCheckpointIndex + 1, checkpoints.size());
+        int previousCheckpointIndex = MathUtils.wrapIndex(currentCheckpointIndex - 1, checkpoints.size());
         
         double distToNext = MathUtils.getMinimumDistance(checkpoints.get(nextCheckpointIndex), to);
         double distToPrev = MathUtils.getMinimumDistance(checkpoints.get(currentCheckpointIndex), to);
+        double distToDoublePrev = MathUtils.getMinimumDistance(checkpoints.get(previousCheckpointIndex), to);
         
-        // If moving closer to previous checkpoint
-        if (distToPrev < participant.getLastDistToPrev() - 0.01) {
-            if (participant.getWrongWayCounterStart() == -1) {
-                participant.setWrongWayCounterStart(now);
-            }
-            participant.setRightWayCounterStart(-1);
-            if (!participant.isShowingWrongWayAlert() && now - participant.getWrongWayCounterStart() > 2000) {
-                participant.setShowingWrongWayAlert(true);
-            }
-        } else if (distToNext < participant.getLastDistToNext() - 0.01) {
+        /*
+        Prioritize moving toward the correct checkpoint, otherwise "Wrong Way" shows when
+        heading in the correct direction. If you're moving closer to both the next checkpoint
+        and the previous checkpoint, then you are still making progress toward the next
+        checkpoint and are going the right direction.
+         */
+        if (distToNext < participant.getLastDistToNext() - 0.0) {
             // If moving closer to next checkpoint
             if (participant.getRightWayCounterStart() == -1) {
                 participant.setRightWayCounterStart(now);
             }
             participant.setWrongWayCounterStart(-1);
-            if (participant.isShowingWrongWayAlert() && now - participant.getRightWayCounterStart() > 1000) {
+            if (participant.isShowingWrongWayAlert() && now - participant.getRightWayCounterStart() > 500) {
                 participant.setShowingWrongWayAlert(false);
+                resetWrongWayLogic(participant);
             }
+            participant.setShowingWrongWayAlert(false);
+            resetWrongWayLogic(participant);
+            participant.showTitle(UIUtils.defaultTitle(Component.text("Right Way")
+                    .color(NamedTextColor.GREEN)));
+        } else if (distToPrev < participant.getLastDistToPrev() - 0.0
+                && distToDoublePrev < participant.getLastDistToDoublePrev() - 0.0) {
+            // If moving closer to previous checkpoint AND double previous checkpoint
+            if (participant.getWrongWayCounterStart() == -1) {
+                participant.setWrongWayCounterStart(now);
+            }
+            participant.setRightWayCounterStart(-1);
+            // if the title is not showing and enough time has passed
+            if (!participant.isShowingWrongWayAlert() && now - participant.getWrongWayCounterStart() > 2000) {
+                participant.setShowingWrongWayAlert(true);
+            }
+            participant.setShowingWrongWayAlert(true);
+        } else if (distToDoublePrev < participant.getLastDistToDoublePrev() - 0.0) {
+            // If moving closer to double previous checkpoint
+            if (participant.getWrongWayCounterStart() == -1) {
+                participant.setWrongWayCounterStart(now);
+            }
+            participant.setRightWayCounterStart(-1);
+            // if the title is not showing and enough time has passed
+            if (!participant.isShowingWrongWayAlert() && now - participant.getWrongWayCounterStart() > 2000) {
+                participant.setShowingWrongWayAlert(true);
+            }
+            participant.setShowingWrongWayAlert(true);
         }
         
         participant.setLastDistToNext(distToNext);
         participant.setLastDistToPrev(distToPrev);
+        participant.setLastDistToDoublePrev(distToDoublePrev);
         
         if (participant.isShowingWrongWayAlert()) {
             showWrongWayTitle(participant);

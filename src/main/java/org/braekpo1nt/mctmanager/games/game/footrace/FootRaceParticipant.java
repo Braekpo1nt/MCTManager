@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.ParticipantData;
 import org.braekpo1nt.mctmanager.participant.QuitDataBase;
@@ -46,6 +47,7 @@ public class FootRaceParticipant extends ParticipantData {
     private boolean showingWrongWayAlert = false;
     private double lastDistToNext = Double.MAX_VALUE;
     private double lastDistToPrev = Double.MAX_VALUE;
+    private double lastDistToDoublePrev = Double.MAX_VALUE;
     
     /**
      * Used for rejoining, saved when quitting,
@@ -71,6 +73,18 @@ public class FootRaceParticipant extends ParticipantData {
         this.finished = quitData.isFinished();
         this.placement = quitData.getPlacement();
         this.lastWrongWayTitleTime = quitData.getLastWrongWayTitleTime();
+    }
+    
+    public void setCurrentCheckpoint(int currentCheckpoint) {
+        Main.logf("Set %s checkpoint to %s", getName(), currentCheckpoint);
+        this.currentCheckpoint = currentCheckpoint;
+    }
+    
+    public void setShowingWrongWayAlert(boolean showingWrongWayAlert) {
+        if (this.showingWrongWayAlert != showingWrongWayAlert) {
+            Main.logf("Set %s showing wrong way alert to %s", getName(), showingWrongWayAlert);
+        }
+        this.showingWrongWayAlert = showingWrongWayAlert;
     }
     
     /**
