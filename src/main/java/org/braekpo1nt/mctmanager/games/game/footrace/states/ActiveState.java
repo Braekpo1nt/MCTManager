@@ -176,7 +176,7 @@ public class ActiveState extends FootRaceStateBase {
         and the previous checkpoint, then you are still making progress toward the next
         checkpoint and are going the right direction.
          */
-        if (distToNext < participant.getLastDistToNext() - 0.0) {
+        if (distToNext < participant.getLastDistToNext() - 0.01) {
             // If moving closer to next checkpoint
             if (participant.getRightWayCounterStart() == -1) {
                 participant.setRightWayCounterStart(now);
@@ -189,6 +189,7 @@ public class ActiveState extends FootRaceStateBase {
 //                        .color(NamedTextColor.GREEN)));
             }
         } else {
+            participant.setRightWayCounterStart(-1);
             if (participant.getWrongWayCounterStart() == -1) {
                 participant.setWrongWayCounterStart(now);
             }
