@@ -3,7 +3,6 @@ package org.braekpo1nt.mctmanager.games.game.footrace.states;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceParticipant;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceTeam;
@@ -164,29 +163,23 @@ public class ActiveState extends FootRaceStateBase {
         List<BoundingBox> checkpoints = config.getCheckpoints();
         int currentCheckpointIndex = participant.getCurrentCheckpoint();
         int nextCheckpointIndex = MathUtils.wrapIndex(currentCheckpointIndex + 1, checkpoints.size());
-        int previousCheckpointIndex = MathUtils.wrapIndex(currentCheckpointIndex - 1, checkpoints.size());
         
         double distToNext = MathUtils.getMinimumDistance(checkpoints.get(nextCheckpointIndex), to);
-        double distToPrev = MathUtils.getMinimumDistance(checkpoints.get(currentCheckpointIndex), to);
-        double distToDoublePrev = MathUtils.getMinimumDistance(checkpoints.get(previousCheckpointIndex), to);
         
         /*
         Prioritize moving toward the correct checkpoint, otherwise "Wrong Way" shows when
-        heading in the correct direction. If you're moving closer to both the next checkpoint
-        and the previous checkpoint, then you are still making progress toward the next
-        checkpoint and are going the right direction.
+        heading in the correct direction. If you're not moving closer to the next checkpoint, 
+        then you're going the wrong way. There's a buffer of x milliseconds to reduce flickering,
+        and then a message is displayed. 
          */
         if (distToNext < participant.getLastDistToNext() - 0.01) {
             // If moving closer to next checkpoint
             if (participant.getRightWayCounterStart() == -1) {
                 participant.setRightWayCounterStart(now);
             }
-//            participant.setWrongWayCounterStart(-1);
             if (participant.isShowingWrongWayAlert() && now - participant.getRightWayCounterStart() > 1000) {
                 participant.setShowingWrongWayAlert(false);
                 resetWrongWayLogic(participant);
-//                participant.showTitle(UIUtils.defaultTitle(Component.text("Right Way")
-//                        .color(NamedTextColor.GREEN)));
             }
         } else {
             participant.setRightWayCounterStart(-1);
@@ -199,8 +192,6 @@ public class ActiveState extends FootRaceStateBase {
         }
         
         participant.setLastDistToNext(distToNext);
-        participant.setLastDistToPrev(distToPrev);
-        participant.setLastDistToDoublePrev(distToDoublePrev);
         
         if (participant.isShowingWrongWayAlert()) {
             showWrongWayTitle(participant);
@@ -213,7 +204,6 @@ public class ActiveState extends FootRaceStateBase {
         participant.setRightWayCounterStart(-1);
         participant.setShowingWrongWayAlert(false);
         participant.setLastDistToNext(Double.MAX_VALUE);
-        participant.setLastDistToPrev(Double.MAX_VALUE);
     }
     
     private void showWrongWayTitle(FootRaceParticipant participant) {

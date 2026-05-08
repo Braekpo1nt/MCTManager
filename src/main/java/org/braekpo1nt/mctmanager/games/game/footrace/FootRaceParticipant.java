@@ -46,8 +46,6 @@ public class FootRaceParticipant extends ParticipantData {
     private long rightWayCounterStart = -1L;
     private boolean showingWrongWayAlert = false;
     private double lastDistToNext = Double.MAX_VALUE;
-    private double lastDistToPrev = Double.MAX_VALUE;
-    private double lastDistToDoublePrev = Double.MAX_VALUE;
     
     /**
      * Used for rejoining, saved when quitting,
