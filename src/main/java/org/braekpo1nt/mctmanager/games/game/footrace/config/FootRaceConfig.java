@@ -31,6 +31,7 @@ public class FootRaceConfig implements Config {
     private int descriptionDuration;
     private int gameOverDuration;
     private List<Material> preventInteractions;
+    private boolean debugView;
     /**
      * the checkpoints in the race. The last one is the finish line. Players must
      * pass through all of these in order to be considered a lap.

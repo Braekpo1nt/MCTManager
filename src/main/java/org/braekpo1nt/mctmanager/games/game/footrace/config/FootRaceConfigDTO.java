@@ -30,6 +30,7 @@ record FootRaceConfigDTO(
         @Nullable BoundingBox spectatorArea,
         BoundingBox glassBarrier,
         @Nullable List<Material> preventInteractions,
+        @Nullable Boolean debugView,
         Scores scores,
         Durations durations,
         Component description) implements Validatable {
@@ -105,6 +106,7 @@ record FootRaceConfigDTO(
                 .gameOverDuration(this.durations.gameOver)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .spectatorBoundary(this.spectatorArea == null ? null : new SpectatorBoundary(this.spectatorArea, this.startingLocation.toLocation(newWorld)))
+                .debugView(this.debugView != null ? this.debugView : false)
                 .checkpoints(new ArrayList<>(this.checkpoints))
                 .description(this.description)
                 .build();
@@ -120,6 +122,7 @@ record FootRaceConfigDTO(
                 config.getSpectatorBoundary() != null ? config.getSpectatorBoundary().getArea() : null,
                 config.getGlassBarrier(),
                 config.getPreventInteractions(),
+                config.isDebugView(),
                 new Scores(
                         config.getCompleteLapScore(),
                         config.getPlacementPoints(),

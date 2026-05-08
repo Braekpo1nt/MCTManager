@@ -6,11 +6,15 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.SpectatorBoundary;
+import org.braekpo1nt.mctmanager.display.Renderer;
+import org.braekpo1nt.mctmanager.display.boundingbox.BoundingBoxRendererImpl;
 import org.braekpo1nt.mctmanager.games.base.GameBase;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventHungerLoss;
 import org.braekpo1nt.mctmanager.games.base.listeners.PreventItemDrop;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
+import org.braekpo1nt.mctmanager.games.game.footrace.editor.CheckpointRenderer;
+import org.braekpo1nt.mctmanager.games.game.footrace.editor.FootRaceEditor;
 import org.braekpo1nt.mctmanager.games.game.footrace.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.footrace.states.FootRaceState;
 import org.braekpo1nt.mctmanager.games.game.footrace.states.InitialState;
@@ -36,6 +40,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,6 +65,13 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
     private long raceStartTime;
     private int statusEffectsTaskId;
     
+    private final List<CheckpointRenderer> checkpointRenderers;
+    private int checkpointType = 0;
+    private BoundingBoxRendererImpl.Type[] availableTypes = new BoundingBoxRendererImpl.Type[]{
+            BoundingBoxRendererImpl.Type.EDGE_BLOCK,
+            BoundingBoxRendererImpl.Type.EDGE
+    };
+    
     public FootRaceGame(
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
@@ -76,12 +88,26 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
         standings = new ArrayList<>(newParticipants.size());
         startStatusEffectsTask();
         closeGlassBarrier();
+        if (config.isDebugView()) {
+            this.checkpointRenderers = FootRaceEditor.createCheckpointRenderers(
+                    config,
+                    availableTypes[checkpointType],
+                    FootRaceEditor.CHECKPOINT_GLOW
+            );
+            this.checkpointRenderers.forEach(Renderer::show);
+        } else {
+            this.checkpointRenderers = Collections.emptyList();
+        }
         addListener(new PreventItemDrop<>(this, true));
         addListener(new PreventHungerLoss<>(this));
         start(newTeams, newParticipants, newAdmins);
         updateStandings();
         displayStandings();
         Main.logger().info("Starting Foot Race game");
+    }
+    
+    private int wrapCheckpointIndex(int index) {
+        return MathUtils.wrapIndex(index, config.getCheckpoints().size());
     }
     
     @Override
@@ -237,6 +263,7 @@ public class FootRaceGame extends GameBase<FootRaceParticipant, FootRaceTeam, Fo
     protected void cleanup() {
         plugin.getServer().getScheduler().cancelTask(statusEffectsTaskId);
         closeGlassBarrier();
+        checkpointRenderers.forEach(Renderer::hide);
         standings.clear();
     }
     
