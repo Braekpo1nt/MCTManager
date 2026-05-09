@@ -129,27 +129,44 @@ public class ActiveState extends FootRaceStateBase {
         }
         
         Vector to = event.getTo().toVector();
-        int currentCheckpointIndex = participant.getCurrentCheckpoint();
-        int nextCheckpointIndex = MathUtils.wrapIndex(currentCheckpointIndex + 1, config.getCheckpoints().size());
         List<BoundingBox> checkpoints = config.getCheckpoints();
         
-        // 1. Check for reaching the next checkpoint
+        // Check for reaching the next checkpoint
+        int currentCheckpointIndex = participant.getCurrentCheckpoint();
+        int nextCheckpointIndex = MathUtils.wrapIndex(currentCheckpointIndex + 1, config.getCheckpoints().size());
         if (checkpoints.get(nextCheckpointIndex).contains(to)) {
             resetWrongWayLogic(participant);
+            // set both the currentCheckpoint and wrongWayCheckpoint
             onParticipantReachCheckpoint(participant, nextCheckpointIndex);
             return;
         }
         
-        // 2. Check for crossing the previous checkpoint (current is physical previous)
-//        int previousCheckpoint = participant.getCurrentCheckpoint();
+        // We're moving and have not reached the next checkpoint
+        
+        // Have we reached the next wrongWayCheckpoint?
+        // (different from above because you can backtrack wrongWayCheckpoint)
+        int wrongWayCheckpointIndex = participant.getWrongWayCheckpoint();
+        int nextWrongWayCheckpointIndex = MathUtils.wrapIndex(wrongWayCheckpointIndex + 1, config.getCheckpoints().size());
+        if (
+            // no need to double-check if the above check failed, they're identical
+                nextWrongWayCheckpointIndex != nextCheckpointIndex
+                        && checkpoints.get(nextWrongWayCheckpointIndex).contains(to)
+        ) {
+            resetWrongWayLogic(participant);
+            participant.setWrongWayCheckpoint(nextWrongWayCheckpointIndex);
+            return;
+        }
+        
+        // Check for reaching the previous checkpoint
         int previousCheckpoint = MathUtils.wrapIndex(
-                participant.getCurrentCheckpoint() - 1,
+                participant.getWrongWayCheckpoint() - 1,
                 checkpoints.size()
         );
         if (checkpoints.get(previousCheckpoint).contains(to)) {
             // they've reached the previous checkpoint
-            participant.setCurrentCheckpoint(previousCheckpoint);
+            participant.setWrongWayCheckpoint(previousCheckpoint);
             participant.setShowingWrongWayAlert(true);
+            // TODO: replace this with a call to handleWrongWayDistanceLogic
             showWrongWayTitle(participant);
             return;
         }
@@ -161,7 +178,7 @@ public class ActiveState extends FootRaceStateBase {
     private void handleWrongWayDistanceLogic(FootRaceParticipant participant, Vector to) {
         long now = System.currentTimeMillis();
         List<BoundingBox> checkpoints = config.getCheckpoints();
-        int currentCheckpointIndex = participant.getCurrentCheckpoint();
+        int currentCheckpointIndex = participant.getWrongWayCheckpoint();
         int nextCheckpointIndex = MathUtils.wrapIndex(currentCheckpointIndex + 1, checkpoints.size());
         
         double distToNext = MathUtils.getMinimumDistance(checkpoints.get(nextCheckpointIndex), to);

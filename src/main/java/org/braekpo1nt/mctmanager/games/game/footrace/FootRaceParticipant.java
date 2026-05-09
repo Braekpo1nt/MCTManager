@@ -30,6 +30,13 @@ public class FootRaceParticipant extends ParticipantData {
      */
     private int currentCheckpoint;
     /**
+     * The participant's current checkpoint, but can
+     * backtrack to help track if they're going the wrong way
+     * without also allowing them to pass the finish line by
+     * going backwards then forwards.
+     */
+    private int wrongWayCheckpoint;
+    /**
      * Whether the participant finished the race or not
      */
     private boolean finished;
@@ -58,6 +65,7 @@ public class FootRaceParticipant extends ParticipantData {
         this.lapCooldown = System.currentTimeMillis();
         this.lap = 1;
         this.currentCheckpoint = currentCheckpoint;
+        this.wrongWayCheckpoint = currentCheckpoint;
         this.finished = false;
         this.placement = 0;
         this.lastWrongWayTitleTime = 0L;
@@ -68,21 +76,25 @@ public class FootRaceParticipant extends ParticipantData {
         this.lapCooldown = System.currentTimeMillis();
         this.lap = quitData.getLap();
         this.currentCheckpoint = quitData.getCurrentCheckpoint();
+        this.wrongWayCheckpoint = quitData.getCurrentCheckpoint();
         this.finished = quitData.isFinished();
         this.placement = quitData.getPlacement();
         this.lastWrongWayTitleTime = quitData.getLastWrongWayTitleTime();
     }
     
+    /**
+     * Also sets the {@link #wrongWayCheckpoint}
+     * @param currentCheckpoint the checkpoint index
+     */
     public void setCurrentCheckpoint(int currentCheckpoint) {
-        Main.logf("Set %s checkpoint to %s", getName(), currentCheckpoint);
+        Main.logf("%s reached %s", getName(), currentCheckpoint);
         this.currentCheckpoint = currentCheckpoint;
+        this.wrongWayCheckpoint = currentCheckpoint;
     }
     
-    public void setShowingWrongWayAlert(boolean showingWrongWayAlert) {
-        if (this.showingWrongWayAlert != showingWrongWayAlert) {
-            Main.logf("Set %s showing wrong way alert to %s", getName(), showingWrongWayAlert);
-        }
-        this.showingWrongWayAlert = showingWrongWayAlert;
+    public void setWrongWayCheckpoint(int wrongWayCheckpoint) {
+        Main.logf("%s reached wrong way %s", getName(), wrongWayCheckpoint);
+        this.wrongWayCheckpoint = wrongWayCheckpoint;
     }
     
     /**
@@ -114,6 +126,7 @@ public class FootRaceParticipant extends ParticipantData {
         private final long lastWrongWayTitleTime;
     }
     
+    // TODO: why isn't lastPosition stored? It should tp them back to where they were standing
     public QuitData getQuitData(@NotNull Location lastPosition) {
         return new QuitData(
                 getScore(),
