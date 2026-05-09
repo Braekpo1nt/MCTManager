@@ -66,6 +66,7 @@ record FootRaceConfigDTO(
         validator.notNull(this.scores().placementPoints(), "placementPoints");
         validator.validate(this.scores().placementPoints().length >= 1, "placementPoints must have at least one entry");
         validator.notNull(this.durations(), "durations");
+        this.durations().validate(validator.path("durations"));
         validator.validate(this.durations().getStartRace() >= 0, "durations.startRace (%s) can't be negative", this.durations().getStartRace());
         validator.validate(this.durations().getRaceEndCountdown() >= 0, "durations.raceEndCountdown (%s) can't be negative", this.durations().getRaceEndCountdown());
         validator.notNull(this.description(), "description");
@@ -77,7 +78,7 @@ record FootRaceConfigDTO(
     
     @Data
     @AllArgsConstructor
-    static class Durations {
+    static class Durations implements Validatable {
         private int startRace;
         private int raceEndCountdown;
         private int description;
@@ -85,7 +86,31 @@ record FootRaceConfigDTO(
          * The time (in seconds) that the game remains in the "Game Over" stage until
          * returning to hub. Defaults to 10.
          */
-        private int gameOver = 10;
+        private @Nullable Integer gameOver;
+        /**
+         * The duration in milliseconds that a player has to be going the
+         * right way for the wrong way indicator to disappear.
+         * Works best when set to lower than {@link #wrongWayMilliseconds}.
+         * Defaults to 1000
+         */
+        private @Nullable Integer rightWayMilliseconds;
+        /**
+         * The duration in milliseconds that a player has to be going the
+         * wrong way for the wrong way indicator to appear.
+         * Works best when set to higher than {@link #rightWayMilliseconds}.
+         * Defaults to 2000
+         */
+        private @Nullable Integer wrongWayMilliseconds;
+        
+        @Override
+        public void validate(@NotNull Validator validator) {
+            if (rightWayMilliseconds != null) {
+                validator.validate(rightWayMilliseconds >= 0, "rightWayMilliseconds can't be negative");
+            }
+            if (wrongWayMilliseconds != null) {
+                validator.validate(wrongWayMilliseconds >= 0, "wrongWayMilliseconds can't be negative");
+            }
+        }
     }
     
     FootRaceConfig toConfig() {
@@ -103,7 +128,9 @@ record FootRaceConfigDTO(
                 .startRaceDuration(this.durations.startRace)
                 .raceEndCountdownDuration(this.durations.raceEndCountdown)
                 .descriptionDuration(this.durations.description)
-                .gameOverDuration(this.durations.gameOver)
+                .gameOverDuration(this.durations.gameOver != null ? this.durations.gameOver : 10)
+                .rightWayMilliseconds(this.durations.rightWayMilliseconds != null ? this.durations.rightWayMilliseconds : 1000)
+                .wrongWayMilliseconds(this.durations.wrongWayMilliseconds != null ? this.durations.wrongWayMilliseconds : 2000)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .spectatorBoundary(this.spectatorArea == null ? null : new SpectatorBoundary(this.spectatorArea, this.startingLocation.toLocation(newWorld)))
                 .debugView(this.debugView != null ? this.debugView : false)
@@ -132,7 +159,9 @@ record FootRaceConfigDTO(
                         config.getStartRaceDuration(),
                         config.getRaceEndCountdownDuration(),
                         config.getDescriptionDuration(),
-                        config.getGameOverDuration()
+                        config.getGameOverDuration(),
+                        config.getRightWayMilliseconds(),
+                        config.getWrongWayMilliseconds()
                 ),
                 config.getDescription()
         );

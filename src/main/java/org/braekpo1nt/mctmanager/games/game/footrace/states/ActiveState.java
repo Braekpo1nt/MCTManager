@@ -194,7 +194,7 @@ public class ActiveState extends FootRaceStateBase {
             if (participant.getRightWayCounterStart() == -1) {
                 participant.setRightWayCounterStart(now);
             }
-            if (participant.isShowingWrongWayAlert() && now - participant.getRightWayCounterStart() > 1000) {
+            if (participant.isShowingWrongWayAlert() && now - participant.getRightWayCounterStart() > config.getWrongWayMilliseconds()) {
                 participant.setShowingWrongWayAlert(false);
                 resetWrongWayLogic(participant);
             }
@@ -203,7 +203,7 @@ public class ActiveState extends FootRaceStateBase {
             if (participant.getWrongWayCounterStart() == -1) {
                 participant.setWrongWayCounterStart(now);
             }
-            if (!participant.isShowingWrongWayAlert() && now - participant.getWrongWayCounterStart() > 2000) {
+            if (!participant.isShowingWrongWayAlert() && now - participant.getWrongWayCounterStart() > config.getWrongWayMilliseconds()) {
                 participant.setShowingWrongWayAlert(true);
             }
         }
