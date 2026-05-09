@@ -87,13 +87,13 @@ public class FootRaceParticipant extends ParticipantData {
      * @param currentCheckpoint the checkpoint index
      */
     public void setCurrentCheckpoint(int currentCheckpoint) {
-        Main.logf("%s reached %s", getName(), currentCheckpoint);
+//        Main.logf("%s reached %s", getName(), currentCheckpoint);
         this.currentCheckpoint = currentCheckpoint;
         this.wrongWayCheckpoint = currentCheckpoint;
     }
     
     public void setWrongWayCheckpoint(int wrongWayCheckpoint) {
-        Main.logf("%s reached wrong way %s", getName(), wrongWayCheckpoint);
+//        Main.logf("%s reached wrong way %s", getName(), wrongWayCheckpoint);
         this.wrongWayCheckpoint = wrongWayCheckpoint;
     }
     
