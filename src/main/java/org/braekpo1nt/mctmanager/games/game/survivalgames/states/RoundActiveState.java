@@ -384,10 +384,16 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
                 // killer.getKills() should return the new kill count, so it should never be 0. This is a precaution.
                 if (!allowRespawn() || killer.getKills() == 0) {
                     context.awardPoints(killer, config.getKillScore(), String.format("Killed \"%s\"", killed.getName()));
+                    }
                 } else {
                     int killPoints = config.getKillScore() / killer.getKills();
                     context.awardPoints(killer, killPoints, String.format("Killed \"%s\"", killed.getName()));
                 }
+            }
+            if (!allowRespawn()) {
+                List<SurvivalGamesParticipant> livingParticipants = getLivingParticipants();
+                for(SurvivalGamesParticipant livingParticipant : livingParticipants) {
+                    context.awardPoints(livingParticipant, config.getSurviveTeamScore()/8, String.format("Outlasted \"%s\"", killed.getName()));
             }
         }
     }
@@ -437,8 +443,9 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
                 .append(deadTeam.getFormattedDisplayName())
                 .append(Component.text(" has been eliminated.")));
         List<SurvivalGamesTeam> livingTeams = getLivingTeams();
-        for (SurvivalGamesTeam livingTeam : livingTeams) {
-            context.awardPoints(livingTeam, config.getSurviveTeamScore(), String.format("Team \"%s\" was eliminated", deadTeam.getTeamId()));
+        List<SurvivalGamesParticipant> livingParticipants = getLivingParticipants();
+        for (SurvivalGamesParticipant livingParticipant : livingParticipants) {
+            context.awardPoints(livingParticipant, config.getSurviveTeamScore(), String.format("Team \"%s\" was eliminated", deadTeam.getTeamId()));
         }
         if (!getRespawningTeams().isEmpty()) {
             // there is still battle to be had
@@ -471,6 +478,12 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
     private @NotNull List<SurvivalGamesTeam> getLivingTeams() {
         return context.getTeams().values().stream()
                 .filter(SurvivalGamesTeam::isAlive)
+                .toList();
+    }
+    
+    private @NotNull List<SurvivalGamesParticipant> getLivingParticipants() {
+        return context.getParticipants().values().stream()
+                .filter(SurvivalGamesParticipant::isAlive)
                 .toList();
     }
     
