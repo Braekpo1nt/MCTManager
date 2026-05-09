@@ -47,7 +47,7 @@ public class FootRaceEditor extends EditorBase<FootRaceAdmin, FootRaceEditorStat
     
     public static final Material CHECKPOINT_BLOCK = Material.RED_STAINED_GLASS;
     public static final Material DIRECTION_BLOCK = Material.PINK_STAINED_GLASS;
-    private final Color CHECKPOINT_GLOW = Color.RED;
+    public static final Color CHECKPOINT_GLOW = Color.RED;
     
     private final FootRaceConfigController configController;
     private @NotNull FootRaceConfig config;
@@ -91,7 +91,11 @@ public class FootRaceEditor extends EditorBase<FootRaceAdmin, FootRaceEditorStat
                 Component.text("Glass Barrier"),
                 r -> r.getBoundingBox().getCenter().toLocation(r.getLocation().getWorld())
         );
-        this.checkpointRenderers = createCheckpointRenderers(config);
+        this.checkpointRenderers = createCheckpointRenderers(
+                config,
+                availableTypes[checkpointType],
+                CHECKPOINT_GLOW
+        );
         startingLocationRenderer.show();
         glassBarrierRenderer.show();
         checkpointRenderers.forEach(Renderer::show);
@@ -141,7 +145,7 @@ public class FootRaceEditor extends EditorBase<FootRaceAdmin, FootRaceEditorStat
                     checkpointRenderers.add(newCheckpointIndex, newCheckpointRenderer);
                     
                     // change direction of previous checkpoint to point to newly added one
-                    int toAdjustIndex = wrapIndex(newCheckpointIndex - 1);
+                    int toAdjustIndex = wrapCheckpointIndex(newCheckpointIndex - 1);
                     CheckpointRenderer toAdjustRenderer = checkpointRenderers.get(toAdjustIndex);
                     toAdjustRenderer.pointTo(newCheckpoint);
                     
@@ -169,7 +173,7 @@ public class FootRaceEditor extends EditorBase<FootRaceAdmin, FootRaceEditorStat
                     
                     // adjust the direction of the checkpoint before the removed one
                     CheckpointRenderer toAdjustRenderer = checkpointRenderers.get(admin.getCurrentCheckpoint());
-                    BoundingBox toPointTo = config.getCheckpoints().get(wrapIndex(admin.getCurrentCheckpoint() + 1));
+                    BoundingBox toPointTo = config.getCheckpoints().get(wrapCheckpointIndex(admin.getCurrentCheckpoint() + 1));
                     toAdjustRenderer.pointTo(toPointTo);
                     
                     if (removedIndex == 0) {
@@ -262,11 +266,11 @@ public class FootRaceEditor extends EditorBase<FootRaceAdmin, FootRaceEditorStat
         
         BoundingBox newCheckpoint = EntityUtils.expandBoundingBox(checkpoint, direction, increment);
         config.getCheckpoints().set(admin.getCurrentCheckpoint(), newCheckpoint);
-        BoundingBox toPointTo = config.getCheckpoints().get(wrapIndex(admin.getCurrentCheckpoint() + 1));
+        BoundingBox toPointTo = config.getCheckpoints().get(wrapCheckpointIndex(admin.getCurrentCheckpoint() + 1));
         checkpointRenderers.get(admin.getCurrentCheckpoint()).setDetectionArea(newCheckpoint, toPointTo);
         
         // adjust the previous one's direction
-        CheckpointRenderer previous = checkpointRenderers.get(wrapIndex(admin.getCurrentCheckpoint() - 1));
+        CheckpointRenderer previous = checkpointRenderers.get(wrapCheckpointIndex(admin.getCurrentCheckpoint() - 1));
         previous.pointTo(newCheckpoint);
         
         return CommandResult.success(Component.text("Expand ")
@@ -350,7 +354,7 @@ public class FootRaceEditor extends EditorBase<FootRaceAdmin, FootRaceEditorStat
             Vector center = config.getCheckpoints().get(checkpointIndex).getCenter();
             admin.getPlayer().teleport(center.toLocation(config.getWorld()));
             BoundingBox nextCheckpoint = config.getCheckpoints()
-                    .get(wrapIndex(admin.getCurrentCheckpoint() + 1));
+                    .get(wrapCheckpointIndex(admin.getCurrentCheckpoint() + 1));
             admin.getPlayer().lookAt(
                     nextCheckpoint.getCenter().toLocation(config.getWorld()),
                     LookAnchor.EYES);
@@ -371,17 +375,17 @@ public class FootRaceEditor extends EditorBase<FootRaceAdmin, FootRaceEditorStat
                 .append(Component.text(config.getCheckpoints().size() - 1)));
     }
     
-    private int wrapIndex(int index) {
+    private int wrapCheckpointIndex(int index) {
         return MathUtils.wrapIndex(index, config.getCheckpoints().size());
     }
     
-    public List<CheckpointRenderer> createCheckpointRenderers(FootRaceConfig config) {
+    public static List<CheckpointRenderer> createCheckpointRenderers(FootRaceConfig config, BoundingBoxRendererImpl.Type type, Color checkpointGlow) {
         BlockData checkpointBlockData = CHECKPOINT_BLOCK.createBlockData();
         BlockData directionBlockData = DIRECTION_BLOCK.createBlockData();
         List<CheckpointRenderer> results = new ArrayList<>(config.getCheckpoints().size());
         for (int i = 0; i < config.getCheckpoints().size(); i++) {
             BoundingBox checkpoint = config.getCheckpoints().get(i);
-            int nextCheckpointIndex = wrapIndex(i + 1);
+            int nextCheckpointIndex = MathUtils.wrapIndex(i + 1, config.getCheckpoints().size());
             BoundingBox nextCheckpoint = config.getCheckpoints().get(nextCheckpointIndex);
             Vector direction = getDirection(checkpoint, nextCheckpoint);
             results.add(CheckpointRenderer.builder()
@@ -390,11 +394,12 @@ public class FootRaceEditor extends EditorBase<FootRaceAdmin, FootRaceEditorStat
                     .direction(direction)
                     .detectionAreaBlock(checkpointBlockData)
                     .directionBlock(directionBlockData)
-                    .type(availableTypes[checkpointType])
-                    .glowColor(CHECKPOINT_GLOW)
+                    .type(type)
+                    .glowColor(checkpointGlow)
                     .interpolationDuration(1)
                     .teleportDuration(1)
                     .titleBillboard(Display.Billboard.CENTER)
+                    .title(Component.text(i))
                     .build());
         }
         results.getFirst().setTitle(Component.text("Start Line"));
