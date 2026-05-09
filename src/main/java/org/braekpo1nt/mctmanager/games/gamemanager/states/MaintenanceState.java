@@ -5,7 +5,9 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
+import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.Mode;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfigController;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.event.ReadyUpState;
@@ -13,6 +15,7 @@ import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.SQLException;
 import java.util.logging.Level;
 
 public class MaintenanceState extends GameManagerState {
@@ -26,6 +29,14 @@ public class MaintenanceState extends GameManagerState {
     @Override
     public void enter() {
         setupSidebar();
+        contextReference.getGameStateStorageUtil().maintenanceMode();
+        CommandResult result = context.loadGameState();
+        CommandResult.showResult(contextReference.getPlugin().getServer().getConsoleSender(), result);
+    }
+    
+    @Override
+    public @NotNull String getSystemStateDescription() {
+        return "MAINTENANCE";
     }
     
     @Override
@@ -41,7 +52,7 @@ public class MaintenanceState extends GameManagerState {
         this.sidebar.updateTitle(Component.empty()
                 .append(Sidebar.DEFAULT_TITLE)
                 .append(Component.text(" - "))
-                .append(Component.text("Maintenance")));
+                .append(Mode.MAINTENANCE.getTitle()));
         sidebar.addLines(
                 new KeyLine("team0", Component.empty()),
                 new KeyLine("team1", Component.empty()),
@@ -60,21 +71,25 @@ public class MaintenanceState extends GameManagerState {
     }
     
     @Override
-    public CommandResult switchMode(@NotNull String mode) {
+    public CommandResult switchMode(@NotNull Mode mode) {
         switch (mode) {
-            case "maintenance" -> {
+            case MAINTENANCE -> {
                 return CommandResult.success(Component.text("Already in maintenance mode"));
             }
-            case "practice" -> {
+            case PRACTICE -> {
                 context.setState(new PracticeState(context, contextReference));
                 return CommandResult.success(Component.text("Switched to practice mode"));
             }
-            case "event" -> {
-                return startEvent(7, 0);
+            case EVENT -> {
+                // TODO: use the active event from SystemState
+                return CommandResult.success(Component.empty()
+                        .append(Component.text("At this time, you must switch to event mode using the \"/mct event start\" command"))
+                );
+//                return startEvent(EventInfo.getDebugEvent(), 7, 0);
             }
             default -> {
                 return CommandResult.failure(Component.empty()
-                        .append(Component.text(mode)
+                        .append(mode.getTitle()
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(" is not a valid mode")));
             }
@@ -82,15 +97,28 @@ public class MaintenanceState extends GameManagerState {
     }
     
     @Override
-    public @NotNull String getMode() {
-        return "maintenance";
+    protected @NotNull CommandResult rebuildFromScores() throws SQLException {
+        try {
+            context.getGameStateService().rebuildMaintenanceMode();
+            return CommandResult.success(Component.text("Rebuilt game state from maintenance mode"));
+        } catch (SQLException e) {
+            throw new SQLException("Unable to rebuild maintenance mode", e);
+        }
+    }
+    
+    // team/participants management start
+    // team/participants management stop
+    
+    @Override
+    public @NotNull Mode getMode() {
+        return Mode.MAINTENANCE;
     }
     
     @Override
-    public CommandResult startEvent(int maxGames, int currentGameNumber) {
+    public CommandResult startEvent(@NotNull EventInfo eventInfo, int maxGames, int currentGameNumber) {
         try {
             EventConfig eventConfig = new EventConfigController(plugin.getDataFolder()).getConfig();
-            context.setState(new ReadyUpState(context, contextReference, eventConfig, maxGames, currentGameNumber));
+            context.setState(new ReadyUpState(context, contextReference, eventInfo, eventConfig, maxGames, currentGameNumber));
             return CommandResult.success(Component.text("Switched to event mode"));
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, e.getMessage(), e);

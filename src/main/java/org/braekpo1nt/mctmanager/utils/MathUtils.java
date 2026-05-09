@@ -6,9 +6,7 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class MathUtils {
     
@@ -159,6 +157,19 @@ public class MathUtils {
         } else {
             return new Point2D(tx, maxZ);
         }
+    }
+    
+    /**
+     * @param n the number to generate numbers up to (must be at least 1 to get any entries)
+     * @return a list containing the numbers 1 through n inclusive as Strings, in increasing order. If n is less than 1,
+     * an empty list is produced.
+     */
+    public static List<String> generateNumberList(int n) {
+        List<String> numbers = new ArrayList<>();
+        for (int i = 1; i <= n; i++) {
+            numbers.add(Integer.toString(i));
+        }
+        return numbers;
     }
     
     public record Point2D(double x, double z) {

@@ -18,13 +18,9 @@ public interface MCTGame {
     
     void stop();
     
-    void onTeamJoin(Team team);
+    void onJoin(@NotNull Team team, @NotNull Participant participant);
     
-    void onParticipantJoin(Participant participant);
-    
-    void onParticipantQuit(UUID participantUUID);
-    
-    void onTeamQuit(@NotNull String teamId);
+    void onQuit(@NotNull String teamId, @NotNull UUID participantUUID);
     
     void onAdminJoin(Player admin);
     
@@ -33,6 +29,8 @@ public interface MCTGame {
     void setTitle(@NotNull Component title);
     
     boolean containsTeam(@NotNull String teamId);
+    
+    int getGameSessionId();
     
     /**
      * @param uuid the UUID of the participant to run {@code /top}

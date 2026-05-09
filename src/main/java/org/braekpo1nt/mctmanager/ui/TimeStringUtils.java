@@ -1,12 +1,26 @@
 package org.braekpo1nt.mctmanager.ui;
 
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.concurrent.CompletableFuture;
 
 public class TimeStringUtils {
+    
+    // TODO: move these to a different helper class
+    private static final String DATE_FORMAT = "yyyy-MM-dd";
+    private static final DateTimeFormatter DATE_FORMATTER =
+            DateTimeFormatter.ofPattern(DATE_FORMAT);
     
     private TimeStringUtils() {
         // do not instantiate
@@ -75,5 +89,32 @@ public class TimeStringUtils {
                 return NamedTextColor.WHITE;
             }
         }
+    }
+    
+    public static Date parseDate(String dateString) {
+        LocalDate localDate = LocalDate.parse(dateString, DATE_FORMATTER);
+        return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    }
+    
+    public static String toString(Date date) {
+        LocalDate localDate = date.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+        return DATE_FORMATTER.format(localDate);
+    }
+    
+    public static CompletableFuture<Suggestions> suggestDate(CommandContext<CommandSourceStack> ctx, SuggestionsBuilder builder) {
+        return CompletableFuture.supplyAsync(() -> {
+            String remaining = builder.getRemaining();
+            if (remaining.isBlank() || remaining.isEmpty()) {
+                builder.suggest(DATE_FORMAT);
+                return builder.build();
+            }
+            if (remaining.length() > DATE_FORMAT.length()) {
+                return builder.build();
+            }
+            builder.suggest(remaining + DATE_FORMAT.substring(remaining.length()));
+            return builder.build();
+        });
     }
 }

@@ -1,22 +1,23 @@
 package org.braekpo1nt.mctmanager.database.service;
 
 import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.misc.TransactionManager;
+import com.j256.ormlite.dao.GenericRawResults;
+import com.j256.ormlite.stmt.QueryBuilder;
+import com.j256.ormlite.stmt.UpdateBuilder;
+import com.j256.ormlite.stmt.Where;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.database.Database;
-import org.braekpo1nt.mctmanager.database.entities.FinalPersonalScore;
-import org.braekpo1nt.mctmanager.database.entities.FinalTeamScore;
 import org.braekpo1nt.mctmanager.database.entities.GameSession;
-import org.braekpo1nt.mctmanager.database.entities.InstantPersonalScore;
-import org.braekpo1nt.mctmanager.database.entities.InstantTeamScore;
-import org.braekpo1nt.mctmanager.database.entities.ParticipantCurrency;
+import org.braekpo1nt.mctmanager.database.entities.ScoreEventEntity;
+import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.gamemanager.Mode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -25,84 +26,41 @@ import java.util.logging.Level;
 @SuppressWarnings("UnusedReturnValue")
 public class ScoreService {
     private final @NotNull String mode;
-    private final @NotNull Dao<InstantPersonalScore, Integer> instantPersonalScoreDao;
-    private final @NotNull Dao<InstantTeamScore, Integer> instantTeamScoreDao;
     private final @NotNull Dao<GameSession, Integer> gameSessionDao;
-    private final @NotNull Dao<FinalPersonalScore, Integer> finalPersonalScoreDao;
-    private final @NotNull Dao<FinalTeamScore, Integer> finalTeamScoreDao;
-    private final @NotNull Dao<ParticipantCurrency, String> participantCurrencyDao;
+    private final @NotNull Dao<ScoreEventEntity, Integer> scoreEventsDao;
     
     public ScoreService(@NotNull String mode, @NotNull Database database) {
         this.mode = mode;
-        this.instantPersonalScoreDao = database.getInstantPersonalScoreDao();
-        this.instantTeamScoreDao = database.getInstantTeamScoreDao();
         this.gameSessionDao = database.getGameSessionDao();
-        this.finalPersonalScoreDao = database.getFinalPersonalScoreDao();
-        this.finalTeamScoreDao = database.getFinalTeamScoreDao();
-        this.participantCurrencyDao = database.getParticipantCurrencyDao();
-    }
-    
-    
-    /**
-     * Persist the given instantPersonalScore to the database
-     * @param instantPersonalScore the instantPersonalScore to persist
-     * @return the given InstantPersonalScore object with its assigned ID
-     */
-    public @Nullable InstantPersonalScore logInstantScore(@NotNull InstantPersonalScore instantPersonalScore) {
-        try {
-            instantPersonalScoreDao.create(instantPersonalScore);
-            return instantPersonalScore;
-        } catch (SQLException e) {
-            Main.logger().log(Level.SEVERE, String.format("Error creating AllScore %s", instantPersonalScore), e);
-            return null;
-        }
+        this.scoreEventsDao = database.getScoreEventsDao();
     }
     
     /**
-     * Persist the given InstantPersonalScores to the database
-     * @param instantPersonalScores the InstantPersonalScores to persist
-     * @return the given InstantPersonalScore objects with their assigned IDs
+     * Persist the given {@link ScoreEventEntity} to the database
+     * @param scoreEvent the {@link ScoreEventEntity} to persist
+     * @return the given {@link ScoreEventEntity} with its assigned ID, or null if something went wrong
      */
-    public @Nullable Collection<InstantPersonalScore> logInstantPersonalScores(@NotNull Collection<InstantPersonalScore> instantPersonalScores) {
+    public @Nullable ScoreEventEntity logScoreEvent(@NotNull ScoreEventEntity scoreEvent) {
         try {
-            instantPersonalScoreDao.create(instantPersonalScores);
-            return instantPersonalScores;
+            scoreEventsDao.create(scoreEvent);
+            return scoreEvent;
         } catch (SQLException e) {
-            Main.logger().log(Level.SEVERE, "Error logging InstantPersonalScores", e);
+            Main.logger().log(Level.SEVERE, String.format("Error persisting ScoreEvent to the database: %s", scoreEvent), e);
             return null;
         }
     }
     
-    public @Nullable InstantTeamScore logInstantScore(@NotNull InstantTeamScore instantTeamScore) {
+    public @Nullable Collection<ScoreEventEntity> logScoreEvents(@NotNull Collection<ScoreEventEntity> scoreEvents) {
         try {
-            instantTeamScoreDao.create(instantTeamScore);
-            return instantTeamScore;
+            scoreEventsDao.create(scoreEvents);
+            return scoreEvents;
         } catch (SQLException e) {
-            Main.logger().log(Level.SEVERE, "Error logging InstantPersonalScores", e);
+            Main.logger().log(Level.SEVERE, String.format("Error persisting %s ScoreEvents to the database", scoreEvents.size()), e);
             return null;
         }
     }
     
-    public @Nullable Collection<InstantTeamScore> logInstantTeamScores(@NotNull Collection<InstantTeamScore> instantTeamScores) {
-        try {
-            instantTeamScoreDao.create(instantTeamScores);
-            return instantTeamScores;
-        } catch (SQLException e) {
-            Main.logger().log(Level.SEVERE, "Error logging InstantPersonalScores", e);
-            return null;
-        }
-    }
-    
-    public @Nullable Collection<FinalPersonalScore> logFinalPersonalScores(@NotNull Collection<FinalPersonalScore> finalPersonalScores) throws SQLException {
-        finalPersonalScoreDao.create(finalPersonalScores);
-        return finalPersonalScores;
-    }
-    
-    public @Nullable Collection<FinalTeamScore> logFinalTeamScores(@NotNull Collection<FinalTeamScore> finalTeamScores) throws SQLException {
-        finalTeamScoreDao.create(finalTeamScores);
-        return finalTeamScores;
-    }
-    
+    // TODO: make these methods throw their exceptions for later handling by callers and double check use of return values
     public @Nullable GameSession createGameSession(@NotNull GameSession gameSession) {
         try {
             gameSessionDao.create(gameSession);
@@ -113,11 +71,129 @@ public class ScoreService {
         }
     }
     
-    public @NotNull GameSession setGameSessionEndDate(int id, @NotNull Date endTime) throws SQLException {
+    public void setGameSessionEndDate(int id, @NotNull Date endTime) throws SQLException {
         GameSession gameSession = gameSessionDao.queryForId(id);
+        if (gameSession == null) {
+            return;
+        }
         gameSession.setEndTime(endTime);
         gameSessionDao.update(gameSession);
-        return gameSession;
+    }
+    
+    public @NotNull List<Integer> getGameSessionIds(
+            @Nullable String eventId,
+            @NotNull GameType gameType,
+            @NotNull String configFile,
+            @NotNull Mode gameMode
+    ) throws SQLException {
+        QueryBuilder<GameSession, Integer> builder = gameSessionDao.queryBuilder();
+        Where<GameSession, Integer> where = builder.where();
+        
+        if (eventId == null) {
+            where.isNull("event_id");
+        } else {
+            where.eq("event_id", eventId);
+        }
+        
+        where.and()
+                .eq("game_type", gameType)
+                .and()
+                .eq("config_file", configFile)
+                .and()
+                .eq("mode", gameMode);
+        
+        // only populate the id column
+        builder.selectColumns("id");
+        
+        return builder.query().stream()
+                .map(GameSession::getId)
+                .toList();
+    }
+    
+    public @NotNull List<Integer> getEventGameSessionIds(
+            @NotNull String eventId,
+            @NotNull GameType gameType,
+            @NotNull String configFile
+    ) throws SQLException {
+        QueryBuilder<GameSession, Integer> builder = gameSessionDao.queryBuilder();
+        Where<GameSession, Integer> where = builder.where();
+        
+        where.eq("event_id", eventId)
+                .and()
+                .eq("game_type", gameType)
+                .and()
+                .eq("config_file", configFile)
+                .and()
+                .eq("mode", Mode.EVENT);
+        
+        // only populate the id column
+        builder.selectColumns("id");
+        
+        return builder.query().stream()
+                .map(GameSession::getId)
+                .toList();
+    }
+    
+    public @NotNull List<GameSession> getGameSessions(
+            @NotNull String eventId,
+            @NotNull GameType gameType,
+            @NotNull String configFile
+    ) throws SQLException {
+        QueryBuilder<GameSession, Integer> builder = gameSessionDao.queryBuilder();
+        Where<GameSession, Integer> where = builder.where();
+        
+        where.eq("event_id", eventId)
+                .and()
+                .eq("game_type", gameType)
+                .and()
+                .eq("config_file", configFile)
+                .and()
+                .eq("mode", Mode.EVENT);
+        
+        return builder.query();
+    }
+    
+    public @NotNull List<GameSession> getGameSessions(
+            @NotNull String eventId
+    ) throws SQLException {
+        QueryBuilder<GameSession, Integer> builder = gameSessionDao.queryBuilder();
+        Where<GameSession, Integer> where = builder.where();
+        
+        where.eq("event_id", eventId)
+                .and()
+                .eq("mode", Mode.EVENT);
+        
+        return builder.query();
+    }
+    
+    public @NotNull List<GameSession> getGameSessions(
+            @NotNull String eventId,
+            @NotNull GameType gameType
+    ) throws SQLException {
+        QueryBuilder<GameSession, Integer> builder = gameSessionDao.queryBuilder();
+        Where<GameSession, Integer> where = builder.where();
+        
+        where.eq("event_id", eventId)
+                .and()
+                .eq("game_type", gameType)
+                .and()
+                .eq("mode", Mode.EVENT);
+        
+        return builder.query();
+    }
+    
+    public @Nullable GameSession getGameSession(int gameSessionId) throws SQLException {
+        return gameSessionDao.queryForId(gameSessionId);
+    }
+    
+    public void setGameSessionUndone(int sessionId, boolean undone) throws SQLException {
+        UpdateBuilder<GameSession, Integer> updateBuilder = gameSessionDao.updateBuilder();
+        updateBuilder
+                .where()
+                .idEq(sessionId);
+        updateBuilder
+                .updateColumnValue("session_undone", undone);
+        updateBuilder.update();
     }
     
     /**
@@ -128,76 +204,93 @@ public class ScoreService {
         if (!mode.equals("test")) {
             return false;
         }
-        instantPersonalScoreDao.deleteBuilder().delete();
-        instantTeamScoreDao.deleteBuilder().delete();
         gameSessionDao.deleteBuilder().delete();
-        finalPersonalScoreDao.deleteBuilder().delete();
-        finalTeamScoreDao.deleteBuilder().delete();
-        participantCurrencyDao.deleteBuilder().delete();
+        scoreEventsDao.deleteBuilder().delete();
         return true;
     }
     
-    public @Nullable ParticipantCurrency createParticipantCurrencyIfNotExists(@NotNull ParticipantCurrency participantCurrency) {
-        try {
-            participantCurrencyDao.createIfNotExists(participantCurrency);
-            return participantCurrency;
-        } catch (SQLException e) {
-            Main.logger().log(Level.SEVERE, String.format("Error creating ParticipantCurrency %s", participantCurrency), e);
-            return null;
-        }
+    public record PointTotal(UUID participantUUID, String teamId, int totalPoints) {
+        
     }
     
     /**
-     * @param uuid the uuid of the {@link ParticipantCurrency} object to add the given amount to
-     * @param amount the amount to add to the {@link ParticipantCurrency#getCurrent()} and
-     * {@link ParticipantCurrency#getLifetime()} values
-     * @return The {@link ParticipantCurrency} object associated with the given uuid with the updated
-     * {@link ParticipantCurrency#getCurrent()} and {@link ParticipantCurrency#getLifetime()} values
-     * after the given amount has been added to them
-     * @throws SQLException if there is an issue communicating with the database, or if the given uuid doesn't exist in
-     * the database
+     * @param sessionId the id of the {@link GameSession} to get the total scores for.
+     * If there is no game session with the given id, an empty map is returned.
+     * @return a map from participant UUIDs to their total (un-multiplied) scores
+     * from the given session. If the session is undone (see {@link GameSession#isSessionUndone()})
+     * then no scores will be returned.
+     * @throws SQLException if there is a database error
      */
-    public @NotNull ParticipantCurrency addParticipantCurrency(@NotNull UUID uuid, int amount) throws SQLException {
-        return TransactionManager.callInTransaction(participantCurrencyDao.getConnectionSource(), () -> {
-            ParticipantCurrency currency = participantCurrencyDao.queryForId(uuid.toString());
-            if (currency == null) {
-                throw new SQLException(String.format("No entry found in ParticipantCurrency table for UUID %s", uuid));
-            }
-            currency.setCurrent(currency.getCurrent() + amount);
-            currency.setLifetime(currency.getLifetime() + amount);
-            participantCurrencyDao.update(currency);
-            return currency;
-        });
-    }
-    
-    /**
-     * @param amounts Each participant's uuid mapped to the amount to add to their
-     * {@link ParticipantCurrency#getCurrent()} and {@link ParticipantCurrency#getLifetime()} values
-     * @return A list of the {@link ParticipantCurrency} associated with the given uuids with the updated
-     * {@link ParticipantCurrency#getCurrent()} and {@link ParticipantCurrency#getLifetime()} values
-     * after the given amount has been added to them
-     * @throws SQLException if there is an issue communicating with the database, or if any of the given uuids don't
-     * exist in the database
-     */
-    public @NotNull List<ParticipantCurrency> addParticipantCurrencies(@NotNull Map<UUID, Integer> amounts) throws SQLException {
-        return TransactionManager.callInTransaction(participantCurrencyDao.getConnectionSource(), () -> {
-            List<ParticipantCurrency> updated = new ArrayList<>(amounts.size());
+    public @NotNull Map<UUID, PointTotal> getParticipantSessionTotals(int sessionId) throws SQLException {
+        
+        String sql = """
+                    SELECT
+                        se.participant_uuid,
+                        se.team_id,
+                        SUM(se.points_base) AS total
+                    FROM score_events se
+                    JOIN game_sessions gs
+                      ON gs.id = se.session_id
+                    WHERE se.session_id = ?
+                      AND se.participant_uuid IS NOT NULL
+                      AND gs.session_undone = FALSE
+                    GROUP BY se.participant_uuid
+                """;
+        
+        Map<UUID, PointTotal> result = new HashMap<>();
+        
+        try (GenericRawResults<String[]> raw =
+                     scoreEventsDao.queryRaw(sql, String.valueOf(sessionId))) {
             
-            for (Map.Entry<UUID, Integer> entry : amounts.entrySet()) {
-                UUID uuid = entry.getKey();
-                int amount = entry.getValue();
-                
-                ParticipantCurrency currency = participantCurrencyDao.queryForId(uuid.toString());
-                if (currency == null) {
-                    throw new SQLException(String.format("No entry found in ParticipantCurrency table  for UUID %s", uuid));
-                }
-                
-                currency.setCurrent(currency.getCurrent() + amount);
-                currency.setLifetime(currency.getLifetime() + amount);
-                participantCurrencyDao.update(currency);
-                updated.add(currency);
+            for (String[] row : raw.getResults()) {
+                UUID participantUuid = UUID.fromString(row[0]);
+                String teamId = row[1];
+                int total = row[2] == null ? 0 : (int) Double.parseDouble(row[2]);
+                result.put(participantUuid, new PointTotal(participantUuid, teamId, total));
             }
-            return updated;
-        });
+        } catch (Exception e) {
+            throw new SQLException("Exception thrown while getting participant session totals", e);
+        }
+        
+        return result;
+    }
+    
+    /**
+     * @param sessionId the id of the {@link GameSession} to get the total scores for.
+     * If there is no game session with the given id, an empty map is returned.
+     * @return a map from teamIds to their total (multiplied) scores
+     * from the given session. If the session is undone (see {@link GameSession#isSessionUndone()})
+     * then no scores will be returned.
+     * @throws SQLException if there is a database error
+     */
+    public @NotNull Map<String, Integer> getTeamSessionTotals(int sessionId) throws SQLException {
+        
+        String sql = """
+                    SELECT
+                        se.team_id,
+                        SUM(se.points_base * gs.multiplier) AS total
+                    FROM score_events se
+                    JOIN game_sessions gs
+                      ON gs.id = se.session_id
+                    WHERE se.session_id = ?
+                      AND gs.session_undone = FALSE
+                    GROUP BY se.team_id
+                """;
+        
+        Map<String, Integer> result = new HashMap<>();
+        
+        try (GenericRawResults<String[]> raw =
+                     scoreEventsDao.queryRaw(sql, String.valueOf(sessionId))) {
+            
+            for (String[] row : raw.getResults()) {
+                String teamId = row[0];
+                int total = row[1] == null ? 0 : (int) Double.parseDouble(row[1]);
+                result.put(teamId, total);
+            }
+        } catch (Exception e) {
+            throw new SQLException("Exception thrown while getting team session totals", e);
+        }
+        
+        return result;
     }
 }

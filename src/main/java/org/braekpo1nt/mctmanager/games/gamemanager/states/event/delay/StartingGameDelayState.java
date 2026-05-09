@@ -37,6 +37,11 @@ public class StartingGameDelayState extends DelayState {
     }
     
     @Override
+    public @NotNull String getSystemStateDescription() {
+        return "STARTING_GAME";
+    }
+    
+    @Override
     public void exit() {
         timer.cancel();
     }

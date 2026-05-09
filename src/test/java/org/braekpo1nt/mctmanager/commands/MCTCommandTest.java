@@ -1,21 +1,30 @@
 package org.braekpo1nt.mctmanager.commands;
 
-import org.braekpo1nt.mctmanager.Main;
+import com.mojang.brigadier.tree.LiteralCommandNode;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
 import org.braekpo1nt.mctmanager.MockMain;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
+import org.braekpo1nt.mctmanager.commands.mct.MCTCommand;
+import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.bukkit.command.PluginCommand;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.ServerMock;
 import org.mockbukkit.mockbukkit.exception.UnimplementedOperationException;
 
 import java.util.logging.Level;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+
 class MCTCommandTest {
     
     private ServerMock server;
-    private Main plugin;
+    private MockMain plugin;
+    private GameManager gameManager;
     private PluginCommand command;
     
     
@@ -30,7 +39,7 @@ class MCTCommandTest {
             ex.printStackTrace();
             System.exit(1);
         }
-        
+        gameManager = plugin.getGameManager();
         command = plugin.getCommand("mct");
     }
     
@@ -38,14 +47,11 @@ class MCTCommandTest {
     void tearDownServerAndPlugin() {
         MockBukkit.unmock();
     }
-
-//    @Test
-//    @DisplayName("Running /mct with no args returns usage message")
-//    void noArgsShowsUsage() {
-//        Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{}));
-//        Component message = plugin.getMctCommand().getUsage().toComponent();
-//        Assertions.assertNotNull(message);
-//        server.getConsoleSender().assertSaid(message);
-//    }
+    
+    @Test
+    void testBuild() {
+        LiteralCommandNode<CommandSourceStack> command = new MCTCommand(plugin, gameManager, mock(BlockEffectsListener.class)).build();
+        assertThat(command).isNotNull();
+    }
     
 }

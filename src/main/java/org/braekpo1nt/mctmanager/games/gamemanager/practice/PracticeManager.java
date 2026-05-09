@@ -16,6 +16,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
+import org.braekpo1nt.mctmanager.games.gamemanager.Mode;
 import org.braekpo1nt.mctmanager.hub.config.HubConfig;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
@@ -40,7 +41,7 @@ import java.util.UUID;
 
 public class PracticeManager {
     
-    private final Component NETHER_STAR_NAME = Component.text("Practice");
+    private final Component NETHER_STAR_NAME = Mode.PRACTICE.getTitle();
     
     private final GameManager gameManager;
     private final Map<UUID, PracticeParticipant> participants;
@@ -59,10 +60,15 @@ public class PracticeManager {
         this.config = config;
         this.activeInvites = new HashMap<>();
         this.teams = new HashMap<>(newTeams.size());
+        this.participants = new HashMap<>(newParticipants.size());
+        setTeamsAndParticipants(newTeams, newParticipants);
+    }
+    
+    public <P extends Participant, T extends Team> void setTeamsAndParticipants(Collection<T> newTeams, Collection<P> newParticipants) {
+        cleanup();
         for (Team team : newTeams) {
             teams.put(team.getTeamId(), team);
         }
-        participants = new HashMap<>(newParticipants.size());
         for (Participant newParticipant : newParticipants) {
             PracticeParticipant participant = new PracticeParticipant(newParticipant);
             participants.put(participant.getUniqueId(), participant);
@@ -592,7 +598,7 @@ public class PracticeManager {
         if (participant == null) {
             return CommandResult.failure("You are not a participant");
         }
-        return gameManager.joinParticipantToTeam(participant.getPlayer(), participant.getName(), teamId);
+        return gameManager.joinOnlineParticipant(participant.getPlayer(), teamId);
     }
     
     public void onParticipantInteract(PlayerInteractEvent event) {
