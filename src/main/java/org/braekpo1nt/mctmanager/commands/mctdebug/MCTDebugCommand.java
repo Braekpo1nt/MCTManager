@@ -36,6 +36,7 @@ import java.io.File;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 /**
@@ -78,23 +79,26 @@ public class MCTDebugCommand implements BrigadierCommand, Listener {
                 .then(Permissioned.literal("printGameState")
                         .executes(BrigadierAdapters.wraps(this::executePrintGameState))
                 )
-                .then(Commands.literal("rebuild")
-                        .then(Commands.literal("event")
+                .then(Permissioned.literal("rebuild")
+                        .then(Permissioned.literal("event")
                                 .then(Commands.argument("eventId", new EventInfoArgumentType(gameManager.getEventService()))
                                         .executes(BrigadierAdapters.wraps(this::executeRebuildEvent))
                                 )
                         )
-                        .then(Commands.literal("maintenance")
+                        .then(Permissioned.literal("maintenance")
                                 .executes(BrigadierAdapters.wraps(this::executeRebuildMaintenance))
                         )
-                        .then(Commands.literal("practice")
+                        .then(Permissioned.literal("practice")
                                 .executes(BrigadierAdapters.wraps(this::executeRebuildPractice))
                         )
                 )
-                .then(Commands.literal("totals")
-                        .then(Commands.argument("sessionId", IntegerArgumentType.integer())
+                .then(Permissioned.literal("totals")
+                        .then(Permissioned.argument("sessionId", IntegerArgumentType.integer())
                                 .executes(BrigadierAdapters.wraps(this::executeTotals))
                         )
+                )
+                .then(Permissioned.literal("asyncTest")
+                        .executes(BrigadierAdapters.wrapsFuture(this::executeAsyncTest))
                 )
                 .permissionRoot("mctmanager")
                 .build(plugin.getServer().getPluginManager());
@@ -173,6 +177,13 @@ public class MCTDebugCommand implements BrigadierCommand, Listener {
             throw new RuntimeException(e);
         }
         return CommandResult.success();
+    }
+    
+    private @NotNull CompletableFuture<CommandResult> executeAsyncTest(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        return CompletableFuture.supplyAsync(() -> {
+            ctx.getSource().getSender().sendMessage(Component.text("Async message"));
+            return CommandResult.success(Component.text("Sync message"));
+        });
     }
     
     private @NotNull CommandResult executeRebuildEvent(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {

@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 /**
@@ -97,7 +98,7 @@ public class EventApplyPresetCommand implements BrigadierSubCommand {
                                         .color(NamedTextColor.YELLOW)
                                 )))
                                 .then(Permissioned.literal("confirm")
-                                        .executes(BrigadierAdapters.wraps(this::executeApplyPreset))
+                                        .executes(BrigadierAdapters.wrapsFuture(this::executeApplyPreset))
                                 )
                         )
                 )
@@ -110,7 +111,7 @@ public class EventApplyPresetCommand implements BrigadierSubCommand {
      * @return the result
      * @throws CommandSyntaxException if there's a syntax error
      */
-    private @NotNull CommandResult executeApplyPreset(@NotNull CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+    private @NotNull CompletableFuture<CommandResult> executeApplyPreset(@NotNull CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         EventInfoResolver eventInfoResolver = ctx.getArgument("eventId", EventInfoResolver.class);
         FileResolver fileResolver = ctx.getArgument(PresetCommand.PRESET_FILE_ARG, FileResolver.class);
         try {
@@ -119,12 +120,13 @@ public class EventApplyPresetCommand implements BrigadierSubCommand {
             Preset preset = storageUtil.loadPreset(presetFile);
             return applyPreset(eventInfo, preset);
         } catch (SQLException e) {
-            return CommandResult.sqlException("applying preset", e);
+            return CommandResult.sqlException("applying preset", e).asFuture();
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, String.format("Could not load preset. %s", e.getMessage()), e);
             return CommandResult.failure(Component.empty()
-                    .append(Component.text("Error occurred loading preset. See console for details: "))
-                    .append(Component.text(e.getMessage())));
+                            .append(Component.text("Error occurred loading preset. See console for details: "))
+                            .append(Component.text(e.getMessage())))
+                    .asFuture();
         }
     }
     
@@ -135,14 +137,14 @@ public class EventApplyPresetCommand implements BrigadierSubCommand {
      * @param preset the preset to apply
      * @return a result detailing the operation's success
      */
-    private @NotNull CommandResult applyPreset(@NotNull EventInfo eventInfo, @NotNull Preset preset) throws CommandSyntaxException {
+    private @NotNull CompletableFuture<CommandResult> applyPreset(@NotNull EventInfo eventInfo, @NotNull Preset preset) throws CommandSyntaxException {
         if (gameManager.getMode().equals(Mode.EVENT)) {
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Can't apply a preset to an event while in event mode. Switch to maintenance mode or practice mode, or use the "))
                     .append(Component.text("/mct team preset apply...")
                             .decorate(TextDecoration.UNDERLINED))
                     .append(Component.text(" command to apply the preset to the current context."))
-            );
+            ).asFuture();
         }
         // check preset against all online players (as source of truth)
         for (Preset.PresetTeam team : preset.getTeams()) {
@@ -153,25 +155,16 @@ public class EventApplyPresetCommand implements BrigadierSubCommand {
                 verifyOnlineUUID(uuid, ign);
             }
         }
-        return CommandResult.async(plugin,
-                Component.empty()
-                        .append(Component.text("Applying preset "))
-                        .append(Component.text(preset.getFileName())
-                                .decorate(TextDecoration.BOLD))
-                        .append(Component.text(" to "))
-                        .append(Component.text(eventInfo.getEventId())
-                                .decorate(TextDecoration.BOLD))
-                ,
-                () -> {
-                    List<EventTeam> teams = getTeams(eventInfo, preset);
-                    try {
-                        List<EventParticipantEntity> participants = getParticipants(eventInfo, preset);
-                        eventService.replaceEventTeamsAndParticipants(teams, participants, eventInfo.getEventId());
-                    } catch (SQLException e) {
-                        return CommandResult.sqlException("apply preset to event", e);
-                    }
-                    return CommandResult.success(Component.text("Preset applied."));
-                });
+        return CompletableFuture.supplyAsync(() -> {
+            List<EventTeam> teams = getTeams(eventInfo, preset);
+            try {
+                List<EventParticipantEntity> participants = getParticipants(eventInfo, preset);
+                eventService.replaceEventTeamsAndParticipants(teams, participants, eventInfo.getEventId());
+            } catch (SQLException e) {
+                return CommandResult.sqlException("apply preset to event", e);
+            }
+            return CommandResult.success(Component.text("Preset applied."));
+        });
     }
     
     /**
