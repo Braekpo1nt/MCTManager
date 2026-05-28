@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public abstract class WandsDuoGameBase<P extends ParticipantData, T extends ScoredTeamData<P> & Affiliated, QP extends QuitDataBase, QT extends QuitDataBase, S extends GameStateBase<P, T>> extends DuoGameBase<P, T, QP, QT, S> {
     
@@ -77,15 +78,16 @@ public abstract class WandsDuoGameBase<P extends ParticipantData, T extends Scor
     }
     
     @Override
-    protected void start(@NotNull Collection<Team> newTeams, @NotNull Collection<Participant> newParticipants, @NotNull List<Player> newAdmins) {
-        super.start(newTeams, newParticipants, newAdmins);
+    protected CompletableFuture<Void> start(@NotNull Collection<Team> newTeams, @NotNull Collection<Participant> newParticipants, @NotNull List<Player> newAdmins) {
+        CompletableFuture<Void> startFuture = super.start(newTeams, newParticipants, newAdmins);
         startWandTick();
+        return startFuture;
     }
     
     @Override
-    public void stop() {
+    public CompletableFuture<Void> stop() {
         plugin.getServer().getScheduler().cancelTask(wandTickTaskId);
-        super.stop();
+        return super.stop();
     }
     
     /**

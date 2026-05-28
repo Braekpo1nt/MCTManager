@@ -45,19 +45,19 @@ public class JoinSubCommand implements BrigadierSubCommand {
     public @NotNull Permissioned<CommandSourceStack> create() {
         return Permissioned.literal("join")
                 .then(Permissioned.argument("teamId", new TeamArgumentType(gameManager))
-                        .executes(BrigadierAdapters.wraps(ctx -> {
+                        .executes(BrigadierAdapters.wrapsFuture(ctx -> {
                             Team team = ctx.getArgument("teamId", Team.class);
                             if (!(ctx.getSource().getSender() instanceof Player player)) {
-                                return CommandResult.failure("Must be a player to use the no-argument option");
+                                return CommandResult.failure("Must be a player to use the no-argument option").asFuture();
                             }
                             return gameManager.joinOnlineParticipant(player, team.getTeamId());
                         }))
                         .then(Permissioned.argument(IGN_ARGUMENT, StringArgumentType.word())
                                 .suggests((source, builder) -> suggestPlayerNames(builder))
-                                .executes(BrigadierAdapters.wraps(this::executeJoin))
+                                .executes(BrigadierAdapters.wrapsFuture(this::executeJoin))
                                 .then(Permissioned.argument("uuid", plugin.getUUIDArgumentType())
                                         .suggests((ctx, builder) -> JoinSubCommand.suggestPlayerUUID(ctx, builder, plugin))
-                                        .executes(BrigadierAdapters.wraps(this::executeJoinUUID))
+                                        .executes(BrigadierAdapters.wrapsFuture(this::executeJoinUUID))
                                 )
                         )
                 )
@@ -90,10 +90,10 @@ public class JoinSubCommand implements BrigadierSubCommand {
                     .filter(name -> name.toLowerCase().startsWith(builder.getRemainingLowerCase()))
                     .forEach(builder::suggest);
             return builder.build();
-        });
+        }, plugin.getDatabaseExecutor());
     }
     
-    private @NotNull CommandResult executeJoin(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+    private @NotNull CompletableFuture<CommandResult> executeJoin(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         Team team = ctx.getArgument("teamId", Team.class);
         String ign = ctx.getArgument(JoinSubCommand.IGN_ARGUMENT, String.class);
         // prioritize online players
@@ -107,12 +107,12 @@ public class JoinSubCommand implements BrigadierSubCommand {
                     .append(Component.text("Could not find uuid for player with ign "))
                     .append(Component.text(ign)
                             .decorate(TextDecoration.BOLD))
-            );
+            ).asFuture();
         }
         return gameManager.joinOfflineParticipant(uuid, ign, team.getTeamId());
     }
     
-    private @NotNull CommandResult executeJoinUUID(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+    private @NotNull CompletableFuture<CommandResult> executeJoinUUID(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         Team team = ctx.getArgument("teamId", Team.class);
         String ign = ctx.getArgument(JoinSubCommand.IGN_ARGUMENT, String.class);
         UUID uuid = ctx.getArgument("uuid", UUID.class);

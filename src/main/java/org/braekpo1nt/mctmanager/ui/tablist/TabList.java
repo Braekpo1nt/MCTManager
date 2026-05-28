@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 public class TabList implements UIManager {
@@ -238,76 +239,61 @@ public class TabList implements UIManager {
     }
     
     /**
-     * This is so that tests can skip the scheduling and just perform the action
-     * @param runnable the action to perform
-     */
-    protected void scheduleAsync(Runnable runnable) {
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, runnable);
-    }
-    
-    /**
-     * This is so that tests can skip the scheduling and just perform the action
-     * @param runnable the action to perform
-     */
-    protected void scheduleSync(Runnable runnable) {
-        plugin.getServer().getScheduler().runTask(plugin, runnable);
-    }
-    
-    /**
      * Updates all views to reflect the current state of the data.
+     * @return a future containing the TabList generation code in async, and the visual updates
+     * on the main thread
      */
-    private void update() {
+    private CompletableFuture<Void> update() {
         if (!plugin.isEnabled()) {
-            return;
+            return CompletableFuture.completedFuture(null);
         }
-        scheduleAsync(() -> {
-            Component tabList = toTabList();
-            scheduleSync(() -> {
-                for (PlayerData playerData : playerDatas.values()) {
-                    playerData.getPlayer().sendPlayerListHeader(tabList);
-                }
-            });
-        });
+        return CompletableFuture.supplyAsync(this::toTabList, plugin.getDatabaseExecutor())
+                .thenAcceptAsync(tabList -> {
+                    for (PlayerData playerData : playerDatas.values()) {
+                        playerData.getPlayer().sendPlayerListHeader(tabList);
+                    }
+                }, plugin.getMainThreadExecutor());
     }
     
     /**
      * Updates the view to reflect the current state of the data for just
      * the given playerData
      * @param playerData the playerData to update the view of
+     * @return a future containing the TabList generation code in async, and the visual updates
+     * on the main thread
      */
-    private void update(PlayerData playerData) {
+    private CompletableFuture<Void> update(PlayerData playerData) {
         if (!plugin.isEnabled()) {
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         if (playerData.isVisible()) {
-            scheduleAsync(() -> {
-                Component tabList = toTabList();
-                scheduleSync(() -> {
-                    playerData.getPlayer().sendPlayerListHeader(tabList);
-                });
-            });
+            return CompletableFuture.supplyAsync(this::toTabList, plugin.getDatabaseExecutor())
+                    .thenAcceptAsync(tabList -> {
+                        playerData.getPlayer().sendPlayerListHeader(tabList);
+                    }, plugin.getMainThreadExecutor());
         } else {
             playerData.getPlayer().sendPlayerListHeader(Component.empty());
+            return CompletableFuture.completedFuture(null);
         }
     }
     
-    public void addTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color) {
+    public CompletableFuture<Void> addTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color) {
         if (teamDatas.containsKey(teamId)) {
             logUIError("Team with teamId \"%s\" already exists in this TabList", teamId);
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         TeamData teamData = new TeamData(color, displayName, new ArrayList<>(), 0);
         teamDatas.put(teamId, teamData);
-        update();
+        return update();
     }
     
-    public void removeTeam(@NotNull String teamId) {
+    public CompletableFuture<Void> removeTeam(@NotNull String teamId) {
         TeamData teamData = teamDatas.remove(teamId);
         if (teamData == null) {
             logUIError("Team with teamId \"%s\" does not exist in this TabList", teamId);
-            return;
+            return CompletableFuture.completedFuture(null);
         }
-        update();
+        return update();
     }
     
     /**
@@ -315,13 +301,13 @@ public class TabList implements UIManager {
      * @param teamId the teamId to update the score of. Must be a valid teamId in this TabList.
      * @param score the score to update to.
      */
-    public void setScore(@NotNull String teamId, int score) {
+    public CompletableFuture<Void> setScore(@NotNull String teamId, int score) {
         TeamData teamData = getTeamData(teamId);
         if (teamData == null) {
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         teamData.setScore(score);
-        update();
+        return update();
     }
     
     /**
@@ -329,9 +315,9 @@ public class TabList implements UIManager {
      * @param teamIdsToScores the teamIds to update mapped to their new scores.
      * (Any teamIds not in this TabList will be ignored)
      */
-    public void setScores(@NotNull Map<@NotNull String, @NotNull Integer> teamIdsToScores) {
+    public CompletableFuture<Void> setScores(@NotNull Map<@NotNull String, @NotNull Integer> teamIdsToScores) {
         if (teamIdsToScores.isEmpty()) {
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         for (Map.Entry<String, Integer> entry : teamIdsToScores.entrySet()) {
             String teamId = entry.getKey();
@@ -341,7 +327,7 @@ public class TabList implements UIManager {
                 teamData.setScore(score);
             }
         }
-        update();
+        return update();
     }
     
     /**
@@ -350,9 +336,9 @@ public class TabList implements UIManager {
      * (Any teams not in this TabList will be ignored.)
      * @param <T> any implementation of {@link Team}
      */
-    public <T extends Team> void setScores(Collection<T> teams) {
+    public <T extends Team> CompletableFuture<Void> setScores(Collection<T> teams) {
         if (teams.isEmpty()) {
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         for (T team : teams) {
             TeamData teamData = getTeamData(team.getTeamId());
@@ -360,7 +346,7 @@ public class TabList implements UIManager {
                 teamData.setScore(team.getScore());
             }
         }
-        update();
+        return update();
     }
     
     /**
@@ -374,35 +360,35 @@ public class TabList implements UIManager {
      * @param teamId the team to join the participant to
      * @param grey whether the participant's name should be grey, or the color of their team
      */
-    public void joinParticipant(@NotNull ParticipantID pid, @NotNull String name, @NotNull String teamId, boolean grey) {
+    public CompletableFuture<Void> joinParticipant(@NotNull ParticipantID pid, @NotNull String name, @NotNull String teamId, boolean grey) {
         ParticipantData existingParticipantData = participantDatas.get(pid);
         if (existingParticipantData != null) {
             logUIError("Participant with UUID \"%s\" and name \"%s\" is already contained in this TabList, joined to team with id \"%s\"", pid, existingParticipantData.getName(), existingParticipantData.getTeamId());
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         TeamData teamData = getTeamData(teamId);
         if (teamData == null) {
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         ParticipantData newParticipantData = new ParticipantData(name, teamId, grey);
         teamData.getParticipants().add(newParticipantData);
         participantDatas.put(pid, newParticipantData);
-        update();
+        return update();
     }
     
     /**
      * Leave the given participant from their team
      * @param pid the UUID of the participant to leave. Must be a valid UUID contained in this TabList.
      */
-    public void leaveParticipant(@NotNull ParticipantID pid) {
+    public CompletableFuture<Void> leaveParticipant(@NotNull ParticipantID pid) {
         ParticipantData participantData = participantDatas.remove(pid);
         if (participantData == null) {
             logUIError("Participant with UUID \"%s\" is not contained in this TabList", pid);
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         TeamData teamData = teamDatas.get(participantData.getTeamId());
         teamData.getParticipants().remove(participantData);
-        update();
+        return update();
     }
     
     /**
@@ -419,13 +405,13 @@ public class TabList implements UIManager {
      * @param pid the participant id of the {@link ParticipantData}
      * @param grey true makes the player name grey, false makes it their team color
      */
-    public void setParticipantGrey(@NotNull ParticipantID pid, boolean grey) {
+    public CompletableFuture<Void> setParticipantGrey(@NotNull ParticipantID pid, boolean grey) {
         ParticipantData participantData = getParticipantData(pid);
         if (participantData == null) {
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         participantData.setGrey(grey);
-        update();
+        return update();
     }
     
     /**
@@ -435,14 +421,14 @@ public class TabList implements UIManager {
      * TabList they will be ignored.
      * @param grey true makes the player names grey, false makes them their team colors
      */
-    public void setParticipantGreys(@NotNull Collection<? extends Participant> participants, boolean grey) {
+    public CompletableFuture<Void> setParticipantGreys(@NotNull Collection<? extends Participant> participants, boolean grey) {
         for (Participant participant : participants) {
             ParticipantData participantData = getParticipantData(participant.getParticipantID());
             if (participantData != null) {
                 participantData.setGrey(grey);
             }
         }
-        update();
+        return update();
     }
     
     /**
@@ -467,14 +453,15 @@ public class TabList implements UIManager {
      * players who are viewers of this TabList.
      * @param uuid the UUID of the player to set the visibility of. Must be the UUID of a player viewing this TabList
      * @param visible true if the player should see the content, false otherwise.
+     * @return a future containing the visual update code
      */
-    public void setVisibility(@NotNull UUID uuid, boolean visible) {
+    public CompletableFuture<Void> setVisibility(@NotNull UUID uuid, boolean visible) {
         PlayerData playerData = getPlayerData(uuid);
         if (playerData == null) {
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         playerData.setVisible(visible);
-        update(playerData);
+        return update(playerData);
     }
     
     /**

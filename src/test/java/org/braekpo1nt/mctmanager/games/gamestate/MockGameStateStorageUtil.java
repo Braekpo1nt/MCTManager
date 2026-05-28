@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 public class MockGameStateStorageUtil extends GameStateStorageUtil {
     
     public MockGameStateStorageUtil(Logger logger, GameStateService gameStateService) {
-        super(logger, gameStateService, false);
+        super(logger, gameStateService, Runnable::run, false);
     }
 
 //    @Override

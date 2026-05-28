@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.games.gamestate.states;
 
-import org.braekpo1nt.mctmanager.database.entities.admin.ActiveAdminEntity;
 import org.braekpo1nt.mctmanager.database.entities.admin.EventAdminEntity;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.gamestate.MCTPlayerEntity;
@@ -8,7 +7,7 @@ import org.braekpo1nt.mctmanager.games.gamestate.MCTTeamEntity;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
-import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class SUEventState extends StorageUtilState {
@@ -34,20 +33,13 @@ public class SUEventState extends StorageUtilState {
      * {@inheritDoc}
      */
     @Override
-    public int addTeam(String teamId, String teamDisplayName, String color) throws SQLException {
-        MCTTeamEntity team = context.getGameState().addTeam(teamId, teamDisplayName, color);
+    protected int persistAddTeam(String teamId, MCTTeamEntity team) throws SQLException {
         context.getGameStateService().addTeam(team.toEvent(eventId));
-        int score = context.getGameStateService().rebuildEventTeam(teamId, eventId, context.isMariaDB());
-        team.setScore(score);
-        return score;
+        return context.getGameStateService().rebuildEventTeam(teamId, eventId, context.isMariaDB());
     }
     
     @Override
-    public void removeTeam(String teamId) throws SQLException {
-        List<UUID> uuidsOnTeam = context.getParticipantUUIDsOnTeam(teamId);
-        context.getGameState().removePlayers(uuidsOnTeam);
-        context.getGameState().removeTeam(teamId);
-        context.getGameStateService().deleteTeam(teamId);
+    protected void persistRemoveTeam(String teamId) throws SQLException {
         context.getGameStateService().deleteEventTeam(teamId, eventId);
     }
     
@@ -55,27 +47,18 @@ public class SUEventState extends StorageUtilState {
      * {@inheritDoc}
      */
     @Override
-    public int addNewPlayer(@NotNull UUID uuid, @NotNull String ign, @NotNull String teamId) throws SQLException {
-        MCTPlayerEntity player = context.getGameState().addPlayer(uuid, ign, teamId);
+    protected int persistJoinPlayer(@NotNull UUID uuid, MCTPlayerEntity player) throws SQLException {
         context.getGameStateService().addParticipant(player.toEvent(eventId), player.getName());
-        int score = context.getGameStateService().rebuildEventParticipant(uuid.toString(), eventId);
-        player.setScore(score);
-        return score;
+        return context.getGameStateService().rebuildEventParticipant(uuid.toString(), eventId);
     }
     
     @Override
-    public void leavePlayer(UUID playerUniqueId) throws SQLException {
-        context.getGameState().removePlayer(playerUniqueId);
-        String uuid = playerUniqueId.toString();
-        context.getGameStateService().deleteParticipant(uuid);
-        context.getGameStateService().deleteEventParticipant(uuid, eventId);
+    public void persistLeavePlayer(@NotNull String uuidString) throws SQLException {
+        context.getGameStateService().deleteEventParticipant(uuidString, eventId);
     }
     
     @Override
-    public void addAdmin(UUID adminUniqueId) throws SQLException {
-        context.getGameState().addAdmin(adminUniqueId);
-        String uuid = adminUniqueId.toString();
-        context.getGameStateService().addAdmin(new ActiveAdminEntity(uuid));
+    public void persistAddAdmin(@NotNull String uuid) throws SQLException {
         context.getGameStateService().addAdmin(EventAdminEntity.builder()
                 .eventId(eventId)
                 .uuid(uuid)
@@ -83,10 +66,12 @@ public class SUEventState extends StorageUtilState {
     }
     
     @Override
-    public void removeAdmin(UUID adminUniqueId) throws SQLException {
-        context.getGameState().removeAdmin(adminUniqueId);
-        String uuid = adminUniqueId.toString();
-        context.getGameStateService().deleteActiveAdmin(uuid);
+    public void persistRemoveAdmin(@NotNull String uuid) throws SQLException {
         context.getGameStateService().deleteEventAdmin(uuid, eventId);
+    }
+    
+    @Override
+    protected @NotNull Map<UUID, String> getAdminNames() throws SQLException {
+        return context.getGameStateService().getEventAdminNames(eventId);
     }
 }

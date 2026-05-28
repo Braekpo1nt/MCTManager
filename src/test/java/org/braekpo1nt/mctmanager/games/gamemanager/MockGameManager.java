@@ -16,16 +16,18 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 public class MockGameManager extends GameManager {
     public MockGameManager(
-            Main plugin,
-            Scoreboard mctScoreboard,
+            @NotNull Main plugin,
+            @NotNull Scoreboard mctScoreboard,
             @NotNull GameStateStorageUtil gameStateStorageUtil,
             @NotNull SidebarFactory sidebarFactory,
             @NotNull HubConfig config,
             @NotNull Database database,
-            @NotNull GameStateService gameStateService) {
+            @NotNull GameStateService gameStateService,
+            @NotNull Executor mainThreadExecutor) {
         super(
                 plugin,
                 mctScoreboard,
@@ -33,7 +35,8 @@ public class MockGameManager extends GameManager {
                 sidebarFactory,
                 config,
                 database,
-                gameStateService);
+                gameStateService,
+                mainThreadExecutor);
     }
     
     @Override

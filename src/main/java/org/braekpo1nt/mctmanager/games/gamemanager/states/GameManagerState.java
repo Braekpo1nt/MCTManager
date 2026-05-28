@@ -14,7 +14,6 @@ import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommand
 import org.braekpo1nt.mctmanager.config.Config;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.GameSession;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
@@ -106,6 +105,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -145,6 +147,7 @@ public abstract class GameManagerState {
      * an editor.
      */
     protected final Map<UUID, GameInstanceId> adminEditors;
+    private final @NotNull Executor mainThreadExecutor;
     @Setter
     protected @NotNull HubConfig config;
     
@@ -170,6 +173,7 @@ public abstract class GameManagerState {
         this.onlineParticipants = contextReference.getOnlineParticipants();
         this.onlineAdmins = contextReference.getOnlineAdmins();
         this.config = context.getConfig();
+        this.mainThreadExecutor = contextReference.getMainThreadExecutor();
     }
     
     /**
@@ -196,80 +200,58 @@ public abstract class GameManagerState {
         this.allParticipants.clear();
     }
     
-    protected abstract @NotNull CommandResult rebuildFromScores() throws SQLException;
+    protected abstract @NotNull CompletableFuture<CommandResult> rebuildFromScores();
     
-    public @NotNull CommandResult loadGameState() {
-        List<CommandResult> results = new ArrayList<>();
+    public @NotNull CompletableFuture<CommandResult> loadGameState() {
+        CompletableFuture<CommandResult> chain = CompletableFuture.completedFuture(CommandResult.success());
         if (!context.getActiveGameIds().isEmpty()) {
-            results.add(stopAllGames());
+            chain = chain.thenCompose(ignored -> stopAllGames());
         }
         if (editorIsRunning()) {
-            results.add(stopEditor());
+            chain = chain.thenApplyAsync(results -> results.and(stopEditor()), mainThreadExecutor);
         }
         // a given participant or admin may not be re-added when loading the new state
         for (Player admin : new ArrayList<>(onlineAdmins)) {
             onAdminQuit(admin);
         }
         for (MCTParticipant participant : new ArrayList<>(onlineParticipants.values())) {
-            onParticipantQuit(participant);
+            chain = chain.thenCompose(results -> {
+                CompletableFuture<Void> joinFuture = onParticipantQuit(participant);
+                return joinFuture.thenApply(v -> results);
+            });
         }
-        CommandResult rebuildResult = rebuildAndReload();
-        results.add(rebuildResult);
-        CommandResult loadResult = loadGameStateSync();
-        results.add(loadResult);
-        return new CompositeCommandResult(results);
+        return CommandResult.appendAsync(
+                        chain,
+                        this::rebuildAndReload,
+                        mainThreadExecutor
+                )
+                .thenComposeAsync(compositeResult -> {
+                    CompletableFuture<CommandResult> joinFuture = loadGameStateMainThread();
+                    return joinFuture.thenApply(loadResult -> loadResult.and(compositeResult));
+                }, mainThreadExecutor);
     }
-    // TODO: return this to async operation after 3/21/2026 event
-//        return CommandResult.async(
-//        plugin,
-//                Component.text("Loading game state..."),
-//        rebuildAndReload(),
-//                    this::loadGameStateSync
-//            );
-//    }
-//
-//    protected @NotNull CompletableFuture<CommandResult> rebuildAndReload() {
-//        return CompletableFuture.supplyAsync(() -> {
-//            List<CommandResult> results = new ArrayList<>();
-//            try {
-//                results.add(rebuildFromScores());
-//            } catch (SQLException e) {
-//                context.reportGameStateException("rebuilding from scores", e);
-//                results.add(CommandResult.sqlException("rebuilding from scores", e));
-//            }
-//            try {
-//                gameStateStorageUtil.loadGameState();
-//                results.add(CommandResult.success(Component.text("Loaded from database")));
-//            } catch (SQLException e) {
-//                context.reportGameStateException("loading game state", e);
-//                results.add(CommandResult.sqlException("loading game state", e));
-//            }
-//            return new CompositeCommandResult(results);
-//        });
-//    }
     
-    protected @NotNull CommandResult rebuildAndReload() {
-        List<CommandResult> results = new ArrayList<>();
-        try {
-            CommandResult rebuildResult = rebuildFromScores();
-            results.add(rebuildResult);
-        } catch (SQLException e) {
-            context.reportGameStateException("rebuilding from scores", e);
-            results.add(CommandResult.sqlException("rebuilding from scores", e));
-        }
-        try {
-            gameStateStorageUtil.loadGameState();
-            results.add(CommandResult.success(Component.text("Loaded from database")));
-        } catch (SQLException e) {
-            context.reportGameStateException("loading game state", e);
-            results.add(CommandResult.sqlException("loading game state", e));
-        }
-        return new CompositeCommandResult(results);
+    protected @NotNull CompletableFuture<CommandResult> rebuildAndReload() {
+        return rebuildFromScores()
+                .thenComposeAsync(result -> {
+                    try {
+                        CompletableFuture<Void> joinFuture = gameStateStorageUtil.loadGameState();
+                        return joinFuture.thenApply(v -> result);
+                    } catch (SQLException e) {
+                        throw new CompletionException(e);
+                    }
+                }, context.getMainThreadExecutor())
+                .exceptionally(e -> CommandResult.throwable("loading game state", e));
     }
     
     public abstract @NotNull String getSystemStateDescription();
     
-    protected @NotNull CommandResult loadGameStateSync() {
+    /**
+     * The part of the loading the game state action that should be run on the main
+     * Bukkit thread, because it impacts the world state
+     * @return a result detailing the success or failure of the action
+     */
+    protected @NotNull CompletableFuture<CommandResult> loadGameStateMainThread() {
         List<CommandResult> results = new ArrayList<>();
         try {
             this.config = new HubConfigController(plugin.getDataFolder()).getConfig();
@@ -324,6 +306,7 @@ public abstract class GameManagerState {
         // TabList stop
         
         // Log on all online admins and participants
+        CompletableFuture<Void> chain = CompletableFuture.completedFuture(null);
         for (Player player : onlinePlayers.values()) {
             if (context.isAdmin(player.getUniqueId())) {
                 onAdminJoin(player);
@@ -331,7 +314,7 @@ public abstract class GameManagerState {
             OfflineParticipant offlineParticipant = allParticipants.get(player.getUniqueId());
             if (offlineParticipant != null) {
                 MCTParticipant participant = new MCTParticipant(offlineParticipant, player);
-                onParticipantJoin(participant);
+                chain = chain.thenComposeAsync(v -> onParticipantJoin(participant), mainThreadExecutor);
             }
         }
         
@@ -341,7 +324,7 @@ public abstract class GameManagerState {
         // sidebar stop
         results.add(CommandResult.success(Component.text("Loaded gameState")));
         postLoadGameState();
-        return CompositeCommandResult.all(results);
+        return chain.thenApply(v -> CompositeCommandResult.all(results));
     }
     
     protected void postLoadGameState() {
@@ -369,9 +352,10 @@ public abstract class GameManagerState {
         updateSidebarTeamScores();
     }
     
-    public final void onParticipantJoin(@NotNull PlayerJoinEvent event, @NotNull MCTParticipant participant) {
-        onParticipantJoin(participant);
+    public final CompletableFuture<Void> onParticipantJoin(@NotNull PlayerJoinEvent event, @NotNull MCTParticipant participant) {
+        CompletableFuture<Void> joinFuture = onParticipantJoin(participant);
         event.joinMessage(GameManagerUtils.replaceWithDisplayName(participant, event.joinMessage()));
+        return joinFuture;
     }
     
     public void onNonJoin(@NotNull Player player) {
@@ -381,13 +365,15 @@ public abstract class GameManagerState {
     /**
      * Handles when a participant joins
      * @param participant the participant who joined
+     * @return any async work done
      */
-    public void onParticipantJoin(@NotNull MCTParticipant participant) {
+    public CompletableFuture<Void> onParticipantJoin(@NotNull MCTParticipant participant) {
         onlineParticipants.put(participant.getUniqueId(), participant);
         MCTTeam team = teams.get(participant.getTeamId());
         team.joinOnlineMember(participant);
         setupScoreboard(participant);
         participant.addPotionEffect(Main.NIGHT_VISION);
+        participant.setGameMode(GameMode.ADVENTURE);
         Component displayName = Component.text(participant.getName(), team.getColor());
         participant.getPlayer().displayName(displayName);
         participant.getPlayer().playerListName(displayName);
@@ -397,6 +383,7 @@ public abstract class GameManagerState {
         ColorMap.colorLeatherArmor(participant, team.getBukkitColor());
         leaderboardManagers.forEach(manager -> manager.showPlayer(participant.getPlayer()));
         updateScoreVisuals(Collections.singletonList(team), Collections.singletonList(participant));
+        return CompletableFuture.completedFuture(null);
     }
     
     /**
@@ -448,9 +435,9 @@ public abstract class GameManagerState {
         admin.playerListName(displayName);
     }
     
-    public final void onParticipantQuit(@NotNull PlayerQuitEvent event, @NotNull MCTParticipant participant) {
+    public final CompletableFuture<Void> onParticipantQuit(@NotNull PlayerQuitEvent event, @NotNull MCTParticipant participant) {
         event.quitMessage(GameManagerUtils.replaceWithDisplayName(participant, event.quitMessage()));
-        onParticipantQuit(participant);
+        return onParticipantQuit(participant);
     }
     
     /**
@@ -459,14 +446,17 @@ public abstract class GameManagerState {
      * (see {@link GameManager#onPlayerQuit(PlayerQuitEvent)}),
      * or when they are removed from the participants list
      * @param participant The participant who left the event
+     * @return database operations in alt thread future
      * @see GameManager#leaveParticipant(OfflineParticipant)
      */
-    public void onParticipantQuit(@NotNull MCTParticipant participant) {
+    public CompletableFuture<Void> onParticipantQuit(@NotNull MCTParticipant participant) {
         GameInstanceId id = participantGames.get(participant.getUniqueId());
+        CompletableFuture<Void> chain = CompletableFuture.completedFuture(null);
         if (id != null) {
             MCTGame activeGame = activeGames.get(id);
             if (activeGame != null) {
-                activeGame.onQuit(participant.getTeamId(), participant.getUniqueId());
+                CompletableFuture<Void> quitGameFuture = activeGame.onQuit(participant.getTeamId(), participant.getUniqueId());
+                chain = chain.thenCompose(v -> quitGameFuture);
             }
             onParticipantReturnToHub(participant);
             participant.teleport(config.getSpawn());
@@ -483,6 +473,7 @@ public abstract class GameManagerState {
         GameManagerUtils.deColorLeatherArmor(participant.getInventory());
         tabList.setParticipantGrey(participant.getParticipantID(), true);
         leaderboardManagers.forEach(manager -> manager.hidePlayer(participant.getPlayer()));
+        return chain;
     }
     // leave/join end
     
@@ -683,27 +674,30 @@ public abstract class GameManagerState {
     // ui end
     
     // game start
-    public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
+    public CompletableFuture<CommandResult> startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
         GameInstanceId gameInstanceId = new GameInstanceId(gameType, configFile);
         if (teamIds.isEmpty()) {
-            return CommandResult.failure("Can't start a game with no teams.");
+            return CommandResult.failure("Can't start a game with no teams.").asFuture();
         }
         
         if (activeGames.containsKey(gameInstanceId)) {
             return CommandResult.failure(Component.text("There is already a ")
                     .append(Component.text(gameInstanceId.getTitle()))
-                    .append(Component.text(" game running.")));
+                    .append(Component.text(" game running."))
+            ).asFuture();
         }
         
         if (context.editorIsRunning()) {
-            return CommandResult.failure(Component.text("There is an editor running. You must stop the editor before you start a game."));
+            return CommandResult.failure(Component.text("There is an editor running. You must stop the editor before you start a game.")
+            ).asFuture();
         }
         
         if (onlineParticipants.isEmpty()) {
             return CommandResult.failure(Component.text("There are no online participants. You can add participants using:\n")
                     .append(Component.text("/mct team join <team> <member>")
                             .decorate(TextDecoration.BOLD)
-                            .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
+                            .clickEvent(ClickEvent.suggestCommand("/mct team join ")))
+            ).asFuture();
         }
         
         Set<MCTTeam> gameTeams = new HashSet<>();
@@ -714,7 +708,8 @@ public abstract class GameManagerState {
                 return CommandResult.failure(Component.empty()
                         .append(Component.text(teamId)
                                 .decorate(TextDecoration.BOLD))
-                        .append(Component.text(" is not a valid teamId")));
+                        .append(Component.text(" is not a valid teamId"))
+                ).asFuture();
             }
             Collection<MCTParticipant> onlineMembers = team.getOnlineMembers();
             for (MCTParticipant onlineMember : onlineMembers) {
@@ -722,7 +717,8 @@ public abstract class GameManagerState {
                     return CommandResult.failure(Component.empty()
                             .append(Component.text("Can't start a game with "))
                             .append(team.getFormattedDisplayName())
-                            .append(Component.text(" because one of its members is already in a game")));
+                            .append(Component.text(" because one of its members is already in a game"))
+                    ).asFuture();
                 }
             }
             if (!onlineMembers.isEmpty()) {
@@ -732,29 +728,30 @@ public abstract class GameManagerState {
         }
         // make sure the player and team count requirements are met
         if (gameTeams.isEmpty()) {
-            return CommandResult.failure("None of the specified teams are online");
+            return CommandResult.failure("None of the specified teams are online").asFuture();
         }
         switch (gameType) {
             case CAPTURE_THE_FLAG -> {
                 if (gameTeams.size() < 2) {
-                    return CommandResult.failure(Component.text("Capture the Flag needs at least 2 teams online to play.").color(NamedTextColor.RED));
+                    return CommandResult.failure(Component.text("Capture the Flag needs at least 2 teams online to play.").color(NamedTextColor.RED)
+                    ).asFuture();
                 }
             }
             case FINAL, COLOSSAL_COMBAT -> {
                 if (gameTeams.size() < 2) {
                     return CommandResult.failure(Component.empty()
                             .append(Component.text(gameType.getTitle()))
-                            .append(Component.text(" needs at least 2 teams online to play")));
+                            .append(Component.text(" needs at least 2 teams online to play"))
+                    ).asFuture();
                 }
             }
         }
         
-        instantiateGame(
+        return instantiateGame(
                 gameInstanceId,
                 new HashSet<>(gameTeams),
                 new HashSet<>(gameParticipants),
                 gameAdmins);
-        return CommandResult.success();
     }
     
     public CommandResult startEditor(@NotNull GameType gameType, @NotNull String configFile) {
@@ -843,7 +840,7 @@ public abstract class GameManagerState {
         updateSidebarTeamScores();
     }
     
-    public CommandResult stopGame(@NotNull GameType gameType, @Nullable String configFile) {
+    public CompletableFuture<CommandResult> stopGame(@NotNull GameType gameType, @Nullable String configFile) {
         GameInstanceId id;
         if (configFile == null) {
             List<GameInstanceId> activeIds = new ArrayList<>();
@@ -858,12 +855,14 @@ public abstract class GameManagerState {
                 return CommandResult.failure(Component.empty()
                         .append(Component.text("No "))
                         .append(Component.text(gameType.getTitle()))
-                        .append(Component.text(" game is active right now")));
+                        .append(Component.text(" game is active right now"))
+                ).asFuture();
             } else {
                 return CommandResult.failure(Component.empty()
                         .append(Component.text("More than one instance of "))
                         .append(Component.text(gameType.getTitle()))
-                        .append(Component.text(" is active. Please specify a config.")));
+                        .append(Component.text(" is active. Please specify a config."))
+                ).asFuture();
             }
         } else {
             id = new GameInstanceId(gameType, configFile);
@@ -874,30 +873,32 @@ public abstract class GameManagerState {
                     .append(Component.text("No instances of game "))
                     .append(Component.text(id.getTitle())
                             .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" are active")));
+                    .append(Component.text(" are active"))
+            ).asFuture();
         }
-        game.stop();
-        return CommandResult.success(Component.empty()
-                .append(Component.text("Stopping "))
-                .append(Component.text(id.getTitle()))
-                .append(Component.text(" ("))
-                .append(Component.text(id.getConfigFile()))
-                .append(Component.text(")")));
+        return game.stop()
+                .thenApply(v -> CommandResult.success(Component.empty()
+                        .append(Component.text("Stopping "))
+                        .append(Component.text(id.getTitle()))
+                        .append(Component.text(" ("))
+                        .append(Component.text(id.getConfigFile()))
+                        .append(Component.text(")")))
+                );
     }
     
-    public CommandResult stopAllGames() {
+    public CompletableFuture<CommandResult> stopAllGames() {
         if (activeGames.isEmpty()) {
-            return CommandResult.success(Component.text("No games are running"));
+            return CommandResult.success(Component.text("No games are running")).asFuture();
         }
         List<MCTGame> gamesToCancel = new ArrayList<>(activeGames.values());
-        List<CommandResult> results = new ArrayList<>(activeGames.size());
+        CompletableFuture<CommandResult> chain = CompletableFuture.completedFuture(CommandResult.success());
         for (MCTGame game : gamesToCancel) {
-            game.stop();
-            results.add(CommandResult.success(Component.empty()
-                    .append(Component.text("Stopped "))
-                    .append(Component.text(game.getType().getTitle()))));
+            chain = game.stop()
+                    .thenApply(v -> CommandResult.success(Component.empty()
+                            .append(Component.text("Stopped "))
+                            .append(Component.text(game.getType().getTitle()))));
         }
-        return CompositeCommandResult.all(results);
+        return chain;
     }
     
     /**
@@ -909,11 +910,12 @@ public abstract class GameManagerState {
      * @param gameParticipants the UUIDs of the participants which are online and were in the finished
      * game. Must be UUIDs which are keys in {@link #onlineParticipants}.
      * @param gameAdmins the admins who were in the game
+     * @return a future containing database operations
      */
-    public void gameIsOver(int gameSessionId, @NotNull GameInstanceId id, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants, @NotNull List<Player> gameAdmins) {
+    public CompletableFuture<Void> gameIsOver(int gameSessionId, @NotNull GameInstanceId id, Map<String, Integer> teamScores, Map<UUID, Integer> participantScores, @NotNull Collection<UUID> gameParticipants, @NotNull List<Player> gameAdmins) {
         MCTGame game = activeGames.remove(id);
         if (game == null) {
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         for (UUID uuid : gameParticipants) {
             MCTParticipant participant = onlineParticipants.get(uuid);
@@ -927,16 +929,17 @@ public abstract class GameManagerState {
             admin.sendMessage(Component.text("Returning to hub"));
         }
         Date endDate = new Date();
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                context.getScoreService().setGameSessionEndDate(gameSessionId, endDate);
-            } catch (SQLException e) {
-                Main.logger().log(Level.SEVERE, "An error occurred saving end-game data to the database", e);
-                context.messageAdmins(Component.empty()
-                        .append(Component.text("An error occurred saving end-game data to te database. See console for details.")));
-            }
-        });
-        addScores(teamScores, participantScores, gameSessionId, id, endDate);
+        return addScores(teamScores, participantScores, id)
+                .thenComposeAsync(v -> CompletableFuture.runAsync(() -> {
+                    try {
+                        context.getScoreService().setGameSessionEndDate(gameSessionId, endDate);
+                    } catch (SQLException e) {
+                        Main.logger().log(Level.SEVERE, "An error occurred saving end-game data to the database", e);
+                        context.messageAdmins(Component.empty()
+                                .append(Component.text("An error occurred saving end-game data to te database. See console for details.")));
+                    }
+                }, plugin.getDatabaseExecutor()))
+                ;
     }
     
     /**
@@ -945,16 +948,13 @@ public abstract class GameManagerState {
      * If any invalid teamIds or UUIDs are used, there will be errors
      * @param newTeamScores map of teamId to score to add. Must be teamIds of real teams
      * @param newParticipantScores map of UUID to score to add. Must be UUIDs of real participants
-     * @param gameSessionId the id of the {@link GameSession} associated with this game
      * @param id the {@link GameInstanceId}
-     * @param endDate the date the game ended
+     * @return a future with the database operations
      */
-    protected void addScores(
+    protected CompletableFuture<Void> addScores(
             Map<String, Integer> newTeamScores,
             Map<UUID, Integer> newParticipantScores,
-            int gameSessionId,
-            @NotNull GameInstanceId id,
-            @NotNull Date endDate) {
+            @NotNull GameInstanceId id) {
         // some values might be from offline teams who have been removed, but still saved as QuitData
         Map<String, Integer> teamScores = newTeamScores.entrySet().stream()
                 .filter(e -> teams.containsKey(e.getKey()))
@@ -982,79 +982,21 @@ public abstract class GameManagerState {
         }
         if (plugin.isEnabled()) {
             gameStateStorageUtil.updateScores(teams.values(), allParticipants.values());
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-                try {
-                    gameStateStorageUtil.persistScores(teams.values(), allParticipants.values());
-                } catch (Exception e) {
-                    context.reportGameStateException("updating scores", e);
-                }
-            });
-        } else {
-            // TODO: this may not be needed if active_* tables are rebuilt on plugin start
+        }
+        // TODO: this may not be needed if active_* tables are rebuilt on plugin start
+        updateScoreVisuals(teams.values(), onlineParticipants.values());
+        displayStats(teamScores, participantScores, id);
+        return CompletableFuture.runAsync(() -> {
             try {
                 gameStateStorageUtil.persistScores(teams.values(), allParticipants.values());
             } catch (Exception e) {
                 context.reportGameStateException("updating scores", e);
             }
-        }
-        updateScoreVisuals(teams.values(), onlineParticipants.values());
-        displayStats(teamScores, participantScores, id);
+        }, plugin.getDatabaseExecutor());
     }
     
     @Nullable public String getEventId() {
         return null;
-    }
-    
-    /**
-     * @param gameInstanceId the {@link GameInstanceId} with the {@link GameType} to instantiate the {@link MCTGame} for
-     * and the config file to use
-     * @param newTeams the teams to send to the game
-     * @param newParticipants the participants to send to the game
-     * @param newAdmins the admins to send to the game
-     */
-    protected void instantiateGame(
-            @NotNull GameInstanceId gameInstanceId,
-            Collection<Team> newTeams,
-            Collection<Participant> newParticipants,
-            List<Player> newAdmins) throws ConfigIOException, ConfigInvalidException {
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                asyncInstantiateGame(gameInstanceId, newTeams, newParticipants, newAdmins);
-            } catch (Exception e) {
-                plugin.getServer().getScheduler().runTask(plugin, () -> {
-                    onGameInstantiationFailure(gameInstanceId, newParticipants, newAdmins, e);
-                });
-            }
-        });
-    }
-    
-    /**
-     * Called if there is an exception thrown while trying to instantiate a game.
-     * This is used because games are started asynchronously (so that reading config files
-     * and communicating with the database does not lag the server) and thus an error may occur
-     * asynchronously, and certain states need to react to this failure in different ways.
-     * @param gameInstanceId the {@link GameInstanceId} of the game which failed
-     * @param newParticipants the participants who were supposed to be sent to this game
-     * @param newAdmins the admins who were supposed to be sent to this game
-     * @param e the exception which occurred to cause the failure
-     */
-    protected void onGameInstantiationFailure(@NotNull GameInstanceId gameInstanceId, Collection<Participant> newParticipants, List<Player> newAdmins, Exception e) {
-        Main.logger().log(Level.SEVERE, String.format("Error starting game %s", gameInstanceId), e);
-        Audience.audience(
-                Audience.audience(newParticipants),
-                Audience.audience(context.getOnlineAdmins())
-        ).sendMessage(Component.text("Can't start ")
-                .append(Component.text(gameInstanceId.getGameType().name())
-                        .decorate(TextDecoration.BOLD))
-                .append(Component.text(" with config file "))
-                .append(Component.text(gameInstanceId.getConfigFile())
-                        .decorate(TextDecoration.BOLD))
-                .append(Component.text(". Error starting game. See console for details:\n"))
-                .append(Component.text(e.getMessage()))
-                .color(NamedTextColor.RED));
-        Audience.audience(newParticipants).sendMessage(Component.empty()
-                .append(Component.text("Contact the admins for support."))
-                .color(NamedTextColor.RED));
     }
     
     /**
@@ -1065,133 +1007,143 @@ public abstract class GameManagerState {
      * @param newTeams the teams to send to the game
      * @param newParticipants the participants to send to the game
      * @param newAdmins the admins to send to the game
-     * @throws SQLException if there is an error persisting the {@link GameSession}
+     * @return a future result of starting the game
      */
-    private void asyncInstantiateGame(
+    private CompletableFuture<CommandResult> instantiateGame(
             @NotNull GameInstanceId gameInstanceId,
             Collection<Team> newTeams,
             Collection<Participant> newParticipants,
-            List<Player> newAdmins) throws SQLException {
+            List<Player> newAdmins
+    ) {
         GameType gameType = gameInstanceId.getGameType();
         String configFile = gameInstanceId.getConfigFile();
+        
+        return CompletableFuture.supplyAsync(() -> {
+                    try {
+                        return context.getScoreService().createGameSession(GameSession.builder()
+                                .gameType(gameType)
+                                .eventId(getEventId())
+                                .configFile(configFile)
+                                .startTime(new Date())
+                                .mode(getMode())
+                                .multiplier(getMultiplier())
+                                .build());
+                    } catch (SQLException e) {
+                        throw new CompletionException("Unable to create gameSession in database", e);
+                    }
+                }, plugin.getDatabaseExecutor())
+                // intentionally not catching with exceptionally clause, so that callers can decide how to proceed
+                .thenApplyAsync(gameSession -> _instantiateGame(
+                        gameInstanceId,
+                        newTeams,
+                        newParticipants,
+                        newAdmins,
+                        gameSession,
+                        gameType,
+                        configFile
+                ), plugin.getMainThreadExecutor());
+    }
+    
+    private @NotNull CommandResult _instantiateGame(
+            @NotNull GameInstanceId gameInstanceId,
+            Collection<Team> newTeams,
+            Collection<Participant> newParticipants,
+            List<Player> newAdmins,
+            @NotNull GameSession gameSession,
+            GameType gameType,
+            String configFile
+    ) {
         Component title = createNewTitle(gameType.getTitle());
-        Config config;
-        switch (gameType) {
-            case SPLEEF -> {
-                config = new SpleefConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-            }
-            case CLOCKWORK -> {
-                config = new ClockworkConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-            }
-            case SURVIVAL_GAMES -> {
-                config = new SurvivalGamesConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-            }
-            case FARM_RUSH -> {
-                config = new FarmRushConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-            }
-            case FOOT_RACE -> {
-                config = new FootRaceConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-            }
-            case PARKOUR_PATHWAY -> {
-                config = new ParkourPathwayConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-            }
-            case CAPTURE_THE_FLAG -> {
-                config = new CaptureTheFlagConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-            }
-            case EXAMPLE -> {
-                config = new ExampleConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-            }
-            case FINAL -> {
-                config = new ColossalCombatConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-            }
-            case COLOSSAL_COMBAT -> {
-                config = new FinalConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
-            }
-            default -> {
-                throw new IllegalArgumentException(String.format("Unsupported GameType %s", gameType));
-            }
+        Config config = switch (gameType) {
+            case SPLEEF -> new SpleefConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
+            case CLOCKWORK ->
+                    new ClockworkConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
+            case SURVIVAL_GAMES ->
+                    new SurvivalGamesConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
+            case FARM_RUSH ->
+                    new FarmRushConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
+            case FOOT_RACE ->
+                    new FootRaceConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
+            case PARKOUR_PATHWAY ->
+                    new ParkourPathwayConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
+            case CAPTURE_THE_FLAG ->
+                    new CaptureTheFlagConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
+            case EXAMPLE -> new ExampleConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
+            case FINAL ->
+                    new ColossalCombatConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
+            case COLOSSAL_COMBAT ->
+                    new FinalConfigController(plugin.getDataFolder(), gameType.getId()).getConfig(configFile);
+        };
+        for (Participant participant : newParticipants) {
+            onParticipantJoinGame(gameInstanceId, participant);
         }
-        
-        // TODO: should this make the game instantiation fail, or just report the error?
-        GameSession gameSession = context.getScoreService().createGameSession(GameSession.builder()
-                .gameType(gameType)
-                .eventId(getEventId())
-                .configFile(configFile)
-                .startTime(new Date())
-                .mode(getMode())
-                .multiplier(getMultiplier())
-                .build());
-        if (gameSession == null) {
-            throw new SQLException("An error occurred creating a GameSession object in the database");
+        for (Player admin : newAdmins) {
+            onAdminJoinGame(gameInstanceId, admin);
         }
-        
-        plugin.getServer().getScheduler().runTask(plugin, () -> {
+        try {
+            MCTGame game = switch (gameType) {
+                case SPLEEF -> {
+                    yield new SpleefGame(plugin, context, title, gameSession.getId(), (SpleefConfig) config, configFile, newTeams, newParticipants, newAdmins);
+                }
+                case CLOCKWORK -> {
+                    yield new ClockworkGame(plugin, context, title, gameSession.getId(), (ClockworkConfig) config, configFile, newTeams, newParticipants, newAdmins);
+                }
+                case SURVIVAL_GAMES -> {
+                    yield new SurvivalGamesGame(plugin, context, title, gameSession.getId(), (SurvivalGamesConfig) config, configFile, newTeams, newParticipants, newAdmins);
+                }
+                case FARM_RUSH -> {
+                    yield new FarmRushGame(plugin, context, title, gameSession.getId(), (FarmRushConfig) config, configFile, newTeams, newParticipants, newAdmins);
+                }
+                case FOOT_RACE -> {
+                    yield new FootRaceGame(plugin, context, title, gameSession.getId(), (FootRaceConfig) config, configFile, newTeams, newParticipants, newAdmins);
+                }
+                case PARKOUR_PATHWAY -> {
+                    yield new ParkourPathwayGame(plugin, context, title, gameSession.getId(), (ParkourPathwayConfig) config, configFile, newTeams, newParticipants, newAdmins);
+                }
+                case CAPTURE_THE_FLAG -> {
+                    yield new CaptureTheFlagGame(plugin, context, title, gameSession.getId(), (CaptureTheFlagConfig) config, configFile, newTeams, newParticipants, newAdmins);
+                }
+                case EXAMPLE -> {
+                    yield new ExampleGame(plugin, context, title, gameSession.getId(), (ExampleConfig) config, configFile, newTeams, newParticipants, newAdmins);
+                }
+                case FINAL -> {
+                    List<Team> sortedTeams = newTeams.stream()
+                            .sorted((t1, t2) -> {
+                                int scoreComparison = t2.getScore() - t1.getScore();
+                                if (scoreComparison != 0) {
+                                    return scoreComparison;
+                                }
+                                return t1.getDisplayName().compareToIgnoreCase(t2.getDisplayName());
+                            }).toList();
+                    yield new ColossalCombatGame(plugin, context, title, gameSession.getId(), (ColossalCombatConfig) config, configFile, sortedTeams.getFirst(), sortedTeams.get(1), sortedTeams, newParticipants, newAdmins);
+                }
+                case COLOSSAL_COMBAT -> {
+                    List<Team> sortedTeams = newTeams.stream()
+                            .sorted((t1, t2) -> {
+                                int scoreComparison = t2.getScore() - t1.getScore();
+                                if (scoreComparison != 0) {
+                                    return scoreComparison;
+                                }
+                                return t1.getDisplayName().compareToIgnoreCase(t2.getDisplayName());
+                            }).toList();
+                    yield new FinalGame(plugin, context, title, gameSession.getId(), (FinalConfig) config, configFile, sortedTeams.getFirst(), sortedTeams.get(1), sortedTeams, newParticipants, newAdmins);
+                }
+            };
+            activeGames.put(gameInstanceId, game);
+        } catch (Exception e) {
             for (Participant participant : newParticipants) {
-                onParticipantJoinGame(gameInstanceId, participant);
+                onParticipantReturnToHub(participant);
             }
             for (Player admin : newAdmins) {
-                onAdminJoinGame(gameInstanceId, admin);
+                onAdminReturnToHub(admin);
             }
-            try {
-                MCTGame game = switch (gameType) {
-                    case SPLEEF -> {
-                        yield new SpleefGame(plugin, context, title, gameSession.getId(), (SpleefConfig) config, configFile, newTeams, newParticipants, newAdmins);
-                    }
-                    case CLOCKWORK -> {
-                        yield new ClockworkGame(plugin, context, title, gameSession.getId(), (ClockworkConfig) config, configFile, newTeams, newParticipants, newAdmins);
-                    }
-                    case SURVIVAL_GAMES -> {
-                        yield new SurvivalGamesGame(plugin, context, title, gameSession.getId(), (SurvivalGamesConfig) config, configFile, newTeams, newParticipants, newAdmins);
-                    }
-                    case FARM_RUSH -> {
-                        yield new FarmRushGame(plugin, context, title, gameSession.getId(), (FarmRushConfig) config, configFile, newTeams, newParticipants, newAdmins);
-                    }
-                    case FOOT_RACE -> {
-                        yield new FootRaceGame(plugin, context, title, gameSession.getId(), (FootRaceConfig) config, configFile, newTeams, newParticipants, newAdmins);
-                    }
-                    case PARKOUR_PATHWAY -> {
-                        yield new ParkourPathwayGame(plugin, context, title, gameSession.getId(), (ParkourPathwayConfig) config, configFile, newTeams, newParticipants, newAdmins);
-                    }
-                    case CAPTURE_THE_FLAG -> {
-                        yield new CaptureTheFlagGame(plugin, context, title, gameSession.getId(), (CaptureTheFlagConfig) config, configFile, newTeams, newParticipants, newAdmins);
-                    }
-                    case EXAMPLE -> {
-                        yield new ExampleGame(plugin, context, title, gameSession.getId(), (ExampleConfig) config, configFile, newTeams, newParticipants, newAdmins);
-                    }
-                    case FINAL -> {
-                        List<Team> sortedTeams = newTeams.stream()
-                                .sorted((t1, t2) -> {
-                                    int scoreComparison = t2.getScore() - t1.getScore();
-                                    if (scoreComparison != 0) {
-                                        return scoreComparison;
-                                    }
-                                    return t1.getDisplayName().compareToIgnoreCase(t2.getDisplayName());
-                                }).toList();
-                        yield new ColossalCombatGame(plugin, context, title, gameSession.getId(), (ColossalCombatConfig) config, configFile, sortedTeams.getFirst(), sortedTeams.get(1), sortedTeams, newParticipants, newAdmins);
-                    }
-                    case COLOSSAL_COMBAT -> {
-                        List<Team> sortedTeams = newTeams.stream()
-                                .sorted((t1, t2) -> {
-                                    int scoreComparison = t2.getScore() - t1.getScore();
-                                    if (scoreComparison != 0) {
-                                        return scoreComparison;
-                                    }
-                                    return t1.getDisplayName().compareToIgnoreCase(t2.getDisplayName());
-                                }).toList();
-                        yield new FinalGame(plugin, context, title, gameSession.getId(), (FinalConfig) config, configFile, sortedTeams.getFirst(), sortedTeams.get(1), sortedTeams, newParticipants, newAdmins);
-                    }
-                };
-                activeGames.put(gameInstanceId, game);
-            } catch (Exception e) {
-                for (Participant participant : newParticipants) {
-                    onParticipantReturnToHub(participant);
-                }
-                for (Player admin : newAdmins) {
-                    onAdminReturnToHub(admin);
-                }
-                onGameInstantiationFailure(gameInstanceId, newParticipants, newAdmins, e);
-            }
-        });
+            Main.logger().log(Level.SEVERE, "Could not start game", e);
+            return CommandResult.failure("Could not start game, see console for details");
+        }
+        return CommandResult.success(Component.empty()
+                .append(Component.text("Started "))
+                .append(title)
+        );
     }
     
     /**
@@ -1306,12 +1258,12 @@ public abstract class GameManagerState {
     // commands end
     
     // event start
-    public CommandResult startEvent(@NotNull EventInfo eventInfo, int maxGames, int currentGameNumber) {
-        return CommandResult.failure("Can't start an event in this mode");
+    public CompletableFuture<CommandResult> startEvent(@NotNull EventInfo eventInfo, int maxGames, int currentGameNumber) {
+        return CommandResult.failure("Can't start an event in this mode").asFuture();
     }
     
-    public @NotNull CommandResult stopEvent() {
-        return CommandResult.failure("No event is running");
+    public @NotNull CompletableFuture<CommandResult> stopEvent() {
+        return CommandResult.failure("No event is running").asFuture();
     }
     
     public boolean eventIsActive() {
@@ -1339,8 +1291,8 @@ public abstract class GameManagerState {
         return CommandResult.failure("Can't redo games in this state");
     }
     
-    public CommandResult modifyMaxGames(int newMaxGames) {
-        return CommandResult.failure("No event is active");
+    public CompletableFuture<CommandResult> modifyMaxGames(int newMaxGames) {
+        return CommandResult.failure("No event is active").asFuture();
     }
     
     public CommandResult whitelist(boolean whitelist) {
@@ -1373,42 +1325,43 @@ public abstract class GameManagerState {
      * @param colorString the string representing the color
      * @return the newly created team, or null if the given team already exists or could not be created
      */
-    public Team addTeam(String teamId, String teamDisplayName, String colorString) {
+    public CompletableFuture<Team> addTeam(String teamId, String teamDisplayName, String colorString) {
         if (teams.containsKey(teamId)) {
             return null;
         }
-        int score;
-        try {
-            score = gameStateStorageUtil.addTeam(teamId, teamDisplayName, colorString);
-        } catch (ConfigIOException | SQLException e) {
-            context.reportGameStateException("adding a team", e);
-            score = 0;
-        }
-        
-        NamedTextColor color = ColorMap.getNamedTextColor(colorString);
-        ColorAttributes colorAttributes = ColorMap.getColorAttributes(colorString);
-        MCTTeam team = new MCTTeam(teamId, teamDisplayName, color, colorAttributes, score);
-        teams.put(teamId, team);
-        
-        org.bukkit.scoreboard.Team newTeam = mctScoreboard.registerNewTeam(teamId);
-        newTeam.displayName(Component.text(teamDisplayName));
-        newTeam.color(color);
-        tabList.addTeam(teamId, teamDisplayName, color);
-        updateScoreVisuals(Collections.singletonList(team), Collections.emptyList());
-        return team;
+        return gameStateStorageUtil.addTeam(teamId, teamDisplayName, colorString)
+                .thenApplyAsync(score -> {
+                    NamedTextColor color = ColorMap.getNamedTextColor(colorString);
+                    ColorAttributes colorAttributes = ColorMap.getColorAttributes(colorString);
+                    MCTTeam team = new MCTTeam(teamId, teamDisplayName, color, colorAttributes, score);
+                    teams.put(teamId, team);
+                    
+                    org.bukkit.scoreboard.Team newTeam = mctScoreboard.registerNewTeam(teamId);
+                    newTeam.displayName(Component.text(teamDisplayName));
+                    newTeam.color(color);
+                    tabList.addTeam(teamId, teamDisplayName, color);
+                    updateScoreVisuals(Collections.singletonList(team), Collections.emptyList());
+                    return (Team) team;
+                }, mainThreadExecutor)
+                .exceptionally(e -> {
+                    // this is unlikely to happen as a result of a sql error, some other error happened
+                    Main.logger().log(Level.SEVERE, "unable to persist team", e);
+                    return null;
+                })
+                ;
     }
     
     /**
      * Remove the given team from the game
      * @param teamId teamId of the team to remove
      */
-    public CommandResult removeTeam(String teamId) {
+    public CompletableFuture<CommandResult> removeTeam(String teamId) {
         MCTTeam team = teams.get(teamId);
         if (team == null) {
-            Main.logf("team is null %s", teamId);
             return CommandResult.failure(Component.text("Team ")
                     .append(Component.text(teamId))
-                    .append(Component.text(" does not exist.")));
+                    .append(Component.text(" does not exist."))
+            ).asFuture();
         }
         
         // leave all participants on team start
@@ -1419,8 +1372,9 @@ public abstract class GameManagerState {
                 .map(onlineParticipants::get)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
+        CompletableFuture<Void> chain = CompletableFuture.completedFuture(null);
         for (MCTParticipant participant : onlineMembers) {
-            onParticipantQuit(participant);
+            chain = chain.thenCompose(ignore -> onParticipantQuit(participant));
             onlineParticipants.remove(participant.getUniqueId());
         }
         org.bukkit.scoreboard.Team scoreboardTeam = mctScoreboard.getTeam(teamId);
@@ -1457,17 +1411,19 @@ public abstract class GameManagerState {
             Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (removeTeam)", teamId));
         }
         
-        Main.logf("about to return remove team async result %s", teamId);
-        try {
-            Main.logf("actually removing the team in the async result %s", teamId);
-            gameStateStorageUtil.removeTeam(teamId);
-            results.add(CommandResult.success(Component.text("Removed team ")
-                    .append(team.getFormattedDisplayName())));
-        } catch (ConfigIOException | SQLException e) {
-            context.reportGameStateException("removing team", e);
-            results.add(CommandResult.failure(Component.text("error occurred removing team, see console for details.")));
-        }
-        return CompositeCommandResult.all(results);
+        return chain
+                .thenCompose(v -> gameStateStorageUtil.removeTeam(teamId))
+                .thenApply(v -> {
+                    results.add(CommandResult.success(Component.text("Removed team ")
+                            .append(team.getFormattedDisplayName())));
+                    return CompositeCommandResult.all(results);
+                })
+                .exceptionally(e -> {
+                    context.reportGameStateException("removing team", e);
+                    results.add(CommandResult.failure(Component.text("error occurred removing team, see console for details.")));
+                    return CompositeCommandResult.all(results);
+                });
+        
     }
     // team stop
     
@@ -1491,14 +1447,16 @@ public abstract class GameManagerState {
     }
     
     /**
-     * Joins the given player to the team with the given teamId. If the player was on a team already (not teamId) they
-     * will be removed from that team and added to the other team.
-     * Note, this will not join a player to a team if that player is an admin.
+     * Joins the given player to the given team.
+     * If the player was on a team already they
+     * will be removed from that team and added to the other team.<br>
+     * This is the variant for offline participants. If the player is online, you should use
+     * {@link #joinOnlineParticipantToTeam(Player, MCTTeam)}
      * @param uuid The uuid of the participant to join to the given team
      * @param ign The ign of the participant to join to the given team
      * @param team The internal teamId of the team to join the player to.
      */
-    public CommandResult joinParticipantToTeam(@NotNull UUID uuid, @NotNull String ign, @NotNull MCTTeam team) {
+    public CompletableFuture<CommandResult> joinOfflineParticipantToTeam(@NotNull UUID uuid, @NotNull String ign, @NotNull MCTTeam team) {
         // warn about UUID and IGN mismatches
         OfflineParticipant existingParticipant = allParticipants.get(uuid);
         if (existingParticipant != null) {
@@ -1507,7 +1465,7 @@ public abstract class GameManagerState {
                 // the name doesn't match
                 return CommandResult.failure(Component.empty()
                         .append(Component.text("The given IGN does not match the UUID in the game state"))
-                );
+                ).asFuture();
             }
             // the name matches, proceed
         } else {
@@ -1517,103 +1475,115 @@ public abstract class GameManagerState {
                 // someone with that IGN but a different UUID exists
                 return CommandResult.failure(Component.empty()
                         .append(Component.text("The given UUID does not match the IGN in the game state"))
-                );
+                ).asFuture();
             }
         }
+        return joinParticipantToTeam(
+                uuid,
+                ign,
+                team,
+                existingParticipant,
+                null
+        );
         
-        List<CommandResult> results = new ArrayList<>();
-        if (context.isAdmin(uuid)) {
-            results.add(removeAdmin(uuid, ign));
-        }
-        if (existingParticipant != null) {
-            if (existingParticipant.isOnTeam(team)) {
-                results.add(CommandResult.success(Component.empty()
-                        .append(existingParticipant.displayName())
-                        .append(Component.text(" is already a member of "))
-                        .append(team.getFormattedDisplayName())
-                        .append(Component.text(". Nothing happened."))));
-                return CompositeCommandResult.all(results);
-            }
-            results.add(leaveParticipant(existingParticipant));
-        }
-        
-        int score;
-        try {
-            score = gameStateStorageUtil.addNewPlayer(uuid, ign, team.getTeamId());
-        } catch (ConfigIOException | SQLException e) {
-            score = 0;
-            context.reportGameStateException("adding new player", e);
-            results.add(CommandResult.failure(Component.text("error occurred adding new player, see console for details.")));
-        }
-        Component participantDisplayName = GameManagerUtils.createDisplayName(ign, team.getColor());
-        OfflineParticipant offlineParticipant = new OfflineParticipant(uuid, ign, participantDisplayName, team.getTeamId(), score);
-        allParticipants.put(offlineParticipant.getUniqueId(), offlineParticipant);
-        team.joinMember(offlineParticipant.getUniqueId());
-        tabList.joinParticipant(
-                offlineParticipant.getParticipantID(),
-                offlineParticipant.getName(),
-                offlineParticipant.getTeamId(),
-                true);
-        
-        context.updateLeaderboards();
-        results.add(CommandResult.success(Component.text("Joined ")
-                .append(offlineParticipant.displayName())
-                .append(Component.text(" to "))
-                .append(team.getFormattedDisplayName())));
-        // TODO: this is identical to below method except for these lines
-        return CompositeCommandResult.all(results);
     }
     
-    public CommandResult joinParticipantToTeam(@NotNull Player player, @NotNull MCTTeam team) {
+    /**
+     * Joins the given player to the given team.
+     * If the player was on a team already they
+     * will be removed from that team and added to the other team.<br>
+     * This is the variant for online participants. If the player is not online, you should use
+     * {@link #joinOfflineParticipantToTeam(UUID, String, MCTTeam)}
+     * @param player The player to join to the given team
+     * @param team The internal teamId of the team to join the player to.
+     */
+    public CompletableFuture<CommandResult> joinOnlineParticipantToTeam(@NotNull Player player, @NotNull MCTTeam team) {
         UUID uuid = player.getUniqueId();
-        String ign = player.getName();
-        List<CommandResult> results = new ArrayList<>();
-        if (context.isAdmin(uuid)) {
-            results.add(removeAdmin(uuid, ign));
-        }
         OfflineParticipant existingParticipant = allParticipants.get(uuid);
+        return joinParticipantToTeam(
+                uuid,
+                player.getName(),
+                team,
+                existingParticipant,
+                player
+        );
+    }
+    
+    /**
+     * The shared functionality of both online and offline player join to team versions<br>
+     * {@link #joinOfflineParticipantToTeam(UUID, String, MCTTeam)}<br>
+     * {@link #joinOnlineParticipantToTeam(Player, MCTTeam)}<br>
+     * Joins the given player to the given team
+     * @param uuid the uuid of the player
+     * @param ign the ign of the player
+     * @param team the team to join them to
+     * @param existingParticipant the existing participant, if one exists
+     * @param player the player to join, if they are online
+     * @return a future containing the join operation and database operations with appropriate threads
+     */
+    protected CompletableFuture<CommandResult> joinParticipantToTeam(
+            @NotNull UUID uuid,
+            @NotNull String ign,
+            @NotNull MCTTeam team,
+            @Nullable OfflineParticipant existingParticipant,
+            @Nullable Player player
+    ) {
+        CompletableFuture<CommandResult> chain = CompletableFuture.completedFuture(CommandResult.success());
+        if (context.isAdmin(uuid)) {
+            chain = chain.thenComposeAsync(compositeResult -> {
+                CompletableFuture<CommandResult> joinFuture = removeAdmin(uuid, ign);
+                return joinFuture.thenApply(v -> compositeResult);
+            }, mainThreadExecutor);
+        }
         if (existingParticipant != null) {
             if (existingParticipant.isOnTeam(team)) {
-                results.add(CommandResult.success(Component.empty()
-                        .append(existingParticipant.displayName())
-                        .append(Component.text(" is already a member of "))
-                        .append(team.getFormattedDisplayName())
-                        .append(Component.text(". Nothing happened."))));
-                return CompositeCommandResult.all(results);
+                return chain.thenApply(result -> result
+                        .and(CommandResult.success(Component.empty()
+                                .append(existingParticipant.displayName())
+                                .append(Component.text(" is already a member of "))
+                                .append(team.getFormattedDisplayName())
+                                .append(Component.text(". Nothing happened.")))
+                        )
+                );
             }
-            results.add(leaveParticipant(existingParticipant));
+            chain = chain.thenComposeAsync(compositeResult -> {
+                CompletableFuture<CommandResult> joinFuture = leaveParticipant(existingParticipant);
+                return joinFuture.thenApply(compositeResult::and);
+            }, mainThreadExecutor);
         }
         
-        int score;
-        try {
-            score = gameStateStorageUtil.addNewPlayer(uuid, ign, team.getTeamId());
-        } catch (ConfigIOException | SQLException e) {
-            score = 0;
-            context.reportGameStateException("adding new player", e);
-            results.add(CommandResult.failure(Component.text("error occurred adding new player, see console for details.")));
-        }
-        Component participantDisplayName = GameManagerUtils.createDisplayName(ign, team.getColor());
-        OfflineParticipant offlineParticipant = new OfflineParticipant(uuid, ign, participantDisplayName, team.getTeamId(), score);
-        allParticipants.put(offlineParticipant.getUniqueId(), offlineParticipant);
-        team.joinMember(offlineParticipant.getUniqueId());
-        tabList.joinParticipant(
-                offlineParticipant.getParticipantID(),
-                offlineParticipant.getName(),
-                offlineParticipant.getTeamId(),
-                true);
-        
-        context.updateLeaderboards();
-        results.add(CommandResult.success(Component.text("Joined ")
-                .append(offlineParticipant.displayName())
-                .append(Component.text(" to "))
-                .append(team.getFormattedDisplayName())));
-        // TODO: this is identical to the above method except for this line
-        MCTParticipant participant = new MCTParticipant(offlineParticipant, player);
-        participant.sendMessage(Component.text("You've been joined to team ")
-                .append(team.getFormattedDisplayName()));
-        onParticipantJoin(participant);
-        
-        return CompositeCommandResult.all(results);
+        return chain.thenComposeAsync(compositeResult -> {
+            CompletableFuture<OfflineParticipant> subChain = gameStateStorageUtil.joinPlayer(uuid, ign, team.getTeamId())
+                    .thenApplyAsync(score -> {
+                        Component participantDisplayName = GameManagerUtils.createDisplayName(ign, team.getColor());
+                        OfflineParticipant offlineParticipant = new OfflineParticipant(uuid, ign, participantDisplayName, team.getTeamId(), score);
+                        allParticipants.put(offlineParticipant.getUniqueId(), offlineParticipant);
+                        team.joinMember(offlineParticipant.getUniqueId());
+                        tabList.joinParticipant(
+                                offlineParticipant.getParticipantID(),
+                                offlineParticipant.getName(),
+                                offlineParticipant.getTeamId(),
+                                true);
+                        
+                        context.updateLeaderboards();
+                        return offlineParticipant;
+                    }, mainThreadExecutor);
+            if (player != null) {
+                subChain = subChain.thenComposeAsync(offlineParticipant -> {
+                    MCTParticipant participant = new MCTParticipant(offlineParticipant, player);
+                    participant.sendMessage(Component.text("You've been joined to team ")
+                            .append(team.getFormattedDisplayName()));
+                    return onParticipantJoin(participant)
+                            .thenApply(v -> offlineParticipant);
+                }, mainThreadExecutor);
+            }
+            return subChain.thenApply(offlineParticipant -> compositeResult.and(CommandResult.success(Component.text("Joined ")
+                            .append(offlineParticipant.displayName())
+                            .append(Component.text(" to "))
+                            .append(team.getFormattedDisplayName()))))
+                    .exceptionally(e -> CommandResult.throwable("add a new player", e))
+                    ;
+        }, mainThreadExecutor);
     }
     
     /**
@@ -1621,42 +1591,46 @@ public abstract class GameManagerState {
      * If a game is running, and the player is online, removes that player from the game as well.
      * @param offlineParticipant The participant to remove from their team
      */
-    public CommandResult leaveParticipant(@NotNull OfflineParticipant offlineParticipant) {
+    public CompletableFuture<CommandResult> leaveParticipant(@NotNull OfflineParticipant offlineParticipant) {
         MCTTeam team = teams.get(offlineParticipant.getTeamId());
         MCTParticipant participant = onlineParticipants.get(offlineParticipant.getUniqueId());
+        CompletableFuture<Void> chain = CompletableFuture.completedFuture(null);
         if (participant != null) {
-            onParticipantQuit(participant);
-            participant.sendMessage(Component.text("You've been removed from ")
-                    .append(team.getFormattedDisplayName()));
-            onlineParticipants.remove(participant.getUniqueId());
+            chain = chain
+                    .thenCompose(v -> onParticipantQuit(participant))
+                    .thenRunAsync(() -> {
+                        participant.sendMessage(Component.text("You've been removed from ")
+                                .append(team.getFormattedDisplayName()));
+                        onlineParticipants.remove(participant.getUniqueId()); // TODO: is this redundant?
+                    }, mainThreadExecutor);
         }
-        team.leaveMember(offlineParticipant.getUniqueId());
-        allParticipants.remove(offlineParticipant.getUniqueId());
-        try {
-            gameStateStorageUtil.leavePlayer(offlineParticipant.getUniqueId());
-        } catch (ConfigIOException | SQLException e) {
-            context.reportGameStateException("leaving player", e);
-            return CommandResult.failure(Component.text("error occurred leaving player, see console for details."));
-        }
-        context.updateLeaderboards();
-        tabList.leaveParticipant(offlineParticipant.getParticipantID());
-        org.bukkit.scoreboard.Team scoreboardTeam = mctScoreboard.getTeam(offlineParticipant.getTeamId());
-        if (scoreboardTeam != null) {
-            if (offlineParticipant.getPlayer() != null) {
-                scoreboardTeam.removePlayer(offlineParticipant.getPlayer());
-            }
-        } else {
-            Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (leaveParticipant)", offlineParticipant.getTeamId()));
-        }
-        return CommandResult.success(Component.text("Removed ")
-                .append(offlineParticipant.displayName())
-                .append(Component.text(" from team "))
-                .append(team.getFormattedDisplayName()));
+        return chain.thenRunAsync(() -> {
+                    team.leaveMember(offlineParticipant.getUniqueId());
+                    allParticipants.remove(offlineParticipant.getUniqueId());
+                }, mainThreadExecutor)
+                .thenCompose(v -> gameStateStorageUtil.leavePlayer(offlineParticipant.getUniqueId()))
+                .thenApplyAsync(v -> {
+                    context.updateLeaderboards();
+                    tabList.leaveParticipant(offlineParticipant.getParticipantID());
+                    org.bukkit.scoreboard.Team scoreboardTeam = mctScoreboard.getTeam(offlineParticipant.getTeamId());
+                    if (scoreboardTeam != null) {
+                        if (offlineParticipant.getPlayer() != null) {
+                            scoreboardTeam.removePlayer(offlineParticipant.getPlayer());
+                        }
+                    } else {
+                        Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (leaveParticipant)", offlineParticipant.getTeamId()));
+                    }
+                    return CommandResult.success(Component.text("Removed ")
+                            .append(offlineParticipant.displayName())
+                            .append(Component.text(" from team "))
+                            .append(team.getFormattedDisplayName()));
+                }, mainThreadExecutor)
+                .exceptionally(e -> CommandResult.throwable("leave player", e));
     }
     
-    public CommandResult joinParticipantToGame(@NotNull GameType gameType, @Nullable String configFile, @NotNull MCTParticipant participant) {
+    public CompletableFuture<CommandResult> joinParticipantToGame(@NotNull GameType gameType, @Nullable String configFile, @NotNull MCTParticipant participant) {
         if (isParticipantInGame(participant)) {
-            return CommandResult.failure(Component.text("Already in a game"));
+            return CommandResult.failure(Component.text("Already in a game")).asFuture();
         }
         GameInstanceId id;
         if (configFile == null) {
@@ -1672,12 +1646,14 @@ public abstract class GameManagerState {
                 return CommandResult.failure(Component.empty()
                         .append(Component.text("No "))
                         .append(Component.text(gameType.getTitle()))
-                        .append(Component.text(" game is active right now")));
+                        .append(Component.text(" game is active right now"))
+                ).asFuture();
             } else {
                 return CommandResult.failure(Component.empty()
                         .append(Component.text("More than one instance of "))
                         .append(Component.text(gameType.getTitle()))
-                        .append(Component.text(" is active. Please specify a config.")));
+                        .append(Component.text(" is active. Please specify a config."))
+                ).asFuture();
             }
         } else {
             id = new GameInstanceId(gameType, configFile);
@@ -1687,7 +1663,8 @@ public abstract class GameManagerState {
             return CommandResult.failure(Component.empty()
                     .append(Component.text("No "))
                     .append(Component.text(id.getTitle()))
-                    .append(Component.text(" game is active right now")));
+                    .append(Component.text(" game is active right now"))
+            ).asFuture();
         }
         @Nullable GameInstanceId teamGameId = context.getTeamActiveGame(participant.getTeamId());
         MCTTeam team = teams.get(participant.getTeamId());
@@ -1698,13 +1675,15 @@ public abstract class GameManagerState {
                     .append(Component.text(" because "))
                     .append(team.getFormattedDisplayName())
                     .append(Component.text(" is in "))
-                    .append(Component.text(teamGameId.getTitle())));
+                    .append(Component.text(teamGameId.getTitle()))
+            ).asFuture();
         }
         onParticipantJoinGame(id, participant);
-        activeGame.onJoin(team, participant);
-        return CommandResult.success(Component.empty()
-                .append(Component.text("Joining "))
-                .append(Component.text(id.getTitle())));
+        return activeGame.onJoin(team, participant)
+                .thenApply(v -> CommandResult.success(Component.empty()
+                        .append(Component.text("Joining "))
+                        .append(Component.text(id.getTitle()))))
+                ;
     }
     
     public @Nullable List<String> tabCompleteActiveGames(@NotNull String[] args) {
@@ -1768,26 +1747,27 @@ public abstract class GameManagerState {
                 .append(Component.text(id.getTitle())));
     }
     
-    public CommandResult returnParticipantToHub(@NotNull MCTParticipant participant) {
+    public CompletableFuture<CommandResult> returnParticipantToHub(@NotNull MCTParticipant participant) {
         return returnParticipantToHub(participant, config.getSpawn());
     }
     
-    protected CommandResult returnParticipantToHub(@NotNull MCTParticipant participant, @NotNull Location spawn) {
+    protected CompletableFuture<CommandResult> returnParticipantToHub(@NotNull MCTParticipant participant, @NotNull Location spawn) {
         GameInstanceId id = participantGames.remove(participant.getUniqueId());
         if (id == null) {
             participant.teleport(spawn);
-            return CommandResult.success(Component.text("Returning to hub"));
+            return CommandResult.success(Component.text("Returning to hub")).asFuture();
         }
         MCTGame activeGame = activeGames.get(id);
         if (activeGame == null) {
             // this should not happen
             participant.teleport(spawn);
-            return CommandResult.success(Component.text("Returning to hub"));
+            return CommandResult.success(Component.text("Returning to hub")).asFuture();
         }
-        activeGame.onQuit(participant.getTeamId(), participant.getUniqueId());
+        CompletableFuture<Void> quitFuture = activeGame.onQuit(participant.getTeamId(), participant.getUniqueId());
         onParticipantReturnToHub(participant);
         participant.teleport(spawn);
-        return CommandResult.success(Component.text("Quitting current game. Returning to hub."));
+        return quitFuture.thenApply(v ->
+                CommandResult.success(Component.text("Quitting current game. Returning to hub.")));
     }
     
     public CommandResult returnAdminToHub(@NotNull Player admin) {
@@ -1820,82 +1800,88 @@ public abstract class GameManagerState {
      * participant, they are removed from their team and added as an admin.
      * @param newAdmin The player to add
      */
-    public CommandResult addAdmin(Player newAdmin) {
+    public CompletableFuture<CommandResult> addAdmin(Player newAdmin) {
         UUID uniqueId = newAdmin.getUniqueId();
         if (gameStateStorageUtil.isAdmin(uniqueId)) {
             return CommandResult.failure(Component.empty()
                     .append(Component.text(newAdmin.getName())
                             .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" is already an admin. Nothing happened.")));
+                    .append(Component.text(" is already an admin. Nothing happened."))
+            ).asFuture();
         }
-        List<CommandResult> results = new ArrayList<>();
+        CompletableFuture<CommandResult> chain = CompletableFuture.completedFuture(CommandResult.success());
         OfflineParticipant offlineParticipant = allParticipants.get(uniqueId);
         if (offlineParticipant != null) {
-            results.add(leaveParticipant(offlineParticipant));
+            chain = chain.thenComposeAsync(compositeResult -> {
+                CompletableFuture<CommandResult> joinFuture = leaveParticipant(offlineParticipant);
+                return joinFuture.thenApply(compositeResult::and);
+            }, mainThreadExecutor);
         }
-        try {
-            gameStateStorageUtil.addAdmin(uniqueId);
-        } catch (ConfigIOException | SQLException e) {
-            context.reportGameStateException("adding new admin", e);
-            results.add(CommandResult.failure(Component.text("error occurred adding new admin, see console for details.")));
-            return CompositeCommandResult.all(results);
-        }
-        
-        org.bukkit.scoreboard.Team adminTeam = mctScoreboard.getTeam(GameManager.ADMIN_TEAM);
-        if (adminTeam != null) {
-            adminTeam.addPlayer(newAdmin);
-        } else {
-            Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (addAdmin)", GameManager.ADMIN_TEAM));
-            ;
-        }
-        if (newAdmin.isOnline()) {
-            newAdmin.sendMessage(Component.text("You were added as an admin"));
-            onAdminJoin(newAdmin);
-        }
-        
-        results.add(CommandResult.success(Component.empty()
-                .append(Component.text("Added "))
-                .append(Component.text(newAdmin.getName())
-                        .decorate(TextDecoration.BOLD))
-                .append(Component.text(" as an admin"))));
-        return CompositeCommandResult.all(results);
+        return chain.thenApplyAsync(compositeResult -> {
+            try {
+                gameStateStorageUtil.addAdmin(uniqueId);
+            } catch (ConfigIOException | SQLException e) {
+                context.reportGameStateException("adding new admin", e);
+                return compositeResult.and(CommandResult.failure(
+                        Component.text("error occurred adding new admin, see console for details.")));
+            }
+            
+            org.bukkit.scoreboard.Team adminTeam = mctScoreboard.getTeam(GameManager.ADMIN_TEAM);
+            if (adminTeam != null) {
+                adminTeam.addPlayer(newAdmin);
+            } else {
+                Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (addAdmin)", GameManager.ADMIN_TEAM));
+                ;
+            }
+            if (newAdmin.isOnline()) {
+                newAdmin.sendMessage(Component.text("You were added as an admin"));
+                onAdminJoin(newAdmin);
+            }
+            
+            return compositeResult.and(CommandResult.success(Component.empty()
+                    .append(Component.text("Added "))
+                    .append(Component.text(newAdmin.getName())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" as an admin"))));
+        }, mainThreadExecutor);
     }
     
-    public @NotNull CommandResult removeAdmin(@NotNull UUID uuid, @NotNull String ign) {
+    public @NotNull CompletableFuture<CommandResult> removeAdmin(@NotNull UUID uuid, @NotNull String ign) {
+        // TODO: there are two removeAdmin methods, use only one
         if (!context.isAdmin(uuid)) {
             return CommandResult.failure(Component.empty()
                     .append(Component.text(ign)
                             .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" is not an admin. Nothing happened.")));
+                    .append(Component.text(" is not an admin. Nothing happened."))
+            ).asFuture();
         }
         context.getOnlineAdmins().stream()
                 .filter(admin -> admin.getUniqueId().equals(uuid))
                 .findFirst().ifPresent(this::onAdminQuit);
-        try {
-            gameStateStorageUtil.removeAdmin(uuid);
-        } catch (ConfigIOException | SQLException e) {
-            context.reportGameStateException("removing admin", e);
-            return CommandResult.failure(Component.text("error occurred removing admin, see console for details."));
-        }
+        return gameStateStorageUtil.removeAdmin(uuid)
+                .thenApplyAsync(v -> CommandResult.success(Component.empty()
+                        .append(Component.text(ign)
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" is no longer an admin"))), mainThreadExecutor)
+                .exceptionally(e -> CommandResult.throwable("remove an admin", e))
+                ;
         
         // TODO: remove them from the scoreboard in a different context
         
-        return CommandResult.success(Component.empty()
-                .append(Component.text(ign)
-                        .decorate(TextDecoration.BOLD))
-                .append(Component.text(" is no longer an admin")));
     }
     
     /**
      * Removes the given player from the admins
      * @param offlineAdmin The admin to remove
      */
-    public @NotNull CommandResult removeAdmin(@NotNull OfflinePlayer offlineAdmin, @NotNull String adminName) {
+    public @NotNull CompletableFuture<CommandResult> removeAdmin(@NotNull OfflinePlayer offlineAdmin, @NotNull String adminName) {
+        // TODO: there are two removeAdmin methods, use only one
         if (!context.isAdmin(offlineAdmin.getUniqueId())) {
             return CommandResult.failure(Component.empty()
                     .append(Component.text(adminName)
                             .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" is not an admin. Nothing happened.")));
+                    .append(Component.text(" is not an admin. Nothing happened."))
+            ).asFuture();
         }
         if (offlineAdmin.isOnline()) {
             Player onlineAdmin = offlineAdmin.getPlayer();
@@ -1905,24 +1891,21 @@ public abstract class GameManagerState {
             }
         }
         UUID adminUniqueId = offlineAdmin.getUniqueId();
-        try {
-            gameStateStorageUtil.removeAdmin(adminUniqueId);
-        } catch (ConfigIOException | SQLException e) {
-            context.reportGameStateException("removing admin", e);
-            return CommandResult.failure(Component.text("error occurred removing admin, see console for details."));
-        }
-        
-        org.bukkit.scoreboard.Team adminTeam = mctScoreboard.getTeam(GameManager.ADMIN_TEAM);
-        if (adminTeam != null) {
-            adminTeam.removePlayer(offlineAdmin);
-        } else {
-            Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (addAdmin)", GameManager.ADMIN_TEAM));
-        }
-        
-        return CommandResult.success(Component.empty()
-                .append(Component.text(adminName)
-                        .decorate(TextDecoration.BOLD))
-                .append(Component.text(" is no longer an admin")));
+        return gameStateStorageUtil.removeAdmin(adminUniqueId)
+                .thenApplyAsync(v -> {
+                    org.bukkit.scoreboard.Team adminTeam = mctScoreboard.getTeam(GameManager.ADMIN_TEAM);
+                    if (adminTeam != null) {
+                        adminTeam.removePlayer(offlineAdmin);
+                    } else {
+                        Main.logger().warning(String.format("mctScoreboard could not find team \"%s\" (addAdmin)", GameManager.ADMIN_TEAM));
+                    }
+                    
+                    return CommandResult.success(Component.empty()
+                            .append(Component.text(adminName)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" is no longer an admin")));
+                }, mainThreadExecutor)
+                .exceptionally(e -> CommandResult.throwable("remove an admin", e));
     }
     
     public void onAdminDamage(@NotNull EntityDamageEvent event, @NotNull Player admin) {

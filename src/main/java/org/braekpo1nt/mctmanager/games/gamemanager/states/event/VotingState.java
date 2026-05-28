@@ -21,10 +21,12 @@ import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 public class VotingState extends EventState {
     
@@ -32,14 +34,19 @@ public class VotingState extends EventState {
     private static final int DISPLAY_VOTING_VOLUME = 50;
     private static final int DISPLAY_VOTING_PITCH = 30;
     private static final String FINAL_VOTING_SOUND = "entity.zombie_villager.cure";
-    private static final int FINAL_VOTING_VOLUME = 50;
+    private static final int FINAL_VOTING_VOLUME = 25;
     private static final int FINAL_VOTING_PITCH = 1;
     
     private final VoteManager voteManager;
     private final Timer timer;
+    private @NotNull final Random random;
     private @Nullable BukkitTask display;
     
     public VotingState(@NotNull GameManager context, @NotNull ContextReference contextReference, @NotNull EventData eventData) {
+        this(context, contextReference, eventData, new Random());
+    }
+    
+    public VotingState(@NotNull GameManager context, @NotNull ContextReference contextReference, @NotNull EventData eventData, @NotNull Random random) {
         super(context, contextReference, eventData);
         List<GameType> votingPool = getVotingPool();
         this.voteManager = new VoteManager(
@@ -61,6 +68,7 @@ public class VotingState extends EventState {
                     }
                 })
                 .build();
+        this.random = random;
     }
     
     @Override
@@ -89,13 +97,27 @@ public class VotingState extends EventState {
     
     protected void onVoteExecuted(List<GameType> gameTypes, String configFile) {
         timer.cancel();
+        List<GameType> votedForGames = gameTypes.isEmpty() ? getBackupGameType() : gameTypes;
         if (eventData.getConfig().isWeightedVoting()) {
-            Random random = new Random();
-            scheduleNextDisplay(gameTypes, configFile, 5, random, true);
+            scheduleNextDisplay(votedForGames, configFile, 5, true);
         } else {
-            GameType gameType = gameTypes.getFirst();
+            GameType gameType = votedForGames.getFirst();
             acceptVote(configFile, gameType);
         }
+    }
+    
+    /**
+     * @return a singleton list of a votable game as a backup for if no one voted for anything
+     */
+    private @NotNull List<GameType> getBackupGameType() {
+        List<GameType> votingPool = getVotingPool();
+        if (!votingPool.isEmpty()) {
+            int index = random.nextInt(votingPool.size());
+            return Collections.singletonList(votingPool.get(index));
+        }
+        List<GameType> votableGames = VoteManager.votableGames();
+        int index = random.nextInt(votableGames.size());
+        return Collections.singletonList(votableGames.get(index));
     }
     
     private void acceptVote(String configFile, GameType gameType) {
@@ -115,7 +137,7 @@ public class VotingState extends EventState {
         }
     }
     
-    public void scheduleNextDisplay(List<GameType> votes, String configFile, final long numberOfTicks, Random random, final boolean displayIsRed) {
+    public void scheduleNextDisplay(List<GameType> votes, String configFile, final long numberOfTicks, final boolean displayIsRed) {
         
         this.display = new BukkitRunnable() {
             @Override
@@ -181,21 +203,22 @@ public class VotingState extends EventState {
                     return;
                 }
                 if (!votes.isEmpty()) {
-                    scheduleNextDisplay(votes, configFile, nextNumberOfTicks, random, redTitle);
+                    scheduleNextDisplay(votes, configFile, nextNumberOfTicks, redTitle);
                 }
             }
         }.runTaskLater(plugin, numberOfTicks);
     }
     
     @Override
-    public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
+    public CompletableFuture<CommandResult> startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
         voteManager.cancelVote();
         timer.cancel();
         context.setState(new StartingGameDelayState(context, contextReference, eventData, gameType, configFile));
         return CommandResult.success(Component.empty()
                 .append(Component.text("Manually starting "))
                 .append(Component.text(gameType.getTitle()))
-                .append(Component.text(". Cancelling vote.")));
+                .append(Component.text(". Cancelling vote."))
+        ).asFuture();
     }
     
     @Override
@@ -209,16 +232,17 @@ public class VotingState extends EventState {
     }
     
     @Override
-    public void onParticipantJoin(@NotNull MCTParticipant participant) {
-        super.onParticipantJoin(participant);
+    public CompletableFuture<Void> onParticipantJoin(@NotNull MCTParticipant participant) {
+        CompletableFuture<Void> joinFuture = super.onParticipantJoin(participant);
         participant.teleport(config.getSpawn());
         voteManager.onParticipantJoin(participant);
+        return joinFuture;
     }
     
     @Override
-    public void onParticipantQuit(@NotNull MCTParticipant participant) {
+    public CompletableFuture<Void> onParticipantQuit(@NotNull MCTParticipant participant) {
         voteManager.onParticipantQuit(participant);
-        super.onParticipantQuit(participant);
+        return super.onParticipantQuit(participant);
     }
     
     @Override

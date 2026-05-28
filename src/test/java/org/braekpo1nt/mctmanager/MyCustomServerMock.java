@@ -1,5 +1,7 @@
 package org.braekpo1nt.mctmanager;
 
+import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
@@ -33,6 +35,27 @@ import static org.mockito.Mockito.when;
  * - Create an initial test world called "TestWorld" which is used in many tests
  */
 public class MyCustomServerMock extends ServerMock {
+    
+    /**
+     * This is set to false by
+     * {@link org.braekpo1nt.mctmanager.database.ImmediateExecutorService#execute(Runnable)}
+     * so that {@link #isPrimaryThread()} returns false during fake "async" operations.
+     * True if world-modifying bukkit operations are allowed, false otherwise.
+     */
+    @Getter
+    @Setter
+    private boolean bukkitOperationIsAllowed = true;
+    
+    /**
+     * This will be false when run inside a {@link Runnable} operation in
+     * {@link org.braekpo1nt.mctmanager.database.ImmediateExecutorService#execute(Runnable)},
+     * so that non-bukkit safe operations throw an error.
+     * Also throws errors when we are truly off the main thread.
+     */
+    @Override
+    public boolean isPrimaryThread() {
+        return bukkitOperationIsAllowed && this.isOnMainThread();
+    }
     
     @Override
     public World getWorld(String name) {

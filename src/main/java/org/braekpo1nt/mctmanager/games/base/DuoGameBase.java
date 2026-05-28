@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Getter
 public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTeamData<P> & Affiliated, QP extends QuitDataBase, QT extends QuitDataBase, S extends GameStateBase<P, T>> extends GameBase<P, T, QP, QT, S> {
@@ -65,11 +66,10 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
     }
     
     /**
-     * @param newParticipants the newParticipants
-     * @param newAdmins the newAdmins
+     * {@inheritDoc}
      */
     @Override
-    protected void start(@NotNull Collection<Team> newTeams, @NotNull Collection<Participant> newParticipants, @NotNull List<Player> newAdmins) {
+    protected CompletableFuture<Void> start(@NotNull Collection<Team> newTeams, @NotNull Collection<Participant> newParticipants, @NotNull List<Player> newAdmins) {
         teams.put(northTeam.getTeamId(), northTeam);
         setupTeamOptions(northTeam);
         tabList.addTeam(northTeam.getTeamId(), northTeam.getDisplayName(), northTeam.getColor());
@@ -84,13 +84,13 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
             String teamId = team.getTeamId();
             return !teamId.equals(northTeam.getTeamId()) && !teamId.equals(southTeam.getTeamId());
         }).toList();
-        super.start(spectatorTeams, newParticipants, newAdmins);
+        return super.start(spectatorTeams, newParticipants, newAdmins);
     }
     
     @Override
-    public void onJoin(@NotNull Team newTeam, @NotNull Participant participant) {
+    public CompletableFuture<Void> onJoin(@NotNull Team newTeam, @NotNull Participant participant) {
         if (teams.containsKey(newTeam.getTeamId())) {
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         Affiliation affiliation = getAffiliation(newTeam.getTeamId());
         switch (affiliation) {
@@ -105,9 +105,11 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
                 state.onTeamRejoin(southTeam);
             }
             case SPECTATOR -> {
-                super.onJoin(newTeam, participant);
+                return super.onJoin(newTeam, participant);
             }
         }
+        // TODO: should onTeamRejoin return completableFuture?
+        return CompletableFuture.completedFuture(null);
     }
     
     /**
@@ -116,12 +118,13 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
      * @param teamId the teamId that quit
      */
     @Override
-    public void onTeamQuit(@NotNull String teamId) {
+    public CompletableFuture<Void> onTeamQuit(@NotNull String teamId) {
         T team = teams.get(teamId);
         if (team == null || team.size() > 0) {
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         Affiliation affiliation = getAffiliation(teamId);
+        // TODO: this operation, and the equivalent one for joining, makes it seem like some quit logic isn't being called properly for north and south team quitting
         switch (affiliation) {
             case NORTH -> {
                 state.onTeamQuit(northTeam);
@@ -132,10 +135,11 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
                 teams.remove(team.getTeamId());
             }
             case SPECTATOR -> {
-                super.onTeamQuit(teamId);
+                return super.onTeamQuit(teamId);
             }
         }
         resetTeamOptions(team);
+        return CompletableFuture.completedFuture(null);
     }
     
     
