@@ -164,7 +164,7 @@ public class EventApplyPresetCommand implements BrigadierSubCommand {
                 return CommandResult.sqlException("apply preset to event", e);
             }
             return CommandResult.success(Component.text("Preset applied."));
-        });
+        }, plugin.getDatabaseExecutor());
     }
     
     /**

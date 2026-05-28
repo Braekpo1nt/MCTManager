@@ -156,7 +156,7 @@ public class FootRaceEditor extends EditorBase<FootRaceAdmin, FootRaceEditorStat
                                     .append(Component.text("Add checkpoint index "))
                                     .append(Component.text(newCheckpointIndex))
                                     .append(Component.text("/"))
-                                    .append(Component.text(config.getCheckpoints().size() - 1)) //TODO: is this correct numbers?
+                                    .append(Component.text(config.getCheckpoints().size() - 1))
                                     .append(Component.text(". Max index is now "))
                                     .append(Component.text(config.getCheckpoints().size() - 1)))
                     );

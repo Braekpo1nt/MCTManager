@@ -7,14 +7,4 @@ public class MockTabList extends TabList {
     public MockTabList(@NotNull Main plugin) {
         super(plugin);
     }
-    
-    @Override
-    protected void scheduleAsync(Runnable runnable) {
-        runnable.run();
-    }
-    
-    @Override
-    protected void scheduleSync(Runnable runnable) {
-        runnable.run();
-    }
 }

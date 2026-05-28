@@ -31,6 +31,7 @@ class SurvivalGamesConfigControllerTest {
         ServerMock server = MockBukkit.mock(new MyCustomServerMock());
         server.getLogger().setLevel(Level.OFF);
         plugin = MockBukkit.load(MockMain.class);
+        Main.logger().setLevel(Level.SEVERE);
         controller = new SurvivalGamesConfigController(plugin.getDataFolder(), GameType.SURVIVAL_GAMES.getId());
         configFolder = new File(plugin.getDataFolder(), GameType.SURVIVAL_GAMES.getId());
         configFolder.mkdirs();

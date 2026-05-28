@@ -103,7 +103,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                                     .append(Component.text("Add puzzle index "))
                                     .append(Component.text(newPuzzleIndex))
                                     .append(Component.text("/"))
-                                    .append(Component.text(puzzles.size())) //TODO: is this correct numbers?
+                                    .append(Component.text(puzzles.size()))
                                     .append(Component.text(". Max index is now "))
                                     .append(Component.text(puzzles.size() + 1)))
                     );
@@ -120,7 +120,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
                             selectResult,
                             CommandResult.success(Component.empty()
                                     .append(Component.text("Remove puzzle index "))
-                                    .append(Component.text(admin.getCurrentPuzzle())) // TODO: is the the right number?
+                                    .append(Component.text(admin.getCurrentPuzzle()))
                                     .append(Component.text("/"))
                                     .append(Component.text(puzzles.size()))
                                     .append(Component.text(". Max index is now "))

@@ -4,6 +4,7 @@ import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.database.entities.admin.ActiveAdminEntity;
@@ -12,7 +13,6 @@ import org.braekpo1nt.mctmanager.database.entities.teams.ActiveTeam;
 import org.braekpo1nt.mctmanager.database.service.GameStateService;
 import org.braekpo1nt.mctmanager.database.service.RegisterConflictType;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
-import org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam;
 import org.braekpo1nt.mctmanager.games.gamestate.states.SUEventState;
 import org.braekpo1nt.mctmanager.games.gamestate.states.SUMaintenanceState;
 import org.braekpo1nt.mctmanager.games.gamestate.states.SUPracticeState;
@@ -37,6 +37,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -48,6 +52,8 @@ public class GameStateStorageUtil {
     protected final Logger LOGGER;
     @Getter
     protected final GameStateService gameStateService;
+    @Getter
+    protected final Executor databaseExecutor;
     /**
      * A flag that is only needed because the tests use sqlite, and production uses mariaDB.
      * Specifically regarding the portability miss-match in conflict resolution during upsert operations.
@@ -58,14 +64,15 @@ public class GameStateStorageUtil {
     protected GameState gameState = new GameState(new HashMap<>(), new HashMap<>(), new ArrayList<>());
     protected @NotNull StorageUtilState state;
     
-    public GameStateStorageUtil(@NotNull Logger logger, @NotNull GameStateService gameStateService) {
-        this(logger, gameStateService, true);
+    public GameStateStorageUtil(@NotNull Logger logger, @NotNull GameStateService gameStateService, @NotNull Executor databaseExecutor) {
+        this(logger, gameStateService, databaseExecutor, true);
     }
     
-    public GameStateStorageUtil(@NotNull Logger logger, @NotNull GameStateService gameStateService, boolean mariaDB) {
+    public GameStateStorageUtil(@NotNull Logger logger, @NotNull GameStateService gameStateService, @NotNull Executor databaseExecutor, boolean mariaDB) {
         this.LOGGER = logger;
         // Pro Tip: The plugin.getGameManager() is null at this point
         this.gameStateService = gameStateService;
+        this.databaseExecutor = databaseExecutor;
         this.mariaDB = mariaDB;
         this.state = new SUMaintenanceState(this);
         state.enter();
@@ -97,10 +104,40 @@ public class GameStateStorageUtil {
      * - reading the existing game state file
      * - parsing the game state from json
      */
-    public void loadGameState() throws SQLException {
-        this.gameState = constructGameStateFromDatabase();
-        gameStateService.setActiveVersion(0);
-        LOGGER.info("Constructed game state from database");
+    public CompletableFuture<Void> loadGameState() throws SQLException {
+        return constructGameStateFromDatabase()
+                .thenAccept(gameState -> {
+                    // yes, this successfully assigns the gameState to this.gameState even though it's threaded operation.
+                    // You are guaranteed to have this.gameState updated provided you wait till the completion of this
+                    // future, e.g. {@code .thenApply} or {@code .thenRunAsync} etc. with proper chaining
+                    // You only need to label this.gameState as volatile if unrelated threads (improperly chained) access it
+                    this.gameState = gameState;
+                    LOGGER.info("Constructed game state from database");
+                })
+                .thenAcceptAsync(gameState -> {
+                    try {
+                        gameStateService.setActiveVersion(0);
+                    } catch (SQLException e) {
+                        Main.logger().log(Level.WARNING, "database exception while trying to set the active version", e);
+                    }
+                }, databaseExecutor)
+                .exceptionally(e -> {
+                    Main.logger().log(Level.SEVERE, "Unable to load gameState from database", e);
+                    return null;
+                });
+    }
+    
+    private @NotNull CompletableFuture<GameState> constructGameStateFromDatabase() {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                List<ActiveTeam> activeTeams = gameStateService.getActiveTeams();
+                List<ActiveParticipant> activeParticipants = gameStateService.getActiveParticipants();
+                List<ActiveAdminEntity> adminEntities = gameStateService.getActiveAdmins();
+                return new GameState(ActiveParticipant.toPlayers(activeParticipants), ActiveTeam.toTeams(activeTeams), ActiveAdminEntity.toAdmins(adminEntities));
+            } catch (SQLException e) {
+                throw new CompletionException(e);
+            }
+        }, databaseExecutor);
     }
     
     public Component printGameState() {
@@ -143,13 +180,6 @@ public class GameStateStorageUtil {
         return builder.build();
     }
     
-    private @NotNull GameState constructGameStateFromDatabase() throws SQLException {
-        List<ActiveTeam> activeTeams = gameStateService.getActiveTeams();
-        List<ActiveParticipant> activeParticipants = gameStateService.getActiveParticipants();
-        List<ActiveAdminEntity> adminEntities = gameStateService.getActiveAdmins();
-        return new GameState(ActiveParticipant.toPlayers(activeParticipants), ActiveTeam.toTeams(activeTeams), ActiveAdminEntity.toAdmins(adminEntities));
-    }
-    
     /**
      * Add a team to the game state.
      * @param teamId The internal name of the team.
@@ -158,12 +188,12 @@ public class GameStateStorageUtil {
      * @return the score of the team (based on historical data)
      * @throws ConfigIOException If there is an error saving the game state while adding a new team.
      */
-    public int addTeam(String teamId, String teamDisplayName, String color) throws SQLException {
+    public CompletableFuture<Integer> addTeam(String teamId, String teamDisplayName, String color) {
         return state.addTeam(teamId, teamDisplayName, color);
     }
     
-    public void removeTeam(String teamId) throws SQLException {
-        state.removeTeam(teamId);
+    public CompletableFuture<Void> removeTeam(String teamId) {
+        return state.removeTeam(teamId);
     }
     
     /**
@@ -291,13 +321,13 @@ public class GameStateStorageUtil {
     
     /**
      * Adds the given player to the game state, joined to the given team
-     * @param playerToJoin the UUID of the player
+     * @param uuid the UUID of the player
      * @param ign the ign of the player
      * @param teamId the teamId to join it to
      * @throws ConfigIOException if there is an IO error saving the game state
      */
-    public int addNewPlayer(@NotNull UUID playerToJoin, @NotNull String ign, @NotNull String teamId) throws SQLException {
-        return state.addNewPlayer(playerToJoin, ign, teamId);
+    public CompletableFuture<Integer> joinPlayer(@NotNull UUID uuid, @NotNull String ign, @NotNull String teamId) {
+        return state.joinPlayer(uuid, ign, teamId);
     }
     
     /**
@@ -344,9 +374,9 @@ public class GameStateStorageUtil {
      * database. Meant to be called after {@link #updateScores(Collection, Collection)}
      * @param teams the teams to update
      * @param participants the participants to update
-     * @throws Exception if there is an issue communicating with the database
      */
-    public void persistScores(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams, Collection<OfflineParticipant> participants) throws Exception {
+    @SuppressWarnings("UnusedReturnValue")
+    public CompletableFuture<Void> persistScores(Collection<org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam> teams, Collection<OfflineParticipant> participants) {
         List<ActiveTeam> activeTeams = teams.stream()
                 .map(team -> {
                     MCTTeamEntity mctTeamEntity = gameState.getTeam(team.getTeamId());
@@ -361,65 +391,60 @@ public class GameStateStorageUtil {
                 })
                 .filter(Objects::nonNull)
                 .toList();
-        persistScores(activeParticipants, activeTeams);
+        return persistScores(activeParticipants, activeTeams);
     }
     
     /**
      * @param activeParticipants the participants to commit to the database
      * @param activeTeams the teams to commit to the database
-     * @throws Exception if there is an issue communicating with the database
      */
-    protected void persistScores(List<ActiveParticipant> activeParticipants, List<ActiveTeam> activeTeams) throws Exception {
-        gameStateService.updateActiveParticipants(activeParticipants);
-        gameStateService.updateActiveTeams(activeTeams);
+    protected CompletableFuture<Void> persistScores(List<ActiveParticipant> activeParticipants, List<ActiveTeam> activeTeams) {
+        return CompletableFuture.runAsync(() -> {
+            try {
+                gameStateService.updateActiveParticipants(activeParticipants);
+                gameStateService.updateActiveTeams(activeTeams);
+            } catch (Exception e) {
+                Main.logger().log(Level.SEVERE, String.format("Unable to persist scores of %s participants and %s teams", activeParticipants.size(), activeTeams.size()), e);
+            }
+        }, databaseExecutor);
     }
     
     /**
      * Update the score of the given participant in-memory.
-     * Meant to be used in combination with {@link #persistScore(OfflineParticipant)}, or
-     * the score won't be persisted to the database.
+     * Asynchronously persist the score of the given participant in the database.
      * @param participant the participant to update the score of
      */
-    public void updateScore(OfflineParticipant participant) {
-        MCTPlayerEntity player = Objects.requireNonNull(gameState.getPlayer(participant.getUniqueId()),
-                "attempted to update score of non-existent participant");
-        player.setScore(participant.getScore());
-    }
-    
-    /**
-     * Persist the score of the given participant in the database.
-     * Meant to be called after {@link #updateScore(OfflineParticipant)} in a different thread so
-     * that the persistence doesn't lag the game.
-     * @param participant the participant to update the score of
-     * @throws SQLException if there's an issue communicating with the database
-     */
-    public void persistScore(OfflineParticipant participant) throws SQLException {
+    @SuppressWarnings("UnusedReturnValue")
+    public CompletableFuture<Void> persistScore(OfflineParticipant participant) {
         MCTPlayerEntity player = Objects.requireNonNull(gameState.getPlayer(participant.getUniqueId()),
                 "attempted to persist score of non-existent participant");
-        gameStateService.updateActiveParticipant(ActiveParticipant.fromPlayer(player));
+        player.setScore(participant.getScore());
+        return CompletableFuture.runAsync(() -> {
+            try {
+                gameStateService.updateActiveParticipant(ActiveParticipant.fromPlayer(player));
+            } catch (Exception e) {
+                Main.logger().log(Level.SEVERE, String.format("Unable to persist scores of participant %s score=%s", player.getName(), player.getScore()), e);
+            }
+        }, databaseExecutor);
     }
     
     /**
      * Update the score of the given team in-memory.
-     * Meant to be used in combination with {@link #persistScore(MCTTeam)}, or
-     * the score won't be persisted to the database.
+     * Asynchronously persist the score of the given team in the database.
      * @param mctTeam the team to update the score of
      */
-    public void updateScore(org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam mctTeam) {
-        MCTTeamEntity team = gameState.getTeam(mctTeam.getTeamId());
+    @SuppressWarnings("UnusedReturnValue")
+    public CompletableFuture<Void> persistScore(org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam mctTeam) {
+        MCTTeamEntity team = Objects.requireNonNull(gameState.getTeam(mctTeam.getTeamId()),
+                "attempted to persist score of non-existent team");
         team.setScore(mctTeam.getScore());
-    }
-    
-    /**
-     * Persist the score of the given team in the database.
-     * Meant to be called after {@link #updateScore(MCTTeam)} in a different thread so
-     * that the persistence doesn't lag the game.
-     * @param mctTeam the team to update the score of
-     * @throws SQLException if there's an issue communicating with the database
-     */
-    public void persistScore(org.braekpo1nt.mctmanager.games.gamemanager.MCTTeam mctTeam) throws SQLException {
-        MCTTeamEntity team = gameState.getTeam(mctTeam.getTeamId());
-        gameStateService.updateActiveTeam(ActiveTeam.fromTeam(team));
+        return CompletableFuture.runAsync(() -> {
+            try {
+                gameStateService.updateActiveTeam(ActiveTeam.fromTeam(team));
+            } catch (Exception e) {
+                Main.logger().log(Level.SEVERE, String.format("Unable to persist scores of team %s score=%s", team.getName(), team.getScore()), e);
+            }
+        }, databaseExecutor);
     }
     
     /**
@@ -443,8 +468,8 @@ public class GameStateStorageUtil {
      * @param playerUniqueId The UUID for the player
      * @throws ConfigIOException if there is an IO error saving the game state
      */
-    public void leavePlayer(UUID playerUniqueId) throws SQLException {
-        state.leavePlayer(playerUniqueId);
+    public CompletableFuture<Void> leavePlayer(UUID playerUniqueId) {
+        return state.leavePlayer(playerUniqueId);
     }
     
     public @NotNull NamedTextColor getTeamColor(@NotNull String teamId) {
@@ -491,10 +516,9 @@ public class GameStateStorageUtil {
     
     /**
      * @return a map from UUID to Admin Names
-     * @throws SQLException if there's a SQL error
      */
-    public @NotNull Map<UUID, String> getAllAdminNames() throws SQLException {
-        return gameStateService.getAdminNames();
+    public @NotNull CompletableFuture<Map<UUID, String>> getAllAdminNames() {
+        return state.getAllAdminNames();
     }
     
     /**
@@ -511,8 +535,8 @@ public class GameStateStorageUtil {
      * @param adminUniqueId the unique id of the admin
      * @throws ConfigIOException If there is an issue saving the game state
      */
-    public void removeAdmin(UUID adminUniqueId) throws SQLException {
-        state.removeAdmin(adminUniqueId);
+    public CompletableFuture<Void> removeAdmin(UUID adminUniqueId) {
+        return state.removeAdmin(adminUniqueId);
     }
     
     public void setIGN(UUID uuid, String ign) throws SQLException {
@@ -521,7 +545,6 @@ public class GameStateStorageUtil {
             return;
         }
         player.setName(ign);
-        // TODO: should we update the name in the database here, or separately outside? Last decision was to keep it here
         gameStateService.migrateIgn(uuid.toString(), ign);
     }
 }

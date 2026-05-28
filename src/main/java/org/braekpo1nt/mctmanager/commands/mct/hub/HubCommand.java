@@ -11,6 +11,8 @@ import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.CompletableFuture;
+
 public class HubCommand implements BrigadierSubCommand {
     
     private final @NotNull GameManager gameManager;
@@ -22,25 +24,25 @@ public class HubCommand implements BrigadierSubCommand {
     @Override
     public @NotNull Permissioned<CommandSourceStack> create() {
         return Permissioned.literal("hub")
-                .executes(BrigadierAdapters.wraps(this::executeTpToHub))
+                .executes(BrigadierAdapters.wrapsFuture(this::executeTpToHub))
                 .then(Permissioned.literal("menu")
                         .executes(BrigadierAdapters.wraps(this::executeMenu))
                 )
                 ;
     }
     
-    private @NotNull CommandResult executeTpToHub(@NotNull CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CompletableFuture<CommandResult> executeTpToHub(@NotNull CommandContext<CommandSourceStack> ctx) {
         if (!(ctx.getSource().getSender() instanceof Player player)) {
-            return CommandResult.failure("This command can only be run by a player");
+            return CommandResult.failure("This command can only be run by a player").asFuture();
         }
         Participant participant = gameManager.getOnlineParticipant(player.getUniqueId());
         if (participant != null) {
             return gameManager.returnParticipantToHub(participant.getUniqueId());
         }
         if (gameManager.isAdmin(player.getUniqueId())) {
-            return gameManager.returnAdminToHub(player);
+            return gameManager.returnAdminToHub(player).asFuture();
         }
-        return CommandResult.failure("Only participants and admins can use this command");
+        return CommandResult.failure("Only participants and admins can use this command").asFuture();
     }
     
     private @NotNull CommandResult executeMenu(@NotNull CommandContext<CommandSourceStack> ctx) {

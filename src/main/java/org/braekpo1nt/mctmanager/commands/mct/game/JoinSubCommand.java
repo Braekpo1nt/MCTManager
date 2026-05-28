@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class JoinSubCommand implements BrigadierSubCommand {
     
@@ -33,59 +34,61 @@ public class JoinSubCommand implements BrigadierSubCommand {
     @Override
     public @NotNull Permissioned<CommandSourceStack> create() {
         return Permissioned.literal("join")
-                .executes(BrigadierAdapters.wraps(this::executeJoin))
+                .executes(BrigadierAdapters.wrapsFuture(this::executeJoin))
                 .then(Commands.argument(GAME_ID_ARG, new GameIdArgumentType(gameManager, true))
-                        .executes(BrigadierAdapters.wraps(this::executeJoinGame))
+                        .executes(BrigadierAdapters.wrapsFuture(this::executeJoinGame))
                         .then(Commands.argument("configFile", new ConfigFileArgumentType(gameManager, true, GAME_ID_ARG))
-                                .executes(BrigadierAdapters.wraps(this::executeJoinGameConfig))
+                                .executes(BrigadierAdapters.wrapsFuture(this::executeJoinGameConfig))
                         )
                 )
                 ;
     }
     
-    private @NotNull CommandResult executeJoin(@NotNull CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CompletableFuture<CommandResult> executeJoin(@NotNull CommandContext<CommandSourceStack> ctx) {
         List<GameInstanceId> activeGameIds = gameManager.getActiveGameIds();
         if (activeGameIds.size() == 1) {
             GameInstanceId id = activeGameIds.getFirst();
             if (!(ctx.getSource().getSender() instanceof Player player)) {
-                return CommandResult.failure("Only a player can use this command");
+                return CommandResult.failure("Only a player can use this command").asFuture();
             }
             return joinToGame(player, id.getGameType(), id.getConfigFile());
         } else if (activeGameIds.isEmpty()) {
             return CommandResult.failure(Component.empty()
-                    .append(Component.text("No games are active right now")));
+                    .append(Component.text("No games are active right now"))
+            ).asFuture();
         } else {
             return CommandResult.failure(Component.empty()
-                    .append(Component.text("Multiple games are active right now, please specify a game type")));
+                    .append(Component.text("Multiple games are active right now, please specify a game type"))
+            ).asFuture();
         }
     }
     
-    private @NotNull CommandResult executeJoinGame(@NotNull CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CompletableFuture<CommandResult> executeJoinGame(@NotNull CommandContext<CommandSourceStack> ctx) {
         if (!(ctx.getSource().getSender() instanceof Player player)) {
-            return CommandResult.failure("Only a player can use this command");
+            return CommandResult.failure("Only a player can use this command").asFuture();
         }
         GameType gameType = ctx.getArgument(GAME_ID_ARG, GameType.class);
         return joinToGame(player, gameType, null);
     }
     
-    private @NotNull CommandResult executeJoinGameConfig(@NotNull CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CompletableFuture<CommandResult> executeJoinGameConfig(@NotNull CommandContext<CommandSourceStack> ctx) {
         if (!(ctx.getSource().getSender() instanceof Player player)) {
-            return CommandResult.failure("Only a player can use this command");
+            return CommandResult.failure("Only a player can use this command").asFuture();
         }
         GameType gameType = ctx.getArgument(GAME_ID_ARG, GameType.class);
         String configFile = ctx.getArgument("configFile", String.class);
         return joinToGame(player, gameType, configFile);
     }
     
-    public @NotNull CommandResult joinToGame(@NotNull Player player, @NotNull GameType gameType, @Nullable String configFile) {
+    public @NotNull CompletableFuture<CommandResult> joinToGame(@NotNull Player player, @NotNull GameType gameType, @Nullable String configFile) {
         Participant participant = gameManager.getOnlineParticipant(player.getUniqueId());
         if (participant != null) {
             return gameManager.joinParticipantToGame(gameType, configFile, participant.getUniqueId());
         }
         
         if (gameManager.isAdmin(player.getUniqueId())) {
-            return gameManager.joinAdminToGame(gameType, configFile, player);
+            return gameManager.joinAdminToGame(gameType, configFile, player).asFuture();
         }
-        return CommandResult.failure("Only a participant or an admin can use this command");
+        return CommandResult.failure("Only a participant or an admin can use this command").asFuture();
     }
 }

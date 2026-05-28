@@ -17,6 +17,8 @@ import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.CompletableFuture;
+
 public class ScoreAddCommand implements BrigadierSubCommand {
     
     private final @NotNull GameManager gameManager;
@@ -33,21 +35,21 @@ public class ScoreAddCommand implements BrigadierSubCommand {
                 .then(Permissioned.literal("participant")
                         .then(Permissioned.argument("participantName", new OfflineParticipantArgumentType(gameManager))
                                 .then(Permissioned.argument("score", IntegerArgumentType.integer())
-                                        .executes(BrigadierAdapters.wraps(this::executeAddParticipant))
+                                        .executes(BrigadierAdapters.wrapsFuture(this::executeAddParticipant))
                                 )
                         )
                 )
                 .then(Permissioned.literal("team")
                         .then(Permissioned.argument("teamId", new TeamArgumentType(gameManager))
                                 .then(Permissioned.argument("score", IntegerArgumentType.integer())
-                                        .executes(BrigadierAdapters.wraps(this::executeAddTeam))
+                                        .executes(BrigadierAdapters.wrapsFuture(this::executeAddTeam))
                                 )
                         )
                 )
                 ;
     }
     
-    private @NotNull CommandResult executeAddParticipant(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+    private @NotNull CompletableFuture<CommandResult> executeAddParticipant(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         OfflineParticipant offlineParticipant = ctx.getArgument("participantName", OfflineParticipantResolver.class)
                 .resolve();
         int score = ctx.getArgument("score", Integer.class);
@@ -58,14 +60,15 @@ public class ScoreAddCommand implements BrigadierSubCommand {
         if (currentScore + score < 0) {
             score = -currentScore;
         }
-        int newScore = gameManager.addScore(offlineParticipant, score, "add score to participant command");
-        return CommandResult.success(Component.empty()
-                .append(offlineParticipant.displayName())
-                .append(Component.text(" score is now "))
-                .append(Component.text(newScore)));
+        return gameManager.addScore(offlineParticipant, score, "add score to participant command")
+                .thenApply(newScore -> CommandResult.success(Component.empty()
+                        .append(offlineParticipant.displayName())
+                        .append(Component.text(" score is now "))
+                        .append(Component.text(newScore))))
+                ;
     }
     
-    private @NotNull CommandResult executeAddTeam(CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CompletableFuture<CommandResult> executeAddTeam(CommandContext<CommandSourceStack> ctx) {
         Team team = ctx.getArgument("teamId", Team.class);
         int score = ctx.getArgument("score", Integer.class);
         int currentScore = team.getScore();
@@ -75,10 +78,11 @@ public class ScoreAddCommand implements BrigadierSubCommand {
         if (currentScore + score < 0) {
             score = -currentScore;
         }
-        int newScore = gameManager.addScore(team, score, "add score to team command");
-        return CommandResult.success(Component.empty()
-                .append(team.getFormattedDisplayName())
-                .append(Component.text(" score is now "))
-                .append(Component.text(newScore)));
+        return gameManager.addScore(team, score, "add score to team command")
+                .thenApply(newScore -> CommandResult.success(Component.empty()
+                        .append(team.getFormattedDisplayName())
+                        .append(Component.text(" score is now "))
+                        .append(Component.text(newScore))))
+                ;
     }
 }

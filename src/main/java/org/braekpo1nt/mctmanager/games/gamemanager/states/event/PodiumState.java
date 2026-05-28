@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 public class PodiumState extends EventState {
     public PodiumState(@NotNull GameManager context, @NotNull ContextReference contextReference, @NotNull EventData eventData) {
@@ -54,8 +55,8 @@ public class PodiumState extends EventState {
     }
     
     @Override
-    public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
-        return CommandResult.failure("Can't start a game, the event is over.");
+    public CompletableFuture<CommandResult> startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
+        return CommandResult.failure("Can't start a game, the event is over.").asFuture();
     }
     
     @Override
@@ -64,8 +65,8 @@ public class PodiumState extends EventState {
     }
     
     @Override
-    public CommandResult modifyMaxGames(int newMaxGames) {
-        return CommandResult.failure(Component.text("The event is over, can't change the max games."));
+    public CompletableFuture<CommandResult> modifyMaxGames(int newMaxGames) {
+        return CommandResult.failure(Component.text("The event is over, can't change the max games.")).asFuture();
     }
     
     @Override
@@ -79,25 +80,27 @@ public class PodiumState extends EventState {
     }
     
     @Override
-    public void onParticipantJoin(@NotNull MCTParticipant participant) {
-        super.onParticipantJoin(participant);
+    public CompletableFuture<Void> onParticipantJoin(@NotNull MCTParticipant participant) {
+        CompletableFuture<Void> joinFuture = super.onParticipantJoin(participant);
         if (eventData.getWinningTeam() == null) {
-            return;
+            return joinFuture;
         }
         if (participant.getTeamId().equals(eventData.getWinningTeam().getTeamId())) {
             participant.teleport(config.getPodium());
             eventData.giveCrown(participant);
         }
+        return joinFuture;
     }
     
     @Override
-    public void onParticipantQuit(@NotNull MCTParticipant participant) {
+    public CompletableFuture<Void> onParticipantQuit(@NotNull MCTParticipant participant) {
+        // TODO: this looks like participants who quit in the podium state, when there isn't a winning team, won't be properly quit
         if (eventData.getWinningTeam() == null) {
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         if (participant.getTeamId().equals(eventData.getWinningTeam().getTeamId())) {
             eventData.removeCrown(participant);
         }
-        super.onParticipantQuit(participant);
+        return super.onParticipantQuit(participant);
     }
 }

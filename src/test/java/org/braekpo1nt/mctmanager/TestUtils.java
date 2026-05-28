@@ -12,6 +12,8 @@ import net.kyori.adventure.text.ScoreComponent;
 import net.kyori.adventure.text.SelectorComponent;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TranslatableComponent;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.FailureCommandResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
@@ -27,6 +29,9 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestUtils {
     
@@ -130,5 +135,19 @@ public class TestUtils {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    
+    public static void futureIsNotType(CompletableFuture<CommandResult> future, Class<?> type) {
+        assertThat(future).isNotCompletedExceptionally();
+        assertThat(future.join()).isNotInstanceOf(type);
+    }
+    
+    public static void futureIsNotFailure(CompletableFuture<CommandResult> future) {
+        futureIsNotType(future, FailureCommandResult.class);
+    }
+    
+    public static <T> void futureIsNotNull(CompletableFuture<T> future) {
+        assertThat(future).isNotCompletedExceptionally();
+        assertThat(future.join()).isNotNull();
     }
 }

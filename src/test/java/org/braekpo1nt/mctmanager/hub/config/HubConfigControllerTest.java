@@ -29,6 +29,7 @@ public class HubConfigControllerTest {
         ServerMock server = MockBukkit.mock(new MyCustomServerMock());
         server.getLogger().setLevel(Level.OFF);
         plugin = MockBukkit.load(MockMain.class);
+        Main.logger().setLevel(Level.SEVERE);
         controller = new HubConfigController(plugin.getDataFolder());
     }
     

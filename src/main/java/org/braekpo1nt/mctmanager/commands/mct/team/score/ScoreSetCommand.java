@@ -17,6 +17,8 @@ import org.braekpo1nt.mctmanager.participant.OfflineParticipant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.CompletableFuture;
+
 public class ScoreSetCommand implements BrigadierSubCommand {
     
     private final @NotNull GameManager gameManager;
@@ -31,61 +33,63 @@ public class ScoreSetCommand implements BrigadierSubCommand {
                 .then(Permissioned.literal("participant")
                         .then(Permissioned.argument("participantName", new OfflineParticipantArgumentType(gameManager))
                                 .then(Permissioned.argument("score", IntegerArgumentType.integer(0))
-                                        .executes(BrigadierAdapters.wraps(this::executeSetParticipant))
+                                        .executes(BrigadierAdapters.wrapsFuture(this::executeSetParticipant))
                                 )
                         )
                 )
                 .then(Permissioned.literal("team")
                         .then(Permissioned.argument("teamId", new TeamArgumentType(gameManager))
                                 .then(Permissioned.argument("score", IntegerArgumentType.integer(0))
-                                        .executes(BrigadierAdapters.wraps(this::executeSetTeam))
+                                        .executes(BrigadierAdapters.wrapsFuture(this::executeSetTeam))
                                 )
                         )
                 )
                 .then(Permissioned.literal("all")
                         .then(Permissioned.argument("score", IntegerArgumentType.integer(0))
-                                .executes(BrigadierAdapters.wraps(this::executeSetAll))
+                                .executes(BrigadierAdapters.wrapsFuture(this::executeSetAll))
                         )
                 )
                 ;
     }
     
-    private @NotNull CommandResult executeSetParticipant(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+    private @NotNull CompletableFuture<CommandResult> executeSetParticipant(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         OfflineParticipant offlineParticipant = ctx.getArgument("participantName", OfflineParticipantResolver.class)
                 .resolve();
         int score = ctx.getArgument("score", Integer.class);
         if (score < 0) {
-            return CommandResult.failure(Component.text("Score must be at least 0"));
+            return CommandResult.failure(Component.text("Score must be at least 0")).asFuture();
         }
-        int newScore = gameManager.setScore(offlineParticipant, score, "set score of participant command");
-        return CommandResult.success(Component.empty()
-                .append(offlineParticipant.displayName())
-                .append(Component.text(" score is now "))
-                .append(Component.text(newScore)));
+        return gameManager.setScore(offlineParticipant, score, "set score of participant command")
+                .thenApply(newScore -> CommandResult.success(Component.empty()
+                        .append(offlineParticipant.displayName())
+                        .append(Component.text(" score is now "))
+                        .append(Component.text(newScore))))
+                ;
     }
     
-    private @NotNull CommandResult executeSetTeam(CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CompletableFuture<CommandResult> executeSetTeam(CommandContext<CommandSourceStack> ctx) {
         Team team = ctx.getArgument("teamId", Team.class);
         int score = ctx.getArgument("score", Integer.class);
         if (score < 0) {
-            return CommandResult.failure(Component.text("Score must be at least 0"));
+            return CommandResult.failure(Component.text("Score must be at least 0")).asFuture();
         }
-        int newScore = gameManager.setScore(team, score, "set score of team command");
-        return CommandResult.success(Component.empty()
-                .append(team.getFormattedDisplayName())
-                .append(Component.text(" score is now "))
-                .append(Component.text(newScore)));
+        return gameManager.setScore(team, score, "set score of team command")
+                .thenApply(newScore -> CommandResult.success(Component.empty()
+                        .append(team.getFormattedDisplayName())
+                        .append(Component.text(" score is now "))
+                        .append(Component.text(newScore))))
+                ;
     }
     
-    private @NotNull CommandResult executeSetAll(CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CompletableFuture<CommandResult> executeSetAll(CommandContext<CommandSourceStack> ctx) {
         int score = ctx.getArgument("score", Integer.class);
         if (score < 0) {
-            return CommandResult.failure(Component.text("Score must be at least 0"));
+            return CommandResult.failure(Component.text("Score must be at least 0")).asFuture();
         }
-        gameManager.setScoreAll(score, "set score all command");
+        return gameManager.setScoreAll(score, "set score all command")
+                .thenApply(v -> CommandResult.success(Component.empty()
+                        .append(Component.text("All team and participant scores have been set to "))
+                        .append(Component.text(score))));
         
-        return CommandResult.success(Component.empty()
-                .append(Component.text("All team and participant scores have been set to "))
-                .append(Component.text(score)));
     }
 }

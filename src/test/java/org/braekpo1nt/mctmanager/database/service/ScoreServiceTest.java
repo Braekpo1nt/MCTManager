@@ -24,7 +24,7 @@ class ScoreServiceTest {
     void setup() throws SQLException, IOException {
         dbPath = Files.createTempFile("test-db-", "mctmanager.db");
         String sqlitePath = dbPath.toAbsolutePath().toString();
-        database = new Database(sqlitePath);
+        database = new Database(sqlitePath, Runnable::run);
         
         Logger logger = Logger.getLogger("test");
         logger.setLevel(Level.OFF);

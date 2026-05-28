@@ -142,7 +142,6 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
      * using {@link #quitOnlineMember(UUID)}.
      * <br>
      * Warning, this should not be used inside of games, only the GameManager.
-     * TODO: prevent users from accidentally leaving players from teams outside the GameManager
      * @param uuid the UUID of the old member
      * @return true if the given UUID was previously a member of this team
      * (see {@link #isMember(UUID)}), false otherwise
@@ -160,7 +159,6 @@ public class MCTTeam extends TeamInfo implements AudienceDelegate {
      * Remove multiple old members of this team
      * <br>
      * Warning, this should not be used inside of games, only the GameManager.
-     * TODO: prevent users from accidentally leaving players from teams outside the GameManager
      * @param uuids the UUIDs of the members to remove from this team
      * @return true if any members were removed, false otherwise
      */

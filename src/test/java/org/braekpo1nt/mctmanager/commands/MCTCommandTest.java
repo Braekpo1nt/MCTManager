@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.commands;
 
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MockMain;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.commands.mct.MCTCommand;
@@ -39,6 +40,7 @@ class MCTCommandTest {
             ex.printStackTrace();
             System.exit(1);
         }
+        Main.logger().setLevel(Level.SEVERE);
         gameManager = plugin.getGameManager();
         command = plugin.getCommand("mct");
     }

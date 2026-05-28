@@ -29,7 +29,9 @@ import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetDTO;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.legacy.LegacyPresetController;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.legacy.LegacyPresetDTO;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -37,6 +39,10 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 
 /**
@@ -82,14 +88,14 @@ public class MCTDebugCommand implements BrigadierCommand, Listener {
                 .then(Permissioned.literal("rebuild")
                         .then(Permissioned.literal("event")
                                 .then(Commands.argument("eventId", new EventInfoArgumentType(gameManager.getEventService()))
-                                        .executes(BrigadierAdapters.wraps(this::executeRebuildEvent))
+                                        .executes(BrigadierAdapters.wrapsFuture(this::executeRebuildEvent))
                                 )
                         )
                         .then(Permissioned.literal("maintenance")
-                                .executes(BrigadierAdapters.wraps(this::executeRebuildMaintenance))
+                                .executes(BrigadierAdapters.wrapsFuture(this::executeRebuildMaintenance))
                         )
                         .then(Permissioned.literal("practice")
-                                .executes(BrigadierAdapters.wraps(this::executeRebuildPractice))
+                                .executes(BrigadierAdapters.wrapsFuture(this::executeRebuildPractice))
                         )
                 )
                 .then(Permissioned.literal("totals")
@@ -180,42 +186,60 @@ public class MCTDebugCommand implements BrigadierCommand, Listener {
     }
     
     private @NotNull CompletableFuture<CommandResult> executeAsyncTest(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        ExecutorService databaseExecutor = Executors.newFixedThreadPool(
+                4,
+                r -> {
+                    Thread thread = new Thread(r);
+                    thread.setName("mctmanager-db-worker");
+                    thread.setDaemon(true);
+                    return thread;
+                });
+        Executor mainThreadExecutor = plugin.getServer().getScheduler().getMainThreadExecutor(plugin);
+        CommandSender sender = ctx.getSource().getSender();
+        if (!(sender instanceof Player player)) {
+            return CommandResult.failure("Failed").asFuture();
+        }
         return CompletableFuture.supplyAsync(() -> {
-            ctx.getSource().getSender().sendMessage(Component.text("Async message"));
-            return CommandResult.success(Component.text("Sync message"));
-        });
+                    try {
+                        return gameManager.getGameStateService().getPlayerIGNs().size();
+                    } catch (SQLException e) {
+                        throw new CompletionException(e);
+                    }
+                }, databaseExecutor)
+                .thenComposeAsync(size ->
+                        CompletableFuture.supplyAsync(() -> {
+                            player.teleport(player.getLocation().clone().add(new Vector(0, 10, 0)));
+                            sender.sendMessage(Component.text("size is ")
+                                    .append(Component.text(size)));
+                            return CommandResult.success(Component.text("message 2"));
+                        }, mainThreadExecutor)
+                )
+                ;
     }
     
-    private @NotNull CommandResult executeRebuildEvent(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+    private @NotNull CompletableFuture<CommandResult> executeRebuildEvent(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         EventInfoResolver resolver = ctx.getArgument("eventId", EventInfoResolver.class);
         try {
             EventInfo eventInfo = resolver.resolve();
-            gameManager.getGameStateService().rebuildEventMode(eventInfo.getEventId());
-            return CommandResult.success(Component.text("Loaded event mode"));
+            return gameManager.getGameStateService().rebuildEventMode(eventInfo.getEventId())
+                    .thenApply(v -> CommandResult.success(Component.text("Rebuilt event mode")))
+                    .exceptionally(e -> CommandResult.throwable("rebuild event mode", e));
         } catch (SQLException e) {
             Main.logger().log(Level.SEVERE, "An error occurred trying to rebuild practice mode", e);
-            return CommandResult.failure("An error occurred, see the console for more");
+            return CommandResult.failure("An error occurred, see the console for more").asFuture();
         }
     }
     
-    private @NotNull CommandResult executeRebuildMaintenance(CommandContext<CommandSourceStack> ctx) {
-        try {
-            gameManager.getGameStateService().rebuildMaintenanceMode();
-            return CommandResult.success(Component.text("Loaded maintenance mode"));
-        } catch (SQLException e) {
-            Main.logger().log(Level.SEVERE, "An error occurred trying to rebuild practice mode", e);
-            return CommandResult.failure("An error occurred, see the console for more");
-        }
+    private @NotNull CompletableFuture<CommandResult> executeRebuildMaintenance(CommandContext<CommandSourceStack> ctx) {
+        return gameManager.getGameStateService().rebuildMaintenanceMode()
+                .thenApply(v -> CommandResult.success(Component.text("Rebuilt maintenance mode")))
+                .exceptionally(e -> CommandResult.throwable("rebuild maintenance mode", e));
     }
     
-    private @NotNull CommandResult executeRebuildPractice(CommandContext<CommandSourceStack> ctx) {
-        try {
-            gameManager.getGameStateService().rebuildPracticeMode();
-            return CommandResult.success(Component.text("Loaded practice mode"));
-        } catch (SQLException e) {
-            Main.logger().log(Level.SEVERE, "An error occurred trying to rebuild practice mode", e);
-            return CommandResult.failure("An error occurred, see the console for more");
-        }
+    private @NotNull CompletableFuture<CommandResult> executeRebuildPractice(CommandContext<CommandSourceStack> ctx) {
+        return gameManager.getGameStateService().rebuildPracticeMode()
+                .thenApply(v -> CommandResult.success(Component.text("Rebuilt practice mode")))
+                .exceptionally(e -> CommandResult.throwable("rebuild practice mode", e));
     }
     
     private @NotNull CommandResult executeDebug(CommandContext<CommandSourceStack> ctx) {

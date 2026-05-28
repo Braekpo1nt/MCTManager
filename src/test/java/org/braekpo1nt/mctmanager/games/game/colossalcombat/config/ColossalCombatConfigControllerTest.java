@@ -31,6 +31,7 @@ public class ColossalCombatConfigControllerTest {
         ServerMock server = MockBukkit.mock(new MyCustomServerMock());
         server.getLogger().setLevel(Level.OFF);
         plugin = MockBukkit.load(MockMain.class);
+        Main.logger().setLevel(Level.SEVERE);
         controller = new ColossalCombatConfigController(plugin.getDataFolder(), GameType.FINAL.getId());
         configFolder = new File(plugin.getDataFolder(), GameType.FINAL.getId());
         configFolder.mkdirs();

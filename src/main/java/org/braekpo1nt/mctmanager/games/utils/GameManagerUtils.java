@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 public class GameManagerUtils {
@@ -182,48 +183,56 @@ public class GameManagerUtils {
      * @param colorString the string representing the team's color
      * @return a comprehensive message about the success or failure of the addition of the given team
      */
-    public static CommandResult addTeam(GameManager gameManager, @NotNull String teamId, @NotNull String teamDisplayName, @NotNull String colorString) {
+    public static CompletableFuture<CommandResult> addTeam(GameManager gameManager, @NotNull String teamId, @NotNull String teamDisplayName, @NotNull String colorString) {
         Team existingTeam = gameManager.getTeam(teamId);
         if (existingTeam != null) {
             return CommandResult.failure(Component.text("A team already exists with the teamId \"")
-                    .append(Component.text(teamId))
-                    .append(Component.text("\"")));
+                            .append(Component.text(teamId))
+                            .append(Component.text("\"")))
+                    .asFuture();
         }
         if (teamId.equals(GameManager.ADMIN_TEAM)) {
             return CommandResult.failure(Component.empty()
-                    .append(Component.text(teamId)
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" cannot be "))
-                    .append(Component.text(GameManager.ADMIN_TEAM)
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" because that is reserved for the admin team.")));
+                            .append(Component.text(teamId)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" cannot be "))
+                            .append(Component.text(GameManager.ADMIN_TEAM)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" because that is reserved for the admin team.")))
+                    .asFuture();
         }
         if (!GameManagerUtils.validTeamId(teamId)) {
             return CommandResult.failure(Component.text("Provide a valid team name\n")
-                    .append(Component.text(
-                            "Allowed characters: -, +, ., _, A-Z, a-z, and 0-9")));
+                            .append(Component.text(
+                                    "Allowed characters: -, +, ., _, A-Z, a-z, and 0-9")))
+                    .asFuture();
         }
         
         if (teamDisplayName.isEmpty()) {
-            return CommandResult.failure("Display name can't be blank");
+            return CommandResult.failure("Display name can't be blank")
+                    .asFuture();
         }
         
         if (!ColorMap.hasNamedTextColor(colorString)) {
             return CommandResult.failure(Component.empty()
-                    .append(Component.text(colorString)
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" is not a recognized color")));
+                            .append(Component.text(colorString)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" is not a recognized color")))
+                    .asFuture();
         }
         
-        Team team = gameManager.addTeam(teamId, teamDisplayName, colorString);
-        if (team == null) {
-            return CommandResult.failure("Unable to create team (already exists)");
-        }
-        return CommandResult.success(Component.text("Created team ")
-                .append(team.getFormattedDisplayName())
-                .append(Component.text(" (teamId=\""))
-                .append(Component.text(teamId))
-                .append(Component.text("\")")));
+        return gameManager.addTeam(teamId, teamDisplayName, colorString)
+                .thenApply(team -> {
+                    if (team == null) {
+                        return CommandResult.failure("Unable to create team (already exists)");
+                    }
+                    return CommandResult.success(Component.text("Created team ")
+                            .append(team.getFormattedDisplayName())
+                            .append(Component.text(" (teamId=\""))
+                            .append(Component.text(teamId))
+                            .append(Component.text("\")")));
+                })
+                ;
     }
     
     /**
@@ -232,13 +241,14 @@ public class GameManagerUtils {
      * @param teamId the teamId of the team to remove. Must be a valid teamId.
      * @return a CommandResult detailing what happened.
      */
-    public static CommandResult removeTeam(@NotNull GameManager gameManager, @NotNull String teamId) {
+    public static CompletableFuture<CommandResult> removeTeam(@NotNull GameManager gameManager, @NotNull String teamId) {
         Team existingTeam = gameManager.getTeam(teamId);
         if (existingTeam == null) {
             return CommandResult.failure(Component.text("Team ")
-                    .append(Component.text(teamId)
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" does not exist")));
+                            .append(Component.text(teamId)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" does not exist")))
+                    .asFuture();
         }
         return gameManager.removeTeam(teamId);
     }
@@ -468,26 +478,35 @@ public class GameManagerUtils {
         private final String teamId;
     }
     
+    private static boolean presetApplyLock = false;
+    
     /**
      * @param opts the options
      * @return a comprehensive {@link CompositeCommandResult} including every {@link CommandResult} of the (perhaps
      * many) operations performed here.
+     * // TODO: this is architecturally sound, but very difficult to read. Improve readability.
      */
-    public static @NotNull CommandResult applyPreset(
+    public static @NotNull CompletableFuture<CommandResult> applyPreset(
             @NotNull Main plugin,
             @NotNull GameManager gameManager,
             @NotNull PresetStorageUtil storageUtil,
             @NotNull File presetFile,
             @NotNull CommandSender sender,
             @NotNull PresetOpts opts) {
+        if (presetApplyLock) {
+            return CommandResult.failure("A preset is currently being applied, please wait for its completion.").asFuture();
+        }
+        presetApplyLock = true;
         Preset preset;
         try {
             preset = storageUtil.loadPreset(presetFile);
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, String.format("Could not load preset. %s", e.getMessage()), e);
+            presetApplyLock = false;
             return CommandResult.failure(Component.empty()
-                    .append(Component.text("Error occurred loading preset. See console for details: "))
-                    .append(Component.text(e.getMessage())));
+                            .append(Component.text("Error occurred loading preset. See console for details: "))
+                            .append(Component.text(e.getMessage())))
+                    .asFuture();
         }
         
         
@@ -508,79 +527,96 @@ public class GameManagerUtils {
         }
         
         // check if they want to overwrite or merge the game state
+        CompletableFuture<List<CommandResult>> chain = CompletableFuture.completedFuture(results);
         if (opts.override()) {
-            Main.logf("Overriding with preset");
             // remove all existing teams and leave all existing players
             int oldParticipantCount = offlineParticipants.size();
             Set<String> teamIds = gameManager.getTeamIds();
             int oldTeamCount = teamIds.size();
             for (String teamId : teamIds) {
-                Main.logf("attempting to remove team %s", teamId);
-                results.add(removeTeam(gameManager, teamId));
+                chain = chain.thenComposeAsync(commandResults -> {
+                    CompletableFuture<CommandResult> joinFuture = removeTeam(gameManager, teamId);
+                    return joinFuture.thenApply(result -> {
+                        commandResults.add(result);
+                        return commandResults;
+                    });
+                }, plugin.getMainThreadExecutor());
             }
-            results.add(CommandResult.success(Component.empty()
-                    .append(Component.text("Removed "))
-                    .append(Component.text(oldTeamCount))
-                    .append(Component.text(" team(s) and left "))
-                    .append(Component.text(oldParticipantCount))
-                    .append(Component.text(" participants"))));
+            chain = chain.thenApply(commandResults -> {
+                        commandResults.add(CommandResult.success(Component.empty()
+                                .append(Component.text("Removed "))
+                                .append(Component.text(oldTeamCount))
+                                .append(Component.text(" team(s) and left "))
+                                .append(Component.text(oldParticipantCount))
+                                .append(Component.text(" participants"))));
+                        return commandResults;
+                    }
+            );
         }
-        
+        chain = chain.exceptionally(e -> List.of(CommandResult.throwable("remove the teams", e)));
         // add all the teams
         int teamCount = preset.getTeamCount();
         int participantCount = preset.getParticipantCount();
         for (Preset.PresetTeam team : preset.getTeams()) {
-            Team realTeam = gameManager.getTeam(team.getTeamId());
-            if (realTeam != null) {
-                results.add(CommandResult.success(Component.empty()
-                        .append(realTeam.getFormattedDisplayName())
-                        .append(Component.text(" already exists."))
-                ));
-            } else {
-                CommandResult commandResult = addTeam(gameManager, team.getTeamId(), team.getDisplayName(), team.getColor());
-                results.add(commandResult);
-            }
+            chain = chain.thenComposeAsync(commandResults -> {
+                Team realTeam = gameManager.getTeam(team.getTeamId());
+                if (realTeam != null) {
+                    commandResults.add(CommandResult.success(Component.empty()
+                            .append(realTeam.getFormattedDisplayName())
+                            .append(Component.text(" already exists."))
+                    ));
+                    return CompletableFuture.completedFuture(commandResults);
+                } else {
+                    CompletableFuture<CommandResult> joinFuture = addTeam(gameManager, team.getTeamId(), team.getDisplayName(), team.getColor());
+                    return joinFuture.thenApply(result -> {
+                        commandResults.add(result);
+                        return commandResults;
+                    });
+                }
+            }, plugin.getMainThreadExecutor());
         }
-        
-        List<ParticipantInfo> participantInfos = new ArrayList<>(participantCount);
-        for (Preset.PresetTeam team : preset.getTeams()) {
-            for (Preset.PresetParticipant member : team.getMembers()) {
-                participantInfos.add(new ParticipantInfo(
-                        member.getUuid(),
-                        member.getIgn(),
-                        team.getTeamId()
-                ));
+        chain = chain.exceptionally(e -> List.of(CommandResult.throwable("create the teams", e)));
+        return chain.thenApplyAsync(v -> {
+            List<ParticipantInfo> participantInfos = new ArrayList<>(participantCount);
+            for (Preset.PresetTeam team : preset.getTeams()) {
+                for (Preset.PresetParticipant member : team.getMembers()) {
+                    participantInfos.add(new ParticipantInfo(
+                            member.getUuid(),
+                            member.getIgn(),
+                            team.getTeamId()
+                    ));
+                }
             }
-        }
-        
-        results.add(CommandResult.success(Component.empty()
-                .append(Component.text("Successfully added "))
-                .append(Component.text(teamCount))
-                .append(Component.text(" team(s)")))
-        );
-        
-        // join all the participants in a staggered formation to prevent crashes
-        results.add(CommandResult.success(Component.empty()
-                .append(Component.text(participantCount))
-                .append(Component.text(" participants to join. "))
-                .append(Component.text(DELAY_BETWEEN_CYCLE_IN_SECONDS))
-                .append(Component.text(" second delay before first wave of "))
-                .append(Component.text(Math.min(NUM_OF_PARTICIPANTS_PER_CYCLE, participantCount)))
-                .append(Component.text(" participants."))
-        ));
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            bulkJoinParticipants(
-                    participantInfos,
-                    plugin,
-                    gameManager,
-                    sender,
-                    opts,
-                    0,
-                    preset.getTeams()
+            
+            results.add(CommandResult.success(Component.empty()
+                    .append(Component.text("Successfully added "))
+                    .append(Component.text(teamCount))
+                    .append(Component.text(" team(s)")))
             );
-        }, 20 * DELAY_BETWEEN_CYCLE_IN_SECONDS);
-        
-        return CompositeCommandResult.all(results);
+            
+            // join all the participants in a staggered formation to prevent crashes
+            results.add(CommandResult.success(Component.empty()
+                    .append(Component.text(participantCount))
+                    .append(Component.text(" participants to join. "))
+                    .append(Component.text(DELAY_BETWEEN_CYCLE_IN_SECONDS))
+                    .append(Component.text(" second delay before first wave of "))
+                    .append(Component.text(Math.min(NUM_OF_PARTICIPANTS_PER_CYCLE, participantCount)))
+                    .append(Component.text(" participants."))
+            ));
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                bulkJoinParticipants(
+                        participantInfos,
+                        plugin,
+                        gameManager,
+                        sender,
+                        opts,
+                        0,
+                        preset.getTeams()
+                );
+            }, 20 * DELAY_BETWEEN_CYCLE_IN_SECONDS);
+            
+            return CompositeCommandResult.all(results);
+        }, plugin.getMainThreadExecutor());
     }
     
     /**
@@ -605,43 +641,55 @@ public class GameManagerUtils {
                     teams,
                     participantInfos.size()
             );
+            presetApplyLock = false;
             return;
         }
-        List<CommandResult> results = new ArrayList<>();
+        CompletableFuture<List<CommandResult>> chain = CompletableFuture.completedFuture(new ArrayList<>());
         // join the first 5 participants
         int maxIndex = Math.min(startIndex + NUM_OF_PARTICIPANTS_PER_CYCLE, participantInfos.size());
         int left = participantInfos.size() - maxIndex;
         for (int i = startIndex; i < maxIndex; i++) {
             ParticipantInfo participantInfo = participantInfos.get(i);
-            Player player = plugin.getServer().getPlayer(participantInfo.getUuid());
-            if (player != null) {
-                // they are online
-                results.add(gameManager.joinOnlineParticipant(player, participantInfo.getTeamId()));
-            } else {
-                // they are not online
-                results.add(gameManager.joinOfflineParticipant(participantInfo.getUuid(), participantInfo.getIgn(), participantInfo.getTeamId()));
-            }
+            chain = chain.thenComposeAsync(results -> {
+                CompletableFuture<CommandResult> joinFuture;
+                Player player = plugin.getServer().getPlayer(participantInfo.getUuid());
+                if (player != null) {
+                    // they are online
+                    joinFuture = gameManager.joinOnlineParticipant(player, participantInfo.getTeamId());
+                } else {
+                    // they are not online
+                    joinFuture = gameManager.joinOfflineParticipant(participantInfo.getUuid(), participantInfo.getIgn(), participantInfo.getTeamId());
+                }
+                return joinFuture.thenApply(result -> {
+                    results.add(result);
+                    return results;
+                });
+            }, plugin.getMainThreadExecutor());
         }
-        if (left > 0) {
-            results.add(CommandResult.success(Component.empty()
-                    .append(Component.text(left))
-                    .append(Component.text(" participants to go. "))
-                    .append(Component.text(DELAY_BETWEEN_CYCLE_IN_SECONDS))
-                    .append(Component.text(" second delay before next wave of "))
-                    .append(Component.text(Math.min(NUM_OF_PARTICIPANTS_PER_CYCLE, left)))
-                    .append(Component.text(" participants."))
-            ));
-        } else {
-            results.add(CommandResult.success(Component.empty()
-                    .append(Component.text("All "))
-                    .append(Component.text(participantInfos.size()))
-                    .append(Component.text(" participants joined. "))
-                    .append(Component.text(DELAY_BETWEEN_CYCLE_IN_SECONDS))
-                    .append(Component.text(" second delay before final preset options are applied."))
-            ));
-        }
-        CommandResult result = CompositeCommandResult.all(results);
-        CommandResult.showResult(sender, result);
+        chain.thenApply(results -> {
+                    if (left > 0) {
+                        results.add(CommandResult.success(Component.empty()
+                                .append(Component.text(left))
+                                .append(Component.text(" participants to go. "))
+                                .append(Component.text(DELAY_BETWEEN_CYCLE_IN_SECONDS))
+                                .append(Component.text(" second delay before next wave of "))
+                                .append(Component.text(Math.min(NUM_OF_PARTICIPANTS_PER_CYCLE, left)))
+                                .append(Component.text(" participants."))
+                        ));
+                    } else {
+                        results.add(CommandResult.success(Component.empty()
+                                .append(Component.text("All "))
+                                .append(Component.text(participantInfos.size()))
+                                .append(Component.text(" participants joined. "))
+                                .append(Component.text(DELAY_BETWEEN_CYCLE_IN_SECONDS))
+                                .append(Component.text(" second delay before final preset options are applied."))
+                        ));
+                    }
+                    return results;
+                })
+                .thenAccept(results -> {
+                    CommandResult.showResult(sender, CompositeCommandResult.all(results));
+                });
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             bulkJoinParticipants(
                     participantInfos,

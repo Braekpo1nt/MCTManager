@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * An MCT game.
@@ -16,11 +17,11 @@ import java.util.UUID;
 public interface MCTGame {
     GameType getType();
     
-    void stop();
+    CompletableFuture<Void> stop();
     
-    void onJoin(@NotNull Team team, @NotNull Participant participant);
+    CompletableFuture<Void> onJoin(@NotNull Team team, @NotNull Participant participant);
     
-    void onQuit(@NotNull String teamId, @NotNull UUID participantUUID);
+    CompletableFuture<Void> onQuit(@NotNull String teamId, @NotNull UUID participantUUID);
     
     void onAdminJoin(Player admin);
     
