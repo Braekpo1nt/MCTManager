@@ -384,16 +384,16 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
                 // killer.getKills() should return the new kill count, so it should never be 0. This is a precaution.
                 if (!allowRespawn() || killer.getKills() == 0) {
                     context.awardPoints(killer, config.getKillScore(), String.format("Killed \"%s\"", killed.getName()));
-                    }
-                } else {
-                    int killPoints = config.getKillScore() / killer.getKills();
-                    context.awardPoints(killer, killPoints, String.format("Killed \"%s\"", killed.getName()));
                 }
+            } else {
+                int killPoints = config.getKillScore() / killer.getKills();
+                context.awardPoints(killer, killPoints, String.format("Killed \"%s\"", killed.getName()));
             }
-            if (!allowRespawn()) {
-                List<SurvivalGamesParticipant> livingParticipants = getLivingParticipants();
-                for(SurvivalGamesParticipant livingParticipant : livingParticipants) {
-                    context.awardPoints(livingParticipant, config.getSurviveTeamScore()/8, String.format("Outlasted \"%s\"", killed.getName()));
+        }
+        if (!allowRespawn()) {
+            List<SurvivalGamesParticipant> livingParticipants = getLivingParticipants();
+            for (SurvivalGamesParticipant livingParticipant : livingParticipants) {
+                context.awardPoints(livingParticipant, config.getSurviveTeamScore() / 8, String.format("Outlasted \"%s\"", killed.getName()));
             }
         }
     }
