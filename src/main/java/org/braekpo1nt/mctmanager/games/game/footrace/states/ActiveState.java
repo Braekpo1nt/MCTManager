@@ -467,6 +467,9 @@ public class ActiveState extends FootRaceStateBase {
         if(placement > 3) {
             placementString = placement + "th";
         }
+        else if(placement == 3) {
+            placementString = placement + "rd";
+        }
         else if(placement == 2) {
             placementString = placement + "nd";
         }
