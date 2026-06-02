@@ -168,6 +168,7 @@ public class RoundManager {
     public void nextRound() {
         currentRoundIndex++;
         playedRounds++;
+        numberOfCompletedMatches = 0;
         currentRound = schedule.get(currentRoundIndex);
         played.addAll(currentRound);
     }
