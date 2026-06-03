@@ -56,6 +56,8 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.Scoreboard;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,6 +74,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -89,6 +93,8 @@ public class GameManager implements Listener {
     private final ScoreService scoreService;
     @Getter
     private final EventService eventService;
+    @Getter
+    private final Executor mainThreadExecutor;
     @Getter
     private final GameStateService gameStateService;
     // TODO: remove these getter and setter and make this a map like activeGames
@@ -146,13 +152,14 @@ public class GameManager implements Listener {
     @Getter
     private @NotNull HubConfig config;
     
-    public GameManager(Main plugin,
-                       Scoreboard mctScoreboard,
+    public GameManager(@NotNull Main plugin,
+                       @NotNull Scoreboard mctScoreboard,
                        @NotNull GameStateStorageUtil gameStateStorageUtil,
                        @NotNull SidebarFactory sidebarFactory,
                        @NotNull HubConfig config,
                        @NotNull Database database,
-                       @NotNull GameStateService gameStateService) {
+                       @NotNull GameStateService gameStateService,
+                       @NotNull Executor mainThreadExecutor) {
         this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.mctScoreboard = mctScoreboard;
@@ -167,6 +174,7 @@ public class GameManager implements Listener {
                 databaseMode,
                 database
         );
+        this.mainThreadExecutor = mainThreadExecutor;
         this.gameStateService = gameStateService;
         this.sidebarFactory = sidebarFactory;
         this.config = config;
@@ -186,6 +194,7 @@ public class GameManager implements Listener {
                 .adminEditors(this.adminEditors)
                 .plugin(this.plugin)
                 .gameStateStorageUtil(this.gameStateStorageUtil)
+                .mainThreadExecutor(this.mainThreadExecutor)
                 .sidebarFactory(this.sidebarFactory)
                 .sidebar(this.sidebar)
                 .leaderboardManagers(this.leaderboardManagers)
@@ -219,7 +228,7 @@ public class GameManager implements Listener {
             } catch (SQLException e) {
                 reportGameStateException("Assign the system_state description", e);
             }
-        });
+        }, plugin.getDatabaseExecutor());
     }
     
     public CommandResult switchMode(@NotNull Mode mode) {
@@ -384,7 +393,7 @@ public class GameManager implements Listener {
         }
     }
     
-    private void resolveUUIDandIGNerrors(Player player) {
+    private @NotNull CompletableFuture<Void> resolveUUIDandIGNerrors(Player player) {
         /*
         - check if the player's UUID is in the game state
           - if their uuid IS in the game state
@@ -412,7 +421,7 @@ public class GameManager implements Listener {
             String incorrectIGN = existingParticipant.getName();
             if (incorrectIGN.equals(correctIGN)) {
                 // their name is correct, nothing to do
-                return;
+                return CompletableFuture.completedFuture(null);
             }
             // if their name is incorrect
             // update the ign in allParticipants
@@ -434,7 +443,7 @@ public class GameManager implements Listener {
             } catch (SQLException e) {
                 reportGameStateException(String.format("migrate the ign of the player with uuid \"%s\" from \"%s\" to the correct ign \"%s\"", correctUUID, incorrectIGN, correctIGN), e);
             }
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         // if the UUID is NOT in the game state
         OfflineParticipant offlineParticipantWithIGN = getOfflineParticipant(correctIGN);
@@ -446,20 +455,30 @@ public class GameManager implements Listener {
             } catch (SQLException e) {
                 reportGameStateException(String.format("register new player with name \"%s\" and UUID \"%s\" in the database", correctIGN, correctUUID), e);
             }
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         // the participant with the wrong UUID but the correct IGN is in the game state
         // we need to migrate the uuid
         UUID incorrectUUID = offlineParticipantWithIGN.getUniqueId();
-        leaveParticipant(offlineParticipantWithIGN);
-        // resolve them in the database
-        try {
-            gameStateService.migrateUUID(incorrectUUID.toString(), correctUUID.toString(), correctIGN);
-        } catch (SQLException e) {
-            reportGameStateException(String.format("migrate player \"%s\" from UUID \"%s\" to the correct uuid \"%s\" in the database", correctIGN, incorrectUUID, correctUUID), e);
-        }
-        MCTTeam team = teams.get(offlineParticipantWithIGN.getTeamId());
-        state.joinParticipantToTeam(correctUUID, correctIGN, team);
+        return leaveParticipant(offlineParticipantWithIGN)
+                .thenRunAsync(() -> {
+                    // resolve them in the database
+                    try {
+                        gameStateService.migrateUUID(incorrectUUID.toString(), correctUUID.toString(), correctIGN);
+                    } catch (SQLException e) {
+                        throw new CompletionException(e);
+                    }
+                }, plugin.getDatabaseExecutor())
+                .exceptionally(e -> {
+                    reportGameStateException(String.format("migrate player \"%s\" from UUID \"%s\" to the correct uuid \"%s\" in the database", correctIGN, incorrectUUID, correctUUID), e);
+                    return null;
+                })
+                .thenComposeAsync(v -> {
+                    MCTTeam team = teams.get(offlineParticipantWithIGN.getTeamId());
+                    return state.joinOfflineParticipantToTeam(correctUUID, correctIGN, team);
+                }, mainThreadExecutor)
+                // TODO: the CommandResult of joinOfflineParticipant to team is ignored in this case, do something with it 
+                .thenApply(ignored -> null);
     }
     
     /**
@@ -595,19 +614,24 @@ public class GameManager implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        resolveUUIDandIGNerrors(player);
-        
-        if (isAdmin(player.getUniqueId())) {
-            state.onAdminJoin(event, player);
-            return;
-        }
-        OfflineParticipant offlineParticipant = allParticipants.get(player.getUniqueId());
-        if (offlineParticipant != null) {
-            MCTParticipant participant = new MCTParticipant(offlineParticipant, player);
-            state.onParticipantJoin(event, participant);
-            return;
-        }
-        state.onNonJoin(player);
+        resolveUUIDandIGNerrors(player)
+                .thenComposeAsync(v -> {
+                    if (isAdmin(player.getUniqueId())) {
+                        state.onAdminJoin(event, player);
+                        return CompletableFuture.completedFuture(null);
+                    }
+                    OfflineParticipant offlineParticipant = allParticipants.get(player.getUniqueId());
+                    if (offlineParticipant != null) {
+                        MCTParticipant participant = new MCTParticipant(offlineParticipant, player);
+                        return state.onParticipantJoin(event, participant);
+                    }
+                    state.onNonJoin(player);
+                    return CompletableFuture.completedFuture(null);
+                }, mainThreadExecutor)
+                .exceptionally(e -> {
+                    Main.logger().log(Level.SEVERE, String.format("An error occurred when the player %s joined (with UUID %s)", player.getName(), player.getUniqueId()), e);
+                    return null;
+                });
     }
     
     @EventHandler
@@ -660,10 +684,10 @@ public class GameManager implements Listener {
         return mctScoreboard;
     }
     
-    public CommandResult joinParticipantToGame(@NotNull GameType gameType, @Nullable String configFile, @NotNull UUID uuid) {
+    public CompletableFuture<CommandResult> joinParticipantToGame(@NotNull GameType gameType, @Nullable String configFile, @NotNull UUID uuid) {
         MCTParticipant mctParticipant = onlineParticipants.get(uuid);
         if (mctParticipant == null) {
-            return CommandResult.failure(Component.text("You are not a participant"));
+            return CommandResult.failure(Component.text("You are not a participant")).asFuture();
         }
         return state.joinParticipantToGame(gameType, configFile, mctParticipant);
     }
@@ -695,10 +719,10 @@ public class GameManager implements Listener {
         return state.joinAdminToGame(gameType, configFile, admin);
     }
     
-    public CommandResult returnParticipantToHub(@NotNull UUID uuid) {
+    public CompletableFuture<CommandResult> returnParticipantToHub(@NotNull UUID uuid) {
         MCTParticipant mctParticipant = onlineParticipants.get(uuid);
         if (mctParticipant == null) {
-            return CommandResult.failure(Component.text("You are not a participant"));
+            return CommandResult.failure(Component.text("You are not a participant")).asFuture();
         }
         return state.returnParticipantToHub(mctParticipant);
     }
@@ -717,7 +741,7 @@ public class GameManager implements Listener {
         return state.createSidebar();
     }
     
-    public @NotNull CommandResult loadGameState() {
+    public @NotNull CompletableFuture<CommandResult> loadGameState() {
         return state.loadGameState();
     }
     
@@ -725,7 +749,7 @@ public class GameManager implements Listener {
         return state.eventIsActive();
     }
     
-    public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
+    public CompletableFuture<CommandResult> startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
         return state.startGame(teamIds, gameAdmins, gameType, configFile);
     }
     
@@ -738,41 +762,44 @@ public class GameManager implements Listener {
         return eventService.getEventIds();
     }
     
-    public CommandResult createEvent(String eventId, Date eventDate, String plainTextName, Component componentName, boolean canonical) {
+    public CompletableFuture<CommandResult> createEvent(String eventId, Date eventDate, String plainTextName, Component componentName, boolean canonical) {
         Date now = new Date();
-        try {
-            boolean uniqueKey = eventService.addEventInfo(EventInfo.builder()
-                    .eventId(eventId)
-                    .plainTextName(plainTextName)
-                    .componentName(componentName)
-                    .eventDate(eventDate)
-                    .createdAt(now)
-                    .modifiedAt(now)
-                    .startedAt(null)
-                    .endedAt(null)
-                    .winnerTeamId(null)
-                    .canonical(canonical)
-                    .standingsVersion(0)
-                    .build());
-            if (!uniqueKey) {
-                return CommandResult.failure(Component.empty()
-                        .append(Component.text("An event already exists with the given id: "))
-                        .append(Component.text(eventId)
-                                .decorate(TextDecoration.BOLD))
-                );
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return CommandResult.success(Component.empty()
-                .append(Component.text("Created event \""))
-                .append(Component.text(eventId))
-                .append(Component.text("\" with plain-text name \""))
-                .append(Component.text(plainTextName))
-                .append(Component.text("\" and Component name \""))
-                .append(componentName)
-                .append(Component.text("\""))
-        );
+        return CompletableFuture.supplyAsync(() -> {
+                    try {
+                        boolean uniqueKey = eventService.addEventInfo(EventInfo.builder()
+                                .eventId(eventId)
+                                .plainTextName(plainTextName)
+                                .componentName(componentName)
+                                .eventDate(eventDate)
+                                .createdAt(now)
+                                .modifiedAt(now)
+                                .startedAt(null)
+                                .endedAt(null)
+                                .winnerTeamId(null)
+                                .canonical(canonical)
+                                .standingsVersion(0)
+                                .build());
+                        if (!uniqueKey) {
+                            return CommandResult.failure(Component.empty()
+                                    .append(Component.text("An event already exists with the given id: "))
+                                    .append(Component.text(eventId)
+                                            .decorate(TextDecoration.BOLD))
+                            );
+                        }
+                    } catch (SQLException e) {
+                        throw new CompletionException(e);
+                    }
+                    return CommandResult.success(Component.empty()
+                            .append(Component.text("Created event \""))
+                            .append(Component.text(eventId))
+                            .append(Component.text("\" with plain-text name \""))
+                            .append(Component.text(plainTextName))
+                            .append(Component.text("\" and Component name \""))
+                            .append(componentName)
+                            .append(Component.text("\""))
+                    );
+                }, plugin.getDatabaseExecutor())
+                .exceptionally(e -> CommandResult.throwable("add event info", e));
     }
     
     /**
@@ -816,11 +843,11 @@ public class GameManager implements Listener {
         }
     }
     
-    public CommandResult startEvent(@NotNull EventInfo eventInfo, int maxGames, int currentGameNumber) {
+    public CompletableFuture<CommandResult> startEvent(@NotNull EventInfo eventInfo, int maxGames, int currentGameNumber) {
         return state.startEvent(eventInfo, maxGames, currentGameNumber);
     }
     
-    public @NotNull CommandResult stopEvent() {
+    public @NotNull CompletableFuture<CommandResult> stopEvent() {
         return state.stopEvent();
     }
     
@@ -831,8 +858,23 @@ public class GameManager implements Listener {
      * @return a CommandResult indicating the success or failure of starting the game,
      * including a reason why the game didn't start if so.
      */
-    public CommandResult startGame(@NotNull GameType gameType, @NotNull String configFile) {
-        return state.startGame(teams.keySet(), onlineAdmins, gameType, configFile);
+    public CompletableFuture<CommandResult> startGame(@NotNull GameType gameType, @NotNull String configFile) {
+        return state.startGame(teams.keySet(), onlineAdmins, gameType, configFile); // TODO: this should call the other startGame() in this class or vice versa
+    }
+    
+    /**
+     * @deprecated just meant for a temporary test to make sure my fake thread safe checks work. Delete when found again
+     * and the associated test.
+     */
+    @Deprecated
+    public CompletableFuture<Void> illegalMove(Player player) {
+        return CompletableFuture.runAsync(() -> {
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 1, 1));
+                }, plugin.getDatabaseExecutor())
+                .exceptionally(e -> {
+                    Main.logger().log(Level.SEVERE, "An error occurred during illegalMove", e);
+                    throw new CompletionException("an error occurred during illegalMove", e);
+                });
     }
     
     public CommandResult startEditor(@NotNull GameType gameType, @NotNull String configFile) {
@@ -915,14 +957,14 @@ public class GameManager implements Listener {
         return team.isOnline();
     }
     
-    public CommandResult stopGame(@NotNull GameType gameType, @Nullable String configFile) {
+    public CompletableFuture<CommandResult> stopGame(@NotNull GameType gameType, @Nullable String configFile) {
         return state.stopGame(gameType, configFile);
     }
     
     /**
      * Stop all active games, if there are any
      */
-    public CommandResult stopAllGames() {
+    public CompletableFuture<CommandResult> stopAllGames() {
         return state.stopAllGames();
     }
     
@@ -1002,7 +1044,7 @@ public class GameManager implements Listener {
      * Remove the given team from the game
      * @param teamId teamId of the team to remove
      */
-    public CommandResult removeTeam(String teamId) {
+    public CompletableFuture<CommandResult> removeTeam(String teamId) {
         return state.removeTeam(teamId);
     }
     
@@ -1013,7 +1055,7 @@ public class GameManager implements Listener {
      * @param colorString the string representing the color
      * @return the newly created team, or null if the given team already exists or could not be created
      */
-    public Team addTeam(String teamId, String teamDisplayName, String colorString) {
+    public CompletableFuture<Team> addTeam(String teamId, String teamDisplayName, String colorString) {
         return state.addTeam(teamId, teamDisplayName, colorString);
     }
     
@@ -1034,14 +1076,14 @@ public class GameManager implements Listener {
      * @param ign The name of the participant to join to the given team
      * @param teamId The teamId of the team to join the participant to.
      */
-    public CommandResult joinOfflineParticipant(@NotNull UUID uuid, @NotNull String ign, @NotNull String teamId) {
+    public CompletableFuture<CommandResult> joinOfflineParticipant(@NotNull UUID uuid, @NotNull String ign, @NotNull String teamId) {
         MCTTeam team = teams.get(teamId);
-        return state.joinParticipantToTeam(uuid, ign, team);
+        return state.joinOfflineParticipantToTeam(uuid, ign, team);
     }
     
-    public CommandResult joinOnlineParticipant(@NotNull Player player, @NotNull String teamId) {
+    public CompletableFuture<CommandResult> joinOnlineParticipant(@NotNull Player player, @NotNull String teamId) {
         MCTTeam team = teams.get(teamId);
-        return state.joinParticipantToTeam(player, team);
+        return state.joinOnlineParticipantToTeam(player, team);
     }
     
     /**
@@ -1061,7 +1103,7 @@ public class GameManager implements Listener {
      * If a game is running, and the player is online, removes that player from the game as well.
      * @param offlineParticipant The participant to remove from their team
      */
-    public CommandResult leaveParticipant(@NotNull OfflineParticipant offlineParticipant) {
+    public CompletableFuture<CommandResult> leaveParticipant(@NotNull OfflineParticipant offlineParticipant) {
         return state.leaveParticipant(offlineParticipant);
     }
     
@@ -1167,7 +1209,7 @@ public class GameManager implements Listener {
      * @param description a description of why the score changed
      * @return the new score of the participant
      */
-    public int addScore(OfflineParticipant participant, int score, @NotNull String description) {
+    public CompletableFuture<Integer> addScore(OfflineParticipant participant, int score, @NotNull String description) {
         return setScore(participant, participant.getScore() + score, description);
     }
     
@@ -1178,7 +1220,7 @@ public class GameManager implements Listener {
      * @param description a description of why the score changed
      * @return the new score of the team
      */
-    public int addScore(@NotNull Team team, int score, @NotNull String description) {
+    public CompletableFuture<Integer> addScore(@NotNull Team team, int score, @NotNull String description) {
         return setScore(team, team.getScore() + score, description);
     }
     
@@ -1187,9 +1229,9 @@ public class GameManager implements Listener {
      * @param participant the participant to set the score of
      * @param value the score to set the participant to
      * @param description a description of why the score changed
-     * @return the new score of the participant
+     * @return the new score of the participant in a future after database operations are complete
      */
-    public int setScore(@NotNull OfflineParticipant participant, int value, @NotNull String description) {
+    public CompletableFuture<Integer> setScore(@NotNull OfflineParticipant participant, int value, @NotNull String description) {
         int oldScore = participant.getScore();
         int score = Math.max(0, value);
         OfflineParticipant updated = new OfflineParticipant(participant, score);
@@ -1203,37 +1245,33 @@ public class GameManager implements Listener {
         } else {
             updatedList = Collections.emptyList();
         }
-        gameStateStorageUtil.updateScore(updated);
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                gameStateStorageUtil.persistScore(updated);
-                int actualDelta = score - oldScore;
-                logScoreEvents(List.of(
-                        ScoreEvent.builder()
-                                .sourceType(ScoreEvent.SourceType.ADMIN)
-                                .gameSessionId(null)
-                                .participantUUID(participant.getUniqueId().toString())
-                                .teamId(participant.getTeamId())
-                                .pointsBase(actualDelta)
-                                .description(description)
-                                .createdAt(new Date())
-                                .build(),
-                        ScoreEvent.builder()
-                                .sourceType(ScoreEvent.SourceType.ADMIN)
-                                .gameSessionId(null)
-                                .participantUUID(null)
-                                .teamId(participant.getTeamId())
-                                .pointsBase(-actualDelta)
-                                .description(String.format("%s (team adjustment)", description))
-                                .createdAt(new Date())
-                                .build()
-                ));
-            } catch (SQLException e) {
-                reportGameStateException("setting a participant's score", e);
-            }
-        });
+        gameStateStorageUtil.persistScore(updated);
         state.updateScoreVisuals(Collections.singletonList(teams.get(updated.getTeamId())), updatedList);
-        return updated.getScore();
+        int newScore = updated.getScore();
+        return CompletableFuture.runAsync(() -> {
+                    int actualDelta = score - oldScore;
+                    logScoreEvents(List.of(
+                            ScoreEvent.builder()
+                                    .sourceType(ScoreEvent.SourceType.ADMIN)
+                                    .gameSessionId(null)
+                                    .participantUUID(participant.getUniqueId().toString())
+                                    .teamId(participant.getTeamId())
+                                    .pointsBase(actualDelta)
+                                    .description(description)
+                                    .createdAt(new Date())
+                                    .build(),
+                            ScoreEvent.builder()
+                                    .sourceType(ScoreEvent.SourceType.ADMIN)
+                                    .gameSessionId(null)
+                                    .participantUUID(null)
+                                    .teamId(participant.getTeamId())
+                                    .pointsBase(-actualDelta)
+                                    .description(String.format("%s (team adjustment)", description))
+                                    .createdAt(new Date())
+                                    .build()
+                    ));
+                }, plugin.getDatabaseExecutor())
+                .thenApply(v -> newScore);
     }
     
     /**
@@ -1243,35 +1281,31 @@ public class GameManager implements Listener {
      * @param description a description of why the score changed
      * @return the new score of the team
      */
-    public int setScore(Team team, int value, @NotNull String description) {
+    public CompletableFuture<Integer> setScore(Team team, int value, @NotNull String description) {
         int oldScore = team.getScore();
         int score = Math.max(0, value);
         MCTTeam old = teams.get(team.getTeamId());
         if (old == null) {
-            return 0;
+            return CompletableFuture.completedFuture(0);
         }
         MCTTeam updated = new MCTTeam(old, score);
         teams.put(old.getTeamId(), updated);
-        gameStateStorageUtil.updateScore(updated);
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                gameStateStorageUtil.persistScore(updated);
-                int actualDelta = score - oldScore;
-                logScoreEvent(ScoreEvent.builder()
-                        .sourceType(ScoreEvent.SourceType.ADMIN)
-                        .gameSessionId(null)
-                        .participantUUID(null)
-                        .teamId(team.getTeamId())
-                        .pointsBase(actualDelta)
-                        .description(description)
-                        .createdAt(new Date())
-                        .build());
-            } catch (SQLException e) {
-                reportGameStateException("adding score to team", e);
-            }
-        });
+        gameStateStorageUtil.persistScore(updated);
         state.updateScoreVisuals(Collections.singletonList(updated), Collections.emptyList());
-        return updated.getScore();
+        int newScore = updated.getScore();
+        return CompletableFuture.runAsync(() -> {
+                    int actualDelta = score - oldScore;
+                    logScoreEvent(ScoreEvent.builder()
+                            .sourceType(ScoreEvent.SourceType.ADMIN)
+                            .gameSessionId(null)
+                            .participantUUID(null)
+                            .teamId(team.getTeamId())
+                            .pointsBase(actualDelta)
+                            .description(description)
+                            .createdAt(new Date())
+                            .build());
+                }, plugin.getDatabaseExecutor())
+                .thenApply(v -> newScore);
     }
     
     /**
@@ -1299,8 +1333,9 @@ public class GameManager implements Listener {
     /**
      * Set all the teams and players scores to the given score
      * @param value the score to set to. If the score is negative, the score will be set to 0.
+     * @return a future containing database operations
      */
-    public void setScoreAll(int value, @NotNull String description) {
+    public CompletableFuture<Void> setScoreAll(int value, @NotNull String description) {
         int score = Math.max(0, value);
         // this list is for passing info to the logScoreEvents call below, and nothing else
         Map<String, AllScoreEntity> teamDeltas = new HashMap<>(teams.size());
@@ -1332,7 +1367,8 @@ public class GameManager implements Listener {
         }
         actualDeltas.addAll(teamDeltas.values());
         gameStateStorageUtil.updateScores(teams.values(), allParticipants.values());
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+        state.updateScoreVisuals(teams.values(), onlineParticipants.values());
+        return CompletableFuture.runAsync(() -> {
             Date date = new Date();
             List<ScoreEvent> scoreEvents = actualDeltas.stream()
                     .map(actualDelta -> ScoreEvent.builder()
@@ -1351,8 +1387,7 @@ public class GameManager implements Listener {
             } catch (Exception e) {
                 reportGameStateException("setting all scores", e);
             }
-        });
-        state.updateScoreVisuals(teams.values(), onlineParticipants.values());
+        }, plugin.getDatabaseExecutor());
     }
     
     /**
@@ -1369,7 +1404,7 @@ public class GameManager implements Listener {
      * participant, they are removed from their team and added as an admin.
      * @param newAdmin The player to add
      */
-    public CommandResult addAdmin(Player newAdmin) {
+    public CompletableFuture<CommandResult> addAdmin(Player newAdmin) {
         return state.addAdmin(newAdmin);
     }
     
@@ -1379,7 +1414,7 @@ public class GameManager implements Listener {
      * @param adminName Something to use as the admin name for console output, even if it's just the UUID of the offline
      * player
      */
-    public @NotNull CommandResult removeAdmin(@NotNull OfflinePlayer offlineAdmin, @NotNull String adminName) {
+    public @NotNull CompletableFuture<CommandResult> removeAdmin(@NotNull OfflinePlayer offlineAdmin, @NotNull String adminName) {
         return state.removeAdmin(offlineAdmin, adminName);
     }
     
@@ -1388,13 +1423,9 @@ public class GameManager implements Listener {
      * @return a list of all the names of all the admins, online or not, or an empty list
      * if there are no admins or if there is an error connecting to the database
      */
-    public @NotNull List<String> getAllAdminNames() {
-        try {
-            return gameStateStorageUtil.getAllAdminNames().values().stream()
-                    .toList();
-        } catch (SQLException e) {
-            return Collections.emptyList();
-        }
+    public @NotNull CompletableFuture<List<String>> getAllAdminNames() {
+        return gameStateStorageUtil.getAllAdminNames()
+                .thenApply(map -> map.values().stream().toList());
     }
     
     public @Nullable OfflinePlayer getOfflineAdmin(@NotNull UUID uuid) {
@@ -1478,7 +1509,7 @@ public class GameManager implements Listener {
         return state.redoGame(gameSessionId);
     }
     
-    public CommandResult modifyMaxGames(int newMaxGames) {
+    public CompletableFuture<CommandResult> modifyMaxGames(int newMaxGames) {
         return state.modifyMaxGames(newMaxGames);
     }
     
@@ -1515,7 +1546,7 @@ public class GameManager implements Listener {
     }
     
     // Test methods
-    public void reportGameStateException(String attemptedOperation, Exception e) {
+    public void reportGameStateException(String attemptedOperation, Throwable e) {
         Main.logger().severe(String.format("error while %s. See console log for error message.", attemptedOperation));
         messageAdmins(Component.empty()
                 .append(Component.text("error while "))

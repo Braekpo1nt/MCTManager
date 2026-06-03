@@ -32,6 +32,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.logging.Level;
 
 public abstract class EventState extends GameManagerState {
@@ -81,13 +83,11 @@ public abstract class EventState extends GameManagerState {
     }
     
     @Override
-    protected @NotNull CommandResult rebuildFromScores() throws SQLException {
-        try {
-            context.getGameStateService().rebuildEventMode(eventData.getEventInfo().getEventId());
-            return CommandResult.success(Component.text("Rebuilt game state from event mode"));
-        } catch (SQLException e) {
-            throw new SQLException("Unable to rebuild event mode", e);
-        }
+    protected @NotNull CompletableFuture<CommandResult> rebuildFromScores() {
+        return context.getGameStateService().rebuildEventMode(eventData.getEventInfo().getEventId())
+                .thenApply(v -> CommandResult.success(Component.text("Rebuilt game state from event mode")))
+                // no exceptionally block so that downstream can handle as they see fit
+                ;
     }
     
     @Override
@@ -107,40 +107,40 @@ public abstract class EventState extends GameManagerState {
     
     // event start
     @Override
-    public CommandResult startEvent(@NotNull EventInfo eventInfo, int maxGames, int currentGameNumber) {
-        return CommandResult.failure("Event is started");
+    public CompletableFuture<CommandResult> startEvent(@NotNull EventInfo eventInfo, int maxGames, int currentGameNumber) {
+        return CommandResult.failure("Event is started").asFuture();
     }
     
     @Override
-    public @NotNull CommandResult stopEvent() {
-        if (plugin.isEnabled()) {
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin,
-                    this::markEventAsStoppedInDatabase
-            );
-        } else {
-            markEventAsStoppedInDatabase();
-        }
-        return switchMode(Mode.MAINTENANCE);
+    public @NotNull CompletableFuture<CommandResult> stopEvent() {
+        return markEventAsStoppedInDatabase()
+                .exceptionally(e -> {
+                    Main.logger().log(Level.WARNING, "could not mark event as stopped in database");
+                    return null;
+                })
+                .thenApplyAsync(v -> switchMode(Mode.MAINTENANCE), plugin.getMainThreadExecutor());
     }
     
-    private void markEventAsStoppedInDatabase() {
-        try {
-            context.getEventService().updateActiveEvent(
-                    null,
-                    1,
-                    7
-            );
-        } catch (SQLException e) {
-            Main.logger().log(Level.WARNING, "Could not update active event ID in system_state table", e);
-        }
-        try {
-            context.getEventService().setEventEndTime(
-                    eventData.getEventInfo().getEventId(),
-                    new Date()
-            );
-        } catch (SQLException e) {
-            Main.logger().log(Level.WARNING, "Could set event end time", e);
-        }
+    private CompletableFuture<Void> markEventAsStoppedInDatabase() {
+        return CompletableFuture.runAsync(() -> {
+            try {
+                context.getEventService().updateActiveEvent(
+                        null,
+                        1,
+                        7
+                );
+            } catch (SQLException e) {
+                Main.logger().log(Level.WARNING, "Could not update active event ID in system_state table", e);
+            }
+            try {
+                context.getEventService().setEventEndTime(
+                        eventData.getEventInfo().getEventId(),
+                        new Date()
+                );
+            } catch (SQLException e) {
+                Main.logger().log(Level.WARNING, "Could set event end time", e);
+            }
+        }, plugin.getDatabaseExecutor());
     }
     
     @Override
@@ -236,30 +236,36 @@ public abstract class EventState extends GameManagerState {
     }
     
     @Override
-    public CommandResult modifyMaxGames(int newMaxGames) {
+    public CompletableFuture<CommandResult> modifyMaxGames(int newMaxGames) {
         if (newMaxGames < eventData.getCurrentGameNumber()) {
             return CommandResult.failure(Component.text("Can't set the max games for this event to less than ")
                     .append(Component.text(eventData.getCurrentGameNumber())
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" because "))
                     .append(Component.text(eventData.getCurrentGameNumber()))
-                    .append(Component.text(" game(s) have been played.")));
+                    .append(Component.text(" game(s) have been played."))
+            ).asFuture();
         }
         eventData.setMaxGames(newMaxGames);
         sidebar.updateLine("currentGame", getCurrentGameLine());
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                context.getEventService().updateActiveEvent(
-                        eventData.getEventInfo().getEventId(),
-                        eventData.getCurrentGameNumber(),
-                        eventData.getMaxGames()
-                );
-            } catch (SQLException e) {
-                Main.logger().log(Level.SEVERE, "Could not update active currentGameNumber", e);
-            }
-        });
-        return CommandResult.success(Component.text("Max games has been set to ")
-                .append(Component.text(newMaxGames)));
+        return CompletableFuture.runAsync(() -> {
+                    try {
+                        context.getEventService().updateActiveEvent(
+                                eventData.getEventInfo().getEventId(),
+                                eventData.getCurrentGameNumber(),
+                                eventData.getMaxGames()
+                        );
+                    } catch (SQLException e) {
+                        throw new CompletionException(e);
+                    }
+                }, plugin.getDatabaseExecutor())
+                .exceptionally(e -> {
+                    Main.logger().log(Level.SEVERE, "Could not update active event info", e);
+                    return null;
+                })
+                .thenCompose(v -> CommandResult.success(Component.text("Max games has been set to ")
+                        .append(Component.text(newMaxGames))).asFuture())
+                ;
     }
     
     /**
@@ -351,19 +357,21 @@ public abstract class EventState extends GameManagerState {
     
     // leave/join start
     @Override
-    public void onParticipantJoin(@NotNull MCTParticipant participant) {
-        super.onParticipantJoin(participant);
+    public CompletableFuture<Void> onParticipantJoin(@NotNull MCTParticipant participant) {
+        CompletableFuture<Void> joinFuture = super.onParticipantJoin(participant);
         sidebar.updateLine(participant.getUniqueId(), "currentGame", getCurrentGameLine());
         Date date = new Date();
-        context.logScoreEvent(ScoreEvent.builder()
-                .sourceType(ScoreEvent.SourceType.SYSTEM)
-                .gameSessionId(null)
-                .participantUUID(participant.getUniqueId().toString())
-                .teamId(participant.getTeamId())
-                .pointsBase(0)
-                .description("joined event")
-                .createdAt(date)
-                .build());
+        return joinFuture.thenRunAsync(() -> {
+            context.logScoreEvent(ScoreEvent.builder()
+                    .sourceType(ScoreEvent.SourceType.SYSTEM)
+                    .gameSessionId(null)
+                    .participantUUID(participant.getUniqueId().toString())
+                    .teamId(participant.getTeamId())
+                    .pointsBase(0)
+                    .description("joined event")
+                    .createdAt(date)
+                    .build());
+        }, plugin.getDatabaseExecutor());
     }
     // leave/join stop
     

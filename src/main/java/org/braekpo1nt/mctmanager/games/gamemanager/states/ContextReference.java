@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.Executor;
 
 /**
  * Used to pass info from {@link GameManager} to {@link GameManagerState}
@@ -41,6 +42,7 @@ public class ContextReference {
     private final @NotNull Map<UUID, GameInstanceId> adminEditors;
     private final @NotNull Main plugin;
     private final @NotNull GameStateStorageUtil gameStateStorageUtil;
+    private final @NotNull Executor mainThreadExecutor;
     private final @NotNull SidebarFactory sidebarFactory;
     private final @NotNull List<LeaderboardManager> leaderboardManagers;
     private final @NotNull Sidebar sidebar;

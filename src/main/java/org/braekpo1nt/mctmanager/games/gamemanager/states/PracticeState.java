@@ -16,9 +16,6 @@ import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfigController;
 import org.braekpo1nt.mctmanager.games.gamemanager.practice.PracticeManager;
 import org.braekpo1nt.mctmanager.games.gamemanager.states.event.ReadyUpState;
-import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetConfig;
-import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
-import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -29,16 +26,11 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.sql.SQLException;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 public class PracticeState extends GameManagerState {
     
@@ -46,6 +38,7 @@ public class PracticeState extends GameManagerState {
     
     public PracticeState(@NotNull GameManager context, @NotNull ContextReference contextReference) {
         super(context, contextReference);
+        // TODO: since enter() loads a new game state, assigning any participants to this at this time is redundant because they are instantly removed and re-added
         this.practiceManager = new PracticeManager(
                 context,
                 config.getPractice(),
@@ -59,21 +52,8 @@ public class PracticeState extends GameManagerState {
     public void enter() {
         setupSidebar();
         contextReference.getGameStateStorageUtil().practiceMode();
-        // TODO: remove this
-        PresetConfig presetConfig = config.getPractice().getPreset();
-        if (presetConfig != null) {
-            CommandResult commandResult = GameManagerUtils.applyPreset(
-                    plugin,
-                    context,
-                    new PresetStorageUtil(plugin.getDataFolder()),
-                    new File(new File(plugin.getDataFolder(), "preset"), presetConfig.getFile()),
-                    plugin.getServer().getConsoleSender(),
-                    presetConfig.toOpts()
-            );
-            context.messageAdmins(commandResult.getMessageOrEmpty());
-        }
-        CommandResult result = context.loadGameState();
-        CommandResult.showResult(contextReference.getPlugin().getServer().getConsoleSender(), result);
+        CompletableFuture<CommandResult> futureResult = context.loadGameState();
+        CommandResult.showResult(contextReference.getPlugin().getServer().getConsoleSender(), futureResult);
     }
     
     @Override
@@ -87,13 +67,11 @@ public class PracticeState extends GameManagerState {
     }
     
     @Override
-    protected @NotNull CommandResult rebuildFromScores() throws SQLException {
-        try {
-            context.getGameStateService().rebuildPracticeMode();
-            return CommandResult.success(Component.text("Rebuilt game state from practice mode"));
-        } catch (SQLException e) {
-            throw new SQLException("Unable to rebuild practice mode", e);
-        }
+    protected @NotNull CompletableFuture<CommandResult> rebuildFromScores() {
+        return context.getGameStateService().rebuildPracticeMode()
+                .thenApply(v -> CommandResult.success(Component.text("Rebuilt game state from practice mode")))
+                .exceptionally(e -> CommandResult.throwable("rebuild the practice game state", e))
+                ;
     }
     
     @Override
@@ -150,7 +128,6 @@ public class PracticeState extends GameManagerState {
             }
             case EVENT -> {
 //                practiceManager.cleanup();
-                // TODO: use the active event from SystemState
                 return CommandResult.success(Component.empty()
                         .append(Component.text("At this time, you must switch to event mode using the \"/mct event start\" command"))
                 );
@@ -171,22 +148,23 @@ public class PracticeState extends GameManagerState {
     }
     
     @Override
-    public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
+    public CompletableFuture<CommandResult> startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
         if (gameType == GameType.FARM_RUSH) {
             if (teamIds.size() > 1) {
                 return CommandResult.failure(Component.empty()
                         .append(Component.text("Only one team can play "))
                         .append(Component.text(gameType.getTitle()))
-                        .append(Component.text(" at a time during practice mode.")));
+                        .append(Component.text(" at a time during practice mode."))
+                ).asFuture();
             }
         }
         return super.startGame(teamIds, gameAdmins, gameType, configFile);
     }
     
     @Override
-    public CommandResult joinParticipantToGame(@NotNull GameType gameType, @Nullable String configFile, @NotNull MCTParticipant participant) {
+    public CompletableFuture<CommandResult> joinParticipantToGame(@NotNull GameType gameType, @Nullable String configFile, @NotNull MCTParticipant participant) {
         if (configFile == null) {
-            return CommandResult.failure(Component.text("Please provide a valid config file"));
+            return CommandResult.failure(Component.text("Please provide a valid config file")).asFuture();
         }
         GameInstanceId id = new GameInstanceId(gameType, configFile);
         if (config.getPractice().isRestrictGameJoining()) {
@@ -195,42 +173,46 @@ public class PracticeState extends GameManagerState {
                 return super.joinParticipantToGame(gameType, configFile, participant);
             } else { // you're trying to join another team's game
                 return CommandResult.failure(Component.empty()
-                        .append(Component.text("Can't join another group's game")));
+                        .append(Component.text("Can't join another group's game"))
+                ).asFuture();
             }
         } else {
             if (id.getGameType() == GameType.FARM_RUSH) {
                 return CommandResult.failure(Component.empty()
                         .append(Component.text("Only one team can play "))
                         .append(Component.text(id.getTitle()))
-                        .append(Component.text(" at a time.")));
+                        .append(Component.text(" at a time."))
+                ).asFuture();
             }
             return super.joinParticipantToGame(gameType, configFile, participant);
         }
     }
     
     @Override
-    public CommandResult startEvent(@NotNull EventInfo eventInfo, int maxGames, int currentGameNumber) {
+    public CompletableFuture<CommandResult> startEvent(@NotNull EventInfo eventInfo, int maxGames, int currentGameNumber) {
         try {
             EventConfig eventConfig = new EventConfigController(plugin.getDataFolder()).getConfig();
             practiceManager.cleanup();
             context.setState(new ReadyUpState(context, contextReference, eventInfo, eventConfig, maxGames, currentGameNumber));
-            return CommandResult.success(Component.text("Switched to event mode"));
+            return CommandResult.success(Component.text("Switched to event mode")).asFuture();
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, e.getMessage(), e);
             return CommandResult.failure(Component.text("Can't switch to event mode. Error loading config file. See console for details:\n")
-                    .append(Component.text(e.getMessage())));
+                    .append(Component.text(e.getMessage()))
+            ).asFuture();
         }
     }
     
     // leave/join start
     
     @Override
-    public void onParticipantJoin(@NotNull MCTParticipant participant) {
-        super.onParticipantJoin(participant);
+    public CompletableFuture<Void> onParticipantJoin(@NotNull MCTParticipant participant) {
+        CompletableFuture<Void> joinFuture = super.onParticipantJoin(participant);
         if (!participant.getWorld().equals(config.getWorld())) {
             participant.teleport(config.getSpawn());
         }
         practiceManager.addParticipant(participant);
+        return joinFuture;
     }
     
     @Override
@@ -244,26 +226,29 @@ public class PracticeState extends GameManagerState {
     }
     
     @Override
-    public void onParticipantQuit(@NotNull MCTParticipant participant) {
+    public CompletableFuture<Void> onParticipantQuit(@NotNull MCTParticipant participant) {
         practiceManager.removeParticipant(participant.getUniqueId());
-        super.onParticipantQuit(participant);
+        return super.onParticipantQuit(participant);
     }
     
     // leave/join stop
     
     // team/participants management start
     @Override
-    public Team addTeam(String teamId, String teamDisplayName, String colorString) {
-        Team team = super.addTeam(teamId, teamDisplayName, colorString);
-        if (team != null) {
-            MCTTeam mctTeam = teams.get(teamId);
-            practiceManager.addTeam(mctTeam);
-        }
-        return team;
+    public CompletableFuture<Team> addTeam(String teamId, String teamDisplayName, String colorString) {
+        return super.addTeam(teamId, teamDisplayName, colorString)
+                .thenApplyAsync(team -> {
+                    if (team != null) {
+                        MCTTeam mctTeam = teams.get(teamId);
+                        practiceManager.addTeam(mctTeam);
+                    }
+                    return team;
+                }, context.getMainThreadExecutor())
+                ;
     }
     
     @Override
-    public CommandResult removeTeam(String teamId) {
+    public CompletableFuture<CommandResult> removeTeam(String teamId) {
         practiceManager.removeTeam(teamId);
         return super.removeTeam(teamId);
     }

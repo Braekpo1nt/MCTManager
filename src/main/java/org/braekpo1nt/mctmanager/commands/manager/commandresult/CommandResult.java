@@ -1,14 +1,16 @@
 package org.braekpo1nt.mctmanager.commands.manager.commandresult;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.Usage;
-import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
@@ -38,28 +40,33 @@ public interface CommandResult {
         return new CompositeCommandResult(this, other);
     }
     
+    static <T extends Audience> void showResult(@NotNull Collection<T> senders, @NotNull CommandResult commandResult) {
+        Component message = commandResult.getMessage();
+        if (message != null) {
+            Audience.audience(senders).sendMessage(message);
+        }
+    }
+    
     /**
      * Convenience method for showing the message from a given {@link CommandResult}
      * @param sender the sender to show the result to
      * @param commandResult the {@link CommandResult} to get the {@link CommandResult#getMessage()} from
      */
-    static void showResult(@NotNull CommandSender sender, CommandResult commandResult) {
+    static void showResult(@NotNull Audience sender, @NotNull CommandResult commandResult) {
         Component message = commandResult.getMessage();
         if (message != null) {
             sender.sendMessage(message);
         }
-        if (commandResult instanceof AsynchronousCommandResult asyncResult) {
-            asyncResult.executeAsync(sender);
-        }
     }
     
-    static void showResult(@NotNull CommandSender sender, Main plugin, CompletableFuture<CommandResult> completableFuture) {
+    static void showResult(@NotNull Audience sender, @NotNull CompletableFuture<CommandResult> completableFuture) {
         completableFuture
-                .thenAccept(asyncResult -> {
-                    plugin.getServer().getScheduler().runTask(plugin, () -> {
-                        showResult(sender, asyncResult);
-                    });
-                });
+                .thenAccept(asyncResult -> showResult(sender, asyncResult));
+    }
+    
+    static <T extends Audience> void showResult(@NotNull Collection<T> senders, @NotNull CompletableFuture<CommandResult> completableFuture) {
+        completableFuture
+                .thenAccept(asyncResult -> showResult(senders, asyncResult));
     }
     
     /**
@@ -109,67 +116,12 @@ public interface CommandResult {
     }
     
     /**
-     * @param plugin The plugin to use for the asynchronous operation
-     * @param immediateMessage the message to send immediately, before the asynchronous operation is complete. Null if
-     * no such message needs to be sent to the command executor.
-     * @param supplier the operation to be executed on an asynchronous thread, and the result of which will be shown to
-     * the command executor upon completion
+     * For convenience, if you want to return a simple type where a {@link CompletableFuture<CommandResult>}
+     * is expected
+     * @return this CommandResult as a {@link CompletableFuture<CommandResult>}
      */
-    static CommandResult async(@NotNull Main plugin, String immediateMessage, AsyncCommandResult.ResultSupplier supplier) {
-        return async(plugin, Component.text(immediateMessage), supplier);
-    }
-    
-    /**
-     * @param plugin The plugin to use for the asynchronous operation
-     * @param immediateMessage the message to send immediately, before the asynchronous operation is complete. Null if
-     * no such message needs to be sent to the command executor.
-     * @param supplier the operation to be executed on an asynchronous thread, and the result of which will be shown to
-     * the command executor upon completion
-     */
-    static CommandResult async(@NotNull Main plugin, Component immediateMessage, AsyncCommandResult.ResultSupplier supplier) {
-        return new AsyncCommandResult(plugin, immediateMessage, supplier);
-    }
-    
-    /**
-     * Used when an async operation has to complete sequentially before a Bukkit API sync operation,
-     * and the results of both operations must be reported to the sender.
-     * @param plugin the plugin
-     * @param immediateMessage the message to be sent immediately, or null if no message need be sent
-     * @param firstAsync a CompletableFuture to be performed first, asynchronously, before thenSync
-     * @param thenSync a thread-safe supplier which allows Bukkit API calls, and provides a
-     * {@link CommandResult when complete}
-     * @return the result with the given immediate message, async, and follow-up sync operation
-     */
-    static CommandResult async(@NotNull Main plugin, String immediateMessage, CompletableFuture<CommandResult> firstAsync, Supplier<CommandResult> thenSync) {
-        return async(plugin, Component.text(immediateMessage), firstAsync, thenSync);
-    }
-    
-    /**
-     * Used when an async operation has to complete sequentially before a Bukkit API sync operation,
-     * and the results of both operations must be reported to the sender.
-     * @param plugin the plugin
-     * @param immediateMessage the message to be sent immediately, or null if no message need be sent
-     * @param firstAsync a CompletableFuture to be performed first, asynchronously, before thenSync
-     * @param thenSync a thread-safe supplier which allows Bukkit API calls, and provides a
-     * {@link CommandResult when complete}
-     * @return the result with the given immediate message, async, and follow-up sync operation
-     */
-    static CommandResult async(@NotNull Main plugin, Component immediateMessage, CompletableFuture<CommandResult> firstAsync, Supplier<CommandResult> thenSync) {
-        return new AsyncThenSyncCommandResult(plugin, immediateMessage, firstAsync, thenSync);
-    }
-    
-    /**
-     * Used when an async operation has to complete sequentially before a Bukkit API sync operation,
-     * and the results of both operations must be reported to the sender.
-     * No immediate message will be sent to the sender.
-     * @param plugin the plugin
-     * @param firstAsync a CompletableFuture to be performed first, asynchronously, before thenSync
-     * @param thenSync a thread-safe supplier which allows Bukkit API calls, and provides a
-     * {@link CommandResult when complete}
-     * @return the result with the given immediate message, async, and follow-up sync operation
-     */
-    static CommandResult async(@NotNull Main plugin, CompletableFuture<CommandResult> firstAsync, Supplier<CommandResult> thenSync) {
-        return new AsyncThenSyncCommandResult(plugin, null, firstAsync, thenSync);
+    default CompletableFuture<CommandResult> asFuture() {
+        return CompletableFuture.completedFuture(this);
     }
     
     /**
@@ -178,7 +130,7 @@ public interface CommandResult {
      * @param tryingTo the attempted action, complete the sentence "A database error occurred trying to..." (no
      * trailing or leading spaces needed)
      * @param e the exception that occurred
-     * @return a {@link CommandResult} detailing the database error that occurred and
+     * @return a {@link CommandResult} detailing the database error that occurred
      */
     static @NotNull CommandResult sqlException(String tryingTo, SQLException e) {
         Main.logger().log(Level.SEVERE, String.format("A database error occurred trying to %s", tryingTo), e);
@@ -190,4 +142,45 @@ public interface CommandResult {
                 .append(Component.text(e.getMessage()))
         );
     }
+    
+    /**
+     * Convenience method to report that a {@link Throwable} occurred when running a command.
+     * Also logs the error to the console.
+     * @param tryingTo the attempted action, complete the sentence "An error occurred trying to..." (no
+     * trailing or leading spaces needed)
+     * @param e the throwable that occurred
+     * @return a {@link CommandResult} detailing the error that occurred
+     */
+    static @NotNull CommandResult throwable(String tryingTo, Throwable e) {
+        Main.logger().log(Level.SEVERE, String.format("An error occurred trying to %s", tryingTo), e);
+        return failure(Component.empty()
+                .append(Component.text("An error occurred trying to "))
+                .append(Component.text(tryingTo))
+                .append(Component.text(". See console for details"))
+                .append(Component.newline())
+                .append(Component.text(e.getMessage()))
+        );
+    }
+    
+    /**
+     * Convenience method to add a link in a chain of {@link CompletableFuture<CommandResult>}s
+     * which adds on a new result and passes the combined results to the next link in the chain.
+     * @param chain the previous {@link CompletableFuture<CommandResult>}
+     * @param operation the next {@link CompletableFuture<CommandResult>}
+     * @param executor the thread to execute on
+     * @param <T> a CommandResult implementation
+     * @return a new {@link CompletableFuture<CommandResult>} with the operation's result appended to
+     * the chain's result using {@link CommandResult#and(CommandResult)}
+     */
+    static <T extends CommandResult> CompletableFuture<CommandResult> appendAsync(
+            CompletableFuture<T> chain,
+            Supplier<CompletableFuture<T>> operation,
+            Executor executor
+    ) {
+        return chain.thenComposeAsync(
+                result -> operation.get().thenApply(result::and),
+                executor
+        );
+    }
+    
 }

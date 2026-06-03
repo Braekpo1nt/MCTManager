@@ -15,7 +15,7 @@ import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.jetbrains.annotations.NotNull;
 
-import java.sql.SQLException;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 public class MaintenanceState extends GameManagerState {
@@ -30,8 +30,9 @@ public class MaintenanceState extends GameManagerState {
     public void enter() {
         setupSidebar();
         contextReference.getGameStateStorageUtil().maintenanceMode();
-        CommandResult result = context.loadGameState();
-        CommandResult.showResult(contextReference.getPlugin().getServer().getConsoleSender(), result);
+        CompletableFuture<CommandResult> futureResult = context.loadGameState();
+        CommandResult.showResult(contextReference.getPlugin().getServer().getConsoleSender(), futureResult
+        );
     }
     
     @Override
@@ -81,7 +82,6 @@ public class MaintenanceState extends GameManagerState {
                 return CommandResult.success(Component.text("Switched to practice mode"));
             }
             case EVENT -> {
-                // TODO: use the active event from SystemState
                 return CommandResult.success(Component.empty()
                         .append(Component.text("At this time, you must switch to event mode using the \"/mct event start\" command"))
                 );
@@ -97,13 +97,11 @@ public class MaintenanceState extends GameManagerState {
     }
     
     @Override
-    protected @NotNull CommandResult rebuildFromScores() throws SQLException {
-        try {
-            context.getGameStateService().rebuildMaintenanceMode();
-            return CommandResult.success(Component.text("Rebuilt game state from maintenance mode"));
-        } catch (SQLException e) {
-            throw new SQLException("Unable to rebuild maintenance mode", e);
-        }
+    protected @NotNull CompletableFuture<CommandResult> rebuildFromScores() {
+        return context.getGameStateService().rebuildMaintenanceMode()
+                .thenApply(v -> CommandResult.success(Component.text("Rebuilt game state from maintenance mode")))
+                .exceptionally(e -> CommandResult.throwable("rebuild the maintenance game state", e))
+                ;
     }
     
     // team/participants management start
@@ -115,15 +113,16 @@ public class MaintenanceState extends GameManagerState {
     }
     
     @Override
-    public CommandResult startEvent(@NotNull EventInfo eventInfo, int maxGames, int currentGameNumber) {
+    public CompletableFuture<CommandResult> startEvent(@NotNull EventInfo eventInfo, int maxGames, int currentGameNumber) {
         try {
             EventConfig eventConfig = new EventConfigController(plugin.getDataFolder()).getConfig();
             context.setState(new ReadyUpState(context, contextReference, eventInfo, eventConfig, maxGames, currentGameNumber));
-            return CommandResult.success(Component.text("Switched to event mode"));
+            return CommandResult.success(Component.text("Switched to event mode")).asFuture();
         } catch (ConfigException e) {
             Main.logger().log(Level.SEVERE, e.getMessage(), e);
             return CommandResult.failure(Component.text("Can't switch to event mode. Error loading config file. See console for details:\n")
-                    .append(Component.text(e.getMessage())));
+                    .append(Component.text(e.getMessage()))
+            ).asFuture();
         }
     }
 }

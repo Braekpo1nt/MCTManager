@@ -49,6 +49,10 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -65,6 +69,18 @@ public class Main extends JavaPlugin {
      * A pretty printing Gson instance for general use
      */
     public static final Gson GSON_PRETTY = new GsonBuilder().setPrettyPrinting().create();
+    /**
+     * Used for thread-save operations like database queries.
+     * Bukkit operations which must be performed on the main thread must not
+     * be executed by this thread executor.
+     */
+    protected @Nullable ExecutorService databaseExecutor;
+    /**
+     * Bukkit operations which must be performed on the main thread (such as
+     * teleportation, block state changes, and world changes) can be safely executed
+     * on this thread executor.
+     */
+    protected @Nullable Executor mainThreadExecutor;
     protected GameManager gameManager;
     protected Database database;
     public final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
@@ -82,14 +98,18 @@ public class Main extends JavaPlugin {
                 databaseMode,
                 database
         );
+        if (mainThreadExecutor == null) {
+            throw new IllegalStateException("mainThreadExecutor can't be null");
+        }
         return new GameManager(
                 this,
                 mctScoreboard,
-                new GameStateStorageUtil(getLogger(), gameStateService),
+                new GameStateStorageUtil(getLogger(), gameStateService, database.getDatabaseExecutor()),
                 new SidebarFactory(),
                 config,
                 database,
-                gameStateService);
+                gameStateService,
+                mainThreadExecutor);
     }
     
     /**
@@ -152,6 +172,9 @@ public class Main extends JavaPlugin {
         Scoreboard mctScoreboard = this.getServer().getScoreboardManager().getNewScoreboard();
         ParticipantInitializer.setPlugin(this); //TODO: remove this in favor of death and respawn combination 
         
+        this.databaseExecutor = createDatabaseExecutor();
+        this.mainThreadExecutor = createMainThreadExecutor();
+        
         saveDefaultConfig();
         
         PacketEvents.getAPI().init();
@@ -190,6 +213,56 @@ public class Main extends JavaPlugin {
         alwaysGiveNightVision();
     }
     
+    /**
+     * Enables tests to nullify this easily
+     * @return the executor used for the database
+     */
+    protected @NotNull ExecutorService createDatabaseExecutor() {
+        return Executors.newFixedThreadPool(
+                4,
+                r -> {
+                    Thread thread = new Thread(r);
+                    thread.setName("mctmanager-db-worker");
+                    thread.setDaemon(true);
+                    return thread;
+                });
+    }
+    
+    /**
+     * Enables tests to make this a trivial executor
+     * @return the executor to use for the main thread. Non-thread-safe Bukkit operations
+     * may be run by this executor, such as teleport and block state changes.
+     */
+    protected @NotNull Executor createMainThreadExecutor() {
+        return this.getServer().getScheduler().getMainThreadExecutor(this);
+    }
+    
+    /**
+     * @return Bukkit operations which must be performed on the main thread (such as
+     * teleportation, block state changes, and world changes) can be safely executed
+     * on this thread executor.
+     */
+    public @NotNull Executor getMainThreadExecutor() {
+        if (this.mainThreadExecutor == null) {
+            this.mainThreadExecutor = createMainThreadExecutor();
+        }
+        return this.mainThreadExecutor;
+    }
+    
+    /**
+     * // TODO: is this how the executor should be used?
+     * @deprecated not sure if this is how callers should get their executor. Temporary.
+     * May want to ensure that the databaseExecutor can never be null, and mock the service
+     * in tests.
+     */
+    @Deprecated
+    public @NotNull Executor getDatabaseExecutor() {
+        if (this.databaseExecutor == null) {
+            this.databaseExecutor = createDatabaseExecutor();
+        }
+        return this.databaseExecutor;
+    }
+    
     protected Database setupDatabase() throws SQLException {
         String host = getConfig().getString("database.host", "localhost");
         String port = getConfig().getString("database.port", "3306");
@@ -200,12 +273,17 @@ public class Main extends JavaPlugin {
         String jdbcUrl = String.format("jdbc:mysql://%s:%s/%s", host, port, databaseName);
         flywayMigration(jdbcUrl, user, password, "ENGINE=InnoDB", "AUTO_INCREMENT", baselineOnMigrate);
         
+        if (databaseExecutor == null) {
+            throw new IllegalStateException("databaseExecutor can't be null");
+        }
+        
         return new Database(
                 host,
                 port,
                 user,
                 password,
-                databaseName
+                databaseName,
+                databaseExecutor
         );
     }
     
@@ -326,6 +404,7 @@ public class Main extends JavaPlugin {
     public void onDisable() {
         ParticipantInitializer.setPlugin(null); //TODO: remove this in favor of death and respawn combination 
         PacketEvents.getAPI().terminate();
+        // TODO: some of these methods return CompletableFutures, handle these in order
         if (gameManager != null) {
             if (gameManager.eventIsActive()) {
                 gameManager.stopEvent();
@@ -349,6 +428,18 @@ public class Main extends JavaPlugin {
             }
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Error closing the database on plugin disable", e);
+        }
+        if (databaseExecutor != null) {
+            databaseExecutor.shutdown();
+            
+            try {
+                if (!databaseExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                    databaseExecutor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                databaseExecutor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
         }
     }
     

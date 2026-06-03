@@ -31,6 +31,21 @@ public class FootRaceConfig implements Config {
     private int descriptionDuration;
     private int gameOverDuration;
     private List<Material> preventInteractions;
+    private boolean debugView;
+    /**
+     * The duration in milliseconds that a player has to be going the
+     * right way for the wrong way indicator to disappear.
+     * Works best when set to lower than {@link #wrongWayMilliseconds}.
+     * Defaults to 1000
+     */
+    private int rightWayMilliseconds;
+    /**
+     * The duration in milliseconds that a player has to be going the
+     * wrong way for the wrong way indicator to appear.
+     * Works best when set to higher than {@link #rightWayMilliseconds}.
+     * Defaults to 2000
+     */
+    private int wrongWayMilliseconds;
     /**
      * the checkpoints in the race. The last one is the finish line. Players must
      * pass through all of these in order to be considered a lap.

@@ -28,12 +28,13 @@ public class OfflineAdminArgumentType implements CustomArgumentType.Converted<Of
     
     @Override
     public <S> @NotNull CompletableFuture<Suggestions> listSuggestions(@NotNull CommandContext<S> context, @NotNull SuggestionsBuilder builder) {
-        return CompletableFuture.supplyAsync(() -> {
-            gameManager.getAllAdminNames().stream()
-                    .filter(name -> name.toLowerCase().startsWith(builder.getRemainingLowerCase()))
-                    .forEach(builder::suggest);
-            return builder.build();
-        });
+        return gameManager.getAllAdminNames()
+                .thenApply(names -> {
+                    names.stream()
+                            .filter(name -> name.toLowerCase().startsWith(builder.getRemainingLowerCase()))
+                            .forEach(builder::suggest);
+                    return builder.build();
+                });
     }
     
     @Override

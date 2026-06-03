@@ -3,7 +3,6 @@ package org.braekpo1nt.mctmanager.games.gamemanager;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MockMain;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
-import org.braekpo1nt.mctmanager.MyPlayerMock;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.FailureCommandResult;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.GameSession;
@@ -22,11 +21,14 @@ import org.mockbukkit.mockbukkit.ServerMock;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.mockbukkit.mockbukkit.exception.UnimplementedOperationException;
 
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.UUID;
 import java.util.logging.Level;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.braekpo1nt.mctmanager.TestUtils.futureIsNotFailure;
+import static org.braekpo1nt.mctmanager.TestUtils.futureIsNotNull;
 
 public class RebuildMaintenanceTest {
     ServerMock server;
@@ -52,6 +54,7 @@ public class RebuildMaintenanceTest {
             Main.logger().log(Level.SEVERE, "UnimplementedOperationException from MockBukkit", ex);
             System.exit(1);
         }
+        Main.logger().setLevel(Level.SEVERE);
         gameManager = plugin.getGameManager();
         database = plugin.getDatabase();
         scoreService = gameManager.getScoreService();
@@ -61,18 +64,17 @@ public class RebuildMaintenanceTest {
         uuid1 = UUID.randomUUID();
         ign1 = "Player1";
         
-        gameManager.addTeam(teamId1, "Red", "red");
-        gameManager.joinOfflineParticipant(uuid1, ign1, teamId1);
+        futureIsNotNull(gameManager.addTeam(teamId1, "Red", "red"));
+        futureIsNotFailure(gameManager.joinOfflineParticipant(uuid1, ign1, teamId1));
     }
     
     @AfterEach
     void tearDownServerAndPlugin() {
-        server.getScheduler().waitAsyncTasksFinished();
         MockBukkit.unmock();
     }
     
     @Test
-    void test() {
+    void test() throws SQLException {
         double multiplier = 1.5;
         GameSession gameSession = scoreService.createGameSession(GameSession.builder()
                 .gameType(GameType.FOOT_RACE)
@@ -95,8 +97,7 @@ public class RebuildMaintenanceTest {
                 .createdAt(new Date())
                 .build());
         assertThat(scoreEventEntity).isNotNull();
-        assertThat(gameManager.loadGameState()).isNotInstanceOf(FailureCommandResult.class);
-        server.getScheduler().waitAsyncTasksFinished();
+        futureIsNotFailure(gameManager.loadGameState());
         server.getScheduler().performOneTick();
         OfflineParticipant offlineParticipant = gameManager.getOfflineParticipant(uuid1);
         assertThat(offlineParticipant).isNotNull();

@@ -21,6 +21,8 @@ import java.util.UUID;
 import java.util.logging.Level;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.braekpo1nt.mctmanager.TestUtils.futureIsNotFailure;
+import static org.braekpo1nt.mctmanager.TestUtils.futureIsNotNull;
 
 class GameManagerTest {
     
@@ -41,11 +43,12 @@ class GameManagerTest {
             Main.logger().log(Level.SEVERE, "UnimplementedOperationException from MockBukkit", ex);
             System.exit(1);
         }
+        Main.logger().setLevel(Level.SEVERE);
         gameManager = plugin.getGameManager();
         database = plugin.getDatabase();
         
         teamId = "purple";
-        gameManager.addTeam(teamId, "Purple", "dark_purple");
+        futureIsNotNull(gameManager.addTeam(teamId, "Purple", "dark_purple"));
     }
     
     @AfterEach
@@ -62,7 +65,6 @@ class GameManagerTest {
         // a player who is not in the game state joins
         server.addPlayer(player);
         // this line makes it so that the async schedules the sync task in onPlayerJoin
-        server.getScheduler().waitAsyncTasksFinished();
         server.getScheduler().performOneTick();
         
         AllPlayersEntity allPlayersEntity = database.getAllPlayersDao().queryForId(uuid.toString());
@@ -76,11 +78,10 @@ class GameManagerTest {
         UUID uuid = UUID.randomUUID();
         PlayerMock player = new MyPlayerMock(server, ign, uuid);
         
-        gameManager.joinOfflineParticipant(uuid, ign, teamId);
+        futureIsNotFailure(gameManager.joinOfflineParticipant(uuid, ign, teamId));
         // a player who is in the game state joins
         server.addPlayer(player);
         // this line makes it so that the async schedules the sync task in onPlayerJoin
-        server.getScheduler().waitAsyncTasksFinished();
         server.getScheduler().performOneTick();
         
         AllPlayersEntity allPlayersEntity = database.getAllPlayersDao().queryForId(uuid.toString());
@@ -96,16 +97,14 @@ class GameManagerTest {
         UUID uuid = UUID.randomUUID();
         PlayerMock player = new MyPlayerMock(server, ign, uuid);
         
-        gameManager.joinOfflineParticipant(uuid, ign, teamId);
+        futureIsNotFailure(gameManager.joinOfflineParticipant(uuid, ign, teamId));
         // a player who is in the game state joins
         server.addPlayer(player);
         // this line makes it so that the async schedules the sync task in onPlayerJoin
-        server.getScheduler().waitAsyncTasksFinished();
         server.getScheduler().performOneTick();
         
         player.disconnect();
         server.addPlayer(player);
-        server.getScheduler().waitAsyncTasksFinished();
         server.getScheduler().performOneTick();
         
         AllPlayersEntity allPlayersEntity = database.getAllPlayersDao().queryForId(uuid.toString());
@@ -123,14 +122,11 @@ class GameManagerTest {
         PlayerMock rightPlayer = new MyPlayerMock(server, rightIGN, rightUUID);
         
         // add the wrong uuid but the right ign to the game state
-        gameManager.joinOfflineParticipant(rightUUID, wrongIGN, teamId);
-        // allow TabList to finish scheduled job
-        server.getScheduler().waitAsyncTasksFinished();
+        futureIsNotFailure(gameManager.joinOfflineParticipant(rightUUID, wrongIGN, teamId));
         
         // a player with the right uuid and the right ign joins the server
         server.addPlayer(rightPlayer);
         // this line makes it so that the async schedules the sync task in onPlayerJoin
-        server.getScheduler().waitAsyncTasksFinished();
         server.getScheduler().performOneTick();
         
         List<AllPlayersEntity> playersWithIGN = database.getAllPlayersDao().queryForEq("ign", wrongIGN);
@@ -150,14 +146,10 @@ class GameManagerTest {
         PlayerMock rightPlayer = new MyPlayerMock(server, rightIGN, rightUUID);
         
         // add the wrong uuid but the right ign to the game state
-        gameManager.joinOnlineParticipant(wrongPlayer, teamId);
-        // allow TabList to finish scheduled job
-        server.getScheduler().waitAsyncTasksFinished();
+        futureIsNotFailure(gameManager.joinOnlineParticipant(wrongPlayer, teamId));
         
         // a player with the right uuid and the right ign joins the server
         server.addPlayer(rightPlayer);
-        // this line makes it so that the async schedules the sync task in onPlayerJoin
-        server.getScheduler().waitAsyncTasksFinished();
         server.getScheduler().performOneTick();
         
         AllPlayersEntity wrongAllPlayersEntity = database.getAllPlayersDao().queryForId(wrongUUID.toString());

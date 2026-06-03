@@ -10,7 +10,6 @@ import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.ScoreEvent;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
@@ -31,11 +30,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.logging.Level;
 
 public class ReadyUpState extends EventState {
@@ -72,12 +72,17 @@ public class ReadyUpState extends EventState {
     @Override
     public void enter() {
         contextReference.getGameStateStorageUtil().eventMode(eventData.getEventInfo().getEventId());
-        context.stopAllGames();
+        CompletableFuture<CommandResult> chain = context.stopAllGames();
         for (MCTParticipant participant : onlineParticipants.values()) {
-            returnParticipantToHub(participant);
+            chain = CommandResult.appendAsync(
+                    chain,
+                    () -> returnParticipantToHub(participant),
+                    context.getMainThreadExecutor()
+            );
         }
         setupSidebar();
         sidebar.updateLine("currentGame", getCurrentGameLine());
+        // TODO: adding all the teams now is redundant because the gameState will be loaded and new teams will be added
         for (String teamId : teams.keySet()) {
             readyUpManager.addTeam(teamId);
         }
@@ -121,35 +126,42 @@ public class ReadyUpState extends EventState {
             }
         }.runTaskTimer(plugin, 0L, 2 * 20L).getTaskId();
         
-        CommandResult result = context.loadGameState();
-        CommandResult.showResult(contextReference.getPlugin().getServer().getConsoleSender(), result);
-        Date date = new Date();
-        context.logScoreEvents(allParticipants.values().stream()
-                .map(participant -> ScoreEvent.builder()
-                        .sourceType(ScoreEvent.SourceType.SYSTEM)
-                        .gameSessionId(null)
-                        .participantUUID(participant.getUniqueId().toString())
-                        .teamId(participant.getTeamId())
-                        .pointsBase(0)
-                        .description("joined event")
-                        .createdAt(date)
-                        .build())
-                .toList());
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                context.getEventService().updateActiveEvent(
-                        eventData.getEventInfo().getEventId(),
-                        eventData.getCurrentGameNumber(),
-                        eventData.getMaxGames()
-                );
-                context.getEventService().setEventStartTime(
-                        eventData.getEventInfo().getEventId(),
-                        new Date()
-                );
-            } catch (SQLException e) {
-                Main.logger().log(Level.SEVERE, "Could not update active event ID in system_state table", e);
-            }
-        });
+        chain
+                .thenCompose(v -> context.loadGameState())
+                .thenAccept(result -> {
+                    CommandResult.showResult(contextReference.getPlugin().getServer().getConsoleSender(), result);
+                })
+                .thenRunAsync(() -> {
+                    Date date = new Date();
+                    context.logScoreEvents(allParticipants.values().stream()
+                            .map(participant -> ScoreEvent.builder()
+                                    .sourceType(ScoreEvent.SourceType.SYSTEM)
+                                    .gameSessionId(null)
+                                    .participantUUID(participant.getUniqueId().toString())
+                                    .teamId(participant.getTeamId())
+                                    .pointsBase(0)
+                                    .description("joined event")
+                                    .createdAt(date)
+                                    .build())
+                            .toList());
+                    try {
+                        context.getEventService().updateActiveEvent(
+                                eventData.getEventInfo().getEventId(),
+                                eventData.getCurrentGameNumber(),
+                                eventData.getMaxGames()
+                        );
+                        context.getEventService().setEventStartTime(
+                                eventData.getEventInfo().getEventId(),
+                                new Date()
+                        );
+                    } catch (SQLException e) {
+                        throw new CompletionException(e);
+                    }
+                }, plugin.getDatabaseExecutor())
+                .exceptionally(e -> {
+                    Main.logger().log(Level.SEVERE, "Could not update active event ID in system_state table", e);
+                    return null;
+                });
     }
     
     @Override
@@ -187,22 +199,26 @@ public class ReadyUpState extends EventState {
     }
     
     @Override
-    public CommandResult startEvent(@NotNull EventInfo eventInfo, int maxGames, int currentGameNumber) {
+    public CompletableFuture<CommandResult> startEvent(@NotNull EventInfo eventInfo, int maxGames, int currentGameNumber) {
         if (contextReference.getOnlineParticipants().isEmpty()) {
-            return CommandResult.failure("There are no participants online. Can't start the event");
+            return CommandResult.failure("There are no participants online. Can't start the event").asFuture();
         }
         topbar.cleanup();
         plugin.getServer().getScheduler().cancelTask(readyUpPromptTaskId);
         readyUpManager.cleanup();
-        List<CommandResult> results = new ArrayList<>();
+        CompletableFuture<CommandResult> chain = CompletableFuture.completedFuture(CommandResult.success());
         if (maxGames != eventData.getMaxGames() || currentGameNumber != eventData.getCurrentGameNumber()) {
             eventData.setCurrentGameNumber(currentGameNumber);
-            results.add(this.modifyMaxGames(maxGames));
+            chain = CommandResult.appendAsync(
+                    chain,
+                    () -> modifyMaxGames(maxGames),
+                    plugin.getMainThreadExecutor()
+            );
         }
         Component message = Component.text("Starting event with ")
                 .append(Component.text(eventData.getMaxGames()))
                 .append(Component.text(" games."));
-        results.add(CommandResult.success(message));
+        chain = chain.thenApply(result -> result.and(CommandResult.success(message)));
         context.messageAdmins(message);
         Audience.audience(
                 onlineParticipants.values()
@@ -213,12 +229,12 @@ public class ReadyUpState extends EventState {
                         .color(NamedTextColor.GOLD)
         ));
         context.setState(new WaitingInHubState(context, contextReference, eventData));
-        return CompositeCommandResult.all(results);
+        return chain;
     }
     
     @Override
-    public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
-        return CommandResult.failure("Can't start a game during this state.");
+    public CompletableFuture<CommandResult> startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
+        return CommandResult.failure("Can't start a game during this state.").asFuture();
     }
     
     // readyup start
@@ -375,8 +391,8 @@ public class ReadyUpState extends EventState {
     // leave/join start
     
     @Override
-    public void onParticipantJoin(@NotNull MCTParticipant participant) {
-        super.onParticipantJoin(participant);
+    public CompletableFuture<Void> onParticipantJoin(@NotNull MCTParticipant participant) {
+        CompletableFuture<Void> joinFuture = super.onParticipantJoin(participant);
         String teamId = participant.getTeamId();
         MCTTeam team = teams.get(teamId);
         if (!readyUpManager.containsTeam(teamId) && team != null) {
@@ -386,13 +402,14 @@ public class ReadyUpState extends EventState {
         topbar.showPlayer(participant);
         unReadyParticipant(participant);
         participant.teleport(config.getSpawn());
+        return joinFuture;
     }
     
     @Override
-    public void onParticipantQuit(@NotNull MCTParticipant participant) {
+    public CompletableFuture<Void> onParticipantQuit(@NotNull MCTParticipant participant) {
         unReadyParticipant(participant);
         topbar.hidePlayer(participant);
-        super.onParticipantQuit(participant);
+        return super.onParticipantQuit(participant);
     }
     
     @Override

@@ -12,7 +12,6 @@ import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
-import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetDTO;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -29,7 +28,7 @@ import java.util.stream.Collectors;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-class HubConfigDTO implements Validatable {
+public class HubConfigDTO implements Validatable {
     
     private String version;
     private String world;
@@ -96,7 +95,6 @@ class HubConfigDTO implements Validatable {
          */
         private Boolean restrictGameJoining;
         private List<GameInfoDTO> allowedGames;
-        private @Nullable PresetDTO.PresetConfigDTO preset;
         
         @Override
         public void validate(@NotNull Validator validator) {
@@ -108,9 +106,6 @@ class HubConfigDTO implements Validatable {
                 validator.validate(!usedIds.contains(id), "allowedGames has duplicate game/config combo: \"%s\" and \"%s\"", id.getGameType(), id.getConfigFile());
                 usedIds.add(id);
             }
-            if (preset != null) {
-                preset.validate(validator.path("preset"));
-            }
         }
         
         public HubConfig.PracticeConfig toPractice() {
@@ -121,7 +116,6 @@ class HubConfigDTO implements Validatable {
                             .map(HubConfig.GameInfo::getId)
                             .collect(Collectors.toSet()))
                     .allowedGames(games)
-                    .preset(preset != null ? preset.toPreset() : null)
                     .build();
         }
         

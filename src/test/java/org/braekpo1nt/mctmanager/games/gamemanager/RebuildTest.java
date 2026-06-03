@@ -6,7 +6,7 @@ import org.braekpo1nt.mctmanager.MockMain;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.MyPlayerMock;
 import org.braekpo1nt.mctmanager.TestUtils;
-import org.braekpo1nt.mctmanager.commands.manager.commandresult.FailureCommandResult;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.database.Database;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
 import org.braekpo1nt.mctmanager.database.entities.participants.EventParticipantEntity;
@@ -21,6 +21,7 @@ import org.braekpo1nt.mctmanager.games.gamemanager.event.config.EventConfigContr
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
@@ -36,9 +37,11 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.braekpo1nt.mctmanager.TestUtils.futureIsNotFailure;
 
 class RebuildTest {
     ServerMock server;
@@ -71,6 +74,7 @@ class RebuildTest {
             Main.logger().log(Level.SEVERE, "UnimplementedOperationException from MockBukkit", ex);
             System.exit(1);
         }
+        Main.logger().setLevel(Level.SEVERE);
         gameManager = plugin.getGameManager();
         database = plugin.getDatabase();
         scoreService = gameManager.getScoreService();
@@ -101,7 +105,7 @@ class RebuildTest {
         
         Date now = new Date();
         eventId = "Test";
-        gameManager.createEvent(eventId, now, "Test Event", Component.text("Test Event"), true);
+        futureIsNotFailure(gameManager.createEvent(eventId, now, "Test Event", Component.text("Test Event"), true));
         eventInfo = gameManager.getEventService().getEventInfo(eventId);
         List<EventTeam> teams = List.of(
                 EventTeam.builder()
@@ -139,20 +143,18 @@ class RebuildTest {
     
     @AfterEach
     void tearDownServerAndPlugin() {
-        server.getScheduler().waitAsyncTasksFinished();
         server.getScheduler().performOneTick();
         MockBukkit.unmock();
     }
     
     @Test
     void testSum() {
-        assertThat(gameManager.startEvent(eventInfo, 7, 2)).isNotInstanceOf(FailureCommandResult.class);
+        futureIsNotFailure(gameManager.startEvent(eventInfo, 7, 2));
         assertThat(gameManager.getOnlineParticipants()).hasSize(2);
-        assertThat(gameManager.startEvent(eventInfo, 7, 2)).isNotInstanceOf(FailureCommandResult.class);
+        futureIsNotFailure(gameManager.startEvent(eventInfo, 7, 2));
         assertThat(gameManager.getMultiplier()).isEqualTo(1.5);
-        assertThat(gameManager.startGame(GameType.FOOT_RACE, "default.json")).isNotInstanceOf(FailureCommandResult.class);
+        futureIsNotFailure(gameManager.startGame(GameType.FOOT_RACE, "default.json"));
         gameManager.getTimerManager().skip();
-        server.getScheduler().waitAsyncTasksFinished();
         server.getScheduler().performOneTick();
         assertThat(gameManager.getActiveGameIds()).hasSize(1);
         MCTGame activeGame = gameManager.getActiveGame(new GameInstanceId(GameType.FOOT_RACE, "default.json"));
@@ -164,7 +166,7 @@ class RebuildTest {
         assertThat(participant1.getScore()).isEqualTo(0);
         game.awardPoints(participant1, 1, "Test points 1");
         assertThat(participant1.getScore()).isEqualTo(1);
-        gameManager.stopGame(GameType.FOOT_RACE, "default.json");
+        futureIsNotFailure(gameManager.stopGame(GameType.FOOT_RACE, "default.json"));
         Participant pPreLoad = gameManager.getOnlineParticipant(uuid1);
         assertThat(pPreLoad).isNotNull();
         assertThat(pPreLoad.getScore()).isEqualTo(1);
@@ -172,9 +174,8 @@ class RebuildTest {
         assertThat(teamPreLoad).isNotNull();
         assertThat(teamPreLoad.getScore()).isEqualTo(1);
         
-        assertThat(gameManager.loadGameState()).isNotInstanceOf(FailureCommandResult.class);
+        futureIsNotFailure(gameManager.loadGameState());
         assertThat(gameManager.getMode()).isEqualTo(Mode.EVENT);
-        server.getScheduler().waitAsyncTasksFinished();
         server.getScheduler().performOneTick();
         
         Participant pPostLoad = gameManager.getOnlineParticipant(uuid1);
@@ -184,8 +185,7 @@ class RebuildTest {
         assertThat(teamPostLoad).isNotNull();
         assertThat(teamPostLoad.getScore()).isEqualTo(1);
         
-        gameManager.stopEvent();
-        server.getScheduler().waitAsyncTasksFinished();
+        futureIsNotFailure(gameManager.stopEvent());
         server.getScheduler().performOneTick();
     }
     

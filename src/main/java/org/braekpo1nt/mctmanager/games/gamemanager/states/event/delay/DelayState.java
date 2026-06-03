@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 public abstract class DelayState extends EventState {
     public DelayState(@NotNull GameManager context, @NotNull ContextReference contextReference, @NotNull EventData eventData) {
@@ -19,13 +20,14 @@ public abstract class DelayState extends EventState {
     }
     
     @Override
-    public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
-        return CommandResult.failure("Can't start a game during a delay state");
+    public CompletableFuture<CommandResult> startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
+        return CommandResult.failure("Can't start a game during a delay state").asFuture();
     }
     
     @Override
-    public void onParticipantJoin(@NotNull MCTParticipant participant) {
-        super.onParticipantJoin(participant);
+    public CompletableFuture<Void> onParticipantJoin(@NotNull MCTParticipant participant) {
+        CompletableFuture<Void> joinFuture = super.onParticipantJoin(participant);
         participant.teleport(config.getSpawn());
+        return joinFuture;
     }
 }

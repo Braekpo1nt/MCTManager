@@ -13,6 +13,7 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameInstanceId;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
@@ -38,6 +39,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 
 public class PracticeManager {
     
@@ -119,8 +122,8 @@ public class PracticeManager {
                     .append(Component.text(" in "))
                     .append(Component.text(id.getTitle()))));
             main.addItem(new GuiItem(joinGame, event -> {
-                CommandResult commandResult = gameManager.joinParticipantToGame(id.getGameType(), id.getConfigFile(), participant.getUniqueId());
-                participant.sendMessage(commandResult.getMessageOrEmpty());
+                CompletableFuture<CommandResult> futureResult = gameManager.joinParticipantToGame(id.getGameType(), id.getConfigFile(), participant.getUniqueId());
+                CommandResult.showResult(participant, futureResult);
             }));
         }
         // Team Select
@@ -557,10 +560,14 @@ public class PracticeManager {
             }
         }
         Set<String> teamIds = invite.getConfirmedGuestIds();
-        CommandResult commandResult = gameManager.startGame(
-                teamIds, Collections.emptyList(),
-                invite.getId().getGameType(), invite.getId().getConfigFile());
-        initiatorAudience.sendMessage(commandResult.getMessageOrEmpty());
+        CompletableFuture<CommandResult> futureResult = gameManager.startGame(
+                        teamIds,
+                        Collections.emptyList(),
+                        invite.getId().getGameType(),
+                        invite.getId().getConfigFile()
+                )
+                .exceptionally(e -> CommandResult.throwable("start game", e));
+        CommandResult.showResult(initiatorAudience, futureResult);
     }
     
     private @NotNull ChestGui createTeamMenu(PracticeParticipant participant) {
@@ -573,10 +580,7 @@ public class PracticeManager {
                 ItemStack teamWool = new ItemStack(team.getColorAttributes().getWool());
                 teamWool.editMeta(meta -> meta.displayName(team.getFormattedDisplayName()));
                 teamSelect.addItem(new GuiItem(teamWool, event -> {
-                    Component message = joinTeam(event, team.getTeamId()).getMessage();
-                    if (message != null) {
-                        event.getWhoClicked().sendMessage(message);
-                    }
+                    CommandResult.showResult(event.getWhoClicked(), joinTeam(event, team.getTeamId()));
                 }));
             }
         }
@@ -593,10 +597,10 @@ public class PracticeManager {
         return gui;
     }
     
-    private CommandResult joinTeam(InventoryClickEvent event, String teamId) {
+    private CompletableFuture<CommandResult> joinTeam(InventoryClickEvent event, String teamId) {
         PracticeParticipant participant = participants.get(event.getWhoClicked().getUniqueId());
         if (participant == null) {
-            return CommandResult.failure("You are not a participant");
+            return CommandResult.failure("You are not a participant").asFuture();
         }
         return gameManager.joinOnlineParticipant(participant.getPlayer(), teamId);
     }

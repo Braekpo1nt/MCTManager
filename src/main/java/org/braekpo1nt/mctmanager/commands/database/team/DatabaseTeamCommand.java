@@ -5,7 +5,6 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoArgumentType;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoResolver;
@@ -14,24 +13,19 @@ import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.database.entities.EventInfo;
-import org.braekpo1nt.mctmanager.database.entities.participants.MaintenanceParticipantEntity;
 import org.braekpo1nt.mctmanager.database.entities.teams.MaintenanceTeam;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
-import org.braekpo1nt.mctmanager.games.gamemanager.Mode;
-import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
-import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.concurrent.CompletableFuture;
 
 public class DatabaseTeamCommand implements BrigadierSubCommand {
     
-    private final @NotNull Main plugin;
     public final @NotNull GameManager gameManager;
     
-    public DatabaseTeamCommand(@NotNull Main plugin, @NotNull GameManager gameManager) {
-        this.plugin = plugin;
+    public DatabaseTeamCommand(@NotNull GameManager gameManager) {
         this.gameManager = gameManager;
     }
     
@@ -44,14 +38,14 @@ public class DatabaseTeamCommand implements BrigadierSubCommand {
                                         .then(Permissioned.argument("displayName", StringArgumentType.string())
                                                 .then(Permissioned.argument("color", StringArgumentType.word())
                                                         .suggests(CommandUtils::suggestColor)
-                                                        .executes(BrigadierAdapters.wraps(this::executeAddMaintenance))
+                                                        .executes(BrigadierAdapters.wrapsFuture(this::executeAddMaintenance))
                                                 )
                                         )
                                 )
                         )
                         .then(Permissioned.literal("remove")
                                 .then(Permissioned.argument("teamId", StringArgumentType.word())
-                                        .executes(BrigadierAdapters.wraps(this::executeRemoveMaintenance))
+                                        .executes(BrigadierAdapters.wrapsFuture(this::executeRemoveMaintenance))
                                 )
                         )
                         .then(Permissioned.literal("join")
@@ -105,11 +99,11 @@ public class DatabaseTeamCommand implements BrigadierSubCommand {
                 ;
     }
     
-    private @NotNull CommandResult executeAddMaintenance(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+    private @NotNull CompletableFuture<CommandResult> executeAddMaintenance(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         String teamId = ctx.getArgument("teamId", String.class);
         String displayName = ctx.getArgument("displayName", String.class);
         String color = ctx.getArgument("color", String.class);
-        return CommandResult.async(plugin, "Adding team", () -> {
+        return CompletableFuture.supplyAsync(() -> {
             try {
                 gameManager.getGameStateService().addTeam(MaintenanceTeam.builder()
                         .teamId(teamId)
@@ -128,9 +122,9 @@ public class DatabaseTeamCommand implements BrigadierSubCommand {
         });
     }
     
-    private @NotNull CommandResult executeRemoveMaintenance(CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CompletableFuture<CommandResult> executeRemoveMaintenance(CommandContext<CommandSourceStack> ctx) {
         String teamId = ctx.getArgument("teamId", String.class);
-        return CommandResult.async(plugin, "Removing team", () -> {
+        return CompletableFuture.supplyAsync(() -> {
             try {
                 boolean existed = gameManager.getGameStateService().deleteMaintenanceTeam(teamId);
                 if (!existed) {

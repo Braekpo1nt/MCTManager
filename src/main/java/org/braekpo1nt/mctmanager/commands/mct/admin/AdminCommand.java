@@ -1,32 +1,26 @@
 package org.braekpo1nt.mctmanager.commands.mct.admin;
 
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandExceptionType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
-import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.MessageComponentSerializer;
 import io.papermc.paper.command.brigadier.argument.resolvers.selector.PlayerSelectorArgumentResolver;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.OfflineAdminArgumentType;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.OfflineAdminListResolver;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.permissioned.Permissioned;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.logging.Level;
+import java.util.concurrent.CompletableFuture;
 
 public class AdminCommand implements BrigadierSubCommand {
     
@@ -47,12 +41,12 @@ public class AdminCommand implements BrigadierSubCommand {
         return Permissioned.literal("admin")
                 .then(Permissioned.literal("add")
                         .then(Permissioned.argument("player", gameManager.getPlayerArgumentType())
-                                .executes(BrigadierAdapters.wraps(this::executeAdd))
+                                .executes(BrigadierAdapters.wrapsFuture(this::executeAdd))
                         )
                 )
                 .then(Permissioned.literal("remove")
                         .then(Permissioned.argument("admin", new OfflineAdminArgumentType(gameManager))
-                                .executes(BrigadierAdapters.wraps(this::executeRemove))
+                                .executes(BrigadierAdapters.wrapsFuture(this::executeRemove))
                         )
                 )
                 .then(Permissioned.literal("test")
@@ -63,36 +57,41 @@ public class AdminCommand implements BrigadierSubCommand {
                 ;
     }
     
-    private @NotNull CommandResult executeRemove(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+    private @NotNull CompletableFuture<CommandResult> executeRemove(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         OfflineAdminListResolver adminResolver = ctx.getArgument("admin", OfflineAdminListResolver.class);
         Collection<OfflinePlayer> offlineAdmins = adminResolver.resolve(ctx.getSource());
-        List<CommandResult> results = new ArrayList<>(offlineAdmins.size());
+        CompletableFuture<CommandResult> chain = CompletableFuture.completedFuture(CommandResult.success());
         for (OfflinePlayer offlineAdmin : offlineAdmins) {
-            CommandResult result = gameManager.removeAdmin(offlineAdmin, offlineAdmin.getName() != null ? offlineAdmin.getName() : offlineAdmin.getUniqueId().toString());
-            results.add(result);
+            chain = CommandResult.appendAsync(
+                    chain,
+                    () -> gameManager.removeAdmin(offlineAdmin, offlineAdmin.getName() != null ? offlineAdmin.getName() : offlineAdmin.getUniqueId().toString()),
+                    gameManager.getMainThreadExecutor()
+            );
         }
-        return new CompositeCommandResult(results);
+        return chain;
     }
     
-    private @NotNull CommandResult executeAdd(CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CompletableFuture<CommandResult> executeAdd(CommandContext<CommandSourceStack> ctx) {
         final PlayerSelectorArgumentResolver targetResolver = ctx.getArgument("player", PlayerSelectorArgumentResolver.class);
         try {
             final Player newAdmin = targetResolver.resolve(ctx.getSource()).getFirst();
             if (!newAdmin.isOnline()) {
                 return CommandResult.failure(Component.empty()
                         .append(newAdmin.displayName())
-                        .append(Component.text(" is not online")));
+                        .append(Component.text(" is not online"))
+                ).asFuture();
             }
             if (gameManager.isAdmin(newAdmin.getUniqueId())) {
                 return CommandResult.success(Component.empty()
                         .append(newAdmin.displayName())
-                        .append(Component.text(" is already an admin")));
+                        .append(Component.text(" is already an admin"))
+                ).asFuture();
             }
             return gameManager.addAdmin(newAdmin);
         } catch (CommandSyntaxException e) {
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Could not find player"))
-            );
+            ).asFuture();
         }
         
     }

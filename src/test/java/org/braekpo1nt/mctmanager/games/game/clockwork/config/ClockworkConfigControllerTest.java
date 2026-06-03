@@ -31,6 +31,7 @@ public class ClockworkConfigControllerTest {
         ServerMock server = MockBukkit.mock(new MyCustomServerMock());
         server.getLogger().setLevel(Level.OFF);
         plugin = MockBukkit.load(MockMain.class);
+        Main.logger().setLevel(Level.SEVERE);
         controller = new ClockworkConfigController(plugin.getDataFolder(), GameType.CLOCKWORK.getId());
         configFolder = new File(plugin.getDataFolder(), GameType.CLOCKWORK.getId());
         configFolder.mkdirs();

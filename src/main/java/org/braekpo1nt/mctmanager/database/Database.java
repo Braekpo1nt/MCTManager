@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.util.concurrent.Executor;
 
 @Getter
 public class Database {
@@ -57,7 +58,9 @@ public class Database {
     private final @NotNull Dao<PlayerMetadata, String> playerMetadataDao;
     private final @NotNull ConnectionSource connectionSource;
     
-    private Database(@NotNull ConnectionSource connectionSource) throws SQLException {
+    private final @NotNull Executor databaseExecutor;
+    
+    private Database(@NotNull ConnectionSource connectionSource, @NotNull Executor databaseExecutor) throws SQLException {
         // flyway creates the tables, no need for TableUtils:
 //        TableUtils.createTableIfNotExists(connectionSource, EventInfo.class);
         this.connectionSource = connectionSource;
@@ -84,6 +87,8 @@ public class Database {
         this.gameSessionDao = DaoManager.createDao(connectionSource, GameSession.class);
         this.scoreEventsDao = DaoManager.createDao(connectionSource, ScoreEventEntity.class);
         this.playerMetadataDao = DaoManager.createDao(connectionSource, PlayerMetadata.class);
+        
+        this.databaseExecutor = databaseExecutor;
     }
     
     public Database(
@@ -91,8 +96,9 @@ public class Database {
             String port,
             String user,
             String password,
-            String databaseName) throws SQLException {
-        this(getConnectionSource(host, port, user, password, databaseName));
+            String databaseName,
+            @NotNull Executor databaseExecutor) throws SQLException {
+        this(getConnectionSource(host, port, user, password, databaseName), databaseExecutor);
     }
     
     /**
@@ -113,12 +119,8 @@ public class Database {
         return jdbcPooledConnectionSource;
     }
     
-    public Database(String sqlitePath) throws SQLException {
-        this(new JdbcConnectionSource("jdbc:sqlite:" + sqlitePath + "?foreign_keys=on"));
-    }
-    
-    public static Database createInMemorySQLite() throws SQLException {
-        return new Database(new JdbcConnectionSource("jdbc:sqlite::memory:"));
+    public Database(String sqlitePath, @NotNull Executor databaseExecutor) throws SQLException {
+        this(new JdbcConnectionSource("jdbc:sqlite:" + sqlitePath + "?foreign_keys=on"), databaseExecutor);
     }
     
     public void close() throws Exception {

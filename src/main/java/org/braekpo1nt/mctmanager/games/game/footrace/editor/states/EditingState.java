@@ -33,7 +33,11 @@ public class EditingState extends FootRaceEditorStateBase {
         List<CheckpointRenderer> checkpointRenderers = context.getCheckpointRenderers();
         checkpointRenderers.forEach(Renderer::hide);
         checkpointRenderers.clear();
-        checkpointRenderers.addAll(context.createCheckpointRenderers(context.getConfig()));
+        checkpointRenderers.addAll(FootRaceEditor.createCheckpointRenderers(
+                context.getConfig(),
+                context.getAvailableTypes()[context.getCheckpointType()],
+                FootRaceEditor.CHECKPOINT_GLOW
+        ));
         checkpointRenderers.forEach(Renderer::show);
         for (FootRaceAdmin admin : context.getAdmins().values()) {
             int checkpointIndex = admin.getCurrentCheckpoint() < context.getConfig().getCheckpoints().size() ? admin.getCurrentCheckpoint() : 0;

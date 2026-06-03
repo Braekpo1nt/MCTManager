@@ -8,7 +8,6 @@ import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoArgumentType;
 import org.braekpo1nt.mctmanager.commands.argumenttypes.EventInfoResolver;
 import org.braekpo1nt.mctmanager.commands.manager.brigadier.BrigadierAdapters;
@@ -23,15 +22,14 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.SQLException;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
+import java.util.concurrent.CompletableFuture;
 
 public class EventCommand implements BrigadierSubCommand {
     
     private final @NotNull GameManager gameManager;
-    private final @NotNull Main plugin;
     
-    public EventCommand(@NotNull GameManager gameManager, @NotNull Main plugin) {
+    public EventCommand(@NotNull GameManager gameManager) {
         this.gameManager = gameManager;
-        this.plugin = plugin;
     }
     
     @Override
@@ -55,18 +53,18 @@ public class EventCommand implements BrigadierSubCommand {
         return Permissioned.literal("start")
                 .then(Permissioned.argument("eventId", new EventInfoArgumentType(gameManager.getEventService()))
                         .then(Permissioned.argument("numberOfGames", IntegerArgumentType.integer())
-                                .executes(BrigadierAdapters.wraps(ctx -> {
+                                .executes(BrigadierAdapters.wrapsFuture(ctx -> {
                                     try {
                                         EventInfoResolver eventInfoResolver = ctx.getArgument("eventId", EventInfoResolver.class);
                                         EventInfo eventInfo = eventInfoResolver.resolve();
                                         int maxGames = ctx.getArgument("numberOfGames", Integer.class);
                                         return gameManager.startEvent(eventInfo, maxGames, 1);
                                     } catch (SQLException e) {
-                                        return CommandResult.sqlException("get EventInfo", e);
+                                        return CommandResult.sqlException("get EventInfo", e).asFuture();
                                     }
                                 }))
                                 .then(Permissioned.argument("currentGameNumber", IntegerArgumentType.integer())
-                                        .executes(BrigadierAdapters.wraps(ctx -> {
+                                        .executes(BrigadierAdapters.wrapsFuture(ctx -> {
                                             try {
                                                 EventInfoResolver eventInfoResolver = ctx.getArgument("eventId", EventInfoResolver.class);
                                                 EventInfo eventInfo = eventInfoResolver.resolve();
@@ -74,7 +72,7 @@ public class EventCommand implements BrigadierSubCommand {
                                                 int currentGameNumber = ctx.getArgument("currentGameNumber", Integer.class);
                                                 return gameManager.startEvent(eventInfo, maxGames, currentGameNumber);
                                             } catch (SQLException e) {
-                                                return CommandResult.sqlException("get EventInfo", e);
+                                                return CommandResult.sqlException("get EventInfo", e).asFuture();
                                             }
                                         }))
                                 )
@@ -95,7 +93,7 @@ public class EventCommand implements BrigadierSubCommand {
                                 .color(NamedTextColor.YELLOW))
                 ))
                 .then(Permissioned.literal("confirm")
-                        .executes(BrigadierAdapters.wraps(ctx -> gameManager.stopEvent()))
+                        .executes(BrigadierAdapters.wrapsFuture(ctx -> gameManager.stopEvent()))
                 )
                 ;
     }
@@ -107,9 +105,9 @@ public class EventCommand implements BrigadierSubCommand {
                                 .suggests(TimeStringUtils::suggestDate)
                                 .then(Permissioned.argument("plainTextName", StringArgumentType.string())
                                         .then(Permissioned.argument("componentName", gameManager.getComponentArgumentType())
-                                                .executes(BrigadierAdapters.wraps(this::executeCreate))
+                                                .executes(BrigadierAdapters.wrapsFuture(this::executeCreate))
                                                 .then(Permissioned.argument("canonical", BoolArgumentType.bool())
-                                                        .executes(BrigadierAdapters.wraps(this::executeCreateCanonical))
+                                                        .executes(BrigadierAdapters.wrapsFuture(this::executeCreateCanonical))
                                                 )
                                         )
                                 )
@@ -117,16 +115,16 @@ public class EventCommand implements BrigadierSubCommand {
                 );
     }
     
-    private @NotNull CommandResult executeCreate(CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CompletableFuture<CommandResult> executeCreate(CommandContext<CommandSourceStack> ctx) {
         return createEvent(ctx, true);
     }
     
-    private @NotNull CommandResult executeCreateCanonical(CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CompletableFuture<CommandResult> executeCreateCanonical(CommandContext<CommandSourceStack> ctx) {
         boolean canonical = ctx.getArgument("canonical", Boolean.class);
         return createEvent(ctx, canonical);
     }
     
-    private CommandResult createEvent(CommandContext<CommandSourceStack> ctx, boolean canonical) {
+    private CompletableFuture<CommandResult> createEvent(CommandContext<CommandSourceStack> ctx, boolean canonical) {
         String eventId = ctx.getArgument("eventId", String.class);
         String eventDateString = ctx.getArgument("eventDate", String.class);
         Date eventDate;
@@ -136,7 +134,8 @@ public class EventCommand implements BrigadierSubCommand {
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Could not parse date string "))
                     .append(Component.text(eventDateString)
-                            .decorate(TextDecoration.BOLD)));
+                            .decorate(TextDecoration.BOLD))
+            ).asFuture();
         }
         String plainTextName = ctx.getArgument("plainTextName", String.class);
         Component componentName = ctx.getArgument("componentName", Component.class);
@@ -162,7 +161,7 @@ public class EventCommand implements BrigadierSubCommand {
     private Permissioned<CommandSourceStack> buildMaxGames() {
         return Permissioned.literal("setMaxGames")
                 .then(Permissioned.argument("newCount", IntegerArgumentType.integer())
-                        .executes(BrigadierAdapters.wraps(ctx -> {
+                        .executes(BrigadierAdapters.wrapsFuture(ctx -> {
                             int newCount = ctx.getArgument("newCount", Integer.class);
                             return gameManager.modifyMaxGames(newCount);
                         }))

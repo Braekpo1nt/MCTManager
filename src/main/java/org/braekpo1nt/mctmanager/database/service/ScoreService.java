@@ -60,15 +60,9 @@ public class ScoreService {
         }
     }
     
-    // TODO: make these methods throw their exceptions for later handling by callers and double check use of return values
-    public @Nullable GameSession createGameSession(@NotNull GameSession gameSession) {
-        try {
-            gameSessionDao.create(gameSession);
-            return gameSession;
-        } catch (SQLException e) {
-            Main.logger().log(Level.SEVERE, String.format("Error creating GameSession %s", gameSession), e);
-            return null;
-        }
+    public @NotNull GameSession createGameSession(@NotNull GameSession gameSession) throws SQLException {
+        gameSessionDao.create(gameSession);
+        return gameSession;
     }
     
     public void setGameSessionEndDate(int id, @NotNull Date endTime) throws SQLException {

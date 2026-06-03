@@ -24,13 +24,6 @@ import java.util.stream.Collectors;
 public class CommandUtils {
     
     /**
-     * @deprecated remove this, no longer used
-     */
-    @Deprecated
-    private static final Map<String, List<String>> GAME_CONFIGS = new HashMap<>();
-    private static @NotNull List<String> PRESET_FILES = Collections.emptyList();
-    
-    /**
      * @param value the string to check if it is an integer
      * @return true if the string is an integer, false if not
      */
@@ -100,43 +93,6 @@ public class CommandUtils {
         return list.stream().filter(s -> s.toLowerCase().startsWith(lowerCasePartial)).toList();
     }
     
-    /**
-     * List the config files in the directory for the given gameID
-     * @param gameID the gameID to get the configs for
-     * @return the configs associated with that gameID, or an empty list
-     * if none are found
-     * @deprecated use {@link #getGameConfigs(Main, GameType)}
-     */
-    @Deprecated
-    public static @NotNull List<String> getGameConfigs(@NotNull String gameID) {
-        return GAME_CONFIGS.getOrDefault(gameID, Collections.emptyList());
-    }
-    
-    /**
-     * Searches the plugin's data folder asynchronously to store
-     * references to each game's config folder and the json config
-     * files contained within, enabling cheap tab completion.
-     * @param plugin enables asynchronous file IO
-     * @deprecated use {@link #getGameConfigs(Main, GameType)}
-     */
-    @Deprecated
-    public static void refreshGameConfigs(Main plugin) {
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            for (String gameID : GameType.GAME_IDS.keySet()) {
-                File configDir = new File(plugin.getDataFolder(), gameID);
-                if (configDir.isDirectory()) {
-                    File[] jsonFiles = configDir.listFiles(file ->
-                            file.isFile() && file.getName().endsWith(".json"));
-                    if (jsonFiles != null) {
-                        GAME_CONFIGS.put(gameID, Arrays.stream(jsonFiles)
-                                .map(File::getName)
-                                .toList());
-                    }
-                }
-            }
-        });
-    }
-    
     public static @NotNull List<String> getGameConfigs(@NotNull Main plugin, @NotNull GameType gameId) {
         File configDir = new File(plugin.getDataFolder(), gameId.getId());
         if (configDir.isDirectory()) {
@@ -149,35 +105,6 @@ public class CommandUtils {
             }
         }
         return Collections.emptyList();
-    }
-    
-    public static CompletableFuture<Suggestions> suggestConfigFiles(@NotNull Main plugin, CommandContext<CommandSourceStack> ctx, SuggestionsBuilder builder) {
-        return CompletableFuture.supplyAsync(() -> {
-            GameType gameId = ctx.getArgument("gameId", GameType.class);
-            getGameConfigs(plugin, gameId).stream()
-                    .filter(configFile -> configFile.startsWith(builder.getRemaining()))
-                    .forEach(builder::suggest);
-            return builder.build();
-        });
-    }
-    
-    public static @NotNull List<String> getPresetFiles() {
-        return PRESET_FILES;
-    }
-    
-    public static void refreshPresetFiles(Main plugin) {
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            File configDir = new File(plugin.getDataFolder(), "presets");
-            if (configDir.isDirectory()) {
-                File[] jsonFiles = configDir.listFiles(file ->
-                        file.isFile() && file.getName().endsWith(".json"));
-                if (jsonFiles != null) {
-                    PRESET_FILES = Arrays.stream(jsonFiles)
-                            .map(File::getName)
-                            .toList();
-                }
-            }
-        });
     }
     
     public static @NotNull String[] removeElement(@NotNull String[] original, int indexToRemove) {
@@ -194,48 +121,6 @@ public class CommandUtils {
     // a few helpers for theoretical automatic permission node creation:
     
     //========================
-    
-    public static @NotNull Component displayCommandNodes(List<List<String>> allPermNodes) {
-        TextComponent.Builder builder = Component.text();
-        for (List<String> permNodes : allPermNodes) {
-            for (String permNode : permNodes) {
-                builder
-                        .append(Component.text(permNode))
-                        .append(Component.text("."));
-            }
-            builder.append(Component.newline());
-        }
-        return builder.build();
-    }
-    
-    public static List<List<String>> toPermNodes(CommandNode<CommandSourceStack> root) {
-        List<List<String>> result = new ArrayList<>();
-        Deque<String> path = new ArrayDeque<>();
-        
-        traverse(root, path, result);
-        
-        return result;
-    }
-    
-    private static void traverse(
-            CommandNode<CommandSourceStack> node,
-            Deque<String> path,
-            List<List<String>> result
-    ) {
-        // Add current node to path
-        path.addLast(node.getName());
-        
-        // Record current path
-        result.add(new ArrayList<>(path));
-        
-        // Traverse children
-        for (CommandNode<CommandSourceStack> child : node.getChildren()) {
-            traverse(child, path, result);
-        }
-        
-        // Backtrack
-        path.removeLast();
-    }
     
     public static CompletableFuture<Suggestions> suggestColor(CommandContext<CommandSourceStack> ctx, SuggestionsBuilder builder) {
         List<String> suggestions = ColorMap.getPartiallyMatchingColorStrings(builder.getRemainingLowerCase());

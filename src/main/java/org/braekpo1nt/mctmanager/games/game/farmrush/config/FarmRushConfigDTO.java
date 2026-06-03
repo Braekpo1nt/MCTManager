@@ -148,6 +148,14 @@ class FarmRushConfigDTO implements Validatable {
          */
         private @Nullable Integer maxScore;
         /**
+         * What percent of the sell score goes to participants as individual points
+         * (the other portion will go to the team as a whole)<br>
+         * So if set to 50% and there are 4 teams, and 400 points worth of items are sold,
+         * then 400*50%=200, each participant will get 200/4=50 points, and the team will
+         * get 200 points.
+         */
+        private @Nullable Double personalPercent;
+        /**
          * The sell cap, beyond which players are not allowed to gain points from selling items.
          * Note that if this is greater than 1 but less than {@link #maxScore}, then players
          * will be unable to reach the max score through selling items.
@@ -179,6 +187,9 @@ class FarmRushConfigDTO implements Validatable {
             validator.validateMap(materialScores, "materialScores");
             validator.validate(winnerBonus >= 0, "winnerBonus can't be negative");
             validator.validate(warningThreshold < 1, "warningThreshold must be below 1.0");
+            if (personalPercent != null) {
+                validator.validate(0.0 <= personalPercent && personalPercent <= 1.0, "personalPercent must be between 0.0 and 1.0 inclusive");
+            }
         }
     }
     
@@ -249,6 +260,7 @@ class FarmRushConfigDTO implements Validatable {
                 .gracePeriodDuration(this.durations.gracePeriod)
                 .materialScores(this.scores.getMaterialScores())
                 .maxScore(this.scores.maxScore != null ? this.scores.maxScore : -1)
+                .personalPercent(this.scores.personalPercent != null ? this.scores.personalPercent : 0.0)
                 .sellCap(this.scores.sellCap != null ? this.scores.sellCap : -1)
                 .warningThreshold(this.scores.warningThreshold)
                 .winnerBonus(this.scores.winnerBonus)

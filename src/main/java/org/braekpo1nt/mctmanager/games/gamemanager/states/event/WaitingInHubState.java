@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -52,17 +54,22 @@ public class WaitingInHubState extends EventState {
         sidebar.updateLine("currentGame", getCurrentGameLine());
         context.getTimerManager().start(waitingInHubTimer);
         startActionBarTips();
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                context.getEventService().updateActiveEvent(
-                        eventData.getEventInfo().getEventId(),
-                        eventData.getCurrentGameNumber(),
-                        eventData.getMaxGames()
-                );
-            } catch (SQLException e) {
-                Main.logger().log(Level.SEVERE, "Could not update active currentGameNumber", e);
-            }
-        });
+        CompletableFuture.runAsync(() -> {
+                    try {
+                        context.getEventService().updateActiveEvent(
+                                eventData.getEventInfo().getEventId(),
+                                eventData.getCurrentGameNumber(),
+                                eventData.getMaxGames()
+                        );
+                    } catch (SQLException e) {
+                        throw new CompletionException(e);
+                    }
+                }, plugin.getDatabaseExecutor())
+                .exceptionally(e -> {
+                    Main.logger().log(Level.SEVERE, "Could not update active currentGameNumber", e);
+                    
+                    return null;
+                });
     }
     
     @Override
@@ -114,14 +121,15 @@ public class WaitingInHubState extends EventState {
     }
     
     @Override
-    public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
+    public CompletableFuture<CommandResult> startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
         waitingInHubTimer.cancel();
         disableTips();
         context.setState(new StartingGameDelayState(context, contextReference, eventData, gameType, configFile));
         return CommandResult.success(Component.empty()
                 .append(Component.text("Manually starting "))
                 .append(Component.text(gameType.getTitle()))
-                .append(Component.text(". Cancelling the vote.")));
+                .append(Component.text(". Cancelling the vote."))
+        ).asFuture();
     }
     
     public void startActionBarTips() {
@@ -154,10 +162,10 @@ public class WaitingInHubState extends EventState {
     }
     
     @Override
-    public void onParticipantJoin(@NotNull MCTParticipant participant) {
-        super.onParticipantJoin(participant);
+    public CompletableFuture<Void> onParticipantJoin(@NotNull MCTParticipant participant) {
+        CompletableFuture<Void> joinFuture = super.onParticipantJoin(participant);
         participant.teleport(config.getSpawn());
-        
+        return joinFuture;
     }
     
     /**

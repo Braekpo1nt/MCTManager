@@ -71,6 +71,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Getter
 @Setter
@@ -338,9 +339,9 @@ public class FarmRushGame extends WandsGameBase<FarmRushParticipant, FarmRushTea
     }
     
     @Override
-    public void stop() {
+    public CompletableFuture<Void> stop() {
         removeArenas(teams.values().stream().map(FarmRushTeam::getArena).toList());
-        super.stop();
+        return super.stop();
     }
     
     @Override

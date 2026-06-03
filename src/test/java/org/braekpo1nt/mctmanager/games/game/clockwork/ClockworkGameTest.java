@@ -5,6 +5,8 @@ import org.braekpo1nt.mctmanager.MockMain;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.MyPlayerMock;
 import org.braekpo1nt.mctmanager.TestUtils;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.FailureCommandResult;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfigController;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
@@ -15,13 +17,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.ServerMock;
+import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.mockbukkit.mockbukkit.exception.UnimplementedOperationException;
 
 import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class ClockworkGameTest {
     
@@ -41,6 +48,7 @@ public class ClockworkGameTest {
             Main.logger().log(Level.SEVERE, ex.getMessage(), ex);
             System.exit(1);
         }
+        Main.logger().setLevel(Level.SEVERE);
         gameManager = plugin.getGameManager();
         sender = server.getConsoleSender();
         InputStream inputStream = ClockworkConfigController.class.getResourceAsStream("exampleClockworkConfig.json");
@@ -57,7 +65,12 @@ public class ClockworkGameTest {
     MyPlayerMock createParticipant(String name, String teamId) {
         MyPlayerMock player = new MyPlayerMock(server, name, UUID.nameUUIDFromBytes(name.getBytes(StandardCharsets.UTF_8)));
         server.addPlayer(player);
-        gameManager.joinOnlineParticipant(player, teamId);
+        CompletableFuture<CommandResult> joinFuture = gameManager.joinOnlineParticipant(player, teamId);
+        assertThat(joinFuture)
+                .describedAs("joinOnlineParticipant succeeds without future exception")
+                .isNotCompletedExceptionally();
+        assertThat(joinFuture.join())
+                .isNotInstanceOf(FailureCommandResult.class);
         Assertions.assertNotNull(gameManager.getOnlineParticipant(player.getUniqueId()));
         return player;
     }
@@ -68,14 +81,23 @@ public class ClockworkGameTest {
     }
     
     @Test
+    void testFuture() {
+        PlayerMock playerMock = server.addPlayer("Joe");
+        assertThat(gameManager.illegalMove(playerMock)).isCompletedExceptionally();
+    }
+    
+    @Test
     void testStartGame() {
         addTeam("red", "red", "red");
         addTeam("blue", "blue", "blue");
         createParticipant("Player1", "red");
         createParticipant("Player2", "blue");
-        gameManager.startGame(GameType.CLOCKWORK, "clockworkConfig.json");
+        assertThat(gameManager.startGame(GameType.CLOCKWORK, "clockworkConfig.json"))
+                .describedAs("start game without future exception")
+                .isNotCompletedExceptionally();
         gameManager.getTimerManager().skip();
         gameManager.getTimerManager().skip();
-        gameManager.stopGame(GameType.CLOCKWORK, "clockworkConfig.json");
+        assertThat(gameManager.stopGame(GameType.CLOCKWORK, "clockworkConfig.json"))
+                .isNotCompletedExceptionally();
     }
 }

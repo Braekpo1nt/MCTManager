@@ -38,7 +38,7 @@ public class MCTCommand implements BrigadierCommand {
     @Override
     public LiteralCommandNode<CommandSourceStack> build() {
         return Permissioned.literal("mct")
-                .then(new EventCommand(gameManager, plugin).create())
+                .then(new EventCommand(gameManager).create())
                 .then(new TeamCommand(plugin, gameManager).create())
                 .then(new AdminCommand(gameManager).create())
                 .then(new DebugCommand().create())
@@ -51,7 +51,7 @@ public class MCTCommand implements BrigadierCommand {
                 .then(new TabListCommand(gameManager).create())
                 .then(new TimerCommand(gameManager).create())
                 .then(Permissioned.literal("load")
-                        .executes(BrigadierAdapters.wraps(ctx -> gameManager.loadGameState()))
+                        .executes(BrigadierAdapters.wrapsFuture(ctx -> gameManager.loadGameState()))
                 )
                 .then(new StatsCommand(gameManager.getGameStateService()).create())
                 .permissionRoot("mctmanager")

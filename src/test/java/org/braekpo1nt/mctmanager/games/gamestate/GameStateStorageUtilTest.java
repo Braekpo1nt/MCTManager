@@ -33,7 +33,7 @@ public class GameStateStorageUtilTest {
     void setup() throws IOException, SQLException {
         dbPath = Files.createTempFile("test-db-", "mctmanager.db");
         String sqlitePath = dbPath.toAbsolutePath().toString();
-        database = new Database(sqlitePath);
+        database = new Database(sqlitePath, Runnable::run);
         
         Logger logger = Logger.getLogger("test");
         logger.setLevel(Level.OFF);
@@ -71,7 +71,7 @@ public class GameStateStorageUtilTest {
         String ign = "Player1";
         
         assertThat(gameStateStorageUtil.registerPlayer(uuid, ign)).isEqualTo(RegisterConflictType.NONE);
-        gameStateStorageUtil.addNewPlayer(uuid, ign, teamId);
+        gameStateStorageUtil.joinPlayer(uuid, ign, teamId);
         
         AllPlayersEntity actual = database.getAllPlayersDao().queryForId(uuid.toString());
         assertThat(actual).isNotNull();
@@ -87,7 +87,7 @@ public class GameStateStorageUtilTest {
         String ign = "Player1";
         
         assertThat(gameStateStorageUtil.registerPlayer(uuid, ign)).isEqualTo(RegisterConflictType.NONE);
-        gameStateStorageUtil.addNewPlayer(uuid, ign, teamId);
+        gameStateStorageUtil.joinPlayer(uuid, ign, teamId);
         assertThat(gameStateStorageUtil.registerPlayer(uuid, ign)).isEqualTo(RegisterConflictType.NONE);
         
         AllPlayersEntity actual = database.getAllPlayersDao().queryForId(uuid.toString());
@@ -103,7 +103,7 @@ public class GameStateStorageUtilTest {
         UUID uuid = UUID.randomUUID();
         String ign = "Player1";
         
-        gameStateStorageUtil.addNewPlayer(uuid, ign, teamId);
+        gameStateStorageUtil.joinPlayer(uuid, ign, teamId);
         gameStateStorageUtil.leavePlayer(uuid);
         
         AllPlayersEntity actual = database.getAllPlayersDao().queryForId(uuid.toString());
@@ -118,9 +118,9 @@ public class GameStateStorageUtilTest {
         UUID uuid = UUID.randomUUID();
         String ign = "Player1";
         
-        gameStateStorageUtil.addNewPlayer(uuid, ign, teamId);
+        gameStateStorageUtil.joinPlayer(uuid, ign, teamId);
         gameStateStorageUtil.leavePlayer(uuid);
-        gameStateStorageUtil.addNewPlayer(uuid, ign, teamId);
+        gameStateStorageUtil.joinPlayer(uuid, ign, teamId);
         
         AllPlayersEntity actual = database.getAllPlayersDao().queryForId(uuid.toString());
         assertThat(actual).isNotNull();
@@ -137,7 +137,7 @@ public class GameStateStorageUtilTest {
         String correctIGN = "Player1";
         
         // offline player added to game state, wrong ign
-        gameStateStorageUtil.addNewPlayer(uuid, wrongIGN, teamId);
+        gameStateStorageUtil.joinPlayer(uuid, wrongIGN, teamId);
         
         // player with that uuid and a different ign logs in
         assertThat(gameStateStorageUtil.registerPlayer(uuid, correctIGN)).isEqualTo(RegisterConflictType.MIGRATE_IGN);
@@ -159,7 +159,7 @@ public class GameStateStorageUtilTest {
         String ign = "Player1";
         
         // offline player added to game state, wrong uuid
-        gameStateStorageUtil.addNewPlayer(wrongUUID, ign, teamId);
+        gameStateStorageUtil.joinPlayer(wrongUUID, ign, teamId);
         
         // player with that username but a different uuid logs in
         assertThat(gameStateStorageUtil.registerPlayer(rightUUID, ign)).isEqualTo(RegisterConflictType.MIGRATE_UUID);
@@ -182,9 +182,9 @@ public class GameStateStorageUtilTest {
         String rightIGN = "Player1";
         
         // offline player added to game state, wrong ign
-        gameStateStorageUtil.addNewPlayer(rightUUID, wrongIGN, teamId);
+        gameStateStorageUtil.joinPlayer(rightUUID, wrongIGN, teamId);
         // offline player added to the game state, wrong uuid right ign
-        gameStateStorageUtil.addNewPlayer(wrongUUID, rightIGN, teamId);
+        gameStateStorageUtil.joinPlayer(wrongUUID, rightIGN, teamId);
         
         // player with the right uuid and ign combo logs in
         assertThat(gameStateStorageUtil.registerPlayer(rightUUID, rightIGN)).isEqualTo(RegisterConflictType.MIGRATE_UUID);

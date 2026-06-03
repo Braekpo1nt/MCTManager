@@ -129,28 +129,46 @@ public class ActiveState extends FootRaceStateBase {
         }
         
         Vector to = event.getTo().toVector();
-        int currentCheckpointIndex = participant.getCurrentCheckpoint();
-        int nextCheckpointIndex = MathUtils.wrapIndex(currentCheckpointIndex + 1, config.getCheckpoints().size());
         List<BoundingBox> checkpoints = config.getCheckpoints();
         
-        // 1. Check for reaching the next checkpoint
+        // Check for reaching the next checkpoint
+        int currentCheckpointIndex = participant.getCurrentCheckpoint();
+        int nextCheckpointIndex = MathUtils.wrapIndex(currentCheckpointIndex + 1, config.getCheckpoints().size());
         if (checkpoints.get(nextCheckpointIndex).contains(to)) {
-            onParticipantReachCheckpoint(participant, nextCheckpointIndex);
             resetWrongWayLogic(participant);
+            // set both the currentCheckpoint and wrongWayCheckpoint
+            onParticipantReachCheckpoint(participant, nextCheckpointIndex);
             return;
         }
         
-        // 2. Check for crossing any OTHER previous checkpoints
-        for (int i = 0; i < checkpoints.size(); i++) {
-            if (i == currentCheckpointIndex || i == nextCheckpointIndex) {
-                continue;
-            }
-            if (checkpoints.get(i).contains(to)) {
-                participant.setCurrentCheckpoint(i);
-                participant.setShowingWrongWayAlert(true);
-                showWrongWayTitle(participant);
-                return;
-            }
+        // We're moving and have not reached the next checkpoint
+        
+        // Have we reached the next wrongWayCheckpoint?
+        // (different from above because you can backtrack wrongWayCheckpoint)
+        int wrongWayCheckpointIndex = participant.getWrongWayCheckpoint();
+        int nextWrongWayCheckpointIndex = MathUtils.wrapIndex(wrongWayCheckpointIndex + 1, config.getCheckpoints().size());
+        if (
+            // no need to double-check if the above check failed, they're identical
+                nextWrongWayCheckpointIndex != nextCheckpointIndex
+                        && checkpoints.get(nextWrongWayCheckpointIndex).contains(to)
+        ) {
+            resetWrongWayLogic(participant);
+            participant.setWrongWayCheckpoint(nextWrongWayCheckpointIndex);
+            return;
+        }
+        
+        // Check for reaching the previous checkpoint
+        int previousCheckpoint = MathUtils.wrapIndex(
+                participant.getWrongWayCheckpoint() - 1,
+                checkpoints.size()
+        );
+        if (checkpoints.get(previousCheckpoint).contains(to)) {
+            // they've reached the previous checkpoint
+            participant.setWrongWayCheckpoint(previousCheckpoint);
+            participant.setShowingWrongWayAlert(true);
+            // TODO: replace this with a call to handleWrongWayDistanceLogic
+            showWrongWayTitle(participant);
+            return;
         }
         
         // 3. Distance-based wrong way detection
@@ -159,35 +177,38 @@ public class ActiveState extends FootRaceStateBase {
     
     private void handleWrongWayDistanceLogic(FootRaceParticipant participant, Vector to) {
         long now = System.currentTimeMillis();
-        int currentCheckpointIndex = participant.getCurrentCheckpoint();
-        int nextCheckpointIndex = MathUtils.wrapIndex(currentCheckpointIndex + 1, config.getCheckpoints().size());
         List<BoundingBox> checkpoints = config.getCheckpoints();
+        int currentCheckpointIndex = participant.getWrongWayCheckpoint();
+        int nextCheckpointIndex = MathUtils.wrapIndex(currentCheckpointIndex + 1, checkpoints.size());
         
         double distToNext = MathUtils.getMinimumDistance(checkpoints.get(nextCheckpointIndex), to);
-        double distToPrev = MathUtils.getMinimumDistance(checkpoints.get(currentCheckpointIndex), to);
         
-        // If moving closer to previous checkpoint
-        if (distToPrev < participant.getLastDistToPrev() - 0.01) {
-            if (participant.getWrongWayCounterStart() == -1) {
-                participant.setWrongWayCounterStart(now);
-            }
-            participant.setRightWayCounterStart(-1);
-            if (!participant.isShowingWrongWayAlert() && now - participant.getWrongWayCounterStart() > 2000) {
-                participant.setShowingWrongWayAlert(true);
-            }
-        } else if (distToNext < participant.getLastDistToNext() - 0.01) {
+        /*
+        Prioritize moving toward the correct checkpoint, otherwise "Wrong Way" shows when
+        heading in the correct direction. If you're not moving closer to the next checkpoint, 
+        then you're going the wrong way. There's a buffer of x milliseconds to reduce flickering,
+        and then a message is displayed. 
+         */
+        if (distToNext < participant.getLastDistToNext() - 0.01) {
             // If moving closer to next checkpoint
             if (participant.getRightWayCounterStart() == -1) {
                 participant.setRightWayCounterStart(now);
             }
-            participant.setWrongWayCounterStart(-1);
-            if (participant.isShowingWrongWayAlert() && now - participant.getRightWayCounterStart() > 1000) {
+            if (participant.isShowingWrongWayAlert() && now - participant.getRightWayCounterStart() > config.getWrongWayMilliseconds()) {
                 participant.setShowingWrongWayAlert(false);
+                resetWrongWayLogic(participant);
+            }
+        } else {
+            participant.setRightWayCounterStart(-1);
+            if (participant.getWrongWayCounterStart() == -1) {
+                participant.setWrongWayCounterStart(now);
+            }
+            if (!participant.isShowingWrongWayAlert() && now - participant.getWrongWayCounterStart() > config.getWrongWayMilliseconds()) {
+                participant.setShowingWrongWayAlert(true);
             }
         }
         
         participant.setLastDistToNext(distToNext);
-        participant.setLastDistToPrev(distToPrev);
         
         if (participant.isShowingWrongWayAlert()) {
             showWrongWayTitle(participant);
@@ -195,11 +216,11 @@ public class ActiveState extends FootRaceStateBase {
     }
     
     private void resetWrongWayLogic(FootRaceParticipant participant) {
+        participant.showTitle(UIUtils.EMPTY_TITLE);
         participant.setWrongWayCounterStart(-1);
         participant.setRightWayCounterStart(-1);
         participant.setShowingWrongWayAlert(false);
         participant.setLastDistToNext(Double.MAX_VALUE);
-        participant.setLastDistToPrev(Double.MAX_VALUE);
     }
     
     private void showWrongWayTitle(FootRaceParticipant participant) {

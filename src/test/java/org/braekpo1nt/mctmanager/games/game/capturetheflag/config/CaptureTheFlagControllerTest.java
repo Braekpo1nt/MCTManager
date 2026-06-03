@@ -31,6 +31,7 @@ class CaptureTheFlagControllerTest {
         ServerMock server = MockBukkit.mock(new MyCustomServerMock());
         server.getLogger().setLevel(Level.OFF);
         plugin = MockBukkit.load(MockMain.class);
+        Main.logger().setLevel(Level.SEVERE);
         controller = new CaptureTheFlagConfigController(plugin.getDataFolder(), GameType.CAPTURE_THE_FLAG.getId());
         configFolder = new File(plugin.getDataFolder(), GameType.CAPTURE_THE_FLAG.getId());
         configFolder.mkdirs();

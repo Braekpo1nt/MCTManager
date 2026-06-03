@@ -20,6 +20,9 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.logging.Level;
 
+import static org.braekpo1nt.mctmanager.TestUtils.futureIsNotFailure;
+import static org.braekpo1nt.mctmanager.TestUtils.futureIsNotNull;
+
 class TimerManagerTest {
     
     private TimerManager timerManager;
@@ -36,12 +39,15 @@ class TimerManagerTest {
             gameManager = plugin.getGameManager();
             timerManager = gameManager.getTimerManager();
             InputStream inputStream = FootRaceConfig.class.getResourceAsStream("exampleFootRaceConfig.json");
-            TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), "footRaceConfig.json"));
+            File configFolder = new File(plugin.getDataFolder(), "foot-race/");
+            configFolder.mkdirs();
+            TestUtils.copyInputStreamToFile(inputStream, new File(configFolder, "footRaceConfig.json"));
         } catch (UnimplementedOperationException ex) {
             System.out.println("UnimplementedOperationException while setting up " + this.getClass() + ". MockBukkit must not support the functionality/operation you are trying to test. Check the stack trace below for the exact method that threw the exception. Message from exception:" + ex.getMessage());
             Main.logger().log(Level.SEVERE, "error occurred in MockBukkit", ex);
             System.exit(1);
         }
+        Main.logger().setLevel(Level.SEVERE);
     }
     
     @AfterEach
@@ -61,9 +67,9 @@ class TimerManagerTest {
     @Test
     void footRace() {
         PlayerMock playerMock = server.addPlayer();
-        gameManager.addTeam("test", "Test", "white");
-        gameManager.joinOnlineParticipant(playerMock, "test");
-        gameManager.startGame(GameType.FOOT_RACE, "footRaceConfig.json");
+        futureIsNotNull(gameManager.addTeam("test", "Test", "white"));
+        futureIsNotFailure(gameManager.joinOnlineParticipant(playerMock, "test"));
+        futureIsNotFailure(gameManager.startGame(GameType.FOOT_RACE, "footRaceConfig.json"));
         Assertions.assertDoesNotThrow(timerManager::skip);
     }
     

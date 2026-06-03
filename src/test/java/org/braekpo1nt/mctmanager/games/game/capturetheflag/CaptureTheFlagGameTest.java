@@ -41,6 +41,7 @@ public class CaptureTheFlagGameTest {
             Main.logger().log(Level.SEVERE, "UnimplementedOperationException from MockBukkit", ex);
             System.exit(1);
         }
+        Main.logger().setLevel(Level.SEVERE);
         gameManager = plugin.getGameManager();
         InputStream inputStream = CaptureTheFlagConfigController.class.getResourceAsStream("exampleCaptureTheFlagConfig.json");
         File configFolder = new File(plugin.getDataFolder(), GameType.CAPTURE_THE_FLAG.getId());

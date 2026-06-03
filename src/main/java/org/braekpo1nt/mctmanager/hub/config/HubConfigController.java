@@ -79,7 +79,6 @@ public class HubConfigController extends ConfigController<HubConfigDTO> {
                 HubConfigDTO.PracticeDTO.builder()
                         .restrictGameJoining(false)
                         .allowedGames(Collections.emptyList())
-                        .preset(null)
                         .build(),
                 Collections.emptyList(),
                 Collections.emptyList(),

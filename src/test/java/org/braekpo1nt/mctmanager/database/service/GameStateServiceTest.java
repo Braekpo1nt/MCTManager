@@ -57,7 +57,7 @@ class GameStateServiceTest {
     void setup() throws SQLException, IOException {
         dbPath = Files.createTempFile("test-db-", "mctmanager.db");
         String sqlitePath = dbPath.toAbsolutePath().toString();
-        database = new Database(sqlitePath);
+        database = new Database(sqlitePath, Runnable::run);
         
         Logger logger = Logger.getLogger("test");
         logger.setLevel(Level.OFF);
@@ -740,7 +740,7 @@ class GameStateServiceTest {
     // rebuild tests start
     @Test
     void rebuildMaintenanceEmpty() throws SQLException {
-        gameStateService.rebuildMaintenanceMode();
+        assertThat(gameStateService.rebuildMaintenanceMode()).isNotCompletedExceptionally();
         assertThat(gameStateService.getActiveParticipants()).isEmpty();
         assertThat(gameStateService.getActiveTeams()).isEmpty();
         assertThat(gameStateService.getActiveAdmins()).isEmpty();
@@ -762,7 +762,7 @@ class GameStateServiceTest {
                 .participantUUID(uuid)
                 .teamId(teamId)
                 .build(), ign);
-        gameStateService.rebuildMaintenanceMode();
+        assertThat(gameStateService.rebuildMaintenanceMode()).isNotCompletedExceptionally();
         assertThat(gameStateService.getActiveParticipants()).hasSize(1);
         assertThat(gameStateService.getActiveTeams()).hasSize(1);
         assertThat(gameStateService.getActiveAdmins()).isEmpty();
@@ -819,7 +819,7 @@ class GameStateServiceTest {
                 .createdAt(new Date())
                 .build());
         AssertionsForClassTypes.assertThat(scoreEventEntity).isNotNull();
-        gameStateService.rebuildMaintenanceMode();
+        assertThat(gameStateService.rebuildMaintenanceMode()).isNotCompletedExceptionally();
         List<ActiveParticipant> activeParticipants = gameStateService.getActiveParticipants();
         assertThat(activeParticipants).hasSize(1);
         assertThat(activeParticipants.getFirst().getScore())

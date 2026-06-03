@@ -22,7 +22,7 @@ public class BrigadierAdapters {
     }
     
     @FunctionalInterface
-    public interface AsyncResultCommand {
+    public interface FutureResultCommand {
         @NotNull CompletableFuture<CommandResult> run(@NotNull CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException;
     }
     
@@ -59,7 +59,7 @@ public class BrigadierAdapters {
         };
     }
     
-    public static @NotNull Command<CommandSourceStack> wraps(@NotNull Main plugin, @NotNull AsyncResultCommand command) {
+    public static @NotNull Command<CommandSourceStack> wrapsFuture(@NotNull FutureResultCommand command) {
         return ctx -> {
             CommandSender sender = ctx.getSource().getSender();
             try {
@@ -80,7 +80,7 @@ public class BrigadierAdapters {
                                 );
                             }
                         });
-                CommandResult.showResult(sender, plugin, futureResult);
+                CommandResult.showResult(sender, futureResult);
                 return Command.SINGLE_SUCCESS;
                 // below is to catch exceptions in command.run() before or while the future is being built,
                 // not for catching exceptions inside the future

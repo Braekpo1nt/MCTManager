@@ -31,6 +31,7 @@ public class FarmRushConfigControllerTest {
         ServerMock server = MockBukkit.mock(new MyCustomServerMock());
         server.getLogger().setLevel(Level.OFF);
         plugin = MockBukkit.load(MockMain.class);
+        Main.logger().setLevel(Level.SEVERE);
         controller = new FarmRushConfigController(plugin.getDataFolder(), GameType.FARM_RUSH.getId());
         configFolder = new File(plugin.getDataFolder(), GameType.FARM_RUSH.getId());
         configFolder.mkdirs();

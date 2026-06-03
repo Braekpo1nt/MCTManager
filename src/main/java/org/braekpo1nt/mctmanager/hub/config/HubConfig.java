@@ -49,10 +49,6 @@ public class HubConfig {
          * The allowed games to play during practice  mode
          */
         private List<GameInfo> allowedGames;
-        /**
-         * If null, no preset will be used.
-         */
-        private @Nullable PresetConfig preset;
     }
     
     @Data

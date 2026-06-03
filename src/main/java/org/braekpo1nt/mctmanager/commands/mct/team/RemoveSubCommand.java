@@ -11,6 +11,8 @@ import org.braekpo1nt.mctmanager.games.gamemanager.GameManager;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.CompletableFuture;
+
 public class RemoveSubCommand implements BrigadierSubCommand {
     
     
@@ -24,12 +26,12 @@ public class RemoveSubCommand implements BrigadierSubCommand {
     public @NotNull Permissioned<CommandSourceStack> create() {
         return Permissioned.literal("remove")
                 .then(Permissioned.argument("teamId", new TeamArgumentType(gameManager))
-                        .executes(BrigadierAdapters.wraps(this::executeRemove))
+                        .executes(BrigadierAdapters.wrapsFuture(this::executeRemove))
                 )
                 ;
     }
     
-    private @NotNull CommandResult executeRemove(CommandContext<CommandSourceStack> ctx) {
+    private @NotNull CompletableFuture<CommandResult> executeRemove(CommandContext<CommandSourceStack> ctx) {
         Team teamToRemove = ctx.getArgument("teamId", Team.class);
         return gameManager.removeTeam(teamToRemove.getTeamId());
     }

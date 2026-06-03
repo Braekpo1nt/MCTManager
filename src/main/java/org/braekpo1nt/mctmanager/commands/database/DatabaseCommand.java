@@ -29,7 +29,7 @@ public class DatabaseCommand implements BrigadierCommand {
     @Override
     public LiteralCommandNode<CommandSourceStack> build() {
         return Permissioned.literal("database")
-                .then(new DatabaseTeamCommand(plugin, gameManager).create())
+                .then(new DatabaseTeamCommand(gameManager).create())
                 .then(Commands.literal("clear")
                         .then(Commands.literal("score_service")
                                 .executes(BrigadierAdapters.wraps(this::executeClearScoreService))

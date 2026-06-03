@@ -64,6 +64,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 /**
@@ -182,8 +183,9 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * @param newTeams the teams going into the game
      * @param newParticipants the participants going into the game
      * @param newAdmins the admins going into the game
+     * @return the future containing database operations associated with the start of the game
      */
-    protected void start(@NotNull Collection<Team> newTeams, @NotNull Collection<Participant> newParticipants, @NotNull List<Player> newAdmins) {
+    protected CompletableFuture<Void> start(@NotNull Collection<Team> newTeams, @NotNull Collection<Participant> newParticipants, @NotNull List<Player> newAdmins) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         listeners.forEach(listener -> listener.register(plugin));
         for (Team newTeam : newTeams) {
@@ -213,8 +215,10 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         _initializeAdminSidebar();
         // admin end
         
+        this.state = getStartState();
+        this.state.enter();
         // database start
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+        return CompletableFuture.runAsync(() -> {
             try {
                 // update the live representation of the players and teams
                 gameManager.getGameStateService().addInGameParticipantsAndTeams(
@@ -250,10 +254,8 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             } catch (SQLException e) {
                 reportSQLException("initializing in_game_* tables for game", e);
             }
-        });
+        }, plugin.getDatabaseExecutor());
         // database end
-        this.state = getStartState();
-        this.state.enter();
     }
     
     /**
@@ -281,16 +283,16 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * then calls {@link GameStateBase#enter()} on the new {@link #state}
      * @param state assign a state to this game
      */
-    // TODO: remove final
-    public final void setState(@NotNull S state) {
+    public void setState(@NotNull S state) {
         this.state.exit();
         this.state = state;
         this.state.enter();
     }
     
     // cleanup start
+    // TODO: return result is never used
     @Override
-    public void stop() {
+    public CompletableFuture<Void> stop() {
         HandlerList.unregisterAll(this);
         listeners.forEach(GameListener::unregister);
         listeners.clear();
@@ -320,17 +322,17 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         }
         storedGameRules.clear();
         cleanup();
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+        gameManager.gameIsOver(gameSessionId, getGameInstanceId(), teamScores, participantScores, participants.values().stream().map(Participant::getUniqueId).toList(), admins);
+        participants.clear();
+        admins.clear();
+        Main.logger().info("Stopping " + type.getTitle());
+        return CompletableFuture.runAsync(() -> {
             try {
                 gameManager.getGameStateService().removeInGameTeamsAndParticipants(gameSessionId);
             } catch (SQLException e) {
                 reportSQLException("clearing the active game entries for this game", e);
             }
-        });
-        gameManager.gameIsOver(gameSessionId, getGameInstanceId(), teamScores, participantScores, participants.values().stream().map(Participant::getUniqueId).toList(), admins);
-        participants.clear();
-        admins.clear();
-        Main.logger().info("Stopping " + type.getTitle());
+        }, plugin.getDatabaseExecutor());
     }
     
     /**
@@ -521,14 +523,16 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     // quit/join start
     
     @Override
-    public void onJoin(@NotNull Team team, @NotNull Participant participant) {
-        onTeamJoin(team);
-        onParticipantJoin(participant);
+    public CompletableFuture<Void> onJoin(@NotNull Team team, @NotNull Participant participant) {
+        CompletableFuture<Void> tJoinFuture = onTeamJoin(team);
+        CompletableFuture<Void> pJoinFuture = onParticipantJoin(participant);
+        return tJoinFuture
+                .thenCompose(v -> pJoinFuture);
     }
     
-    protected void onTeamJoin(Team newTeam) {
+    protected CompletableFuture<Void> onTeamJoin(Team newTeam) {
         if (teams.containsKey(newTeam.getTeamId())) {
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         QT quitTeam = teamQuitDatas.remove(newTeam.getTeamId());
         T team;
@@ -544,7 +548,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             tabList.addTeam(team.getTeamId(), team.getDisplayName(), team.getColor());
             state.onNewTeamJoin(team);
         }
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+        return CompletableFuture.runAsync(() -> {
             try {
                 gameManager.getGameStateService().addOrUpdateTeam(InGameTeam.builder()
                         .teamId(team.getTeamId())
@@ -554,10 +558,10 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             } catch (SQLException e) {
                 reportSQLException("joining team to game and updating in-game table", e);
             }
-        });
+        }, plugin.getDatabaseExecutor());
     }
     
-    protected void onParticipantJoin(Participant newParticipant) {
+    protected CompletableFuture<Void> onParticipantJoin(Participant newParticipant) {
         T team = teams.get(newParticipant.getTeamId());
         QP quitData = quitDatas.remove(newParticipant.getParticipantID());
         newParticipant.setGameMode(GameMode.ADVENTURE);
@@ -576,7 +580,11 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             addParticipant(participant, team);
             state.onNewParticipantJoin(participant, team);
         }
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+        // update the UI
+        sidebar.updateLine(participant.getUniqueId(), "title", title);
+        displayScore(participant);
+        displayScore(team);
+        return CompletableFuture.runAsync(() -> {
             try {
                 gameManager.getGameStateService().addOrUpdateParticipant(InGameParticipant.builder()
                         .participantUUID(participant.getUniqueId().toString())
@@ -597,31 +605,22 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             } catch (SQLException e) {
                 reportSQLException("joining participant to game and updating in-game database", e);
             }
-        });
-        // update the UI
-        sidebar.updateLine(participant.getUniqueId(), "title", title);
-        displayScore(participant);
-        displayScore(team);
+        }, plugin.getDatabaseExecutor());
     }
     
     @Override
-    public void onQuit(@NotNull String teamId, @NotNull UUID participantUUID) {
-        onParticipantQuit(participantUUID);
-        onTeamQuit(teamId);
+    public CompletableFuture<Void> onQuit(@NotNull String teamId, @NotNull UUID participantUUID) {
+        CompletableFuture<Void> pQuitFuture = onParticipantQuit(participantUUID);
+        CompletableFuture<Void> tQuitFuture = onTeamQuit(teamId);
+        return pQuitFuture
+                .thenCompose(v -> tQuitFuture);
     }
     
-    protected void onParticipantQuit(@NotNull UUID participantUUID) {
+    protected CompletableFuture<Void> onParticipantQuit(@NotNull UUID participantUUID) {
         P participant = participants.get(participantUUID);
         if (participant == null) {
-            return;
+            return CompletableFuture.completedFuture(null);
         }
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                gameManager.getGameStateService().deleteInGameParticipant(participantUUID.toString());
-            } catch (SQLException e) {
-                reportSQLException("quitting participant from game and removing from the in-game table", e);
-            }
-        });
         T team = teams.get(participant.getTeamId());
         state.onParticipantQuit(participant, team);
         participants.remove(participantUUID);
@@ -630,28 +629,36 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         tabList.setParticipantGrey(participant.getParticipantID(), true);
         participant.setGameMode(GameMode.ADVENTURE);
         _resetParticipant(participant, team);
+        return CompletableFuture.runAsync(() -> {
+            try {
+                gameManager.getGameStateService().deleteInGameParticipant(participantUUID.toString());
+            } catch (SQLException e) {
+                reportSQLException("quitting participant from game and removing from the in-game table", e);
+            }
+        }, plugin.getDatabaseExecutor());
     }
     
-    protected void onTeamQuit(@NotNull String teamId) {
+    protected CompletableFuture<Void> onTeamQuit(@NotNull String teamId) {
         T team = teams.get(teamId);
         if (team == null || team.size() > 0) {
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         // no more members on the team
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+        state.onTeamQuit(team);
+        teams.remove(team.getTeamId());
+        teamQuitDatas.put(team.getTeamId(), getQuitData(team));
+        resetTeamOptions(team);
+        CompletableFuture<Void> chain = CompletableFuture.completedFuture(null);
+        if (teams.isEmpty()) {
+            chain = chain.thenCompose(v -> stop());
+        }
+        return chain.thenRunAsync(() -> {
             try {
                 gameManager.getGameStateService().deleteInGameTeam(teamId);
             } catch (SQLException e) {
                 reportSQLException("quitting team from game and removing from the in-game table", e);
             }
-        });
-        state.onTeamQuit(team);
-        teams.remove(team.getTeamId());
-        teamQuitDatas.put(team.getTeamId(), getQuitData(team));
-        resetTeamOptions(team);
-        if (teams.isEmpty()) {
-            stop();
-        }
+        }, plugin.getDatabaseExecutor());
     }
     // quit/join end
     
@@ -816,15 +823,16 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * <p>{@link #sidebar} will also be updated to reflect the score. </p>
      * @param participant the participant to be awarded personal points
      * @param points the points to be awarded (un-multiplied, base points)
+     * @return a future containing database operations
      */
-    public void awardPoints(P participant, int points, String description) {
+    public CompletableFuture<Void> awardPoints(P participant, int points, String description) {
         int multiplied = (int) (points * gameManager.getMultiplier());
         participant.awardPoints(points);
         T team = teams.get(participant.getTeamId());
         team.addPoints(multiplied);
         displayScore(participant);
         displayScore(team);
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+        return CompletableFuture.runAsync(() -> {
             Date date = new Date();
             gameManager.logScoreEvent(ScoreEvent.builder()
                     .sourceType(ScoreEvent.SourceType.GAME)
@@ -841,7 +849,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             } catch (SQLException e) {
                 reportSQLException("update in-game participant score", e);
             }
-        });
+        }, plugin.getDatabaseExecutor());
     }
     
     /**
@@ -850,12 +858,13 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * <p>{@link #sidebar} will also be updated to reflect the score</p>
      * @param team the team to award the points to
      * @param points the points to be awarded (un-multiplied, base points)
+     * @return a future containing database operations
      */
-    public void awardPoints(T team, int points, String description) {
+    public CompletableFuture<Void> awardPoints(T team, int points, String description) {
         int multiplied = (int) (points * gameManager.getMultiplier());
         team.awardPoints(multiplied);
         displayScore(team);
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+        return CompletableFuture.runAsync(() -> {
             Date date = new Date();
             gameManager.logScoreEvent(ScoreEvent.builder()
                     .sourceType(ScoreEvent.SourceType.GAME)
@@ -871,7 +880,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             } catch (SQLException e) {
                 reportSQLException("update in-game team score", e);
             }
-        });
+        }, plugin.getDatabaseExecutor());
     }
     
     /**
@@ -881,8 +890,9 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * <p>{@link #sidebar} will also be updated to reflect the score. </p>
      * @param awardedParticipants the participants to be awarded personal points
      * @param points the points to be awarded (un-multiplied, base points)
+     * @return a future containing database operations
      */
-    public void awardParticipantPoints(Collection<P> awardedParticipants, int points, String description) {
+    public CompletableFuture<Void> awardParticipantPoints(Collection<P> awardedParticipants, int points, String description) {
         int multiplied = (int) (points * gameManager.getMultiplier());
         Set<T> awardedTeams = new HashSet<>();
         for (P participant : awardedParticipants) {
@@ -891,7 +901,9 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             team.addPoints(multiplied);
             awardedTeams.add(team);
         }
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+        displayParticipantScores(awardedParticipants);
+        displayTeamScores(awardedTeams);
+        return CompletableFuture.runAsync(() -> {
             Date date = new Date();
             gameManager.logScoreEvents(awardedParticipants.stream()
                     .map(participant -> ScoreEvent.builder()
@@ -910,9 +922,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             } catch (Exception e) {
                 reportSQLException("bulk update in-game participant and team score", new SQLException(e));
             }
-        });
-        displayParticipantScores(awardedParticipants);
-        displayTeamScores(awardedTeams);
+        }, plugin.getDatabaseExecutor());
     }
     
     /**
@@ -921,14 +931,15 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      * <p>{@link #sidebar} will also be updated to reflect the score</p>
      * @param awardedTeams the teams to award the points to
      * @param points the points to be awarded (un-multiplied, base points)
+     * @return a future containing database operations
      */
-    public void awardTeamPoints(Collection<T> awardedTeams, int points, String description) {
+    public CompletableFuture<Void> awardTeamPoints(Collection<T> awardedTeams, int points, String description) {
         int multiplied = (int) (points * gameManager.getMultiplier());
         for (T team : awardedTeams) {
             team.awardPoints(multiplied);
         }
         displayTeamScores(awardedTeams);
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+        return CompletableFuture.runAsync(() -> {
             Date date = new Date();
             gameManager.logScoreEvents(awardedTeams.stream()
                     .map(team -> ScoreEvent.builder()
@@ -946,7 +957,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             } catch (Exception e) {
                 reportSQLException("bulk update in-game team score", new SQLException(e));
             }
-        });
+        }, plugin.getDatabaseExecutor());
     }
     // Award Points end
     

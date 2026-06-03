@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class PresetApplySubCommand implements BrigadierSubCommand {
@@ -36,7 +37,7 @@ public class PresetApplySubCommand implements BrigadierSubCommand {
     @Override
     public @NotNull Permissioned<CommandSourceStack> create() {
         return Permissioned.literal("apply")
-                .executes(BrigadierAdapters.wraps(this::executeApplyNoOpts))
+                .executes(BrigadierAdapters.wrapsFuture(this::executeApplyNoOpts))
                 .then(Permissioned.argument("options", GreedyListArgumentType.of(
                                 Set.of(
                                         "override",
@@ -45,12 +46,12 @@ public class PresetApplySubCommand implements BrigadierSubCommand {
                                         "unWhitelist",
                                         "kickUnWhitelisted"
                                 )))
-                        .executes(BrigadierAdapters.wraps(this::executeApply))
+                        .executes(BrigadierAdapters.wrapsFuture(this::executeApply))
                 )
                 ;
     }
     
-    private @NotNull CommandResult executeApplyNoOpts(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+    private @NotNull CompletableFuture<CommandResult> executeApplyNoOpts(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         FileResolver resolver = ctx.getArgument(PresetCommand.PRESET_FILE_ARG, FileResolver.class);
         File presetFile = resolver.resolve();
         return GameManagerUtils.applyPreset(
@@ -63,7 +64,7 @@ public class PresetApplySubCommand implements BrigadierSubCommand {
         );
     }
     
-    private @NotNull CommandResult executeApply(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+    private @NotNull CompletableFuture<CommandResult> executeApply(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         String[] optionsArray = ctx.getArgument("options", String[].class);
         Set<String> options = Arrays.stream(optionsArray)
                 .collect(Collectors.toSet());

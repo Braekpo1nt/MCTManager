@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 public class HalfTimeBreakState extends WaitingInHubState {
     public HalfTimeBreakState(@NotNull GameManager context, @NotNull ContextReference contextReference, @NotNull EventData eventData) {
@@ -21,8 +22,8 @@ public class HalfTimeBreakState extends WaitingInHubState {
     }
     
     @Override
-    public CommandResult startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
-        return CommandResult.failure("Can't start a game during the half-time break");
+    public CompletableFuture<CommandResult> startGame(@NotNull Set<String> teamIds, @NotNull List<Player> gameAdmins, @NotNull GameType gameType, @NotNull String configFile) {
+        return CommandResult.failure("Can't start a game during the half-time break").asFuture();
     }
     
     @Override
