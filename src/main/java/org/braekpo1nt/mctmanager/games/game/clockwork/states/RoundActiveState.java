@@ -66,6 +66,7 @@ public abstract class RoundActiveState extends ClockworkStateBase {
             List<ClockworkParticipant> awardedParticipants = survivingParticipants.stream()
                     .filter(p -> !p.getTeamId().equals(killedTeamId))
                     .toList();
+            // TODO: should this be a bulk operation or chained?
             context.awardParticipantPoints(awardedParticipants, config.getPlayerEliminationScore(), String.format("Participant \"%s\" was eliminated", toKill.getName()));
             // award living participants end
         }
