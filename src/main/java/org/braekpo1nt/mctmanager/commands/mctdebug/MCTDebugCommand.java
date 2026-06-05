@@ -7,6 +7,8 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
+import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
+import io.papermc.paper.command.brigadier.argument.resolvers.selector.PlayerSelectorArgumentResolver;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -105,6 +107,46 @@ public class MCTDebugCommand implements BrigadierCommand, Listener {
                 )
                 .then(Permissioned.literal("asyncTest")
                         .executes(BrigadierAdapters.wrapsFuture(this::executeAsyncTest))
+                )
+                .then(Permissioned.literal("visibility")
+                        .then(Permissioned.literal("hide")
+                                .then(Permissioned.argument("viewer", ArgumentTypes.player())
+                                        .then(Permissioned.argument("target", ArgumentTypes.player())
+                                                .executes(BrigadierAdapters.wraps(ctx -> {
+                                                    final PlayerSelectorArgumentResolver targetResolver = ctx.getArgument("target", PlayerSelectorArgumentResolver.class);
+                                                    final Player target = targetResolver.resolve(ctx.getSource()).getFirst();
+                                                    final PlayerSelectorArgumentResolver viewerResolver = ctx.getArgument("viewer", PlayerSelectorArgumentResolver.class);
+                                                    final Player viewer = viewerResolver.resolve(ctx.getSource()).getFirst();
+                                                    viewer.hidePlayer(plugin, target);
+                                                    return CommandResult.success(Component.empty()
+                                                            .append(Component.text("hid "))
+                                                            .append(target.displayName())
+                                                            .append(Component.text(" from "))
+                                                            .append(viewer.displayName())
+                                                    );
+                                                }))
+                                        )
+                                )
+                        )
+                        .then(Permissioned.literal("show")
+                                .then(Permissioned.argument("viewer", ArgumentTypes.player())
+                                        .then(Permissioned.argument("target", ArgumentTypes.player())
+                                                .executes(BrigadierAdapters.wraps(ctx -> {
+                                                    final PlayerSelectorArgumentResolver targetResolver = ctx.getArgument("target", PlayerSelectorArgumentResolver.class);
+                                                    final Player target = targetResolver.resolve(ctx.getSource()).getFirst();
+                                                    final PlayerSelectorArgumentResolver viewerResolver = ctx.getArgument("viewer", PlayerSelectorArgumentResolver.class);
+                                                    final Player viewer = viewerResolver.resolve(ctx.getSource()).getFirst();
+                                                    viewer.showPlayer(plugin, target);
+                                                    return CommandResult.success(Component.empty()
+                                                            .append(Component.text("showed "))
+                                                            .append(target.displayName())
+                                                            .append(Component.text(" to "))
+                                                            .append(viewer.displayName())
+                                                    );
+                                                }))
+                                        )
+                                )
+                        )
                 )
                 .permissionRoot("mctmanager")
                 .build(plugin.getServer().getPluginManager());
