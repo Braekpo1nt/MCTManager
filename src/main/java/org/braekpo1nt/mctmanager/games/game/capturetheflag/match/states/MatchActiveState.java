@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     
@@ -125,13 +126,15 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         );
     }
     
-    private void onParticipantGetKill(@NotNull CTFMatchParticipant killer, @NotNull Participant killed) {
+    private CompletableFuture<Void> onParticipantGetKill(@NotNull CTFMatchParticipant killer, @NotNull Participant killed, @NotNull Component deathMessage) {
         if (!context.getParticipants().containsKey(killer.getUniqueId())) {
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         context.addKill(killer);
         UIUtils.showKillTitle(killer, killed);
-        context.awardPoints(killer, context.getConfig().getKillScore(), String.format("Killed \"%s\"", killed.getName()));
+        int points = context.getConfig().getKillScore();
+        UIUtils.addPointsMessage(points, context.getGameManager().getMultiplier(), killer, deathMessage);
+        return context.awardPoints(killer, points, String.format("Killed \"%s\"", killed.getName()));
     }
     
     @Override
@@ -222,23 +225,35 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         context.updateAliveStatus(participant.getAffiliation());
         context.addDeath(participant);
         
+        event.setShowDeathMessages(false);
+        Component deathMessageMaybeNull = event.deathMessage();
+        Component deathMessage = deathMessageMaybeNull != null ? deathMessageMaybeNull : Component.empty()
+                .append(participant.displayName())
+                .append(Component.text(" died"));
+        
         // Handle killer logic
         Player killerPlayer = participant.getKiller();
+        Audience nonScoringAudience;
+        Main.logf("player was killed %s", participant.getName());
         if (killerPlayer != null) {
             CTFMatchParticipant killer = context.getParticipants().get(killerPlayer.getUniqueId());
             if (killer != null) {
-                onParticipantGetKill(killer, participant);
+                Main.logf("killer is not null %s", killer.getName());
+                onParticipantGetKill(killer, participant, deathMessage);
             }
+            nonScoringAudience = Audience.audience(
+                    Audience.audience(context.getParticipants().values().stream()
+                            .filter(p -> !p.equals(killer))
+                            .toList()),
+                    context.getOnDeckParticipants(),
+                    Audience.audience(context.getParentContext().getAdmins())
+            );//everyone except the killer
+        } else {
+            Main.logf("killer is not null");
+            nonScoringAudience = context.getParentContext().getAllAudiences();// everyone
         }
         
-        // new code start
-        event.setShowDeathMessages(false);
-        Component deathMessage = event.deathMessage();
-        if (deathMessage != null) {
-            context.messageAllParticipants(deathMessage);
-            context.getParentContext().messageOnDeckParticipants(deathMessage);
-        }
-        // new code stop
+        nonScoringAudience.sendMessage(deathMessage);
         
         if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
             if (hasSouthFlag(participant)) {
