@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @Getter
 @Setter
@@ -449,9 +450,9 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
         topbar.setDeaths(participant.getUniqueId(), newDeathCount);
     }
     
-    public void awardPoints(CTFMatchParticipant participant, int points, String description) {
+    public CompletableFuture<Void> awardPoints(CTFMatchParticipant participant, int points, String description) {
         CTFParticipant ctfParticipant = parentContext.getParticipants().get(participant.getUniqueId());
-        parentContext.awardPoints(ctfParticipant, points, description);
+        CompletableFuture<Void> joinFuture = parentContext.awardPoints(ctfParticipant, points, description);
         participant.setScore(ctfParticipant.getScore());
         int newScore = parentContext.getTeams().get(participant.getTeamId()).getScore();
         if (participant.getAffiliation() == Affiliation.NORTH) {
@@ -459,6 +460,7 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
         } else {
             southTeam.setScore(newScore);
         }
+        return joinFuture;
     }
     
     public void awardPoints(CTFMatchTeam team, int points, String description) {
