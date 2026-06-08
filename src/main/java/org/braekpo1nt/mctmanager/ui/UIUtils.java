@@ -1,8 +1,10 @@
 package org.braekpo1nt.mctmanager.ui;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
@@ -295,6 +297,42 @@ public class UIUtils {
         }
         
         return flags;
+    }
+    
+    /**
+     * Send the given message to the given audience including the provided points at the beginning.
+     * Convenience method so that this is done the same way everywhere, and changing the look is simple.
+     * @param points the base points
+     * @param multiplier the multiplier
+     * @param audience the audience to send it to
+     * @param message the message to send
+     */
+    public static void addPointsMessage(int points, double multiplier, @NotNull Audience audience, @NotNull Component message) {
+        Main.logger().info("test points add");
+        audience.sendMessage(
+                Component.empty()
+                        .append(getScoreComponent((int) (points * multiplier)))
+                        .append(message)
+        );
+    }
+    
+    /**
+     * For readability, the score component of the message sent using
+     * {@link #addPointsMessage(int, double, Audience, Component)}
+     * @param value the point value to show
+     * @return a component representing the point value given
+     */
+    private static @NotNull TextComponent getScoreComponent(int value) {
+        return Component.empty()
+                .append(Component.text("["))
+                .append(Component.empty()
+                        .append(value < 0 ? Component.text("-") : Component.text("+"))
+                        .append(Component.text(Math.abs(value)))
+                        .decorate(TextDecoration.BOLD)
+                        .color(NamedTextColor.GOLD)
+                )
+                .append(Component.text("]"))
+                .append(Component.text(" "));
     }
     
     /**
