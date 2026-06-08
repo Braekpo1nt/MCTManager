@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.base;
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.val;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -1180,6 +1181,13 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         return state.top(participant);
     }
     // commands end
+    
+    public Audience getAllAudiences() {
+        return Audience.audience(
+                Audience.audience(admins),
+                Audience.audience(participants.values())
+        );
+    }
     
     /**
      * Convenience method to send the same message to all participants and admins
