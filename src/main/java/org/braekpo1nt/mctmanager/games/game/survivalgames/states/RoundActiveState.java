@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesParticipant;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesTeam;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfig;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -218,9 +219,12 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
     @Override
     public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull SurvivalGamesParticipant participant) {
         event.setDroppedExp(0);
+        Main.logf("onParticipantDeath(%s)", participant.getName());
         if (participant.getKiller() != null) {
+            Main.logf("killer is not null");
             SurvivalGamesParticipant killer = context.getParticipants().get(participant.getKiller().getUniqueId());
             if (killer != null) {
+                Main.logf("killer is not null 2");
                 onParticipantGetKill(killer, participant);
             }
         }
@@ -249,10 +253,19 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
         }
         if (allowRespawn()) {
             initiateParticipantRespawnCountdown(participant);
+        } else {
+            onParticipantPermaDeath(participant);
         }
         if (!team.isAlive()) {
             onTeamDeath(context.getTeams().get(teamId));
         }
+    }
+    
+    private void onParticipantPermaDeath(SurvivalGamesParticipant participant) {
+        // respawning is disabled, meaning this is a final kill, and survival points should be awarded
+        // Yes, the `killer` should also get survival points
+        List<SurvivalGamesParticipant> livingParticipants = getLivingParticipants();
+        context.awardParticipantPoints(livingParticipants, config.getSurviveParticipantScore(), String.format("Outlasted \"%s\"", participant.getName()));
     }
     
     /**
@@ -375,25 +388,61 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
     }
     
     private void onParticipantGetKill(@NotNull SurvivalGamesParticipant killer, @NotNull SurvivalGamesParticipant killed) {
+        Main.logf("onParticipantGetKill");
         addKill(killer);
         UIUtils.showKillTitle(killer, killed);
-        if (!killer.getTeamId().equals(killed.getTeamId())) {
-            // if all deaths grant points, or this specific death for this killed participant should grant points
-            int deathPointsThreshold = config.getBorder().getDeathPointsThreshold();
-            if (deathPointsThreshold < 0 || killed.getDeaths() < deathPointsThreshold) {
-                // killer.getKills() should return the new kill count, so it should never be 0. This is a precaution.
-                if (!allowRespawn() || killer.getKills() == 0) {
+        if (killer.sameTeam(killed)) {
+            return;
+        }
+        int deathPointsThreshold = config.getBorder().getDeathPointsThreshold();
+        if (allowRespawn()) {
+            Main.logf("allowRespawn() is true");
+            // this is a temporary death
+            if (deathPointsThreshold >= 0) {
+                Main.logf("deathPointsThreshold is %s", deathPointsThreshold);
+                if (killed.getDeaths() < deathPointsThreshold) {
+                    // points are still awarded for this death
                     context.awardPoints(killer, config.getKillScore(), String.format("Killed \"%s\"", killed.getName()));
-                    }
                 } else {
-                    int killPoints = config.getKillScore() / killer.getKills();
+                    killer.sendMessage(Component.empty()
+                            .append(killed.displayName())
+                            .append(Component.text(" was killed more than "))
+                            .append(Component.text(deathPointsThreshold))
+                            .append(Component.text(" time(s). No kill points."))
+                    );
+                }
+            } else {
+                Main.logf("deathPointsThreshold is negative");
+                // no death point threshold in effect, just award modified kill points
+                int killPoints = config.getKillScore() / killer.getKills();
+                if (killPoints > 0) {
                     context.awardPoints(killer, killPoints, String.format("Killed \"%s\"", killed.getName()));
+                } else {
+                    killer.sendMessage(Component.empty()
+                            .append(killed.displayName())
+                            .append(Component.text(" this was your "))
+                            .append(Component.text(GameManagerUtils.getStandingSuffix(killer.getKills())))
+                            .append(Component.text(" kill. No kill points till respawning is enabled."))
+                    );
                 }
             }
-            if (!allowRespawn()) {
-                List<SurvivalGamesParticipant> livingParticipants = getLivingParticipants();
-                for(SurvivalGamesParticipant livingParticipant : livingParticipants) {
-                    context.awardPoints(livingParticipant, config.getSurviveTeamScore()/8, String.format("Outlasted \"%s\"", killed.getName()));
+        } else {
+            // this is a perma-death
+            if (deathPointsThreshold >= 0) {
+                if (killed.getDeaths() < deathPointsThreshold) {
+                    // points are still awarded for this death
+                    context.awardPoints(killer, config.getKillScore(), String.format("Killed \"%s\"", killed.getName()));
+                } else {
+                    killer.sendMessage(Component.empty()
+                            .append(killed.displayName())
+                            .append(Component.text(" was killed more than "))
+                            .append(Component.text(deathPointsThreshold))
+                            .append(Component.text(" time(s). No kill points."))
+                    );
+                }
+            } else {
+                // award kill points straight up for perma-death
+                context.awardPoints(killer, config.getKillScore(), String.format("Killed \"%s\"", killed.getName()));
             }
         }
     }
