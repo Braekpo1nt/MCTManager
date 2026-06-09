@@ -219,12 +219,9 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
     @Override
     public void onParticipantDeath(@NotNull PlayerDeathEvent event, @NotNull SurvivalGamesParticipant participant) {
         event.setDroppedExp(0);
-        Main.logf("onParticipantDeath(%s)", participant.getName());
         if (participant.getKiller() != null) {
-            Main.logf("killer is not null");
             SurvivalGamesParticipant killer = context.getParticipants().get(participant.getKiller().getUniqueId());
             if (killer != null) {
-                Main.logf("killer is not null 2");
                 onParticipantGetKill(killer, participant);
             }
         }
@@ -388,7 +385,6 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
     }
     
     private void onParticipantGetKill(@NotNull SurvivalGamesParticipant killer, @NotNull SurvivalGamesParticipant killed) {
-        Main.logf("onParticipantGetKill");
         addKill(killer);
         UIUtils.showKillTitle(killer, killed);
         if (killer.sameTeam(killed)) {
@@ -396,10 +392,8 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
         }
         int deathPointsThreshold = config.getBorder().getDeathPointsThreshold();
         if (allowRespawn()) {
-            Main.logf("allowRespawn() is true");
             // this is a temporary death
             if (deathPointsThreshold >= 0) {
-                Main.logf("deathPointsThreshold is %s", deathPointsThreshold);
                 if (killed.getDeaths() < deathPointsThreshold) {
                     // points are still awarded for this death
                     context.awardPoints(killer, config.getKillScore(), String.format("Killed \"%s\"", killed.getName()));
@@ -412,7 +406,6 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
                     );
                 }
             } else {
-                Main.logf("deathPointsThreshold is negative");
                 // no death point threshold in effect, just award modified kill points
                 int killPoints = config.getKillScore() / killer.getKills();
                 if (killPoints > 0) {
