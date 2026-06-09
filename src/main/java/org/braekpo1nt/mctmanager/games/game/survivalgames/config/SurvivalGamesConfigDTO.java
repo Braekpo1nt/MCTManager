@@ -240,6 +240,7 @@ class SurvivalGamesConfigDTO implements Validatable {
                 .killScore(this.scores.kill)
                 .starterLoadout(this.starterLoadout != null ? this.starterLoadout.toInventoryContents() : null)
                 .surviveTeamScore(this.scores.surviveTeam)
+                .surviveParticipantScore(this.scores.surviveParticipant != null ? this.scores.surviveParticipant : this.scores.surviveTeam / 8)
                 .firstPlaceScore(this.scores.firstPlace)
                 .secondPlaceScore(this.scores.secondPlace)
                 .thirdPlaceScore(this.scores.thirdPlace)
@@ -286,7 +287,17 @@ class SurvivalGamesConfigDTO implements Validatable {
     record Platform(BoundingBox barrier, YawPitch facingDirection) {
     }
     
-    record Scores(int kill, int surviveTeam, int firstPlace, int secondPlace, int thirdPlace) {
+    @Data
+    static class Scores {
+        private int kill;
+        private int surviveTeam;
+        /**
+         * Defaults to {@link #surviveTeam}/8 if not specified
+         */
+        private @Nullable Integer surviveParticipant;
+        private int firstPlace;
+        private int secondPlace;
+        private int thirdPlace;
     }
     
     @Data

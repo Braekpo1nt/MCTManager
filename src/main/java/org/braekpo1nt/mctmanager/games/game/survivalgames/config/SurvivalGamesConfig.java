@@ -40,6 +40,7 @@ public class SurvivalGamesConfig implements Config {
     private int roundOverDuration;
     private int killScore;
     private int surviveTeamScore;
+    private int surviveParticipantScore;
     private int firstPlaceScore;
     private int secondPlaceScore;
     private int thirdPlaceScore;
