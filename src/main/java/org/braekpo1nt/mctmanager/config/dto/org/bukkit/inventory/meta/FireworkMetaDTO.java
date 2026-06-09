@@ -2,53 +2,47 @@ package org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta.components.FireworkEffectDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
-import org.bukkit.Color;
+
 import org.bukkit.Material;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.FireworkEffect;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.Map;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class FireworkMetaDTO extends ItemMetaDTOImpl{
-    private int power;
-    private @Nullable List<@Nullable FireworkEffect> fireworkEffects;
-    private @Nullable FireworkEffect.Type fireworkType;
-    private boolean trail;
-    private boolean flicker;
-    private @Nullable Color color;
+    private int fireworkPower;
+    private Map<String, FireworkEffectDTO> fireworkEffects;
     private FireworkEffect.Builder builder;
-    
     @SuppressWarnings("ConstantConditions")
     @Override
     public void validate(@NotNull Validator validator) {
         super.validate(validator);
-        validator.notNull(power, "power");
+        validator.notNull(fireworkPower, "fireworkPower");
         if(fireworkEffects != null) {
-            validator.validate(fireworkEffects.isEmpty(), "fireworkEffects must be defined");
+            validator.notNull(fireworkEffects, "fireworkEffects");
         }
     }
     @Override
     public ItemMeta toItemMeta(ItemMeta meta, Material type) {
         super.toItemMeta(meta, type);
         FireworkMeta fireworkMeta = (FireworkMeta) meta;
-        if(power > 0) {
-            fireworkMeta.setPower(power);
+        if(fireworkPower > 0) {
+            fireworkMeta.setPower(fireworkPower);
         }
         if(fireworkEffects != null) {
-            for(int i = 0; i < fireworkEffects.size(); i++) {
+            for(FireworkEffectDTO fireworkEffectDTO : fireworkEffects.values()) {
                 FireworkEffect fireworkEffect = 
-                        builder.flicker(flicker)
-                                .withColor(color)
-                                .trail(trail)
-                                .with(fireworkType)
+                        builder.flicker(fireworkEffectDTO.isFlicker())
+                                .withColor(fireworkEffectDTO.getColor())
+                                .trail(fireworkEffectDTO.isTrail())
+                                .with(fireworkEffectDTO.getFireworkType())
                                 .build();
-                        ;
                 fireworkMeta.addEffect(fireworkEffect);
             }
         }

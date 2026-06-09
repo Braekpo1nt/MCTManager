@@ -18,9 +18,15 @@ public class ItemMetaDTODeserializer implements JsonDeserializer<ItemMetaDTO> {
         
         JsonObject jsonObject = json.getAsJsonObject();
         JsonElement basePotionType = jsonObject.get("basePotionType");
+        JsonElement fireworkPower = jsonObject.get("fireworkPower");
         if (basePotionType != null) {
             return context.deserialize(json, PotionMetaDTO.class);
         }
+        
+        if (fireworkPower != null) {
+            return context.deserialize(json, FireworkMetaDTO.class);
+        }
+        
         return ConfigUtils.GSON.fromJson(json, ItemMetaDTOImpl.class);
     }
     
