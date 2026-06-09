@@ -261,8 +261,8 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
     private void onParticipantPermaDeath(SurvivalGamesParticipant participant) {
         // respawning is disabled, meaning this is a final kill, and survival points should be awarded
         // Yes, the `killer` should also get survival points
-        List<SurvivalGamesParticipant> livingParticipants = getLivingParticipants();
-        context.awardParticipantPoints(livingParticipants, config.getSurviveParticipantScore(), String.format("Outlasted \"%s\"", participant.getName()));
+        List<SurvivalGamesParticipant> livingParticipantsNotOnTeam = getLivingParticipantsExcept(participant.getTeamId());
+        context.awardParticipantPoints(livingParticipantsNotOnTeam, config.getSurviveParticipantScore(), String.format("Outlasted \"%s\"", participant.getName()));
     }
     
     /**
@@ -509,6 +509,16 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
     private @NotNull List<SurvivalGamesParticipant> getLivingParticipants() {
         return context.getParticipants().values().stream()
                 .filter(SurvivalGamesParticipant::isAlive)
+                .toList();
+    }
+    
+    /**
+     * @param exceptTeamId the teamId to NOT include members of in the resulting list
+     * @return all living participants who are not on the given team
+     */
+    private @NotNull List<SurvivalGamesParticipant> getLivingParticipantsExcept(@NotNull String exceptTeamId) {
+        return context.getParticipants().values().stream()
+                .filter(p -> p.isAlive() && !p.getTeamId().equals(exceptTeamId))
                 .toList();
     }
     
