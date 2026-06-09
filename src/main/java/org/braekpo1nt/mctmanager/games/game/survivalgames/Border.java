@@ -73,7 +73,7 @@ public class Border {
      * The loadout to be given to a participant upon respawning.
      * Can't be null, can be empty
      */
-    private @NotNull ItemStack[] respawnLoadout;
+    private ItemStack @NotNull [] respawnLoadout;
     /**
      * The number of deaths that grant kill points. E.g. if 2, then the first two times
      * a participant is killed, the killer gets points.
@@ -82,6 +82,12 @@ public class Border {
      * Defaults to -1
      */
     private int deathPointsThreshold;
+    /**
+     * True if, during respawn phases, you should divide the points awarded for each kill
+     * by the number of kills the killer currently has (including the kill being awarded for).
+     * Defaults to false.
+     */
+    private boolean dividePointsByKills;
     /**
      * If true, a participant in their {@link #respawnGracePeriodTime} can attack other participants.
      * If false, a participant can't deal damage when in grace period.

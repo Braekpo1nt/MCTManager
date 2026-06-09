@@ -391,52 +391,35 @@ public abstract class RoundActiveState extends SurvivalGamesStateBase {
             return;
         }
         int deathPointsThreshold = config.getBorder().getDeathPointsThreshold();
+        if (deathPointsThreshold >= 0 && (killed.getDeaths() >= deathPointsThreshold)) {
+            killer.sendMessage(Component.empty()
+                    .append(killed.displayName())
+                    .append(Component.text(" was killed more than "))
+                    .append(Component.text(deathPointsThreshold))
+                    .append(Component.text(" time(s). No kill points."))
+            );
+            return;
+        }
         if (allowRespawn()) {
-            // this is a temporary death
-            if (deathPointsThreshold >= 0) {
-                if (killed.getDeaths() < deathPointsThreshold) {
-                    // points are still awarded for this death
-                    context.awardPoints(killer, config.getKillScore(), String.format("Killed \"%s\"", killed.getName()));
-                } else {
-                    killer.sendMessage(Component.empty()
-                            .append(killed.displayName())
-                            .append(Component.text(" was killed more than "))
-                            .append(Component.text(deathPointsThreshold))
-                            .append(Component.text(" time(s). No kill points."))
-                    );
-                }
+            // This is a temporary death:
+            // Kill points may optionally be divided by number of kills, according to config.
+            int killPoints = config.getBorder().isDividePointsByKills() ? config.getKillScore() / killer.getKills() : config.getKillScore();
+            if (killPoints > 0) {
+                context.awardPoints(killer, killPoints, String.format("Killed \"%s\"", killed.getName()));
             } else {
-                // no death point threshold in effect, just award modified kill points
-                int killPoints = config.getKillScore() / killer.getKills();
-                if (killPoints > 0) {
-                    context.awardPoints(killer, killPoints, String.format("Killed \"%s\"", killed.getName()));
-                } else {
-                    killer.sendMessage(Component.empty()
-                            .append(killed.displayName())
-                            .append(Component.text(" this was your "))
-                            .append(Component.text(GameManagerUtils.getStandingSuffix(killer.getKills())))
-                            .append(Component.text(" kill. No kill points till respawning is enabled."))
-                    );
-                }
+                killer.sendMessage(Component.empty()
+                        .append(killed.displayName())
+                        .append(Component.text(" this was your "))
+                        .append(Component.text(killer.getKills()))
+                        .append(Component.text(GameManagerUtils.getStandingSuffix(killer.getKills())))
+                        .append(Component.text(" kill. No kill points till respawning is enabled."))
+                );
             }
         } else {
             // this is a perma-death
-            if (deathPointsThreshold >= 0) {
-                if (killed.getDeaths() < deathPointsThreshold) {
-                    // points are still awarded for this death
-                    context.awardPoints(killer, config.getKillScore(), String.format("Killed \"%s\"", killed.getName()));
-                } else {
-                    killer.sendMessage(Component.empty()
-                            .append(killed.displayName())
-                            .append(Component.text(" was killed more than "))
-                            .append(Component.text(deathPointsThreshold))
-                            .append(Component.text(" time(s). No kill points."))
-                    );
-                }
-            } else {
-                // award kill points straight up for perma-death
-                context.awardPoints(killer, config.getKillScore(), String.format("Killed \"%s\"", killed.getName()));
-            }
+            // award kill points straight up for perma-death
+            context.awardPoints(killer, config.getKillScore(), String.format("Killed \"%s\"", killed.getName()));
+            
         }
     }
     

@@ -82,6 +82,12 @@ class BorderDTO implements Validatable {
      */
     private @Nullable Integer deathPointsThreshold;
     /**
+     * True if, during respawn phases, you should divide the points awarded for each kill
+     * by the number of kills the killer currently has (including the kill being awarded for).
+     * Defaults to false.
+     */
+    private @Nullable Boolean dividePointsByKills;
+    /**
      * If true, a participant in their {@link #respawnGracePeriodTime} can attack other participants.
      * If false, a participant can't deal damage when in grace period.
      * Defaults to true.
@@ -129,6 +135,7 @@ class BorderDTO implements Validatable {
                 .respawnLocations(respawnLocations != null ? LocationDTO.toLocations(respawnLocations, world) : Collections.emptyList())
                 .respawnLoadout(this.respawnLoadout != null ? this.respawnLoadout.toInventoryContents() : new ItemStack[0])
                 .deathPointsThreshold(this.deathPointsThreshold != null ? this.deathPointsThreshold : -1)
+                .dividePointsByKills(this.dividePointsByKills != null ? this.dividePointsByKills : false)
                 .canAttackWhenRespawning(this.canAttackWhenRespawning != null ? this.canAttackWhenRespawning : true)
                 .stages(BorderStageDTO.toBorderStages(borderStages))
                 .build();
