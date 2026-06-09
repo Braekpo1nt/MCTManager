@@ -23,7 +23,6 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,7 +35,6 @@ public class ActiveState extends FootRaceStateBase {
     private @Nullable Timer endRaceTimer;
     private int timerRefreshTaskId;
     private int standingsDisplayTaskId;
-    private final HashMap<FootRaceTeam, Integer> activeLapTracker = initializeLapTracker();
     
     public ActiveState(@NotNull FootRaceGame context) {
         super(context);
@@ -66,17 +64,7 @@ public class ActiveState extends FootRaceStateBase {
         context.getPlugin().getServer().getScheduler().cancelTask(standingsDisplayTaskId);
     }
     
-    //Initialize a tracker that contains team and participant data
-    private HashMap<FootRaceTeam, Integer> initializeLapTracker() {
-        HashMap<FootRaceTeam, Integer> lapTracker = new HashMap<>();
-        for(FootRaceTeam team : context.getTeams().values()) {
-            
-            lapTracker.put(team, getTeamMinimumLap(team));
-        }
-            
-        return lapTracker;
-    }
-    
+
     private void startTimerRefreshTask() {
         timerRefreshTaskId = new BukkitRunnable() {
             @Override
@@ -386,56 +374,35 @@ public class ActiveState extends FootRaceStateBase {
     }
     
     private void updateLapTracker(FootRaceParticipant participant) {
-        FootRaceTeam referenceTeam = null;
-        for(FootRaceTeam team : activeLapTracker.keySet()) {
-            for(FootRaceParticipant teamParticipant : team.getParticipants()) {
-                if(teamParticipant == participant) {
-                    referenceTeam = team;
-                    break;
-                }
-            }
-            if(referenceTeam != null) {
-                break;
-            }
-        }
-        if(referenceTeam == null) {
-            return;
-        }
-        int previousMinLap = activeLapTracker.get(referenceTeam);
-        activeLapTracker.replace(referenceTeam, getTeamMinimumLap(referenceTeam));
-        int currentMinLap = activeLapTracker.get(referenceTeam);
+        FootRaceTeam referenceTeam = context.getTeams().get(participant.getTeamId());
+        int previousMinLap = referenceTeam.getMinimumLap();
+        referenceTeam.setMinimumLap(getTeamMinimumLap(referenceTeam));
+        int currentMinLap = getTeamMinimumLap(referenceTeam);
+        referenceTeam.setMinimumLap(currentMinLap);
+        // if the entire team has progressed a lap
         if(previousMinLap < currentMinLap){
             if(currentMinLap < config.getLaps()) {
-                awardTeamLapCompletionPoints(referenceTeam, getTeamLapPlacement(referenceTeam));
+                awardTeamLapCompletionPoints(referenceTeam, getTeamLapPlacement(referenceTeam), currentMinLap);
             }
             else {
-                awardTeamRaceCompletionPoints(referenceTeam, getTeamLapPlacement(referenceTeam));
+                awardTeamRaceCompletionPoints(referenceTeam, getTeamLapPlacement(referenceTeam), currentMinLap);
             }
         }
     }
     
     private Integer getTeamMinimumLap(FootRaceTeam team) {
-        int minimumLap = 0;
-        int loopHolder = 0;
-        for(FootRaceParticipant participant : team.getParticipants()) {
-            if(loopHolder == 0) {
-                minimumLap = participant.getLap();
-            }
-            else {
-                if(participant.getLap() < minimumLap) {
-                    minimumLap = participant.getLap();
-                }
-            }
-            loopHolder += 1;
-        }
-        return minimumLap;
+        return team.getParticipants().stream()
+                .mapToInt(participant -> participant.getLap())
+                .min()
+                .orElse(0);
     }
     
     private int getTeamLapPlacement(FootRaceTeam team) {
         int placement = 0;
-        for(FootRaceTeam trackedTeam : activeLapTracker.keySet()) {
+        int minimumLap = team.getMinimumLap();
+        for(FootRaceTeam trackedTeam : context.getTeams().values()) {
             if(trackedTeam != team) {
-                if(activeLapTracker.get(trackedTeam) >= activeLapTracker.get(team)) {
+                if(trackedTeam.getMinimumLap() >= minimumLap) {
                     placement += 1;
                 }
             }
@@ -443,22 +410,22 @@ public class ActiveState extends FootRaceStateBase {
         return placement;
     }
     
-    private void awardTeamLapCompletionPoints(FootRaceTeam team, Integer teamPlacement) {
+    private void awardTeamLapCompletionPoints(FootRaceTeam team, Integer teamPlacement, int teamMinLap) {
         int points = config.getFullTeamLapCompletion() - (config.getFullTeamLapCompletionDetriment() * teamPlacement);
         if(points < 0) {
             points = 0;
         }
         team.awardPoints(points);
-        announceTeamLapCompletion(team, teamPlacement, getTeamMinimumLap(team));
+        announceTeamLapCompletion(team, teamPlacement, teamMinLap);
     }
     
-    private void awardTeamRaceCompletionPoints(FootRaceTeam team, Integer teamPlacement) {
+    private void awardTeamRaceCompletionPoints(FootRaceTeam team, Integer teamPlacement, int teamMinLap) {
         int points = config.getFullTeamCompletion() - (config.getFullTeamCompletionDetriment() * teamPlacement);
         if(points < 0) {
             points = 0;
         }
         team.awardPoints(points);
-        announceTeamLapCompletion(team, teamPlacement, getTeamMinimumLap(team));
+        announceTeamLapCompletion(team, teamPlacement, teamMinLap);
     }
     
     private void announceTeamLapCompletion(FootRaceTeam team, Integer teamPlacement, Integer lap) {

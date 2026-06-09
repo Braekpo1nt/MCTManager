@@ -26,9 +26,21 @@ public class FootRaceConfig implements Config {
     private int completeLapScore;
     private int[] placementPoints;
     private int detriment;
+    /**
+     * points earned for full team race completion
+     */
     private int fullTeamCompletion;
+    /**
+     * how many points less should the next team get for full team race completion
+     */
     private int fullTeamCompletionDetriment;
+    /**
+     * points earned for full team lap completion
+     */
     private int fullTeamLapCompletion;
+    /**
+     * how many points less should the next team get for full team lap completion
+     */
     private int fullTeamLapCompletionDetriment;
     private int startRaceDuration;
     private int raceEndCountdownDuration;
