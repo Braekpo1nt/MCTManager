@@ -41,11 +41,11 @@ public class FireworkMetaDTO extends ItemMetaDTOImpl {
         if (fireworkEffects != null) {
             for (FireworkEffectDTO fireworkEffectDTO : fireworkEffects) {
                 Color color = ColorMap.getColor(fireworkEffectDTO.getColor());
-                FireworkEffect fireworkEffect = 
+                FireworkEffect fireworkEffect =
                         FireworkEffect.builder().flicker(fireworkEffectDTO.isFlicker())
                                 .withColor(color)
                                 .trail(fireworkEffectDTO.isTrail())
-                                .with(fireworkEffectDTO.getFireworkType())
+                                .with(fireworkEffectDTO.getType())
                                 .build();
                 fireworkMeta.addEffect(fireworkEffect);
             }

@@ -10,14 +10,14 @@ import org.jetbrains.annotations.NotNull;
 
 @Data
 public class FireworkEffectDTO implements Validatable {
-    @Getter private FireworkEffect.Type fireworkType;
+    @Getter private FireworkEffect.Type type;
     @Getter private boolean trail;
     @Getter private boolean flicker;
     @Getter private String color;
     
     @Override
     public void validate(@NotNull Validator validator) {
-        validator.notNull(fireworkType, "fireworkType");
+        validator.notNull(type, "type");
         validator.notNull(trail, "trail");
         validator.notNull(flicker, "flicker");
         validator.notNull(color, "color");
