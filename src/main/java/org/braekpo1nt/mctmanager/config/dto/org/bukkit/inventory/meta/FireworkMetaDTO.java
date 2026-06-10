@@ -4,6 +4,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta.components.FireworkEffectDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
+import org.braekpo1nt.mctmanager.utils.ColorMap;
+import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
 import org.bukkit.inventory.meta.FireworkMeta;
@@ -17,7 +19,6 @@ import java.util.List;
 public class FireworkMetaDTO extends ItemMetaDTOImpl {
     private int fireworkPower;
     private List<FireworkEffectDTO> fireworkEffects;
-    private FireworkEffect.Builder builder;
     
     @SuppressWarnings("ConstantConditions")
     
@@ -39,9 +40,10 @@ public class FireworkMetaDTO extends ItemMetaDTOImpl {
         }
         if (fireworkEffects != null) {
             for (FireworkEffectDTO fireworkEffectDTO : fireworkEffects) {
-                FireworkEffect fireworkEffect =
-                        builder.flicker(fireworkEffectDTO.isFlicker())
-                                .withColor(fireworkEffectDTO.getColor())
+                Color color = ColorMap.getColor(fireworkEffectDTO.getColor());
+                FireworkEffect fireworkEffect = 
+                        FireworkEffect.builder().flicker(fireworkEffectDTO.isFlicker())
+                                .withColor(color)
                                 .trail(fireworkEffectDTO.isTrail())
                                 .with(fireworkEffectDTO.getFireworkType())
                                 .build();
