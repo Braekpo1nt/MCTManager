@@ -11,13 +11,13 @@ import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.FireworkEffect;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
+import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class FireworkMetaDTO extends ItemMetaDTOImpl{
     private int fireworkPower;
-    private Map<String, FireworkEffectDTO> fireworkEffects;
+    private List<FireworkEffectDTO> fireworkEffects;
     private FireworkEffect.Builder builder;
     @SuppressWarnings("ConstantConditions")
     @Override
@@ -36,7 +36,7 @@ public class FireworkMetaDTO extends ItemMetaDTOImpl{
             fireworkMeta.setPower(fireworkPower);
         }
         if(fireworkEffects != null) {
-            for(FireworkEffectDTO fireworkEffectDTO : fireworkEffects.values()) {
+            for(FireworkEffectDTO fireworkEffectDTO : fireworkEffects) {
                 FireworkEffect fireworkEffect = 
                         builder.flicker(fireworkEffectDTO.isFlicker())
                                 .withColor(fireworkEffectDTO.getColor())
