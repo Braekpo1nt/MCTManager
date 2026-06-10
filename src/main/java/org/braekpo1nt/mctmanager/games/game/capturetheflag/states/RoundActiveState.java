@@ -323,7 +323,9 @@ public class RoundActiveState extends CaptureTheFlagStateBase {
     
     @Override
     public @NotNull Audience getOnDeckParticipants() {
-        return Audience.audience(context.getParticipants().values().stream()
-                .filter(participant -> getMatch(participant.getTeamId()) == null).toList());
+        List<CTFParticipant> list = context.getParticipants().values().stream()
+                .filter(participant -> getMatch(participant.getTeamId()) == null).toList();
+        Main.logf("onDeckParticipants are %s", list.size());
+        return Audience.audience(list);
     }
 }

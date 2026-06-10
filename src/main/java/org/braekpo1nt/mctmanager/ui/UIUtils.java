@@ -308,7 +308,6 @@ public class UIUtils {
      * @param message the message to send
      */
     public static void addPointsMessage(int points, double multiplier, @NotNull Audience audience, @NotNull Component message) {
-        Main.logger().info("test points add");
         audience.sendMessage(
                 Component.empty()
                         .append(getScoreComponent((int) (points * multiplier)))

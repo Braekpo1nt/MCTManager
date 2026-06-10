@@ -30,6 +30,7 @@ import org.braekpo1nt.mctmanager.participant.QuitDataBase;
 import org.braekpo1nt.mctmanager.participant.ScoredTeamData;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIManager;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.tablist.TabList;
@@ -818,6 +819,18 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     // Award Points start
     
     /**
+     * Send the given message to the given audience including the provided points at the beginning.
+     * Convenience method so that this is done the same way everywhere, and changing the look is simple.<br>
+     * Convenience method so that you don't have to pass the multiplier each time this is called
+     * @param points the base points
+     * @param audience the audience to send it to
+     * @param message the message to send
+     */
+    public void addPointsMessage(int points, @NotNull Audience audience, @NotNull Component message) {
+        UIUtils.addPointsMessage(points, gameManager.getMultiplier(), audience, message);
+    }
+    
+    /**
      * <p>Award the given points to the given participant. The points will be multiplied by
      * {@link GameManager#getMultiplier()} before being awarded, and points will be reflected
      * in the participant's team as well.</p>
@@ -1197,6 +1210,20 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
         Audience.audience(
                 Audience.audience(admins),
                 Audience.audience(participants.values())
+        ).sendMessage(message);
+    }
+    
+    /**
+     * Convenience method to send the same message to all participants and admins
+     * @param message the message to send
+     */
+    public void messageAllParticipantsExcept(@NotNull Team team, @NotNull Component message) {
+        Audience.audience(
+                Audience.audience(admins),
+                Audience.audience(participants.values().stream()
+                        .filter(p -> !p.isOnTeam(team))
+                        .toList()
+                )
         ).sendMessage(message);
     }
     

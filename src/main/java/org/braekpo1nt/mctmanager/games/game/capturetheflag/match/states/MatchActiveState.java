@@ -89,13 +89,16 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     }
     
     private void onTeamWin(CTFMatchTeam winner, CTFMatchTeam loser) {
-        context.getParentContext().messageAllParticipants(Component.empty()
+        Component winMessage = Component.empty()
                 .append(winner.getFormattedDisplayName())
                 .append(Component.text(" captured "))
                 .append(loser.getFormattedDisplayName())
                 .append(Component.text("'s flag!"))
-                .color(NamedTextColor.YELLOW));
-        context.awardPoints(winner, context.getConfig().getWinScore(), String.format("Won match against \"%s\"", loser.getTeamId()));
+                .color(NamedTextColor.YELLOW);
+        context.getParentContext().messageAllParticipantsExcept(winner, winMessage);
+        int points = context.getConfig().getWinScore();
+        context.getParentContext().addPointsMessage(points, winner, winMessage);
+        context.awardPoints(winner, points, String.format("Won match against \"%s\"", loser.getTeamId()));
         
         showWinLoseTitles(winner, loser);
         context.setState(new MatchOverState(context));
@@ -133,7 +136,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         context.addKill(killer);
         UIUtils.showKillTitle(killer, killed);
         int points = context.getConfig().getKillScore();
-        UIUtils.addPointsMessage(points, context.getGameManager().getMultiplier(), killer, deathMessage);
+        context.getParentContext().addPointsMessage(points, killer, deathMessage);
         return context.awardPoints(killer, points, String.format("Killed \"%s\"", killed.getName()));
     }
     
@@ -234,11 +237,9 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         // Handle killer logic
         Player killerPlayer = participant.getKiller();
         Audience nonScoringAudience;
-        Main.logf("player was killed %s", participant.getName());
         if (killerPlayer != null) {
             CTFMatchParticipant killer = context.getParticipants().get(killerPlayer.getUniqueId());
             if (killer != null) {
-                Main.logf("killer is not null %s", killer.getName());
                 onParticipantGetKill(killer, participant, deathMessage);
             }
             nonScoringAudience = Audience.audience(
@@ -249,7 +250,6 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
                     Audience.audience(context.getParentContext().getAdmins())
             );//everyone except the killer
         } else {
-            Main.logf("killer is not null");
             nonScoringAudience = context.getParentContext().getAllAudiences();// everyone
         }
         

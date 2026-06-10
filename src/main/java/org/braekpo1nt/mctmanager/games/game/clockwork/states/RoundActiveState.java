@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork.states;
 
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
@@ -88,14 +89,22 @@ public abstract class RoundActiveState extends ClockworkStateBase {
                     .append(newlyKilledTeam.getFormattedDisplayName())
                     .append(Component.text(" has been eliminated"))
                     .color(NamedTextColor.DARK_RED));
-            Audience.audience(context.getTeams().values().stream().filter(p ->
-                            !p.getTeamId().equals(newlyKilledTeam.getTeamId()))
-                    .toList()).sendMessage(Component.empty()
+            Component eliminationMessage = Component.empty()
                     .append(newlyKilledTeam.getFormattedDisplayName())
                     .append(Component.text(" has been eliminated"))
-                    .color(NamedTextColor.GREEN));
+                    .color(NamedTextColor.GREEN);
+            context.addPointsMessage(config.getTeamEliminationScore(), allTeamsExcept(newlyKilledTeam), eliminationMessage);
+            context.messageAdmins(eliminationMessage);
             context.awardTeamPoints(survivingTeams, config.getTeamEliminationScore(), String.format("team \"%s\" was eliminated", newlyKilledTeam.getTeamId()));
         }
+    }
+    
+    private @NotNull Audience allTeamsExcept(ClockworkTeam except) {
+        return Audience.audience(
+                context.getTeams().values().stream()
+                        .filter(p -> !p.getTeamId().equals(except.getTeamId()))
+                        .toList()
+        );
     }
     
     @Override

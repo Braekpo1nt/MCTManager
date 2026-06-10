@@ -463,6 +463,11 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
         return joinFuture;
     }
     
+    @Override
+    public @NotNull Audience getOnDeckParticipants() {
+        return parentContext.getState().getOnDeckParticipants();
+    }
+    
     public void awardPoints(CTFMatchTeam team, int points, String description) {
         CTFTeam ctfTeam = parentContext.getTeams().get(team.getTeamId());
         parentContext.awardPoints(ctfTeam, points, description);
