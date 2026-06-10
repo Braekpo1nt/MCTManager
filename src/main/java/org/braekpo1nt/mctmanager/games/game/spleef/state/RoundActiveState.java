@@ -169,24 +169,19 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
     }
     
     public void determineIfFullTeamDeath(SpleefParticipant participant) {
-        for(SpleefTeam team : context.getTeams().values()) {
-            for(SpleefParticipant spleefParticipant : team.getParticipants()) {
-                if(participant == spleefParticipant) {
-                    for(SpleefParticipant teamToSearchParticipants : team.getParticipants()) {
-                        if(teamToSearchParticipants.isAlive()) {
-                            return;
-                        }
-                    }
-                    for(SpleefParticipant awardeableParticipant : context.getParticipants().values()) {
-                        if(awardeableParticipant.isAlive()) {
-                            context.awardPoints(awardeableParticipant, context.getConfig().getSurviveTeamScore(), String.format("Team \"%s\" were eliminated", team.getDisplayName()));
-                        }
-                    }
+        SpleefTeam team = context.getTeams().get(participant.getTeamId());
+            for(SpleefParticipant teamToSearchParticipants : team.getParticipants()) {
+                if(teamToSearchParticipants.isAlive()) {
                     return;
                 }
             }
+            for(SpleefParticipant awardeableParticipant : context.getParticipants().values()) {
+                if(awardeableParticipant.isAlive()) {
+                    context.awardPoints(awardeableParticipant, context.getConfig().getSurviveTeamScore(), String.format("Team \"%s\" were eliminated", team.getDisplayName()));
+                }
+            }
         }
-    }
+        
     @Override
     public void onParticipantInteract(@NotNull PlayerInteractEvent event, @NotNull SpleefParticipant participant) {
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
