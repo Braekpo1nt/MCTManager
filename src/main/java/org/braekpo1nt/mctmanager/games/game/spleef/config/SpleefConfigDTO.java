@@ -235,9 +235,10 @@ record SpleefConfigDTO(
     
     /**
      * @param survive the score given to every living player each time a single player dies. Players on the same team as
-     * the player who died will not receive points. w
+     * the player who died will not receive points. 
+     * @param surviveTeam the scores given out for surviving a team
      */
-    record Scores(int survive) {
+    record Scores(int survive, int surviveTeam) {
     }
     
     record Durations(int roundStarting,
