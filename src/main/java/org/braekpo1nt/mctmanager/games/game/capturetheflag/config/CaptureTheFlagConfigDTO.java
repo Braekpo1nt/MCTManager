@@ -81,6 +81,8 @@ record CaptureTheFlagConfigDTO(
                 .classSelectionDuration(this.durations.classSelection)
                 .winScore(this.scores.win)
                 .killScore(this.scores.kill)
+                .matchPlacementPoints(this.scores.matchPlacementPoints)
+                .matchPlacementDecrement(this.scores.matchPlacementDecrement)
                 .descriptionDuration(this.durations.description)
                 .roundOverDuration(this.durations.roundOver)
                 .gameOverDuration(this.durations.gameOver)
@@ -95,8 +97,10 @@ record CaptureTheFlagConfigDTO(
      * Holds the scores for the game
      * @param kill the number of points to award for getting a kill
      * @param win the number of points to award for winning a match
+     * @param matchPlacementPoints the number of points for completing match before other teams
+     * @param matchPlacementDecrement  how much the score for completing before other teams goes down
      */
-    record Scores(int kill, int win) {
+    record Scores(int kill, int win, int matchPlacementPoints, int matchPlacementDecrement) {
     }
     
     @Data
