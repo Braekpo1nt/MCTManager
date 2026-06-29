@@ -54,6 +54,8 @@ record CaptureTheFlagConfigDTO(
         validator.validate(this.durations.getRoundTimer() >= 0, "durations.roundTimer (%s) can't be negative", this.durations.getRoundTimer());
         validator.validate(this.durations.getRoundOver() >= 0, "durations.roundOver (%s) can't be negative", this.durations.getRoundOver());
         validator.validate(this.durations.getGameOver() >= 0, "durations.gameOver (%s) can't be negative", this.durations.getGameOver());
+        validator.validate(this.scores.matchPlacementPoints >= 0, "scores.matchPlacementPoints (%s) can't be negative", this.scores.matchPlacementPoints);
+        validator.validate(this.scores.matchPlacementDecrement >= 0, "scores.matchPlacementDecrement (%s) can't be negative", this.scores.matchPlacementDecrement);
         validator.notNull(this.loadouts, "loadouts");
         validator.validate(this.loadouts.size() >= 4, "loadouts must contain at least 4 entries");
         Set<Material> uniqueMenuItems = new HashSet<>();
