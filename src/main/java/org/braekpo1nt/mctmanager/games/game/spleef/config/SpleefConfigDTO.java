@@ -114,6 +114,7 @@ record SpleefConfigDTO(
         validator.validate(this.durations.roundStarting() >= 0, "durations.roundStarting (%s) can't be negative", this.durations.roundStarting());
         validator.validate(this.durations.roundOver() >= 0, "duration.roundOver (%s) can't be negative", this.durations.roundOver());
         validator.validate(this.durations.gameOver() >= 0, "duration.gameOver (%s) can't be negative", this.durations.gameOver());
+        validator.validate(this.scores.surviveTeam >= 0, "scores.surviveTeam (%s) can't be negative", this.durations.gameOver());
         validator.notNull(this.description, "description");
     }
     
@@ -155,6 +156,7 @@ record SpleefConfigDTO(
                 .stages(DecayStageDTO.toDecayStages(this.decayStages))
                 .rounds(this.rounds)
                 .surviveScore(this.scores.survive)
+                .surviveTeamScore(this.scores.surviveTeam)
                 .roundStartingDuration(this.durations.roundStarting)
                 .roundOverDuration(this.durations.roundOver)
                 .gameOverDuration(this.durations.gameOver)
