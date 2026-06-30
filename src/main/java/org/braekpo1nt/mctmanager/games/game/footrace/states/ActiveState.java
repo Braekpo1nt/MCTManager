@@ -248,6 +248,7 @@ public class ActiveState extends FootRaceStateBase {
         int currentLap = participant.getLap();
         int newLap = currentLap + 1;
         participant.setLap(newLap);
+        updateLapTracker(participant);
         if (currentLap < context.getConfig().getLaps()) {
             sidebar.updateLine(
                     uuid,
@@ -274,7 +275,6 @@ public class ActiveState extends FootRaceStateBase {
                     .append(Component.text(" in "))
                     .append(TimeStringUtils.getTimeComponentMillis(elapsedTime)));
             context.awardPoints(participant, config.getCompleteLapScore(), String.format("Finished lap %s", currentLap));
-            updateLapTracker(participant);
             return;
         }
         if (currentLap == context.getConfig().getLaps()) {
@@ -425,10 +425,11 @@ public class ActiveState extends FootRaceStateBase {
             points = 0;
         }
         team.awardPoints(points);
-        announceTeamLapCompletion(team, teamPlacement, teamMinLap);
+        announceTeamCompletion(team, teamPlacement);
     }
     
     private void announceTeamLapCompletion(FootRaceTeam team, Integer teamPlacement, Integer lap) {
+        lap -= 1;
         int placement = teamPlacement + 1;
         String placementString;
         if(placement > 3) {
@@ -448,6 +449,27 @@ public class ActiveState extends FootRaceStateBase {
                 .append(Component.text(" was the " + placementString + " full team to finish lap " + lap))
                 .append(Component.text("! "))
                         .color(team.getColor()));
+    }
+    private void announceTeamCompletion(FootRaceTeam team, Integer teamPlacement) {
+        int placement = teamPlacement + 1;
+        String placementString;
+        if(placement > 3) {
+            placementString = placement + "th";
+        }
+        else if(placement == 3) {
+            placementString = placement + "rd";
+        }
+        else if(placement == 2) {
+            placementString = placement + "nd";
+        }
+        else {
+            placementString = placement + "st";
+        }
+        context.messageAllParticipants(Component.empty()
+                .append(team.getFormattedDisplayName())
+                .append(Component.text(" was the " + placementString + " full team to finish"))
+                .append(Component.text("! "))
+                .color(team.getColor()));
     }
     private void startEndRaceCountDown() {
         endRaceTimer = timerManager.start(Timer.builder()
