@@ -381,7 +381,7 @@ public class ActiveState extends FootRaceStateBase {
         referenceTeam.setMinimumLap(currentMinLap);
         // if the entire team has progressed a lap
         if(previousMinLap < currentMinLap){
-            if(currentMinLap < config.getLaps()) {
+            if(currentMinLap <= config.getLaps()) {
                 awardTeamLapCompletionPoints(referenceTeam, getTeamLapPlacement(referenceTeam), currentMinLap);
             }
             else {
