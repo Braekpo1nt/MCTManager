@@ -100,12 +100,21 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
                 .append(Component.text("'s flag!"))
                 .color(NamedTextColor.YELLOW));
         context.awardPoints(winner, context.getConfig().getWinScore(), String.format("Won match against \"%s\"", loser.getTeamId()));
-        for(CTFMatchParticipant participant : winner.getParticipants()){
-            context.awardPoints(
-                participant,
-                    capturePoints,
+        if(capturePoints > 0) {
+            for (CTFMatchParticipant participant : winner.getParticipants()) {
+                context.awardPoints(
+                        participant,
+                        capturePoints,
+                        String.format("\"%s\" team to capture the flag", getPlacementToPrint(placement))
+                );
+            }
+        }
+        else{
+            for (CTFMatchParticipant participant : winner.getParticipants()) {
+                participant.sendMessage(
                     String.format("\"%s\" team to capture the flag", getPlacementToPrint(placement))
-            );
+                    );
+            }
         }
         showWinLoseTitles(winner, loser);
         context.setState(new MatchOverState(context));
