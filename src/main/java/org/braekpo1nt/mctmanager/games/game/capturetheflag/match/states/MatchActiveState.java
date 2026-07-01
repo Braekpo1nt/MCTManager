@@ -91,6 +91,8 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         this.context.getParentContext().getRoundManager().endMatch();
         int placement;
         placement = this.context.getParentContext().getRoundManager().getNumOfCompletedMatches();
+        int capturePoints = captureSpeedPoints(placement);
+        CTFMatchParticipant[] awardedParticipants;
         context.getParentContext().messageAllParticipants(Component.empty()
                 .append(winner.getFormattedDisplayName())
                 .append(Component.text(" captured "))
@@ -101,7 +103,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         for(CTFMatchParticipant participant : winner.getParticipants()){
             context.awardPoints(
                 participant,
-                    captureSpeedPoints(placement),
+                    capturePoints,
                     String.format("\"%s\" team to capture the flag", getPlacementToPrint(placement))
             );
         }
@@ -110,13 +112,10 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     }
     
     private int captureSpeedPoints(int placement) {
-        if(context.getConfig().getMatchPlacementPoints() - (context.getConfig().getMatchPlacementDecrement() * (placement - 1)) > 0) {
-            return context.getConfig().getMatchPlacementPoints() - (context.getConfig().getMatchPlacementDecrement() * (placement - 1));
-        }
-        else {
-            return 0;
-        }
+        int points = context.getConfig().getMatchPlacementPoints() - (context.getConfig().getMatchPlacementDecrement() * (placement - 1));
+        return Math.max(points, 0);
     }
+    
     private String getPlacementToPrint(Integer placement) {
         String convertedString;
         if(placement > 3) {
