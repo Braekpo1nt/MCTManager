@@ -412,19 +412,17 @@ public class ActiveState extends FootRaceStateBase {
     
     private void awardTeamLapCompletionPoints(FootRaceTeam team, Integer teamPlacement, int teamMinLap) {
         int points = config.getFullTeamLapCompletion() - (config.getFullTeamLapCompletionDetriment() * teamPlacement);
-        if(points < 0) {
-            points = 0;
+        if(points > 0) {
+            team.awardPoints(points);
         }
-        team.awardPoints(points);
         announceTeamLapCompletion(team, teamPlacement, teamMinLap);
     }
     
     private void awardTeamRaceCompletionPoints(FootRaceTeam team, Integer teamPlacement, int teamMinLap) {
         int points = config.getFullTeamCompletion() - (config.getFullTeamCompletionDetriment() * teamPlacement);
-        if(points < 0) {
-            points = 0;
+        if(points > 0) {
+            team.awardPoints(points);
         }
-        team.awardPoints(points);
         announceTeamCompletion(team, teamPlacement);
     }
     
