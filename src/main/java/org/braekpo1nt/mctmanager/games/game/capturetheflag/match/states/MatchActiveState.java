@@ -8,6 +8,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchParticipant;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchTeam;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
@@ -28,6 +29,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class MatchActiveState extends CaptureTheFlagMatchStateBase {
@@ -100,17 +102,17 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
                 .append(Component.text("'s flag!"))
                 .color(NamedTextColor.YELLOW));
         context.awardPoints(winner, context.getConfig().getWinScore(), String.format("Won match against \"%s\"", loser.getTeamId()));
+        ArrayList<CTFParticipant> winningParticipants = new ArrayList<>();
+        for(CTFMatchParticipant participant : winner.getParticipants()) {
+            winningParticipants.add(
+            context.getParentContext().getParticipant(participant.getParticipantID().uuid())
+            );
+        }
         if(capturePoints > 0) {
-            for (CTFMatchParticipant participant : winner.getParticipants()) {
-                context.awardPoints(
-                        participant,
-                        capturePoints,
-                        String.format("\"%s\" team to capture the flag", getPlacementToPrint(placement))
-                );
-            }
+            context.getParentContext().awardParticipantPoints(winningParticipants, capturePoints, "Captured the flag");
         }
         else{
-            for (CTFMatchParticipant participant : winner.getParticipants()) {
+            for (CTFParticipant participant : winningParticipants) {
                 participant.sendMessage(
                     String.format("\"%s\" team to capture the flag", getPlacementToPrint(placement))
                     );
