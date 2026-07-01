@@ -111,7 +111,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     
     private int captureSpeedPoints(int placement) {
         if(context.getConfig().getMatchPlacementPoints() - (context.getConfig().getMatchPlacementDecrement() * (placement - 1)) > 0) {
-            return context.getConfig().getMatchPlacementPoints() - (context.getConfig().getMatchPlacementDecrement() * placement);
+            return context.getConfig().getMatchPlacementPoints() - (context.getConfig().getMatchPlacementDecrement() * (placement - 1));
         }
         else {
             return 0;
