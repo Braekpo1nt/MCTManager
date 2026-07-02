@@ -37,6 +37,8 @@ public class ParkourPathwayConfig implements Config {
     private int gameOverDuration;
     private int[] checkpointScore;
     private int[] winScore;
+    private int sectionCompleteScore;
+    private int sectionCompleteDetriment;
     /**
      * the number of skips each player gets. 0 or negative means no skips.
      */

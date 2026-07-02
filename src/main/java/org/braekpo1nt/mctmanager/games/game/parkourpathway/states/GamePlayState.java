@@ -78,7 +78,9 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
         Puzzle nextPuzzle = config.getPuzzle(nextPuzzleIndex);
         int nextPuzzleCheckPointIndex = participantReachedCheckPoint(participant.getLocation().toVector(), nextPuzzle);
         if (nextPuzzleCheckPointIndex >= 0) {
-            onParticipantReachCheckpoint(participant, nextPuzzleIndex, nextPuzzleCheckPointIndex);
+            int currentSection = currentPuzzle.getSectionKey();
+            
+            onParticipantReachCheckpoint(participant, nextPuzzleIndex, nextPuzzleCheckPointIndex, currentSection);
             return;
         }
         int parallelCheckPointIndex = participantReachedCheckPoint(participant.getLocation().toVector(), currentPuzzle);
@@ -114,8 +116,54 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
         return -1;
     }
     
-    private void onParticipantReachCheckpoint(ParkourParticipant participant, int puzzleIndex, int puzzleCheckPointIndex) {
+    private void setTeamMinSection(ParkourTeam team) {
+        int minSection = -1;
+        for(ParkourParticipant participant : team.getParticipants()) {
+            int participantSection = config.getPuzzle(participant.getCurrentPuzzle()).getSectionKey();
+            if(minSection == -1) {
+                minSection = participantSection;
+                continue;
+            }
+            if(participantSection < minSection) {
+                minSection = participantSection;
+            }
+        }
+        team.setMinSection(minSection);
+    }
+    
+    private int getTeamSectionPlacement(ParkourTeam team) {
+        int placement = 0;
+        int teamMinSection = team.getMinSection();
+        for(ParkourTeam parkourTeam : context.getTeams().values()) {
+            if(parkourTeam.getMinSection() >= teamMinSection) {
+                placement += 1;
+            }
+        }
+        // placement is equal to the exact placement, should never be 0
+        return placement;
+    }
+    
+    private String getPlacementToPrint(Integer placement) {
+        String convertedString;
+        if(placement > 3) {
+            convertedString = placement + "th";
+        }
+        else if(placement == 3) {
+            convertedString = placement + "rd";
+        }
+        else if(placement == 2) {
+            convertedString = placement + "nd";
+        }
+        else {
+            convertedString = placement + "st";
+        }
+        return convertedString;
+    }
+    
+    private void onParticipantReachCheckpoint(ParkourParticipant participant, int puzzleIndex, int puzzleCheckPointIndex, int currentSection) {
         participant.setCurrentPuzzle(puzzleIndex);
+        ParkourTeam team = context.getTeams().get(participant.getTeamId());
+        setTeamMinSection(team);
         participant.setCurrentPuzzleCheckpoint(puzzleCheckPointIndex);
         context.updateCheckpointSidebar(participant);
         if (puzzleIndex >= config.getPuzzlesSize() - 1) {
@@ -147,6 +195,17 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
                             .append(Component.text("Skips are not allowed after checkpoint "))
                             .append(Component.text(config.getMaxSkipPuzzle())));
                     context.awardPointsForUnusedSkips(participant);
+                }
+            }
+            if(team.getMinSection() > currentSection) {
+                int sectionPlacement = getTeamSectionPlacement(team);
+                int sectionCompleted = team.getMinSection() + 1;
+                int sectionScore = (config.getSectionCompleteScore() - (config.getSectionCompleteDetriment() * (sectionPlacement - 1)));
+                if(sectionScore > 0) {
+                    team.awardPoints(sectionScore);
+                }
+                for(ParkourParticipant parkourParticipant : team.getParticipants()) {
+                    parkourParticipant.sendMessage(String.format("\"%s\" team to complete section \"%d\"", getPlacementToPrint(sectionPlacement), sectionCompleted));
                 }
             }
         }
