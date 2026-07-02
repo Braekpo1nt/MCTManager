@@ -366,6 +366,7 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
      * @param audience who should see the death message
      */
     public void simulateDeath(CTFMatchParticipant participant, Component deathMessage, Audience audience) {
+        participant.setAlive(false);
         parentContext.simulateDeath(parentContext.getParticipants().get(participant.getUniqueId()), deathMessage, audience);
     }
     

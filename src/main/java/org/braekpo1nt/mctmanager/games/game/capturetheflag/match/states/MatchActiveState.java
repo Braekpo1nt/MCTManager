@@ -218,7 +218,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         event.setDroppedExp(0);
         
         // Handle flag dropping based on affiliation
-        
+        participant.setAlive(false);
         context.updateAliveStatus(participant.getAffiliation());
         context.addDeath(participant);
         
