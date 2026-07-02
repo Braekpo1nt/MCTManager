@@ -242,6 +242,8 @@ class ParkourPathwayConfigDTO implements Validatable {
         }
         validator.notNull(this.getScores(), "scores");
         validator.notNull(this.getScores().getCheckpoint(), "scores.checkpoint");
+        validator.notNull(this.scores.sectionCompleteScore, "scores.sectionCompleteScore");
+        validator.notNull(this.scores.sectionCompleteDetriment, "scores.sectionCompleteDetriment");
         validator.validate(this.getScores().getCheckpoint().length >= 2, "scores.checkpoint must have at least two elements");
         validator.notNull(this.getScores().getWin(), "scores.win");
         validator.validate(this.getScores().getWin().length >= 2, "scores.win must have at least two elements");
@@ -251,8 +253,6 @@ class ParkourPathwayConfigDTO implements Validatable {
         validator.validate(this.getDurations().getCheckpointCounter() >= 1, "durations.checkpointCounter (%s) can't be less than 1", this.getDurations().getCheckpointCounter());
         validator.validate(this.getDurations().getCheckpointCounterAlert() >= 1 && this.getDurations().getCheckpointCounter() >= this.getDurations().getCheckpointCounterAlert(), "durations.checkpointCounterAlert (%s) can't be less than 0 or greater than durations.checkpointCounter", this.getDurations().getCheckpointCounterAlert());
         validator.validate(this.getDurations().getGameOver() >= 0, "durations.gameOver can't be negative");
-        validator.notNull(this.scores.sectionCompleteScore, "sectionCompleteScore");
-        validator.notNull(this.scores.sectionCompleteDetriment, "sectionCompleteDetriment");
         if (skips != null) {
             skips.validate(validator.path("skips"));
         }
@@ -335,6 +335,8 @@ class ParkourPathwayConfigDTO implements Validatable {
                 .gameOverDuration(this.durations.gameOver)
                 .checkpointScore(this.scores.checkpoint)
                 .winScore(this.scores.win)
+                .sectionCompleteScore(this.scores.sectionCompleteScore)
+                .sectionCompleteDetriment(this.scores.sectionCompleteDetriment)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .descriptionDuration(this.durations.description)
                 .description(this.description);
