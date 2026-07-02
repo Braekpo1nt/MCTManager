@@ -205,7 +205,7 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
                     team.awardPoints(sectionScore);
                 }
                 for(ParkourParticipant parkourParticipant : team.getParticipants()) {
-                    parkourParticipant.sendMessage(String.format("\"%s\" team to complete section \"%d\"", getPlacementToPrint(sectionPlacement), sectionCompleted));
+                    parkourParticipant.sendMessage(String.format("%s team to complete section %d", getPlacementToPrint(sectionPlacement), sectionCompleted));
                 }
             }
         }
