@@ -49,7 +49,7 @@ public class ParkourPathwayEditor extends EditorBase<ParkourAdmin, ParkourPathwa
         Location p = respawn.toBlockLocation();
         BoundingBox inBounds = createInBound(p);
         CheckPoint checkPoint = createCheckPoint(p);
-        return new Puzzle(new ArrayList<>(List.of(inBounds)), new ArrayList<>(List.of(checkPoint)));
+        return new Puzzle(new ArrayList<>(List.of(inBounds)), new ArrayList<>(List.of(checkPoint)), 0);
     }
     
     private final ParkourPathwayConfigController configController;

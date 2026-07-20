@@ -29,6 +29,11 @@ public class Puzzle {
     private final List<CheckPoint> checkPoints;
     
     /**
+     * The section that this puzzle belongs.
+     */
+    private final int sectionKey;
+    
+    /**
      * Creates a copy of this puzzle.
      * @return A new puzzle with the same in-bounds area, checkpoints, and transition status.
      */
@@ -39,7 +44,7 @@ public class Puzzle {
         List<BoundingBox> copiedBoundingBoxes = inBounds.stream()
                 .map(BoundingBox::clone)
                 .collect(Collectors.toCollection(ArrayList::new));
-        return new Puzzle(copiedBoundingBoxes, copiedCheckPoints);
+        return new Puzzle(copiedBoundingBoxes, copiedCheckPoints, sectionKey);
     }
     
     /**
