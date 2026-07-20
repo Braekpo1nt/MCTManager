@@ -445,8 +445,7 @@ public class ActiveState extends FootRaceStateBase {
         context.messageAllParticipants(Component.empty()
                 .append(team.getFormattedDisplayName())
                 .append(Component.text(" was the " + placementString + " full team to finish lap " + lap))
-                .append(Component.text("! "))
-                        .color(team.getColor()));
+                .append(Component.text("! ")));
     }
     private void announceTeamCompletion(FootRaceTeam team, Integer teamPlacement) {
         int placement = teamPlacement + 1;
@@ -466,8 +465,7 @@ public class ActiveState extends FootRaceStateBase {
         context.messageAllParticipants(Component.empty()
                 .append(team.getFormattedDisplayName())
                 .append(Component.text(" was the " + placementString + " full team to finish"))
-                .append(Component.text("! "))
-                .color(team.getColor()));
+                .append(Component.text("! ")));
     }
     private void startEndRaceCountDown() {
         endRaceTimer = timerManager.start(Timer.builder()
