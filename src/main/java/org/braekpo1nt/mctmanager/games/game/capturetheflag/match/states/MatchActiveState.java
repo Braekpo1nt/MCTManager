@@ -108,15 +108,13 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
             context.getParentContext().getParticipant(participant.getParticipantID().uuid())
             );
         }
+        for (CTFParticipant participant : winningParticipants) {
+            participant.sendMessage(
+                    String.format("\"%s\" team to capture the flag", getPlacementToPrint(placement))
+            );
+        }
         if(capturePoints > 0) {
             context.getParentContext().awardParticipantPoints(winningParticipants, capturePoints, "Captured the flag");
-        }
-        else{
-            for (CTFParticipant participant : winningParticipants) {
-                participant.sendMessage(
-                    String.format("\"%s\" team to capture the flag", getPlacementToPrint(placement))
-                    );
-            }
         }
         showWinLoseTitles(winner, loser);
         context.setState(new MatchOverState(context));
