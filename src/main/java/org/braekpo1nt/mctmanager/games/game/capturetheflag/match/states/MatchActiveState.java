@@ -88,6 +88,9 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     }
     
     private void onTeamWin(CTFMatchTeam winner, CTFMatchTeam loser) {
+        this.context.getParentContext().getRoundManager().endMatch();
+        int placement;
+        placement = this.context.getParentContext().getRoundManager().getNumOfCompletedMatches();
         context.getParentContext().messageAllParticipants(Component.empty()
                 .append(winner.getFormattedDisplayName())
                 .append(Component.text(" captured "))
@@ -95,11 +98,42 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
                 .append(Component.text("'s flag!"))
                 .color(NamedTextColor.YELLOW));
         context.awardPoints(winner, context.getConfig().getWinScore(), String.format("Won match against \"%s\"", loser.getTeamId()));
-        
+        for(CTFMatchParticipant participant : winner.getParticipants()){
+            context.awardPoints(
+                participant,
+                    captureSpeedPoints(placement),
+                    String.format("\"%s\" team to capture the flag", getPlacementToPrint(placement))
+            );
+        }
         showWinLoseTitles(winner, loser);
         context.setState(new MatchOverState(context));
     }
     
+    private int captureSpeedPoints(int placement) {
+        if(context.getConfig().getMatchPlacementPoints() - (context.getConfig().getMatchPlacementDecrement() * (placement - 1)) > 0) {
+            return context.getConfig().getMatchPlacementPoints() - (context.getConfig().getMatchPlacementDecrement() * (placement - 1));
+        }
+        else {
+            return 0;
+        }
+    }
+    private String getPlacementToPrint(Integer placement) {
+        String convertedString;
+        if(placement > 3) {
+            convertedString = placement + "th";
+        }
+        else if(placement == 3) {
+            convertedString = placement + "rd";
+        }
+        else if(placement == 2) {
+            convertedString = placement + "nd";
+        }
+        else {
+            convertedString = placement + "st";
+        }
+        return convertedString;
+    }
+        
     private void showWinLoseTitles(CTFMatchTeam winner, CTFMatchTeam loser) {
         winner.showTitle(
                 Title.title(
