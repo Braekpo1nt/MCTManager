@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.RoundActiveState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,6 +44,7 @@ public class RoundManager {
      */
     private int currentRoundIndex = 0;
     private @NotNull List<MatchPairing> currentRound;
+    private int numberOfCompletedMatches;
     
     /**
      * Used only for checking if a given teamId is contained in this {@link RoundManager} or not
@@ -96,6 +98,7 @@ public class RoundManager {
             Main.logger().info(String.format("Generated rounds were empty, teamIds: %s, numOfArenas: %s", teamIds, numOfArenas));
         }
         currentRound = this.schedule.getFirst();
+        this.numberOfCompletedMatches = 0;
         played = new ArrayList<>(currentRound);
         playedRounds = 0;
         maxRounds = schedule.size();
@@ -165,6 +168,7 @@ public class RoundManager {
     public void nextRound() {
         currentRoundIndex++;
         playedRounds++;
+        numberOfCompletedMatches = 0;
         currentRound = schedule.get(currentRoundIndex);
         played.addAll(currentRound);
     }
@@ -176,6 +180,13 @@ public class RoundManager {
      */
     public @NotNull List<MatchPairing> getCurrentRound() {
         return currentRound;
+    }
+    public int getNumOfCompletedMatches() {
+        return numberOfCompletedMatches;
+    }
+    
+    public void endMatch() {
+        numberOfCompletedMatches += 1;
     }
     
     public static List<List<MatchPairing>> generateSchedule(@NotNull Collection<String> teamIds, int numOfArenas) {
