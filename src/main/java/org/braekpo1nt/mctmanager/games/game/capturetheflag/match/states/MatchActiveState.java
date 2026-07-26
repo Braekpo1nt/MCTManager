@@ -103,9 +103,9 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
                 .color(NamedTextColor.YELLOW));
         context.awardPoints(winner, context.getConfig().getWinScore(), String.format("Won match against \"%s\"", loser.getTeamId()));
         ArrayList<CTFParticipant> winningParticipants = new ArrayList<>();
-        for(CTFMatchParticipant participant : winner.getParticipants()) {
+        for (CTFMatchParticipant participant : winner.getParticipants()) {
             winningParticipants.add(
-            context.getParentContext().getParticipant(participant.getParticipantID().uuid())
+                    context.getParentContext().getParticipant(participant.getParticipantID().uuid())
             );
         }
         for (CTFParticipant participant : winningParticipants) {
@@ -113,7 +113,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
                     String.format("\"%s\" team to capture the flag", getPlacementToPrint(placement))
             );
         }
-        if(capturePoints > 0) {
+        if (capturePoints > 0) {
             context.getParentContext().awardParticipantPoints(winningParticipants, capturePoints, "Captured the flag");
         }
         showWinLoseTitles(winner, loser);
@@ -127,21 +127,18 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     
     private String getPlacementToPrint(Integer placement) {
         String convertedString;
-        if(placement > 3) {
+        if (placement > 3) {
             convertedString = placement + "th";
-        }
-        else if(placement == 3) {
+        } else if (placement == 3) {
             convertedString = placement + "rd";
-        }
-        else if(placement == 2) {
+        } else if (placement == 2) {
             convertedString = placement + "nd";
-        }
-        else {
+        } else {
             convertedString = placement + "st";
         }
         return convertedString;
     }
-        
+    
     private void showWinLoseTitles(CTFMatchTeam winner, CTFMatchTeam loser) {
         winner.showTitle(
                 Title.title(
@@ -216,6 +213,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
             Component deathMessage = Component.empty()
                     .append(participant.displayName())
                     .append(Component.text(" left early. Their life is forfeit."));
+            dropFlagIfNeeded(participant);
             context.simulateDeath(participant, deathMessage, Audience.audience(
                     Audience.audience(context.getParticipants().values()),
                     context.getOnDeckParticipants(),
@@ -259,11 +257,6 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         event.getDrops().clear();
         event.setDroppedExp(0);
         
-        // Handle flag dropping based on affiliation
-        participant.setAlive(false);
-        context.updateAliveStatus(participant.getAffiliation());
-        context.addDeath(participant);
-        
         // Handle killer logic
         Player killerPlayer = participant.getKiller();
         if (killerPlayer != null) {
@@ -282,6 +275,16 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         }
         // new code stop
         
+        // Handle flag dropping based on affiliation
+        dropFlagIfNeeded(participant);
+    }
+    
+    /**
+     * If the given player has the opposing team's flag, drop it
+     * at or below that player's position
+     * @param participant the participant who may have the flag
+     */
+    private void dropFlagIfNeeded(CTFMatchParticipant participant) {
         if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
             if (hasSouthFlag(participant)) {
                 dropSouthFlag(participant);
@@ -297,6 +300,9 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull CTFMatchParticipant participant) {
         participant.setAlive(false);
         context.getParentContext().getTabList().setParticipantGrey(participant, true);
+        context.updateAliveStatus(participant.getAffiliation());
+        context.addDeath(participant);
+        
         if (allParticipantsAreDead()) {
             onBothTeamsLose(Component.text("Both teams are dead."));
         }
