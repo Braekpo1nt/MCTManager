@@ -109,7 +109,7 @@ public abstract class ExampleStateBase implements ExampleState {
     
     @Override
     public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull ExampleParticipant participant) {
-        
+        // do nothing
     }
     
     @Override
