@@ -170,7 +170,7 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
     
     public void determineIfFullTeamDeath(SpleefParticipant participant) {
         SpleefTeam team = context.getTeams().get(participant.getTeamId());
-        if(team.isAlive()) {
+        if (team.isAlive()) {
             return;
         }
         List<SpleefParticipant> awardeableParticipants = context.getParticipants()
@@ -179,10 +179,16 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
                 .filter(SpleefParticipant::isAlive)
                 .toList();
         context.awardParticipantPoints(
-                awardeableParticipants, 
-                context.getConfig().getSurviveTeamScore(), 
+                awardeableParticipants,
+                context.getConfig().getSurviveTeamScore(),
                 "Full Team Death"
         );
+        for (SpleefParticipant awardedParticipant : awardeableParticipants) {
+            awardedParticipant.sendMessage(
+                    Component.empty()
+                            .append(team.getFormattedDisplayName())
+                            .append(Component.text("has fallen!")));
+        }
     }
         
     @Override
