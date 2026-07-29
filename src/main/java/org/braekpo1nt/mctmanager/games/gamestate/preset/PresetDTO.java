@@ -107,6 +107,9 @@ public class PresetDTO implements Validatable {
         private String teamId;
         private String displayName;
         private String color;
+        private String iconHash;
+        private String fingerItem;
+        private String fingerCode;
         /**
          * this team's members
          */
@@ -120,6 +123,9 @@ public class PresetDTO implements Validatable {
             validator.notNull(displayName, "displayName");
             validator.validate(!displayName.isEmpty(), "displayName can't be blank");
             validator.notNull(color, "color");
+            validator.notNull(iconHash, "iconHash");
+            validator.notNull(fingerItem, "fingerItem");
+            validator.notNull(fingerCode, "fingerCode");
             validator.validate(ColorMap.hasNamedTextColor(color), "color is not a recognized color. It should be one of %s", ColorMap.getNamedTextColors());
             validator.notNull(members, "members");
             validator.validate(!members.contains(null), "members can't contain null entries");
@@ -144,6 +150,9 @@ public class PresetDTO implements Validatable {
                     teamId,
                     displayName,
                     color,
+                    iconHash,
+                    fingerItem,
+                    fingerCode,
                     PresetParticipantDTO.toPresetParticipants(members)
             );
         }
@@ -157,6 +166,9 @@ public class PresetDTO implements Validatable {
                     presetTeam.getTeamId(),
                     presetTeam.getDisplayName(),
                     presetTeam.getColor(),
+                    presetTeam.getIconHash(), 
+                    presetTeam.getFingerItem(),
+                    presetTeam.getFingerCode(),
                     PresetParticipantDTO.fromPresetParticipants(presetTeam.getMembers())
             );
         }

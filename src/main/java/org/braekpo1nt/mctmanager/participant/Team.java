@@ -26,8 +26,13 @@ public interface Team {
     @NotNull String getDisplayName();
     
     /**
+     * @return The icon hash code of the team
+     */
+    @NotNull String getIconHash();
+    
+    /**
      * @return The formatted display name of the team for use in chat messages.
-     * The {@link #getDisplayName()} in {@link #getColor()} and bold.
+     * The {@link #getIconHash} in front of {@link #getDisplayName()} in {@link #getColor()} and bold.
      */
     @NotNull Component getFormattedDisplayName();
     

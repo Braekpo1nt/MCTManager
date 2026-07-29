@@ -47,8 +47,8 @@ public class Preset {
         return teams.stream().anyMatch(t -> t.getTeamId().equals(teamId));
     }
     
-    public void addTeam(@NotNull String teamId, @NotNull String displayName, @NotNull String color) {
-        teams.add(new PresetTeam(teamId, displayName, color));
+    public void addTeam(@NotNull String teamId, @NotNull String displayName, @NotNull String color, @NotNull String iconHash, @NotNull String fingerItem, @NotNull String fingerCode) {
+        teams.add(new PresetTeam(teamId, displayName, color, iconHash, fingerItem, fingerCode));
     }
     
     /**
@@ -130,20 +130,26 @@ public class Preset {
     @Data
     public static class PresetTeam {
         
-        public PresetTeam(@NotNull String teamId, @NotNull String displayName, @NotNull String color) {
-            this(teamId, displayName, color, new ArrayList<>());
+        public PresetTeam(@NotNull String teamId, @NotNull String displayName, @NotNull String color, @NotNull String iconHash, @NotNull String fingerItem, @NotNull String fingerCode) {
+            this(teamId, displayName, color, iconHash, fingerItem, fingerCode, new ArrayList<>());
         }
         
-        public PresetTeam(@NotNull String teamId, @NotNull String displayName, @NotNull String color, @NotNull Collection<PresetParticipant> members) {
+        public PresetTeam(@NotNull String teamId, @NotNull String displayName, @NotNull String color, @NotNull String iconHash, @NotNull String fingerItem, @NotNull String fingerCode, @NotNull Collection<PresetParticipant> members) {
             this.teamId = teamId;
             this.displayName = displayName;
             this.color = color;
+            this.iconHash = iconHash;
+            this.fingerItem = fingerItem;
+            this.fingerCode = fingerCode;
             this.members = new ArrayList<>(members);
         }
         
         private @NotNull String teamId;
         private @NotNull String displayName;
         private @NotNull String color;
+        private @NotNull String iconHash;
+        private @NotNull String fingerItem;
+        private @NotNull String fingerCode;
         private @NotNull List<PresetParticipant> members;
         
         public boolean hasMember(@NotNull String ign) {

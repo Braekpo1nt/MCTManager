@@ -31,6 +31,11 @@ public abstract class TeamInfo implements Team {
     @Getter
     private final @NotNull String displayName;
     /**
+     * The icon of the team
+     */
+    @Getter
+    private final @NotNull String iconHash;
+    /**
      * The {@link TextColor} color associated with the team
      */
     @Getter
@@ -44,7 +49,7 @@ public abstract class TeamInfo implements Team {
     private final @NotNull Color bukkitColor;
     /**
      * The formatted display name of the team for use in chat messages.
-     * The {@link #displayName} in {@link #color} and bold.
+     * The {@link #iconHash} in front of {@link #displayName} in {@link #color} and bold.
      */
     @Getter
     private final @NotNull Component formattedDisplayName;
@@ -55,14 +60,16 @@ public abstract class TeamInfo implements Team {
      * @param teamId the unique ID of the team
      * @param displayName the display name of the team
      * @param color the {@link TextColor} associated with the team
+     * @param iconHash the icon hashcode associated with the team
      * @param bukkitColor The {@link Color} associated with the team
      * @param formattedDisplayName The formatted display name of the team for use in chat messages.
      * @param score the team's score
      */
-    public TeamInfo(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull ColorAttributes colorAttributes, @NotNull Color bukkitColor, @NotNull Component formattedDisplayName, int score) {
+    public TeamInfo(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull String iconHash, @NotNull ColorAttributes colorAttributes, @NotNull Color bukkitColor, @NotNull Component formattedDisplayName, int score) {
         this.teamId = teamId;
         this.displayName = displayName;
         this.color = color;
+        this.iconHash = iconHash;
         this.colorAttributes = colorAttributes;
         this.bukkitColor = bukkitColor;
         this.formattedDisplayName = formattedDisplayName;
@@ -74,9 +81,10 @@ public abstract class TeamInfo implements Team {
      * @param teamId the unique ID of the team
      * @param displayName the display name of the team
      * @param color the {@link TextColor} associated with the team
+     * @param iconHash the icon hashcode associated with the team
      */
-    public TeamInfo(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull ColorAttributes colorAttributes, int score) {
-        this(teamId, displayName, color, colorAttributes, Color.fromARGB(255, color.red(), color.green(), color.blue()), Component.text(displayName, color, TextDecoration.BOLD), score);
+    public TeamInfo(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull String iconHash, @NotNull ColorAttributes colorAttributes, int score) {
+        this(teamId, displayName, color, iconHash, colorAttributes, Color.fromARGB(255, color.red(), color.green(), color.blue()), Component.text(displayName, color, TextDecoration.BOLD), score);
     }
     
     /**
@@ -87,6 +95,7 @@ public abstract class TeamInfo implements Team {
         this(team.getTeamId(),
                 team.getDisplayName(),
                 team.getColor(),
+                team.getIconHash(),
                 team.getColorAttributes(),
                 team.getBukkitColor(),
                 team.getFormattedDisplayName(),
