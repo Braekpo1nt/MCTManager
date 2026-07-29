@@ -52,14 +52,17 @@ public class StayOnWedgeState extends RoundActiveState {
                         } else { // at least 1 team is alive
                             context.incrementChaos();
                             context.setState(new BreatherState(context));
+                            awardPointsForSurvivingChime();
                         }
                     } else {
                         if (livingTeams.size() >= 2) {
                             context.incrementChaos();
                             context.setState(new BreatherState(context));
+                            awardPointsForSurvivingChime();
                         } else if (livingTeams.size() == 1) {
                             context.getChaosManager().stop();
                             onTeamWinsRound(livingTeams.getFirst());
+                            awardPointsForSurvivingChime();
                         } else { // 0 teams are alive
                             context.getChaosManager().stop();
                             onAllTeamsLoseRound();
@@ -77,6 +80,22 @@ public class StayOnWedgeState extends RoundActiveState {
         }
     }
     
+    private void awardPointsForSurvivingChime() {
+        if(config.getSurviveChimeScore() > 0) {
+            List<ClockworkParticipant> awardableParticipants = context.getParticipants()
+                    .values()
+                    .stream()
+                    .filter(ClockworkParticipant::isAlive)
+                    .toList();
+            context.awardParticipantPoints(awardableParticipants, config.getSurviveChimeScore(), "Survived Chime Phase");
+            for(ClockworkParticipant awardedParticipant : awardableParticipants) {
+                awardedParticipant.sendMessage(
+                        Component.empty()
+                                .append(Component.text("Survived A Chime Phase!"))
+                );
+            }
+        }
+    }
     private void killParticipantsNotOnWedge() {
         List<ClockworkParticipant> participantsToKill = new ArrayList<>();
         for (ClockworkParticipant participant : context.getParticipants().values()) {
