@@ -52,10 +52,19 @@ class SurvivalGamesConfigDTO implements Validatable {
      */
     private NamespacedKeyDTO spawnLootTable;
     /**
+     * The loot table for the spawn chests when refilled
+     */
+    private NamespacedKeyDTO spawnRefillTable;
+    /**
      * The loot tables for the chests, with weights for the weighted random selection
      */
     @SerializedName(value = "weightedLootTables", alternate = {"weightedMechaLootTables"})
     private List<WeightedNamespacedKey> weightedLootTables;
+    /**
+     * The loot tables for the chests, with weights for the weighted random selection when refilled
+     */
+    @SerializedName(value = "weightedRefillTables", alternate = {"weightedMechaRefillTables"})
+    private List<WeightedNamespacedKey> weightedRefillTables;
     /**
      * The coordinates of the spawn chests
      */
@@ -122,6 +131,9 @@ class SurvivalGamesConfigDTO implements Validatable {
         validator.notNull(this.spawnLootTable, "spawnLootTable");
         validator.validate(lootTableExists(this.spawnLootTable.toNamespacedKey()),
                 "spawnLootTable: Could not find spawn loot table \"%s\"", this.spawnLootTable);
+        validator.notNull(this.spawnRefillTable, "spawnRefillTable");
+        validator.validate(lootTableExists(this.spawnRefillTable.toNamespacedKey()),
+                "spawnRefillTable: Could not find spawn loot table \"%s\"", this.spawnRefillTable);
         validator.notNull(this.weightedLootTables,
                 "weightedLootTables");
         validator.validate(!this.weightedLootTables.isEmpty(),
@@ -129,6 +141,17 @@ class SurvivalGamesConfigDTO implements Validatable {
         for (int i = 0; i < this.weightedLootTables.size(); i++) {
             SurvivalGamesConfigDTO.WeightedNamespacedKey weightedNamespacedKey = this.weightedLootTables.get(i);
             weightedNamespacedKey.validate(validator.path("weightedLootTables[%d]", i));
+            NamespacedKey namespacedKey = weightedNamespacedKey.toNamespacedKey();
+            validator.validate(lootTableExists(namespacedKey),
+                    "weightedLootTables[%d]: Could not find loot table \"%s\"", i, namespacedKey);
+        }
+        validator.notNull(this.weightedRefillTables,
+                "weightedRefillTables");
+        validator.validate(!this.weightedRefillTables.isEmpty(),
+                "weightedRefillTables must have at least 1 entry");
+        for (int i = 0; i < this.weightedRefillTables.size(); i++) {
+            SurvivalGamesConfigDTO.WeightedNamespacedKey weightedNamespacedKey = this.weightedRefillTables.get(i);
+            weightedNamespacedKey.validate(validator.path("weightedRefillTables[%d]", i));
             NamespacedKey namespacedKey = weightedNamespacedKey.toNamespacedKey();
             validator.validate(lootTableExists(namespacedKey),
                     "weightedLootTables[%d]: Could not find loot table \"%s\"", i, namespacedKey);
@@ -189,6 +212,13 @@ class SurvivalGamesConfigDTO implements Validatable {
             newWeightedLootTables.put(lootTable, weight);
         }
         
+        HashMap<LootTable, Integer> newWeightedRefillTables = new HashMap<>(this.weightedRefillTables.size());
+        for (SurvivalGamesConfigDTO.WeightedNamespacedKey weightedNamespacedKey : this.weightedRefillTables) {
+            LootTable lootTable = Bukkit.getLootTable(weightedNamespacedKey.toNamespacedKey());
+            int weight = weightedNamespacedKey.weight();
+            newWeightedRefillTables.put(lootTable, weight);
+        }
+        
         List<BoundingBox> newPlatformBarriers = new ArrayList<>();
         List<Location> newPlatformSpawns = new ArrayList<>();
         for (Platform platform : this.platforms) {
@@ -227,7 +257,9 @@ class SurvivalGamesConfigDTO implements Validatable {
                 .spawnChestCoords(this.spawnChestCoords)
                 .mapChestCoords(this.mapChestCoords)
                 .spawnLootTable(Bukkit.getLootTable(this.spawnLootTable.toNamespacedKey()))
+                .spawnRefillTable(Bukkit.getLootTable(this.spawnRefillTable.toNamespacedKey()))
                 .weightedLootTables(newWeightedLootTables)
+                .weightedRefillTables(newWeightedRefillTables)
                 .removeArea(this.removeArea)
                 .platformBarriers(newPlatformBarriers)
                 .platformSpawns(newPlatformSpawns)

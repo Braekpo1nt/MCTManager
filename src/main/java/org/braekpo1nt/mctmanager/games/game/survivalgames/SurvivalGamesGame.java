@@ -175,12 +175,30 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
         fillMapChests();
     }
     
+    /**
+     * Refill all chests in the survivalgames world, map chests and spawn chests
+     */
+    public void refillAllChests() {
+        refillSpawnChests();
+        refillMapChests();
+    }
+    
     private void fillSpawnChests() {
         for (org.bukkit.util.Vector coords : config.getSpawnChestCoords()) {
             Block block = config.getWorld().getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
             block.setType(Material.CHEST);
             Chest chest = (Chest) block.getState();
             chest.setLootTable(config.getSpawnLootTable());
+            chest.update();
+        }
+    }
+    
+    private void refillSpawnChests() {
+        for (org.bukkit.util.Vector coords : config.getSpawnChestCoords()) {
+            Block block = config.getWorld().getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
+            block.setType(Material.CHEST);
+            Chest chest = (Chest) block.getState();
+            chest.setLootTable(config.getSpawnRefillTable());
             chest.update();
         }
     }
@@ -193,12 +211,26 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
         }
     }
     
+    private void refillMapChests() {
+        for (Vector coords : config.getMapChestCoords()) {
+            Block block = config.getWorld().getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
+            block.setType(Material.CHEST);
+            refillMapChest(((Chest) block.getState()));
+        }
+    }
+    
     /**
      * Fills the given chest with a random loot table
      * @param chest The chest to fill
      */
     private void fillMapChest(Chest chest) {
         LootTable lootTable = MathUtils.getWeightedRandomValue(config.getWeightedLootTables());
+        chest.setLootTable(lootTable);
+        chest.update();
+    }
+    
+    private void refillMapChest(Chest chest) {
+        LootTable lootTable = MathUtils.getWeightedRandomValue(config.getWeightedRefillTables());
         chest.setLootTable(lootTable);
         chest.update();
     }

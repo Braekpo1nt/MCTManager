@@ -27,7 +27,9 @@ public class SurvivalGamesConfig implements Config {
     private List<Vector> spawnChestCoords;
     private List<Vector> mapChestCoords;
     private LootTable spawnLootTable;
+    private LootTable spawnRefillTable;
     private Map<LootTable, Integer> weightedLootTables;
+    private Map<LootTable, Integer> weightedRefillTables;
     private BoundingBox removeArea;
     private List<BoundingBox> platformBarriers;
     private List<Location> platformSpawns;
