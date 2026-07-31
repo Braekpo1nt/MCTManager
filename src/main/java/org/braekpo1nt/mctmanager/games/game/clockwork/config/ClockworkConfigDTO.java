@@ -94,6 +94,7 @@ record ClockworkConfigDTO(
                 .playerEliminationScore(this.scores.playerElimination)
                 .teamEliminationScore(this.scores.teamElimination)
                 .winRoundScore(this.scores.winRound)
+                .surviveChimeScore(this.scores.surviveChime)
                 .breatherDuration(this.durations.breather)
                 .getToWedgeDuration(this.durations.getToWedge)
                 .stayOnWedgeDuration(this.durations.stayOnWedge)
@@ -121,7 +122,7 @@ record ClockworkConfigDTO(
     record WedgeDTO(BoundingBox detectionArea) {
     }
     
-    record Scores(int playerElimination, int teamElimination, int winRound) {
+    record Scores(int playerElimination, int teamElimination, int winRound, int surviveChime) {
     }
     
     record Durations(

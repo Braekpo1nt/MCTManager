@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork.states;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
@@ -51,13 +52,16 @@ public class StayOnWedgeState extends RoundActiveState {
                             onAllTeamsLoseRound();
                         } else { // at least 1 team is alive
                             context.incrementChaos();
+                            awardPointsForSurvivingChime();
                             context.setState(new BreatherState(context));
                         }
                     } else {
                         if (livingTeams.size() >= 2) {
                             context.incrementChaos();
+                            awardPointsForSurvivingChime();
                             context.setState(new BreatherState(context));
                         } else if (livingTeams.size() == 1) {
+                            awardPointsForSurvivingChime();
                             context.getChaosManager().stop();
                             onTeamWinsRound(livingTeams.getFirst());
                         } else { // 0 teams are alive
@@ -77,6 +81,18 @@ public class StayOnWedgeState extends RoundActiveState {
         }
     }
     
+    private void awardPointsForSurvivingChime() {
+        if(config.getSurviveChimeScore() > 0) {
+            List<ClockworkParticipant> awardableParticipants = context.getParticipants()
+                    .values()
+                    .stream()
+                    .filter(ClockworkParticipant::isAlive)
+                    .toList();
+            context.awardParticipantPoints(awardableParticipants, config.getSurviveChimeScore(), "Survived Chime Phase");
+            Audience.audience(awardableParticipants).sendMessage(Component.empty()
+                    .append(Component.text("Survived A Chime Phase!")));
+        }
+    }
     private void killParticipantsNotOnWedge() {
         List<ClockworkParticipant> participantsToKill = new ArrayList<>();
         for (ClockworkParticipant participant : context.getParticipants().values()) {
