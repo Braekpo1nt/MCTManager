@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.state;
 
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
@@ -183,12 +184,9 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
                 context.getConfig().getSurviveTeamScore(),
                 "Full Team Death"
         );
-        for (SpleefParticipant awardedParticipant : awardeableParticipants) {
-            awardedParticipant.sendMessage(
-                    Component.empty()
-                            .append(team.getFormattedDisplayName())
-                            .append(Component.text("has fallen!")));
-        }
+        Audience.audience(awardeableParticipants).sendMessage(Component.empty()
+                .append(team.getFormattedDisplayName())
+                .append(Component.text("has fallen!")));
     }
         
     @Override
