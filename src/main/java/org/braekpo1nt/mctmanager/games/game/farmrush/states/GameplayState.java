@@ -146,7 +146,7 @@ public abstract class GameplayState extends FarmRushStateBase {
                 context.getParticipants().get(uuid).getPlayer().sendMessage(message);
             }
             if (context.getConfig().shouldEnforceScoreCap()) {
-                if (team.getScore() + totalScore >= context.getConfig().getSellCap()) {
+                if (team.getScore() + totalScore >= context.getConfig().getSellCap() * gameManager.getMultiplier()) {
                     totalScore = context.getConfig().getSellCap() - team.getSellPoints();
                     for (UUID uuid : team.getMemberUUIDs()) {
                         context.getParticipants().get(uuid).getPlayer().sendMessage(Component.empty()
