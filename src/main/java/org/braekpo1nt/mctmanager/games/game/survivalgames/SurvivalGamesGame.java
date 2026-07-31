@@ -106,7 +106,7 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
         this.borderStageIndex = 0;
         worldBorder = config.getWorld().getWorldBorder();
         glowManager.registerListeners();
-        fillAllChests();
+        fillAllChests(config.getSpawnLootTable(), config.getWeightedLootTables());
         setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
         if (newTeams.size() < 2) {
             messageAllParticipants(Component.empty()
@@ -170,52 +170,28 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     /**
      * Fill all chests in the survivalgames world, map chests and spawn chests
      */
-    public void fillAllChests() {
-        fillSpawnChests();
-        fillMapChests();
+    public void fillAllChests(LootTable spawnLoot, Map<LootTable, Integer> mapLoot) {
+        fillSpawnChests(spawnLoot);
+        fillMapChests(mapLoot);
     }
     
-    /**
-     * Refill all chests in the survivalgames world, map chests and spawn chests
-     */
-    public void refillAllChests() {
-        refillSpawnChests();
-        refillMapChests();
-    }
     
-    private void fillSpawnChests() {
+    private void fillSpawnChests(LootTable lootTable) {
         for (org.bukkit.util.Vector coords : config.getSpawnChestCoords()) {
             Block block = config.getWorld().getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
             block.setType(Material.CHEST);
             Chest chest = (Chest) block.getState();
-            chest.setLootTable(config.getSpawnLootTable());
+            chest.setLootTable(lootTable);
             chest.update();
         }
     }
     
-    private void refillSpawnChests() {
-        for (org.bukkit.util.Vector coords : config.getSpawnChestCoords()) {
-            Block block = config.getWorld().getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
-            block.setType(Material.CHEST);
-            Chest chest = (Chest) block.getState();
-            chest.setLootTable(config.getSpawnRefillTable());
-            chest.update();
-        }
-    }
     
-    private void fillMapChests() {
+    private void fillMapChests(Map<LootTable, Integer> lootTable) {
         for (Vector coords : config.getMapChestCoords()) {
             Block block = config.getWorld().getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
             block.setType(Material.CHEST);
-            fillMapChest(((Chest) block.getState()));
-        }
-    }
-    
-    private void refillMapChests() {
-        for (Vector coords : config.getMapChestCoords()) {
-            Block block = config.getWorld().getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
-            block.setType(Material.CHEST);
-            refillMapChest(((Chest) block.getState()));
+            fillMapChest(((Chest) block.getState()), lootTable);
         }
     }
     
@@ -223,14 +199,8 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
      * Fills the given chest with a random loot table
      * @param chest The chest to fill
      */
-    private void fillMapChest(Chest chest) {
-        LootTable lootTable = MathUtils.getWeightedRandomValue(config.getWeightedLootTables());
-        chest.setLootTable(lootTable);
-        chest.update();
-    }
-    
-    private void refillMapChest(Chest chest) {
-        LootTable lootTable = MathUtils.getWeightedRandomValue(config.getWeightedRefillTables());
+    private void fillMapChest(Chest chest, Map<LootTable, Integer> weightedLootTables) {
+        LootTable lootTable = MathUtils.getWeightedRandomValue(weightedLootTables);
         chest.setLootTable(lootTable);
         chest.update();
     }
