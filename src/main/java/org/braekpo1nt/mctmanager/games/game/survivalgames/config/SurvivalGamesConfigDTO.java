@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 @Data
 class SurvivalGamesConfigDTO implements Validatable {
@@ -222,7 +223,11 @@ class SurvivalGamesConfigDTO implements Validatable {
             int weight = weightedNamespacedKey.weight();
             newWeightedRefillTables.put(lootTable, weight);
         }
-        LootTable newSpawnLootTable = Bukkit.getLootTable(this.spawnLootTable.toNamespacedKey());
+        LootTable newSpawnLootTable = Objects.requireNonNull(Bukkit.getLootTable(this.spawnLootTable.toNamespacedKey()), "Something went wrong in the validation and we could not find the spawn loot table");
+        if (this.spawnRefillTable == null) {
+            this.spawnRefillTable = spawnLootTable;
+        }
+        LootTable newSpawnRefillTable = Objects.requireNonNull(Bukkit.getLootTable(this.spawnRefillTable.toNamespacedKey()), "Something went wrong in the validation and we could not find the spawn refill table");
         
         List<BoundingBox> newPlatformBarriers = new ArrayList<>();
         List<Location> newPlatformSpawns = new ArrayList<>();
@@ -262,7 +267,7 @@ class SurvivalGamesConfigDTO implements Validatable {
                 .spawnChestCoords(this.spawnChestCoords)
                 .mapChestCoords(this.mapChestCoords)
                 .spawnLootTable(newSpawnLootTable)
-                .spawnRefillTable(this.spawnRefillTable != null ? Bukkit.getLootTable(this.spawnRefillTable.toNamespacedKey()) : newSpawnLootTable)
+                .spawnRefillTable(newSpawnRefillTable)
                 .weightedLootTables(newWeightedLootTables)
                 .weightedRefillTables(newWeightedRefillTables)
                 .removeArea(this.removeArea)
