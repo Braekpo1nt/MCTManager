@@ -173,6 +173,20 @@ public class ColorMap {
         BANNER_TYPE_MAP.put("yellow", Material.YELLOW_BANNER);
     }
     
+    private static final Map<String, String> ICON_TYPE_MAP = new HashMap<>();
+    
+    static {
+        ICON_TYPE_MAP.put("red", "\uE000");
+        ICON_TYPE_MAP.put("gold", "\uE001");
+        ICON_TYPE_MAP.put("yellow", "\uE002");
+        ICON_TYPE_MAP.put("green", "\uE003");
+        ICON_TYPE_MAP.put("dark_green", "\uE004");
+        ICON_TYPE_MAP.put("dark_aqua", "\uE005");
+        ICON_TYPE_MAP.put("aqua", "\uE006");
+        ICON_TYPE_MAP.put("blue", "\uE007");
+        ICON_TYPE_MAP.put("dark_purple", "\uE008");
+        ICON_TYPE_MAP.put("light_purple", "\uE009");
+    }
     public static @NotNull NamedTextColor getNamedTextColor(String colorString) {
         return NAMED_TEXT_COLOR_MAP.getOrDefault(colorString.toLowerCase(), NamedTextColor.WHITE);
     }
@@ -262,6 +276,16 @@ public class ColorMap {
     }
     
     /**
+     * Gets the team icon associated with given color string.
+     * @param colorString the color string to get the wool for. Should be the color string matching the ChatColor
+     * values.
+     * @return The team icon that matches the associated icon that is available, crown if no icon exists.
+     */
+    public static String getIcon(String colorString) {
+        return ICON_TYPE_MAP.getOrDefault(colorString, "\uE010");
+    }
+    
+    /**
      * @param colorString the color string indicating which colors the attributes should use. Should be the color string
      * matching the ChatColor values.
      * @return the {@link ColorAttributes} associated with the given colorString
@@ -273,7 +297,8 @@ public class ColorMap {
                 getStainedGlassColor(colorString),
                 getStainedGlassPaneColor(colorString),
                 getBannerColor(colorString),
-                getWoolColor(colorString)
+                getWoolColor(colorString),
+                getIcon(colorString)
         );
     }
     
