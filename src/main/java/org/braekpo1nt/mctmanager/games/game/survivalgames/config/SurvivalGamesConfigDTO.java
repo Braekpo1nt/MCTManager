@@ -222,6 +222,7 @@ class SurvivalGamesConfigDTO implements Validatable {
             int weight = weightedNamespacedKey.weight();
             newWeightedRefillTables.put(lootTable, weight);
         }
+        LootTable newSpawnLootTable = Bukkit.getLootTable(this.spawnLootTable.toNamespacedKey());
         
         List<BoundingBox> newPlatformBarriers = new ArrayList<>();
         List<Location> newPlatformSpawns = new ArrayList<>();
@@ -260,8 +261,8 @@ class SurvivalGamesConfigDTO implements Validatable {
                                         .toLocation(newWorld)))
                 .spawnChestCoords(this.spawnChestCoords)
                 .mapChestCoords(this.mapChestCoords)
-                .spawnLootTable(Bukkit.getLootTable(this.spawnLootTable.toNamespacedKey()))
-                .spawnRefillTable(Bukkit.getLootTable(this.spawnRefillTable.toNamespacedKey()) != null ? Bukkit.getLootTable(this.spawnRefillTable.toNamespacedKey()) : Bukkit.getLootTable(this.spawnLootTable.toNamespacedKey()))
+                .spawnLootTable(newSpawnLootTable)
+                .spawnRefillTable(this.spawnRefillTable != null ? Bukkit.getLootTable(this.spawnRefillTable.toNamespacedKey()) : newSpawnLootTable)
                 .weightedLootTables(newWeightedLootTables)
                 .weightedRefillTables(newWeightedRefillTables)
                 .removeArea(this.removeArea)

@@ -14,6 +14,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootTable;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -27,9 +28,9 @@ public class SurvivalGamesConfig implements Config {
     private List<Vector> spawnChestCoords;
     private List<Vector> mapChestCoords;
     private LootTable spawnLootTable;
-    private @Nullable LootTable spawnRefillTable;
+    private @NotNull LootTable spawnRefillTable;
     private Map<LootTable, Integer> weightedLootTables;
-    private @Nullable Map<LootTable, Integer> weightedRefillTables;
+    private @NotNull Map<LootTable, Integer> weightedRefillTables;
     private BoundingBox removeArea;
     private List<BoundingBox> platformBarriers;
     private List<Location> platformSpawns;
