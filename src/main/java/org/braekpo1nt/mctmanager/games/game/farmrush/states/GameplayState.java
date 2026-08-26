@@ -136,7 +136,7 @@ public abstract class GameplayState extends FarmRushStateBase {
             totalAmountSold += amountSold;
             totalScore += salePrice;
         }
-        
+        int multipliedSellCap = (int) (context.getConfig().getSellCap() * gameManager.getMultiplier());
         if (totalAmountSold > 0) {
             Component message = Component.empty()
                     .append(Component.text("Sold "))
@@ -146,12 +146,12 @@ public abstract class GameplayState extends FarmRushStateBase {
                 context.getParticipants().get(uuid).getPlayer().sendMessage(message);
             }
             if (context.getConfig().shouldEnforceScoreCap()) {
-                if (team.getScore() + totalScore >= context.getConfig().getSellCap() * gameManager.getMultiplier()) {
-                    totalScore = context.getConfig().getSellCap() - team.getSellPoints();
+                if (team.getScore() + totalScore >= multipliedSellCap) {
+                    totalScore = multipliedSellCap - team.getSellPoints();
                     for (UUID uuid : team.getMemberUUIDs()) {
                         context.getParticipants().get(uuid).getPlayer().sendMessage(Component.empty()
                                 .append(Component.text("You have reached the sell cap of "))
-                                .append(Component.text((int) (context.getConfig().getSellCap() * gameManager.getMultiplier()))
+                                .append(Component.text((multipliedSellCap))
                                         .decorate(TextDecoration.BOLD)
                                         .color(NamedTextColor.GOLD)));
                     }
