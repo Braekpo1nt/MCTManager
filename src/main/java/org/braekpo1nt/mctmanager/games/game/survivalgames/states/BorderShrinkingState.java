@@ -42,7 +42,7 @@ public class BorderShrinkingState extends RoundActiveState {
                 .onCompletion(() -> {
                     if (borderStage.isRefillChests()) {
                         context.clearAllChests();
-                        context.fillAllChests();
+                        context.fillAllChests(config.getSpawnRefillTable(), config.getWeightedRefillTables());
                         context.titleAllParticipants(UIUtils.defaultSubtitle(
                                 Component.empty()
                                         .append(Component.text("Chests Refilled"))
