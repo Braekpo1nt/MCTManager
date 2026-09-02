@@ -74,6 +74,7 @@ public class TabList implements UIManager {
     protected static class TeamData {
         private final @NotNull TextColor color;
         private final @NotNull String name;
+        private final @NotNull String icon;
         private final @NotNull List<ParticipantData> participants;
         private int score;
         
@@ -277,12 +278,12 @@ public class TabList implements UIManager {
         }
     }
     
-    public CompletableFuture<Void> addTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color) {
+    public CompletableFuture<Void> addTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull String icon) {
         if (teamDatas.containsKey(teamId)) {
             logUIError("Team with teamId \"%s\" already exists in this TabList", teamId);
             return CompletableFuture.completedFuture(null);
         }
-        TeamData teamData = new TeamData(color, displayName, new ArrayList<>(), 0);
+        TeamData teamData = new TeamData(color, displayName, icon, new ArrayList<>(), 0);
         teamDatas.put(teamId, teamData);
         return update();
     }
