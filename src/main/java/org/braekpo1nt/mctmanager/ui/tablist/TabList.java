@@ -80,13 +80,15 @@ public class TabList implements UIManager {
         
         public Component toTabListLine(int index, int maxNames) {
             int paddingLength = Math.max(TEAM_LINE_CHARACTERS
-                    - (4 + name.length() + Integer.toString(score).length()), 0);
+                    - (8 + name.length() + Integer.toString(score).length()), 0);
             return Component.empty()
                     .append(Component.empty()
                             .append(Component.text(String.format("%2d", index)))
                             .append(Component.text(". "))
+                            .append(Component.text(icon + " "))
                             .append(Component.text(name)
                                     .color(color))
+                            .append(Component.text((" " + icon)))
                             .append(Component.text(" ".repeat(paddingLength)))
                             .append(Component.text(score)
                                     .color(NamedTextColor.GOLD))

@@ -37,7 +37,7 @@ public class BattleTopbar implements Topbar {
          * The enemy team associated with this TeamData. This is useful for
          * updating the displays of both sides of a conflict.
          * If this is null, there is no enemy team associated with this team. Use
-         * {@link BattleTopbar#linkTeamPair(String, String)} to link with a team.
+         * {@link BattleTopbar#linkTeamPair(String, String, String, String)} to link with a team.
          */
         private @Nullable String enemyTeam;
         private final @NotNull TextColor teamColor;
@@ -100,19 +100,19 @@ public class BattleTopbar implements Topbar {
      * @param teamColor the color of the team
      */
     public void addTeam(
-            @NotNull String teamId, @NotNull TextColor teamColor) {
-        teamDatas.put(teamId, new TeamData(new VersusComponent(new TeamComponent(teamColor)), teamColor));
+            @NotNull String teamId, @NotNull TextColor teamColor, @NotNull String icon) {
+        teamDatas.put(teamId, new TeamData(new VersusComponent(new TeamComponent(teamColor, icon)), teamColor));
     }
     
     /**
      * set two teams to be opposing each other. Must be different teams. Both teams
      * must have been added to this Topbar before the link operation
-     * using {@link BattleTopbar#addTeam(String, TextColor)}
+     * using {@link BattleTopbar#addTeam(String, TextColor, String)}
      * @param teamIdA a valid teamId in this Topbar
      * @param teamIdB another valid teamId in this Topbar
-     * @see BattleTopbar#addTeam(String, TextColor)
+     * @see BattleTopbar#addTeam(String, TextColor, String)
      */
-    public void linkTeamPair(@NotNull String teamIdA, @NotNull String teamIdB) {
+    public void linkTeamPair(@NotNull String teamIdA, @NotNull String teamIdB, @NotNull String IconA, @NotNull String IconB) {
         if (teamIdA.equals(teamIdB)) {
             UIUtils.logUIError("teamIdA can't be equal to teamIdB (%s)", teamIdA);
             return;
@@ -128,12 +128,12 @@ public class BattleTopbar implements Topbar {
         
         teamDataA.setEnemyTeam(teamIdB);
         teamDataA.getVersusComponent().setRight(
-                new TeamComponent(teamDataB.getTeamColor())
+                new TeamComponent(teamDataB.getTeamColor(), IconB)
         );
         
         teamDataB.setEnemyTeam(teamIdA);
         teamDataB.getVersusComponent().setRight(
-                new TeamComponent(teamDataA.getTeamColor())
+                new TeamComponent(teamDataA.getTeamColor(), IconA)
         );
         
         allBattles.addTeamPair(teamIdA, teamDataA.getTeamColor(), teamIdB, teamDataB.getTeamColor());
@@ -143,7 +143,7 @@ public class BattleTopbar implements Topbar {
     }
     
     /**
-     * The opposite operation of {@link BattleTopbar#linkTeamPair(String, String)}. Unlinks
+     * The opposite operation of {@link BattleTopbar#linkTeamPair(String, String, String, String)}. Unlinks
      * two teams from each other.
      * @param teamIdA a valid teamId in this Topbar, which is linked to teamIdB
      * @param teamIdB a valid teamId in this Topbar, which is linked to teamIdA

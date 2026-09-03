@@ -341,7 +341,7 @@ public class SurvivalGamesGame extends GameBase<SurvivalGamesParticipant, Surviv
     
     @Override
     protected void initializeTeam(SurvivalGamesTeam team) {
-        topbar.addTeam(team.getTeamId(), team.getColor());
+        topbar.addTeam(team.getTeamId(), team.getColor(), team.getColorAttributes().getIcon());
     }
     
     @Override

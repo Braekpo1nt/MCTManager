@@ -118,8 +118,8 @@ public class ManyBattleTopbar implements Topbar {
      * Add a new team to this Topbar. Updates appropriate BossBar displays.
      * @param teamId the teamId of the team to add
      */
-    public void addTeam(@NotNull String teamId, @NotNull TextColor teamColor) {
-        TeamData newTeamData = new TeamData(new VersusManyComponent(new TeamComponent(teamColor)), teamColor);
+    public void addTeam(@NotNull String teamId, @NotNull TextColor teamColor, String icon) {
+        TeamData newTeamData = new TeamData(new VersusManyComponent(new TeamComponent(teamColor, icon)), teamColor);
         teamDatas.put(teamId, newTeamData);
         for (Map.Entry<String, TeamData> entry : teamDatas.entrySet()) {
             String opponentTeamId = entry.getKey();

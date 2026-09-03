@@ -72,9 +72,9 @@ public class ColossalCombatGame extends DuoGameBase<ColossalParticipant, Colossa
         setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
         addListener(new PreventItemDrop<>(this, true));
         addListener(new PreventPickupArrow<>(this));
-        topbar.addTeam(northTeam.getTeamId(), northTeam.getColor());
-        topbar.addTeam(southTeam.getTeamId(), southTeam.getColor());
-        topbar.linkTeamPair(northTeam.getTeamId(), southTeam.getTeamId());
+        topbar.addTeam(northTeam.getTeamId(), northTeam.getColor(), northTeam.getColorAttributes().getIcon());
+        topbar.addTeam(southTeam.getTeamId(), southTeam.getColor(), southTeam.getColorAttributes().getIcon());
+        topbar.linkTeamPair(northTeam.getTeamId(), southTeam.getTeamId(), northTeam.getColorAttributes().getIcon(), southTeam.getColorAttributes().getIcon());
         start(newTeams, newParticipants, newAdmins);
         updateAliveStatus(Affiliation.NORTH);
         updateAliveStatus(Affiliation.SOUTH);
