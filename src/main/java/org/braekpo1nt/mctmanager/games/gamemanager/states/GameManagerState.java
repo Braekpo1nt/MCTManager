@@ -296,7 +296,7 @@ public abstract class GameManagerState {
         tabList.cleanup();
         for (MCTTeam team : teams.values()) {
             int teamScore = gameStateStorageUtil.getTeamScore(team.getTeamId());
-            tabList.addTeam(team.getTeamId(), team.getDisplayName(), team.getColor());
+            tabList.addTeam(team.getTeamId(), team.getDisplayName(), team.getColor(), team.getColorAttributes().getIcon());
             tabList.setScore(team.getTeamId(), teamScore);
         }
         for (OfflineParticipant participant : allParticipants.values()) {
@@ -1339,7 +1339,15 @@ public abstract class GameManagerState {
                     org.bukkit.scoreboard.Team newTeam = mctScoreboard.registerNewTeam(teamId);
                     newTeam.displayName(Component.text(teamDisplayName));
                     newTeam.color(color);
-                    tabList.addTeam(teamId, teamDisplayName, color);
+                    Team gatherTeam = context.getTeam(teamId);
+                    String icon;
+                    if(gatherTeam != null) {
+                        icon = gatherTeam.getColorAttributes().getIcon();
+                    }
+                    else {
+                        icon = "";
+                    }
+                    tabList.addTeam(teamId, teamDisplayName, color, icon);
                     updateScoreVisuals(Collections.singletonList(team), Collections.emptyList());
                     return (Team) team;
                 }, mainThreadExecutor)
