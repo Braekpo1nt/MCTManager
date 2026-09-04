@@ -187,6 +187,21 @@ public class ColorMap {
         ICON_TYPE_MAP.put("dark_purple", "\uE008");
         ICON_TYPE_MAP.put("light_purple", "\uE009");
     }
+    
+    private static final Map<String, String> FINGER_TYPE_MAP = new HashMap<>();
+    
+    static {
+        FINGER_TYPE_MAP.put("red", "redpointer");
+        FINGER_TYPE_MAP.put("gold", "orangepointer");
+        FINGER_TYPE_MAP.put("yellow", "yellowpointer");
+        FINGER_TYPE_MAP.put("green", "limepointer");
+        FINGER_TYPE_MAP.put("dark_green", "greenpointer");
+        FINGER_TYPE_MAP.put("dark_aqua", "cyanpointer");
+        FINGER_TYPE_MAP.put("aqua", "aquapointer");
+        FINGER_TYPE_MAP.put("blue", "bluepointer");
+        FINGER_TYPE_MAP.put("dark_purple", "purplepointer");
+        FINGER_TYPE_MAP.put("light_purple", "pinkpointer");
+    }
     public static @NotNull NamedTextColor getNamedTextColor(String colorString) {
         return NAMED_TEXT_COLOR_MAP.getOrDefault(colorString.toLowerCase(), NamedTextColor.WHITE);
     }
@@ -277,13 +292,20 @@ public class ColorMap {
     
     /**
      * Gets the team icon associated with given color string.
-     * @param colorString the color string to get the wool for. Should be the color string matching the ChatColor
+     * @param colorString the color string to get the icon for. Should be the color string matching the ChatColor
      * values.
      * @return The team icon that matches the associated icon that is available, crown if no icon exists.
      */
     public static String getIcon(String colorString) {
         return ICON_TYPE_MAP.getOrDefault(colorString, "\uE010");
     }
+    
+    /**
+     * Gets the team pointer associated with given color string.
+     * @param colorString the color string to get the finger for. Should be the color string matching the ChatColor values.
+     * @return The team finger that matches the associated icon that is available, default finger if no pointer exists.
+     */
+    public static String getFinger(String colorString) {return FINGER_TYPE_MAP.getOrDefault(colorString, "defaultpointer");}
     
     /**
      * @param colorString the color string indicating which colors the attributes should use. Should be the color string
@@ -298,7 +320,8 @@ public class ColorMap {
                 getStainedGlassPaneColor(colorString),
                 getBannerColor(colorString),
                 getWoolColor(colorString),
-                getIcon(colorString)
+                getIcon(colorString),
+                getFinger(colorString)
         );
     }
     
