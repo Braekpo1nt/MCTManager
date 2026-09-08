@@ -112,7 +112,7 @@ public class BattleTopbar implements Topbar {
      * @param teamIdB another valid teamId in this Topbar
      * @see BattleTopbar#addTeam(String, TextColor, String)
      */
-    public void linkTeamPair(@NotNull String teamIdA, @NotNull String teamIdB, @NotNull String IconA, @NotNull String IconB) {
+    public void linkTeamPair(@NotNull String teamIdA, @NotNull String teamIdB, @NotNull String iconA, @NotNull String iconB) {
         if (teamIdA.equals(teamIdB)) {
             UIUtils.logUIError("teamIdA can't be equal to teamIdB (%s)", teamIdA);
             return;
@@ -128,12 +128,12 @@ public class BattleTopbar implements Topbar {
         
         teamDataA.setEnemyTeam(teamIdB);
         teamDataA.getVersusComponent().setRight(
-                new TeamComponent(teamDataB.getTeamColor(), IconB)
+                new TeamComponent(teamDataB.getTeamColor(), iconB)
         );
         
         teamDataB.setEnemyTeam(teamIdA);
         teamDataB.getVersusComponent().setRight(
-                new TeamComponent(teamDataA.getTeamColor(), IconA)
+                new TeamComponent(teamDataA.getTeamColor(), iconA)
         );
         
         allBattles.addTeamPair(teamIdA, teamDataA.getTeamColor(), teamIdB, teamDataB.getTeamColor());
