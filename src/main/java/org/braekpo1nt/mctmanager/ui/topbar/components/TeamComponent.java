@@ -28,8 +28,7 @@ public class TeamComponent {
     public TeamComponent(TextColor color, String icon) {
         alive = createAlive(0, 0);
         aliveComponent = Component.text(icon)
-                .decorate(TextDecoration.BOLD)
-                .color(color);
+                .decorate(TextDecoration.BOLD);
         deadComponent = Component.text("x")
                 .color(color);
     }
