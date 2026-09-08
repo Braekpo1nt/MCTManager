@@ -25,11 +25,10 @@ public class TeamComponent {
      * Initial state of the team is that all members are alive
      * @param color the color of the team, to be used in the living and dead components
      */
-    public TeamComponent(TextColor color) {
+    public TeamComponent(TextColor color, String icon) {
         alive = createAlive(0, 0);
-        aliveComponent = Component.text("O")
-                .decorate(TextDecoration.BOLD)
-                .color(color);
+        aliveComponent = Component.text(icon)
+                .decorate(TextDecoration.BOLD);
         deadComponent = Component.text("x")
                 .color(color);
     }

@@ -192,7 +192,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             T team = createTeam(newTeam);
             teams.put(team.getTeamId(), team);
             setupTeamOptions(team);
-            tabList.addTeam(team.getTeamId(), team.getDisplayName(), team.getColor());
+            tabList.addTeam(team.getTeamId(), team.getDisplayName(), team.getColor(), team.getColorAttributes().getIcon());
             initializeTeam(team);
         }
         for (Participant newParticipant : newParticipants) {
@@ -545,7 +545,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             team = createTeam(newTeam);
             teams.put(team.getTeamId(), team);
             setupTeamOptions(team);
-            tabList.addTeam(team.getTeamId(), team.getDisplayName(), team.getColor());
+            tabList.addTeam(team.getTeamId(), team.getDisplayName(), team.getColor(), team.getColorAttributes().getIcon());
             state.onNewTeamJoin(team);
         }
         return CompletableFuture.runAsync(() -> {

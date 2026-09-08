@@ -74,18 +74,21 @@ public class TabList implements UIManager {
     protected static class TeamData {
         private final @NotNull TextColor color;
         private final @NotNull String name;
+        private final @NotNull String icon;
         private final @NotNull List<ParticipantData> participants;
         private int score;
         
         public Component toTabListLine(int index, int maxNames) {
             int paddingLength = Math.max(TEAM_LINE_CHARACTERS
-                    - (4 + name.length() + Integer.toString(score).length()), 0);
+                    - (8 + name.length() + Integer.toString(score).length()), 0);
             return Component.empty()
                     .append(Component.empty()
                             .append(Component.text(String.format("%2d", index)))
                             .append(Component.text(". "))
+                            .append(Component.text(icon + " "))
                             .append(Component.text(name)
                                     .color(color))
+                            .append(Component.text((" " + icon)))
                             .append(Component.text(" ".repeat(paddingLength)))
                             .append(Component.text(score)
                                     .color(NamedTextColor.GOLD))
@@ -277,12 +280,12 @@ public class TabList implements UIManager {
         }
     }
     
-    public CompletableFuture<Void> addTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color) {
+    public CompletableFuture<Void> addTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull String icon) {
         if (teamDatas.containsKey(teamId)) {
             logUIError("Team with teamId \"%s\" already exists in this TabList", teamId);
             return CompletableFuture.completedFuture(null);
         }
-        TeamData teamData = new TeamData(color, displayName, new ArrayList<>(), 0);
+        TeamData teamData = new TeamData(color, displayName, icon, new ArrayList<>(), 0);
         teamDatas.put(teamId, teamData);
         return update();
     }

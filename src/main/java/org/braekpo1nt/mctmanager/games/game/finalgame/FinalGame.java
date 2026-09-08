@@ -77,9 +77,9 @@ public class FinalGame extends WandsDuoGameBase<FinalParticipant, FinalTeam, Fin
         addListener(new PreventItemDrop<>(this, true));
         addListener(new PreventPickupArrow<>(this));
         addListener(new PreventHungerLoss<>(this));
-        topbar.addTeam(this.northTeam.getTeamId(), this.northTeam.getColor());
-        topbar.addTeam(this.southTeam.getTeamId(), this.southTeam.getColor());
-        topbar.linkTeamPair(this.northTeam.getTeamId(), this.southTeam.getTeamId());
+        topbar.addTeam(this.northTeam.getTeamId(), this.northTeam.getColor(), this.northTeam.getColorAttributes().getIcon());
+        topbar.addTeam(this.southTeam.getTeamId(), this.southTeam.getColor(), this.southTeam.getColorAttributes().getIcon());
+        topbar.linkTeamPair(this.northTeam.getTeamId(), this.southTeam.getTeamId(), this.getNorthTeam().getColorAttributes().getIcon(), this.getSouthTeam().getColorAttributes().getIcon());
         this.netherStar = addWand(Wand.<FinalParticipant>builder()
                 .wandItem(Wand.createWandItem(
                         Material.NETHER_STAR,

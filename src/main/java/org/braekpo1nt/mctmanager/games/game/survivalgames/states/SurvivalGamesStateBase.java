@@ -31,12 +31,12 @@ public abstract class SurvivalGamesStateBase implements SurvivalGamesState {
     
     @Override
     public void onTeamRejoin(SurvivalGamesTeam team) {
-        context.getTopbar().addTeam(team.getTeamId(), team.getColor());
+        context.getTopbar().addTeam(team.getTeamId(), team.getColor(), team.getColorAttributes().getIcon());
     }
     
     @Override
     public void onNewTeamJoin(SurvivalGamesTeam team) {
-        context.getTopbar().addTeam(team.getTeamId(), team.getColor());
+        context.getTopbar().addTeam(team.getTeamId(), team.getColor(), team.getColorAttributes().getIcon());
     }
     
     @Override
