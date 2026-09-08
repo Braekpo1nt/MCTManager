@@ -4,6 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Color;
@@ -76,7 +77,22 @@ public abstract class TeamInfo implements Team {
      * @param color the {@link TextColor} associated with the team
      */
     public TeamInfo(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color, @NotNull ColorAttributes colorAttributes, int score) {
-        this(teamId, displayName, color, colorAttributes, Color.fromARGB(255, color.red(), color.green(), color.blue()), Component.empty().append(Component.text(colorAttributes.getIcon() + " ")).append(Component.text(displayName, color, TextDecoration.BOLD)).append(Component.text(" " + colorAttributes.getIcon())), score);
+        this(
+                teamId,
+                displayName,
+                color,
+                colorAttributes,
+                Color.fromARGB(255, color.red(), color.green(), color.blue()),
+                Component.empty()
+                        .append(Component.text(colorAttributes.getIcon())
+                                .color(NamedTextColor.WHITE))
+                        .append(Component.text(" "))
+                        .append(Component.text(displayName, color, TextDecoration.BOLD))
+                        .append(Component.text(" "))
+                        .append(Component.text(colorAttributes.getIcon())
+                                .color(NamedTextColor.WHITE)),
+                score
+        );
     }
     
     /**
