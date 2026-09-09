@@ -58,7 +58,7 @@ public class DescriptionState extends ColossalCombatStateBase {
         CustomModelDataComponent teamData = teamMeta.getCustomModelDataComponent();
         teamData.setStrings(List.of(teamPointerKey));
         teamMeta.setCustomModelDataComponent(teamData);
-        teamMeta.setDisplayName(team.getDisplayName());
+        teamMeta.displayName(team.getFormattedDisplayName());
         teamPointer.setItemMeta(teamMeta);
         spectators.stream().iterator().forEachRemaining(p -> p.getInventory().addItem(teamPointer));
     }
