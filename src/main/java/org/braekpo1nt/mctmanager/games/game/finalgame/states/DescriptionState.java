@@ -2,8 +2,6 @@ package org.braekpo1nt.mctmanager.games.game.finalgame.states;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.base.Affiliation;
-import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalParticipant;
-import org.braekpo1nt.mctmanager.games.game.colossalcombat.ColossalTeam;
 import org.braekpo1nt.mctmanager.games.game.finalgame.FinalGame;
 import org.braekpo1nt.mctmanager.games.game.finalgame.FinalParticipant;
 import org.braekpo1nt.mctmanager.games.game.finalgame.FinalTeam;
