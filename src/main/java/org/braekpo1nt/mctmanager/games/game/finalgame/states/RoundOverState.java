@@ -39,8 +39,8 @@ public class RoundOverState extends FinalStateBase {
                         context.setState(new PreRoundState(context));
                     })
                     .build());
-            context.setCurrentRound(context.getCurrentRound() + 1);
         }
+        context.setCurrentRound(context.getCurrentRound() + 1);
     }
     
     @Override
