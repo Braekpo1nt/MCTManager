@@ -13,7 +13,6 @@ import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class DescriptionState extends ColossalCombatStateBase {
@@ -43,26 +42,24 @@ public class DescriptionState extends ColossalCombatStateBase {
                 .filter(
                         p -> p.getAffiliation().equals(Affiliation.SPECTATOR)
                 ).toList();
-        ColossalTeam northTeam = context.getNorthTeam();
-        ColossalTeam southTeam = context.getSouthTeam();
-        List<ColossalTeam> teams = new ArrayList<>();
-        teams.add(northTeam);
-        teams.add(southTeam);
-        for(ColossalTeam team: teams) {
-            String teamPointerKey = team.getColorAttributes().getFinger();
-            ItemStack teamPointer = new ItemStack(Material.ARMADILLO_SCUTE, 2);
-            ItemMeta teamMeta = teamPointer.getItemMeta();
-            CustomModelDataComponent teamData = teamMeta.getCustomModelDataComponent();
-            teamData.setStrings(List.of(teamPointerKey));
-            teamMeta.setCustomModelDataComponent(teamData);
-            teamMeta.setDisplayName(team.getDisplayName());
-            teamPointer.setItemMeta(teamMeta);
-            spectators.stream().iterator().forEachRemaining(p -> p.getInventory().addItem(teamPointer));
-        }
+        giveFoamFinger(context.getNorthTeam(), spectators);
+        giveFoamFinger(context.getSouthTeam(), spectators);
     }
     
     @Override
     public void exit() {
         Timer.cancel(timer);
+    }
+    
+    private static void giveFoamFinger(ColossalTeam team, List<ColossalParticipant> spectators) {
+        String teamPointerKey = team.getColorAttributes().getFinger();
+        ItemStack teamPointer = new ItemStack(Material.ARMADILLO_SCUTE, 2);
+        ItemMeta teamMeta = teamPointer.getItemMeta();
+        CustomModelDataComponent teamData = teamMeta.getCustomModelDataComponent();
+        teamData.setStrings(List.of(teamPointerKey));
+        teamMeta.setCustomModelDataComponent(teamData);
+        teamMeta.setDisplayName(team.getDisplayName());
+        teamPointer.setItemMeta(teamMeta);
+        spectators.stream().iterator().forEachRemaining(p -> p.getInventory().addItem(teamPointer));
     }
 }
