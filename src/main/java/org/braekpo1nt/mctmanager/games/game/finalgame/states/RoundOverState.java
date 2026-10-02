@@ -40,6 +40,7 @@ public class RoundOverState extends FinalStateBase {
                     })
                     .build());
         }
+        context.setCurrentRound(context.getCurrentRound() + 1);
     }
     
     @Override
