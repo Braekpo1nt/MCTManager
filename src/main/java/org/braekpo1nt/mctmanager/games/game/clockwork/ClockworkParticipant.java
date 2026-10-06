@@ -25,6 +25,10 @@ public class ClockworkParticipant extends ParticipantData {
         this(participant, quitData.getScore(), true);
     }
     
+    public boolean isDead() {
+        return !alive;
+    }
+    
     public QuitData getQuitData() {
         return new QuitData(getScore());
     }

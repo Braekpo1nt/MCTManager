@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork.states;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
@@ -18,6 +19,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class StayOnWedgeState extends RoundActiveState {
     private final @NotNull Wedge currentWedge;
@@ -30,7 +32,7 @@ public class StayOnWedgeState extends RoundActiveState {
     
     @Override
     public void enter() {
-        killParticipantsNotOnWedge();
+        CompletableFuture<Void> joinFuture = killParticipantsNotOnWedge();
         List<ClockworkTeam> stillLivingTeams = getLivingTeams();
         if (stillLivingTeams.isEmpty()) {
             Main.logf("stillLivingTeams is empty, all teams lose");
@@ -51,13 +53,16 @@ public class StayOnWedgeState extends RoundActiveState {
                             onAllTeamsLoseRound();
                         } else { // at least 1 team is alive
                             context.incrementChaos();
+                            awardPointsForSurvivingChime();
                             context.setState(new BreatherState(context));
                         }
                     } else {
                         if (livingTeams.size() >= 2) {
                             context.incrementChaos();
+                            awardPointsForSurvivingChime();
                             context.setState(new BreatherState(context));
                         } else if (livingTeams.size() == 1) {
+                            awardPointsForSurvivingChime();
                             context.getChaosManager().stop();
                             onTeamWinsRound(livingTeams.getFirst());
                         } else { // 0 teams are alive
@@ -77,7 +82,20 @@ public class StayOnWedgeState extends RoundActiveState {
         }
     }
     
-    private void killParticipantsNotOnWedge() {
+    private void awardPointsForSurvivingChime() {
+        if (config.getSurviveChimeScore() > 0) {
+            List<ClockworkParticipant> awardableParticipants = context.getParticipants()
+                    .values()
+                    .stream()
+                    .filter(ClockworkParticipant::isAlive)
+                    .toList();
+            context.awardParticipantPoints(awardableParticipants, config.getSurviveChimeScore(), "Survived Chime Phase");
+            context.addPointsMessage(config.getSurviveChimeScore(), awardableParticipants, Component.empty()
+                    .append(Component.text("Survived A Chime Phase!")));
+        }
+    }
+    
+    private CompletableFuture<Void> killParticipantsNotOnWedge() {
         List<ClockworkParticipant> participantsToKill = new ArrayList<>();
         for (ClockworkParticipant participant : context.getParticipants().values()) {
             if (participant.isAlive() && !currentWedge.contains(participant.getLocation().toVector())) {
@@ -85,9 +103,9 @@ public class StayOnWedgeState extends RoundActiveState {
             }
         }
         if (participantsToKill.isEmpty()) {
-            return;
+            return CompletableFuture.completedFuture(null);
         }
-        killParticipants(participantsToKill);
+        return killParticipants(participantsToKill);
     }
     
     @Override
@@ -101,19 +119,22 @@ public class StayOnWedgeState extends RoundActiveState {
     }
     
     private void onTeamWinsRound(ClockworkTeam winner) {
-        for (Participant participant : context.getParticipants().values()) {
-            if (participant.getTeamId().equals(winner.getTeamId())) {
-                participant.sendMessage(Component.empty()
-                        .append(winner.getFormattedDisplayName())
-                        .append(Component.text(" wins this round!"))
-                        .color(NamedTextColor.GREEN));
-            } else {
-                participant.sendMessage(Component.empty()
-                        .append(winner.getFormattedDisplayName())
-                        .append(Component.text(" wins this round"))
-                        .color(NamedTextColor.DARK_RED));
-            }
-        }
+        Component greenWinMessage = Component.empty()
+                .append(winner.getFormattedDisplayName())
+                .append(Component.text(" wins this round!"))
+                .color(NamedTextColor.GREEN);
+        Component redWinMessage = Component.empty()
+                .append(winner.getFormattedDisplayName())
+                .append(Component.text(" wins this round"))
+                .color(NamedTextColor.DARK_RED);
+        context.addPointsMessage(config.getWinRoundScore(), winner, greenWinMessage);
+        List<ClockworkTeam> nonWinningTeams = context.getTeams().values().stream()
+                .filter(t -> !t.equals(winner))
+                .toList();
+        Audience.audience(
+                Audience.audience(nonWinningTeams),
+                context.getAdminsAudience()
+        ).sendMessage(redWinMessage);
         context.awardPoints(winner, config.getWinRoundScore(), "Won the round");
         roundIsOver();
     }

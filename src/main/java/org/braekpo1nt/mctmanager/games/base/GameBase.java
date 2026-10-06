@@ -194,7 +194,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             T team = createTeam(newTeam);
             teams.put(team.getTeamId(), team);
             setupTeamOptions(team);
-            tabList.addTeam(team.getTeamId(), team.getDisplayName(), team.getColor());
+            tabList.addTeam(team.getTeamId(), team.getDisplayName(), team.getColor(), team.getColorAttributes().getIcon());
             initializeTeam(team);
         }
         for (Participant newParticipant : newParticipants) {
@@ -547,7 +547,7 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
             team = createTeam(newTeam);
             teams.put(team.getTeamId(), team);
             setupTeamOptions(team);
-            tabList.addTeam(team.getTeamId(), team.getDisplayName(), team.getColor());
+            tabList.addTeam(team.getTeamId(), team.getDisplayName(), team.getColor(), team.getColorAttributes().getIcon());
             state.onNewTeamJoin(team);
         }
         return CompletableFuture.runAsync(() -> {
@@ -828,6 +828,18 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
      */
     public void addPointsMessage(int points, @NotNull Audience audience, @NotNull Component message) {
         UIUtils.addPointsMessage(points, gameManager.getMultiplier(), audience, message);
+    }
+    
+    /**
+     * Send the given message to the given audience including the provided points at the beginning.
+     * Convenience method so that this is done the same way everywhere, and changing the look is simple.<br>
+     * Convenience method so that you don't have to pass the multiplier each time this is called
+     * @param points the base points
+     * @param audience the audience to send it to, made of a collection of {@link Audience} implementation
+     * @param message the message to send
+     */
+    public <A extends Audience> void addPointsMessage(int points, @NotNull Collection<A> audience, @NotNull Component message) {
+        this.addPointsMessage(points, Audience.audience(audience), message);
     }
     
     /**
@@ -1195,11 +1207,35 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     // commands end
     
+    /**
+     * @return the audience made up of all participants and admins
+     */
     public Audience getAllAudiences() {
         return Audience.audience(
                 Audience.audience(admins),
                 Audience.audience(participants.values())
         );
+    }
+    
+    /**
+     * Convenience method to get the audience including all teams and the admins, except the given team
+     * @param exceptTeam the team to exclude from the audience
+     * @return an audience containing all teams and the admins except the given team
+     */
+    public Audience getAllTeamsExcept(T exceptTeam) {
+        return Audience.audience(
+                Audience.audience(teams.values().stream()
+                        .filter(t -> !t.getTeamId().equals(exceptTeam.getTeamId()))
+                        .toList()),
+                Audience.audience(admins)
+        );
+    }
+    
+    /**
+     * @return the audience made up of all admins
+     */
+    public Audience getAdminsAudience() {
+        return Audience.audience(admins);
     }
     
     /**

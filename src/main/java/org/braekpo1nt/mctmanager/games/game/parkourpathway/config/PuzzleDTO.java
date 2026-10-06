@@ -39,12 +39,17 @@ class PuzzleDTO implements Validatable {
      * previous puzzle and begin this one.
      */
     private final List<CheckPointDTO> checkPoints;
-    
+    /**
+     * The section that this puzzle belongs
+     */
+    private final int sectionKey;
     @Override
     public void validate(@NotNull Validator validator) {
         validateInBounds(validator);
         validator.notNull(this.getCheckPoints(), "checkPoints");
         validateCheckPoint(validator);
+        validator.notNull(sectionKey, "sectionKey");
+        validator.validate(sectionKey >= 0, "sectionKey must be non-negative");
     }
     
     private void validateInBounds(@NotNull Validator validator) {
@@ -98,7 +103,7 @@ class PuzzleDTO implements Validatable {
     }
     
     static @NotNull PuzzleDTO fromPuzzle(Puzzle puzzle) {
-        return new PuzzleDTO(puzzle.getInBounds(), CheckPointDTO.from(puzzle.getCheckPoints()));
+        return new PuzzleDTO(puzzle.getInBounds(), CheckPointDTO.from(puzzle.getCheckPoints()), puzzle.getSectionKey());
     }
     
     /**
@@ -183,7 +188,8 @@ class PuzzleDTO implements Validatable {
         return new Puzzle(
                 new ArrayList<>(inBounds),
                 checkPoints.stream().map(checkPointDTO -> checkPointDTO.toCheckPoint(world))
-                        .collect(Collectors.toCollection(ArrayList::new))
+                        .collect(Collectors.toCollection(ArrayList::new)),
+                sectionKey
         );
     }
     

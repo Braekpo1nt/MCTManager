@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork.states;
 
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
@@ -15,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public abstract class RoundActiveState extends ClockworkStateBase {
     
@@ -35,13 +35,14 @@ public abstract class RoundActiveState extends ClockworkStateBase {
     /**
      * @param newParticipantsToKill the participants to kill (each participant will be checked for alive
      * status before being killed)
+     * @return a completable future with any database operations for points awarded
      */
-    protected void killParticipants(Collection<ClockworkParticipant> newParticipantsToKill) {
+    protected CompletableFuture<Void> killParticipants(Collection<ClockworkParticipant> newParticipantsToKill) {
         Collection<ClockworkParticipant> participantsToKill = newParticipantsToKill.stream()
                 .filter(ClockworkParticipant::isAlive)
                 .toList();
         if (participantsToKill.isEmpty()) {
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         // teams which were already dead
         List<ClockworkTeam> existingDeadTeams = context.getTeams().values().stream()
@@ -52,23 +53,36 @@ public abstract class RoundActiveState extends ClockworkStateBase {
                 .filter(p -> !participantsToKill.contains(p))
                 .toList();
         
+        CompletableFuture<Void> chain = CompletableFuture.completedFuture(null);
         for (ClockworkParticipant toKill : participantsToKill) {
             toKill.setGameMode(GameMode.SPECTATOR);
             toKill.getInventory().clear();
             ParticipantInitializer.clearStatusEffects(toKill);
             ParticipantInitializer.resetHealthAndHunger(toKill);
             toKill.setAlive(false);
-            context.messageAllParticipants(Component.empty()
+            List<ClockworkParticipant> awardedParticipants = survivingParticipants.stream()
+                    .filter(p -> !p.getTeamId().equals(toKill.getTeamId()))
+                    .toList();
+            
+            // messaging start
+            Component claimedByTimeMessage = Component.empty()
                     .append(toKill.displayName())
-                    .append(Component.text(" was claimed by time")));
-            String killedTeamId = toKill.getTeamId();
+                    .append(Component.text(" was claimed by time"));
+            List<ClockworkParticipant> nonAwardedParticipants = context.getParticipants().values().stream()
+                    .filter(p -> !awardedParticipants.contains(p))
+                    .toList();
+            Audience.audience(
+                    Audience.audience(nonAwardedParticipants),
+                    context.getAdminsAudience()
+            ).sendMessage(claimedByTimeMessage);
+            context.addPointsMessage(config.getPlayerEliminationScore(), Audience.audience(awardedParticipants), claimedByTimeMessage);
+            // messaging end
             
             // award living participants start
-            List<ClockworkParticipant> awardedParticipants = survivingParticipants.stream()
-                    .filter(p -> !p.getTeamId().equals(killedTeamId))
-                    .toList();
-            // TODO: should this be a bulk operation or chained?
-            context.awardParticipantPoints(awardedParticipants, config.getPlayerEliminationScore(), String.format("Participant \"%s\" was eliminated", toKill.getName()));
+            chain = chain.thenComposeAsync(
+                    v -> context.awardParticipantPoints(awardedParticipants, config.getPlayerEliminationScore(), String.format("Participant \"%s\" was eliminated", toKill.getName())),
+                    context.getGameManager().getMainThreadExecutor()
+            );
             // award living participants end
         }
         context.getTabList().setParticipantGreys(participantsToKill, true);
@@ -78,33 +92,36 @@ public abstract class RoundActiveState extends ClockworkStateBase {
                 .filter(ClockworkTeam::isDead)
                 .toList();
         if (newlyKilledTeams.isEmpty()) {
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         List<ClockworkTeam> survivingTeams = context.getTeams().values().stream()
                 .filter(ClockworkTeam::isAlive)
                 .filter(t -> !newlyKilledTeams.contains(t))
                 .toList();
         for (ClockworkTeam newlyKilledTeam : newlyKilledTeams) {
-            newlyKilledTeam.sendMessage(Component.empty()
+            Component teamEliminationMessage = Component.empty()
                     .append(newlyKilledTeam.getFormattedDisplayName())
-                    .append(Component.text(" has been eliminated"))
+                    .append(Component.text(" has been eliminated"));
+            newlyKilledTeam.sendMessage(teamEliminationMessage
                     .color(NamedTextColor.DARK_RED));
-            Component eliminationMessage = Component.empty()
-                    .append(newlyKilledTeam.getFormattedDisplayName())
-                    .append(Component.text(" has been eliminated"))
+            Component opponentEliminationMessage = teamEliminationMessage
                     .color(NamedTextColor.GREEN);
-            context.addPointsMessage(config.getTeamEliminationScore(), allTeamsExcept(newlyKilledTeam), eliminationMessage);
-            context.messageAdmins(eliminationMessage);
-            context.awardTeamPoints(survivingTeams, config.getTeamEliminationScore(), String.format("team \"%s\" was eliminated", newlyKilledTeam.getTeamId()));
+            
+            List<ClockworkTeam> nonSurvivingTeams = context.getTeams().values().stream()
+                    .filter(t -> !survivingTeams.contains(t) && !t.equals(newlyKilledTeam))
+                    .toList();
+            Audience.audience(
+                    Audience.audience(nonSurvivingTeams),
+                    context.getAdminsAudience()
+            ).sendMessage(opponentEliminationMessage);
+            context.addPointsMessage(config.getTeamEliminationScore(), Audience.audience(survivingTeams), opponentEliminationMessage);
+            
+            chain = chain.thenComposeAsync(
+                    v -> context.awardTeamPoints(survivingTeams, config.getTeamEliminationScore(), String.format("team \"%s\" was eliminated", newlyKilledTeam.getTeamId())),
+                    context.getGameManager().getMainThreadExecutor()
+            );
         }
-    }
-    
-    private @NotNull Audience allTeamsExcept(ClockworkTeam except) {
-        return Audience.audience(
-                context.getTeams().values().stream()
-                        .filter(p -> !p.getTeamId().equals(except.getTeamId()))
-                        .toList()
-        );
+        return chain;
     }
     
     @Override

@@ -64,6 +64,7 @@ public class ActiveState extends FootRaceStateBase {
         context.getPlugin().getServer().getScheduler().cancelTask(standingsDisplayTaskId);
     }
     
+    
     private void startTimerRefreshTask() {
         timerRefreshTaskId = new BukkitRunnable() {
             @Override
@@ -247,6 +248,7 @@ public class ActiveState extends FootRaceStateBase {
         int currentLap = participant.getLap();
         int newLap = currentLap + 1;
         participant.setLap(newLap);
+        updateLapTracker(participant);
         if (currentLap < context.getConfig().getLaps()) {
             sidebar.updateLine(
                     uuid,
@@ -369,6 +371,70 @@ public class ActiveState extends FootRaceStateBase {
         int minPlacementPoints = placementPoints[placementPoints.length - 1];
         int points = minPlacementPoints - ((placement - placementPoints.length) * config.getDetriment());
         return Math.max(points, 0);
+    }
+    
+    private void updateLapTracker(FootRaceParticipant participant) {
+        FootRaceTeam referenceTeam = context.getTeams().get(participant.getTeamId());
+        int previousMinLap = referenceTeam.getMinimumLap();
+        referenceTeam.setMinimumLap(getTeamMinimumLap(referenceTeam));
+        int currentMinLap = getTeamMinimumLap(referenceTeam);
+        referenceTeam.setMinimumLap(currentMinLap);
+        // if the entire team has progressed a lap
+        if (previousMinLap < currentMinLap) {
+            if (currentMinLap <= config.getLaps()) {
+                awardTeamLapCompletionPoints(referenceTeam, getTeamLapPlacement(referenceTeam), currentMinLap);
+            } else {
+                awardTeamRaceCompletionPoints(referenceTeam, getTeamLapPlacement(referenceTeam));
+            }
+        }
+    }
+    
+    private Integer getTeamMinimumLap(FootRaceTeam team) {
+        return team.getParticipants().stream()
+                .mapToInt(FootRaceParticipant::getLap)
+                .min()
+                .orElse(0);
+    }
+    
+    private int getTeamLapPlacement(FootRaceTeam team) {
+        int placement = 0;
+        int minimumLap = team.getMinimumLap();
+        for (FootRaceTeam trackedTeam : context.getTeams().values()) {
+            if (trackedTeam != team) {
+                if (trackedTeam.getMinimumLap() >= minimumLap) {
+                    placement += 1;
+                }
+            }
+        }
+        return placement;
+    }
+    
+    private void awardTeamLapCompletionPoints(FootRaceTeam teamWhoCompleted, int teamPlacement, int teamMinLap) {
+        int points = config.getFullTeamLapCompletion() - (config.getFullTeamLapCompletionDetriment() * teamPlacement);
+        if (points > 0) {
+            teamWhoCompleted.awardPoints(points);
+        }
+        String placementString = GameManagerUtils.getStandingSuffix(teamPlacement + 1);
+        Component message = Component.empty()
+                .append(teamWhoCompleted.getFormattedDisplayName())
+                .append(Component.text(" was the " + placementString + " full team to finish lap " + (teamMinLap - 1)))
+                .append(Component.text("! "));
+        context.addPointsMessage(points, teamWhoCompleted, message);
+        Audience.audience(context.getAllTeamsExcept(teamWhoCompleted)).sendMessage(message);
+    }
+    
+    private void awardTeamRaceCompletionPoints(FootRaceTeam teamWhoCompleted, int teamPlacement) {
+        int points = config.getFullTeamCompletion() - (config.getFullTeamCompletionDetriment() * teamPlacement);
+        if (points > 0) {
+            teamWhoCompleted.awardPoints(points);
+        }
+        String placementString = GameManagerUtils.getStandingSuffix(teamPlacement + 1);
+        Component message = Component.empty()
+                .append(teamWhoCompleted.getFormattedDisplayName())
+                .append(Component.text(" was the " + placementString + " full team to finish"))
+                .append(Component.text("! "));
+        context.addPointsMessage(points, teamWhoCompleted, message);
+        Audience.audience(context.getAllTeamsExcept(teamWhoCompleted)).sendMessage(message);
     }
     
     private void startEndRaceCountDown() {

@@ -121,6 +121,7 @@ public class ActiveState extends ExampleStateBase {
         if (diff < 1) {
             return;
         }
+        context.addPointsMessage(context.getConfig().getJumpScore(), participant, Component.text("Jump"));
         context.awardPoints(participant, context.getConfig().getJumpScore(), "Jumped");
         Main.logf("%s jumped %d block(s)", participant.getName(), diff);
     }

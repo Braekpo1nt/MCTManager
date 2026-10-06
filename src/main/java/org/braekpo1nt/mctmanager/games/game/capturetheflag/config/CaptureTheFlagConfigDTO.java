@@ -54,6 +54,8 @@ record CaptureTheFlagConfigDTO(
         validator.validate(this.durations.getRoundTimer() >= 0, "durations.roundTimer (%s) can't be negative", this.durations.getRoundTimer());
         validator.validate(this.durations.getRoundOver() >= 0, "durations.roundOver (%s) can't be negative", this.durations.getRoundOver());
         validator.validate(this.durations.getGameOver() >= 0, "durations.gameOver (%s) can't be negative", this.durations.getGameOver());
+        validator.validate(this.scores.matchPlacementPoints >= 0, "scores.matchPlacementPoints (%s) can't be negative", this.scores.matchPlacementPoints);
+        validator.validate(this.scores.matchPlacementDecrement >= 0, "scores.matchPlacementDecrement (%s) can't be negative", this.scores.matchPlacementDecrement);
         validator.notNull(this.loadouts, "loadouts");
         validator.validate(this.loadouts.size() >= 4, "loadouts must contain at least 4 entries");
         Set<Material> uniqueMenuItems = new HashSet<>();
@@ -81,6 +83,8 @@ record CaptureTheFlagConfigDTO(
                 .classSelectionDuration(this.durations.classSelection)
                 .winScore(this.scores.win)
                 .killScore(this.scores.kill)
+                .matchPlacementPoints(this.scores.matchPlacementPoints)
+                .matchPlacementDecrement(this.scores.matchPlacementDecrement)
                 .descriptionDuration(this.durations.description)
                 .roundOverDuration(this.durations.roundOver)
                 .gameOverDuration(this.durations.gameOver)
@@ -95,8 +99,10 @@ record CaptureTheFlagConfigDTO(
      * Holds the scores for the game
      * @param kill the number of points to award for getting a kill
      * @param win the number of points to award for winning a match
+     * @param matchPlacementPoints the number of points for completing match before other teams
+     * @param matchPlacementDecrement  how much the score for completing before other teams goes down
      */
-    record Scores(int kill, int win) {
+    record Scores(int kill, int win, int matchPlacementPoints, int matchPlacementDecrement) {
     }
     
     @Data

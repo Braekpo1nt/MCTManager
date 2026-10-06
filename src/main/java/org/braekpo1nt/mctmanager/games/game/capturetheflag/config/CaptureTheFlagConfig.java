@@ -28,6 +28,8 @@ public class CaptureTheFlagConfig implements Config {
     private int classSelectionDuration;
     private int winScore;
     private int killScore;
+    private int matchPlacementPoints;
+    private int matchPlacementDecrement;
     private int descriptionDuration;
     private int roundOverDuration;
     private int gameOverDuration;

@@ -72,12 +72,12 @@ public abstract class DuoGameBase<P extends ParticipantData, T extends ScoredTea
     protected CompletableFuture<Void> start(@NotNull Collection<Team> newTeams, @NotNull Collection<Participant> newParticipants, @NotNull List<Player> newAdmins) {
         teams.put(northTeam.getTeamId(), northTeam);
         setupTeamOptions(northTeam);
-        tabList.addTeam(northTeam.getTeamId(), northTeam.getDisplayName(), northTeam.getColor());
+        tabList.addTeam(northTeam.getTeamId(), northTeam.getDisplayName(), northTeam.getColor(), northTeam.getColorAttributes().getIcon());
         initializeTeam(northTeam);
         
         teams.put(southTeam.getTeamId(), southTeam);
         setupTeamOptions(southTeam);
-        tabList.addTeam(southTeam.getTeamId(), southTeam.getDisplayName(), southTeam.getColor());
+        tabList.addTeam(southTeam.getTeamId(), southTeam.getDisplayName(), southTeam.getColor(), southTeam.getColorAttributes().getIcon());
         initializeTeam(southTeam);
         
         List<Team> spectatorTeams = newTeams.stream().filter(team -> {

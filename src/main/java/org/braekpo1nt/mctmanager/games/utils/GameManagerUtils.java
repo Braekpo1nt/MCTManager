@@ -373,6 +373,16 @@ public class GameManagerUtils {
      * @param placement A number representing the placement
      * @return The placement number with the appropriate postfix (st, nd, rd, th)
      */
+    public static String getPlacementTitleString(int placement) {
+        return placement + getStandingSuffix(placement);
+    }
+    
+    /**
+     * Returns the formal placement title of the given place.
+     * 1 gives 1st, 2 gives second, 11 gives 11th, 103 gives 103rd.
+     * @param placement A number representing the placement
+     * @return The placement number with the appropriate postfix (st, nd, rd, th)
+     */
     public static Component getPlacementTitle(int placement) {
         return Component.empty()
                 .append(Component.text(placement))

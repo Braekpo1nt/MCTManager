@@ -12,4 +12,6 @@ public class ColorAttributes {
     private final @NotNull Material stainedGlassPane;
     private final @NotNull Material banner;
     private final @NotNull Material wool;
+    private final @NotNull String icon;
+    private final @NotNull String finger;
 }

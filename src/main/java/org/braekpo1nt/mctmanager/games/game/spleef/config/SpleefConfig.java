@@ -49,6 +49,7 @@ public class SpleefConfig implements Config {
     private int roundOverDuration;
     private int gameOverDuration;
     private int surviveScore;
+    private int surviveTeamScore;
     private int rounds;
     private List<Material> preventInteractions;
     /**

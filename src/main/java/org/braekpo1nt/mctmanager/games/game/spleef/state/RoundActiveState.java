@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.state;
 
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
@@ -164,10 +165,30 @@ public class RoundActiveState extends SpleefStateBase implements SpleefInterface
                 .filter(p -> p.isAlive() && !p.sameTeam(participant))
                 .toList();
         context.awardParticipantPoints(awardedParticipants, context.getConfig().getSurviveScore(), String.format("Participant \"%s\" was eliminated", participant.getName()));
-        
+        determineIfFullTeamDeath(participant);
         updateAliveCount(getAliveCount());
     }
     
+    public void determineIfFullTeamDeath(SpleefParticipant participant) {
+        SpleefTeam team = context.getTeams().get(participant.getTeamId());
+        if (team.isAlive()) {
+            return;
+        }
+        List<SpleefParticipant> awardeableParticipants = context.getParticipants()
+                .values()
+                .stream()
+                .filter(SpleefParticipant::isAlive)
+                .toList();
+        context.awardParticipantPoints(
+                awardeableParticipants,
+                context.getConfig().getSurviveTeamScore(),
+                "Full Team Death"
+        );
+        Audience.audience(awardeableParticipants).sendMessage(Component.empty()
+                .append(team.getFormattedDisplayName())
+                .append(Component.text("has fallen!")));
+    }
+        
     @Override
     public void onParticipantInteract(@NotNull PlayerInteractEvent event, @NotNull SpleefParticipant participant) {
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {

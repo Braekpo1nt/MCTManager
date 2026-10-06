@@ -367,6 +367,7 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
      * @param audience who should see the death message
      */
     public void simulateDeath(CTFMatchParticipant participant, Component deathMessage, Audience audience) {
+        participant.setAlive(false);
         parentContext.simulateDeath(parentContext.getParticipants().get(participant.getUniqueId()), deathMessage, audience);
     }
     
@@ -468,10 +469,11 @@ public class CaptureTheFlagMatch implements CaptureTheFlagState {
         return parentContext.getState().getOnDeckParticipants();
     }
     
-    public void awardPoints(CTFMatchTeam team, int points, String description) {
+    public CompletableFuture<Void> awardPoints(CTFMatchTeam team, int points, String description) {
         CTFTeam ctfTeam = parentContext.getTeams().get(team.getTeamId());
-        parentContext.awardPoints(ctfTeam, points, description);
+        CompletableFuture<Void> joinFuture = parentContext.awardPoints(ctfTeam, points, description);
         team.setScore(ctfTeam.getScore());
+        return joinFuture;
     }
     
     public void messageAllParticipants(Component message) {

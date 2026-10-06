@@ -104,9 +104,9 @@ public class PreRoundState extends CaptureTheFlagStateBase {
         for (MatchPairing mp : roundMatchPairings) {
             CTFTeam northTeam = context.getTeamOrQuitTeam(mp.northTeam());
             CTFTeam southTeam = context.getTeamOrQuitTeam(mp.southTeam());
-            topbar.addTeam(mp.northTeam(), northTeam.getColor());
-            topbar.addTeam(mp.southTeam(), southTeam.getColor());
-            topbar.linkTeamPair(mp.northTeam(), mp.southTeam());
+            topbar.addTeam(mp.northTeam(), northTeam.getColor(), northTeam.getColorAttributes().getIcon());
+            topbar.addTeam(mp.southTeam(), southTeam.getColor(), southTeam.getColorAttributes().getIcon());
+            topbar.linkTeamPair(mp.northTeam(), mp.southTeam(), northTeam.getColorAttributes().getIcon(), southTeam.getColorAttributes().getIcon());
             int northAlive = 0;
             int southAlive = 0;
             for (CTFParticipant participant : context.getParticipants().values()) {

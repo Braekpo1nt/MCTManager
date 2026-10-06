@@ -8,9 +8,11 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.CTFParticipant;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchParticipant;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CTFMatchTeam;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.participant.Team;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
@@ -28,6 +30,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -89,6 +92,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     }
     
     private void onTeamWin(CTFMatchTeam winner, CTFMatchTeam loser) {
+        this.context.getParentContext().getRoundManager().incrementNumOfCompletedMatches();
         Component winMessage = Component.empty()
                 .append(winner.getFormattedDisplayName())
                 .append(Component.text(" captured "))
@@ -99,9 +103,46 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         int points = context.getConfig().getWinScore();
         context.getParentContext().addPointsMessage(points, winner, winMessage);
         context.awardPoints(winner, points, String.format("Won match against \"%s\"", loser.getTeamId()));
-        
+        List<CTFParticipant> winningParticipants = winner.getParticipants().stream()
+                .map(p -> context.getParentContext().getParticipant(p.getUniqueId()))
+                .toList();
+        int placement = this.context.getParentContext().getRoundManager().getNumOfCompletedMatches();
+        String formattedPlacement = GameManagerUtils.getPlacementTitleString(placement);
+        Component winnerMessage = Component.empty()
+                .append(Component.text(formattedPlacement))
+                .append(Component.text(" team to capture the flag"));
+        int capturePoints = captureSpeedPoints(placement);
+        if (capturePoints > 0) {
+            context.getParentContext().addPointsMessage(capturePoints, winningParticipants, winnerMessage);
+            context.getParentContext().awardParticipantPoints(winningParticipants, capturePoints, String.format("%s team to capture the flag", formattedPlacement));
+        } else {
+            Audience.audience(winningParticipants).sendMessage(winnerMessage);
+        }
         showWinLoseTitles(winner, loser);
         context.setState(new MatchOverState(context));
+    }
+    
+    /**
+     * @param placement the placement (e.g. 1 for 1st place, 2 for 2nd place)
+     * @return the number of points for the given placement
+     */
+    private int captureSpeedPoints(int placement) {
+        int points = context.getConfig().getMatchPlacementPoints() - (context.getConfig().getMatchPlacementDecrement() * (placement - 1));
+        return Math.max(points, 0);
+    }
+    
+    private String getPlacementToPrint(Integer placement) {
+        String convertedString;
+        if (placement > 3) {
+            convertedString = placement + "th";
+        } else if (placement == 3) {
+            convertedString = placement + "rd";
+        } else if (placement == 2) {
+            convertedString = placement + "nd";
+        } else {
+            convertedString = placement + "st";
+        }
+        return convertedString;
     }
     
     private void showWinLoseTitles(CTFMatchTeam winner, CTFMatchTeam loser) {
@@ -180,6 +221,7 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
             Component deathMessage = Component.empty()
                     .append(participant.displayName())
                     .append(Component.text(" left early. Their life is forfeit."));
+            dropFlagIfNeeded(participant);
             context.simulateDeath(participant, deathMessage, Audience.audience(
                     Audience.audience(context.getParticipants().values()),
                     context.getOnDeckParticipants(),
@@ -223,11 +265,6 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         event.getDrops().clear();
         event.setDroppedExp(0);
         
-        // Handle flag dropping based on affiliation
-        
-        context.updateAliveStatus(participant.getAffiliation());
-        context.addDeath(participant);
-        
         event.setShowDeathMessages(false);
         Component deathMessageMaybeNull = event.deathMessage();
         Component deathMessage = deathMessageMaybeNull != null ? deathMessageMaybeNull : Component.empty()
@@ -255,6 +292,16 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
         
         nonScoringAudience.sendMessage(deathMessage);
         
+        // Handle flag dropping based on affiliation
+        dropFlagIfNeeded(participant);
+    }
+    
+    /**
+     * If the given player has the opposing team's flag, drop it
+     * at or below that player's position
+     * @param participant the participant who may have the flag
+     */
+    private void dropFlagIfNeeded(CTFMatchParticipant participant) {
         if (participant.getAffiliation() == CaptureTheFlagMatch.Affiliation.NORTH) {
             if (hasSouthFlag(participant)) {
                 dropSouthFlag(participant);
@@ -270,6 +317,9 @@ public class MatchActiveState extends CaptureTheFlagMatchStateBase {
     public void onParticipantPostRespawn(@Nullable PlayerPostRespawnEvent event, @NotNull CTFMatchParticipant participant) {
         participant.setAlive(false);
         context.getParentContext().getTabList().setParticipantGrey(participant, true);
+        context.updateAliveStatus(participant.getAffiliation());
+        context.addDeath(participant);
+        
         if (allParticipantsAreDead()) {
             onBothTeamsLose(Component.text("Both teams are dead."));
         }

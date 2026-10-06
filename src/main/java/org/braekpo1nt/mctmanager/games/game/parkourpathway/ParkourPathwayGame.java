@@ -196,12 +196,13 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
         }
         int unusedSkips = participant.getUnusedSkips();
         if (unusedSkips > 0) {
-            participant.sendMessage(Component.empty()
+            int points = unusedSkips * config.getUnusedSkipScore();
+            this.addPointsMessage(points, participant, Component.empty()
                     .append(Component.text(unusedSkips))
                     .append(Component.text(" unused skips"))
                     .color(NamedTextColor.GREEN));
             this.awardPoints(participant,
-                    unusedSkips * config.getUnusedSkipScore(), String.format("%s unused skips", unusedSkips));
+                    points, String.format("%s unused skips", unusedSkips));
         }
         participant.setUnusedSkips(0);
         ParticipantInitializer.clearInventory(participant);

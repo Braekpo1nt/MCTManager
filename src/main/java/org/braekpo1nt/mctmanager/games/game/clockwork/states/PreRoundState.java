@@ -36,6 +36,7 @@ public class PreRoundState extends ClockworkStateBase {
                 .append(Component.text(context.getCurrentRound()))
                 .append(Component.text("/"))
                 .append(Component.text(context.getConfig().getRounds()));
+        context.messageAllParticipants(roundLine);
         context.setChimeInterval(context.getConfig().getInitialChimeInterval());
         context.getSidebar().updateLine("round", roundLine);
         context.getAdminSidebar().updateLine("round", roundLine);

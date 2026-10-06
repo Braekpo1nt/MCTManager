@@ -15,12 +15,17 @@ import java.lang.reflect.Type;
 public class ItemMetaDTODeserializer implements JsonDeserializer<ItemMetaDTO> {
     @Override
     public ItemMetaDTO deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-        
         JsonObject jsonObject = json.getAsJsonObject();
         JsonElement basePotionType = jsonObject.get("basePotionType");
+        JsonElement fireworkPower = jsonObject.get("fireworkPower");
         if (basePotionType != null) {
             return context.deserialize(json, PotionMetaDTO.class);
         }
+        
+        if (fireworkPower != null) {
+            return context.deserialize(json, FireworkMetaDTO.class);
+        }
+        
         return ConfigUtils.GSON.fromJson(json, ItemMetaDTOImpl.class);
     }
     

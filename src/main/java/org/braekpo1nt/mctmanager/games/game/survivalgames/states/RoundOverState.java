@@ -40,7 +40,7 @@ public class RoundOverState extends SurvivalGamesStateBase {
                     if (context.getCurrentRound() < context.getConfig().getRounds()) {
                         context.clearFloorItems();
                         context.clearAllChests();
-                        context.fillAllChests();
+                        context.fillAllChests(context.getConfig().getSpawnLootTable(), context.getConfig().getWeightedLootTables());
                         context.clearContainers();
                         context.setCurrentRound(context.getCurrentRound() + 1);
                         context.setState(new MultiPreRoundState(context));

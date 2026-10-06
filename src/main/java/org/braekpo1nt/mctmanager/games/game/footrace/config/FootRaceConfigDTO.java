@@ -70,9 +70,14 @@ record FootRaceConfigDTO(
         validator.validate(this.durations().getStartRace() >= 0, "durations.startRace (%s) can't be negative", this.durations().getStartRace());
         validator.validate(this.durations().getRaceEndCountdown() >= 0, "durations.raceEndCountdown (%s) can't be negative", this.durations().getRaceEndCountdown());
         validator.notNull(this.description(), "description");
+        validator.notNull(this.scores.fullTeamCompletion, "fullTeamCompletion");
+        validator.notNull(this.scores.fullTeamCompletionDetriment, "fullTeamCompletionDetriment");
+        validator.notNull(this.scores.fullTeamLapCompletion, "fullTeamLapCompletion");
+        validator.notNull(this.scores.fullTeamLapCompletionDetriment, "fullTeamLapCompletionDetriment");
+        
     }
     
-    record Scores(int completeLap, int[] placementPoints, int detriment) {
+    record Scores(int completeLap, int[] placementPoints, int detriment, int fullTeamCompletion, int fullTeamCompletionDetriment, int fullTeamLapCompletion, int fullTeamLapCompletionDetriment) {
         
     }
     
@@ -125,6 +130,11 @@ record FootRaceConfigDTO(
                 .completeLapScore(this.scores.completeLap)
                 .placementPoints(this.scores.placementPoints)
                 .detriment(this.scores.detriment)
+                .fullTeamCompletion(this.scores.fullTeamCompletion)
+                .fullTeamCompletion(this.scores.fullTeamCompletion)
+                .fullTeamCompletionDetriment(this.scores.fullTeamCompletionDetriment)
+                .fullTeamLapCompletion(this.scores.fullTeamLapCompletion)
+                .fullTeamLapCompletionDetriment(this.scores.fullTeamLapCompletionDetriment)
                 .startRaceDuration(this.durations.startRace)
                 .raceEndCountdownDuration(this.durations.raceEndCountdown)
                 .descriptionDuration(this.durations.description)
@@ -153,7 +163,11 @@ record FootRaceConfigDTO(
                 new Scores(
                         config.getCompleteLapScore(),
                         config.getPlacementPoints(),
-                        config.getDetriment()
+                        config.getDetriment(),
+                        config.getFullTeamCompletion(),
+                        config.getFullTeamCompletionDetriment(),
+                        config.getFullTeamLapCompletion(),
+                        config.getFullTeamLapCompletionDetriment()
                 ),
                 new Durations(
                         config.getStartRaceDuration(),

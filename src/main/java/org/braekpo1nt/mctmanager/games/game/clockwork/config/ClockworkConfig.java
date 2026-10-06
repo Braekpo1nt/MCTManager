@@ -25,6 +25,7 @@ public class ClockworkConfig implements Config {
     private int playerEliminationScore;
     private int teamEliminationScore;
     private int winRoundScore;
+    private int surviveChimeScore;
     private int roundStartingDuration;
     private int roundOverDuration;
     private int gameOverDuration;
