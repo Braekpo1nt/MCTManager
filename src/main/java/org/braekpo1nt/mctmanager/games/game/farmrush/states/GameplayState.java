@@ -142,7 +142,6 @@ public abstract class GameplayState extends FarmRushStateBase {
                     .append(Component.text("Sold "))
                     .append(Component.text(totalAmountSold))
                     .append(Component.text(" items"));
-            team.sendMessage(message);
             if (context.getConfig().shouldEnforceScoreCap()) {
                 if (team.getScore() + totalScore >= multipliedSellCap) {
                     totalScore = multipliedSellCap - team.getSellPoints();
@@ -155,6 +154,7 @@ public abstract class GameplayState extends FarmRushStateBase {
                     }
                 }
             }
+            context.addPointsMessage(totalScore, team, message);
             if (totalScore > 0) {
                 int personalTotal = (int) (totalScore * context.getConfig().getPersonalPercent());
                 int individualPoints = personalTotal / team.size();
