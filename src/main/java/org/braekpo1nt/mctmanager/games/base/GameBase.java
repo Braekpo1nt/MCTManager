@@ -1250,14 +1250,29 @@ public abstract class GameBase<P extends ParticipantData, T extends ScoredTeamDa
     }
     
     /**
-     * Convenience method to send the same message to all participants and admins
+     * Convenience method to send the same message to all participants and admins except those on the
+     * provided team
      * @param message the message to send
      */
-    public void messageAllParticipantsExcept(@NotNull Team team, @NotNull Component message) {
+    public void messageAllParticipantsExcept(@NotNull Team teamToExclude, @NotNull Component message) {
         Audience.audience(
                 Audience.audience(admins),
                 Audience.audience(participants.values().stream()
-                        .filter(p -> !p.isOnTeam(team))
+                        .filter(p -> !p.isOnTeam(teamToExclude))
+                        .toList()
+                )
+        ).sendMessage(message);
+    }
+    
+    /**
+     * Convenience method to send the same message to all participants and admins except the provided participant
+     * @param message the message to send
+     */
+    public void messageAllParticipantsExcept(@NotNull Participant participantToExclude, @NotNull Component message) {
+        Audience.audience(
+                Audience.audience(admins),
+                Audience.audience(participants.values().stream()
+                        .filter(p -> !p.equals(participantToExclude))
                         .toList()
                 )
         ).sendMessage(message);

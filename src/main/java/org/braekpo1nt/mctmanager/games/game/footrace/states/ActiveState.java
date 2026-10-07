@@ -268,12 +268,14 @@ public class ActiveState extends FootRaceStateBase {
             ));
             long currentTime = System.currentTimeMillis();
             long elapsedTime = currentTime - context.getRaceStartTime();
-            context.messageAllParticipants(Component.empty()
+            Component message = Component.empty()
                     .append(participant.displayName())
                     .append(Component.text(" finished lap "))
                     .append(Component.text(currentLap))
                     .append(Component.text(" in "))
-                    .append(TimeStringUtils.getTimeComponentMillis(elapsedTime)));
+                    .append(TimeStringUtils.getTimeComponentMillis(elapsedTime));
+            context.addPointsMessage(config.getCompleteLapScore(), participant, message);
+            context.messageAllParticipantsExcept(participant, message);
             context.awardPoints(participant, config.getCompleteLapScore(), String.format("Finished lap %s", currentLap));
             return;
         }
@@ -308,7 +310,7 @@ public class ActiveState extends FootRaceStateBase {
                         .color(NamedTextColor.GREEN)
         ));
         if (context.getNumOfFinishedParticipants() == 1) {
-            context.messageAllParticipants(Component.empty()
+            Component message = Component.empty()
                     .append(participant.displayName())
                     .append(Component.text(" finished 1st in "))
                     .append(timeComponent)
@@ -317,7 +319,9 @@ public class ActiveState extends FootRaceStateBase {
                             .append(endCountDown)
                             .append(Component.text(" remain!"))
                             .color(NamedTextColor.RED))
-                    .color(NamedTextColor.GREEN));
+                    .color(NamedTextColor.GREEN);
+            context.addPointsMessage(points, participant, message);
+            context.messageAllParticipantsExcept(participant, message);
             Audience.audience(context.getParticipants().values().stream()
                             .filter(p -> !p.equals(participant)).toList())
                     .showTitle(UIUtils.defaultTitle(
@@ -330,11 +334,13 @@ public class ActiveState extends FootRaceStateBase {
             startEndRaceCountDown();
             return;
         }
-        context.messageAllParticipants(participant.displayName()
+        Component message = participant.displayName()
                 .append(Component.text(" finished "))
                 .append(placementComponent)
                 .append(Component.text(" in "))
-                .append(timeComponent));
+                .append(timeComponent);
+        context.addPointsMessage(points, participant, message);
+        context.messageAllParticipantsExcept(participant, message);
         if (allParticipantsHaveFinished()) {
             if (endRaceTimer != null) {
                 endRaceTimer.cancel();
