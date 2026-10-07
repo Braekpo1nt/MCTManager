@@ -118,13 +118,13 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
     
     private void setTeamMinSection(ParkourTeam team) {
         int minSection = -1;
-        for(ParkourParticipant participant : team.getParticipants()) {
+        for (ParkourParticipant participant : team.getParticipants()) {
             int participantSection = config.getPuzzle(participant.getCurrentPuzzle()).getSectionKey();
-            if(minSection == -1) {
+            if (minSection == -1) {
                 minSection = participantSection;
                 continue;
             }
-            if(participantSection < minSection) {
+            if (participantSection < minSection) {
                 minSection = participantSection;
             }
         }
@@ -134,8 +134,8 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
     private int getTeamSectionPlacement(ParkourTeam team) {
         int placement = 0;
         int teamMinSection = team.getMinSection();
-        for(ParkourTeam parkourTeam : context.getTeams().values()) {
-            if(parkourTeam.getMinSection() >= teamMinSection) {
+        for (ParkourTeam parkourTeam : context.getTeams().values()) {
+            if (parkourTeam.getMinSection() >= teamMinSection) {
                 placement += 1;
             }
         }
@@ -145,16 +145,13 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
     
     private String getPlacementToPrint(Integer placement) {
         String convertedString;
-        if(placement > 3) {
+        if (placement > 3) {
             convertedString = placement + "th";
-        }
-        else if(placement == 3) {
+        } else if (placement == 3) {
             convertedString = placement + "rd";
-        }
-        else if(placement == 2) {
+        } else if (placement == 2) {
             convertedString = placement + "nd";
-        }
-        else {
+        } else {
             convertedString = placement + "st";
         }
         return convertedString;
@@ -164,13 +161,16 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
         int sectionPlacement = getTeamSectionPlacement(team);
         int sectionCompleted = team.getMinSection();
         int sectionScore = (config.getSectionCompleteScore() - (config.getSectionCompleteDetriment() * (sectionPlacement - 1)));
-        if(sectionScore > 0) {
+        if (sectionScore > 0) {
             context.awardPoints(team, sectionScore, "completed a section");
-        }
-        for(ParkourParticipant parkourParticipant : team.getParticipants()) {
-            parkourParticipant.sendMessage(String.format("%s team to complete section %d", getPlacementToPrint(sectionPlacement), sectionCompleted));
+            Component message = Component.empty()
+                    .append(Component.text(getPlacementToPrint(sectionPlacement)))
+                    .append(Component.text(" team to complete section "))
+                    .append(Component.text(sectionCompleted));
+            context.addPointsMessage(sectionScore, team, message);
         }
     }
+    
     private void onParticipantReachCheckpoint(ParkourParticipant participant, int puzzleIndex, int puzzleCheckPointIndex, int currentSection) {
         participant.setCurrentPuzzle(puzzleIndex);
         ParkourTeam team = context.getTeams().get(participant.getTeamId());
@@ -180,17 +180,22 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
         if (puzzleIndex >= config.getPuzzlesSize() - 1) {
             onParticipantFinish(participant, true);
         } else {
-            if(team.getMinSection() > currentSection) {
+            if (team.getMinSection() > currentSection) {
                 teamCompletesSection(team);
             }
             Component checkpointNum = Component.empty()
                     .append(Component.text(puzzleIndex))
                     .append(Component.text("/"))
                     .append(Component.text(config.getPuzzlesSize() - 1));
-            context.messageParticipantsWithNotifications(Component.empty()
-                    .append(participant.displayName())
-                    .append(Component.text(" reached checkpoint "))
-                    .append(checkpointNum), participant);
+            int points = calculatePointsForPuzzle(puzzleIndex, config.getCheckpointScore());
+            context.messageParticipantsWithNotifications(
+                    points,
+                    Component.empty()
+                            .append(participant.displayName())
+                            .append(Component.text(" reached checkpoint "))
+                            .append(checkpointNum),
+                    participant
+            );
             participant.showTitle(UIUtils.defaultTitle(
                     Component.empty(),
                     Component.empty()
@@ -201,7 +206,7 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
             if (config.getReachedCheckpointSound() != null) {
                 participant.playSound(config.getReachedCheckpointSound());
             }
-            context.awardPoints(participant, calculatePointsForPuzzle(puzzleIndex, config.getCheckpointScore()), String.format("Reached checkpoint %s", puzzleIndex));
+            context.awardPoints(participant, points, String.format("Reached checkpoint %s", puzzleIndex));
             
             if (config.getMaxSkipPuzzle() > 0) {
                 if (puzzleIndex == config.getMaxSkipPuzzle()) {
@@ -263,7 +268,7 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
         return true;
     }
     
-    private void onParticipantFinish(ParkourParticipant participant, boolean awardPoints) {
+    private void onParticipantFinish(ParkourParticipant participant, boolean shouldAwardPoints) {
         participant.showTitle(UIUtils.defaultTitle(
                 Component.empty()
                         .append(Component.text("You finished!"))
@@ -272,13 +277,17 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
                         .append(Component.text("Well done"))
                         .color(NamedTextColor.GREEN)
         ));
-        context.messageAllParticipants(Component.empty()
+        int points = calculatePointsForWin(config.getWinScore());
+        Component message = Component.empty()
                 .append(Component.text(participant.getName()))
                 .append(Component.text(" finished!"))
-                .color(NamedTextColor.GREEN)
-        );
-        if (awardPoints) {
-            context.awardPoints(participant, calculatePointsForWin(config.getWinScore()), "Finished all puzzles");
+                .color(NamedTextColor.GREEN);
+        if (shouldAwardPoints) {
+            context.addPointsMessage(points, participant, message);
+            context.messageAllParticipantsExcept(participant, message);
+            context.awardPoints(participant, points, "Finished all puzzles");
+        } else {
+            context.messageAllParticipants(message);
         }
         context.awardPointsForUnusedSkips(participant);
         participant.setGameMode(GameMode.SPECTATOR);
@@ -361,7 +370,7 @@ abstract class GamePlayState extends ParkourPathwayStateBase {
             onParticipantFinish(participant, false);
         } else {
             int currentSection = config.getPuzzle(puzzleIndex - 1).getSectionKey();
-            if(team.getMinSection() > currentSection) {
+            if (team.getMinSection() > currentSection) {
                 teamCompletesSection(team);
             }
             Component checkpointNum = Component.empty()

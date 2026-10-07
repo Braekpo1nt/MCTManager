@@ -326,7 +326,25 @@ public class ParkourPathwayGame extends WandsGameBase<ParkourParticipant, Parkou
     
     /**
      * New method to send messages only to participants who want to see this achiever's
-     * checkpoint notification
+     * checkpoint notification. Adds the points to the message for the achiever only.
+     * @param points the points that the achiever was awarded
+     * @param message the message to send
+     * @param achiever the participant who reached a checkpoint, and is sending this notification
+     */
+    public void messageParticipantsWithNotifications(int points, Component message, ParkourParticipant achiever) {
+        Audience.audience(
+                participants.values().stream()
+                        .filter(viewer -> shouldShowCheckpointNotification(viewer, achiever) && !viewer.equals(achiever))
+                        .toList()
+        ).sendMessage(message);
+        addPointsMessage(points, achiever, message);
+    }
+    
+    /**
+     * New method to send messages only to participants who want to see this achiever's
+     * checkpoint notification (Same as
+     * {@link #messageParticipantsWithNotifications(int, Component, ParkourParticipant)}
+     * but without showing any points to the achiever.)
      * @param message the message to send
      * @param achiever the participant who reached a checkpoint, and is sending this notification
      */
